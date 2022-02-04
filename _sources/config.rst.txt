@@ -3,18 +3,8 @@ Configuration
 
 Configuration is handled with :code:`ade.Config` and can be modified for full
 customization of the calculations. By default, high-level optimisations are
-performed at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP. To
-edit the default configuration permanently edit the config file, the location
-of which can be accessed with:
+performed at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP.
 
-.. code-block:: python
-
-    >>> import autode as ade
-    >>> ade.config.location
-    '/a/path/.../lib/python3.X/site-packages/autode.../autode/config.py'
-
-
-------------
 
 Calculations
 ------------
@@ -23,8 +13,8 @@ General
 *******
 
 The high-level electronic structure code defaults to the first available
-from {ORCA, Gaussian09, Gaussian16, NWChem} and the low-level from {XTB, MOPAC}.
-To select Gaussian09 as the high-level method:
+from {ORCA, Gaussian09, Gaussian16, NWChem, QChem} and the low-level from
+{XTB, MOPAC}. To select Gaussian09 as the high-level method:
 
 .. code-block:: python
 
@@ -75,7 +65,7 @@ Alternatively, reassign to a whole new set of keywords:
 
 .. code-block:: python
 
-  >>> ade.Config.ORCA.keywords.sp = ade.SinglePointKeywords(['SP', 'B3LYP', 'def2-TZVP'])
+  >>> ade.Config.ORCA.keywords.sp = ['SP', 'B3LYP', 'def2-TZVP']
 
 
 To add diffuse functions with the *ma* scheme to the def2-SVP default
@@ -100,12 +90,12 @@ and some default options. Note that the string to call `xtb-gaussian` will need 
 
 .. code-block:: python
 
-  >>> ade.Config.G16.keywords.sp = ade.SinglePointKeywords(["External='xtb-gaussian'", "IOp(3/5=30)"])
-  >>> ade.Config.G16.keywords.low_opt = ade.OptKeywords(["External='xtb-gaussian'", "Opt(Loose, NoMicro)", "IOp(3/5=30)"])
-  >>> ade.Config.G16.keywords.opt = ade.OptKeywords(["External='xtb-gaussian'", "Opt(NoMicro)", "IOp(3/5=30)"])
-  >>> ade.Config.G16.keywords.opt_ts = ade.OptKeywords(["External='xtb-gaussian'", "Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, NoMicro)", "IOp(3/5=30)"])
-  >>> ade.Config.G16.keywords.hess = ade.HessianKeywords(["External='xtb-gaussian'", "Freq", "Geom(Redundant)", "IOp(3/5=30)"])
-  >>> ade.Config.G16.keywords.grad = ade.GradientKeywords(["External='xtb-gaussian'", 'Force(NoStep)', "IOp(3/5=30)"])
+  >>> ade.Config.G16.keywords.sp = ["External='xtb-gaussian'", "IOp(3/5=30)"]
+  >>> ade.Config.G16.keywords.low_opt = ["External='xtb-gaussian'", "Opt(Loose, NoMicro)", "IOp(3/5=30)"]
+  >>> ade.Config.G16.keywords.opt = ["External='xtb-gaussian'", "Opt(NoMicro)", "IOp(3/5=30)"]
+  >>> ade.Config.G16.keywords.opt_ts = ["External='xtb-gaussian'", "Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, NoMicro)", "IOp(3/5=30)"]
+  >>> ade.Config.G16.keywords.hess = ["External='xtb-gaussian'", "Freq", "Geom(Redundant)", "IOp(3/5=30)"]
+  >>> ade.Config.G16.keywords.grad = ["External='xtb-gaussian'", 'Force(NoStep)', "IOp(3/5=30)"]
 
 ------------
 

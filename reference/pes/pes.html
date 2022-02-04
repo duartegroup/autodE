@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PES &#8212; autodE  documentation</title>
+    <title>Potential Energy Surfaces &#8212; autodE  documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet">
   <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
@@ -32,10 +32,11 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="PES 1D" href="pes_1d.html" />
-    <link rel="prev" title="Min Energy Pathway" href="min_energy_pathway.html" />
+    <link rel="next" title="Min Energy Pathway" href="mep.html" />
+    <link rel="prev" title="PES" href="index.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -150,29 +151,14 @@
      </i>
     </label>
     <ul class="current">
-     <li class="toctree-l3">
-      <a class="reference internal" href="min_energy_pathway.html">
-       Min Energy Pathway
-      </a>
-     </li>
      <li class="toctree-l3 current active">
       <a class="current reference internal" href="#">
-       PES
+       Potential Energy Surfaces
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="pes_1d.html">
-       PES 1D
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="pes_2d.html">
-       PES 2D
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="saddle_points.html">
-       Saddle Points
+      <a class="reference internal" href="mep.html">
+       Min Energy Pathway
       </a>
      </li>
     </ul>
@@ -261,6 +247,11 @@
        Solvents
       </a>
      </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../solvent/explicit_solvent.html">
+       Explicit Solvent
+      </a>
+     </li>
     </ul>
    </li>
    <li class="toctree-l2 has-children">
@@ -291,11 +282,43 @@
     </ul>
    </li>
    <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../transition_states/index.html">
-     Transition States
+    <a class="reference internal" href="../neb/index.html">
+     Nudged elastic band
     </a>
     <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
     <label for="toctree-checkbox-8">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/neb.html">
+       NEB Transition states
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/original.html">
+       Original NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/ci.html">
+       Climbing image NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/idpp.html">
+       Image dependent pair potential
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../transition_states/index.html">
+     Transition States
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+    <label for="toctree-checkbox-9">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -336,8 +359,8 @@
     <a class="reference internal" href="../thermochemistry/index.html">
      Thermochemistry
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
-    <label for="toctree-checkbox-9">
+    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <label for="toctree-checkbox-10">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -358,8 +381,8 @@
     <a class="reference internal" href="../wrappers/index.html">
      Wrappers
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
-    <label for="toctree-checkbox-10">
+    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+    <label for="toctree-checkbox-11">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -397,6 +420,28 @@
      <li class="toctree-l3">
       <a class="reference internal" href="../wrappers/xtb.html">
        XTB
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../opt/index.html">
+     Optimisation
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
+    <label for="toctree-checkbox-12">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../opt/coordinates.html">
+       Coordinates
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../opt/optimisers.html">
+       Optimisers
       </a>
      </li>
     </ul>
@@ -492,8 +537,8 @@
   <a class="reference internal" href="../../examples/index.html">
    Examples
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
-  <label for="toctree-checkbox-11">
+  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
+  <label for="toctree-checkbox-13">
    <i class="fas fa-chevron-down">
    </i>
   </label>
@@ -506,6 +551,11 @@
    <li class="toctree-l2">
     <a class="reference internal" href="../../examples/molecules.html">
      Molecules
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/reactions.html">
+     Reactions
     </a>
    </li>
    <li class="toctree-l2">
@@ -554,6 +604,33 @@
   <a class="reference internal" href="../../changelog.html">
    Changelog
   </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../dev/index.html">
+   Development
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/>
+  <label for="toctree-checkbox-14">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/overview.html">
+     Code Structure
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/contributing.html">
+     Contributing to autodE
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/adding_est.html">
+     Adding QM Wrappers
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1">
   <a class="reference internal" href="../../citation.html">
@@ -638,7 +715,7 @@
         <div class="col-12 col-md-9 pl-md-3 pr-md-0">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>PES</h1>
+                <h1>Potential Energy Surfaces</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -649,97 +726,260 @@
             
               <div>
                 
-  <div class="section" id="module-autode.pes.pes">
-<span id="pes"></span><h1>PES<a class="headerlink" href="#module-autode.pes.pes" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-autode.pes.pes_nd">
+<span id="potential-energy-surfaces"></span><h1>Potential Energy Surfaces<a class="headerlink" href="#module-autode.pes.pes_nd" title="Permalink to this headline">¶</a></h1>
+<p>Potential energy surface in N-dimensions (distances), enables parallel
+calculations over the grid of points, location of saddle points in the
+surface and connecting minima and saddle points</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="autode.pes.pes.PES">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.pes.pes.</span></span><span class="sig-name descname"><span class="pre">PES</span></span><a class="headerlink" href="#autode.pes.pes.PES" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt class="sig sig-object py" id="autode.pes.pes.PES.calculate">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.calculate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate all energies and optimised geometries on the surface</p>
-</dd></dl>
-
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.pes.pes_nd.</span></span><span class="sig-name descname"><span class="pre">PESnD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.species.Species</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_rounding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_nd.PESnD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Potential energy surface (PES) in N-dimensions</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.pes.pes.PES.get_species_saddle_point">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_species_saddle_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the autode.species.Species at the saddle point</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.pes.pes.PES.products_made">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">products_made</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.PES.products_made" title="Permalink to this definition">¶</a></dt>
-<dd><p>Have the products been made somewhere on the surface?</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="autode.pes.pes.PES.rs">
-<span class="sig-name descname"><span class="pre">rs</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.pes.pes.PES.rs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="autode.pes.pes.PES.rs_idxs">
-<span class="sig-name descname"><span class="pre">rs_idxs</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.pes.pes.PES.rs_idxs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="autode.pes.pes.PES.species">
-<span class="sig-name descname"><span class="pre">species</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.pes.pes.PES.species" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.pes.pes.get_closest_species">
-<span class="sig-prename descclassname"><span class="pre">autode.pes.pes.</span></span><span class="sig-name descname"><span class="pre">get_closest_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.get_closest_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a point on an n-dimensional potential energy surface defined by
-indices where the length is the dimension of the surface</p>
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.species.Species</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_rounding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes_nd.PESnD.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>N-dimensional PES for a species in a number of distances, defined by
+the ‘rs’ dictionary containing atom pairs and distances</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pes</strong> (<em>autode.pes.PES</em>) – Potential energy surface</p></li>
-<li><p><strong>point</strong> (<em>tuple</em>) – Index of the current point</p></li>
+<li><p><strong>species</strong> – Initial species which to evaluate from</p></li>
+<li><p><strong>rs</strong> – Dictionary of atom indexes (indexed from 0) with associated
+either initial and final, or just final distances. If
+undefined the initial distances are just their current
+values.</p></li>
+<li><p><strong>allow_rounding</strong> – Allow rounding of a step-size to support an
+integer number of steps between the initial and
+final distances</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Species</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(autode.species.Species)</p>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.pes.pes.get_point_species">
-<span class="sig-prename descclassname"><span class="pre">autode.pes.pes.</span></span><span class="sig-name descname"><span class="pre">get_point_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_constraints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.pes.get_point_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>On a PES calculate the energy and the structure using a constrained
-optimisation</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.calculate">
+<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.wrappers.ElectronicStructureMethod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.pes.pes_nd.PESnD.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the surface by running calculations over each structure on
+the surface. Requires the PES to be initialised with a species</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>point</strong> (<em>tuple</em><em>(</em><em>int</em><em>)</em>) – Index of this point e.g. (0, 0) for the first point
-on a 2D surface</p></li>
-<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>distance_constraints</strong> (<em>dict</em>) – Keyed with atom indexes and the constraint
-value as the value</p></li>
-<li><p><strong>name</strong> (<em>str</em>) – </p></li>
-<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
-<li><p><strong>keywords</strong> (<a class="reference internal" href="../wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><em>autode.wrappers.keywords.Keywords</em></a>) – </p></li>
-<li><p><strong>n_cores</strong> (<em>int</em>) – Number of cores to used for this calculation</p></li>
+<li><p><strong>method</strong> – Method to use</p></li>
+<li><p><strong>keywords</strong> – Keywords to use. If None then will use method.keywords.sp
+for an unrelaxed or method.keywords.opt for a relaxed</p></li>
+<li><p><strong>n_cores</strong> – Number of cores. If None then use ade.Config.n_cores</p></li>
 </ul>
 </dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>energy_threshold</strong> (<em>float</em>) – Above this energy (Ha) the calculation
-will be disregarded</p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Species</p>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.pes.pes_nd.PESnD.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the energies, derivatives of, and coordinates on this surface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.from_file">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.pes.pes_nd.PESnD" title="autode.pes.pes_nd.PESnD"><span class="pre">autode.pes.pes_nd.PESnD</span></a></span></span><a class="headerlink" href="#autode.pes.pes_nd.PESnD.from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a potential energy surface from a compressed numpy file (.npz)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> – Name of the file to load</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(autode.species.Species)</p>
+<dd class="field-even"><p>(<a class="reference internal" href="#autode.pes.pes_nd.PESnD" title="autode.pes.pes_nd.PESnD">autode.pes.pes_nd.PESnD</a>)</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.pes.pes_nd.PESnD.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a PES from a saved numpy file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> – </p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>FileNotFoundError</strong><strong>)</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.ndim">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.pes.pes_nd.PESnD.ndim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of dimensions in this PES</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.origin">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">origin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.pes.pes_nd.PESnD.origin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tuple of the origin e.g. (0,) in 1D and (0, 0, 0) in 3D</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(tuple(int, …))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'PES.pdf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interp_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'kcal</span> <span class="pre">mol-1'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.pes.pes_nd.PESnD.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot this PES along a number of dimensions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> – Name of the file to save, type inferred from extension.
+If None then return .show() on the matplotlib plot</p></li>
+<li><p><strong>interp_factor</strong> – Factor by which to interpolate the surface with,
+if 0 (the default) then no interpolation is used</p></li>
+<li><p><strong>units</strong> – Units of the surface. One of {‘Ha’, ‘eV’, ‘kcal’, ‘kJ’}</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.relative_energies">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">relative_energies</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.EnergyArray" title="autode.values.EnergyArray"><span class="pre">autode.values.EnergyArray</span></a></em><a class="headerlink" href="#autode.pes.pes_nd.PESnD.relative_energies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Relative energies on this PES</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Numpy array of energies</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(<a class="reference internal" href="../values.html#autode.values.EnergyArray" title="autode.values.EnergyArray">autode.values.EnergyArray</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.pes.pes_nd.PESnD.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the PES as a text file (.txt) or compressed numpy file (.npz). If
+.npz then re-loading is possible, either into a PES or otherwise in
+pure numpy. If .txt then will save only the energies in units of
+Hartrees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> – Name of the file to save. (.txt or .npz) If unknown
+extension .npz will be added</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.pes.pes_nd.PESnD.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.pes.pes_nd.PESnD.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of the surface, which is the number of points in each dimension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(tuple(int, …))</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<hr class="docutils" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-autode.pes.reactive"></span><p>‘Reactive’ potential energy surfaces that have support for saddle point
+and transition state guess finding</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.pes.reactive.ReactivePESnD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.pes.reactive.</span></span><span class="sig-name descname"><span class="pre">ReactivePESnD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_rounding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.reactive.ReactivePESnD" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.reactive.ReactivePESnD.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_rounding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.reactive.ReactivePESnD.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reactive potential energy surface in N-dimensions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species</strong> – Species from which to perform the PES exploration</p></li>
+<li><p><strong>rs</strong> – Set of atom index pairs defining distances, along with a
+representation of what values they should take in the scan</p></li>
+<li><p><strong>allow_rounding</strong> – Allow rounding of the step size, if required</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.reactive.ReactivePESnD._set_gradients">
+<span class="sig-name descname"><span class="pre">_set_gradients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.pes.reactive.ReactivePESnD._set_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the numerical gradient for each point on the surface, in each
+dimension.</p>
+<div class="math notranslate nohighlight">
+\[\frac{\text{d}E}{\text{d}r_i}
+= \frac{E(R + \Delta r) - E(R - \Delta r)}{\Delta r}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta r\)</span> is the difference between two points on
+the surface and <span class="math notranslate nohighlight">\(R\)</span> is the nuclear positions, <span class="math notranslate nohighlight">\(r_i\)</span> is a
+dimension on the dimension on the surface. If possible, central
+differences are used otherwise forwards or backwards finite differences
+are used. If neither possible then the gradient is set as np.nan</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.pes.reactive.ReactivePESnD.ts_guesses">
+<span class="sig-name descname"><span class="pre">ts_guesses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">product:</span> <span class="pre">typing.Optional[autode.species.Species]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_separation:</span> <span class="pre">autode.values.Distance</span> <span class="pre">=</span> <span class="pre">Distance(0.5</span> <span class="pre">Å)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../transition_states/ts_guess.html#autode.transition_states.ts_guess.TSguess" title="autode.transition_states.ts_guess.TSguess"><span class="pre">autode.transition_states.ts_guess.TSguess</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.pes.reactive.ReactivePESnD.ts_guesses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate TS guesses from the saddle points in the energy on this
+surface. Only those that are seperated by at least min_separation will
+be yielded in order of increasing energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>product</strong> – </p></li>
+<li><p><strong>min_separation</strong> – Minimum separation on the surface between TS guess
+structures.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>(autode.transition_states.ts_guess.TSguess)</em></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<hr class="docutils" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-autode.pes.relaxed"></span><dl class="py class">
+<dt class="sig sig-object py" id="autode.pes.relaxed.RelaxedPESnD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.pes.relaxed.</span></span><span class="sig-name descname"><span class="pre">RelaxedPESnD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_rounding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.relaxed.RelaxedPESnD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Potential energy surface over a set of distances, where all other
+degrees of freedom are minimised</p>
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<hr class="docutils" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-autode.pes.unrelaxed"></span><p>Unrelaxed potential energy surfaces</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.pes.unrelaxed.UnRelaxedPES1D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.pes.unrelaxed.</span></span><span class="sig-name descname"><span class="pre">UnRelaxedPES1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_rounding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.unrelaxed.UnRelaxedPES1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>1D potential energy surface without minimising other degrees of freedom.
+Only supports over bonds</p>
 </dd></dl>
 
 </div>
@@ -750,17 +990,17 @@ will be disregarded</p>
             
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'> 
-    <a class='left-prev' id="prev-link" href="min_energy_pathway.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Min Energy Pathway</p>
+            <p class="prev-next-title">PES</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="pes_1d.html" title="next page">
+    <a class='right-next' id="next-link" href="mep.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">PES 1D</p>
+        <p class="prev-next-title">Min Energy Pathway</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

@@ -2,6 +2,65 @@ Changelog
 =========
 
 
+1.2.0
+--------
+----------
+
+Adds optimisation algorithms experimental explicit solvation, improves potential energy surface
+module as well as an array of usability improvements.
+
+
+Usability improvements/Changes
+******************************
+- Adds more type hints and documentation
+- Updates the TS template saved in the default template library
+- Adds a setter for :code:`autode.species.Species.solvent` so :code:`mol.solvent = 'water'` will assign a :code:`autode.solvent.Solvent`
+- Removes :code:`autode.calculation.CalculationInput.solvent` as an attribute in favour of using the molecule's solvent
+- Removes :code:`autode.calculation.get_solvent_name` in favour of a molecule check
+- Removes :code:`autode.species.molecule.reactant_to_product` in favour of a :code:`to_product()` method for :code:`autode.species.molecule.Reactant` (and likewise with a Reactant)
+- Removes partially implemented :code:`autode.species.molecule.SolvatedMolecule` and :code:`autode.species.complex.SolvatedReactantComplex` as the type of solvation (implicit/explicit) should be a property of the solvent and not the molecule
+- Removes :code:`autode.reactions.Reaction.calc_deltaXXX` in favour of :code:`autode.reactions.Reaction.delta()`
+- Refactors classes to place constructors at the top
+- Removes :code:`autode.values.PlottedEnergy` as an estimated attribute is useful for all energies, not just those that are plotted
+- Removes :code:`autode.reactions.Reaction.find_lowest_energy_ts` as the function is not well named and can be replaced by a :code:`autode.reactions.Reaction.ts` property
+- Adds :code:`autode.transition_states.TransitionStates` as a wrapper for TSs, much like :code:`autode.conformers.Conformers`
+- Updates :code:`autode.solvent.solvents.get_solvent` to require specifying either an implicit or explicit solvent
+- Improves validation of distance constraints and adds invariance to the key order i.e. :code:`autode.constraints.distance[(0, 1)] == autode.constraints.distance[(1, 0)]`
+- Removes :code:`autode.KcalMol` and :code:`KjMol` and enables a reaction to be plotted using a string representation of the units.
+- Allows for keywords to be set using just a list or a string, rather than requiring a specific type
+- Changes :code:`autode.wrappers.keywords.Keyword.has_only_name` to a property
+- Modifies the constructor of :code:`autode.species.molecule.Molecule` to allow for a name to be specified when initialising from a .xyz file
+- Modifies :code:`autode.calculation.Calculation.get_energy` to raise an exception if the energy cannot be extracted
+- Adds a runtime error if e.g. :code:`autode.calculation.Calculation.get_energy` is called on a calculation that has not been run
+- Skips low-level adaptive path searching if the high and low-level methods are identical (when XTB or MOPAC are not installed)
+
+
+Functionality improvements
+**************************
+
+- Adds a selection of molecule optimisers to locate minima and transition states
+- Refactors :code:`autode.smiles.angles` to use unique class names (preventing overlap with e.g. :code:`autode.values.Angle`)
+- Adds a :code:`autode.solvent.Solvent.dielectric` property for a solvent's dielectric constant
+- Adds a :code:`autode.solvent.Solvent.is_implicit` property
+- Adds methods (e.g. translate and rotate) to :code:`autode.point_charges.PointCharge`
+- Adds checking that both high and low-level electronic structure methods are available before running :code:`autode.reaction.Reaction.calculate_reaction_profile` or :code:`calculate_reaction_profile`
+- Adds a more robust explicit solvation generation (:code:`autode.species.molecule.Molecule.explicitly_solvate()`)
+- Removes criteria on using a TS template with large distance differences between the structure and the template in favour of running sequential constrained optimisations to the required point
+- Rewrites :code:`autode.pes` into a consistent module while maintaining much of the functionality. Simplifies the interface
+- Adds a QChem electronic structure method wrapper
+- Adds :code:`autode.species.Species.calc_hessian` to calculate either an analytic or numerical Hessian (in parallel)
+- Adds image dependent pair potential (IDPP) relaxation improved interpolated geometries
+- Adds :code:`autode.hessians.HybridHessianCalculator` to calculate numerical Hessians at two levels of theory
+
+
+Bug Fixes
+*********
+
+- Updates the TS template saved in the default template library
+- Reloads output file lines from a failed then re-run calculation
+- Fixes Hessian extractions from some Gaussian output files
+
+
 1.1.3
 --------
 ----------

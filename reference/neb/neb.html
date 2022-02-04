@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Saddle Points &#8212; autodE  documentation</title>
+    <title>NEB Transition states &#8212; autodE  documentation</title>
     
   <link href="../../_static/css/theme.css" rel="stylesheet">
   <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
@@ -34,8 +34,8 @@
     <script src="../../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Reactions" href="../reactions/index.html" />
-    <link rel="prev" title="PES 2D" href="pes_2d.html" />
+    <link rel="next" title="Original NEB" href="original.html" />
+    <link rel="prev" title="Nudged elastic band" href="index.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -140,39 +140,24 @@
      </li>
     </ul>
    </li>
-   <li class="toctree-l2 current active has-children">
-    <a class="reference internal" href="index.html">
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../pes/index.html">
      PES
     </a>
-    <input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
     <label for="toctree-checkbox-3">
      <i class="fas fa-chevron-down">
      </i>
     </label>
-    <ul class="current">
+    <ul>
      <li class="toctree-l3">
-      <a class="reference internal" href="min_energy_pathway.html">
+      <a class="reference internal" href="../pes/pes.html">
+       Potential Energy Surfaces
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../pes/mep.html">
        Min Energy Pathway
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="pes.html">
-       PES
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="pes_1d.html">
-       PES 1D
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="pes_2d.html">
-       PES 2D
-      </a>
-     </li>
-     <li class="toctree-l3 current active">
-      <a class="current reference internal" href="#">
-       Saddle Points
       </a>
      </li>
     </ul>
@@ -261,6 +246,11 @@
        Solvents
       </a>
      </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../solvent/explicit_solvent.html">
+       Explicit Solvent
+      </a>
+     </li>
     </ul>
    </li>
    <li class="toctree-l2 has-children">
@@ -290,12 +280,44 @@
      </li>
     </ul>
    </li>
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="index.html">
+     Nudged elastic band
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
+    <label for="toctree-checkbox-8">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       NEB Transition states
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="original.html">
+       Original NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="ci.html">
+       Climbing image NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="idpp.html">
+       Image dependent pair potential
+      </a>
+     </li>
+    </ul>
+   </li>
    <li class="toctree-l2 has-children">
     <a class="reference internal" href="../transition_states/index.html">
      Transition States
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
-    <label for="toctree-checkbox-8">
+    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+    <label for="toctree-checkbox-9">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -336,8 +358,8 @@
     <a class="reference internal" href="../thermochemistry/index.html">
      Thermochemistry
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
-    <label for="toctree-checkbox-9">
+    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <label for="toctree-checkbox-10">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -358,8 +380,8 @@
     <a class="reference internal" href="../wrappers/index.html">
      Wrappers
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
-    <label for="toctree-checkbox-10">
+    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+    <label for="toctree-checkbox-11">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -397,6 +419,28 @@
      <li class="toctree-l3">
       <a class="reference internal" href="../wrappers/xtb.html">
        XTB
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../opt/index.html">
+     Optimisation
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
+    <label for="toctree-checkbox-12">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../opt/coordinates.html">
+       Coordinates
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../opt/optimisers.html">
+       Optimisers
       </a>
      </li>
     </ul>
@@ -492,8 +536,8 @@
   <a class="reference internal" href="../../examples/index.html">
    Examples
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
-  <label for="toctree-checkbox-11">
+  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
+  <label for="toctree-checkbox-13">
    <i class="fas fa-chevron-down">
    </i>
   </label>
@@ -506,6 +550,11 @@
    <li class="toctree-l2">
     <a class="reference internal" href="../../examples/molecules.html">
      Molecules
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/reactions.html">
+     Reactions
     </a>
    </li>
    <li class="toctree-l2">
@@ -554,6 +603,33 @@
   <a class="reference internal" href="../../changelog.html">
    Changelog
   </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../dev/index.html">
+   Development
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/>
+  <label for="toctree-checkbox-14">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/overview.html">
+     Code Structure
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/contributing.html">
+     Contributing to autodE
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/adding_est.html">
+     Adding QM Wrappers
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1">
   <a class="reference internal" href="../../citation.html">
@@ -606,7 +682,7 @@
         <!-- ipynb file if we had a myst markdown file -->
         
         <!-- Download raw file -->
-        <a class="dropdown-buttons" href="../../_sources/reference/pes/saddle_points.rst.txt"><button type="button"
+        <a class="dropdown-buttons" href="../../_sources/reference/neb/neb.rst.txt"><button type="button"
                 class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
                 data-placement="left">.rst</button></a>
         <!-- Download PDF via print -->
@@ -638,7 +714,7 @@
         <div class="col-12 col-md-9 pl-md-3 pr-md-0">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
-                <h1>Saddle Points</h1>
+                <h1>NEB Transition states</h1>
                 <!-- Table of contents -->
                 <div id="print-main-content">
                     <div id="jb-print-toc">
@@ -649,78 +725,31 @@
             
               <div>
                 
-  <div class="section" id="module-autode.pes.saddle_points">
-<span id="saddle-points"></span><h1>Saddle Points<a class="headerlink" href="#module-autode.pes.saddle_points" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-autode.neb.neb">
+<span id="neb-transition-states"></span><h1>NEB Transition states<a class="headerlink" href="#module-autode.neb.neb" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="autode.pes.saddle_points.get_sorted_saddlepoints">
-<span class="sig-prename descclassname"><span class="pre">autode.pes.saddle_points.</span></span><span class="sig-name descname"><span class="pre">get_sorted_saddlepoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">saddle_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.saddle_points.get_sorted_saddlepoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the list of saddle points ordered by their distance from the (x, y)
-mid-point</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.pes.saddle_points.get_unique_stationary_points">
-<span class="sig-prename descclassname"><span class="pre">autode.pes.saddle_points.</span></span><span class="sig-name descname"><span class="pre">get_unique_stationary_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationary_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.saddle_points.get_unique_stationary_points" title="Permalink to this definition">¶</a></dt>
-<dd><p>Strip all points that are close to each other</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.pes.saddle_points.is_saddle_point">
-<span class="sig-prename descclassname"><span class="pre">autode.pes.saddle_points.</span></span><span class="sig-name descname"><span class="pre">is_saddle_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xy_point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_mat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.saddle_points.is_saddle_point" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates whether a point (x, y) is a saddle point by computing</p>
-<p>delta = ((d2f/dx2)*(d2f/dy2) - (d2f/dxdy)**2)</p>
+<dt class="sig sig-object py" id="autode.neb.neb.get_ts_guess_neb">
+<span class="sig-prename descclassname"><span class="pre">autode.neb.neb.</span></span><span class="sig-name descname"><span class="pre">get_ts_guess_neb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'neb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.neb.get_ts_guess_neb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a transition state guess using a nudged elastic band calculation. The
+geometry of the reactant is used as the fixed initial point and the final
+product geometry generated by driving a linear path to products, which is
+used as the initial guess for the NEB images</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>coeff_mat</strong> (<em>np.array</em>) – Matrix of the coefficients of the n order
-polynomial (n x n)</p></li>
-<li><p><strong>xy_point</strong> (<em>tuple</em>) – the stationary point to be examined</p></li>
+<li><p><strong>reactant</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>product</strong> (<em>autode.species.Species</em>) – </p></li>
+<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(bool)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.pes.saddle_points.poly2d_saddlepoints">
-<span class="sig-prename descclassname"><span class="pre">autode.pes.saddle_points.</span></span><span class="sig-name descname"><span class="pre">poly2d_saddlepoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coeff_mat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.saddle_points.poly2d_saddlepoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the saddle points of a 2d surface defined by a matrix of coefficients</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>coeff_mat</strong> (<em>np.array</em>) – Matrix of coefficients of the n order polynomial</p></li>
-<li><p><strong>xs</strong> (<em>float</em><em>) </em><em>(</em><em>np.ndarray</em>) – 1D</p></li>
-<li><p><strong>ys</strong> (<em>float</em><em>) </em><em>(</em><em>np.ndarray</em>) – 1D</p></li>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – </p></li>
+<li><p><strong>n</strong> (<em>int</em>) – Number of images to use in the NEB</p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>list of saddle points</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.pes.saddle_points.sum_squared_xy_derivative">
-<span class="sig-prename descclassname"><span class="pre">autode.pes.saddle_points.</span></span><span class="sig-name descname"><span class="pre">sum_squared_xy_derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xy_point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff_mat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.pes.saddle_points.sum_squared_xy_derivative" title="Permalink to this definition">¶</a></dt>
-<dd><p>For a coordinate, and function, finds df/dx and df/dy and returns the
-sum of the squares</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>xy_point</strong> (<em>tuple</em>) – (x,y)</p></li>
-<li><p><strong>coeff_mat</strong> (<em>np.array</em>) – Matrix of coefficients of the n order polynomial</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>(df/dx + df/dy)^2 where at a stationary point ~ 0</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float)</p>
+<dd class="field-odd"><p>(<a class="reference internal" href="../transition_states/ts_guess.html#autode.transition_states.ts_guess.TSguess" title="autode.transition_states.ts_guess.TSguess">autode.transition_states.ts_guess.TSguess</a>) or None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -733,17 +762,17 @@ sum of the squares</p>
             
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'> 
-    <a class='left-prev' id="prev-link" href="pes_2d.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">PES 2D</p>
+            <p class="prev-next-title">Nudged elastic band</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="../reactions/index.html" title="next page">
+    <a class='right-next' id="next-link" href="original.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Reactions</p>
+        <p class="prev-next-title">Original NEB</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

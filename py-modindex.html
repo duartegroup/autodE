@@ -152,28 +152,13 @@
     </label>
     <ul>
      <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/min_energy_pathway.html">
-       Min Energy Pathway
-      </a>
-     </li>
-     <li class="toctree-l3">
       <a class="reference internal" href="reference/pes/pes.html">
-       PES
+       Potential Energy Surfaces
       </a>
      </li>
      <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/pes_1d.html">
-       PES 1D
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/pes_2d.html">
-       PES 2D
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/saddle_points.html">
-       Saddle Points
+      <a class="reference internal" href="reference/pes/mep.html">
+       Min Energy Pathway
       </a>
      </li>
     </ul>
@@ -262,6 +247,11 @@
        Solvents
       </a>
      </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="reference/solvent/explicit_solvent.html">
+       Explicit Solvent
+      </a>
+     </li>
     </ul>
    </li>
    <li class="toctree-l2 has-children">
@@ -292,11 +282,43 @@
     </ul>
    </li>
    <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/transition_states/index.html">
-     Transition States
+    <a class="reference internal" href="reference/neb/index.html">
+     Nudged elastic band
     </a>
     <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
     <label for="toctree-checkbox-8">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="reference/neb/neb.html">
+       NEB Transition states
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="reference/neb/original.html">
+       Original NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="reference/neb/ci.html">
+       Climbing image NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="reference/neb/idpp.html">
+       Image dependent pair potential
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="reference/transition_states/index.html">
+     Transition States
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+    <label for="toctree-checkbox-9">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -337,8 +359,8 @@
     <a class="reference internal" href="reference/thermochemistry/index.html">
      Thermochemistry
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
-    <label for="toctree-checkbox-9">
+    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <label for="toctree-checkbox-10">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -359,8 +381,8 @@
     <a class="reference internal" href="reference/wrappers/index.html">
      Wrappers
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
-    <label for="toctree-checkbox-10">
+    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+    <label for="toctree-checkbox-11">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -398,6 +420,28 @@
      <li class="toctree-l3">
       <a class="reference internal" href="reference/wrappers/xtb.html">
        XTB
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="reference/opt/index.html">
+     Optimisation
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
+    <label for="toctree-checkbox-12">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="reference/opt/coordinates.html">
+       Coordinates
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="reference/opt/optimisers.html">
+       Optimisers
       </a>
      </li>
     </ul>
@@ -493,8 +537,8 @@
   <a class="reference internal" href="examples/index.html">
    Examples
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
-  <label for="toctree-checkbox-11">
+  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
+  <label for="toctree-checkbox-13">
    <i class="fas fa-chevron-down">
    </i>
   </label>
@@ -507,6 +551,11 @@
    <li class="toctree-l2">
     <a class="reference internal" href="examples/molecules.html">
      Molecules
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="examples/reactions.html">
+     Reactions
     </a>
    </li>
    <li class="toctree-l2">
@@ -555,6 +604,33 @@
   <a class="reference internal" href="changelog.html">
    Changelog
   </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="dev/index.html">
+   Development
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/>
+  <label for="toctree-checkbox-14">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dev/overview.html">
+     Code Structure
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dev/contributing.html">
+     Contributing to autodE
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dev/adding_est.html">
+     Adding QM Wrappers
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1">
   <a class="reference internal" href="citation.html">
@@ -733,27 +809,112 @@
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
-       <a href="reference/pes/min_energy_pathway.html#module-autode.pes.min_energy_pathway"><code class="xref">autode.pes.min_energy_pathway</code></a></td><td>
+       <a href="reference/neb/ci.html#module-autode.neb.ci"><code class="xref">autode.neb.ci</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
-       <a href="reference/pes/pes.html#module-autode.pes.pes"><code class="xref">autode.pes.pes</code></a></td><td>
+       <a href="reference/neb/idpp.html#module-autode.neb.idpp"><code class="xref">autode.neb.idpp</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
-       <a href="reference/pes/pes_1d.html#module-autode.pes.pes_1d"><code class="xref">autode.pes.pes_1d</code></a></td><td>
+       <a href="reference/neb/neb.html#module-autode.neb.neb"><code class="xref">autode.neb.neb</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
-       <a href="reference/pes/pes_2d.html#module-autode.pes.pes_2d"><code class="xref">autode.pes.pes_2d</code></a></td><td>
+       <a href="reference/neb/original.html#module-autode.neb.original"><code class="xref">autode.neb.original</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
-       <a href="reference/pes/saddle_points.html#module-autode.pes.saddle_points"><code class="xref">autode.pes.saddle_points</code></a></td><td>
+       <a href="reference/opt/coordinates.html#module-autode.opt.coordinates.base"><code class="xref">autode.opt.coordinates.base</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/coordinates.html#module-autode.opt.coordinates.cartesian"><code class="xref">autode.opt.coordinates.cartesian</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/coordinates.html#module-autode.opt.coordinates.dic"><code class="xref">autode.opt.coordinates.dic</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/coordinates.html#module-autode.opt.coordinates.dimer"><code class="xref">autode.opt.coordinates.dimer</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/coordinates.html#module-autode.opt.coordinates.primitives"><code class="xref">autode.opt.coordinates.primitives</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.base"><code class="xref">autode.opt.optimisers.base</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.bfgs"><code class="xref">autode.opt.optimisers.bfgs</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.dimer"><code class="xref">autode.opt.optimisers.dimer</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.hessian_update"><code class="xref">autode.opt.optimisers.hessian_update</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.line_search"><code class="xref">autode.opt.optimisers.line_search</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.prfo"><code class="xref">autode.opt.optimisers.prfo</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.rfo"><code class="xref">autode.opt.optimisers.rfo</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/opt/optimisers.html#module-autode.opt.optimisers.trust_region"><code class="xref">autode.opt.optimisers.trust_region</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/pes/mep.html#module-autode.pes.mep"><code class="xref">autode.pes.mep</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/pes/pes.html#module-autode.pes.pes_nd"><code class="xref">autode.pes.pes_nd</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/pes/pes.html#module-autode.pes.reactive"><code class="xref">autode.pes.reactive</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/pes/pes.html#module-autode.pes.relaxed"><code class="xref">autode.pes.relaxed</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/pes/pes.html#module-autode.pes.unrelaxed"><code class="xref">autode.pes.unrelaxed</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>
@@ -809,6 +970,11 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="reference/smiles/smiles.html#module-autode.smiles.smiles"><code class="xref">autode.smiles.smiles</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="reference/solvent/explicit_solvent.html#module-autode.solvent.explicit_solvent"><code class="xref">autode.solvent.explicit_solvent</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
        <td></td>

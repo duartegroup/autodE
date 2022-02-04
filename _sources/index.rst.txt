@@ -34,6 +34,7 @@ Documentation
    troubleshooting
    examples/index
    changelog
+   dev/index
    citation
    Paper <https://doi.org/10.1002/anie.202011941>
 

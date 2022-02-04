@@ -1,0 +1,1374 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coordinates &#8212; autodE  documentation</title>
+    
+  <link href="../../_static/css/theme.css" rel="stylesheet">
+  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-book-theme.css?digest=84ace793992934648b4de8eed757e5a2" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Optimisers" href="optimisers.html" />
+    <link rel="prev" title="Optimisation" href="index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<div class="col-12 col-md-3 bd-sidebar site-navigation " id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+      
+      
+      <h1 class="site-logo" id="site-title">autodE  documentation</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../install.html">
+   Install
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../quickstart.html">
+   Quick Start
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../config.html">
+   Configuration
+  </a>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="../index.html">
+   Reference
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="../atoms.html">
+     Atoms
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../bonds.html">
+     Bonds
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../calculation.html">
+     Calculation
+    </a>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../conformers/index.html">
+     Conformers
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <label for="toctree-checkbox-2">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../conformers/conf_gen.html">
+       Conf Gen
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../conformers/conformer.html">
+       Conformer
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../conformers/conformers.html">
+       Conformers
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../pes/index.html">
+     PES
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../pes/pes.html">
+       Potential Energy Surfaces
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../pes/mep.html">
+       Min Energy Pathway
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../reactions/index.html">
+     Reactions
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <label for="toctree-checkbox-4">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reactions/multistep.html">
+       Multistep Reaction
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reactions/reaction.html">
+       Reaction
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../reactions/reaction_types.html">
+       Reaction Types
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../smiles/index.html">
+     SMILES
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+    <label for="toctree-checkbox-5">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../smiles/smiles.html">
+       Molecules from SMILES
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../smiles/parser.html">
+       SMILES Parser
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../smiles/builder.html">
+       3D Geometry Builder
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../smiles/atom_types.html">
+       SMILES Atom Types
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../smiles/angles.html">
+       SMILES Angles
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../smiles/base.html">
+       SMILES Base
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../solvent/index.html">
+     Solvent
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+    <label for="toctree-checkbox-6">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../solvent/solvents.html">
+       Solvents
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../solvent/explicit_solvent.html">
+       Explicit Solvent
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../species/index.html">
+     Species
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+    <label for="toctree-checkbox-7">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../species/complex.html">
+       Complex
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../species/molecule.html">
+       Molecule
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../species/species.html">
+       Species
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../neb/index.html">
+     Nudged elastic band
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
+    <label for="toctree-checkbox-8">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/neb.html">
+       NEB Transition states
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/original.html">
+       Original NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/ci.html">
+       Climbing image NEB
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../neb/idpp.html">
+       Image dependent pair potential
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../transition_states/index.html">
+     Transition States
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+    <label for="toctree-checkbox-9">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../transition_states/base.html">
+       Base
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../transition_states/locate_tss.html">
+       Locate TSs
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../transition_states/templates.html">
+       Templates
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../transition_states/transition_state.html">
+       Transition State
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../transition_states/truncation.html">
+       Truncation
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../transition_states/ts_guess.html">
+       TS Guess
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../thermochemistry/index.html">
+     Thermochemistry
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <label for="toctree-checkbox-10">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../thermochemistry/igm.html">
+       Ideal gas model
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../thermochemistry/symmetry.html">
+       Symmetry
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="../wrappers/index.html">
+     Wrappers
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+    <label for="toctree-checkbox-11">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../wrappers/base.html">
+       Base
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../wrappers/g09.html">
+       Gaussian09
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../wrappers/keywords.html">
+       Keywords
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../wrappers/mopac.html">
+       MOPAC
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../wrappers/nwchem.html">
+       NWChem
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../wrappers/orca.html">
+       ORCA
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="../wrappers/xtb.html">
+       XTB
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="index.html">
+     Optimisation
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
+    <label for="toctree-checkbox-12">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
+       Coordinates
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="optimisers.html">
+       Optimisers
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../bond_rearrangement.html">
+     Bond Rearrangement
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../config.html">
+     Configuration
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../constants.html">
+     Constants
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../exceptions.html">
+     Exceptions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../geom.html">
+     Geometry
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../input_output.html">
+     Input Output
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../log.html">
+     Logging
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../methods.html">
+     Methods
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../mol_graphs.html">
+     Molecular Graphs
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../plotting.html">
+     Plotting
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../point_charges.html">
+     Point Charges
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../substitution.html">
+     Substitution
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../units.html">
+     Units
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../utils.html">
+     Utilities
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../values.html">
+     Values
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../hessians.html">
+     Hessians
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../troubleshooting.html">
+   Troubleshooting
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../examples/index.html">
+   Examples
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
+  <label for="toctree-checkbox-13">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/species.html">
+     Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/molecules.html">
+     Molecules
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/reactions.html">
+     Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/nci.html">
+     Non-covalent Interaction Complexes
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/manipulation.html">
+     Molecular Manipulation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/pes1d.html">
+     1D PES Generation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/pes2d.html">
+     2D PES Generation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/conformers.html">
+     Conformer Generation
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/rmsd.html">
+     RMSD
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/tss.html">
+     Transition States
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../examples/thermochem.html">
+     Thermochemistry
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../changelog.html">
+   Changelog
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../dev/index.html">
+   Development
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/>
+  <label for="toctree-checkbox-14">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/overview.html">
+     Code Structure
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/contributing.html">
+     Contributing to autodE
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../dev/adding_est.html">
+     Adding QM Wrappers
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../citation.html">
+   Citation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference external" href="https://doi.org/10.1002/anie.202011941">
+   Paper
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<!-- This is an invisible pixel that we watch to see if we've scrolled. -->
+<div class="sbt-scroll-pixel-helper"></div>
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            <div class="topbar-left">
+                
+                <label class="nav-toggle-button" for="__navigation">
+                    <div class="visually-hidden">Toggle navigation</div>
+                    <i class="fas fa-bars"></i>
+                </label>
+                
+            </div>
+            
+<div class="dropdown-buttons-trigger">
+    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
+            class="fas fa-download"></i></button>
+
+    <div class="dropdown-buttons">
+        <!-- ipynb file if we had a myst markdown file -->
+        
+        <!-- Download raw file -->
+        <a class="dropdown-buttons" href="../../_sources/reference/opt/coordinates.rst.txt"><button type="button"
+                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
+                data-placement="left">.rst</button></a>
+        <!-- Download PDF via print -->
+        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
+                onclick="printPdf(this)" data-toggle="tooltip" data-placement="left">.pdf</button>
+    </div>
+</div>
+
+            <!-- Source interaction buttons -->
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show noprint">
+            
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Coordinates</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                    </div>
+                </div>
+            </div>
+            
+              <div>
+                
+  <div class="section" id="module-autode.opt.coordinates.base">
+<span id="coordinates"></span><h1>Coordinates<a class="headerlink" href="#module-autode.opt.coordinates.base" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.CartesianComponent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.base.</span></span><span class="sig-name descname"><span class="pre">CartesianComponent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.base.CartesianComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cartesian component in 3D space</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.CartesianComponent.x">
+<span class="sig-name descname"><span class="pre">x</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#autode.opt.coordinates.base.CartesianComponent.x" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.CartesianComponent.y">
+<span class="sig-name descname"><span class="pre">y</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#autode.opt.coordinates.base.CartesianComponent.y" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.CartesianComponent.z">
+<span class="sig-name descname"><span class="pre">z</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#autode.opt.coordinates.base.CartesianComponent.z" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.base.</span></span><span class="sig-name descname"><span class="pre">OptCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../units.html#autode.units.Unit" title="autode.units.Unit"><span class="pre">autode.units.Unit</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates used to perform optimisations</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.clear_tensors">
+<span class="sig-name descname"><span class="pre">clear_tensors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.clear_tensors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for clearing the energy, gradient and Hessian for these
+coordinates. Called if the coordinates have been perturbed, making
+these quantities not accurate any more for the new coordinates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a copy of the array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>order</strong> (<em>{'C'</em><em>, </em><em>'F'</em><em>, </em><em>'A'</em><em>, </em><em>'K'}</em><em>, </em><em>optional</em>) – Controls the memory layout of the copy. ‘C’ means C-order,
+‘F’ means F-order, ‘A’ means ‘F’ if <cite>a</cite> is Fortran contiguous,
+‘C’ otherwise. ‘K’ means match the layout of <cite>a</cite> as closely
+as possible. (Note that this function and <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.copy()</span></code> are very
+similar but have different default values for their order=
+arguments, and this function always passes sub-classes through.)</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.copy</span></code></dt><dd><p>Similar function with different default behavior</p>
+</dd>
+</dl>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.copyto</span></code></p>
+</div>
+<p class="rubric">Notes</p>
+<p>This function is the preferred method for creating an array copy.  The
+function <code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.copy()</span></code> is similar, but it defaults to using order ‘K’,
+and will not pass sub-classes through by default.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]],</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">array([[0, 0, 0],</span>
+<span class="go">       [0, 0, 0]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span>
+<span class="go">array([[1, 2, 3],</span>
+<span class="go">       [4, 5, 6]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="o">.</span><span class="n">flags</span><span class="p">[</span><span class="s1">&#39;C_CONTIGUOUS&#39;</span><span class="p">]</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.e">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">e</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.e" title="Permalink to this definition">¶</a></dt>
+<dd><p>Energy</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>E</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(<a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy">PotentialEnergy</a> | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.g">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">g</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.g" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gradient of the energy</p>
+<div class="math notranslate nohighlight">
+\[G = \nabla E
+    \equiv
+    \left\{\frac{\partial E}{\partial\boldsymbol{R}_{i}}\right\}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{R}\)</span> are a general vector of coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>G</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(np.ndarray | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.h">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">h</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hessian (second derivative) matrix of the energy</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}H = \begin{pmatrix}
+    \frac{\partial^2 E}
+         {\partial\boldsymbol{R}_{0}\partial\boldsymbol{R}_{0}}
+    &amp; \cdots \\
+    \vdots &amp; \ddots
+    \end{pmatrix}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{R}\)</span> are a general vector of coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>H</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(np.ndarray | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.h_inv">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">h_inv</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.h_inv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse of the Hessian matrix</p>
+<div class="math notranslate nohighlight">
+\[H^{-1}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>H^{-1}</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(np.ndarray | None)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.h_or_h_inv_has_correct_shape">
+<span class="sig-name descname"><span class="pre">h_or_h_inv_has_correct_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.h_or_h_inv_has_correct_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does a Hessian or its inverse have the correct shape?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.iadd">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iadd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.iadd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inplace addition of some coordinates</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.implemented_units">
+<span class="sig-name descname"><span class="pre">implemented_units</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[Unit(Å),</span> <span class="pre">Unit(nm),</span> <span class="pre">Unit(pm),</span> <span class="pre">Unit(m)]</span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.implemented_units" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.make_hessian_positive_definite">
+<span class="sig-name descname"><span class="pre">make_hessian_positive_definite</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.make_hessian_positive_definite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the Hessian matrix positive definite by shifting eigenvalues</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.raw">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">raw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raw numpy array of these coordinates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.to">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation between these coordinates and another type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g">
+<span class="sig-name descname"><span class="pre">update_g_from_cart_g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Gradient" title="autode.values.Gradient"><span class="pre">autode.values.Gradient</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_atom_idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the gradient from a Cartesian gradient, zeroing those atoms
+that are constrained</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h">
+<span class="sig-name descname"><span class="pre">update_h_from_cart_h</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.values.Hessian</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_atom_idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the Hessian from a cartesian Hessian with shape 3N x 3N for
+N atoms, zeroing the second derivatives if required</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-autode.opt.coordinates.cartesian"></span><dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.cartesian.CartesianCoordinates">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.cartesian.</span></span><span class="sig-name descname"><span class="pre">CartesianCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Å'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.cartesian.CartesianCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flat Cartesian coordinates shape = (3 × n_atoms, )</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.cartesian.CartesianCoordinates.iadd">
+<span class="sig-name descname"><span class="pre">iadd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.cartesian.CartesianCoordinates.iadd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inplace addition of some coordinates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.cartesian.CartesianCoordinates.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.cartesian.CartesianCoordinates.to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform between cartesian and internal coordinates e.g. delocalised
+internal coordinates or other units</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>str</em>) – Intended conversion</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Transformed coordinates</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(autode.opt.coordinates.OptCoordinates)</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If the conversion cannot be performed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-autode.opt.coordinates.dic"></span><p>Delocalised internal coordinate implementation from:
+1. <a class="reference external" href="https://aip.scitation.org/doi/pdf/10.1063/1.478397">https://aip.scitation.org/doi/pdf/10.1063/1.478397</a>
+and references cited therein. Also used is
+2. <a class="reference external" href="https://aip.scitation.org/doi/pdf/10.1063/1.1515483">https://aip.scitation.org/doi/pdf/10.1063/1.1515483</a></p>
+<p>The notation follows the paper and is briefly
+summarised below:</p>
+<div class="line-block">
+<div class="line">x : Cartesian coordinates</div>
+<div class="line">B : Wilson B matrix</div>
+<div class="line">G : ‘Spectroscopic G matrix’</div>
+<div class="line">q : Redundant internal coordinates</div>
+<div class="line">s : Non-redundant internal coordinates</div>
+<div class="line">U : Transformation matrix q -&gt; s</div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.dic.</span></span><span class="sig-name descname"><span class="pre">DIC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delocalised internal coordinates</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC.from_cartesian">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.coordinates.internals.PIC</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.dic.DIC" title="autode.opt.coordinates.dic.DIC"><span class="pre">autode.opt.coordinates.dic.DIC</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC.from_cartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert cartesian coordinates to primitives then to delocalised
+internal coordinates (DICs), of which there should be 3N-6 for a
+polyatomic system with N atoms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Cartesian coordinates</p></li>
+<li><p><strong>primitives</strong> – Primitive internal coordinates. If undefined then use
+all pairwise inverse distances</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Delocalised internal coordinates</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(autode.opt.coordinates.DIC)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC.iadd">
+<span class="sig-name descname"><span class="pre">iadd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.opt.coordidnates.base.OptCoordinates</span></span></span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC.iadd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set some new internal coordinates and update the Cartesian coordinates</p>
+<div class="math notranslate nohighlight">
+\[x^(k+1) = x(k) + ({B^T})^{-1}(k)[s_{new} - s(k)]\]</div>
+<p>for an iteration k.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>np.ndarray</em>) – Difference between the current
+and new DICs. Must be
+broadcastable into self.shape.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>RuntimeError</strong><strong>)</strong> – If the transformation diverges</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC.to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert these DICs to another type of coordinate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<em>str</em>) – e.g. “Cartesian”</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Coordinates</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(autode.opt.coordinates.OptCoordinates)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-autode.opt.coordinates.primitives"></span><dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">ConstrainedDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance constrained to a value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>idx_i</strong> – Atom index of the first atom</p></li>
+<li><p><strong>idx_j</strong> – Atom index of the second atom</p></li>
+<li><p><strong>value</strong> – Required value of the constrained distance</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance.delta">
+<span class="sig-name descname"><span class="pre">delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance.delta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Difference between the observed and required value</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance.is_satisfied">
+<span class="sig-name descname"><span class="pre">is_satisfied</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance.is_satisfied" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this constraint satisfied to within an absolute tolerance</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Distance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">Distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.Distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance between two atoms:</p>
+<div class="math notranslate nohighlight">
+\[q = |oldsymbol{X}_i - oldsymbol{X}_j|\]</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Distance.derivative">
+<span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianComponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.Distance.derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Derivative with respect to Cartesian displacement</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#autode.opt.coordinates.primitives.Primitive.derivative" title="autode.opt.coordinates.primitives.Primitive.derivative"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Primitive.derivative</span></code></a></p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.InverseDistance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">InverseDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.InverseDistance" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Inverse distance between to atoms:</p>
+<div class="math notranslate nohighlight">
+\[q =\]</div>
+</div></blockquote>
+<dl class="simple">
+<dt>rac{1}</dt><dd><p>{<a href="#id1"><span class="problematic" id="id2">|oldsymbol{X}_i - oldsymbol{X}_j|</span></a>}</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.InverseDistance.derivative">
+<span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianComponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.InverseDistance.derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Derivative with respect to Cartesian displacement</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#autode.opt.coordinates.primitives.Primitive.derivative" title="autode.opt.coordinates.primitives.Primitive.derivative"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Primitive.derivative</span></code></a></p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Primitive">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">Primitive</span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.Primitive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Primitive internal coordinate</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Primitive.derivative">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianComponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.Primitive.derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the derivative with respect to a cartesian coordinate</p>
+<div class="math notranslate nohighlight">
+\[\frac{dq}
+      {d\boldsymbol{X}_{i, k}} {\Bigg\rvert}_{X=X0}\]</div>
+<p>where <span class="math notranslate nohighlight">\(q\)</span> is the primitive coordinate and <span class="math notranslate nohighlight">\(\boldsymbol{X}\)</span>
+are the cartesian coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> – Cartesian index to take the derivative with respect to. [0-N),
+for N atoms</p></li>
+<li><p><strong>component</strong> – Cartesian component (x, y, z) to take the derivative
+with respect to</p></li>
+<li><p><strong>x</strong> – Cartesian coordinates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Derivative</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-autode.opt.coordinates.dimer"></span><p>Coordinates for dimer optimisations. Notation follows:
+[1] <a class="reference external" href="https://aip.scitation.org/doi/pdf/10.1063/1.2815812">https://aip.scitation.org/doi/pdf/10.1063/1.2815812</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.dimer.</span></span><span class="sig-name descname"><span class="pre">DimerCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../units.html#autode.units.Unit" title="autode.units.Unit"><span class="pre">autode.units.Unit</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Å</span> <span class="pre">amu^1/2'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass weighted Cartesian coordinates for two points in space forming
+a dimer, such that the midpoint is close to a first order saddle point</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.delta">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.delta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance between the dimer point, Δ</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.did_rotation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">did_rotation</span></span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.did_rotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotated this iteration?</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.did_translation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">did_translation</span></span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.did_translation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translated this iteration?</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.dist">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dist</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.MWDistance" title="autode.values.MWDistance"><span class="pre">autode.values.MWDistance</span></a></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distance that the dimer was translated by from its last position</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.f_r">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">f_r</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.f_r" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotational force F_R. eqn. 3 in ref. [1]</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.f_t">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">f_t</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.f_t" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translational force F_T, eqn. 2 in ref. [1]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.from_species">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.dimer.DimerCoordinates" title="autode.opt.coordinates.dimer.DimerCoordinates"><span class="pre">DimerCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.from_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialise a set of DimerCoordinates from two species, i.e. those
+either side of the saddle point.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.g0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">g0</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.g0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gradient at the midpoint of the dimer</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.g1">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">g1</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.g1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gradient on the ‘left’ side of the dimer</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.g2">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">g2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.g2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gradient on the ‘right’ side of the dimer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.g_at">
+<span class="sig-name descname"><span class="pre">g_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.opt.coordinates.dimer.DimerPoint" title="autode.opt.coordinates.dimer.DimerPoint"><span class="pre">autode.opt.coordinates.dimer.DimerPoint</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.g_at" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.iadd">
+<span class="sig-name descname"><span class="pre">iadd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.iadd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inplace addition of some coordinates</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.implemented_units">
+<span class="sig-name descname"><span class="pre">implemented_units</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[Unit(Å</span> <span class="pre">amu^1/2)]</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.implemented_units" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.phi">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">phi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Angle" title="autode.values.Angle"><span class="pre">autode.values.Angle</span></a></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle that the dimer was rotated by from its last position</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.set_g_at">
+<span class="sig-name descname"><span class="pre">set_g_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.opt.coordinates.dimer.DimerPoint" title="autode.opt.coordinates.dimer.DimerPoint"><span class="pre">autode.opt.coordinates.dimer.DimerPoint</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_weighted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.set_g_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the gradient vector at a particular point</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.tau">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tau</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>Direction between the two ends of the dimer (τ)</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.tau_hat">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tau_hat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.tau_hat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalised direction between the two ends of the dimer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation between these coordinates and another type</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.x0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x0</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.x0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Midpoint of the dimer</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.x1">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x1</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.x1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates on the ‘left’ side of the dimer</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.x2">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.x2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates on the ‘right’ side of the dimer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerCoordinates.x_at">
+<span class="sig-name descname"><span class="pre">x_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.opt.coordinates.dimer.DimerPoint" title="autode.opt.coordinates.dimer.DimerPoint"><span class="pre">autode.opt.coordinates.dimer.DimerPoint</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_weighted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerCoordinates.x_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates at a point in the dimer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerPoint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.dimer.</span></span><span class="sig-name descname"><span class="pre">DimerPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Points in the coordinate space forming the dimer</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerPoint.left">
+<span class="sig-name descname"><span class="pre">left</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerPoint.left" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerPoint.midpoint">
+<span class="sig-name descname"><span class="pre">midpoint</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerPoint.midpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dimer.DimerPoint.right">
+<span class="sig-name descname"><span class="pre">right</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#autode.opt.coordinates.dimer.DimerPoint.right" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+              </div>
+              
+            
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'> 
+    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Optimisation</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="optimisers.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Optimisers</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            
+        </div>
+    </div>
+    <footer class="footer">
+  <p>
+    
+      By Tom Young, Joseph Silcock<br/>
+    
+        &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
+  </p>
+</footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+
+  </body>
+</html>
