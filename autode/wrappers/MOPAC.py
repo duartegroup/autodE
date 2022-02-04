@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from copy import deepcopy
+import autode.wrappers.keywords as kwds
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external
 from autode.atoms import Atom
@@ -11,22 +11,23 @@ from autode.geom import get_atoms_linear_interp
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from autode.exceptions import CouldNotGetProperty
-from autode.wrappers.keywords import Keywords, SinglePointKeywords, GradientKeywords
 
 
 def get_keywords(calc_input, molecule):
     """Get the keywords to use for a MOPAC calculation"""
     # To determine if there is an optimisation or single point the keywords
     # needs to be a subclass of Keywords
-    assert isinstance(calc_input.keywords, Keywords)
+    assert isinstance(calc_input.keywords, kwds.Keywords)
 
-    keywords = deepcopy(calc_input.keywords)
-    if isinstance(calc_input.keywords, SinglePointKeywords):
+    keywords = [kwd for kwd in calc_input.keywords.copy()
+                if not isinstance(kwd, kwds.MaxOptCycles)]
+
+    if isinstance(calc_input.keywords, kwds.SinglePointKeywords):
         # Single point calculation add the 1SCF keyword to prevent opt
         if not any('1scf' in kw.lower() for kw in keywords):
             keywords.append('1SCF')
 
-    if isinstance(calc_input.keywords, GradientKeywords):
+    if isinstance(calc_input.keywords, kwds.GradientKeywords):
         # Gradient calculation needs GRAD
         if not any('grad' in kw.lower() for kw in keywords):
             keywords.append('GRAD')
