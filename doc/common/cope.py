@@ -7,6 +7,10 @@ ade.Config.n_cores = 8
 # Use ORCA as both the high and low-level code
 ade.Config.lcode = ade.Config.hcode = 'orca'
 
+# and a smaller than default step size for a flat then quickly varying PES
+ade.Config.max_step_size = 0.1
+ade.Config.min_step_size = 0.02
+
 r = ade.Reactant('cope_r.xyz')
 p = ade.Product('cope_p.xyz')
 
