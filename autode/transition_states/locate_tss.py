@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
 from autode.exceptions import NoMapping
-from autode.atoms import metals
 from autode.species import Complex
 from autode.transition_states import TransitionState, TransitionStates
 from autode.transition_states.truncation import get_truncated_species
