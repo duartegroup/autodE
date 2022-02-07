@@ -115,10 +115,12 @@ class Reaction:
         """
         logger.info('Calculating reaction profile')
 
-        if with_complexes and (free_energy or enthalpy):
+        if (not Config.allow_association_complex_G
+                and (with_complexes and (free_energy or enthalpy))):
             raise NotImplementedError('Significant likelihood of very low '
-                                      'frequency harmonic modes – G and H not '
-                                      'implemented')
+                                      'frequency harmonic modes – G and H. Set'
+                                      ' Config.allow_association_complex_G to '
+                                      'override this')
 
         @work_in(self.name)
         def calculate(reaction):
