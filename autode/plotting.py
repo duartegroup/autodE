@@ -100,9 +100,12 @@ def plot_smooth_profile(zi_s, energies, ax):
     stationary points. This will not afford the correct number of stationary
     points for some energy arrays, so raise an exception if it fails
 
+    ---------------------------------------------------------------------------
     Arguments:
         zi_s (np.ndarray): Estimate of reaction coordinate points
+
         energies (list(autode.plotting.Energy)): len(energies) = len(zi_s)
+
         ax (matplotlib.axes.Axes):
     """
 
@@ -155,9 +158,12 @@ def plot_points(zi_s, energies, ax):
     """
     Plot a reaction profile just adding the points to the graph
 
+    ---------------------------------------------------------------------------
     Arguments:
         zi_s (np.ndarray): Estimate of reaction coordinate points
+
         energies (list(autode.plotting.Energy)): len(energies) = len(zi_s)
+
         ax (matplotlib.axes.Axes):
     """
     energies_arr = np.array([energy for energy in energies])
@@ -177,8 +183,10 @@ def plot_points(zi_s, energies, ax):
 
 
 def get_reaction_profile_warnings(reactions):
-    """Get a string of warnings for a reaction
+    """
+    Get a string of warnings for a reaction
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactions (list(autode.reaction.Reaction)):
 
@@ -219,14 +227,18 @@ def get_reaction_profile_warnings(reactions):
 
 def calculate_reaction_profile_energies(reactions, units, free_energy=False,
                                         enthalpy=False):
-    """Calculate a list of energies comprising the reaction profile
+    """
+    Calculate a list of energies comprising the reaction profile
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactions (list(autode.reaction.Reaction)):
+
         units (autode.units.Units):
 
     Keyword Arguments:
         free_energy (bool): Calculate ∆Gs
+
         enthalpy (bool): Calculate ∆Hs
 
     Returns:
@@ -274,8 +286,10 @@ def get_stationary_points(xs, dydx):
     is negative if there is a point x(k)
     between x(i-1) and x(i) that has dy/dx|x(k) = 0
 
+    ---------------------------------------------------------------------------
     Arguments:
          xs (np.ndarray):
+
          dydx (function):
     """
     stationary_points = []
@@ -299,9 +313,11 @@ def error_on_stationary_points(x, energies):
           |_____________
                 zi
 
+    ---------------------------------------------------------------------------
     Arguments:
         x (np.ndarray): Points that will be splined that generate stationary
-         points that ≈ energies
+                        points that ≈ energies
+
         energies (np.ndarray): Observed stationary points
 
     Returns:

@@ -13,6 +13,7 @@ class PointCharge(DummyAtom):
         """
         Point charge
 
+        -----------------------------------------------------------------------
         Arguments:
             charge (float): Charge in units of e
 

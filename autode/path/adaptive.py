@@ -8,19 +8,26 @@ from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
 
 
-def get_ts_adaptive_path(reactant, product, method, bond_rearr,
-                         name='adaptive'):
+def get_ts_adaptive_path(reactant:   'autode.species.ReactantComplex',
+                         product:    'autode.species.ProductComplex',
+                         method:     'autode.wrappers.base.Method',
+                         bond_rearr: 'autode.bond_rearrangement.BondRearrangement',
+                         name:       str = 'adaptive'
+                         ) -> 'autode.transition_states.TSguess ':
     """
     Generate a TS guess geometry based on an adaptive path along multiple
     breaking and/or forming bonds
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.species.ReactantComplex):
+
         product (autode.species.ProductComplex):
+
         method (autode.wrappers.base.ElectronicStructureMethod):
+
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
-    Keyword Arguments:
         name (str):
 
     Returns:
@@ -60,9 +67,13 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
 
     where all the bonds drawn are active and the C-H bond is forming
 
+
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.species.Species):
+
         fbonds (list(autode.pes.pes.FormingBond)):
+
         bbonds (list(autode.pes.pes.BreakingBond)):
 
     Returns:
@@ -114,8 +125,10 @@ class PathPoint:
         """
         Point on a PES path
 
+        -----------------------------------------------------------------------
         Arguments:
             species (autode.species.Species):
+
             constraints (dict): Distance constraints keyed with atom indexes as
                         a tuple with distances (floats) as values
         """
@@ -138,12 +151,14 @@ class AdaptivePath(Path):
         """
         PES Path
 
+        -----------------------------------------------------------------------
         Arguments:
             init_species (autode.species.Species):
+
             bonds (list(autode.pes.ScannedBond)):
+
             method (autode.wrappers.base.ElectronicStructureMethod):
 
-        Keyword Arguments:
             final_species (autode.species.Species):
         """
         super().__init__()
@@ -176,6 +191,7 @@ class AdaptivePath(Path):
         """
         Append a point to the path and  optimise it
 
+        -----------------------------------------------------------------------
         Arguments:
             point (PathPoint): Point on a path
 
@@ -220,10 +236,10 @@ class AdaptivePath(Path):
 
         return None
 
-    def plot_energies(self, save=True, name='init_path', color='k', xlabel='ζ'):
+    def plot_energies(self, save=True, name='init_path', color='k', xlabel='ζ') -> None:
         return super().plot_energies(save, name, color, xlabel)
 
-    def contains_suitable_peak(self):
+    def contains_suitable_peak(self) -> bool:
         """Does this path contain a peak suitable for a TS guess?"""
         if not self.contains_peak:
             return False
@@ -248,6 +264,7 @@ class AdaptivePath(Path):
         """
         Adjust the geometry constraints based on the final point
 
+        -----------------------------------------------------------------------
         Arguments:
             point (autode.neb.PathPoint):
         """
@@ -307,10 +324,11 @@ class AdaptivePath(Path):
 
         return None
 
-    def generate(self, init_step_size=0.2, name='initial'):
+    def generate(self, init_step_size=0.2, name='initial') -> None:
         """
         Generate the path from the starting point; can be called only once!
 
+        -----------------------------------------------------------------------
         Keyword arguments:
             init_step_size (float): Initial step size in all bonds to calculate
                            the gradient
@@ -349,4 +367,3 @@ class AdaptivePath(Path):
         self.print_geometries(name=f'{name}_path')
 
         return None
-

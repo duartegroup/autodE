@@ -11,6 +11,7 @@ def are_coords_reasonable(coords):
     plane. The latter possibility arises from RDKit's conformer generation
     algorithm breaking
 
+    ---------------------------------------------------------------------------
     Arguments:
         coords (np.ndarray): Species coordinates as a n_atoms x 3 array
 
@@ -41,6 +42,7 @@ def proj(u, v):
     Calculate the projection of v onto the direction of u. Useful for
     https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
 
+    ---------------------------------------------------------------------------
     Arguments:
         u (np.ndarray):
 
@@ -58,8 +60,10 @@ def get_atoms_linear_interp(atoms, bonds, final_distances):
     """For a geometry defined by a set of xyzs, set the constrained bonds to
     the correct lengths
 
+    ---------------------------------------------------------------------------
     Arguments:
         atoms (list(autode.atoms.Atom)): list of atoms
+
         bonds (list(tuple)): List of bond ids on for which the final_distances
                              apply
         final_distances (list(float)): List of final bond distances for the
@@ -97,8 +101,10 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
     https://en.wikipedia.org/wiki/Kabsch_algorithm
 
+    ---------------------------------------------------------------------------
     Arguments:
         p_matrix (np.ndarray):
+
         q_matrix (np.ndarray):
 
     Returns:
@@ -133,6 +139,7 @@ def get_rot_mat_euler(axis, theta):
     https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
     for an anticlockwise rotation of theta radians about a given axis
 
+    ---------------------------------------------------------------------------
     Arguments:
         axis (np.ndarray): Axis to rotate in. shape = (3,)
         theta (float): Angle in radians (float)
@@ -156,9 +163,12 @@ def get_rot_mat_euler(axis, theta):
 def get_neighbour_list(species, atom_i, index_set):
     """Calculate a neighbour list from atom i as a list of atom labels
 
+    ---------------------------------------------------------------------------
     Arguments:
         atom_i (int): index of the atom
+
         species (autode.species.Species):
+
         index_set (set(int) | None): Indexes that are possible neighbours for
                                      atom_i, if None then all atoms are ok
 
@@ -189,9 +199,11 @@ def get_neighbour_list(species, atom_i, index_set):
 
 
 def get_distance_constraints(species):
-    """Set all the distance constraints required in an optimisation as the
+    """
+    Set all the distance constraints required in an optimisation as the
     active bonds
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
@@ -221,8 +233,10 @@ def calc_heavy_atom_rmsd(atoms1, atoms2):
     Calculate the RMSD between two sets of atoms considering only the 'heavy'
     atoms, i.e. the non-hydrogen atoms
 
+    ---------------------------------------------------------------------------
     Arguments:
         atoms1 (list(autode.atoms.Atom)):
+
         atoms2 (list(autode.atoms.Atom)):
 
     Returns:
@@ -243,11 +257,14 @@ def calc_heavy_atom_rmsd(atoms1, atoms2):
 
 
 def calc_rmsd(coords1, coords2):
-    """Calculate the RMSD between two sets of coordinates using the Kabsch
+    """
+    Calculate the RMSD between two sets of coordinates using the Kabsch
     algorithm
 
+    ---------------------------------------------------------------------------
     Arguments:
         coords1 (np.ndarray): shape = (n, 3)
+
         coords2 (np.ndarray): shape = (n ,3)
 
     Returns:
@@ -272,8 +289,10 @@ def get_points_on_sphere(n_points, r=1):
     Find n evenly spaced points on a sphere using the "How to generate
     equidistributed points on the surface of a sphere" by Markus Deserno, 2004.
 
+    ---------------------------------------------------------------------------
     Arguments:
         n_points (int): number of points to generate
+
         r (float): radius of the sphere
 
     Returns:
@@ -309,6 +328,7 @@ def symm_matrix_from_ltril(array):
         array = [0, 1, 2] ->  array([[0, 1],
                                      [1, 2]])
 
+    ---------------------------------------------------------------------------
     Arguments:
         array (list(float) | np.array):
 

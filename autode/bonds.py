@@ -24,6 +24,7 @@ class ScannedBond:
         """
         Bond with a current and final distance which will be scanned over
 
+        -----------------------------------------------------------------------
         Arguments:
             atom_indexes (tuple(int)): Atom indexes that make this
             'bond' e.g. (0, 1)
@@ -45,8 +46,10 @@ class FormingBond(ScannedBond):
         """
         Forming bond with current and final distances
 
+        -----------------------------------------------------------------------
         Arguments:
             atom_indexes (tuple(int)):
+
             species (autode.species.Species):
         """
         super().__init__(atom_indexes)
@@ -68,9 +71,12 @@ class BreakingBond(ScannedBond):
         """
         Form a breaking bond with current and final distances
 
+        -----------------------------------------------------------------------
         Arguments:
             atom_indexes (tuple(int)):
+
             species (autode.species.Species):
+
             final_species (autode.species.Species | None):
         """
         super().__init__(atom_indexes)
@@ -92,8 +98,10 @@ def get_ideal_bond_length_matrix(atoms, bonds):
     """Populate a n_atoms x n_atoms matrix of ideal bond lengths. All
     non-bonded atoms will have zero ideal bond lengths
 
+    ---------------------------------------------------------------------------
     Arguments:
         atoms (list(autode.atoms.Atom)): List of atoms
+
         bonds (list(tuple)): List of bonds defined by tuples of atom ids
 
     Returns:
@@ -125,8 +133,10 @@ def get_avg_bond_length(atom_i_label, atom_j_label):
 
     ordering invariant.
 
+    ---------------------------------------------------------------------------
     Keyword Arguments:
         atom_i_label (str): atom label e.g 'C'
+
         atom_j_label (str): atom label e.g 'C'
 
     Returns:

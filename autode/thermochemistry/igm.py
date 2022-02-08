@@ -47,6 +47,7 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
 
     [2] J. Phys. Chem. B, 2011, 115, 14556
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
@@ -122,6 +123,7 @@ def _thermo_method_str(species, **kwargs):
     Brief summary of the important methods used in evaluating the free energy
     using entropy and enthalpy methods
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
@@ -147,6 +149,7 @@ def _q_trans_igm(species, ss, temp):
     Calculate the translational partition function using the PIB model,
     coupled with an effective volume
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         ss (str): Standard state to use. One of: {1M, 1atm}
@@ -177,6 +180,7 @@ def _q_rot_igm(species, temp, sigma_r):
     Calculate the rotational partition function using the IGM method. Uses the
     rotational symmetry number, default = 1
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
@@ -206,8 +210,10 @@ def _q_rot_igm(species, temp, sigma_r):
 
 
 def _s_trans_pib(species, ss, temp):
-    """Calculate the translational entropy using a particle in a box model
+    """
+    Calculate the translational entropy using a particle in a box model
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         ss (str): Standard state to use. One of: {1M, 1atm}. For calculating
@@ -226,6 +232,7 @@ def _s_rot_rr(species, temp, sigma_r):
     """
     Calculate the rigid rotor (RR) entropy
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
@@ -251,6 +258,7 @@ def _igm_s_vib(species, temp):
     Calculate the entropy of a molecule according to the Ideal Gas Model (IGM)
     RRHO method
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
@@ -273,6 +281,7 @@ def _truhlar_s_vib(species, temp, shift_freq):
     Calculate the entropy of a molecule according to the Truhlar's method of
     shifting low frequency modes
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
@@ -303,6 +312,7 @@ def _grimme_s_vib(species, temp, omega_0, alpha):
     Calculate the entropy according to Grimme's qRRHO method of RR-HO
     interpolation in Chem. Eur. J. 2012, 18, 9955
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
@@ -343,6 +353,7 @@ def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
     """
     Calculate the entropy
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         method (str):
@@ -396,6 +407,7 @@ def _zpe(species):
     Calculate the zero point energy of a molecule, contributed to by the real
     (positive) frequencies
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
@@ -417,6 +429,7 @@ def _internal_vib_energy(species, temp):
     """
     Calculate the internal energy from vibrational motion within the IGM
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
@@ -439,7 +452,7 @@ def _internal_energy(species, temp):
     """
     Calculate the internal energy of a molecule
 
-
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         temp (float): Temperature in K
@@ -464,8 +477,9 @@ def _internal_energy(species, temp):
     zpe = _zpe(species)
     e_vib = _internal_vib_energy(species, temp=temp)
 
-    logger.info(f'ZPE = {zpe*Constants.n_a/1E3:.3f} kJ mol-1\n'
+    logger.info(f'ZPE =     {zpe*Constants.n_a/1E3:.3f}    kJ mol-1\n'
                 f'E_trans = {e_trns*Constants.n_a/1E3:.3f} kJ mol-1\n'
-                f'E_rot = {e_rot*Constants.n_a/1E3:.3f} kJ mol-1\n'
-                f'E_vib = {e_vib*Constants.n_a/1E3:.3f} kJ mol-1')
+                f'E_rot =   {e_rot*Constants.n_a/1E3:.3f}  kJ mol-1\n'
+                f'E_vib =   {e_vib*Constants.n_a/1E3:.3f}  kJ mol-1')
+
     return zpe + e_trns + e_rot + e_vib

@@ -21,13 +21,16 @@ def get_complex_conformer_atoms(molecules, rotations, points):
     Generate a conformer of a complex given a set of molecules, rotations for
     each and points on which to shift
 
+    -----------------------------------------------------------------------
     Arguments:
         molecules (list(autode.species.Species)):
+
         rotations (list(np.ndarray)): List of len 4 np arrays containing the
-                  [theta, x, y, z] defining the rotation
-                                      amount and axis
+                                    [theta, x, y, z] defining the rotation
+                                        amount and axis
+
         points: (list(np.ndarray)): List of length 3 np arrays containing the
-        point to add the molecule with index i
+                                    point to add the molecule with index i
 
     Returns:
         (list(autode.atoms.Atom))
@@ -93,6 +96,7 @@ class Complex(Species):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
 
+        -----------------------------------------------------------------------
         Arguments:
             *args (autode.species.Species):
 
@@ -157,6 +161,7 @@ class Complex(Species):
         """
         List of atom indexes of a molecule withibn a Complex
 
+        -----------------------------------------------------------------------
         Arguments:
             mol_index (int): Index of the molecule
         """
@@ -175,6 +180,7 @@ class Complex(Species):
         Reorder the atoms in this complex using a dictionary keyed with current
         atom indexes and values as their new positions
 
+        -----------------------------------------------------------------------
         Arguments:
             mapping (dict):
         """
@@ -261,13 +267,13 @@ class Complex(Species):
         """
         Translate a molecule within a complex by a vector
 
+        -----------------------------------------------------------------------
         Arguments:
             vec (np.ndarray | list(float)): Length 3 vector
 
             mol_index (int): Index of the molecule to translate. e.g. 2 will
                              translate molecule 1 in the complex
                              they are indexed from 0
-
         """
         logger.info(f'Translating molecule {mol_index} by {vec} in {self.name}')
 
@@ -289,6 +295,7 @@ class Complex(Species):
         Rotate a molecule within a complex an angle theta about an axis given
         an origin
 
+        -----------------------------------------------------------------------
         Arguments:
             axis (np.ndarray | list): Length 3 vector
 
@@ -378,6 +385,7 @@ class ReactantComplex(Complex):
         """
         Reactant complex
 
+        -----------------------------------------------------------------------
         Arguments:
             *args (autode.species.Reactant):
 
@@ -402,6 +410,7 @@ class ProductComplex(Complex):
         """
         Product complex
 
+        -----------------------------------------------------------------------
         Arguments:
             *args (autode.species.Product):
 
