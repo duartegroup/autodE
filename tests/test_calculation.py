@@ -289,7 +289,7 @@ def test_exec_not_avail_method():
 
 
 @work_in_tmp_dir()
-def test_exec_too_much_memory_requested():
+def test_exec_too_much_memory_requested_py39():
 
     if sys.version_info.minor != 9:
         return  # Only supported on Python 3.9
@@ -305,3 +305,13 @@ def test_exec_too_much_memory_requested():
         run_external(['ls'], output_filename='tmp.txt')
 
     Config.max_core = curr_max_core
+
+
+@work_in_tmp_dir()
+def test_exec_too_much_memory_requested_py38():
+
+    if sys.version_info.minor != 8:
+        return  # Only supported on Python 3.8
+
+    # Python 3.8 can't use os.sysconf, so check that external can still be run
+    run_external(['ls'], output_filename='tmp.txt')
