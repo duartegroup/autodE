@@ -152,14 +152,21 @@ class Image:
         self.energy:  Optional['autode.values.Energy'] = None
         self.grad:    Optional[np.ndarray] = None
 
-    def _tau_xl_x_xr(self, im_l, im_r):
+    def _tau_xl_x_xr(self,
+                     im_l: 'autode.neb.original.Image',
+                     im_r: 'autode.neb.original.Image'
+                     ) -> tuple:
         """
         Calculate the normalised τ vector, along with the coordinates of the
         left, this and right images
 
-        :param im_l: (autode.neb.Image)
-        :param im_r: (autode.neb.Image)
-        :return: (np.ndarray)
+        -----------------------------------------------------------------------
+        Arguments:
+            im_l: (autode.neb.Image)
+            im_r: (autode.neb.Image)
+
+        Returns:
+            (np.ndarray, np.ndarray, np.ndarray, np.ndarray)
         """
 
         # ΔV_i^max
@@ -196,13 +203,17 @@ class Image:
         # Normalised τ vector and coordinates of the images
         return tau / np.linalg.norm(tau), x_l, x, x_r
 
-    def get_force(self, im_l, im_r):
+    def get_force(self,
+                  im_l: 'autode.neb.original.Image',
+                  im_r: 'autode.neb.original.Image'
+                  ) -> np.ndarray:
         """
         Compute F_i. Notation from:
         Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 
         also a copy in autode/common
 
+        -----------------------------------------------------------------------
         Arguments:
             im_l (autode.neb.Image): Left image (i-1)
             im_r (autode.neb.Image): Right image (i+1)
@@ -227,11 +238,15 @@ class Images(Path):
         """
         Set of images joined by harmonic springs with force constant k
 
+        -----------------------------------------------------------------------
         Arguments:
 
             num (int): Number of images
+
             init_k (float): Initial force constant (Ha Å^-2)
+
             min_k (None | float): Minimum value of k
+
             max_k (None | float): Maximum value of k
         """
         super().__init__(*(Image(name=str(i), k=init_k) for i in range(num)))
@@ -305,6 +320,7 @@ class Images(Path):
         """
         Set the flat array of coordinates to the species in the images
 
+        -----------------------------------------------------------------------
         Arguments:
             coords (np.ndarray): shape (num x n x 3,)
         """
@@ -328,10 +344,14 @@ class NEB:
         """
         Nudged elastic band
 
+        -----------------------------------------------------------------------
         Arguments:
             initial_species (autode.species.Species):
+
             final_species (autode.species.Species):
+
             num (int): Number of images in the NEB
+
             species_list (list(autode.species.Species)): Intermediate images
                          along the NEB
         """
@@ -373,6 +393,7 @@ class NEB:
         Partition this NEB into n steps between each image i.e. n=2 affords
         double the images
 
+        -----------------------------------------------------------------------
         Arguments:
             n: (int)
         """
@@ -402,7 +423,7 @@ class NEB:
     def print_geometries(self, name='neb'):
         return self.images.print_geometries(name)
 
-    def interpolate_geometries(self):
+    def interpolate_geometries(self) -> None:
         """Generate simple interpolated coordinates for these set of images
         in Cartesian coordinates"""
         n = len(self.images)
@@ -424,13 +445,18 @@ class NEB:
 
         return None
 
-    def calculate(self, method, n_cores):
+    def calculate(self,
+                  method:  'autode.wrappers.base.Method',
+                  n_cores: int
+                  ) -> None:
         """
         Optimise the NEB using forces calculated from electronic structure
 
+        -----------------------------------------------------------------------
         Arguments:
-            method (autode.wrappers.ElectronicStructureMethod)
-            n_cores (int)
+            method (autode.wrappers.base.Method):
+
+            n_cores (int):
         """
         self.print_geometries(name='neb_init')
 
@@ -453,7 +479,7 @@ class NEB:
         plt.close()
         return None
 
-    def get_species_saddle_point(self):
+    def get_species_saddle_point(self) -> 'autode.species.Species':
         """Find a TS guess species for this NEB: highest energy saddle point"""
         if self.images.peak_idx is None:
             logger.warning('Found no peaks in the NEB')
@@ -461,7 +487,7 @@ class NEB:
 
         return self.images[self.images.peak_idx].species
 
-    def _init_from_end_points(self, initial, final):
+    def _init_from_end_points(self, initial, final) -> None:
         """Initialise from the start and finish points of the NEB"""
 
         self.images[0].species = initial
@@ -471,7 +497,7 @@ class NEB:
 
         return None
 
-    def idpp_relax(self):
+    def idpp_relax(self) -> None:
         """
         Relax the NEB using the image dependent pair potential
 

@@ -32,6 +32,7 @@ class TSbase(Species, ABC):
         """
         Parent transition state class
 
+        -----------------------------------------------------------------------
         Arguments:
             atoms (list(autode.atoms.Atom)):
 
@@ -92,6 +93,7 @@ class TSbase(Species, ABC):
         (1) The most negative(/imaginary) is more negative that a threshold,
             which is defined as autode.config.Config.min_imag_freq
 
+        -----------------------------------------------------------------------
         Keywords Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
@@ -138,6 +140,7 @@ class TSbase(Species, ABC):
         """Check that the imaginary mode is 'correct' set the calculation
         (hessian or optts)
 
+        -----------------------------------------------------------------------
         Returns:
             (bool):
 
@@ -172,8 +175,10 @@ class TSbase(Species, ABC):
         Check whether the imaginary mode in a calculation with a hessian forms
         and breaks the correct bonds
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             disp_mag (float):
+
             delta_threshold (float): Required ∆r on a bond for the bond to be
                                      considered as forming
             req_all (bool): Require all the bonds to have the correct displacements
@@ -251,9 +256,7 @@ class TSbase(Species, ABC):
         """Displaces atoms along the imaginary mode forwards (f) and backwards (b)
         to see if products and reactants are made
 
-        Arguments:
-            ts (autode.transition_states.base.TSbase):
-
+        -----------------------------------------------------------------------
         Keyword Arguments:
             disp_mag (float): Distance to be displaced along the imag mode
                              (default: 1.0 Å)
@@ -323,6 +326,7 @@ def displaced_species_along_mode(species:       Species,
     is the largest magnitude imaginary mode (if present). To displace along
     the second imaginary mode we have mode_number=7
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
         mode_number (int): Mode number to displace along
@@ -377,6 +381,7 @@ def imag_mode_generates_other_bonds(ts:        TSbase,
     bonds that aren't in all the active bonds bond_rearrangement.all. Will be
     fairly conservative here
 
+    ---------------------------------------------------------------------------
     Arguments:
         ts (autode.transition_states.base.TSbase):
 
@@ -424,6 +429,7 @@ def f_b_isomorphic_to_r_p(forwards:  Species,
     Are the forward/backward displaced species isomorphic to
     reactants/products?
 
+    ---------------------------------------------------------------------------
     Arguments:
         forwards (autode.species.Species):
 

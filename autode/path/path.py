@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Optional
 from autode import mol_graphs
 from autode.input_output import atoms_to_xyz_file
 from autode.log import logger
@@ -13,6 +14,7 @@ class Path(list):
         Base path class that may be populated with species or nudged elastic
         band images, *must* have .energy attributes
 
+        -----------------------------------------------------------------------
         Arguments:
             args (list(autode.path.PathPoint | autode.neb.Image)):
 
@@ -38,17 +40,18 @@ class Path(list):
         return list.__eq__(self, other)
 
     @property
-    def energies(self):
+    def energies(self) -> np.ndarray:
         """
         Numpy array of energy for each species/image in this path
 
+        -----------------------------------------------------------------------
         Returns:
             (np.ndarray):
         """
         return np.array([item.energy for item in self])
 
     @property
-    def rel_energies(self):
+    def rel_energies(self) -> np.ndarray:
         """
         "Relative energies in a particular unit
 
@@ -62,7 +65,7 @@ class Path(list):
         return self.units.conversion * (self.energies - np.min(self.energies))
 
     @property
-    def peak_idx(self):
+    def peak_idx(self) -> Optional[int]:
         """Get the index of the highest energy peak in this path
 
         Returns:
@@ -86,14 +89,15 @@ class Path(list):
         return None
 
     @property
-    def contains_peak(self):
+    def contains_peak(self) -> bool:
         return self.peak_idx is not None
 
-    def product_idx(self, product):
+    def product_idx(self, product) -> Optional[int]:
         """
         Get the index of the point in the path at which products are made.
         If they are not made or they cannot be checked then return None
 
+        -----------------------------------------------------------------------
         Arguments:
             product (autode.species.Species):
 
@@ -112,9 +116,10 @@ class Path(list):
 
         return None
 
-    def products_made(self, product):
+    def products_made(self, product) -> bool:
         """Are the products are made on the surface?
 
+        -----------------------------------------------------------------------
         Arguments:
             product (autode.species.Species):
 
@@ -123,7 +128,7 @@ class Path(list):
         """
         return self.product_idx(product) is not None
 
-    def is_saddle(self, idx):
+    def is_saddle(self, idx) -> bool:
         """Is an index a saddle point"""
         if idx == 0 or idx == len(self) -1:
             logger.warning('Cannot be saddle point, index was at the end')
@@ -137,7 +142,7 @@ class Path(list):
         energy = self[idx].energy
         return self[idx-1].energy < energy and self[idx+1].energy < energy
 
-    def plot_energies(self, save, name, color, xlabel):
+    def plot_energies(self, save, name, color, xlabel) -> None:
         """Plot this path"""
         if len(self) == 0 or any(item.energy is None for item in self):
             logger.error('Could not plot a surface, an energy was None')
@@ -158,11 +163,10 @@ class Path(list):
 
         return None
 
-    def print_geometries(self, name):
+    def print_geometries(self, name) -> None:
         """Print an xyz trajectory of the geometries in the path"""
 
-        # Empty the file
-        open(f'{name}.xyz', 'w').close()
+        open(f'{name}.xyz', 'w').close()   # Empty the file
 
         for i, image in enumerate(self):
             assert image.species is not None

@@ -124,6 +124,7 @@ class Species(AtomCollection):
         A new version of this species, identical properties without any
         energies, gradients, hessian, conformers or constraints.
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             name (str): Name of the new species
 
@@ -159,6 +160,7 @@ class Species(AtomCollection):
         """
         Solvent which this species is immersed in
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.solvent.Solvent | None): Solvent or None if the species is
                                              in the gas phase
@@ -172,6 +174,7 @@ class Species(AtomCollection):
         Set the solvent for this species. For a species in the gas phase
         set mol.solvent = None
 
+        -----------------------------------------------------------------------
         Arguments;
             value (autode.solvent.Solvent | str | None):
         """
@@ -194,6 +197,7 @@ class Species(AtomCollection):
         """
         Set the atoms for this species, and reset the energies
 
+        -----------------------------------------------------------------------
         Arguments:
             value (list(autode.atoms.Atom) | None):
         """
@@ -236,6 +240,7 @@ class Species(AtomCollection):
             >>> h2.formula
             'H2'
 
+        -----------------------------------------------------------------------
         Returns:
             (str): Formula
         """
@@ -294,6 +299,7 @@ class Species(AtomCollection):
         """
         Gradient (dE/dx) at this geometry.
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Gradients | None): Gradient with shape = (n_atoms, 3)
         """
@@ -329,6 +335,7 @@ class Species(AtomCollection):
         Frequencies from Hessian diagonalisation, in cm-1 by default and
         are projected from rotation and translation
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.values.Frequency) | None):
         """
@@ -344,6 +351,7 @@ class Species(AtomCollection):
         Vibrational frequencies, which are all but the lowest 6 for a
         non-linear molecule and all but the lowest 5 for a linear one
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.values.Frequency) | None): Vibrational frequencies
         """
@@ -356,6 +364,7 @@ class Species(AtomCollection):
         """
         Imaginary frequencies of a molecule
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.values.Frequency) | None): Imaginary frequencies, or
                                                     None if there are none
@@ -378,6 +387,7 @@ class Species(AtomCollection):
         and rotation and have zero displacements. The first vibrational mode
         has mode_number = 6.
 
+        -----------------------------------------------------------------------
         Arguments:
             mode_number (int):
 
@@ -397,6 +407,7 @@ class Species(AtomCollection):
         Numpy boolean array containing which atoms are bonded, also known as
         an adjacency matrix.
 
+        -----------------------------------------------------------------------
         Returns:
             (np.ndarray): Adjacency matrix. shape = (n_atoms, n_atoms)
 
@@ -421,6 +432,7 @@ class Species(AtomCollection):
         VdW radii of the outer most atoms i.e. purely determined on nuclear
         positions
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Distance): Radius
         """
@@ -436,11 +448,11 @@ class Species(AtomCollection):
         Calculate the symmetry number (σ_R) of the atoms. Only implemented for
         'small' molecules <50 atoms
 
-
         References:
         [1] Theor Chem Account (2007) 118:813
         [2] . Phys. Chem. B (2010) 114:16304
 
+        -----------------------------------------------------------------------
         Returns:
             (int): σ_R
         """
@@ -514,6 +526,7 @@ class Species(AtomCollection):
             >>> species.energies
             [Energy(-0.5 Ha), Energy(-0.50104 Ha)]
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.PotentialEnergy): Energy
         """
@@ -524,6 +537,7 @@ class Species(AtomCollection):
         """
         Add an energy to the list of energies at this geometry
 
+        -----------------------------------------------------------------------
         Arguments:
             value (float | autode.values.Energy | None):
         """
@@ -544,6 +558,7 @@ class Species(AtomCollection):
         """
         Return the enthalpic contribution to the energy
 
+        -----------------------------------------------------------------------
         Returns:
              (autode.values.Energy | None): H - E_elec
         """
@@ -554,6 +569,7 @@ class Species(AtomCollection):
         """
         Return the Gibbs (free) contribution to the energy
 
+        -----------------------------------------------------------------------
         Returns:
              (autode.values.Energy | None): G - E_elec
         """
@@ -565,6 +581,7 @@ class Species(AtomCollection):
         Free energy (G or A) of this species, calculated using the last energy
         and free energy contribution
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.FreeEnergy | None): 'Gibbs' free energy
         """
@@ -602,7 +619,7 @@ class Species(AtomCollection):
             >>> h2.enthalpy
             Enthalpy(-1.15497 Ha)
 
-
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Enthalpy | None): Enthalpy
         """
@@ -642,6 +659,7 @@ class Species(AtomCollection):
         """
         Number of conformers of this species
 
+        -----------------------------------------------------------------------
         Returns:
             (int):
         """
@@ -661,6 +679,7 @@ class Species(AtomCollection):
         """
         Set conformers of this species
 
+        -----------------------------------------------------------------------
         Arguments:
             value (list(autode.conformers.Conformer) | None):
         """
@@ -767,7 +786,7 @@ class Species(AtomCollection):
             Atoms([Atom(H, 0.0 0.0 0.0), Atom(F, 1.0, 0.0, 0.0)])
             >>> hf.reorder_atoms(mapping={0: 1, 1: 0})
 
-
+        -----------------------------------------------------------------------
         Arguments:
             mapping (dict): Dictionary keyed with current atom indexes with
                             the values as the required indexing
@@ -791,11 +810,12 @@ class Species(AtomCollection):
     @requires_atoms
     def is_linear(self,
                   tol:       Optional[float] = None,
-                  angle_tol: val.Angle = val.Angle(1.0, units='deg')
+                  angle_tol: val.Angle = val.Angle(1.0, 'degrees')
                   ) -> bool:
         """
         Determine if a species is linear i.e all atoms are colinear
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             tol (float | None): Tolerance on |cos(θ)| - 1 where θ is the angle
                                 between the vector from atom 0 to 1 and from
@@ -815,6 +835,7 @@ class Species(AtomCollection):
         """
         Translate the molecule by vector
 
+        -----------------------------------------------------------------------
         Arguments:
             vec (np.ndarray | list(float)): Vector to translate by shape = (3,)
         """

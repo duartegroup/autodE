@@ -9,6 +9,7 @@ class KeywordsSet:
     def __init__(self,
                  low_opt:     Optional[Sequence[str]] = None,
                  grad:        Optional[Sequence[str]] = None,
+                 low_sp:      Optional[Sequence[str]] = None,
                  opt:         Optional[Sequence[str]] = None,
                  opt_ts:      Optional[Sequence[str]] = None,
                  hess:        Optional[Sequence[str]] = None,
@@ -40,6 +41,8 @@ class KeywordsSet:
 
             grad: List of keywords for a gradient calculation
 
+            low_sp: Low-level single point
+
             opt: List of keywords for a optimisation
 
             opt_ts: List of keywords for a transition state optimisation
@@ -54,15 +57,15 @@ class KeywordsSet:
              optts_block: String as extra input for a TS optimisation
         """
 
-        self._low_opt = OptKeywords(low_opt)   # Low-level optimisation
-        self._opt = OptKeywords(opt)           # Optimisation
-        self._opt_ts = OptKeywords(opt_ts)     # TS optimisation
+        self._low_opt = OptKeywords(low_opt)           # Low-level optimisation
+        self._opt = OptKeywords(opt)                   # Optimisation
+        self._opt_ts = OptKeywords(opt_ts)             # TS optimisation
 
-        self._grad = GradientKeywords(grad)    # Gradient
-        self._hess = HessianKeywords(hess)     # Hessian
+        self._grad = GradientKeywords(grad)            # Gradient
+        self._hess = HessianKeywords(hess)             # Hessian
 
-        self._low_sp = None                    # Low-level single point
-        self._sp = SinglePointKeywords(sp)     # Single point
+        self._low_sp = SinglePointKeywords(low_sp)     # Low-level single point
+        self._sp = SinglePointKeywords(sp)             # Single point
 
         self.optts_block = optts_block
 
@@ -139,7 +142,8 @@ class KeywordsSet:
     @property
     def _list(self) -> List['autode.wrappers.keywords.Keywords']:
         """List of all the keywords in this set"""
-        return [self._low_opt, self._opt, self._opt_ts, self._grad, self._hess, self._sp]
+        return [self._low_opt, self._opt, self._opt_ts, self._grad,
+                self._hess, self._sp, self._low_sp]
 
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""

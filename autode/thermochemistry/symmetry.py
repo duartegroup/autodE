@@ -8,9 +8,13 @@ def strip_identical_and_inv_axes(axes, sim_axis_tol):
     For a list of axes remove those which are similar to within some distance
     tolerance, or are inverses to within that tolerance
 
-    :param axes: list of axes
-    :param sim_axis_tol: distance tolerance in Å
-    :return:
+    ---------------------------------------------------------------------------
+    Arguments:
+        axes: list of axes
+        sim_axis_tol: distance tolerance in Å
+
+    Returns:
+        (list(np.ndarray)):
     """
 
     unique_possible_axes = []
@@ -41,9 +45,12 @@ def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.05):
           |
           ,
 
+    ---------------------------------------------------------------------------
     Arguments:
         coords (np.ndarray):
+
         max_triple_dist (float):
+
         sim_axis_tol (float):
 
     Returns:
@@ -89,6 +96,7 @@ def is_same_under_n_fold(pcoords, axis, n, m=1, tol=0.25,
     Does applying an n-fold rotation about an axis generate the same structure
     back again?
 
+    ---------------------------------------------------------------------------
     Arguments:
         pcoords (np.ndarray): shape = (n_unique_atom_types, n_atoms, 3)
 
@@ -152,9 +160,12 @@ def cn_and_axes(species, pcoords, max_n, dist_tol):
     """
     Find the highest symmetry rotation axis
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
+
         max_n (int):
+
         dist_tol (float):
 
     Returns:
@@ -206,6 +217,7 @@ def symmetry_number(species, max_n_fold_rot_searched=6,  dist_tol=0.25):
     Calculate the symmetry number of a molecule. See:
     Theor Chem Account (2007) 118:813–826
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.atoms.Species):
 

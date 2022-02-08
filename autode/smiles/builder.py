@@ -47,6 +47,7 @@ class Builder(AtomCollection):
     def built(self):
         """Have all the atoms been shifted appropriately?
 
+        -----------------------------------------------------------------------
         Returns:
             (bool):
         """
@@ -56,6 +57,7 @@ class Builder(AtomCollection):
     def canonical_atoms(self):
         """Generate canonical autodE atoms from this set
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.atoms.Atom)): Atoms
         """
@@ -71,6 +73,7 @@ class Builder(AtomCollection):
     def canonical_atoms_at_origin(self):
         """Canonical set of autodE atoms all located at the origin
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.atoms.Atom)): Atoms all with atom.coord = [0, 0, 0]
         """
@@ -80,6 +83,7 @@ class Builder(AtomCollection):
     def built_atom_idxs(self):
         """Atom indexes that have been built
 
+        -----------------------------------------------------------------------
         Returns:
             (list(int)): Atom indexes
         """
@@ -91,6 +95,7 @@ class Builder(AtomCollection):
         Generate a matrix of ones if atoms are non-bonded and zero if for
         self pairs or they are bonded
 
+        -----------------------------------------------------------------------
         Returns:
             (np.ndarray): shape = (n_atoms, n_atoms)
         """
@@ -113,6 +118,7 @@ class Builder(AtomCollection):
     def max_ring_n(self):
         """Maximum ring size in this molecule
 
+        -----------------------------------------------------------------------
         Returns:
             (int): Maximum ring size
         """
@@ -127,6 +133,7 @@ class Builder(AtomCollection):
         Is an atom a d8 metal? Only consider a subset of the platinum group
         elements
 
+        -----------------------------------------------------------------------
         Arguments:
             idx (int):
 
@@ -258,6 +265,7 @@ class Builder(AtomCollection):
     def _ring_idxs(self, inc_idxs, return_empty=False):
         """Indexes of atoms in the ring containing this bond
 
+        -----------------------------------------------------------------------
         Arguments:
             inc_idxs (list(int)): List of atom indexes that need to be included
                                   in the ring
@@ -291,7 +299,8 @@ class Builder(AtomCollection):
                  ^
              ring bond
 
-        Args:
+        -----------------------------------------------------------------------
+        Arguments:
             ring_bond (autode.smiles.SMILESBond):
 
         Returns:
@@ -324,6 +333,7 @@ class Builder(AtomCollection):
         Given a ring bond find all the rotatable dihedrals that can be adjusted
         to close it with a reasonable bond distance
 
+        -----------------------------------------------------------------------
         Arguments:
             ring_bond (autode.smiles.SMILESBond):
 
@@ -363,6 +373,7 @@ class Builder(AtomCollection):
         applied to the empty sites that are present in the queued atoms,
         they therefore need to be reset
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             other_idxs (list | set | None): Other indexes that need to be reset
         """
@@ -412,6 +423,7 @@ class Builder(AtomCollection):
             /                     -->           /   |
            C1                                 C1 ---C3
 
+        -----------------------------------------------------------------------
         Arguments:
             ring_bond (autode.smiles.base.RingBond):
         """
@@ -488,6 +500,7 @@ class Builder(AtomCollection):
         """Generate a distance matrix for all pairs of atoms and
         update any distance constraints that are required
 
+        -----------------------------------------------------------------------
         Arguments:
             dist_consts (dict | None): Keyed with atoms pairs and values of
                                        the distances
@@ -584,6 +597,7 @@ class Builder(AtomCollection):
         """
         Adjust ring dihedrals such that a ring is formed
 
+        -----------------------------------------------------------------------
         Arguments:
             ring_bond (autode.smiles.SMILESBond):
         """
@@ -703,6 +717,7 @@ class Builder(AtomCollection):
              /
             W
 
+        -----------------------------------------------------------------------
         Arguments:
             dihedral (autode.smiles.builder.Dihedral):
         """
@@ -756,6 +771,7 @@ class Builder(AtomCollection):
 
         where the dihedral is 0 or π, depending on the stereochemistry
 
+        -----------------------------------------------------------------------
         Arguments:
             bond (autode.smiles.base.SMILESBond):
         """
@@ -844,6 +860,7 @@ class Builder(AtomCollection):
         Add all the atoms bonded to a particular index, that have not already
         been shifted
 
+        -----------------------------------------------------------------------
         Arguments:
             idx (int): Atom index
         """
@@ -903,8 +920,10 @@ class Builder(AtomCollection):
         From a list of SMILESAtoms, and SMILESBonds set the required attributes
         and convert all implicit hydrogens into explicit atoms
 
+        -----------------------------------------------------------------------
         Arguments:
             atoms (list(autode.smiles.base.SMILESAtom)):
+
             bonds (auode.smiles.base.SMILESBonds):
         """
         if atoms is None or len(atoms) == 0:

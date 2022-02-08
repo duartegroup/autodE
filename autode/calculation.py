@@ -54,6 +54,9 @@ class Calculation:
                  cartesian_constraints: Optional[List[int]] = None,
                  point_charges:         Optional[List[PointCharge]] = None):
         """
+        Calculation e.g. single point energy evaluation on a molecule
+
+        -----------------------------------------------------------------------
         Arguments:
             name (str):
 
@@ -284,6 +287,7 @@ class Calculation:
         Check whether a calculation has has converged to within the theshold
         on energies and graidents specified in the input
 
+        -----------------------------------------------------------------------
         Returns:
             (bool):
         """
@@ -298,6 +302,7 @@ class Calculation:
         Check whether a calculation has nearly converged and may just need
         more geometry optimisation steps to complete successfully
 
+        -----------------------------------------------------------------------
         Returns:
             (bool):
         """
@@ -312,6 +317,7 @@ class Calculation:
         """
         Get the atoms from the final step of a geometry optimisation
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.atoms.Atoms):
 
@@ -342,6 +348,7 @@ class Calculation:
         calculate them depends on the QM method and are implemented in their
         respective wrappers
 
+        -----------------------------------------------------------------------
         Returns:
             (list(float)): Atomic charges in units of e
         """
@@ -363,6 +370,7 @@ class Calculation:
         Get the gradient (dE/dr) with respect to atomic displacement from a
         calculation
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Gradient): Gradient vectors. shape = (n_atoms, 3)
 
@@ -387,6 +395,7 @@ class Calculation:
                   d^2E/dy_0dx_0      .               .              .
                       .              .               .              . )
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Hessian): Hessian matrix. shape = (3N, 3N),
                                      for N atoms
@@ -414,6 +423,7 @@ class Calculation:
         """
         Determine if the calculation terminated without error
 
+        -----------------------------------------------------------------------
         Returns:
             (bool): Normal termination of the calculation?
         """
@@ -427,11 +437,13 @@ class Calculation:
 
     def clean_up(self,
                  force:      bool = False,
-                 everything: bool = False) -> None:
+                 everything: bool = False
+                 ) -> None:
         """
         Clean up input and output files, if Config.keep_input_files is False
         (and not force=True)
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
 
             force (bool): If True then override Config.keep_input_files

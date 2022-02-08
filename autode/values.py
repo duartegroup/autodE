@@ -12,7 +12,7 @@ from autode.units import (Unit,
                           amu, kg, m_e,
                           amu_ang_sq, kg_m_sq,
                           ha_per_ang, ha_per_a0, ev_per_ang,
-                          MB, GB, TB)
+                          byte, MB, GB, TB)
 
 
 def _to(value: Union['Value', 'ValueArray'],
@@ -23,6 +23,7 @@ def _to(value: Union['Value', 'ValueArray'],
     ---------------------------------------------------------------------------
     Arguments:
         value:
+
         units: New units that the
 
     Returns:
@@ -91,6 +92,7 @@ class Value(ABC, float):
         """
         Value constructor
 
+        -----------------------------------------------------------------------
         Arguments:
             x (float | int):
 
@@ -125,6 +127,7 @@ class Value(ABC, float):
         """
         Convert another value to these units, do nothing if not a Value
 
+        -----------------------------------------------------------------------
         Arguments:
             other (autode.values.Value | float):
 
@@ -210,6 +213,7 @@ class Value(ABC, float):
     def to(self, units):
         """Convert this value to a new unit, returning a copy
 
+        -----------------------------------------------------------------------
         Arguments:
             units (autode.units.Unit | str):
 
@@ -317,7 +321,7 @@ class FreeEnergyCont(Energy):
 
 class Allocation(Value):
 
-    implemented_units = [MB, GB, TB]
+    implemented_units = [byte, MB, GB, TB]
 
     def __repr__(self):
         return f'Allocation({round(self, 1)} {self.units.name})'
@@ -347,6 +351,7 @@ class Energies(list):
         """
         Add another energy to this list, if it does not already appear
 
+        -----------------------------------------------------------------------
         Arguments:
              other (autode.values.Energy):
         """
@@ -375,6 +380,7 @@ class Energies(list):
         Return the last instance of a particular energy type in these list
         of energies
 
+        -----------------------------------------------------------------------
         Arguments:
             energy_type (Energy):
 
@@ -388,6 +394,7 @@ class Energies(list):
         Return the last instance of a particular energy type in these list
         of energies
 
+        -----------------------------------------------------------------------
         Arguments:
             energy_type (Energy):
 
@@ -401,6 +408,7 @@ class Energies(list):
         """
         First potential energy in this list
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.PotentialEnergy | None):
         """
@@ -411,6 +419,7 @@ class Energies(list):
         """
         First potential energy in this list
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.PotentialEnergy | None):
         """
@@ -478,6 +487,7 @@ class Frequency(Value):
         """
         A frequencies real (positive) value
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Frequency):
         """
@@ -533,8 +543,10 @@ class ValueArray(ABC, np.ndarray):
         """
         Initialise a ValueArray from a numpy array, or another ValueArray
 
+        -----------------------------------------------------------------------
         Arguments:
             input_array (np.ndarray | autode.values.ValueArray):
+
             units (autode.units.Unit | str):
 
         Returns:
@@ -554,6 +566,7 @@ class ValueArray(ABC, np.ndarray):
         """
         Convert this array to a new unit, returning a copy
 
+        -----------------------------------------------------------------------
         Arguments:
             units (autode.units.Unit | str):
 

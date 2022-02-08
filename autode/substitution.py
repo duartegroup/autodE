@@ -57,6 +57,7 @@ def get_substc_and_add_dummy_atoms(reactant, bond_rearrangement, shift_factor):
     defined as atom that upon reaction has a bond made and broken
     simultaneously
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.complex.ReactantComplex):
 
@@ -134,8 +135,10 @@ def add_dummy_atom(reactant, bond_rearrangement):
     Add a dummy atom above or below the plane of the reactant as a temporary
     X atom
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.complex.ReactantComplex):
+
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
     logger.info('Adding dummy X atom so a substitution center can be found')
@@ -197,6 +200,7 @@ def attack_cost(reactant, subst_centres, attacking_mol_idx,
         cos(θ) = (v_ann • v_cx / |v_ann||v_cx|)
         cos(φ) = (v_ca • v_cx / |v_ca||v_cx|)
 
+    ---------------------------------------------------------------------------
     Returns:
         (float): Cost
     """
@@ -249,10 +253,14 @@ def get_cost_rotate_translate(x, reactant, subst_centres, attacking_mol_idx):
     Get the cost for placing an attacking mol given a specified rotation and
     translation
 
+    ---------------------------------------------------------------------------
     Arguments:
         x (np.ndarray): Length 11
+
         reactant (autode.complex.ReactantComplex):
+
         subst_centres (list(autode.substitution.SubstitutionCentre)):
+
         attacking_mol_idx (int): Index of the attacking molecule
 
     Returns:

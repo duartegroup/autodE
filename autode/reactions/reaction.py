@@ -115,10 +115,12 @@ class Reaction:
         """
         logger.info('Calculating reaction profile')
 
-        if with_complexes and (free_energy or enthalpy):
+        if (not Config.allow_association_complex_G
+                and (with_complexes and (free_energy or enthalpy))):
             raise NotImplementedError('Significant likelihood of very low '
-                                      'frequency harmonic modes – G and H not '
-                                      'implemented')
+                                      'frequency harmonic modes – G and H. Set'
+                                      ' Config.allow_association_complex_G to '
+                                      'override this')
 
         @work_in(self.name)
         def calculate(reaction):
@@ -214,6 +216,7 @@ class Reaction:
 
         for the addition of cyanide to acetone.
 
+        -----------------------------------------------------------------------
         Arguments:
             reaction_smiles (str):
         """
@@ -275,6 +278,7 @@ class Reaction:
         Assume an effective free energy barrier = 4.35 kcal mol-1 calcd.
         from k = 4x10^9 at 298 K (doi: 10.1021/cr050205w). Must have a ∆G_r
 
+        -----------------------------------------------------------------------
         Arguments:
             e_type (str): Type of energy to calculate: {'energy', 'enthalpy',
                                                         'free_energy'}
@@ -381,6 +385,7 @@ class Reaction:
         there is no enthalpic barrier to the reaction, or because a TS cannot
         be located.
 
+        -----------------------------------------------------------------------
         Returns:
             (bool): If this reaction has a barrier
         """
@@ -391,6 +396,7 @@ class Reaction:
         """
         Reactant complex comprising all the reactants in this reaction
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.species.ReactantComplex): Reactant complex
         """
@@ -407,6 +413,7 @@ class Reaction:
         Set the reactant of this reaction. If unset then will use a generated
         complex of all reactants
 
+        -----------------------------------------------------------------------
         Arguments:
             value (autode.species.ReactantComplex):
         """
@@ -421,6 +428,7 @@ class Reaction:
         """
         Product complex comprising all the products in this reaction
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.species.ProductComplex): Product complex
         """
@@ -437,6 +445,7 @@ class Reaction:
         Set the product of this reaction. If unset then will use a generated
         complex of all products
 
+        -----------------------------------------------------------------------
         Arguments:
             value (autode.species.ProductComplex):
         """
@@ -453,6 +462,7 @@ class Reaction:
         return the lowest energy but if there are no transtion states then
         return None
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.transition_states.TransitionState | None):
         """
@@ -464,6 +474,7 @@ class Reaction:
         Set the TS of this reaction, will override any other transition states
         located.
 
+        -----------------------------------------------------------------------
         Arguments:
             value (autode.transition_states.TransitionState | None):
         """
@@ -640,8 +651,10 @@ class Reaction:
         """
         Calculate thermochemical contributions to the energies
 
-        Keyword Arguments
+        -----------------------------------------------------------------------
+        Arguments
             free_energy (bool):
+
             enthalpy (bool):
         """
         logger.info('Calculating thermochemical contributions')

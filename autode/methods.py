@@ -63,6 +63,7 @@ def method_or_default_hmethod(method: Optional[ElectronicStructureMethod]):
 def get_hmethod() -> ElectronicStructureMethod:
     """Get the 'high-level' electronic structure theory method to use
 
+    ---------------------------------------------------------------------------
     Returns:
         (autode.wrappers.base.ElectronicStructureMethod): High-level method
     """
@@ -93,6 +94,7 @@ def get_first_available_method(possibilities) -> ElectronicStructureMethod:
     Get the first electronic structure method that is available in a list of
     possibilities.
 
+    ---------------------------------------------------------------------------
     Arguments:
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
@@ -114,6 +116,7 @@ def get_defined_method(name, possibilities) -> ElectronicStructureMethod:
     """
     Get an electronic structure method defined by it's name.
 
+    ---------------------------------------------------------------------------
     Arguments:
         name (str):
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):

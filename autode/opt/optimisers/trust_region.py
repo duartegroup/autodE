@@ -61,8 +61,8 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
                  method:      'autode.wrappers.base.Method',
                  n_cores:      Optional[int] = None,
                  coords:       Optional['autode.opt.OptCoordinates'] = None,
-                 gtol:         Union[float, GradientRMS] = GradientRMS(1E-3, units='Ha Å-1'),
-                 etol:         Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
+                 gtol:         Union[float, GradientRMS] = GradientRMS(1E-3, 'Ha Å-1'),
+                 etol:         Union[float, PotentialEnergy] = PotentialEnergy(1E-4, 'Ha'),
                  maxiter:      int = 5,
                  trust_radius: float = 0.2,
                  **kwargs

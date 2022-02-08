@@ -15,9 +15,12 @@ def get_bond_rearrangs(reactant, product, name, save=True):
     determining the types of bonds that have been made/broken (i.e CH) and
     then only considering rearrangements involving those bonds.
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.species.ReactantComplex):
+
         product (autode.species.ProductComplex):
+
         name (str):
 
     Keyword Arguments:
@@ -130,8 +133,11 @@ def save_bond_rearrangs_to_file(brs, filename='bond_rearrangs.txt'):
     """
     Save a list of bond rearrangements to a file in plane text
 
-    :param brs: (list(autode.bond_rearrangements.BondRearrangement))
-    :param filename: (str)
+    ---------------------------------------------------------------------------
+    Arguments:
+        brs (list(autode.bond_rearrangements.BondRearrangement)):
+
+        filename (str):
     """
     logger.info(f'Saving bond rearrangements to {filename}')
 
@@ -152,6 +158,7 @@ def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
     """
     Extract a list of bond rearrangements from a file
 
+    ---------------------------------------------------------------------------
     Keyword Arguments:
         filename (str):
 
@@ -194,15 +201,21 @@ def get_bond_rearrangs_from_file(filename='bond_rearrangs.txt'):
 
 
 def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
-    """For a possible bond rearrangement, sees if the products are made, and
+    """
+    For a possible bond rearrangement, sees if the products are made, and
     adds it to the bond rearrang list if it does
 
+    ---------------------------------------------------------------------------
     Arguments:
         bond_rearrangs (list(autode.bond_rearrangements.BondRearrangement)):
-                        list of working bond rearrangments
+                        list of working bond rearrangements
+
         reactant (autode.species.Complex): Reactant complex
+
         product (autode.species.Complex): Product complex
+
         fbonds (list(tuple)): list of bonds to be made
+
         bbonds (list(tuple)): list of bonds to be broken
 
     Returns:
@@ -250,9 +263,12 @@ def generate_rearranged_graph(graph, fbonds, bbonds):
     """Generate a rearranged graph by breaking bonds (edge) and forming others
     (edge)
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph): reactant graph
+
         fbonds (list(tuple)): list of bonds to be made
+
         bbonds (list(tuple)): list of bonds to be broken
 
     Returns:
@@ -489,6 +505,7 @@ def strip_equiv_bond_rearrs(possible_brs, mol, depth=6):
     """Remove any bond rearrangement from possible_brs for which
     there is already an equivalent in the unique_bond_rearrangements list
 
+    ---------------------------------------------------------------------------
     Arguments:
         possible_brs (list(BondRearrangement)):
         mol (autode.species.Complex): Reactant
@@ -528,8 +545,10 @@ def prune_small_ring_rearrs(possible_brs, mol):
     Remove any bond rearrangements that go via small (3, 4) rings if there is
     an alternative that goes vie
 
+    ---------------------------------------------------------------------------
     Arguments:
         possible_brs (list(BondRearrangement)):
+
         mol (autode.species.Complex): Reactant
     """
     small_ring_sizes = (3, 4)
@@ -597,6 +616,7 @@ class BondRearrangement:
         Get neighbour lists of all the active atoms in the molecule
         (reactant complex)
 
+        -----------------------------------------------------------------------
         Arguments:
             species (autode.species.Species | autode.species.Complex):
             depth (int): Depth of the neighbour list to consider
@@ -628,6 +648,7 @@ class BondRearrangement:
         Find the membered-ness of the rings involved in this bond rearrangement
         will add the forming bonds to the graph to determine
 
+        -----------------------------------------------------------------------
         Arguments:
             (autode.species.Species):
 
@@ -683,6 +704,7 @@ class BondRearrangement:
         """
         Bond rearrangement
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             forming_bonds (list(tuple(int))): List of atom pairs that are
                         forming in this reaction

@@ -10,6 +10,7 @@ def xyz_file_to_atoms(filename: str):
     """
     From a .xyz file get a list of autode atoms
 
+    ---------------------------------------------------------------------------
     Arguments:
         filename (str): .xyz filename
 
@@ -62,6 +63,7 @@ def atoms_to_xyz_file(atoms:      Collection[Atom],
     """
     Print a standard .xyz file from a list of atoms
 
+    ---------------------------------------------------------------------------
     Arguments:
         atoms (list(autode.atoms.Atom)): List of autode atoms to print
 

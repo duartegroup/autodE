@@ -30,6 +30,7 @@ class Atom:
             >>> ade.Atom('H', 1.0, 1.0, 1.0)
             Atom(H, 1.0000, 1.0000, 1.0000)
 
+        -----------------------------------------------------------------------
         Arguments:
             atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
 
@@ -47,6 +48,7 @@ class Atom:
         """
         Representation of this atom
 
+        -----------------------------------------------------------------------
         Returns:
             (str): Representation
         """
@@ -69,6 +71,7 @@ class Atom:
             >>> atom.atomic_number
             6
 
+        -----------------------------------------------------------------------
         Returns:
             (int): Atomic number
         """
@@ -87,6 +90,7 @@ class Atom:
             >>> atom.atomic_symbol
             'Zn'
 
+        -----------------------------------------------------------------------
         Returns:
             (str): Atomic symbol
         """
@@ -122,6 +126,7 @@ class Atom:
             >>> ade.Atom('H', x=1.0, y=-1.0).coord.to('a0')
             Coordinate([1.889  -1.889  0. ] bohr)
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Coordinate): Coordinate
         """
@@ -132,6 +137,7 @@ class Atom:
         """
         Coordinate setter
 
+        -----------------------------------------------------------------------
         Arguments:
             *args (float | list(float) | np.ndarray(float)):
 
@@ -154,6 +160,7 @@ class Atom:
             >>> ade.Atom('Zn').is_metal
             True
 
+        -----------------------------------------------------------------------
         Returns:
             (bool):
         """
@@ -170,6 +177,7 @@ class Atom:
             >>> ade.Atom('C').group
             14
 
+        -----------------------------------------------------------------------
         Returns:
             (int): Group
         """
@@ -192,6 +200,7 @@ class Atom:
             >>> ade.Atom('C').period
             2
 
+        -----------------------------------------------------------------------
         Returns:
             (int): Period
         """
@@ -215,6 +224,7 @@ class Atom:
             >>> ade.Atom('Zn').tm_row
             1
 
+        -----------------------------------------------------------------------
         Returns:
             (int | None): Transition metal row
         """
@@ -238,6 +248,7 @@ class Atom:
             >>> ade.Atom('C').weight == ade.Atom('C').mass
             True
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Mass): Weight
         """
@@ -261,6 +272,7 @@ class Atom:
             >>> ade.Atom('H').mass.to('me')
             Mass(1837.36222 m_e)
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Mass): Mass
         """
@@ -273,6 +285,7 @@ class Atom:
         state (most commonly). i.e. for H the maximal_valance=1. Useful for
         generating molecular graphs
 
+        -----------------------------------------------------------------------
         Returns:
             (int): Maximal valance
         """
@@ -298,6 +311,7 @@ class Atom:
             >>> ade.Atom('H').vdw_radius
             Distance(1.1 Å)
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Distance): Van der Waals radius
         """
@@ -309,7 +323,7 @@ class Atom:
                          f'Guessing at 2.3 Å')
             radius = 2.3
 
-        return Distance(radius, units='ang')
+        return Distance(radius, 'Å')
 
     def is_pi(self, valency: int) -> bool:
         """
@@ -324,7 +338,7 @@ class Atom:
             >>> ade.Atom('H').is_pi(valency=1)
             False
 
-
+        -----------------------------------------------------------------------
         Arguments:
             valency (int):
 
@@ -374,6 +388,7 @@ class Atom:
             >>> atom.coord
             Coordinate([0. 0. 0.] Å)
 
+        -----------------------------------------------------------------------
         Arguments:
              *args (float | np.ndarray | list(float)):
 
@@ -433,14 +448,14 @@ class Atom:
             >>> atom.coord
             Coordinate([-1.  0.  0.] Å)
 
+        -----------------------------------------------------------------------
         Arguments:
             axis: Axis to rotate in. shape = (3,)
+
             theta: Angle to rotate by
 
-        Keyword Arguments:
-            origin: Rotate about this origin. shape = (3,)
-                    if no origin is specified then the atom
-                    is rotated without translation.
+            origin: Rotate about this origin. shape = (3,) if no origin is
+                    specified then the atom is rotated without translation.
         """
         # If specified, shift so that the origin is at (0, 0, 0)
         if origin is not None:
@@ -466,6 +481,7 @@ class DummyAtom(Atom):
         """
         Dummy atom
 
+        -----------------------------------------------------------------------
         Arguments:
             x (float): x coordinate in 3D space (Å)
             y (float): y
@@ -514,6 +530,7 @@ class Atoms(list):
         """
         Copy these atoms, deeply
 
+        -----------------------------------------------------------------------
         Returns:
              (autode.atoms.Atoms):
         """
@@ -542,6 +559,7 @@ class Atoms(list):
         where M is the total mass, m_i the mass of atom i and R_i it's
         coordinate
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Coordinate): COM
         """
@@ -604,6 +622,7 @@ class Atoms(list):
         """
         Vector from atom i to atom j
 
+        -----------------------------------------------------------------------
         Arguments:
             i (int):
             j (int):
@@ -622,6 +641,7 @@ class Atoms(list):
         """
         Normalised vector from atom i to atom j
 
+        -----------------------------------------------------------------------
         Arguments:
             i (int):
             j (int):
@@ -640,6 +660,7 @@ class Atoms(list):
         """
         Are these set of atoms colinear?
 
+        -----------------------------------------------------------------------
         Arguments:
             angle_tol (autode.values.Angle): Tolerance on the angle
 
@@ -676,6 +697,7 @@ class AtomCollection:
         Collection of atoms, used as a a base class for a species, complex
         or transition state.
 
+        -----------------------------------------------------------------------
         Arguments:
             atoms (autode.atoms.Atoms | list(autode.atoms.Atom) | None):
         """
@@ -699,6 +721,7 @@ class AtomCollection:
                     value: np.ndarray):
         """Set the coordinates from a numpy array
 
+        -----------------------------------------------------------------------
         Arguments:
             value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
                                 row major vector
@@ -737,6 +760,7 @@ class AtomCollection:
     def com(self) -> Optional[Coordinate]:
         """Centre of mass of this atom collection
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Coordinate): COM
 
@@ -750,6 +774,7 @@ class AtomCollection:
         """
         Moment of inertia matrix (I)
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.MomentOfInertia):
         """
@@ -760,6 +785,7 @@ class AtomCollection:
         """
         Molecular weight
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.values.Mass):
         """
@@ -769,8 +795,10 @@ class AtomCollection:
         return sum(atom.mass for atom in self.atoms)
 
     def _idxs_are_present(self, *args):
-        """Are a set of indexes present in the collection of atoms?
+        """
+        Are a set of indexes present in the collection of atoms?
 
+        -----------------------------------------------------------------------
         Arguments:
             args (int):
 
@@ -782,8 +810,10 @@ class AtomCollection:
     def distance(self,
                  i: int,
                  j: int) -> Distance:
-        """Distance between two atoms (Å), indexed from 0.
+        """
+        Distance between two atoms (Å), indexed from 0.
 
+        -----------------------------------------------------------------------
         Arguments:
             i (int): Atom index of the first atom
             j (int): Atom index of the second atom
@@ -825,6 +855,7 @@ class AtomCollection:
             Angle(180.0 °)
 
 
+        -----------------------------------------------------------------------
         Arguments:
             i (int): Atom index of the left hand side in the angle
             j (int):  --- middle
@@ -879,6 +910,7 @@ class AtomCollection:
             >>> h2s2.dihedral(2, 0, 1, 3).to('deg')
             Angle(-90.0 °)
 
+        -----------------------------------------------------------------------
         Arguments:
             w (int): Atom index of the first atom in the dihedral
             x (int):               -- second --
@@ -956,8 +988,10 @@ class PeriodicTable:
 
     @classmethod
     def period(cls, n: int):
-        """Period of the periodic table, with 1 being the first period
+        """
+        Period of the periodic table, with 1 being the first period
 
+        -----------------------------------------------------------------------
         Arguments:
             n (int):
 
@@ -975,8 +1009,10 @@ class PeriodicTable:
 
     @classmethod
     def group(cls, n: int):
-        """Group of the periodic table, with 1 being the first period
+        """
+        Group of the periodic table, with 1 being the first period
 
+        -----------------------------------------------------------------------
         Arguments:
             n (int):
 
@@ -998,6 +1034,7 @@ class PeriodicTable:
         Element given it's index in the periodic table, excluding
         lanthanides and actinides.
 
+        -----------------------------------------------------------------------
         Arguments:
             period (int):
 
@@ -1025,6 +1062,7 @@ class PeriodicTable:
 
         row = 1 -> [Sc, Ti .. Zn]
 
+        -----------------------------------------------------------------------
         Arguments:
             row (int): Colloquial name for TMs period
 

@@ -14,6 +14,7 @@ def calc_multiplicity(molecule, n_radical_electrons):
     """Calculate the spin multiplicity 2S + 1 where S is the number of
     unpaired electrons. Will only override non-default (unity multiplicity)
 
+    ---------------------------------------------------------------------------
     Arguments:
         molecule (autode.molecule.Molecule):
 
@@ -42,8 +43,10 @@ def init_organic_smiles(molecule, smiles):
     Initialise a molecule from a SMILES string, set the charge, multiplicity (
     if it's not already specified) and the 3D geometry using RDKit
 
+    ---------------------------------------------------------------------------
     Arguments:
         molecule (autode.molecule.Molecule):
+
         smiles (str): SMILES string
     """
     parser, builder = Parser(), Builder()
@@ -115,8 +118,10 @@ def init_smiles(molecule, smiles):
     """
     Initialise a molecule from a SMILES string
 
+    ---------------------------------------------------------------------------
     Arguments:
         molecule (autode.molecule.Molecule):
+
         smiles (str): SMILES string
     """
     molecule.rdkit_conf_gen_is_fine = False
@@ -161,8 +166,10 @@ def check_bonds(molecule, bonds):
     Ensure the SMILES string and the 3D structure have the same bonds,
     but don't override
 
+    ---------------------------------------------------------------------------
     Arguments:
         molecule (autode.molecule.Molecule):
+
         bonds (list):
     """
     check_molecule = molecule.copy()

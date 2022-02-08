@@ -84,6 +84,7 @@ class Molecule(Species):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic.
 
+        -----------------------------------------------------------------------
         Arguments:
             smiles (str):
         """
@@ -104,6 +105,7 @@ class Molecule(Species):
         """
         Initialise a molecule from a .xyz file
 
+        -----------------------------------------------------------------------
         Arguments:
             xyz_filename (str):
 
@@ -134,6 +136,7 @@ class Molecule(Species):
         Use a simulated annealing approach to generate conformers for this
         molecule.
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             n_confs (int): Number of conformers requested if None default to
                            autode.Config.num_conformers
@@ -186,6 +189,7 @@ class Molecule(Species):
         Populate self.conformers with a conformers generated using a default
         method
 
+        -----------------------------------------------------------------------
         Arguments:
             n_confs (int): Number of conformers to try and generate
         """
@@ -195,6 +199,7 @@ class Molecule(Species):
         """
         Generate a copy of this reactant as a product
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.species.molecule.Product): Product
         """
@@ -207,6 +212,7 @@ class Molecule(Species):
         """
         Generate a copy of this product as a reactant
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.species.molecule.Reactant): Reactant
         """
