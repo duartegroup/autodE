@@ -8,7 +8,9 @@ from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 import multiprocessing as mp
 import multiprocessing.pool
+from autode.config import Config
 from autode.log import logger
+from autode.values import Allocation
 from autode.exceptions import (NoAtomsInMolecule,
                                NoCalculationOutput,
                                NoConformers,
@@ -45,6 +47,32 @@ if sys.version_info.minor <= 7:                                   # Python <3.7
         __get__ = cached_property_wrapper
 
 
+def check_sufficient_memory(func):
+    """Decorator to check that enough memory is available for a calculation"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+
+        physical_mem = None
+        required_mem = int(Config.n_cores) * Config.max_core
+
+        try:
+            physical_mem = Allocation(os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'),
+                                      units='bytes')
+        except (ValueError, OSError):
+            logger.warning('Cannot check physical memory')
+
+        if physical_mem is not None and physical_mem < required_mem:
+            raise RuntimeError('Cannot run function - insufficient memory. Had'
+                               f' {physical_mem.to("GB")} GB but required '
+                               f'{required_mem.to("GB")} GB')
+
+        return func(*args, **kwargs)
+
+    return wrapped_function
+
+
+@check_sufficient_memory
 def run_external(params, output_filename):
     """
     Standard method to run a EST calculation with subprocess writing the
@@ -68,6 +96,7 @@ def run_external(params, output_filename):
     return None
 
 
+@check_sufficient_memory
 def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
                            break_words=None):
     """

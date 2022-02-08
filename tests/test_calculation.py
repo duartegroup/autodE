@@ -2,13 +2,16 @@ from autode.calculation import Calculation, Constraints, CalculationOutput
 from autode.solvent.solvents import get_solvent
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import Functional
+from autode.utils import run_external
 from autode.methods import XTB, ORCA
 from autode.species import Molecule
 from autode.config import Config
 import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
+from copy import deepcopy
 import pytest
 import os
+import sys
 
 test_mol = Molecule(smiles='O', name='test_mol')
 
@@ -172,7 +175,7 @@ def test_calc_string():
     assert str(dist_const) != str(dist_const2)
 
 
-@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+@work_in_tmp_dir()
 def test_fix_unique():
     """So calculations with different input but the same name are not skipped
     autodE checks the input of each previously run calc with the name name"""
@@ -233,7 +236,7 @@ def test_solvent_get():
                         method=xtb, keywords=xtb.keywords.sp)
 
 
-@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+@work_in_tmp_dir()
 def test_input_gen():
 
     xtb = XTB()
@@ -265,7 +268,7 @@ def test_input_gen():
         calc_kwds.generate_input()
 
 
-@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+@work_in_tmp_dir()
 def test_exec_not_avail_method():
 
     orca = ORCA()
@@ -283,3 +286,22 @@ def test_exec_not_avail_method():
 
     with pytest.raises(ex.MethodUnavailable):
         calc.run()
+
+
+@work_in_tmp_dir()
+def test_exec_too_much_memory_requested():
+
+    if sys.version_info.minor != 9:
+        return  # Only supported on Python 3.9
+
+    # Normal external run should be fine
+    run_external(['ls'], output_filename='tmp.txt')
+
+    curr_max_core = deepcopy(Config.max_core)
+    Config.max_core = 10000000000000
+
+    # But if there is not enough physical memory it should raise an exception
+    with pytest.raises(RuntimeError):
+        run_external(['ls'], output_filename='tmp.txt')
+
+    Config.max_core = curr_max_core

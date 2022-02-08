@@ -263,6 +263,10 @@ hz = Unit(name='s^-1',
 # ------------------- Digital storage allocation -----------------------
 
 
+byte = Unit(name='byte',
+            conversion=1E6,      # 1,000,000 bytes = 1 MB
+            aliases=['bytes'])
+
 MB = BaseUnit(name='mb',
               aliases=['megabyte'])
 
