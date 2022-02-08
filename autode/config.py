@@ -166,6 +166,7 @@ class _ConfigClass:
     # Flag for allowing free energies to be calculated with association
     # complexes. This is *not* recommended to be turned on due to the
     # approximations made in the entropy calculations.
+    #
     allow_association_complex_G = False
     # -------------------------------------------------------------------------
 
