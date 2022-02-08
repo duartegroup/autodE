@@ -12,7 +12,7 @@ from autode.units import (Unit,
                           amu, kg, m_e,
                           amu_ang_sq, kg_m_sq,
                           ha_per_ang, ha_per_a0, ev_per_ang,
-                          MB, GB, TB)
+                          byte, MB, GB, TB)
 
 
 def _to(value: Union['Value', 'ValueArray'],
@@ -317,7 +317,7 @@ class FreeEnergyCont(Energy):
 
 class Allocation(Value):
 
-    implemented_units = [MB, GB, TB]
+    implemented_units = [byte, MB, GB, TB]
 
     def __repr__(self):
         return f'Allocation({round(self, 1)} {self.units.name})'
