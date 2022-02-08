@@ -410,25 +410,3 @@ def hashable(_method_name: str, _object: Any):
     """Multiprocessing requires hashable top-level functions to be executed,
     so convert a method into a top-level function"""
     return getattr(_object, _method_name)
-
-
-class NoDaemonProcess(multiprocessing.Process):
-    @property
-    def daemon(self):
-        return False
-
-    @daemon.setter
-    def daemon(self, value):
-        pass
-
-
-class NoDaemonContext(type(multiprocessing.get_context())):
-    Process = NoDaemonProcess
-
-
-class NoDaemonPool(mp.pool.Pool):
-    """Subclass of Pool to allow child multiprocessing"""
-
-    def __init__(self, *args, **kwargs):
-        kwargs['context'] = NoDaemonContext()
-        super().__init__(*args, **kwargs)

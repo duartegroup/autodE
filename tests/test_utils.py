@@ -1,3 +1,6 @@
+import time
+import pytest
+import os
 from autode import utils
 from autode.calculation import Calculation
 from autode.species.molecule import Molecule
@@ -8,10 +11,8 @@ from subprocess import Popen, TimeoutExpired
 import multiprocessing as mp
 from autode import exceptions as ex
 from autode.mol_graphs import is_isomorphic
-from autode.utils import work_in_tmp_dir
-import time
-import pytest
-import os
+from autode.utils import (work_in_tmp_dir, log_time, requires_graph)
+
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -206,3 +207,25 @@ def test_spawn_multiprocessing_graph():
     assert is_isomorphic(h2o_a.graph, h2o_b.graph)
 
     mp.set_start_method('fork', force=True)
+
+
+def test_time_units():
+
+    with pytest.raises(ValueError):
+
+        @log_time(units='X')   # invalid time format
+        def f():
+            return None
+
+
+def test_requires_graph():
+
+    @requires_graph
+    def f(mol):
+        return mol.graph.number_of_edges()
+
+    with pytest.raises(Exception):
+        m = Molecule()
+        m.graph = None
+
+        f(m)  # No graph
