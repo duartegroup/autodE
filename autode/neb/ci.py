@@ -10,8 +10,10 @@ from autode.log import logger
 class CImage(Image):
 
     def __init__(self, image):
-        """Construct a climbing image from a non-climbing one
+        """
+        Construct a climbing image from a non-climbing one
 
+        -----------------------------------------------------------------------
         Arguments:
             image (autode.neb.Image):
         """
@@ -19,10 +21,11 @@ class CImage(Image):
         # Set all the current attributes from the regular image
         self.__dict__.update(image.__dict__)
 
-    def get_force(self, im_l, im_r):
+    def get_force(self, im_l, im_r) -> np.ndarray:
         """
         Compute F_m
 
+        -----------------------------------------------------------------------
         Arguments:
             im_l (autode.neb.Image): Left image (i-1)
             im_r (autode.neb.Image): Right image (i+1)
@@ -37,8 +40,10 @@ class CImage(Image):
 class CImages(Images):
 
     def __init__(self, images, wait_iterations=4):
-        """Initialise a set of images
+        """
+        Initialise a set of images
 
+        ----------------------------------------------------------------------
         Arguments:
             images (autode.neb.Images):
 
@@ -59,7 +64,7 @@ class CImages(Images):
 
         return super().__eq__(other)
 
-    def increment(self):
+    def increment(self) -> None:
         """Increment the counter, and switch on a climbing image"""
         super().increment()
 
@@ -83,7 +88,8 @@ class CINEB(NEB):
 
         self.images = CImages(self.images)
 
-    def _minimise(self, method, n_cores, etol, max_n=30):
+    def _minimise(self, method, n_cores, etol, max_n=30
+                  ) -> 'scipy.optimize.OptimizeResult':
         """Minimise th energy of every image in the NEB"""
         logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
         result = super()._minimise(method, n_cores, etol, max_n)
@@ -99,9 +105,8 @@ class CINEB(NEB):
 
         return result
 
-    def partition(self, n):
+    def partition(self, n: int) -> None:
         """Partition a set of CI images"""
         super().partition(n=n)
         self.images = CImages(self.images)
         return None
-
