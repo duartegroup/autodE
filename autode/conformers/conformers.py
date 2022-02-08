@@ -160,7 +160,7 @@ class Conformers(list):
         if isinstance(rmsd_tol, float):
             logger.warning(f'Assuming RMSD tolerance {rmsd_tol:.2f} has units'
                            f' of Å')
-            rmsd_tol = Distance(rmsd_tol, units='ang')
+            rmsd_tol = Distance(rmsd_tol, 'Å')
 
         logger.info(f'Removing conformers with RMSD < {rmsd_tol.to("ang")} Å '
                     f'to any other (heavy atoms only, with no symmetry)')

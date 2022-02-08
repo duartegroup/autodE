@@ -810,7 +810,7 @@ class Species(AtomCollection):
     @requires_atoms
     def is_linear(self,
                   tol:       Optional[float] = None,
-                  angle_tol: val.Angle = val.Angle(1.0, units='deg')
+                  angle_tol: val.Angle = val.Angle(1.0, 'degrees')
                   ) -> bool:
         """
         Determine if a species is linear i.e all atoms are colinear

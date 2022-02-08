@@ -323,7 +323,7 @@ class Atom:
                          f'Guessing at 2.3 Å')
             radius = 2.3
 
-        return Distance(radius, units='ang')
+        return Distance(radius, 'Å')
 
     def is_pi(self, valency: int) -> bool:
         """

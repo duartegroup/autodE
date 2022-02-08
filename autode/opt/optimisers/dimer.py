@@ -281,7 +281,7 @@ class Dimer(Optimiser):
     def _phi1(self) -> Angle:
         """φ_1. eqn 5 in ref [1]"""
         val = -0.5 * np.arctan(self._dc_dphi / (2.0 * np.linalg.norm(self._c)))
-        return Angle(val, units='radians')
+        return Angle(val, 'radians')
 
     def _rotate_coords(self,
                        phi:       Angle,
