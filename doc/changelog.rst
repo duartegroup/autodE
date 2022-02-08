@@ -33,6 +33,9 @@ Usability improvements/Changes
 - Modifies :code:`autode.calculation.Calculation.get_energy` to raise an exception if the energy cannot be extracted
 - Adds a runtime error if e.g. :code:`autode.calculation.Calculation.get_energy` is called on a calculation that has not been run
 - Skips low-level adaptive path searching if the high and low-level methods are identical (when XTB or MOPAC are not installed)
+- Adds a default set of low-level single point keywords
+- Adds a flag to override exiting a reaction profile calculation when association complexes are generated
+- Adds a check that a calculation isn't going to exceed the maximum amount of physical memory on the computer
 
 
 Functionality improvements

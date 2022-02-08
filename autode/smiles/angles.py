@@ -22,9 +22,10 @@ class SAngle:
     def __repr__(self):
         return self.__str__()
 
-    def value(self, atoms):
+    def value(self, atoms) -> float:
         """
 
+        -----------------------------------------------------------------------
         Arguments:
             atoms (list(autode.atoms.Atom)):
 
@@ -116,6 +117,7 @@ class SAngle:
         the atoms on the other side of the angle. Skip any atoms that
         have not been moved
 
+        -----------------------------------------------------------------------
         Returns:
             (list(int)):
         """
@@ -199,6 +201,7 @@ class SDihedral(SAngle):
                      \
                       Z
 
+        -----------------------------------------------------------------------
         Arguments:
             idxs (list(int)): 4 atom indexes defining the dihedral
 
@@ -247,6 +250,7 @@ class SDihedral(SAngle):
         Calculate the value of a dihedral defined by some atoms with non-zero
         positions
 
+        -----------------------------------------------------------------------
         Arguments:
             atoms (list(autode.atoms.Atom)):
 
@@ -267,8 +271,10 @@ class SDihedral(SAngle):
         """
         Find the atom indexes that should be rotated for this dihedral
 
+        -----------------------------------------------------------------------
         Arguments:
             graph (nx.Graph):
+
             atoms (list(autode.atoms.Atom)):
         """
         return self._find_rot_idxs_from_pair(graph, atoms, pair=self.mid_idxs,

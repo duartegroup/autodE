@@ -10,11 +10,14 @@ from autode.log import logger
 def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
     """
     Add π bonds that are nearest neighbours to the current atoms in the
-     truncated graph
+    truncated graph
 
+    ---------------------------------------------------------------------------
     Arguments:
         molecule (autode.species.Species):
+
         s_molecule (autode.species.Species): Stripped molecule
+
         truncated_graph (nx.Graph):
     """
     logger.info('Adding π bonds to the truncated graph')
@@ -59,11 +62,15 @@ def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
                  \
                   H
 
+    ---------------------------------------------------------------------------
     Arguments:
         atom_index (int):
+
         n_atom_index (int):
+
         graph (nx.Graph): Current molecular graph of the stripped/truncated
                           molecule
+
         s_molecule (autode.species.Species): Stripped molecule
     """
     logger.info(f'Swapping saturated carbon {n_atom_index} next to atom '
@@ -91,10 +98,14 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
     Add capping atoms to the graph, truncating over C-C single bonds where
     appropriate
 
+    ---------------------------------------------------------------------------
     Arguments:
         molecule (autode.species.Species):
+
         s_molecule (autode.species.Species): Stripped molecule
+
         truncated_graph (nx.Graph):
+
         curr_nodes (list(int)):
     """
     # Set of atom indexes (R) that have been replaced for H
@@ -217,6 +228,7 @@ def get_truncated_species(species, bond_rearrangement):
     From a truncated species by removing non core atoms and adding
     capping atoms where appropriate
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
@@ -276,8 +288,10 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
     """
     Evaluate whether it is worth truncating a complex
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactant_complex (autode.complex.ReactantComplex):
+
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
     if has_matching_ts_templates(reactant_complex, bond_rearrangement):

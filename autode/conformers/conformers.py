@@ -3,7 +3,7 @@ from typing import Optional, Union
 from multiprocessing import Pool
 from rdkit import Chem
 from autode.values import Distance, Energy
-from autode.atoms import Atom
+from autode.atoms import Atom, Atoms
 from autode.config import Config
 from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
@@ -38,21 +38,26 @@ class Conformers(list):
         return self[np.argmin(energies)]
 
     def prune(self,
-              e_tol:            Union[Energy, float] = Energy(1, units='kJ mol-1'),
+              e_tol:            Union[Energy, float] = Energy(1., 'kJ mol-1'),
               rmsd_tol:         Union[Distance, float, None] = None,
               n_sigma:          float = 5,
-              remove_no_energy: bool = False) -> None:
+              remove_no_energy: bool = False
+              ) -> None:
         """
         Prune conformers based on both energy and root mean squared deviation
         (RMSD) values. Will discard any conformers that are within e_tol in
         energy (Ha) and rmsd in RMSD (Å) to any other
 
-        Keyword Arguments:
+        -----------------------------------------------------------------------
+        Arguments:
             e_tol (Energy): Energy tolerance
 
-            rmsd_tol  (Distance | None): RMSD tolerance
+            rmsd_tol (Distance | None): RMSD tolerance. Defaults to
+                                        autode.Config.rmsd_threshold
 
             n_sigma (float | int):
+
+            remove_no_energy (bool):
         """
 
         if remove_no_energy:
@@ -66,8 +71,9 @@ class Conformers(list):
         return None
 
     def prune_on_energy(self,
-                        e_tol:   Union[Energy, float] = Energy(1, units='kJ mol-1'),
-                        n_sigma: float = 5) -> None:
+                        e_tol:   Union[Energy, float] = Energy(1., 'kJ mol-1'),
+                        n_sigma: float = 5
+                        ) -> None:
         """
         Prune the conformers based on an energy threshold, discarding those
         that have energies that are similar to within e_tol. Also discards
@@ -75,6 +81,7 @@ class Conformers(list):
         with the calculation) if the are more than n_sigma standard deviations
         away from the mean
 
+        -----------------------------------------------------------------------
         Arguments:
             e_tol (autode.values.Energy | float | None):
 
@@ -133,11 +140,13 @@ class Conformers(list):
         return None
 
     def prune_on_rmsd(self,
-                      rmsd_tol: Union[Distance, float, None] = None) -> None:
+                      rmsd_tol: Union[Distance, float, None] = None
+                      ) -> None:
         """
         Given a list of conformers add those that are unique based on an RMSD
         tolerance. If rmsd=None then use autode.Config.rmsd_threshold
 
+        -----------------------------------------------------------------------
         Arguments:
             rmsd_tol (autode.values.Distance | float | None):
         """
@@ -151,7 +160,7 @@ class Conformers(list):
         if isinstance(rmsd_tol, float):
             logger.warning(f'Assuming RMSD tolerance {rmsd_tol:.2f} has units'
                            f' of Å')
-            rmsd_tol = Distance(rmsd_tol, units='ang')
+            rmsd_tol = Distance(rmsd_tol, 'Å')
 
         logger.info(f'Removing conformers with RMSD < {rmsd_tol.to("ang")} Å '
                     f'to any other (heavy atoms only, with no symmetry)')
@@ -174,7 +183,8 @@ class Conformers(list):
         return None
 
     def prune_diff_graph(self,
-                         graph: 'networkx.Graph') -> None:
+                         graph: 'networkx.Graph'
+                         ) -> None:
         """
         Remove conformers with a different molecular graph to a defined
         reference. Although all conformers should have the same molecular
@@ -232,28 +242,30 @@ class Conformers(list):
 
     def optimise(self,
                  method:  'autode.wrappers.base.ElectronicStructureMethod',
-                 keywords: Optional['autode.wrappers.Keywords'] = None):
+                 keywords: Optional['autode.wrappers.Keywords'] = None
+                 ) -> None:
         """
         Optimise a set of conformers in parallel
 
+        -----------------------------------------------------------------------
         Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
-        Keyword Arguments:
             keywords (autode.wrappers.keywords.Keywords):
         """
         return self._parallel_calc('optimise', method, keywords)
 
     def single_point(self,
                      method:  'autode.wrappers.base.ElectronicStructureMethod',
-                     keywords: Optional['autode.wrappers.Keywords'] = None):
+                     keywords: Optional['autode.wrappers.Keywords'] = None
+                     ) -> None:
         """
         Evaluate single point energies for a set of conformers in parallel
 
+        -----------------------------------------------------------------------
         Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
-        Keyword Arguments:
             keywords (autode.wrappers.keywords.Keywords):
         """
         return self._parallel_calc('single_point', method, keywords)
@@ -263,12 +275,15 @@ class Conformers(list):
 
 
 def atoms_from_rdkit_mol(rdkit_mol_obj: Chem.Mol,
-                         conf_id:       int = 0):
+                         conf_id:       int = 0
+                         ) -> Atoms:
     """
     Generate atoms for a conformer contained within an RDKit molecule object
 
+    ---------------------------------------------------------------------------
     Arguments:
         rdkit_mol_obj (rdkit.Chem.Mol): RDKit molecule
+
         conf_id (int): Conformer id to convert to atoms
 
     Returns:
@@ -277,7 +292,7 @@ def atoms_from_rdkit_mol(rdkit_mol_obj: Chem.Mol,
 
     mol_block_lines = Chem.MolToMolBlock(rdkit_mol_obj,
                                          confId=conf_id).split('\n')
-    mol_file_atoms = []
+    mol_file_atoms = Atoms()
 
     # Extract atoms from the mol block
     for line in mol_block_lines:

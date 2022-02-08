@@ -18,8 +18,9 @@ class Conformer(Species):
         Construct a conformer either using the standard species constructor,
         or from a species directly.
 
+        -----------------------------------------------------------------------
         See Also:
-            (autode.species.Species)
+            (autode.species.species.Species):
         """
 
         super().__init__(name, atoms, charge, mult, solvent_name=solvent_name)
@@ -35,6 +36,7 @@ class Conformer(Species):
         self.constraints.update(distance=dist_consts)
 
     def __repr__(self):
+        """Representation of """
         return self._repr(prefix='Conformer')
 
     def __eq__(self, other):
@@ -47,10 +49,10 @@ class Conformer(Species):
         """
         Calculate a single point and default to a low level single point method
 
+        ----------------------------------------------------------------------
         Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
-        Keyword Arguments:
             keywords (autode.wrappers.keywords.Keywords):
 
             n_cores (int | None): If None then defaults to Config.n_cores
@@ -69,7 +71,8 @@ class Conformer(Species):
         Optimise the geometry of this conformer using a method. Will use
         low_opt keywords if no keywords are given.
 
-        Keyword Arguments:
+        -----------------------------------------------------------------------
+        Arguments:
             method (autode.wrappers.base.ElectronicStructureMethod):
 
             reset_graph (bool):
@@ -84,8 +87,7 @@ class Conformer(Species):
             if keywords is None and method is not None:
                 keywords = method.keywords.low_opt
 
-            super().optimise(method,
-                             keywords=keywords, calc=calc, n_cores=n_cores)
+            super().optimise(method, keywords=keywords, calc=calc, n_cores=n_cores)
 
         except AtomsNotFound:
             logger.error(f'Atoms not found for {self.name} but not critical')

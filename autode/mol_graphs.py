@@ -30,6 +30,7 @@ def make_graph(species,
                        (applies only to TransitionState objects)
 
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
@@ -103,6 +104,7 @@ def get_atom_ids_sorted_type(species):
     a molecular graph depends on the order of atoms in what will be considered
     bonded
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
@@ -119,6 +121,7 @@ def remove_bonds_invalid_valancies(species):
     Remove invalid valencies for atoms that exceed their maximum valencies e.g.
     H should have no more than 1 'bond'
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
     """
@@ -149,6 +152,7 @@ def set_graph_attributes(species):
     For a molecular species set the π bonds and stereocentres in the molecular
     graph.
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
     """
@@ -199,8 +203,10 @@ def species_are_isomorphic(species1, species2):
     """
     Check if two complexes are isomorphic in at least one of their conformers
 
+    ---------------------------------------------------------------------------
     Arguments:
         species1 (autode.species.Species):
+
         species2 (autode.species.Species):
 
     Returns:
@@ -256,8 +262,10 @@ def graph_matcher(graph1, graph2):
     Generate a networkX graph matcher between two graphs, matching on atom
     types and active bonds
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph1 (nx.Graph):
+
         graph2 (nx.Graph):
 
     Returns:
@@ -279,8 +287,10 @@ def is_subgraph_isomorphic(larger_graph, smaller_graph):
     """
     Is the smaller graph subgraph isomorphic to the larger graph?
 
+    ---------------------------------------------------------------------------
     Arguments:
         larger_graph (nx.Graph):
+
         smaller_graph (nx.Graph):
 
     Returns:
@@ -300,8 +310,10 @@ def get_mapping_ts_template(larger_graph, smaller_graph):
     Find the mapping for a graph onto a TS template (smaller). Can raise
     StopIteration with no match!
 
+    ---------------------------------------------------------------------------
     Arguments:
         larger_graph (nx.Graph):
+
         smaller_graph (nx.Graph):
 
     Returns:
@@ -318,8 +330,10 @@ def get_mapping(graph1, graph2):
     """
     Get a sorted mapping of nodes between two graphs
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph1 (nx.Graph):
+
         graph2 (nx.Graph):
 
     Returns:
@@ -344,8 +358,10 @@ def reorder_nodes(graph, mapping):
     Reorder the nodes in a graph using a mapping. NetworkX uses the inverse
     mapping so the dict is swapped before the nodes are relabeled
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph):
+
         mapping (dict):
 
     Returns:
@@ -360,6 +376,7 @@ def get_graph_no_active_edges(graph):
     """
     Get a molecular graph without the active edges
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph):
 
@@ -382,8 +399,10 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     Remove any active edges that are in either graph1 or graph2 from both
     graphs
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph1 (nx.Graph):
+
         graph2 (nx.Graph):
 
     Returns:
@@ -413,8 +432,10 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False):
     """Check whether two NX graphs are isomorphic. Contains a timeout because
     the gm.is_isomorphic() method occasionally gets stuck
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph1 (nx.Graph): graph 1
+
         graph2 (nx.Graph): graph 2
 
     Keyword Arguments:
@@ -454,6 +475,7 @@ def gm_is_isomorphic(gm, result):
 def find_cycles(graph):
     """Finds all the cycles in a graph
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph): the molecular graph
 
@@ -472,6 +494,7 @@ def reac_graph_to_prod_graph(reac_graph, bond_rearrang):
     """Makes the graph of the product from the reactant and the bond
     rearrangement, so it has the indices of the reactant
 
+    ---------------------------------------------------------------------------
     Arguments:
         reac_graph (nx.Graph): Graph of the reactant
         bond_rearrang (autode.bond_rearrangement.BondRearrangement): The bond
@@ -493,8 +516,10 @@ def reac_graph_to_prod_graph(reac_graph, bond_rearrang):
 
 
 def get_separate_subgraphs(graph):
-    """Find all the unconnected graphs in a graph
+    """
+    Find all the unconnected graphs in a graph
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph): graph
 
@@ -508,8 +533,10 @@ def split_mol_across_bond(graph, bond):
     """Gets a list of atoms on either side of a bond. Should be separable
     into two graphs
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph): Molecular graph
+
         bond (tuple(int)): Bond to be split across e.g. (0, 1)
 
     Returns:
@@ -527,8 +554,10 @@ def split_mol_across_bond(graph, bond):
 
 
 def get_bond_type_list(graph):
-    """Finds the types (i.e CH) of all the bonds in a molecular graph
+    """
+    Finds the types (i.e CH) of all the bonds in a molecular graph
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph): Molecular graph
 
@@ -563,10 +592,13 @@ def get_bond_type_list(graph):
 
 
 def get_fbonds(graph, key):
-    """Get all the possible forming bonds of a certain type
+    """
+    Get all the possible forming bonds of a certain type
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph): graph object of a molecule
+
         key (str): string representing the bond type to be examined
 
     Returns:
@@ -597,8 +629,10 @@ def set_active_mol_graph(species, active_bonds):
     Get a molecular graph that includes 'active edges' i.e. bonds that are
     either made or broken in the reaction
 
+    ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
+
         active_bonds: (list(tuple(int)))
 
     """
@@ -629,8 +663,10 @@ def get_truncated_active_mol_graph(graph, active_bonds=None):
     Generate a truncated graph of a graph that only contains the active bond
     atoms and their nearest neighbours
 
+    ---------------------------------------------------------------------------
     Arguments:
         graph (nx.Graph):
+
         active_bonds (list(tuple(int)):
     """
 

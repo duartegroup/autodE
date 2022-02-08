@@ -9,6 +9,7 @@ class AtomType:
     def __init__(self, site_coords, is_chiral=False):
         """Base atom type class
 
+        -----------------------------------------------------------------------
         Arguments:
             site_coords (list(np.ndarray)): Shape = (n, 3) should contain a
                         list of unit vectors pointing in directions where other
@@ -38,8 +39,10 @@ class AtomType:
         coordinates using a simple 1/r potential where r is the distance from
         the site to the other coordinates
 
+        -----------------------------------------------------------------------
         Arguments:
             point (np.ndarray): Coordinate of this atom, shape = (3,)
+
             other_coords (np.ndarray): Other coordinates, shape = (N, 3)
 
         Returns:
@@ -57,9 +60,11 @@ class AtomType:
         located exactly at the origin and, once fitted, remove the sites
         that are coincident with the points
 
+        -----------------------------------------------------------------------
         Arguments:
             points (iterable(np.ndarray)): List (or iterable) of points that
                    that the sites need to be reset onto
+
             coord (np.ndarray): Coordinate of this atom
         """
         origin = np.zeros(3)

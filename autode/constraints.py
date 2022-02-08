@@ -10,6 +10,9 @@ class Constraints:
                  distance:  Optional[Dict] = None,
                  cartesian: Optional[List] = None):
         """
+        Constrained distances and positions
+
+        -----------------------------------------------------------------------
         Arguments:
             distance (dict | None): Keys of: tuple(int) for two atom indexes
                                     and values of the distance in Å, or None
@@ -46,6 +49,7 @@ class Constraints:
         """
         Set the distance constraints
 
+        -----------------------------------------------------------------------
         Arguments:
             value (dict | None): Dictionary keyed with atom indexes with values
                                  as the distance between the two
@@ -72,6 +76,7 @@ class Constraints:
         """
         Set the Cartesian constraints using a list of atom indexes
 
+        -----------------------------------------------------------------------
         Arguments:
             value (list(int) | None): Atom indexes to fix in space
         """
@@ -98,6 +103,7 @@ class Constraints:
         Update the current set of constraints with a new distance and or
         Cartesian set
 
+        -----------------------------------------------------------------------
         Arguments:
             distance (dict):
 
@@ -140,6 +146,7 @@ class DistanceConstraints(MutableMapping):
         """
         Set a key-value pair in the dictionary
 
+        -----------------------------------------------------------------------
         Arguments:
             key (tuple(int)): Pair of atom indexes
 

@@ -7,7 +7,7 @@ ade.Config.num_complex_sphere_points = 5                                 # N_s
 # and the number of rotations to perform per point on the sphere
 ade.Config.num_complex_random_rotations = 3                              # N_r
 
-# Total number of conformers will be (N_s × N_r) ^ (N-1) for N molecules => 225
+# Total number of conformers ~(N_s × N_r)^(N-1) for N molecules => ~225
 
 # Make a water molecule and optimise at the XTB level
 water = ade.Molecule(name='water', smiles='O')

@@ -23,6 +23,7 @@ class TransitionState(TSbase):
         """
         Transition State
 
+        -----------------------------------------------------------------------
         Arguments:
             ts_guess (autode.transition_states.ts_guess.TSguess):
 
@@ -148,6 +149,7 @@ class TransitionState(TSbase):
         Vibrational frequencies, which are all but the lowest 7 as the 6th
         is the 'translational' mode over the TS
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.value.Frequency) | None):
         """
@@ -159,6 +161,7 @@ class TransitionState(TSbase):
         """Print a .xyz file with multiple structures visualising the largest
         magnitude imaginary mode
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             mode_number (int): Number of the normal mode to visualise,
                                6 (default) is the lowest frequency vibration
@@ -301,8 +304,10 @@ class TransitionState(TSbase):
         """Save a transition state template containing the active bond lengths,
          solvent and charge in folder_path
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             folder_path (str): folder to save the TS template to
+
             (default: {None})
         """
         if self.bond_rearrangement is None:

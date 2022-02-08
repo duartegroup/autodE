@@ -10,6 +10,7 @@ class TransitionStates(list):
         """
         Return the lowest energy transition state from this set
 
+        -----------------------------------------------------------------------
         Returns:
             (autode.transition_states.TransitionState | None): TS, or None if
                                                                there are none.

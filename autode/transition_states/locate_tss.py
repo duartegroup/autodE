@@ -27,6 +27,7 @@ def find_tss(reaction):
     paths from reaction.reactant to reaction.product. Will not search the
     conformational space of a reaction
 
+    ---------------------------------------------------------------------------
     Arguments:
         (list(autode.reaction.Reaction)): Reaction
 
@@ -61,8 +62,10 @@ def find_tss(reaction):
 
 
 def ts_guess_funcs_prms(name, reactant, product, bond_rearr):
-    """Get the functions and parameters required for the function
+    """
+    Get the functions and parameters required for the function
 
+    ---------------------------------------------------------------------------
     Arguments:
         name (str): Unique identifier for this reaction
 
@@ -109,6 +112,7 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor,
     (a_atoms) are pointing towards the attacked atoms (l_atoms). Applied in
     place
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.complex.Complex):
 
@@ -204,6 +208,7 @@ def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
     """For a bond rearrangement run PES exploration and TS optimisation to
     find a TS
 
+    ---------------------------------------------------------------------------
     Arguments:
         name (str): Unique identifier for this reaction, used for filenames
 

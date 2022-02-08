@@ -78,8 +78,10 @@ def run_external(params, output_filename):
     Standard method to run a EST calculation with subprocess writing the
     output to the calculation output filename
 
+    ---------------------------------------------------------------------------
     Arguments:
         output_filename (str):
+
         params (list(str)): e.g. [/path/to/method, input-filename]
     """
 
@@ -103,12 +105,15 @@ def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
     Run an external process monitoring the standard output and error for a
     word that will terminate the process
 
+    ---------------------------------------------------------------------------
     Arguments:
         params (list(str)):
+
         output_filename (str):
 
     Keyword Arguments:
         break_word (str): String that if found will terminate the process
+
         break_words (list(str) | None): List of break_word-s
     """
     # Defining a set will override a single break word

@@ -25,6 +25,7 @@ def get_ts_template_folder_path(folder_path):
     templates, if it's unset then use the default folder in Config if it is
     set, or the autode/transition_states/lib folder where autodE is installed
 
+    ---------------------------------------------------------------------------
     Arguments:
         folder_path: (str or None)
 
@@ -52,6 +53,7 @@ def get_ts_templates(folder_path=None):
     at least a charge, multiplicity, solvent, and a graph with some active
     edge including distances.
 
+    ---------------------------------------------------------------------------
     Keyword Arguments:
         folder_path (str): e.g. '/path/to/the/ts/template/library'
 
@@ -146,6 +148,7 @@ def get_value_from_file(key, file_lines):
         Output:
         1
 
+    ---------------------------------------------------------------------------
     Arguments:
         key (str):
         file_lines (list(str)):
@@ -194,6 +197,7 @@ def get_values_dict_from_file(key, file_lines):
         Output:
         {0: {'atom_label': 'F'}, 2: {'atom_label': 'C'}, ..}
 
+    ---------------------------------------------------------------------------
     Arguments:
         key (str):
         file_lines (list(str)):
@@ -272,6 +276,7 @@ class TStemplate:
         """
         TS template
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             graph (nx.Graph): Active bonds in the TS are represented by the
                   edges with attribute active=True, going out to nearest bonded
@@ -377,11 +382,13 @@ class TStemplate:
         Save the TS template object in a plain text .txt file. With folder_path
         =None then the template will be saved to the default directory
         (see get_ts_template_folder_path). The name of the file will be
-        basenamei.txt where i is an integer iterated until the file doesn't
+        basename.txt where i is an integer iterated until the file doesn't
         already exist.
 
+        -----------------------------------------------------------------------
         Keyword Arguments:
             basename (str):
+
             folder_path (str or None):
         """
 
@@ -412,6 +419,7 @@ class TStemplate:
         """
         Load a template from a saved file
 
+        -----------------------------------------------------------------------
         Arguments:
             filename (str):
 

@@ -147,6 +147,7 @@ class Parser:
            |
           idx
 
+        -----------------------------------------------------------------------
         Arguments:
             idx (int): Position in the SMILES string for the [
         """
@@ -184,6 +185,7 @@ class Parser:
               ^
               i
 
+        -----------------------------------------------------------------------
         Arguments:
             idx (int):
 
@@ -212,6 +214,7 @@ class Parser:
         """
         Add a bond to the list of bonds from the previously added atom to
 
+        -----------------------------------------------------------------------
         Arguments:
             symbol (str): Symbol of this bond e.g. # for a double bond, see
                           bond_order_symbols
@@ -247,6 +250,7 @@ class Parser:
         where the slashes refer to the "up-ness" or "down-ness" of each single
         bond is relative to the carbon atom
 
+        -----------------------------------------------------------------------
         Arguments:
             idx (int): Index of the current position in the SMILES string
         """
@@ -446,6 +450,7 @@ def atomic_charge(string):
         ++  ->   2
         H+  ->   1
 
+    ---------------------------------------------------------------------------
     Returns:
         (int): charge
     """
@@ -485,6 +490,7 @@ def atomic_sterochem(string):
         @    ->  @
         @@-  ->  @@
 
+    ---------------------------------------------------------------------------
     Arguments:
         string (str):
 
@@ -510,6 +516,7 @@ def atomic_n_hydrogens(string):
         H    ->  1
         C    ->  0
 
+    ---------------------------------------------------------------------------
     Arguments:
         string (str):
 
@@ -535,6 +542,7 @@ def next_char(string, idx):
     Get the next character in a string if it exists otherwise return
     an empty string
 
+    ---------------------------------------------------------------------------
     Arguments:
         string (str):
         idx (idx): Index of the current position in the string

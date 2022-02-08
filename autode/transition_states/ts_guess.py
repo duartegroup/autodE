@@ -19,8 +19,10 @@ def has_matching_ts_templates(reactant:   'autode.species.ReactantComplex',
     """
     See if there are any templates suitable to get a TS guess from a template
 
+    ---------------------------------------------------------------------------
     Arguments:
         reactant (autode.complex.ReactantComplex):
+
         bond_rearr (autode.bond_rearrangement.BondRearrangement):
 
     Returns:
@@ -148,6 +150,7 @@ class TSguess(TSbase):
         distances to the final set of constraints using a linear path with
         small distance increments.
 
+        -----------------------------------------------------------------------
         Raises:
             (autode.exceptions.CalculationException):
         """
@@ -195,6 +198,7 @@ class TSguess(TSbase):
         """Get a TS guess from a constrained optimisation with the active atoms
         fixed at values defined in distance_consts
 
+        -----------------------------------------------------------------------
         Arguments:
             name (str):
 

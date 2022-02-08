@@ -37,6 +37,7 @@ class Hessian(ValueArray):
         """
         Hessian matrix
 
+        -----------------------------------------------------------------------
         Arguments:
             input_array (np.ndarray | autode.values.ValueArray):
             units (autode.units.Unit | str):
@@ -63,6 +64,7 @@ class Hessian(ValueArray):
         """
         5 for a linear molecule and 6 otherwise (3 rotation, 3 translation)
 
+        -----------------------------------------------------------------------
         Returns:
             (int): Number of translational and rotational normal modes
 
@@ -80,6 +82,7 @@ class Hessian(ValueArray):
         """
         3N-6 for a non-linear molecule with N atoms
 
+        -----------------------------------------------------------------------
         Returns:
             (int): Number of vibrational normal modes
 
@@ -98,6 +101,7 @@ class Hessian(ValueArray):
         Orthonormal translation and rotation (tr) vectors for Hessian
         projection.
 
+        -----------------------------------------------------------------------
         Returns:
             (tuple(np.ndarray)):
 
@@ -145,6 +149,7 @@ class Hessian(ValueArray):
 
         see common/hessians.tex for methods
 
+        -----------------------------------------------------------------------
         Returns:
             (np.ndarray): Transform matrix (D)
         """
@@ -198,6 +203,7 @@ class Hessian(ValueArray):
 
             H' = T^T H T
 
+        -----------------------------------------------------------------------
         Returns:
             (np.ndarray):
         """
@@ -211,6 +217,7 @@ class Hessian(ValueArray):
         """
         Calculate the normal modes as the eigenvectors of the Hessian matrix
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.values.Coordinates)):
 
@@ -228,6 +235,7 @@ class Hessian(ValueArray):
         """
         Normal modes from the projected Hessian without rotation or translation
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.values.Coordinates)):
         """
@@ -263,6 +271,7 @@ class Hessian(ValueArray):
         Convert eigenvalues of the Hessian matrix (SI units) to
         frequencies in wavenumber units
 
+        -----------------------------------------------------------------------
         Arguments:
             lambdas (np.ndarray):
 
@@ -285,6 +294,7 @@ class Hessian(ValueArray):
         Calculate the normal mode frequencies from the eigenvalues of the
         Hessian matrix
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.values.Frequency)):
 
@@ -301,6 +311,7 @@ class Hessian(ValueArray):
         """
         Frequencies with rotation and translation projected out
 
+        -----------------------------------------------------------------------
         Returns:
             (list(autode.values.Frequency)):
 

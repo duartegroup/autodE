@@ -103,9 +103,12 @@ class SMILESBond:
         """
         Bond between two atoms from a SMILES string, sorted from low to high
 
+        -----------------------------------------------------------------------
         Arguments:
             idx_i (int):
+
             idx_j (int):
+
             symbol (str): Bond order symbol
         """
         self._list = [idx_i, idx_j]
@@ -135,6 +138,7 @@ class SMILESBond:
     def is_cis(self, atoms):
         """Is this bond a cis double bond?
 
+        -----------------------------------------------------------------------
         Arguments:
             atoms (list(autode.smiles.base.SMILESAtom)):
         """
@@ -150,6 +154,7 @@ class SMILESBond:
 
         Undefined stereochemistry defaults to trans
 
+        -----------------------------------------------------------------------
         Arguments:
             atoms (list(autode.smiles.base.SMILESAtom)):
         """
@@ -159,7 +164,8 @@ class SMILESBond:
         """
         Is this bond a constituent of a ring
 
-        Args:
+        -----------------------------------------------------------------------
+        Arguments:
             rings_idxs (collection(collection(int))):
 
         Returns:
@@ -210,12 +216,12 @@ class RingBond(SMILESBond):
     def __init__(self, idx_i, symbol, bond_idx=None):
         """Initialise the bond with a non-existent large index
 
+        -----------------------------------------------------------------------
         Arguments:
             idx_i (int): Index of one atom in this bond
 
             symbol (str): Symbol of this bond, in bond_order_symbols
 
-        Keyword Arguments:
             bond_idx (None | int): Index for this bond in the bond list
         """
         super().__init__(idx_i=idx_i, idx_j=99999, symbol=symbol)
@@ -237,6 +243,7 @@ class SMILESBonds(list):
     def involving(self, *args):
         """Get all the bonds involving a particular atom (given as a index)
 
+        -----------------------------------------------------------------------
         Arguments:
             args (int):
 

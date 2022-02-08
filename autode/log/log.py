@@ -17,6 +17,7 @@ def get_log_level():
     """
     Get the logger level from the $AUTODE_LOG_LEVEL environment variable
 
+    ---------------------------------------------------------------------------
     Returns:
         (int): Log level. Default is logging.CRITICAL == 50
     """
@@ -41,8 +42,13 @@ def get_log_level():
 def log_to_log_file():
     """
     Should the log be piped into a file? Looks for $AUTODE_LOG_FILE being
-    set and writes logs to that file
+    set and writes logs to that file. Also possible to pipe directly from
+    stderr to a file with
 
+    .. code-block:
+        python script.py 2> ade.log
+
+    ---------------------------------------------------------------------------
     Returns:
         (bool):
     """
