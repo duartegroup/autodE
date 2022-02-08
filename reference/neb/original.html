@@ -745,7 +745,7 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.Image.get_force">
-<span class="sig-name descname"><span class="pre">get_force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im_l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_r</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.Image.get_force" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.neb.original.Image" title="autode.neb.original.Image"><span class="pre">autode.neb.original.Image</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">im_r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.neb.original.Image" title="autode.neb.original.Image"><span class="pre">autode.neb.original.Image</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.neb.original.Image.get_force" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute F_i. Notation from:
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)</p>
 <p>also a copy in autode/common</p>
@@ -840,12 +840,12 @@ along the NEB</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.calculate">
-<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.calculate" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><span class="pre">autode.wrappers.base.Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.calculate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optimise the NEB using forces calculated from electronic structure</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>autode.wrappers.ElectronicStructureMethod</em>) – </p></li>
+<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><em>autode.wrappers.base.Method</em></a>) – </p></li>
 <li><p><strong>n_cores</strong> (<em>int</em>) – </p></li>
 </ul>
 </dd>
@@ -860,13 +860,13 @@ along the NEB</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.get_species_saddle_point">
-<span class="sig-name descname"><span class="pre">get_species_saddle_point</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_species_saddle_point</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.species.Species</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.get_species_saddle_point" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find a TS guess species for this NEB: highest energy saddle point</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.idpp_relax">
-<span class="sig-name descname"><span class="pre">idpp_relax</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.idpp_relax" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">idpp_relax</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.idpp_relax" title="Permalink to this definition">¶</a></dt>
 <dd><p>Relax the NEB using the image dependent pair potential</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
@@ -876,7 +876,7 @@ along the NEB</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.interpolate_geometries">
-<span class="sig-name descname"><span class="pre">interpolate_geometries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.interpolate_geometries" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">interpolate_geometries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.interpolate_geometries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate simple interpolated coordinates for these set of images
 in Cartesian coordinates</p>
 </dd></dl>

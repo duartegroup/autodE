@@ -1230,6 +1230,9 @@ module as well as an array of usability improvements.</p>
 <li><p>Modifies <code class="code docutils literal notranslate"><span class="pre">autode.calculation.Calculation.get_energy</span></code> to raise an exception if the energy cannot be extracted</p></li>
 <li><p>Adds a runtime error if e.g. <code class="code docutils literal notranslate"><span class="pre">autode.calculation.Calculation.get_energy</span></code> is called on a calculation that has not been run</p></li>
 <li><p>Skips low-level adaptive path searching if the high and low-level methods are identical (when XTB or MOPAC are not installed)</p></li>
+<li><p>Adds a default set of low-level single point keywords</p></li>
+<li><p>Adds a flag to override exiting a reaction profile calculation when association complexes are generated</p></li>
+<li><p>Adds a check that a calculation isn’t going to exceed the maximum amount of physical memory on the computer</p></li>
 </ul>
 </div>
 <div class="section" id="functionality-improvements">

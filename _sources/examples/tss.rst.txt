@@ -8,6 +8,10 @@ reaction, where bond rearrangements are found and TS located along each
 possible path, or from 3D structures of reactants & products, and a given bond
 rearrangement.
 
+
+.. warning::
+    Transition states have no check that the stereochemistry is correctly preserved.
+
 ------------
 
 Default: Reaction

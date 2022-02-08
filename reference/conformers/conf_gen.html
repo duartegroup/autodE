@@ -728,61 +728,26 @@
   <div class="section" id="module-autode.conformers.conf_gen">
 <span id="conf-gen"></span><h1>Conf Gen<a class="headerlink" href="#module-autode.conformers.conf_gen" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.add_dist_consts_for_stereocentres">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">add_dist_consts_for_stereocentres</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.add_dist_consts_for_stereocentres" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add distances constraints across two bonded stereocentres, for example
-for a Z alkene, (hopefully) ensuring that in the conformer generation the
-stereochemistry is retained. Will also add distance constraints from
-one nearest neighbour to the other nearest neighbours for that chiral
-centre</p>
+<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_simanl_atoms">
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_simanl_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_xyz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">also_return_energy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use a bonded + repulsive force field to generate 3D structure for a
+species. If the initial coordinates are reasonable e.g. from a previously
+generated 3D structure then add random displacement vectors and minimise
+to generate a conformer. Otherwise add atoms to the box sequentially
+until all atoms have been added, which generates a qualitatively reasonable
+3D geometry which should be optimised using a electronic structure method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">V</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">=</span> <span class="n">Σ_bonds</span> <span class="n">k</span><span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="n">d0</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="n">Σ_ij</span> <span class="n">c</span><span class="o">/</span><span class="n">d</span><span class="o">^</span><span class="n">n</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>dist_consts</strong> (<em>dict</em>) – keyed with tuple of atom indexes and valued with
-the distance (Å), or None</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Distance constraints</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(dict)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_atoms_from_generated_file">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_atoms_from_generated_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz_filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_atoms_from_generated_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get atoms from a previously generated  .xyz file, if the atoms match</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>xyz_filename</strong> (<em>str</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Atoms from file</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms">autode.atoms.Atoms</a>)) or None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_atoms_rotated_stereocentres">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_atoms_rotated_stereocentres</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rand</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_atoms_rotated_stereocentres" title="Permalink to this definition">¶</a></dt>
-<dd><p>If two stereocentres are bonded, rotate them randomly with respect
-to each other</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p></li>
-<li><p><strong>rand</strong> (<em>np.RandomState</em>) – random state</p></li>
+<li><p><strong>dist_consts</strong> (<em>dict</em>) – Key = tuple of atom indexes, Value = distance</p></li>
+<li><p><strong>conf_n</strong> (<em>int</em>) – Number of this conformer</p></li>
+<li><p><strong>save_xyz</strong> (<em>bool</em>) – Whether or not to save a .xyz file of the structure
+for fast reloading</p></li>
+<li><p><strong>also_return_energy</strong> (<em>bool</em>) – Whether or not to return the energy</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -795,179 +760,24 @@ to each other</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_bond_matrix">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_bond_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_bond_matrix" title="Permalink to this definition">¶</a></dt>
-<dd><p>Populate a bond matrix with 1 if i, j are bonded, 2 if i, j are bonded and
-fixed and 0 otherwise. Can support a partial structure with bonds to atoms
-that don’t (yet) exist.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n_atoms</strong> (<em>int</em>) – </p></li>
-<li><p><strong>bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – </p></li>
-<li><p><strong>fixed_bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Bond matrix, shape = (n_atoms, n_atoms)</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(np.ndarray)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_coords_energy">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_coords_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_coords_energy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the coordinates that minimise a FF with a bonds + repulsion FF
-where the repulsion is c/r^exponent</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>coords</strong> (<em>np.ndarray</em>) – Initial coordinates, shape = (n_atoms, 3)</p></li>
-<li><p><strong>bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>int</em><em>)</em><em>)</em>) – List of bonds</p></li>
-<li><p><strong>fixed_bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>int</em><em>)</em><em>)</em>) – List of constrained bonds will use 10k
-as the harmonic force constant</p></li>
-<li><p><strong>k</strong> (<em>float</em>) – </p></li>
-<li><p><strong>c</strong> (<em>float</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>exponent</strong> (<em>int</em>) – Exponent in the repulsive pairwise term</p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Optimised coordinates, shape = (n_atoms, 3)</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(np.ndarray)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_coords_no_init_structure">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_coords_no_init_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constrained_bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_coords_no_init_structure" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Generate coordinates where no initial structure is present - this fixes(?)</dt><dd><p>a problem for large molecule where if all the atoms are initially bonded
-and minimised then high energy minima are often found</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – </p></li>
-<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>d0</strong> (<em>np.ndarray</em>) – </p></li>
-<li><p><strong>constrained_bonds</strong> (<em>list</em>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Optimised coordinates, shape = (n_atoms, 3)</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(np.ndarray)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_non_random_atoms">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_non_random_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_non_random_atoms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the atoms that won’t be randomised in the conformer generation.
-Stereocentres and nearest neighbours</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Atoms indexes to not randomise</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(set(int))</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_simanl_atoms">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_simanl_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">also_return_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_atoms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Use a bonded + repulsive force field to generate 3D structure for a
-species. If the initial coordinates are reasonable e.g. from a previously
-generated 3D structure then add random displacement vectors and minimise
-to generate a conformer. Otherwise add atoms to the box sequentially
-until all atoms have been added, which generates a qualitatively reasonable
-3D geometry which should be optimised using a electronic structure method</p>
-<p>V(x) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^n</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>dist_consts</strong> (<em>dict</em>) – Key = tuple of atom indexes, Value = distance</p></li>
-<li><p><strong>conf_n</strong> (<em>int</em>) – Number of this conformer</p></li>
-<li><p><strong>save_xyz</strong> (<em>bool</em>) – Whether or not to save a .xyz file of the structure
-for fast reloading</p></li>
-<li><p><strong>also_return_energy</strong> (<em>bool</em>) – Whether or not to return the energy in units of ?</p></li>
-</ul>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Atoms</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="autode.conformers.conf_gen.get_simanl_conformer">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_simanl_conformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_xyz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_conformer" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_simanl_conformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_consts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conf_n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_xyz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.conformers.Conformer</span></span></span><a class="headerlink" href="#autode.conformers.conf_gen.get_simanl_conformer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a conformer of a species using randomise+relax with a simple FF
-(see get_simanl_atoms)</p>
+(see get_simanl_atoms). Example</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
 <li><p><strong>dist_consts</strong> (<em>dict</em>) – Key = tuple of atom indexes, Value = distance</p></li>
 <li><p><strong>conf_n</strong> (<em>int</em>) – Number of this conformer</p></li>
 <li><p><strong>save_xyz</strong> (<em>bool</em>) – Whether or not to save a .xyz file of the structure</p></li>
 </ul>
 </dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Conformer</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(autode.conformers.Conformer)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.conformers.conf_gen.get_v">
-<span class="sig-prename descclassname"><span class="pre">autode.conformers.conf_gen.</span></span><span class="sig-name descname"><span class="pre">get_v</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.conformers.conf_gen.get_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the energy using a bond + repulsion FF where</p>
-<p>V(r) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^exponent</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>coords</strong> (<em>np.ndarray</em>) – shape = (n_atoms, 3)</p></li>
-<li><p><strong>bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>int</em><em>)</em><em>)</em>) – List of bonds</p></li>
-<li><p><strong>fixed_bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>(</em><em>int</em><em>)</em><em>)</em>) – List of constrained bonds will use 10k
-as the harmonic force constant</p></li>
-<li><p><strong>k</strong> (<em>float</em>) – </p></li>
-<li><p><strong>c</strong> (<em>float</em>) – </p></li>
-<li><p><strong>exponent</strong> (<em>int</em>) – Exponent in the repulsive pairwise term</p></li>
-</ul>
-</dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Energy</p>
+<dd class="field-even"><p>Conformer</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float)</p>
+<dd class="field-odd"><p>(autode.conformers.Conformer)</p>
 </dd>
 </dl>
 </dd></dl>

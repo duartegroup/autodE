@@ -727,37 +727,10 @@
                 
   <div class="section" id="module-autode.utils">
 <span id="utilities"></span><h1>Utilities<a class="headerlink" href="#module-autode.utils" title="Permalink to this headline">¶</a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="autode.utils.NoDaemonContext">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">NoDaemonContext</span></span><a class="headerlink" href="#autode.utils.NoDaemonContext" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py attribute">
-<dt class="sig sig-object py" id="autode.utils.NoDaemonContext.Process">
-<span class="sig-name descname"><span class="pre">Process</span></span><a class="headerlink" href="#autode.utils.NoDaemonContext.Process" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference internal" href="#autode.utils.NoDaemonProcess" title="autode.utils.NoDaemonProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">autode.utils.NoDaemonProcess</span></code></a></p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="autode.utils.NoDaemonPool">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">NoDaemonPool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subclass of Pool to allow child multiprocessing</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.utils.NoDaemonPool.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonPool.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="autode.utils.NoDaemonProcess">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">NoDaemonProcess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daemon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.NoDaemonProcess" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py property">
-<dt class="sig sig-object py" id="autode.utils.NoDaemonProcess.daemon">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">daemon</span></span><a class="headerlink" href="#autode.utils.NoDaemonProcess.daemon" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return whether process is a daemon</p>
-</dd></dl>
-
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.utils.check_sufficient_memory">
+<span class="sig-prename descclassname"><span class="pre">autode.utils.</span></span><span class="sig-name descname"><span class="pre">check_sufficient_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.utils.check_sufficient_memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to check that enough memory is available for a calculation</p>
 </dd></dl>
 
 <dl class="py function">

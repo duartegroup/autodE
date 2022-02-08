@@ -737,7 +737,7 @@
 or from a species directly.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p>(autode.species.Species)</p>
+<p>(autode.species.species.Species):</p>
 </div>
 </dd></dl>
 
@@ -747,7 +747,7 @@ or from a species directly.</p>
 <dd><p>Optimise the geometry of this conformer using a method. Will use
 low_opt keywords if no keywords are given.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Keyword Arguments</dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
 <li><p><strong>reset_graph</strong> (<em>bool</em>) – </p></li>
@@ -765,10 +765,8 @@ low_opt keywords if no keywords are given.</p>
 <dd><p>Calculate a single point and default to a low level single point method</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a>) – </p></li>
 <li><p><strong>keywords</strong> (<a class="reference internal" href="../wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><em>autode.wrappers.keywords.Keywords</em></a>) – </p></li>
 <li><p><strong>n_cores</strong> (<em>int</em><em> | </em><em>None</em>) – If None then defaults to Config.n_cores</p></li>
 </ul>

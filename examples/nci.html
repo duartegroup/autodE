@@ -738,7 +738,7 @@ space. For example, to find the lowest energy structure of the water trimer:</p>
 <span class="c1"># and the number of rotations to perform per point on the sphere</span>
 <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">num_complex_random_rotations</span> <span class="o">=</span> <span class="mi">3</span>                              <span class="c1"># N_r</span>
 
-<span class="c1"># Total number of conformers will be (N_s × N_r) ^ (N-1) for N molecules =&gt; 225</span>
+<span class="c1"># Total number of conformers ~(N_s × N_r)^(N-1) for N molecules =&gt; ~225</span>
 
 <span class="c1"># Make a water molecule and optimise at the XTB level</span>
 <span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>

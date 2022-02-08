@@ -791,6 +791,8 @@ number of which is:</p>
 <dt>Config.num_complex_sphere_points ×  Config.num_complex_random_rotations</dt><dd><p>^ (n molecules in complex - 1)</p>
 </dd>
 </dl>
+<p>This will not be exact as get_points_on_sphere does not return quite
+the desired number of points for small N.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -916,8 +918,8 @@ each and points on which to shift</p>
 <div><p>amount and axis</p>
 </div></blockquote>
 </p></li>
-<li><p><strong>points</strong> – (list(np.ndarray)): List of length 3 np arrays containing the</p></li>
-<li><p><strong>i</strong> (<em>point to add the molecule with index</em>) – </p></li>
+<li><p><strong>points</strong> – (list(np.ndarray)): List of length 3 np arrays containing the
+point to add the molecule with index i</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
