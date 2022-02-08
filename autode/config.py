@@ -181,6 +181,7 @@ class _ConfigClass:
         keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj,
                                         def2svp, 'def2/J', MaxOptCycles(10)],
                                grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+                               low_sp=['SP', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
                                opt=['Opt', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
                                opt_ts=['OptTS', 'Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
                                hess=['Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
@@ -219,6 +220,7 @@ class _ConfigClass:
 
         keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', MaxOptCycles(10), d3bj, grid],
                                grad=[pbe0, def2svp, 'Force(NoStep)', d3bj, grid],
+                               low_sp=[pbe0, def2svp, d3bj, grid],
                                opt=[pbe0, def2svp, 'Opt', d3bj, grid],
                                opt_ts=[pbe0, def2svp, 'Freq', d3bj, grid, ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj, grid],
@@ -241,6 +243,7 @@ class _ConfigClass:
 
         keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', d3bj, MaxOptCycles(10)],
                                grad=[pbe0, def2svp, 'Force(NoStep)', d3bj],
+                               low_sp=[pbe0, def2svp, d3bj],
                                opt=[pbe0, def2svp, 'Opt', d3bj],
                                opt_ts=[pbe0, def2svp, 'Freq', d3bj, ts_str],
                                hess=[pbe0, def2svp, 'Freq', d3bj],
@@ -280,6 +283,8 @@ class _ConfigClass:
                                         'task dft optimize'],
                                grad=[def2svp, pbe0,
                                      'task dft gradient'],
+                               low_sp=[def2svp, pbe0,
+                                       'task dft energy'],
                                opt=[opt_block, def2svp, pbe0, MaxOptCycles(100),
                                     'task dft optimize',
                                     'task dft property'],
@@ -340,6 +345,7 @@ class _ConfigClass:
         # Default set of keywords to use for different types of calculation
         keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'jobtype opt', MaxOptCycles(10), d3bj],
                                grad=[pbe0, def2svp, 'jobtype force', d3bj],
+                               low_sp=[pbe0, def2svp, d3bj],
                                opt=[pbe0, def2svp, 'jobtype opt', d3bj],
                                opt_ts=[pbe0, def2svp, 'jobtype TS', d3bj],
                                hess=[pbe0, def2svp, 'jobtype Freq', d3bj],
