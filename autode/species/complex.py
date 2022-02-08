@@ -226,12 +226,15 @@ class Complex(Species):
 
     @work_in('conformers')
     def populate_conformers(self):
-        """
+        r"""
         Generate and optimise with a low level method a set of conformers, the
         number of which is::
 
         Config.num_complex_sphere_points ×  Config.num_complex_random_rotations
          ^ (n molecules in complex - 1)
+
+        This will not be exact as get_points_on_sphere does not return quite
+        the desired number of points for small N.
         """
         n_confs = (Config.num_complex_sphere_points
                    * Config.num_complex_random_rotations
