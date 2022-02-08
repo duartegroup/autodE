@@ -163,6 +163,12 @@ class _ConfigClass:
     #
     min_num_atom_removed_in_truncation = 10
     # -------------------------------------------------------------------------
+    # Flag for allowing free energies to be calculated with association
+    # complexes. This is *not* recommended to be turned on due to the
+    # approximations made in the entropy calculations.
+    #
+    allow_association_complex_G = False
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------
