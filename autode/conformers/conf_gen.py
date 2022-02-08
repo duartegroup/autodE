@@ -2,7 +2,7 @@ import os
 import numpy as np
 import autode as ade
 from copy import deepcopy
-from typing import Dict
+from typing import Dict, Optional
 from itertools import combinations
 from scipy.optimize import minimize
 from autode.conformers import Conformer
@@ -329,26 +329,25 @@ def _get_coords_no_init_structure(atoms, species, d0, constrained_bonds):
 
 
 @log_time(prefix='Generated RR atoms in:', units='s')
-def get_simanl_atoms(species,
-                     dist_consts=None,
-                     conf_n=0,
-                     save_xyz=True,
-                     also_return_energy=False):
-    """
+def get_simanl_atoms(species:            'autode.species.Species',
+                     dist_consts:        Optional[Dict] = None,
+                     conf_n:             int = 0,
+                     save_xyz:           bool = True,
+                     also_return_energy: bool = False):
+    r"""
     Use a bonded + repulsive force field to generate 3D structure for a
     species. If the initial coordinates are reasonable e.g. from a previously
     generated 3D structure then add random displacement vectors and minimise
     to generate a conformer. Otherwise add atoms to the box sequentially
     until all atoms have been added, which generates a qualitatively reasonable
-    3D geometry which should be optimised using a electronic structure method
+    3D geometry which should be optimised using a electronic structure method::
 
-    V(x) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^n
+        V(x) = Σ_bonds k(d - d0)^2 + Σ_ij c/d^n
 
     ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
 
-    Keyword Arguments:
         dist_consts (dict): Key = tuple of atom indexes, Value = distance
 
         conf_n (int): Number of this conformer
@@ -356,7 +355,7 @@ def get_simanl_atoms(species,
         save_xyz (bool): Whether or not to save a .xyz file of the structure
                          for fast reloading
 
-        also_return_energy (bool): Whether or not to return the energy in units of ?
+        also_return_energy (bool): Whether or not to return the energy
 
     Returns:
         (list(autode.atoms.Atom)): Atoms
@@ -440,17 +439,20 @@ def get_simanl_atoms(species,
 
 
 def get_simanl_conformer(species:     'autode.species.Species',
-                         dist_consts: Dict = None,
+                         dist_consts: Optional[Dict] = None,
                          conf_n:      int = 0,
-                         save_xyz:    bool =True
+                         save_xyz:    bool = True
                          ) -> 'autode.conformers.Conformer':
     """
     Generate a conformer of a species using randomise+relax with a simple FF
     (see get_simanl_atoms). Example
 
     .. code-block:: Python
+        >>> import autode as ade
         >>> from autode.conformers.conf_gen import get_simanl_conformer
-        >>> mol =
+        >>> mol = ade.Molecule(smiles='CCCC', name='butane')
+        >>> conf0 = get_simanl_conformer(mol, conf_n=0, save_xyz=False)
+        Conformer(butane_conf0, n_atoms=14, charge=0, mult=1)
 
     ---------------------------------------------------------------------------
     Arguments:
