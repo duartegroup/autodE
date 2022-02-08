@@ -278,13 +278,13 @@ def test_potential():
     d0 = np.array([[0.0, eq_bond_length],
                    [eq_bond_length, 0.0]])
 
-    v = conf_gen.get_v(coords,
-                       bonds=[(0, 1)],
-                       k=0.7,
-                       c=0.3,
-                       d0=d0,
-                       fixed_bonds=[],
-                       exponent=8)
+    v = conf_gen._get_v(coords,
+                        bonds=[(0, 1)],
+                        k=0.7,
+                        c=0.3,
+                        d0=d0,
+                        fixed_bonds=[],
+                        exponent=8)
 
     expected_v = 0.7 * (bond_length - eq_bond_length)**2 + 0.3 / bond_length**8
     assert np.abs(v - expected_v) < 1E-6
