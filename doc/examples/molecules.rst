@@ -47,7 +47,7 @@ Molecules also add a molecular graph attribute as a `NetworkX <https://networkx.
 .. code-block:: python
 
   >>> water.graph
-  <networkx.classes.graph.Graph object at XXXXXXXXX>
+  MolecularGraph(|E| = 2, |V| = 3)
   >>> water.graph.nodes
   NodeView((0, 1, 2))
   >>> water.graph.edges

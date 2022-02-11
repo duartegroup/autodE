@@ -655,6 +655,37 @@ class Species(AtomCollection):
         return val.Energy(float(zpe), units='J').to('Ha')
 
     @property
+    def has_reasonable_coordinates(self) -> bool:
+        """
+        Does this species have a 'reasonable' set of coordinates? I.e. No
+        atom-atom distances that are particularly short or long. Also checks
+        that all the atoms don't lie in a single plane, which is possible for
+        a failed 3D embedding of a structure.
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+        if self.n_atoms == 0:
+            return True
+
+        dist_matrix = distance_matrix(self.coordinates, self.coordinates)
+        dist_matrix[np.diag_indices(self.n_atoms)] = 1.0
+
+        if np.min(dist_matrix) < 0.7 or np.max(dist_matrix) > 1E6:
+            logger.warning(f'Species({self.name}) did not have a set of '
+                           f'reasonable coordinates. Small or large distances')
+            return False
+
+        if self.atoms.are_planar() and not self.graph.expected_planar_geometry:
+            logger.warning('Atoms lie in a plane but the molecular graph ⇒ '
+                           f'a non-planar structure. Species({self.name}) did '
+                           f'not have a reasonable set of coordinates')
+            return False
+
+        return True
+
+    @property
     def n_conformers(self) -> int:
         """
         Number of conformers of this species

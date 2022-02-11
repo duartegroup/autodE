@@ -4,6 +4,7 @@ from autode.config import Config
 from autode.atoms import Atom
 from autode.transition_states.ts_guess import has_matching_ts_templates
 from autode.bonds import get_avg_bond_length
+from autode.mol_graphs import MolecularGraph
 from autode.log import logger
 
 
@@ -243,7 +244,7 @@ def get_truncated_species(species, bond_rearrangement):
 
     logger.info(f'Truncating {species.name} with {species.n_atoms} atoms '
                 f'around core atoms: {active_atoms}')
-    t_graph = nx.Graph()
+    t_graph = MolecularGraph()
 
     # Add all the core active atoms to the graphs, their nearest neighbours
     # and the bonds between them

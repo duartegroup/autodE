@@ -554,3 +554,15 @@ def test_keywords_opt_sp_thermo():
         h2o.hessian = None
         h2o.calc_thermo(method=orca, keywords=kwds)
         assert h2o.energy is not None
+
+
+def test_flat_species_has_reasonable_coordinates():
+
+    _m = Molecule(atoms=[Atom('C', -4.99490, 1.95320, 0.00000),
+                         Atom('C', -4.74212, 0.64644, 0.00000),
+                         Atom('H', -4.17835, 2.66796, 0.00000),
+                         Atom('H', -6.01909, 2.31189, 0.00000),
+                         Atom('H', -3.71793, 0.28776, -0.00000),
+                         Atom('H', -5.55867, -0.06831, 0.00000)])
+
+    assert _m.has_reasonable_coordinates

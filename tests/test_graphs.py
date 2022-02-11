@@ -32,6 +32,8 @@ def test_graph_generation():
     assert h2.graph.number_of_nodes() == 2
     assert h2.graph.nodes[0]['atom_label'] == 'H'
 
+    assert 'mol' in repr(h2.graph).lower()
+
 
 def test_edge_cases():
     h_c = Atom(atomic_symbol='H', x=0.0, y=0.0, z=1.6)
