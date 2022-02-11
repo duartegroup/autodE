@@ -337,3 +337,11 @@ def test_remove_invalid():
     assert not adj_matrix[5, 9]
     assert not adj_matrix[9, 5]
 
+
+def test_expected_planar_geometry():
+
+    methane = Molecule(smiles='C')
+    assert methane.has_reasonable_coordinates
+
+    # Methane is not expected to have a planar geometry
+    assert not methane.graph.expected_planar_geometry

@@ -7,10 +7,11 @@ from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
 from autode.geom import calc_rmsd
-from autode.values import Gradient, EnthalpyCont, Enthalpy, PotentialEnergy
+from autode.values import Gradient, EnthalpyCont, PotentialEnergy
 from autode.units import ha_per_ang
 from autode.exceptions import NoAtomsInMolecule, CalculationException
 from autode.utils import work_in_tmp_dir
+from scipy.spatial import distance_matrix
 from copy import deepcopy
 from . import testutils
 import numpy as np
@@ -587,8 +588,11 @@ def test_species_does_not_have_reasonable_coordinates():
     ch4_flat = Molecule(atoms=[Atom('C', 0., 0., 0.),
                                Atom('H', 0., -1., 0.),
                                Atom('H', 0., 1., 0.),
-                               Atom('H', 0., -1., 0.),
-                               Atom('H', 0., 1., 0.)])
+                               Atom('H', 0., 0., -1.),
+                               Atom('H', 0., 0., 1.)])
 
     # CH4 should not be flat
     assert not ch4_flat.has_reasonable_coordinates
+
+    x = ch4_flat.coordinates
+    assert np.min(distance_matrix(x, x)+np.eye(5)) > 0.7
