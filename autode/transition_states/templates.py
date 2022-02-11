@@ -1,7 +1,7 @@
 import os
 import autode
 from datetime import date
-import networkx as nx
+from autode.mol_graphs import MolecularGraph
 from autode.config import Config
 from autode.log import logger
 from autode.mol_graphs import is_isomorphic
@@ -446,7 +446,7 @@ class TStemplate:
 
         # Set the template graph by adding nodes and edges with atoms labels
         # and active/pi/distance attributes respectively
-        self.graph = nx.Graph()
+        self.graph = MolecularGraph()
 
         nodes = get_values_dict_from_file('nodes', template_lines)
         for idx, data in nodes.items():
