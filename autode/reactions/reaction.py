@@ -11,7 +11,6 @@ from autode.log import logger
 from autode.methods import get_hmethod
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.species.molecule import Reactant, Product
-from autode.geom import are_coords_reasonable
 from autode.plotting import plot_reaction_profile
 from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
 from autode.utils import work_in, requires_hl_level_methods
@@ -258,15 +257,13 @@ class Reaction:
                     + [self.ts, self._reactant_complex, self._product_complex]):
 
             if mol is None:
-                logger.warning('mol=None')
                 continue
 
             if mol.energy is None:
                 logger.warning(f'{mol.name} energy was None')
                 continue
 
-            if not are_coords_reasonable(mol.coordinates):
-                logger.warning(f'{mol.name} coordinates not reasonable')
+            if not mol.has_reasonable_coordinates:
                 continue
 
             yield mol

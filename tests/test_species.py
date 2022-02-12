@@ -7,10 +7,11 @@ from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
 from autode.geom import calc_rmsd
-from autode.values import Gradient, EnthalpyCont, Enthalpy, PotentialEnergy
+from autode.values import Gradient, EnthalpyCont, PotentialEnergy
 from autode.units import ha_per_ang
 from autode.exceptions import NoAtomsInMolecule, CalculationException
 from autode.utils import work_in_tmp_dir
+from scipy.spatial import distance_matrix
 from copy import deepcopy
 from . import testutils
 import numpy as np
@@ -35,6 +36,8 @@ def test_species_class():
 
     assert str(blank_mol) != ''   # Should have some string representations
     assert repr(blank_mol) != ''
+
+    assert blank_mol.has_reasonable_coordinates  # No coordinates are good
 
     assert hasattr(mol, 'print_xyz_file')
     assert hasattr(mol, 'translate')
@@ -554,3 +557,42 @@ def test_keywords_opt_sp_thermo():
         h2o.hessian = None
         h2o.calc_thermo(method=orca, keywords=kwds)
         assert h2o.energy is not None
+
+
+def test_flat_species_has_reasonable_coordinates():
+
+    c2h4 = Molecule(atoms=[Atom('C', -4.99490, 1.95320, 0.00000),
+                           Atom('C', -4.74212, 0.64644, 0.00000),
+                           Atom('H', -4.17835, 2.66796, 0.00000),
+                           Atom('H', -6.01909, 2.31189, 0.00000),
+                           Atom('H', -3.71793, 0.28776, -0.00000),
+                           Atom('H', -5.55867, -0.06831, 0.00000)])
+
+    assert c2h4.has_reasonable_coordinates
+
+    rh_h4 = Molecule(atoms=[Atom('Rh', -0.19569, -2.70701, -0.00000),
+                            Atom('H',  -0.62458, -1.07785,  0.00000),
+                            Atom('H',  -1.82557, -3.13312, -0.00000),
+                            Atom('H',   1.43448, -2.28115,  0.00000),
+                            Atom('H',   0.23390, -4.33620, -0.00000)])
+
+    assert rh_h4.graph.number_of_edges() == 4
+
+    # [Rh(H)4] does have a reasonable flat structure, as a square planar
+    # geometry is possible
+    assert rh_h4.has_reasonable_coordinates
+
+
+def test_species_does_not_have_reasonable_coordinates():
+
+    ch4_flat = Molecule(atoms=[Atom('C', 0., 0., 0.),
+                               Atom('H', 0., -1., 0.),
+                               Atom('H', 0., 1., 0.),
+                               Atom('H', 0., 0., -1.),
+                               Atom('H', 0., 0., 1.)])
+
+    # CH4 should not be flat
+    assert not ch4_flat.has_reasonable_coordinates
+
+    x = ch4_flat.coordinates
+    assert np.min(distance_matrix(x, x)+np.eye(5)) > 0.7

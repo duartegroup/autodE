@@ -656,7 +656,8 @@ class Atoms(list):
         return vec / np.linalg.norm(vec)
 
     def are_linear(self,
-                   angle_tol: Angle = Angle(1, units='deg')) -> bool:
+                   angle_tol: Angle = Angle(1, 'º')
+                   ) -> bool:
         """
         Are these set of atoms colinear?
 
@@ -684,6 +685,44 @@ class Atoms(list):
             # Both e.g. <179° and >1° should satisfy this condition for
             # angle_tol = 1°
             if np.abs(np.abs(cos_theta) - 1) > tol:
+                return False
+
+        return True
+
+    def are_planar(self,
+                   distance_tol: Distance = Distance(1E-3, 'Å')
+                   ) -> bool:
+        """
+        Do all the atoms in this set lie in a single plane?
+
+        -----------------------------------------------------------------------
+        Arguments:
+            distance_tol (autode.values.Distance):
+
+        Returns:
+            (bool):
+        """
+        if len(self) < 4:   # 3 points must lie in a plane
+            return True
+
+        arr = self.coordinates.to('Å')
+
+        if isinstance(distance_tol, Distance):
+            distance_tol = float(distance_tol.to('Å'))
+
+        else:
+            logger.warning('Assuming a distance tolerance in units of Å')
+            distance_tol = float(distance_tol)
+
+        # Calculate a normal vector to the first two atomic vectors from atom 0
+        x0 = arr[0, :]
+        normal_vec = np.cross(arr[1, :] - x0, arr[2, :] - x0)
+
+        for i in range(3, len(self)):
+
+            # Calculate the 0->i atomic vector, which must not have any
+            # component in the direction in the normal if the atoms are planar
+            if np.dot(normal_vec, arr[i, :] - x0) > distance_tol:
                 return False
 
         return True

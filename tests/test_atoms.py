@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
+from scipy.stats import special_ortho_group
 from autode import atoms
 from autode.atoms import Atom, DummyAtom, Atoms
-from autode.values import Angle, Coordinate, Mass
+from autode.values import Angle, Coordinate, Mass, Distance
 
 
 def test_valency():
@@ -68,6 +69,57 @@ def test_atoms():
     assert len(h_and_dummy_atoms) == 2
     h_and_dummy_atoms.remove_dummy()
     assert len(h_and_dummy_atoms) == 1
+
+
+def test_atoms_are_planar_simple():
+
+    no_h_atom = Atoms([])
+    h_atom = Atoms([Atom('H')])
+    h_dimer = Atoms([Atom('H'), Atom('H', x=1.)])
+    h_trimer = Atoms([Atom('H'), Atom('H', x=1.), Atom('H', y=1., z=0.1)])
+
+    for h_atoms in (no_h_atom, h_atom, h_dimer, h_trimer):
+        assert h_atoms.are_planar()
+
+
+def test_c2h4_atoms_are_planar():
+
+    c2h4_atoms = Atoms([Atom('C', -4.99490,  1.95320,  0.00000),
+                        Atom('C', -4.74212,  0.64644,  0.00000),
+                        Atom('H', -4.17835,  2.66796,  0.00000),
+                        Atom('H', -6.01909,  2.31189,  0.00000),
+                        Atom('H', -3.71793,  0.28776, -0.00000),
+                        Atom('H', -5.55867, -0.06831,  0.00000)])
+
+    assert c2h4_atoms.are_planar()
+
+    # Apply a random rotation to the set of coordinates
+    x = c2h4_atoms.coordinates
+    centre = np.average(x, axis=0)
+    x = np.dot(x - centre, special_ortho_group.rvs(3).T)
+
+    for i, atom in enumerate(c2h4_atoms):
+        atom.coord = x[i, :]
+
+    # Thus they should still be planar
+    assert c2h4_atoms.are_planar()
+
+
+def test_atoms_are_not_planar():
+
+    h_atoms = Atoms([Atom('H'),
+                    Atom('H', x=1.),
+                    Atom('H', y=1., z=0.1),
+                    Atom('H', x=2., y=0.2, z=0.7)])
+
+    assert not h_atoms.are_planar()
+
+    with pytest.raises(Exception):
+        h_atoms.are_planar(distance_tol='a')
+
+    # These atoms are planar under a very large tolerance
+    assert h_atoms.are_planar(distance_tol=10000.0)
+    assert h_atoms.are_planar(distance_tol=Distance(10000.0))
 
 
 def test_atom_collection_base():
