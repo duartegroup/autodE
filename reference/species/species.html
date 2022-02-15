@@ -1117,6 +1117,20 @@ are projected from rotation and translation</p>
 <dd><p>Does this species have the same chemical identity as another?</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.species.species.Species.has_reasonable_coordinates">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_reasonable_coordinates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.species.species.Species.has_reasonable_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this species have a ‘reasonable’ set of coordinates? I.e. No
+atom-atom distances that are particularly short or long. Also checks
+that all the atoms don’t lie in a single plane, which is possible for
+a failed 3D embedding of a structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.species.species.Species.has_same_connectivity_as">
 <span class="sig-name descname"><span class="pre">has_same_connectivity_as</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.species.species.Species.has_same_connectivity_as" title="Permalink to this definition">¶</a></dt>

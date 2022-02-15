@@ -2,6 +2,25 @@ Changelog
 =========
 
 
+1.2.1
+--------
+----------
+
+Bugfix release.
+
+
+Functionality improvements
+******************************
+- Adds :code:`autode.mol_graphs.MolecularGraph` (subclass of :code:`networkx.Graph`) with a :code:`expected_planar_geometry` method
+- Adds an :code:`are_planar` method to :code:`autode.atoms.Atoms`
+
+
+Bug Fixes
+*********
+
+- Fixes a bug in assigning reasonable geometries which, in turn, could lead to skipped single point energy evaluations
+
+
 1.2.0
 --------
 ----------
