@@ -28,12 +28,6 @@ def are_coords_reasonable(coords):
                        'sensible')
         return False
 
-    if n_atoms > 4:
-        if all([coord[2] == 0.0 for coord in coords]):
-            logger.warning('RDKit likely generated a wrong geometry. Structure'
-                           ' is *not* sensible')
-            return False
-
     return True
 
 

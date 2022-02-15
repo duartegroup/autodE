@@ -6,8 +6,43 @@ import numpy as np
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
+from autode.atoms import metals
 from autode.bonds import get_avg_bond_length
 from autode.log import logger
+
+
+class MolecularGraph(nx.Graph):
+
+    def __repr__(self):
+        return (f'MolecularGraph(|E| = {self.number_of_edges()}, '
+                f'|V| = {self.number_of_nodes()})')
+
+    @property
+    def expected_planar_geometry(self) -> bool:
+        """
+        Is the 3D structure of the molecule corresponding to this graph
+        expected to be planar?
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+
+        for node in self.nodes:
+
+            n_neighbours = len(list(self.neighbors(node)))
+
+            if n_neighbours < 4:
+                # 1, 2 and 3-valent atoms must be planar
+                continue
+
+            if n_neighbours == 4 and self.nodes[node]['atom_label'] in metals:
+                # Metals e.g. Rh can be square planar
+                continue
+
+            return False
+
+        return True
 
 
 def make_graph(species,
@@ -50,7 +85,7 @@ def make_graph(species,
 
     logger.info('Generating molecular graph with NetworkX')
 
-    graph = nx.Graph()
+    graph = MolecularGraph()
 
     # Add the atoms to the graph all are initially assumed not to be
     # stereocenters
@@ -194,7 +229,7 @@ def set_graph_attributes(species):
 def union(graphs):
     """Return the union of two graphs. The disjoint union is returned"""
     if len(graphs) == 0:
-        return nx.Graph()
+        return MolecularGraph()
 
     return nx.disjoint_union_all(graphs)
 
@@ -679,7 +714,7 @@ def get_truncated_active_mol_graph(graph, active_bonds=None):
         raise ValueError('Could not generate truncated active molecular '
                          'graph with no active bonds')
 
-    t_graph = nx.Graph()
+    t_graph = MolecularGraph()
 
     # Add all nodes that connect active bonds
     for bond in active_bonds:

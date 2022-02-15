@@ -4,7 +4,6 @@ from rdkit import Chem
 from autode.conformers.conf_gen import get_simanl_atoms
 from autode.conformers.conformers import atoms_from_rdkit_mol
 from autode.exceptions import RDKitFailed, SMILESBuildFailed
-from autode.geom import are_coords_reasonable
 from autode.log import logger
 from autode.mol_graphs import make_graph
 from autode.smiles import Parser, Builder
@@ -91,7 +90,7 @@ def init_organic_smiles(molecule, smiles):
     make_graph(molecule, bond_list=bonds)
 
     # Revert back to RR if RDKit fails to return a sensible geometry
-    if not are_coords_reasonable(coords=molecule.coordinates):
+    if not molecule.has_reasonable_coordinates:
         molecule.rdkit_conf_gen_is_fine = False
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 
@@ -151,7 +150,7 @@ def init_smiles(molecule, smiles):
     for bond in parser.bonds:
         molecule.graph.edges[tuple(bond)]['pi'] = True
 
-    if not are_coords_reasonable(molecule.coordinates):
+    if not molecule.has_reasonable_coordinates:
         logger.warning('3D builder did not make a sensible geometry, '
                        'Falling back to random minimisation.')
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
