@@ -98,8 +98,8 @@ and some default options. Note that the string to call `xtb-gaussian` will need 
   >>> kwds.hess = ["External='xtb-gaussian'", "Freq", "Geom(Redundant)", "IOp(3/5=30)"]
   >>> kwds.grad = ["External='xtb-gaussian'", 'Force(NoStep)', "IOp(3/5=30)"]
 
-To use XTB within ORCA copy the :code:`xtb` to the folder where the :code:`orca` binary is and rename it :code:`otool_xtb` then
-set the keywords to use
+To use XTB within ORCA copy the :code:`xtb` binary to the folder where the :code:`orca` binary is located and rename it :code:`otool_xtb`, then
+set the keywords to use. For example
 
 .. code-block:: python
 
