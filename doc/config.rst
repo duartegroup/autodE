@@ -85,17 +85,39 @@ basis set for optimisations:
 XTB as a hmethod
 ****************
 
-To use XTB as the *hmethod* for minima and TS optimisations with the `xtb-gaussian <https://github.com/aspuru-guzik-group/xtb-gaussian>`_ wrapper
+To use XTB as the *hmethod* for minima and TS optimisations within Gaussian use the `xtb-gaussian <https://github.com/aspuru-guzik-group/xtb-gaussian>`_ wrapper
 and some default options. Note that the string to call `xtb-gaussian` will need to be modified with the appropriate keywords for spin and solvent, e.g., "xtb-gaussian --alpb water".
 
 .. code-block:: python
 
-  >>> ade.Config.G16.keywords.sp = ["External='xtb-gaussian'", "IOp(3/5=30)"]
-  >>> ade.Config.G16.keywords.low_opt = ["External='xtb-gaussian'", "Opt(Loose, NoMicro)", "IOp(3/5=30)"]
-  >>> ade.Config.G16.keywords.opt = ["External='xtb-gaussian'", "Opt(NoMicro)", "IOp(3/5=30)"]
-  >>> ade.Config.G16.keywords.opt_ts = ["External='xtb-gaussian'", "Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, NoMicro)", "IOp(3/5=30)"]
-  >>> ade.Config.G16.keywords.hess = ["External='xtb-gaussian'", "Freq", "Geom(Redundant)", "IOp(3/5=30)"]
-  >>> ade.Config.G16.keywords.grad = ["External='xtb-gaussian'", 'Force(NoStep)', "IOp(3/5=30)"]
+  >>> kwds = ade.Config.G16.keywords
+  >>> kwds.sp = ["External='xtb-gaussian'", "IOp(3/5=30)"]
+  >>> kwds.low_opt = ["External='xtb-gaussian'", "Opt(Loose, NoMicro)", "IOp(3/5=30)"]
+  >>> kwds.opt = ["External='xtb-gaussian'", "Opt(NoMicro)", "IOp(3/5=30)"]
+  >>> kwds.opt_ts = ["External='xtb-gaussian'", "Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, NoMicro)", "IOp(3/5=30)"]
+  >>> kwds.hess = ["External='xtb-gaussian'", "Freq", "Geom(Redundant)", "IOp(3/5=30)"]
+  >>> kwds.grad = ["External='xtb-gaussian'", 'Force(NoStep)', "IOp(3/5=30)"]
+
+To use XTB within ORCA copy the :code:`xtb` to the folder where the :code:`orca` binary is and rename it :code:`otool_xtb` then
+set the keywords to use
+
+.. code-block:: python
+
+  >>> kwds = ade.Config.ORCA.keywords
+  >>> kwds.sp = ['SP', 'PBE0', 'def2-SVP']
+  >>> kwds.opt = ['Opt', 'XTB2']
+  >>> kwds.low_opt = ['Opt', 'XTB2']
+  >>> kwds.hess = ['NumFreq', 'XTB2']
+  >>> kwds.grad = ['EnGrad', 'XTB2']
+  >>> kwds.opt_ts = ['OptTS', 'NumFreq', 'XTB2']
+  >>> kwds.optts_block = ('%geom\n'
+                          'NumHess true\n'
+                          'Calc_Hess true\n'
+                          'Recalc_Hess 30\n'
+                          'Trust -0.1\n'
+                          'MaxIter 150\n'
+                          'end')
+
 
 ------------
 
@@ -114,7 +136,7 @@ to see all the options.
 Logging
 -------
 
-To set the logging level to one of {INFO, WARNING, ERROR} set the AUTODE_LOG_LEVEL
+To set the logging level to one of {INFO, WARNING, ERROR} set the :code:`AUTODE_LOG_LEVEL`
 environment variable, in bash::
 
     $ export AUTODE_LOG_LEVEL=INFO
