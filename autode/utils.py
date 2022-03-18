@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 from time import time
-from typing import Any, Optional, List
+from typing import Any, Optional, Sequence
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
@@ -99,8 +99,10 @@ def run_external(params, output_filename):
 
 
 @check_sufficient_memory
-def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
-                           break_words=None):
+def run_external_monitored(params:          Sequence[str],
+                           output_filename: str,
+                           break_word:      str = 'MPI_ABORT',
+                           break_words:     Optional[str] = None):
     """
     Run an external process monitoring the standard output and error for a
     word that will terminate the process
@@ -111,7 +113,6 @@ def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
 
         output_filename (str):
 
-    Keyword Arguments:
         break_word (str): String that if found will terminate the process
 
         break_words (list(str) | None): List of break_word-s
@@ -173,8 +174,8 @@ def work_in(dir_ext):
     return func_decorator
 
 
-def work_in_tmp_dir(filenames_to_copy: Optional[List[str]] = None,
-                    kept_file_exts:    Optional[List[str]] = None,
+def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
+                    kept_file_exts:    Optional[Sequence[str]] = None,
                     use_ll_tmp:        bool = False):
     """Execute a function in a temporary directory.
 

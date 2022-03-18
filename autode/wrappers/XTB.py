@@ -2,7 +2,7 @@ import os
 import shutil
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.utils import run_external
+from autode.utils import run_external_monitored
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
 from autode.config import Config
@@ -167,8 +167,9 @@ class XTB(ElectronicStructureMethod):
             os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
 
             logger.info(f'Running XTB with: {" ".join(flags)}')
-            run_external(params=[calc.method.path, calc.input.filename]+flags,
-                         output_filename=calc.output.filename)
+            run_external_monitored(
+                params=[calc.method.path, calc.input.filename]+flags,
+                output_filename=calc.output.filename)
 
             if os.path.exists('gradient'):
                 shutil.move('gradient', f'{calc.name}_OLD.grad')
