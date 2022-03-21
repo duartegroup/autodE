@@ -2,13 +2,13 @@ import os
 import shutil
 import numpy as np
 from autode.wrappers.base import ElectronicStructureMethod
-from autode.utils import run_external_monitored
+from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.atoms import Atom
 from autode.config import Config
 from autode.constants import Constants
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, run_in_tmp_environment
 from autode.log import logger
 
 
@@ -162,14 +162,13 @@ class XTB(ElectronicStructureMethod):
         @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.xyz', '.out', '.pc', '.grad'),
                          use_ll_tmp=True)
+        @run_in_tmp_environment(OMP_NUM_THREADS=calc.n_cores,
+                                GFORTRAN_UNBUFFERED_ALL=1)
         def execute_xtb():
-            logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
-            os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
 
             logger.info(f'Running XTB with: {" ".join(flags)}')
-            run_external_monitored(
-                params=[calc.method.path, calc.input.filename]+flags,
-                output_filename=calc.output.filename)
+            run_external(params=[calc.method.path, calc.input.filename]+flags,
+                         output_filename=calc.output.filename)
 
             if os.path.exists('gradient'):
                 shutil.move('gradient', f'{calc.name}_OLD.grad')

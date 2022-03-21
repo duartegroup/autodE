@@ -411,3 +411,41 @@ def hashable(_method_name: str, _object: Any):
     """Multiprocessing requires hashable top-level functions to be executed,
     so convert a method into a top-level function"""
     return getattr(_object, _method_name)
+
+
+def run_in_tmp_environment(**kwargs):
+    """
+    Apply a set of environment variables, execute a function and reset them
+    """
+
+    class EnvVar:
+        def __init__(self, name, val):
+            self.name = str(name)
+            self.val = os.getenv(str(name), None)
+            self.new_val = str(val)
+
+    env_vars = [EnvVar(k, v) for k, v in kwargs.items()]
+
+    def func_decorator(func):
+
+        @wraps(func)
+        def wrapped_function(*args, **_kwargs):
+
+            for env_var in env_vars:
+                logger.info(f'Setting the {env_var.name} to {env_var.new_val}')
+                os.environ[env_var.name] = env_var.new_val
+
+            result = func(*args, **_kwargs)
+
+            for env_var in env_vars:
+                if env_var.val is None:
+                    # Remove from the environment
+                    os.environ.pop(env_var.name)
+                else:
+                    # otherwise set it back to the old value
+                    os.environ[env_var.name] = env_var.val
+
+            return result
+
+        return wrapped_function
+    return func_decorator
