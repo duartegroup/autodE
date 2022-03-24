@@ -580,7 +580,8 @@ class CalculationOutput:
         if self.filename is None or not os.path.exists(self.filename):
             raise ex.NoCalculationOutput
 
-        return open(self.filename, 'r', encoding="utf-8").readlines()
+        file = open(self.filename, 'r', encoding='utf-8', errors='ignore')
+        return file.readlines()
 
     @property
     def exists(self) -> bool:
