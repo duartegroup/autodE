@@ -229,3 +229,21 @@ def test_requires_graph():
         m.graph = None
 
         f(m)  # No graph
+
+
+def test_tmp_env():
+
+    os.environ['OMP_NUM_THREADS'] = '1'
+
+    @utils.run_in_tmp_environment(tmp_key_str='tmp_value',
+                                  tmp_key_int=1,
+                                  OMP_NUM_THREADS=9999)
+    def f():
+        assert os.environ['tmp_key_int'] == '1'
+        assert os.environ['tmp_key_str'] == 'tmp_value'
+        assert os.environ['OMP_NUM_THREADS'] == '9999'
+
+    f()
+    assert 'tmp_key_int' not in os.environ
+    assert 'tmp_key_str' not in os.environ
+    assert os.environ['OMP_NUM_THREADS'] == '1'

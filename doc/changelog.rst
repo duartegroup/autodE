@@ -2,6 +2,18 @@ Changelog
 =========
 
 
+1.2.2
+--------
+----------
+
+Bugfix release.
+
+
+Bug Fixes
+*********
+- Fixes output redirection from XTB calculations resulting in missed lines on Mac
+
+
 1.2.1
 --------
 ----------

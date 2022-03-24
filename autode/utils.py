@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 from time import time
-from typing import Any, Optional, List
+from typing import Any, Optional, Sequence
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
@@ -99,8 +99,10 @@ def run_external(params, output_filename):
 
 
 @check_sufficient_memory
-def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
-                           break_words=None):
+def run_external_monitored(params:          Sequence[str],
+                           output_filename: str,
+                           break_word:      str = 'MPI_ABORT',
+                           break_words:     Optional[str] = None):
     """
     Run an external process monitoring the standard output and error for a
     word that will terminate the process
@@ -111,7 +113,6 @@ def run_external_monitored(params, output_filename, break_word='MPI_ABORT',
 
         output_filename (str):
 
-    Keyword Arguments:
         break_word (str): String that if found will terminate the process
 
         break_words (list(str) | None): List of break_word-s
@@ -173,8 +174,8 @@ def work_in(dir_ext):
     return func_decorator
 
 
-def work_in_tmp_dir(filenames_to_copy: Optional[List[str]] = None,
-                    kept_file_exts:    Optional[List[str]] = None,
+def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
+                    kept_file_exts:    Optional[Sequence[str]] = None,
                     use_ll_tmp:        bool = False):
     """Execute a function in a temporary directory.
 
@@ -410,3 +411,41 @@ def hashable(_method_name: str, _object: Any):
     """Multiprocessing requires hashable top-level functions to be executed,
     so convert a method into a top-level function"""
     return getattr(_object, _method_name)
+
+
+def run_in_tmp_environment(**kwargs):
+    """
+    Apply a set of environment variables, execute a function and reset them
+    """
+
+    class EnvVar:
+        def __init__(self, name, val):
+            self.name = str(name)
+            self.val = os.getenv(str(name), None)
+            self.new_val = str(val)
+
+    env_vars = [EnvVar(k, v) for k, v in kwargs.items()]
+
+    def func_decorator(func):
+
+        @wraps(func)
+        def wrapped_function(*args, **_kwargs):
+
+            for env_var in env_vars:
+                logger.info(f'Setting the {env_var.name} to {env_var.new_val}')
+                os.environ[env_var.name] = env_var.new_val
+
+            result = func(*args, **_kwargs)
+
+            for env_var in env_vars:
+                if env_var.val is None:
+                    # Remove from the environment
+                    os.environ.pop(env_var.name)
+                else:
+                    # otherwise set it back to the old value
+                    os.environ[env_var.name] = env_var.val
+
+            return result
+
+        return wrapped_function
+    return func_decorator
