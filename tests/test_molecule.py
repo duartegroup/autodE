@@ -263,3 +263,9 @@ def test_defined_metal_spin_state():
 
     mol = Molecule(smiles='[Sc]C', mult=3)
     assert mol.mult == 3
+
+
+def test_atom_class_defined_for_organic():
+
+    mol = Molecule(smiles='[Br-:1]')
+    assert mol.atoms[0].atom_class is not None

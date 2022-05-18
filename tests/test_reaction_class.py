@@ -472,3 +472,18 @@ def test_name_uniqueness():
                             Product(smiles='C[C]([H])C'))
 
     assert rxn.reacs[0].name != rxn.prods[0].name
+
+
+def test_identity_reaction_is_supported_with_labels():
+
+    def reaction_is_isomorphic(_r):
+        return _r.reactant.graph.is_isomorphic_to(_r.product.graph)
+
+    isomorphic_rxn = reaction.Reaction('[Br-].C[Br]>>C[Br].[Br-]')
+    assert reaction_is_isomorphic(isomorphic_rxn)
+
+    rxn = reaction.Reaction('[Br-:1].C[Br:2]>>C[Br:1].[Br-:2]')
+    print(rxn.reacs[0].graph.nodes(data=True))
+
+    print(rxn.reactant.graph.nodes(data=True))
+    assert not reaction_is_isomorphic(rxn)

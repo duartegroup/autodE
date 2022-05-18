@@ -666,7 +666,7 @@ class Species(AtomCollection):
         Returns:
             (bool):
         """
-        if self.n_atoms == 0:
+        if self.n_atoms < 2:
             return True
 
         dist_matrix = distance_matrix(self.coordinates, self.coordinates)

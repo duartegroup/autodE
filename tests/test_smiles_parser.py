@@ -477,3 +477,22 @@ def test_parse_ring_idx():
     parser._string = 'CCCC'
     with pytest.raises(InvalidSmilesString):
         parser._parse_ring_idx(idx=0)
+
+
+def test_parse_smiles_with_labels_no_h():
+
+    parser = Parser()
+    parser.parse('C[Br:777]')
+
+    assert sum(["Br" == atom.atomic_symbol for atom in parser.atoms]) == 1
+
+    br_atom = next(a for a in parser.atoms if a.label == "Br")
+    assert br_atom.atom_class == 777
+
+
+def test_parse_smiles_with_labels_with_h():
+
+    parser = Parser()
+
+    parser.parse('[CH4:2]')
+    assert next(a for a in parser.atoms if a.label == "C").atom_class == 2

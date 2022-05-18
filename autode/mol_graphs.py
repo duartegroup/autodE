@@ -1,8 +1,10 @@
-from copy import deepcopy
 import itertools
-from networkx.algorithms import isomorphism
 import networkx as nx
 import numpy as np
+
+from copy import deepcopy
+from networkx.algorithms import isomorphism
+from typing import Optional, List
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
@@ -44,14 +46,31 @@ class MolecularGraph(nx.Graph):
 
         return True
 
+    def is_isomorphic_to(self, other: 'MolecularGraph') -> bool:
+        """Is this graph isomorphic to another?"""
 
-def make_graph(species,
-               rel_tolerance=0.3,
-               bond_list=None,
-               allow_invalid_valancies=False):
+        return is_isomorphic(self, other)
+
+    @property
+    def node_matcher(self):
+        """Default node matcher"""
+
+        matcher = isomorphism.categorical_node_match(
+            attr=['atom_label', 'atom_class'],
+            default=['C', None]
+        )
+
+        return matcher
+
+
+def make_graph(species:                'autode.Species',
+               rel_tolerance:           float = 0.3,
+               bond_list:               Optional[List[tuple]] = None,
+               allow_invalid_valancies: bool = False
+               ) -> None:
     """
     Make the molecular graph from the 'bonds' determined on a distance criteria
-    or a smiles parser object. All attributes default to false::
+    or a SMILES parser object. All attributes default to false::
 
         Nodes attributes;
             (0) atom_label: Atomic symbol of this atom
@@ -67,14 +86,16 @@ def make_graph(species,
 
     ---------------------------------------------------------------------------
     Arguments:
-        species (autode.species.Species):
+        species:
 
-    Keyword Arguments:
-        rel_tolerance (float):
+        rel_tolerance:
 
-        bond_list (list(tuple)):
+        bond_list: Explicit bonds between atoms, overriding any attempt to
+                   evaluate bonds
 
-        allow_invalid_valancies (bool):
+        allow_invalid_valancies: Should invalid atomic valencies be allowed?
+                                 If false then e.g. a carbon atom with 5 atoms
+                                 close enough to be bonded will have only 4 bonds
 
     Raises:
         NoAtomsInMolecule:
@@ -89,8 +110,11 @@ def make_graph(species,
 
     # Add the atoms to the graph all are initially assumed not to be
     # stereocenters
-    for i in range(species.n_atoms):
-        graph.add_node(i, atom_label=species.atoms[i].label, stereo=False)
+    for i, atom in enumerate(species.atoms):
+        graph.add_node(i,
+                       atom_label=atom.label,
+                       stereo=False,
+                       atom_class=atom.atom_class)
 
     # If bonds are specified then add edges to the graph and return
     if bond_list is not None:
@@ -292,7 +316,7 @@ def species_are_isomorphic(species1, species2):
     return False
 
 
-def graph_matcher(graph1, graph2):
+def graph_matcher(graph1: MolecularGraph, graph2: MolecularGraph):
     """
     Generate a networkX graph matcher between two graphs, matching on atom
     types and active bonds
@@ -306,14 +330,11 @@ def graph_matcher(graph1, graph2):
     Returns:
         (nx.GraphMatcher)
     """
-    # Match based on atom type with a default of carbon if unassigned
-    node_match = isomorphism.categorical_node_match('atom_label', 'C')
-
     # Match on active edges too, with the default being false
     edge_match = isomorphism.categorical_edge_match('active', False)
 
     gm = isomorphism.GraphMatcher(graph1, graph2,
-                                  node_match=node_match,
+                                  node_match=graph1.node_matcher,
                                   edge_match=edge_match)
     return gm
 
@@ -463,17 +484,19 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
 
 
 @timeout(seconds=5, return_value=False)
-def is_isomorphic(graph1, graph2, ignore_active_bonds=False):
+def is_isomorphic(graph1:              MolecularGraph,
+                  graph2:              MolecularGraph,
+                  ignore_active_bonds: bool=False
+                  ) -> bool:
     """Check whether two NX graphs are isomorphic. Contains a timeout because
     the gm.is_isomorphic() method occasionally gets stuck
 
     ---------------------------------------------------------------------------
     Arguments:
-        graph1 (nx.Graph): graph 1
+        graph1:
 
-        graph2 (nx.Graph): graph 2
+        graph2:
 
-    Keyword Arguments:
         ignore_active_bonds (bool):
 
     Returns:
@@ -487,17 +510,17 @@ def is_isomorphic(graph1, graph2, ignore_active_bonds=False):
         return False
 
     # Always match on atom types
-    node_match = isomorphism.categorical_node_match('atom_label', 'C')
+    node_matcher = graph1.node_matcher
 
     if ignore_active_bonds:
         gm = isomorphism.GraphMatcher(graph1, graph2,
-                                      node_match=node_match)
+                                      node_match=node_matcher)
 
     else:
         # Also match on edges
         edge_match = isomorphism.categorical_edge_match('active', False)
         gm = isomorphism.GraphMatcher(graph1, graph2,
-                                      node_match=node_match,
+                                      node_match=node_matcher,
                                       edge_match=edge_match)
 
     return gm.is_isomorphic()
