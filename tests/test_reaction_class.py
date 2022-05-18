@@ -464,3 +464,11 @@ def test_same_composition():
     r3 = reaction.Reaction(Reactant(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)]),
                            Product(name='h2', atoms=[Atom('H', 1.0, 0.0, 0.0)]))
     assert not r1.has_identical_composition_as(r3)
+
+
+def test_name_uniqueness():
+
+    rxn = reaction.Reaction(Reactant(smiles='CC[C]([H])[H]'),
+                            Product(smiles='C[C]([H])C'))
+
+    assert rxn.reacs[0].name != rxn.prods[0].name
