@@ -483,7 +483,4 @@ def test_identity_reaction_is_supported_with_labels():
     assert reaction_is_isomorphic(isomorphic_rxn)
 
     rxn = reaction.Reaction('[Br-:1].C[Br:2]>>C[Br:1].[Br-:2]')
-    print(rxn.reacs[0].graph.nodes(data=True))
-
-    print(rxn.reactant.graph.nodes(data=True))
     assert not reaction_is_isomorphic(rxn)
