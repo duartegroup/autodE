@@ -226,9 +226,13 @@ def test_calc_delta_e():
     r2 = reaction.Reactant(name='h', atoms=[Atom('H')])
     r2.energy = -0.5
 
-    tsguess = TSguess(atoms=None,
-                      reactant=ReactantComplex(r1),
+    reac_complex = ReactantComplex(r1)
+    assert reac_complex.graph is not None
+
+    tsguess = TSguess(atoms=reac_complex.atoms,
+                      reactant=reac_complex,
                       product=ProductComplex(r2.to_product()))
+
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.8
@@ -241,8 +245,6 @@ def test_calc_delta_e():
 
     assert -1E-6 < reac.delta('E') < 1E-6
     assert 0.2 - 1E-6 < reac.delta('E‡') < 0.2 + 1E-6
-
-    # Without calculated
 
 
 def test_from_smiles():

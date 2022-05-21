@@ -5,6 +5,7 @@ from autode.log import logger
 from autode.utils import log_time
 from autode.atoms import Atom, AtomCollection
 from autode.bonds import get_avg_bond_length
+from autode.mol_graphs import MolecularGraph
 from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
 from autode.smiles.angles import SDihedral, SDihedrals, SAngle, SAngles
 from ade_dihedrals import rotate, closed_ring_coords
@@ -65,7 +66,8 @@ class Builder(AtomCollection):
         atoms = []
         for atom in self.atoms:
             x, y, z = atom.coord
-            atoms.append(Atom(atom.label, x=x, y=y, z=z))
+            atoms.append(Atom(atom.label, x=x, y=y, z=z,
+                              atom_class=atom.atom_class))
 
         return atoms
 
@@ -931,7 +933,7 @@ class Builder(AtomCollection):
 
         # Set attributes
         self.atoms, self.bonds = atoms, bonds
-        self.graph = nx.Graph()
+        self.graph = MolecularGraph()
         self.queued_atoms = []
         self.queued_dihedrals = SDihedrals()
 

@@ -459,6 +459,12 @@ def is_invalid(smiles):
         Parser().parse(smiles)
 
 
+def is_valid(smiles):
+
+    Parser().parse(smiles)  # Throws if invalid
+    return True
+
+
 def test_parse_ring_idx():
 
     # % ring closures must be followed by two numbers
@@ -496,3 +502,8 @@ def test_parse_smiles_with_labels_with_h():
 
     parser.parse('[CH4:2]')
     assert next(a for a in parser.atoms if a.label == "C").atom_class == 2
+
+
+def test_parse_h3o_cation_smiles():
+
+    assert is_valid('[O+H2]')

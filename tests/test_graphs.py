@@ -20,7 +20,7 @@ h_b = Atom(atomic_symbol='H', x=0.0, y=0.0, z=0.7)
 h2 = Species(name='H2', atoms=[h_a, h_b], charge=0, mult=1)
 mol_graphs.make_graph(h2)
 
-g = nx.Graph()
+g = mol_graphs.MolecularGraph()
 edges = [(0, 1), (1, 2), (2, 0), (0, 3), (3, 4)]
 for edge in edges:
     g.add_edge(*edge)
@@ -169,7 +169,7 @@ def test_reac_to_prods():
     rearrang = BondRearrangement([(0, 4)], [(3, 4)])
     prod_graph = mol_graphs.reac_graph_to_prod_graph(g, rearrang)
     expected_edges = [(0, 1), (1, 2), (2, 0), (0, 3), (0, 4)]
-    expected_graph = nx.Graph()
+    expected_graph = mol_graphs.MolecularGraph()
     for edge in expected_edges:
         expected_graph.add_edge(*edge)
 
@@ -208,17 +208,7 @@ def test_set_pi_bonds():
 
 def test_species_isomorphism():
 
-    h2.graph = None
     h2_copy = Species(name='H2', atoms=[h_a, h_b], charge=0, mult=1)
-    h2_copy.graph = None
-
-    with pytest.raises(NoMolecularGraph):
-        assert mol_graphs.species_are_isomorphic(h2, h2_copy)
-
-    # With molecular graphs the species should be isomorphic
-    mol_graphs.make_graph(h2)
-    mol_graphs.make_graph(h2_copy)
-
     assert mol_graphs.species_are_isomorphic(h2, h2_copy)
 
     # Shift one of the atoms far away and remake the graph
@@ -254,7 +244,7 @@ def test_isomorphic_no_active():
 def test_timeout():
 
     # Generate a large-ish graph
-    graph = nx.Graph()
+    graph = mol_graphs.MolecularGraph()
     for i in range(10000):
         graph.add_node(i)
 

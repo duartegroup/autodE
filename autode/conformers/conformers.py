@@ -183,7 +183,7 @@ class Conformers(list):
         return None
 
     def prune_diff_graph(self,
-                         graph: 'networkx.Graph'
+                         graph: 'autode.mol_graphs.MolecularGraph'
                          ) -> None:
         """
         Remove conformers with a different molecular graph to a defined
@@ -193,7 +193,7 @@ class Conformers(list):
         -----------------------------------------------------------------------
 
         Arguments:
-            graph (networkx.Graph): Reference graph
+            graph: Reference graph
         """
         n_prev_confs = len(self)
 

@@ -18,10 +18,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 def test_basic_attributes():
 
-    with pytest.raises(NoAtomsInMolecule):
-        Molecule(atoms=[])
-        Molecule()
-
     methane = Molecule(name='methane', smiles='C')
 
     assert methane.name == 'methane'

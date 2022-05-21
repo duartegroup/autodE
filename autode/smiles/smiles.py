@@ -107,12 +107,12 @@ def init_organic_smiles(molecule, smiles):
             molecule.graph.nodes[idx_i]['stereo'] = True
             molecule.graph.nodes[idx_j]['stereo'] = True
 
-    check_bonds(molecule, bonds=rdkit_mol.GetBonds())
-
     for atom, smiles_atom in zip(molecule.atoms, parser.atoms):
         atom.atom_class = smiles_atom.atom_class
 
     make_graph(species=molecule, bond_list=bonds)
+    check_bonds(molecule, bonds=rdkit_mol.GetBonds())
+
     molecule.rdkit_mol_obj = rdkit_mol
     return None
 
@@ -149,7 +149,8 @@ def init_smiles(molecule, smiles):
         if atom.has_stereochem:
             molecule.graph.nodes[idx]['stereo'] = True
 
-        molecule.atoms[idx].atom_class = parser.atoms[idx].atom_class
+    make_graph(molecule, bond_list=parser.bonds)
+    check_bonds(molecule, bonds=parser.bonds)
 
     for bond in parser.bonds:
         molecule.graph.edges[tuple(bond)]['pi'] = True
@@ -158,9 +159,6 @@ def init_smiles(molecule, smiles):
         logger.warning('3D builder did not make a sensible geometry, '
                        'Falling back to random minimisation.')
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
-
-    check_bonds(molecule, bonds=parser.bonds)
-    make_graph(molecule, bond_list=parser.bonds)
 
     return None
 

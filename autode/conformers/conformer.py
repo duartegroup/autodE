@@ -1,4 +1,6 @@
-from typing import Optional
+from typing import Optional, Union, List
+from autode.atoms import Atom, Atoms
+from autode.values import Coordinates
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
 from autode.species.species import Species
@@ -22,16 +24,19 @@ class Conformer(Species):
         See Also:
             (autode.species.species.Species):
         """
-
         super().__init__(name, atoms, charge, mult, solvent_name=solvent_name)
+        self._parent_atoms = None
+        self._coordinates = None
 
         if species is not None:
+            self._parent_atoms = species.atoms
+            self._coordinates = species.coordinates.copy()
             self.charge = species.charge  # Require identical charge/mult/solv
             self.mult = species.mult
             self.solvent = species.solvent
 
-            if atoms is None:
-                self.atoms = species.atoms.copy()
+        if atoms is not None:  # Specified atoms overrides species
+            self.atoms = Atoms(atoms)
 
         self.constraints.update(distance=dist_consts)
 
@@ -94,3 +99,69 @@ class Conformer(Species):
             self.atoms = None
 
         return None
+
+    @property
+    def coordinates(self) -> Optional[Coordinates]:
+        """Coordinates of this conformer"""
+        return self._coordinates
+
+    @coordinates.setter
+    def coordinates(self, value: 'numpy.ndarray'):
+        """Set the coordinates of this conformer"""
+        if self._parent_atoms is None:
+            raise ValueError('Conformer has no parent atoms. Setting the '
+                            'coordinates will leave the atoms undefined')
+
+        self._coordinates = Coordinates(value)
+
+    @property
+    def atoms(self) -> Optional[Atoms]:
+        """
+        Atoms of this conformer are built from the parent atoms and the
+        coordinates that are unique to this conformer.
+        """
+
+        if self._parent_atoms is None or self._coordinates is None:
+            return None
+
+        atoms = Atoms()
+        for parent_atom, coord in zip(self._parent_atoms, self._coordinates):
+            atom = parent_atom.copy()
+            atom.coord = coord
+
+            atoms.append(atom)
+
+        return atoms
+
+    @atoms.setter
+    def atoms(self,
+              value: Optional[Atoms]):
+        """
+        Set the atoms of this conformer.
+
+        If None then set the corresponding coordinates of this conformer to
+        None (such that self.atoms is None). If this conformer has coordinates
+        then set those from the individual atomic coordinates otherwise
+        set the coordinates as a batch
+        """
+
+        if value is None:
+            self._coordinates = None
+            return  # Nothing to do
+
+        if self._parent_atoms is None:
+            self._parent_atoms = value
+
+        if self._coordinates is None:
+            self._coordinates = value.coordinates
+            return
+
+        for i, atom in enumerate(value):
+
+            parent_atom = self._parent_atoms[i]
+            if atom.label != parent_atom.label:
+                raise ValueError('Cannot alter the atomic symbols of a '
+                                 'conformer. Parent molecule was different: '
+                                 f'{atom.label} != {parent_atom.label}')
+
+            self._coordinates[i] = atom.coord.copy()

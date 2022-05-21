@@ -1,4 +1,4 @@
-from autode.atoms import Atom
+from autode.atoms import Atom, Atoms
 from autode.species import Molecule, NCIComplex
 from autode.conformers import Conformer, Conformers
 from autode.conformers.conformers import _calc_conformer
@@ -309,3 +309,61 @@ def test_calc_conformer():
                               n_cores=1)
 
     assert h2_conf.energy is not None
+
+
+def test_conformers_inherit_atom_classes():
+
+    def has_correct_atom_class(_species):
+        return sum(atom.atom_class == 1 for atom in _species.atoms) == 1
+
+    mol = Molecule(smiles='C[Br:1]')
+    assert has_correct_atom_class(mol)
+
+    mol.populate_conformers(n_confs=2)
+    assert len(mol.conformers) > 0  # Should generate one conformer
+
+    assert has_correct_atom_class(mol.conformers[0])
+
+
+def test_conformer_coordinate_setting_no_atoms():
+
+    conf = Conformer()
+    assert conf.atoms is None
+    assert conf.coordinates is None
+
+    # Cannot set the coordinates without any atoms
+    with pytest.raises(ValueError):
+        conf.coordinates = np.array([0., 0., 0.])
+
+
+def test_conformer_coordinate_setting_with_atoms():
+    # Setting the atoms should also set coordinates
+    conf = Conformer()
+
+    conf.atoms = Atoms([Atom('H')])
+    assert conf.coordinates is not None
+    assert np.allclose(conf.coordinates,
+                       np.zeros(shape=(1, 3)))
+    assert conf.atoms is not None
+
+    # Discarding the atoms should also discard the coordinates
+    conf.atoms = None
+    assert conf.coordinates is None
+
+
+def test_conformer_coordinate_setting_with_different_atomic_attr():
+    # Atom classes should persist
+    conf = Conformer(species=Molecule(smiles='[C:9]'))
+
+    def has_correct_atom_class(_species):
+        return sum(atom.atom_class == 9 for atom in _species.atoms) == 1
+
+    assert has_correct_atom_class(conf)
+    conf.atoms = Atoms([Atom('C')])
+    assert has_correct_atom_class(conf)
+    conf.coordinates = np.ones_like(conf.coordinates)
+    assert has_correct_atom_class(conf)
+
+    # But cannot set atoms with a different label (e.g. atomic symbol)
+    with pytest.raises(ValueError):
+        conf.atoms = Atoms([Atom('H')])

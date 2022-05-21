@@ -100,6 +100,7 @@ def make_graph(species:                'autode.Species',
     Raises:
         NoAtomsInMolecule:
     """
+
     if species.n_atoms == 0:
         raise ex.NoAtomsInMolecule('Could not build a molecular graph with no '
                                    'atoms')

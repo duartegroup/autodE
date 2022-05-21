@@ -478,6 +478,9 @@ class Atom:
 
         return None
 
+    def copy(self) -> 'Atom':
+        return deepcopy(self)
+
     # --- Method aliases ---
     coordinate = coord
 
