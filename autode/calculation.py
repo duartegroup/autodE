@@ -339,6 +339,10 @@ class Calculation:
             raise ex.AtomsNotFound(f'Failed to get atoms from '
                                    f'{self.output.filename}')
 
+        # Atom classes are persistent when calculations are performed
+        for old_atom, new_atom in zip(self.molecule.atoms, atoms):
+            new_atom.atom_class = old_atom.atom_class
+
         return atoms
 
     @_requires_set_output_filename

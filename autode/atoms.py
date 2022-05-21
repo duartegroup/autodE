@@ -740,7 +740,7 @@ class AtomCollection:
     def __init__(self,
                  atoms: Union[List[Atom], Atoms, None] = None):
         """
-        Collection of atoms, used as a a base class for a species, complex
+        Collection of atoms, used as a base class for a species, complex
         or transition state.
 
         -----------------------------------------------------------------------
