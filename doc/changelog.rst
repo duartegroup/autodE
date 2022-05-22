@@ -2,6 +2,18 @@ Changelog
 =========
 
 
+1.2.3
+--------
+----------
+
+Bugfix release.
+
+
+Bug Fixes
+*********
+- Fixes clashing names for a reaction initialised explicitly from molecules without defined names
+
+
 1.2.2
 --------
 ----------
