@@ -16,6 +16,8 @@ tests/__pycache__/
 
 tests/*.xyz
 
+**/tmp.xyz
+
 autode/conformers/__pycache__/
 
 autode/transition_states/__pycache__/
