@@ -6,7 +6,7 @@ from autode.utils import run_external
 from autode.atoms import Atom
 from autode.config import Config
 from autode.constants import Constants
-from autode.exceptions import UnsuppportedCalculationInput
+from autode.exceptions import UnsupportedCalculationInput
 from autode.geom import get_atoms_linear_interp
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
@@ -44,7 +44,7 @@ def get_keywords(calc_input, molecule):
         if molecule.solvent.dielectric is None:
             err_str = (f'Could not use solvent {molecule.solvent} for MOPAC '
                        f'calculation, a dielectric constant was not defined')
-            raise UnsuppportedCalculationInput(message=err_str)
+            raise UnsupportedCalculationInput(message=err_str)
 
         keywords.append(f'EPS={molecule.solvent.dielectric}')
 
@@ -58,7 +58,7 @@ def get_keywords(calc_input, molecule):
             keywords.append('OPEN(2,2)')
         else:
             logger.critical('Unsupported spin multiplicity')
-            raise UnsuppportedCalculationInput
+            raise UnsupportedCalculationInput
 
     return keywords
 

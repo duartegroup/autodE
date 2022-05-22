@@ -157,7 +157,7 @@ def test_solvation():
     methane = Molecule(name='solvated_methane', smiles='C',
                        solvent_name='water')
 
-    with pytest.raises(ex.UnsuppportedCalculationInput):
+    with pytest.raises(ex.UnsupportedCalculationInput):
 
         # Should raise on unsupported calculation type
         method.implicit_solvation_type = 'xxx'
@@ -278,7 +278,7 @@ def test_keyword_setting():
     assert any('B3LYP' in line for line in inp_lines)
 
     # With a keyword without ORCA defined then raise an exception
-    with pytest.raises(ex.UnsuppportedCalculationInput):
+    with pytest.raises(ex.UnsupportedCalculationInput):
         orca.keywords.sp.functional = Functional(name='B3LYP', g09='B3LYP')
         calc = Calculation(name='tmp',
                            molecule=test_mol.copy(),
