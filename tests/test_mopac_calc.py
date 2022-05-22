@@ -1,6 +1,6 @@
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.MOPAC import get_keywords
-from autode.exceptions import CouldNotGetProperty, UnsuppportedCalculationInput
+from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
 from autode.calculation import Calculation, CalculationInput
 from autode.species.molecule import Molecule
 from autode.solvent import ImplicitSolvent
@@ -107,7 +107,7 @@ def test_other_spin_states():
     h_quin = Molecule(atoms=[Atom('H')], mult=5)
     h_quin.name = 'molecule'
 
-    with pytest.raises(UnsuppportedCalculationInput):
+    with pytest.raises(UnsupportedCalculationInput):
         calc = Calculation(name='h',
                            molecule=h_quin,
                            method=method,
@@ -264,7 +264,7 @@ def test_mopac_solvent_no_dielectric():
 
     # Cannot generate an input if the solvent does not have a defined
     # dielectric constant in the dictionary
-    with pytest.raises(UnsuppportedCalculationInput):
+    with pytest.raises(UnsupportedCalculationInput):
         calc.generate_input()
 
     if os.path.exists('tmp_mopac.mop'):

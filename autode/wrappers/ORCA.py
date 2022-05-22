@@ -9,7 +9,7 @@ from autode.input_output import xyz_file_to_atoms
 from autode.config import Config
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
-from autode.exceptions import (UnsuppportedCalculationInput,
+from autode.exceptions import (UnsupportedCalculationInput,
                                CouldNotGetProperty,
                                NoCalculationOutput,
                                XYZfileWrongFormat,
@@ -517,7 +517,7 @@ class ORCA(ElectronicStructureMethod):
         """Add a keyword to the input file based on the solvent"""
 
         if self.implicit_solvation_type.lower() not in ['smd', 'cpcm']:
-            raise UnsuppportedCalculationInput('Implicit solvent type must be '
+            raise UnsupportedCalculationInput('Implicit solvent type must be '
                                                'either SMD or CPCM')
 
         if (self.use_vdw_gaussian_solvent(keywords)
@@ -526,7 +526,7 @@ class ORCA(ElectronicStructureMethod):
                    f'{molecule.solvent.name}. Available solvents are '
                    f'{vdw_gaussian_solvent_dict.keys()}')
 
-            raise UnsuppportedCalculationInput(message=err)
+            raise UnsupportedCalculationInput(message=err)
 
         solv_name = vdw_gaussian_solvent_dict[molecule.solvent.orca]
         keywords.append(f'CPCM({solv_name})')

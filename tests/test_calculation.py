@@ -264,7 +264,7 @@ def test_input_gen():
                             method=xtb,
                             keywords=SinglePointKeywords([unsupported_func]))
 
-    with pytest.raises(ex.UnsuppportedCalculationInput):
+    with pytest.raises(ex.UnsupportedCalculationInput):
         calc_kwds.generate_input()
 
 

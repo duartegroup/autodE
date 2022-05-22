@@ -500,7 +500,7 @@ class Calculation:
             if not hasattr(keyword, self.method.name):
                 err_str = (f'Keyword: {keyword} is not supported set '
                            f'{repr(keyword)}.{self.method.name} as a string')
-                raise ex.UnsuppportedCalculationInput(err_str)
+                raise ex.UnsupportedCalculationInput(err_str)
 
         self.method.generate_input(self, self.molecule)
 
