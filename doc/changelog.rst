@@ -6,7 +6,20 @@ Changelog
 --------
 ----------
 
-Bugfix release.
+Minor functionality improvements and bugfixes.
+
+
+Usability improvements/Changes
+******************************
+- All exceptions now inherit from a base :code:`autode.exceptions.AutodeException`
+- Fixes a typo in :code:`autode.exceptions.UnsupoportedCalculationInput`
+- Adds documentation explaining the intention of each exception in  :code:`autode.exceptions`
+
+
+Functionality improvements
+**************************
+
+-
 
 
 Bug Fixes
