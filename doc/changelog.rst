@@ -18,8 +18,7 @@ Usability improvements/Changes
 
 Functionality improvements
 **************************
-
--
+- Adds the ability to define atom classes for molecules in turn allowing for identity reactions to be calculated
 
 
 Bug Fixes
