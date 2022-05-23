@@ -3,13 +3,13 @@ import pytest
 import networkx as nx
 import autode as ade
 from autode import bond_rearrangement as br
+from autode.mol_graphs import MolecularGraph
 from autode.species.molecule import Molecule
 from autode.bond_rearrangement import BondRearrangement
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
-from autode.geom import get_neighbour_list
 
 
 # Some of the 'reactions' here are not physical, hence for some the graph will
@@ -234,8 +234,8 @@ def test_add_bond_rearrang():
 
 
 def test_generate_rearranged_graph():
-    init_graph = nx.Graph()
-    final_graph = nx.Graph()
+    init_graph = MolecularGraph()
+    final_graph = MolecularGraph()
     init_edges = [(0, 1), (1, 2), (2, 3), (4, 5), (5, 6)]
     final_edges = [(0, 1), (2, 3), (3, 4), (4, 5), (5, 6)]
     for edge in init_edges:

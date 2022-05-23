@@ -15,7 +15,7 @@ from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculation import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import make_graph, reorder_nodes, is_isomorphic
+from autode.mol_graphs import MolecularGraph, make_graph, reorder_nodes, is_isomorphic
 from autode import methods
 from autode.hessians import Hessian, NumericalHessianCalculator
 from autode.units import ha_per_ang_sq, ha_per_ang
@@ -62,17 +62,13 @@ class Species(AtomCollection):
 
         self._charge = int(charge)
         self._mult = int(mult)
-
         self._solvent = get_solvent(solvent_name, kind='implicit')
+        self._graph = None
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()
-
         self._grad = None
         self._hess = None
-
-        #: Molecular graph with atoms(V) and bonds(E) (NetworkX.Graph | None)
-        self.graph = None
 
         self._conformers = Conformers()
 
@@ -224,6 +220,30 @@ class Species(AtomCollection):
 
         self._atoms = Atoms(value)
         return
+
+    @property
+    def graph(self) -> Optional[MolecularGraph]:
+        """
+        Molecular graph with atoms(V) and bonds(E)
+
+        Note: Graphs are lazily evaluated, i.e. if one has not been generated
+        for this species before and it does have atoms then a graph will be
+        generated. Subsequent accesses of this property will use the cached
+        internal/private self._graph attribute
+        """
+        if self.atoms is None:
+            logger.warning('Had no atoms, so no molecular graph')
+            return None
+
+        if self._graph is None:
+            make_graph(self)
+
+        return self._graph
+
+    @graph.setter
+    def graph(self, value: Optional[MolecularGraph]):
+        """Setter for the molecular graph"""
+        self._graph = value
 
     @property
     def formula(self) -> str:
@@ -410,15 +430,9 @@ class Species(AtomCollection):
         -----------------------------------------------------------------------
         Returns:
             (np.ndarray): Adjacency matrix. shape = (n_atoms, n_atoms)
-
-        Raises:
-             (ValueError): If the molecular graph is not set
         """
 
         matrix = np.zeros(shape=(self.n_atoms, self.n_atoms), dtype=bool)
-
-        if self.graph is None:
-            raise ValueError('No molecular graph set. Bonds are not defined')
 
         for bond in self.graph.edges:
             matrix[tuple(bond)] = matrix[tuple(reversed(bond))] = True
@@ -666,7 +680,7 @@ class Species(AtomCollection):
         Returns:
             (bool):
         """
-        if self.n_atoms == 0:
+        if self.n_atoms < 2:
             return True
 
         dist_matrix = distance_matrix(self.coordinates, self.coordinates)

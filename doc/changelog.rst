@@ -14,12 +14,12 @@ Usability improvements/Changes
 - All exceptions now inherit from a base :code:`autode.exceptions.AutodeException`
 - Fixes a typo in :code:`autode.exceptions.UnsupoportedCalculationInput`
 - Adds documentation explaining the intention of each exception in  :code:`autode.exceptions`
+- Molecular graphs are now 'laziliy-loaded' i.e. generated once when the property is accessed
 
 
 Functionality improvements
 **************************
-
--
+- Adds the ability to define atom classes for molecules in turn allowing for identity reactions to be calculated
 
 
 Bug Fixes

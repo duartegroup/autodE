@@ -1,6 +1,7 @@
 import enum
 import numpy as np
-from typing import Union
+
+from typing import Optional
 from autode.log import logger
 from autode.atoms import Atom
 from autode.exceptions import InvalidSmilesString
@@ -27,22 +28,25 @@ class SMILESAtom(Atom):
     def __init__(self,
                  label:       str,
                  stereochem:  SMILESStereoChem = SMILESStereoChem.NONE,
-                 n_hydrogens: Union[None, int] = None,
-                 charge:      int = 0):
+                 n_hydrogens: Optional[int] = None,
+                 charge:      int = 0,
+                 atom_class:  Optional[int] = None):
         """
         SMILES atom initialised at the origin
 
         ----------------------------------------------------------------------
         Arguments:
-            label (str): Label / atomic symbol of this atom
+            label: Label / atomic symbol of this atom
 
-        Keyword Arguments:
-            n_hydrogens (int | None): Number of hydrogens, None means unset and
-                                      should be determined implicitly
+            n_hydrogens: Number of hydrogens, None means unset and should be
+                         determined implicitly
 
-            stereochem (SMILESStereoChem):
+            stereochem: Point stereochemistry around this atom (R, S)
 
-            charge (int): Formal charge on this atom
+            charge: Formal charge on this atom
+
+            atom_class: Class of an atom. See §3.1.7 in the SMILES spec
+                        http://opensmiles.org/opensmiles.html
         """
         super().__init__(atomic_symbol=label.capitalize())
 
@@ -52,6 +56,7 @@ class SMILESAtom(Atom):
         self.charge = charge
         self.n_hydrogens = n_hydrogens
         self.stereochem = stereochem
+        self.atom_class = atom_class
 
         # ---------- Attributes used for building the 3D structure ----------
         self.type = None

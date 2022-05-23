@@ -226,9 +226,13 @@ def test_calc_delta_e():
     r2 = reaction.Reactant(name='h', atoms=[Atom('H')])
     r2.energy = -0.5
 
-    tsguess = TSguess(atoms=None,
-                      reactant=ReactantComplex(r1),
+    reac_complex = ReactantComplex(r1)
+    assert reac_complex.graph is not None
+
+    tsguess = TSguess(atoms=reac_complex.atoms,
+                      reactant=reac_complex,
                       product=ProductComplex(r2.to_product()))
+
     tsguess.bond_rearrangement = BondRearrangement()
     ts = TransitionState(tsguess)
     ts.energy = -0.8
@@ -241,8 +245,6 @@ def test_calc_delta_e():
 
     assert -1E-6 < reac.delta('E') < 1E-6
     assert 0.2 - 1E-6 < reac.delta('E‡') < 0.2 + 1E-6
-
-    # Without calculated
 
 
 def test_from_smiles():
@@ -472,3 +474,15 @@ def test_name_uniqueness():
                             Product(smiles='C[C]([H])C'))
 
     assert rxn.reacs[0].name != rxn.prods[0].name
+
+
+def test_identity_reaction_is_supported_with_labels():
+
+    def reaction_is_isomorphic(_r):
+        return _r.reactant.graph.is_isomorphic_to(_r.product.graph)
+
+    isomorphic_rxn = reaction.Reaction('[Br-].C[Br]>>C[Br].[Br-]')
+    assert reaction_is_isomorphic(isomorphic_rxn)
+
+    rxn = reaction.Reaction('[Br-:1].C[Br:2]>>C[Br:1].[Br-:2]')
+    assert not reaction_is_isomorphic(rxn)
