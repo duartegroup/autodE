@@ -145,9 +145,9 @@ class Conformer(Species):
         set the coordinates as a batch
         """
 
-        if value is None:
+        if value is None:  # Clear the coordinates
             self._coordinates = None
-            return  # Nothing to do
+            return None
 
         if self._parent_atoms is None:
             self._parent_atoms = value

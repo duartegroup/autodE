@@ -178,7 +178,7 @@ class Calculation:
         if not os.path.exists(register_name):
             logger.info('No calculations have been performed here yet')
             append_register()
-            return
+            return None
 
         # Populate a register of calculation names and their unique identifiers
         register = {}
@@ -189,13 +189,13 @@ class Calculation:
 
         if is_identical():
             logger.info('Calculation has already been run')
-            return
+            return None
 
         # If this calculation doesn't yet appear in the register add it
         if not exists():
             logger.info('This calculation has not yet been run')
             append_register()
-            return
+            return None
 
         # If we're here then this calculation - with these input - has not yet
         # been run. Therefore, add an integer to the calculation name until
@@ -209,7 +209,7 @@ class Calculation:
             logger.info(f'New calculation name is: {self.name}')
 
             if is_identical():
-                return
+                return None
 
             if not exists():
                 append_register()
@@ -457,7 +457,7 @@ class Calculation:
 
         if Config.keep_input_files and not force:
             logger.info('Keeping input files')
-            return
+            return None
 
         filenames = self.input.filenames
         if everything:

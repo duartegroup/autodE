@@ -153,7 +153,7 @@ class Conformers(list):
         if len(self) < 2:
             logger.info(f'Only have {len(self)} conformers. No need to prune '
                         f'on RMSD')
-            return
+            return None
 
         rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
 
@@ -225,7 +225,7 @@ class Conformers(list):
         # TODO: Test efficiency + improve with dynamic load balancing
         if len(self) == 0:
             logger.error(f'Cannot run {calc_type} over 0 conformers')
-            return
+            return None
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
