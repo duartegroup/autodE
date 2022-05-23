@@ -70,7 +70,7 @@ class Parser:
 
     def _check_smiles(self):
         """Check the SMILES string for unsupported characters"""
-        present_invalid_chars = [c for c in ('.', '*') if c in self._string]
+        present_invalid_chars = [char for char in ('.', '*') if char in self._string]
 
         if len(present_invalid_chars) > 0:
             raise InvalidSmilesString(f'{self._string} had invalid characters:'
@@ -540,7 +540,7 @@ def atomic_n_hydrogens(string):
     return 0
 
 
-def atomic_class(string) -> Optional[int]:
+def atomic_class(string: str) -> Optional[int]:
     """Extract the atomic class from a string i.e.::
 
         H4:2  -> 2
@@ -552,21 +552,26 @@ def atomic_class(string) -> Optional[int]:
         return None
 
     digits = string.split(':')[1]
-    return int(digits)
+
+    try:
+        return int(digits)
+
+    except ValueError:
+        raise InvalidSmilesString("")
 
 
-def next_char(string, idx):
+def next_char(string: str, idx: int) -> str:
     """
     Get the next character in a string if it exists otherwise return
     an empty string
 
     ---------------------------------------------------------------------------
     Arguments:
-        string (str):
-        idx (idx): Index of the current position in the string
+        string:
+        idx: Index of the current position in the string
 
     Returns:
-        (str): Next character in the string
+        Next character in the string
     """
     if idx >= len(string) - 1:
         return ''

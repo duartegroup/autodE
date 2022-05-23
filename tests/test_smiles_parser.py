@@ -507,3 +507,10 @@ def test_parse_smiles_with_labels_with_h():
 def test_parse_h3o_cation_smiles():
 
     assert is_valid('[O+H2]')
+
+
+def test_parse_smiles_atom_class():
+
+    assert is_valid('[H:1]')
+    is_invalid('[H:1.1]')
+    is_invalid('[H:a]')
