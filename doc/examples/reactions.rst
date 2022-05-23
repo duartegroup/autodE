@@ -79,7 +79,7 @@ To optimise the reactants and products then locate the transition state using
 
 Identity reactions where reactants and products are identical are not, by default,
 supported in **autode** as the bond rearrangement of interest is not easily inferred.
-However, reactions profiles for identity reactions may be calculated by defining
+However, reaction profiles for identity reactions may be calculated by defining
 *atom classes* to distinguish otherwise identical atoms. For example
 
 .. code-block:: python

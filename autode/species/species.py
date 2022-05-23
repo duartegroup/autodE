@@ -226,7 +226,10 @@ class Species(AtomCollection):
         """
         Molecular graph with atoms(V) and bonds(E)
 
-        Note: Graphs are lazily evaluated
+        Note: Graphs are lazily evaluated, i.e. if one has not been generated
+        for this species before and it does have atoms then a graph will be
+        generated. Subsequent accesses of this property will use the cached
+        internal/private self._graph attribute
         """
         if self.atoms is None:
             logger.warning('Had no atoms, so no molecular graph')
