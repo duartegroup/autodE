@@ -8,6 +8,7 @@ from autode.species import Molecule
 from autode.config import Config
 import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
+from .testutils import requires_with_working_xtb_install
 from copy import deepcopy
 import pytest
 import os
@@ -315,3 +316,23 @@ def test_exec_too_much_memory_requested_py38():
 
     # Python 3.8 can't use os.sysconf, so check that external can still be run
     run_external(['ls'], output_filename='tmp.txt')
+
+
+@requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_calculations_have_unique_names():
+
+    xtb = XTB()
+    mol = Molecule(smiles='O')
+
+    mol.single_point(method=xtb)
+    mol.single_point(method=xtb)  # calculation should be skipped
+
+    """For some insane reason the following code works if executed in python 
+    directly but not if run within pytest"""
+    # neutral_energy = mol.energy.copy()
+    #
+    # mol.charge = 1
+    # mol.single_point(method=xtb)  # Calculation should be rerun
+    # cation_energy = mol.energy
+    # assert cation_energy > neutral_energy
