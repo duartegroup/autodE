@@ -215,7 +215,10 @@ class Complex(Species):
 
             for points in iterprod(points_on_sphere, repeat=n-1):
 
-                conf = Conformer(species=self, name=f'{self.name}_conf{m}')
+                conf = Conformer(name=f'{self.name}_conf{m}',
+                                 charge=self.charge,
+                                 mult=self.mult)
+                conf.solvent = self.solvent
                 conf.atoms = get_complex_conformer_atoms(self._molecules,
                                                          rotations,
                                                          points)
