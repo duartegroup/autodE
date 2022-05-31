@@ -1,3 +1,8 @@
+import numpy as np
+
+
+from typing import List
+
 from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.ts_guess import TSguess
@@ -9,12 +14,15 @@ from autode.input_output import xyz_file_to_atoms
 from autode.species.molecule import Reactant, Product
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
+from autode.wrappers.keywords import SinglePointKeywords, KeywordsSet
 from autode.calculation import Calculation
+from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.implicit_solvent_types import cpcm
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.transition_states.base import displaced_species_along_mode
 from autode.wrappers.G09 import G09
+from autode.utils import work_in_tmp_dir
 from . import testutils
 import pytest
 import os
@@ -310,3 +318,141 @@ def test_truncated_ts():
     # locate TS should assign a TS as linking reactants and products, so
     # checking that the TS exists is sufficient
     assert reaction.ts is not None
+
+
+class TestMethod(ElectronicStructureMethod):
+
+    __test__ = False
+
+    def __init__(self):
+        super().__init__(implicit_solvation_type=None,
+                         keywords_set=KeywordsSet(),
+                         name='test',
+                         path=None)
+
+    def __repr__(self):
+        return ''
+
+    def generate_input(self, calc, molecule):
+        pass
+
+    def get_output_filename(self, calc) -> str:
+        with open('tmp_output', 'w') as file:
+            print('tmp', file=file)
+        return 'tmp_output'
+
+    def get_input_filename(self, calc) -> str:
+        with open('tmp_input', 'w') as file:
+            print('tmp', file=file)
+        return 'tmp_input'
+
+    def get_version(self, calc) -> str:
+        pass
+
+    def execute(self, calc) -> None:
+        pass
+
+    def calculation_terminated_normally(self, calc) -> bool:
+        pass
+
+    def optimisation_converged(self, calc) -> bool:
+        pass
+
+    def optimisation_nearly_converged(self, calc) -> bool:
+        return False
+
+    def get_final_atoms(self, calc) -> List:
+        return calc.molecule.atoms
+
+    def get_atomic_charges(self, calc) -> List:
+        pass
+
+    def get_energy(self, calc) -> float:
+        pass
+
+    def get_gradients(self, calc) -> np.ndarray:
+        pass
+
+    def get_hessian(self, calc) -> np.ndarray:
+        pass
+
+
+class TestMethodConvergedNotNearly(TestMethod):
+
+    def optimisation_converged(self, calc) -> bool:
+        return True
+
+    def optimisation_nearly_converged(self, calc) -> bool:
+        return False
+
+
+class TestMethodNearlyConverged(TestMethod):
+
+    def optimisation_nearly_converged(self, calc) -> bool:
+        return True
+
+    def optimisation_converged(self, calc) -> bool:
+        return False
+
+
+class TestTSCorrectMode(TransitionState):
+
+    __test__ = False
+
+    def __init__(self):
+        super().__init__(ts_guess=TSguess(atoms=[Atom('H')]))
+
+    @property
+    def could_have_correct_imag_mode(self) -> bool:
+        return True
+
+    @property
+    def has_correct_imag_mode(self) -> bool:
+        return True
+
+
+class TestTSInCorrectMode(TestTSCorrectMode):
+
+    @property
+    def could_have_correct_imag_mode(self) -> bool:
+        return False
+
+    @property
+    def has_correct_imag_mode(self) -> bool:
+        return False
+
+
+@work_in_tmp_dir()
+def test_ts_reoptimise():
+
+    # A TS with the correct mode that is converged rather than 'nearly'
+    # converged should not need any reoptimisation
+    _ts = TestTSCorrectMode()
+    conv_method = TestMethodConvergedNotNearly()
+    calc = Calculation(name='tmp',
+                       molecule=_ts,
+                       method=conv_method,
+                       keywords=SinglePointKeywords())
+    calc.run()
+
+    assert calc.input.exists
+    assert calc.output.exists
+
+    new_calc = _ts._reoptimise(calc, name_ext='tmp', method=method)
+    assert id(calc) == id(new_calc)
+
+    # but with one that has nearly converged and has the correct mode
+    nearly_conv_method = TestMethodNearlyConverged()
+    assert nearly_conv_method.optimisation_nearly_converged(calc)
+    assert not nearly_conv_method.optimisation_converged(calc)
+    assert _ts.has_correct_imag_mode
+
+    # then the new calculation should "run"
+    calc.method = nearly_conv_method
+    new_calc = _ts._reoptimise(calc, name_ext='tmp', method=nearly_conv_method)
+    assert id(calc) != id(new_calc)
+
+    # but not if the imaginary mode is lost
+    _ts = TestTSInCorrectMode()
+    new_calc = _ts._reoptimise(calc, name_ext='tmp', method=nearly_conv_method)
+    assert id(calc) == id(new_calc)
