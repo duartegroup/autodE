@@ -1,5 +1,6 @@
-from typing import Optional, Union, List
-from autode.atoms import Atom, Atoms
+from typing import Optional
+
+from autode.atoms import Atoms
 from autode.values import Coordinates
 from autode.exceptions import AtomsNotFound
 from autode.log import logger
