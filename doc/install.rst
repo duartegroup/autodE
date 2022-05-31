@@ -34,6 +34,8 @@ Conda: Mac OSX / Linux
 
     $ conda install autode --channel conda-forge
 
+
+If the environment cannot be solved see `here <https://duartegroup.github.io/autodE/troubleshooting.html#conda-solve-fails>`_.
 A Linux installation tutorial is available `here <https://youtu.be/ZUweT1Sc02s>`_.
 
 ******
