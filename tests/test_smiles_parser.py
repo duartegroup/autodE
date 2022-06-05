@@ -459,6 +459,12 @@ def is_invalid(smiles):
         Parser().parse(smiles)
 
 
+def is_valid(smiles):
+
+    Parser().parse(smiles)  # Throws if invalid
+    return True
+
+
 def test_parse_ring_idx():
 
     # % ring closures must be followed by two numbers
@@ -477,3 +483,34 @@ def test_parse_ring_idx():
     parser._string = 'CCCC'
     with pytest.raises(InvalidSmilesString):
         parser._parse_ring_idx(idx=0)
+
+
+def test_parse_smiles_with_labels_no_h():
+
+    parser = Parser()
+    parser.parse('C[Br:777]')
+
+    assert sum(["Br" == atom.atomic_symbol for atom in parser.atoms]) == 1
+
+    br_atom = next(a for a in parser.atoms if a.label == "Br")
+    assert br_atom.atom_class == 777
+
+
+def test_parse_smiles_with_labels_with_h():
+
+    parser = Parser()
+
+    parser.parse('[CH4:2]')
+    assert next(a for a in parser.atoms if a.label == "C").atom_class == 2
+
+
+def test_parse_h3o_cation_smiles():
+
+    assert is_valid('[O+H2]')
+
+
+def test_parse_smiles_atom_class():
+
+    assert is_valid('[H:1]')
+    is_invalid('[H:1.1]')
+    is_invalid('[H:a]')

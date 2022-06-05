@@ -13,7 +13,8 @@ class Atom:
                  atomic_symbol: str,
                  x:             float = 0.0,
                  y:             float = 0.0,
-                 z:             float = 0.0):
+                 z:             float = 0.0,
+                 atom_class:    Optional[int] = None):
         """
         Atom class. Centered at the origin by default. Can be initialised from
         positional or keyword arguments:
@@ -32,17 +33,23 @@ class Atom:
 
         -----------------------------------------------------------------------
         Arguments:
-            atomic_symbol (str): Symbol of an element e.g. 'C' for carbon
+            atomic_symbol: Symbol of an element e.g. 'C' for carbon
 
-        Keyword Arguments:
-            x (float): x coordinate in 3D space (Å)
-            y (float): y coordinate in 3D space (Å)
-            z (float): z coordinate in 3D space (Å)
+            x: x coordinate in 3D space (Å)
+
+            y: y coordinate in 3D space (Å)
+
+            z: z coordinate in 3D space (Å)
+
+            atom_class: Fictitious additional labels to distinguish otherwise
+                        identical atoms. Useful in finding bond isomorphisms
+                        over identity reactions
         """
         assert atomic_symbol in elements
 
         self.label = atomic_symbol
         self._coord = Coordinate(float(x), float(y), float(z))
+        self.atom_class = atom_class
 
     def __repr__(self):
         """
@@ -471,6 +478,9 @@ class Atom:
 
         return None
 
+    def copy(self) -> 'Atom':
+        return deepcopy(self)
+
     # --- Method aliases ---
     coordinate = coord
 
@@ -733,7 +743,7 @@ class AtomCollection:
     def __init__(self,
                  atoms: Union[List[Atom], Atoms, None] = None):
         """
-        Collection of atoms, used as a a base class for a species, complex
+        Collection of atoms, used as a base class for a species, complex
         or transition state.
 
         -----------------------------------------------------------------------

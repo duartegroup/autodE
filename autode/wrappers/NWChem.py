@@ -5,7 +5,7 @@ from autode.utils import run_external_monitored
 from autode.atoms import Atom
 from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
-from autode.exceptions import UnsuppportedCalculationInput, CouldNotGetProperty
+from autode.exceptions import UnsupportedCalculationInput, CouldNotGetProperty
 from autode.log import logger
 from autode.constants import Constants
 from autode.utils import work_in_tmp_dir
@@ -51,7 +51,7 @@ def get_keywords(calc_input, molecule):
 
         if 'scf' in keyword.lower(): 
             if molecule.solvent is not None:
-                raise UnsuppportedCalculationInput('NWChem only supports '
+                raise UnsupportedCalculationInput('NWChem only supports '
                                                    'solvent for DFT calcs')
 
         if isinstance(keyword, kws.Functional):

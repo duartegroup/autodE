@@ -30,7 +30,7 @@ class XTB(ElectronicStructureMethod):
         """Add distance constraints to the input file"""
 
         if molecule.constraints.distance is None:
-            return
+            return None
 
         for (i, j), dist in molecule.constraints.distance.items():
             # XTB counts from 1 so increment atom ids by 1
@@ -38,13 +38,13 @@ class XTB(ElectronicStructureMethod):
                   f'force constant={self.force_constant}\n'
                   f'distance:{i+1}, {j+1}, {dist:.4f}\n$',
                   file=inp_file)
-        return
+        return None
 
     def print_cartesian_constraints(self, inp_file, molecule):
         """Add cartesian constraints to an xtb input file"""
 
         if molecule.constraints.cartesian is None:
-            return
+            return None
 
         constrained_atom_idxs = [i + 1 for i in molecule.constraints.cartesian]
         list_of_ranges, used_atoms = [], []
@@ -65,14 +65,15 @@ class XTB(ElectronicStructureMethod):
               f'force constant={self.force_constant}\n'
               f'atoms: {",".join(list_of_ranges)}\n'
               f'$', file=inp_file)
-        return
+
+        return None
 
     @staticmethod
     def print_point_charge_file(calc):
         """Generate a point charge file"""
 
         if calc.input.point_charges is None:
-            return
+            return None
 
         with open(f'{calc.name}_xtb.pc', 'w') as pc_file:
             print(len(calc.input.point_charges), file=pc_file)
@@ -83,7 +84,7 @@ class XTB(ElectronicStructureMethod):
                 print(f'{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}', file=pc_file)
 
         calc.input.additional_filenames.append(f'{calc.name}_xtb.pc')
-        return
+        return None
 
     def print_xcontrol_file(self, calc, molecule):
         """Print an XTB input file with constraints and point charges"""

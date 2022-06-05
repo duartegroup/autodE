@@ -64,9 +64,9 @@ def test_species_class():
 
     assert water.formula == 'H2O' or water.formula == 'OH2'
 
-    # Species without a molecular graph cannot define a bond matrix
-    with pytest.raises(ValueError):
-        _ = water.bond_matrix
+    # Species without a molecular graph (no atoms) cannot define a bond matrix
+    with pytest.raises(Exception):
+        _ = Molecule().bond_matrix
 
     # very approximate molecular radius
     assert 0.5 < water.radius < 2.5
@@ -126,11 +126,10 @@ def test_connectivity():
     # Must have the same connectivity as itself
     assert _h2.has_same_connectivity_as(_h2)
 
-    # Undetermined if one doesn't have a graph
-    _h2_no_graph = _h2.copy()
-    _h2_no_graph.graph = None
-    with pytest.raises(ValueError):
-        _h2.has_same_connectivity_as(_h2_no_graph)
+    # Graphs are lazy loaded so if undefined one is built
+    _h2_no_set = _h2.copy()
+    _h2_no_set.graph = None
+    _h2.has_same_connectivity_as(_h2_no_set)
 
     # Or something without a graph attribute is passed
     with pytest.raises(ValueError):
@@ -345,11 +344,8 @@ def test_generate_conformers():
 
 def test_set_lowest_energy_conformer():
 
-    from autode.mol_graphs import make_graph
-
     hb = Atom('H', z=0.7)
     hydrogen = Species(name='H2', atoms=[h1, hb], charge=0, mult=1)
-    make_graph(hydrogen)
 
     hydrogen_wo_e = Species(name='H2', atoms=[h1, hb], charge=0, mult=1)
 

@@ -38,8 +38,6 @@ class TransitionState(TSbase):
                          bond_rearr=ts_guess.bond_rearrangement,
                          mult=ts_guess.mult)
 
-        self.conformers = None
-
         if bond_rearr is not None:
             self.bond_rearrangement = bond_rearr
 
@@ -72,47 +70,32 @@ class TransitionState(TSbase):
         logger.info(f'Molecular graph updated with active bonds')
         return None
 
-    def _run_opt_ts_calc(self, method, name_ext):
-        """Run an optts calculation and attempt to set the geometry, energy and
-         normal modes"""
+    @property
+    def _active_bonds(self) -> Optional[list]:
+        """Active bonds that are present in the associated bond rearrangement"""
+
         if self.bond_rearrangement is None:
             logger.warning('Cannot add redundant internal coordinates for the '
                            'active bonds with no bond rearrangement')
-            bond_ids = None
+            return None
 
-        else:
-            bond_ids = self.bond_rearrangement.all
+        return self.bond_rearrangement.all
+
+    def _run_opt_ts_calc(self, method, name_ext):
+        """Run an optts calculation and attempt to set the geometry, energy and
+         normal modes"""
 
         optts_calc = Calculation(name=f'{self.name}_{name_ext}',
                                  molecule=self,
                                  method=method,
                                  n_cores=Config.n_cores,
                                  keywords=method.keywords.opt_ts,
-                                 bond_ids_to_add=bond_ids,
+                                 bond_ids_to_add=self._active_bonds,
                                  other_input_block=method.keywords.optts_block)
         optts_calc.run()
 
         if not optts_calc.optimisation_converged():
-            if optts_calc.optimisation_nearly_converged():
-                logger.info('Optimisation nearly converged')
-                if self.could_have_correct_imag_mode:
-                    logger.info('Still have correct imaginary mode, trying '
-                                'more  optimisation steps')
-
-                    self.atoms = optts_calc.get_final_atoms()
-                    optts_calc = Calculation(name=f'{self.name}_{name_ext}_reopt',
-                                             molecule=self,
-                                             method=method,
-                                             n_cores=Config.n_cores,
-                                             keywords=method.keywords.opt_ts,
-                                             bond_ids_to_add=bond_ids,
-                                             other_input_block=method.keywords.optts_block)
-                    optts_calc.run()
-                else:
-                    logger.info('Lost imaginary mode')
-            else:
-                self.warnings += f'TS for {self.name} was not fully converged.'
-                logger.info('Optimisation did not converge')
+            optts_calc = self._reoptimise(optts_calc, name_ext, method)
 
         try:
             self.atoms = optts_calc.get_final_atoms()
@@ -123,6 +106,33 @@ class TransitionState(TSbase):
             logger.error('Transition state optimisation calculation failed')
 
         return
+
+    def _reoptimise(self, calc, name_ext, method) -> Calculation:
+        """Rerun a calculation for more steps"""
+
+        if not calc.optimisation_nearly_converged():
+            self.warnings += f'TS for {self.name} was not fully converged.'
+            logger.info('Optimisation did not converge')
+            return calc
+
+        logger.info('Optimisation nearly converged')
+        if self.could_have_correct_imag_mode:
+            logger.info('Still have correct imaginary mode, trying '
+                        'more  optimisation steps')
+
+            self.atoms = calc.get_final_atoms()
+            calc = Calculation(name=f'{self.name}_{name_ext}_reopt',
+                               molecule=self,
+                               method=method,
+                               n_cores=Config.n_cores,
+                               keywords=method.keywords.opt_ts,
+                               bond_ids_to_add=self._active_bonds,
+                               other_input_block=method.keywords.optts_block)
+            calc.run()
+        else:
+            logger.info('Lost imaginary mode')
+
+        return calc
 
     def _generate_conformers(self, n_confs=None):
         """Generate conformers at the TS """

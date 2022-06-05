@@ -5,7 +5,7 @@ from autode.config import Config
 from autode.log import logger
 from autode.atoms import Atom
 from autode.constants import Constants
-from autode.exceptions import CouldNotGetProperty, UnsuppportedCalculationInput
+from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.utils import run_external, work_in_tmp_dir
 
@@ -513,7 +513,7 @@ class QChem(ElectronicStructureMethod):
 
                     if word.lower() != 'smd':
                         err = f'Only SMD solvent is supported. Had: {word}'
-                        raise UnsuppportedCalculationInput(err)
+                        raise UnsupportedCalculationInput(err)
 
                     self.write('solvent_method smd')
 

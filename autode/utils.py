@@ -139,7 +139,7 @@ def run_external_monitored(params:          Sequence[str],
         except ChildProcessError:
             logger.warning('External terminated')
             proc.terminate()
-            return
+            return None
 
     return None
 

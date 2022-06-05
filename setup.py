@@ -20,7 +20,7 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
                         extra_link_args=["-std=c++11"])]
 
 setup(name='autode',
-      version='1.2.2',
+      version='1.2.3',
       packages=['autode',
                 'autode.conformers',
                 'autode.pes',
@@ -44,5 +44,4 @@ setup(name='autode',
       url='https://github.com/duartegroup/autodE',
       license='MIT',
       author='Tom Young',
-      author_email='tom.young@chem.ox.ac.uk',
-      description='Automated Reaction Profile Generation')
+      description='Automated reaction profile generation')

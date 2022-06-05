@@ -405,3 +405,12 @@ def test_atoms_collection_doc_examples():
                            Atom('H', 2.1446, 0.8424, 0.7276)])
 
     assert np.isclose(h2s2.dihedral(2, 0, 1, 3).to('deg'), -90.0, atol=0.1)
+
+
+def test_atom_copy():
+
+    a = atoms.Atom('H')
+    b = a.copy()
+    a.label = 'C'
+
+    assert b.label == 'H'

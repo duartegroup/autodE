@@ -6,6 +6,8 @@
 
 as of 03/2021
 """
+from typing import Optional
+
 from autode.log import logger
 from autode.utils import log_time
 from autode.atoms import elements
@@ -68,8 +70,7 @@ class Parser:
 
     def _check_smiles(self):
         """Check the SMILES string for unsupported characters"""
-        present_invalid_chars = [char for char in (':', '.', '*')
-                                 if char in self._string]
+        present_invalid_chars = [char for char in ('.', '*') if char in self._string]
 
         if len(present_invalid_chars) > 0:
             raise InvalidSmilesString(f'{self._string} had invalid characters:'
@@ -99,6 +100,7 @@ class Parser:
 
         e.g. [C], [CH3], [Cu+2], [O-], [C@H]
         """
+
         if '(' in string or ')' in string:
             raise InvalidSmilesString('Cannot parse branch in "[]" section')
 
@@ -133,7 +135,8 @@ class Parser:
         atom = SMILESAtom(label=label,
                           n_hydrogens=atomic_n_hydrogens(rest),
                           charge=atomic_charge(rest),
-                          stereochem=atomic_sterochem(rest))
+                          stereochem=atomic_sterochem(rest),
+                          atom_class=atomic_class(rest))
 
         self.atoms.append(atom)
         return None
@@ -537,18 +540,38 @@ def atomic_n_hydrogens(string):
     return 0
 
 
-def next_char(string, idx):
+def atomic_class(string: str) -> Optional[int]:
+    """Extract the atomic class from a string i.e.::
+
+        H4:2  -> 2
+        :7    -> 7
+        :001  -> 1
+    """
+
+    if ':' not in string:
+        return None
+
+    digits = string.split(':')[1]
+
+    try:
+        return int(digits)
+
+    except ValueError:
+        raise InvalidSmilesString("")
+
+
+def next_char(string: str, idx: int) -> str:
     """
     Get the next character in a string if it exists otherwise return
     an empty string
 
     ---------------------------------------------------------------------------
     Arguments:
-        string (str):
-        idx (idx): Index of the current position in the string
+        string:
+        idx: Index of the current position in the string
 
     Returns:
-        (str): Next character in the string
+        Next character in the string
     """
     if idx >= len(string) - 1:
         return ''

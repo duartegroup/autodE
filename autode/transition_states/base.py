@@ -65,16 +65,10 @@ class TSbase(Species, ABC):
 
     def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
+
         if self.reactant is not None:
             logger.warning(f'Setting the graph of {self.name} from reactants')
-            self.graph = self.reactant.graph.copy()
-
-        elif self.atoms is not None:
-            logger.warning(f'Setting the graph of {self.name} from atoms')
-            make_graph(self)
-
-        else:
-            logger.warning('Have no TS graph')
+            self._graph = self.reactant.graph.copy()
 
         return None
 

@@ -75,6 +75,7 @@ class Reaction:
 
         self._check_solvent()
         self._check_balance()
+        self._check_names()
 
     def __str__(self):
         """Return a very short 6 character hash of the reaction, not guaranteed
@@ -147,7 +148,7 @@ class Reaction:
                                                        enthalpy=enthalpy)
         return None
 
-    def _check_balance(self):
+    def _check_balance(self) -> None:
         """Check that the number of atoms and charge balances between reactants
          and products. If they don't then raise excpetions
         """
@@ -170,7 +171,7 @@ class Reaction:
         self.charge = total(self.reacs, 'charge')
         return None
 
-    def _check_solvent(self):
+    def _check_solvent(self) -> None:
         """
         Check that all the solvents are the same for reactants and products.
         If self.solvent is set then override the reactants and products
@@ -207,7 +208,28 @@ class Reaction:
                     f'{self.solvent.name}')
         return None
 
-    def _init_from_smiles(self, reaction_smiles):
+    def _check_names(self) -> None:
+        """
+        Ensure there is no clashing names of reactants and products, which will
+        cause problems when conformers are generated and output is printed
+        """
+        all_names = [mol.name for mol in self.reacs + self.prods]
+
+        if len(set(all_names)) == len(all_names):  # Everything is unique
+            return
+
+        logger.warning('Names in reactants and products are not unique. '
+                       'Adding prefixes')
+
+        for i, reac in enumerate(self.reacs):
+            reac.name = f'r{i}_{reac.name}'
+
+        for i, prod in enumerate(self.prods):
+            prod.name = f'p{i}_{prod.name}'
+
+        return None
+
+    def _init_from_smiles(self, reaction_smiles) -> None:
         """
         Initialise from a SMILES string of the whole reaction e.g.::
 
@@ -237,7 +259,7 @@ class Reaction:
 
         return None
 
-    def _init_from_molecules(self, molecules):
+    def _init_from_molecules(self, molecules) -> None:
         """Set the reactants and products from a set of molecules"""
 
         self.reacs = [mol for mol in molecules
@@ -248,7 +270,7 @@ class Reaction:
 
         return None
 
-    def _reasonable_components_with_energy(self):
+    def _reasonable_components_with_energy(self) -> None:
         """Generator for components of a reaction that have sensible geometries
         and also energies"""
 

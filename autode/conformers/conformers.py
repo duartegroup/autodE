@@ -153,7 +153,7 @@ class Conformers(list):
         if len(self) < 2:
             logger.info(f'Only have {len(self)} conformers. No need to prune '
                         f'on RMSD')
-            return
+            return None
 
         rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
 
@@ -183,7 +183,7 @@ class Conformers(list):
         return None
 
     def prune_diff_graph(self,
-                         graph: 'networkx.Graph'
+                         graph: 'autode.mol_graphs.MolecularGraph'
                          ) -> None:
         """
         Remove conformers with a different molecular graph to a defined
@@ -193,7 +193,7 @@ class Conformers(list):
         -----------------------------------------------------------------------
 
         Arguments:
-            graph (networkx.Graph): Reference graph
+            graph: Reference graph
         """
         n_prev_confs = len(self)
 
@@ -225,7 +225,7 @@ class Conformers(list):
         # TODO: Test efficiency + improve with dynamic load balancing
         if len(self) == 0:
             logger.error(f'Cannot run {calc_type} over 0 conformers')
-            return
+            return None
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
