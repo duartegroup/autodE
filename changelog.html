@@ -7,8 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Changelog &#8212; autodE  documentation</title>
     
-  <link href="_static/css/theme.css" rel="stylesheet">
-  <link href="_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -18,20 +19,17 @@
   <link rel="preload" as="font" type="font/woff2" crossorigin
     href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
-    
-      
-
-    
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-book-theme.css?digest=84ace793992934648b4de8eed757e5a2" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
     
-  <link rel="preload" as="script" href="_static/js/index.be7d3bbb2ef33a8344ce.js">
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Development" href="dev/index.html" />
@@ -43,7 +41,21 @@
     <!-- Google Analytics -->
     
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
     
     <div class="container-fluid" id="banner"></div>
 
@@ -52,14 +64,10 @@
     <div class="container-xl">
       <div class="row">
           
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<div class="col-12 col-md-3 bd-sidebar site-navigation " id="site-navigation">
-    
-        <div class="navbar-brand-box">
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
     <a class="navbar-brand text-wrap" href="index.html">
       
       
@@ -644,79 +652,150 @@
 </ul>
 
     </div>
-</nav> <!-- To handle the deprecated key -->
-
-<div class="navbar_extra_footer">
-  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-</div>
-
-</div>
-
-
-          
-
-
-          
-<!-- This is an invisible pixel that we watch to see if we've scrolled. -->
-<div class="sbt-scroll-pixel-helper"></div>
-<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
-    
-    <div class="topbar container-xl fixed-top">
-    <div class="topbar-contents row">
-        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
-        <div class="col pl-md-4 topbar-main">
-            <div class="topbar-left">
-                
-                <label class="nav-toggle-button" for="__navigation">
-                    <div class="visually-hidden">Toggle navigation</div>
-                    <i class="fas fa-bars"></i>
-                </label>
-                
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
             </div>
             
-<div class="dropdown-buttons-trigger">
-    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
-            class="fas fa-download"></i></button>
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
 
-    <div class="dropdown-buttons">
-        <!-- ipynb file if we had a myst markdown file -->
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
         
-        <!-- Download raw file -->
-        <a class="dropdown-buttons" href="_sources/changelog.rst.txt"><button type="button"
-                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
-                data-placement="left">.rst</button></a>
-        <!-- Download PDF via print -->
-        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
-                onclick="printPdf(this)" data-toggle="tooltip" data-placement="left">.pdf</button>
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="_sources/changelog.rst.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.rst</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
     </div>
 </div>
 
-            <!-- Source interaction buttons -->
-
-            <!-- Full screen (wrap in <a> to have style consistency -->
-
-<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
-        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
-        title="Fullscreen mode"><i
-            class="fas fa-expand"></i></button></a>
-
-            <!-- Launch buttons -->
-
-        </div>
-
-        <!-- Table of contents -->
-        <div class="d-none d-md-block col-md-2 bd-toc show noprint">
-            
-            <div class="tocsection onthispage pt-5 pb-3">
-                <i class="fas fa-list"></i> Contents
-            </div>
-            <nav id="bd-toc-nav" aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id1">
-   1.2.2
+   1.2.3
   </a>
   <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#usability-improvements-changes">
+     Usability improvements/Changes
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#functionality-improvements">
+     Functionality improvements
+    </a>
+   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#bug-fixes">
      Bug Fixes
@@ -726,14 +805,9 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id2">
-   1.2.1
+   1.2.2
   </a>
   <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#functionality-improvements">
-     Functionality improvements
-    </a>
-   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id3">
      Bug Fixes
@@ -743,14 +817,9 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id4">
-   1.2.0
+   1.2.1
   </a>
   <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#usability-improvements-changes">
-     Usability improvements/Changes
-    </a>
-   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id5">
      Functionality improvements
@@ -765,7 +834,7 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id7">
-   1.1.3
+   1.2.0
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -773,38 +842,38 @@
      Usability improvements/Changes
     </a>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id9">
-   1.1.2
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id10">
-     Usability improvements/Changes
+    <a class="reference internal nav-link" href="#id9">
+     Functionality improvements
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id11">
+    <a class="reference internal nav-link" href="#id10">
      Bug Fixes
     </a>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id12">
-   1.1.1
+  <a class="reference internal nav-link" href="#id11">
+   1.1.3
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id13">
+    <a class="reference internal nav-link" href="#id12">
      Usability improvements/Changes
     </a>
    </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id13">
+   1.1.2
+  </a>
+  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id14">
-     Functionality improvements
+     Usability improvements/Changes
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -816,7 +885,7 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id16">
-   1.1.0
+   1.1.1
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -838,45 +907,45 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id20">
-   1.0.5
+   1.1.0
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id21">
+     Usability improvements/Changes
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id22">
+     Functionality improvements
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id23">
      Bug Fixes
     </a>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id22">
+  <a class="reference internal nav-link" href="#id24">
+   1.0.5
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id25">
+     Bug Fixes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id26">
    1.0.4
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#usability-improvements">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id23">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id24">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id25">
-   1.0.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id26">
      Usability improvements
     </a>
    </li>
@@ -894,7 +963,7 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id29">
-   1.0.2
+   1.0.3
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -907,33 +976,33 @@
      Functionality improvements
     </a>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id32">
-   1.0.1
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id33">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id34">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id35">
+    <a class="reference internal nav-link" href="#id32">
      Bug Fixes
     </a>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id33">
+   1.0.2
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id34">
+     Usability improvements
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id35">
+     Functionality improvements
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id36">
-   1.0.0
+   1.0.1
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -946,6 +1015,28 @@
      Functionality improvements
     </a>
    </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id39">
+     Bug Fixes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id40">
+   1.0.0
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id41">
+     Usability improvements
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id42">
+     Functionality improvements
+    </a>
+   </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -954,17 +1045,17 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id39">
+    <a class="reference internal nav-link" href="#id43">
      Usability improvements
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id40">
+    <a class="reference internal nav-link" href="#id44">
      Functionality improvements
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id41">
+    <a class="reference internal nav-link" href="#id45">
      Bug Fixes
     </a>
    </li>
@@ -972,12 +1063,11 @@
  </li>
 </ul>
 
-            </nav>
-        </div>
-    </div>
+    </nav>
 </div>
-    <div id="main-content" class="row">
-        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
                 <h1>Changelog</h1>
@@ -992,9 +1082,19 @@
                             <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id1">
-   1.2.2
+   1.2.3
   </a>
   <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#usability-improvements-changes">
+     Usability improvements/Changes
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#functionality-improvements">
+     Functionality improvements
+    </a>
+   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#bug-fixes">
      Bug Fixes
@@ -1004,14 +1104,9 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id2">
-   1.2.1
+   1.2.2
   </a>
   <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#functionality-improvements">
-     Functionality improvements
-    </a>
-   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id3">
      Bug Fixes
@@ -1021,14 +1116,9 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id4">
-   1.2.0
+   1.2.1
   </a>
   <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#usability-improvements-changes">
-     Usability improvements/Changes
-    </a>
-   </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id5">
      Functionality improvements
@@ -1043,7 +1133,7 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id7">
-   1.1.3
+   1.2.0
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -1051,38 +1141,38 @@
      Usability improvements/Changes
     </a>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id9">
-   1.1.2
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id10">
-     Usability improvements/Changes
+    <a class="reference internal nav-link" href="#id9">
+     Functionality improvements
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id11">
+    <a class="reference internal nav-link" href="#id10">
      Bug Fixes
     </a>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id12">
-   1.1.1
+  <a class="reference internal nav-link" href="#id11">
+   1.1.3
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id13">
+    <a class="reference internal nav-link" href="#id12">
      Usability improvements/Changes
     </a>
    </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id13">
+   1.1.2
+  </a>
+  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id14">
-     Functionality improvements
+     Usability improvements/Changes
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -1094,7 +1184,7 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id16">
-   1.1.0
+   1.1.1
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -1116,45 +1206,45 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id20">
-   1.0.5
+   1.1.0
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#id21">
+     Usability improvements/Changes
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id22">
+     Functionality improvements
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id23">
      Bug Fixes
     </a>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id22">
+  <a class="reference internal nav-link" href="#id24">
+   1.0.5
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id25">
+     Bug Fixes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id26">
    1.0.4
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#usability-improvements">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id23">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id24">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id25">
-   1.0.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id26">
      Usability improvements
     </a>
    </li>
@@ -1172,7 +1262,7 @@
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id29">
-   1.0.2
+   1.0.3
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -1185,33 +1275,33 @@
      Functionality improvements
     </a>
    </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id32">
-   1.0.1
-  </a>
-  <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id33">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id34">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id35">
+    <a class="reference internal nav-link" href="#id32">
      Bug Fixes
     </a>
    </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id33">
+   1.0.2
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id34">
+     Usability improvements
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id35">
+     Functionality improvements
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#id36">
-   1.0.0
+   1.0.1
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
@@ -1224,6 +1314,28 @@
      Functionality improvements
     </a>
    </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id39">
+     Bug Fixes
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#id40">
+   1.0.0
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id41">
+     Usability improvements
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#id42">
+     Functionality improvements
+    </a>
+   </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -1232,17 +1344,17 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id39">
+    <a class="reference internal nav-link" href="#id43">
      Usability improvements
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id40">
+    <a class="reference internal nav-link" href="#id44">
      Functionality improvements
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id41">
+    <a class="reference internal nav-link" href="#id45">
      Bug Fixes
     </a>
    </li>
@@ -1254,47 +1366,74 @@
                     </div>
                 </div>
             </div>
-            
+            <main id="main-content" role="main">
+                
               <div>
                 
   <div class="section" id="changelog">
-<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">#</a></h1>
 <div class="section" id="id1">
-<h2>1.2.2<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>1.2.3<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h2>
+<hr class="docutils" />
+<p>Minor functionality improvements and bugfixes.</p>
+<div class="section" id="usability-improvements-changes">
+<h3>Usability improvements/Changes<a class="headerlink" href="#usability-improvements-changes" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>All exceptions now inherit from a base <code class="code docutils literal notranslate"><span class="pre">autode.exceptions.AutodeException</span></code></p></li>
+<li><p>Fixes a typo in <code class="code docutils literal notranslate"><span class="pre">autode.exceptions.UnsupoportedCalculationInput</span></code></p></li>
+<li><p>Adds documentation explaining the intention of each exception in  <code class="code docutils literal notranslate"><span class="pre">autode.exceptions</span></code></p></li>
+<li><p>Molecular graphs are now ‘laziliy-loaded’ i.e. generated once when the property is accessed</p></li>
+</ul>
+</div>
+<div class="section" id="functionality-improvements">
+<h3>Functionality improvements<a class="headerlink" href="#functionality-improvements" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>Adds the ability to define atom classes for molecules in turn allowing for identity reactions to be calculated</p></li>
+</ul>
+</div>
+<div class="section" id="bug-fixes">
+<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>Fixes clashing names for a reaction initialised explicitly from molecules without defined names</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>1.2.2<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release.</p>
-<div class="section" id="bug-fixes">
-<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>Bug Fixes<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Fixes output redirection from XTB calculations resulting in missed lines on Mac</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id2">
-<h2>1.2.1<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h2>1.2.1<a class="headerlink" href="#id4" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release.</p>
-<div class="section" id="functionality-improvements">
-<h3>Functionality improvements<a class="headerlink" href="#functionality-improvements" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>Functionality improvements<a class="headerlink" href="#id5" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">autode.mol_graphs.MolecularGraph</span></code> (subclass of <code class="code docutils literal notranslate"><span class="pre">networkx.Graph</span></code>) with a <code class="code docutils literal notranslate"><span class="pre">expected_planar_geometry</span></code> method</p></li>
 <li><p>Adds an <code class="code docutils literal notranslate"><span class="pre">are_planar</span></code> method to <code class="code docutils literal notranslate"><span class="pre">autode.atoms.Atoms</span></code></p></li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>Bug Fixes<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>Bug Fixes<a class="headerlink" href="#id6" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Fixes a bug in assigning reasonable geometries which, in turn, could lead to skipped single point energy evaluations</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id4">
-<h2>1.2.0<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h2>1.2.0<a class="headerlink" href="#id7" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Adds optimisation algorithms experimental explicit solvation, improves potential energy surface
 module as well as an array of usability improvements.</p>
-<div class="section" id="usability-improvements-changes">
-<h3>Usability improvements/Changes<a class="headerlink" href="#usability-improvements-changes" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id8" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Adds more type hints and documentation</p></li>
 <li><p>Updates the TS template saved in the default template library</p></li>
@@ -1322,8 +1461,8 @@ module as well as an array of usability improvements.</p>
 <li><p>Adds a check that a calculation isn’t going to exceed the maximum amount of physical memory on the computer</p></li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h3>Functionality improvements<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>Functionality improvements<a class="headerlink" href="#id9" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Adds a selection of molecule optimisers to locate minima and transition states</p></li>
 <li><p>Refactors <code class="code docutils literal notranslate"><span class="pre">autode.smiles.angles</span></code> to use unique class names (preventing overlap with e.g. <code class="code docutils literal notranslate"><span class="pre">autode.values.Angle</span></code>)</p></li>
@@ -1340,8 +1479,8 @@ module as well as an array of usability improvements.</p>
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">autode.hessians.HybridHessianCalculator</span></code> to calculate numerical Hessians at two levels of theory</p></li>
 </ul>
 </div>
-<div class="section" id="id6">
-<h3>Bug Fixes<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id10">
+<h3>Bug Fixes<a class="headerlink" href="#id10" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Updates the TS template saved in the default template library</p></li>
 <li><p>Reloads output file lines from a failed then re-run calculation</p></li>
@@ -1349,42 +1488,42 @@ module as well as an array of usability improvements.</p>
 </ul>
 </div>
 </div>
-<div class="section" id="id7">
-<h2>1.1.3<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id11">
+<h2>1.1.3<a class="headerlink" href="#id11" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Usability improvements</p>
-<div class="section" id="id8">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id12">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id12" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Improves consistency and behaviour of <code class="code docutils literal notranslate"><span class="pre">calc_thermo</span></code> method of a species, allowing for keywords and non-run calculations</p></li>
 <li><p>Allows for a non-fork multiprocessing ‘start_method’</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id9">
-<h2>1.1.2<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id13">
+<h2>1.1.2<a class="headerlink" href="#id13" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Bugfixes</p>
-<div class="section" id="id10">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id14">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id14" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Fixes typo in <code class="code docutils literal notranslate"><span class="pre">autode.exceptions.ReactionFormationFalied</span></code></p></li>
 </ul>
 </div>
-<div class="section" id="id11">
-<h3>Bug Fixes<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id15">
+<h3>Bug Fixes<a class="headerlink" href="#id15" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Fixes a bug where rings containing mostly double bonds failed to build with <code class="code docutils literal notranslate"><span class="pre">autode.smiles.builder.Builder</span></code></p></li>
 <li><p>Fixes using XTB as a high-level method with the xtb-gaussian wrapper (thanks &#64;kjelljorner)</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id12">
-<h2>1.1.1<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id16">
+<h2>1.1.1<a class="headerlink" href="#id16" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Documentation and typing hints</p>
-<div class="section" id="id13">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id17">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id17" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Adds <a class="reference external" href="https://docs.python.org/3/library/typing.html">typing</a> to user-facing functions</p></li>
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">autode.config.location</span></code> to easily locate the core configuration file for permanent editing</p></li>
@@ -1392,26 +1531,26 @@ module as well as an array of usability improvements.</p>
 <li><p>Ensures units are kept if constructing a <code class="code docutils literal notranslate"><span class="pre">Value</span></code> from a <code class="code docutils literal notranslate"><span class="pre">Value</span></code> (i.e. <code class="code docutils literal notranslate"><span class="pre">Value(x)</span></code>, when <code class="code docutils literal notranslate"><span class="pre">x</span></code> is a <code class="code docutils literal notranslate"><span class="pre">Value</span></code>)</p></li>
 </ul>
 </div>
-<div class="section" id="id14">
-<h3>Functionality improvements<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id18">
+<h3>Functionality improvements<a class="headerlink" href="#id18" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Changes <code class="code docutils literal notranslate"><span class="pre">Keyword</span></code> to an abstract base class</p></li>
 <li><p>Improves speed of <code class="code docutils literal notranslate"><span class="pre">Species</span></code> rotation (numpy rather than a Python for loop)</p></li>
 </ul>
 </div>
-<div class="section" id="id15">
-<h3>Bug Fixes<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id19">
+<h3>Bug Fixes<a class="headerlink" href="#id19" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Fixes bug where NCI conformers were generated with the same name thus did not optimise uniquely (introduced in v.1.1.0)</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id16">
-<h2>1.1.0<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id20">
+<h2>1.1.0<a class="headerlink" href="#id20" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>API improvements that broadly maintain backwards compatibility.</p>
-<div class="section" id="id17">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id21">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id21" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Adds more argument and return types</p></li>
 <li><p>Changes <code class="code docutils literal notranslate"><span class="pre">AtomCollection.atoms</span></code> to a property for more flexible sub-classing</p></li>
@@ -1442,8 +1581,8 @@ module as well as an array of usability improvements.</p>
 <li><p>Improves readability of pruning of conformers based on RMSD and energy thresholds</p></li>
 </ul>
 </div>
-<div class="section" id="id18">
-<h3>Functionality improvements<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id22">
+<h3>Functionality improvements<a class="headerlink" href="#id22" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Adds angle and dihedral angle properties to an <code class="code docutils literal notranslate"><span class="pre">AtomCollection</span></code></p></li>
 <li><p>Improves and adds more <code class="code docutils literal notranslate"><span class="pre">Unit</span></code> definitions</p></li>
@@ -1467,8 +1606,8 @@ module as well as an array of usability improvements.</p>
 <p>suggesting a value of 10 is a appropriate. This will be system dependent and need increasing for
 large/flexible systems. For path optimisations loose optimisations use a maximum of 50 cycles.</p>
 </div>
-<div class="section" id="id19">
-<h3>Bug Fixes<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id23">
+<h3>Bug Fixes<a class="headerlink" href="#id23" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Skips conformers with no atoms in finding unique conformers</p></li>
 <li><p>Corrects benchmark TS location for the Grubbs metathesis example, where the reactant complex is bound</p></li>
@@ -1478,37 +1617,37 @@ large/flexible systems. For path optimisations loose optimisations use a maximum
 </ul>
 </div>
 </div>
-<div class="section" id="id20">
-<h2>1.0.5<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id24">
+<h2>1.0.5<a class="headerlink" href="#id24" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release</p>
-<div class="section" id="id21">
-<h3>Bug Fixes<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id25">
+<h3>Bug Fixes<a class="headerlink" href="#id25" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Saves transition state templates with correct atom labels</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id22">
-<h2>1.0.4<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id26">
+<h2>1.0.4<a class="headerlink" href="#id26" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>Bug fixes in SMILES parser and 3D geometry builder from 1.0.3.</p>
 <div class="section" id="usability-improvements">
-<h3>Usability improvements<a class="headerlink" href="#usability-improvements" title="Permalink to this headline">¶</a></h3>
+<h3>Usability improvements<a class="headerlink" href="#usability-improvements" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Improves doc strings</p></li>
 <li><p>Throws interpretable error when calling <code class="code docutils literal notranslate"><span class="pre">find_tss</span></code>  without <code class="code docutils literal notranslate"><span class="pre">reaction.reactant</span></code> set</p></li>
 </ul>
 </div>
-<div class="section" id="id23">
-<h3>Functionality improvements<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id27">
+<h3>Functionality improvements<a class="headerlink" href="#id27" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>SMILES strings with &gt;9 ring closures are parsed correctly</p></li>
 <li><p>cis-double bonds in rings no longer minimise with constraints, which is a little faster</p></li>
 </ul>
 </div>
-<div class="section" id="id24">
-<h3>Bug Fixes<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id28">
+<h3>Bug Fixes<a class="headerlink" href="#id28" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Tweaks repulsion parameters in minimisation to build fused rings</p></li>
 <li><p>Enables SMILES parsing with “X(…)1” branching</p></li>
@@ -1521,13 +1660,13 @@ large/flexible systems. For path optimisations loose optimisations use a maximum
 </ul>
 </div>
 </div>
-<div class="section" id="id25">
-<h2>1.0.3<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id29">
+<h2>1.0.3<a class="headerlink" href="#id29" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>A minor API revision from 1.0.2 but adds C++ extension which should be extensible to
 further developments of fast C-based code.</p>
-<div class="section" id="id26">
-<h3>Usability improvements<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id30">
+<h3>Usability improvements<a class="headerlink" href="#id30" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.Species()</span></code> inherit from a <code class="code docutils literal notranslate"><span class="pre">AtomCollection()</span></code> base class for more flexibility</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.Constants</span></code> attributes have more readable names (while retaining backwards compatability)</p></li>
@@ -1538,8 +1677,8 @@ further developments of fast C-based code.</p>
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.smiles.parser</span></code> has been rewritten &amp; is (hopefully) a more robust SMILES parser</p></li>
 </ul>
 </div>
-<div class="section" id="id27">
-<h3>Functionality improvements<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id31">
+<h3>Functionality improvements<a class="headerlink" href="#id31" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Metal complex initial geometries can now be generated with the correct stereochemistry</p></li>
 <li><p>Macrocycles default to an <strong>autodE</strong> builder that conserves SMILES stereochemistry (<a class="reference external" href="https://github.com/rdkit/rdkit/issues/1852">RDKit#1852</a>)</p></li>
@@ -1549,68 +1688,68 @@ further developments of fast C-based code.</p>
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.bond_matrix</span></code> added as a property and returns a boolean array for interactions between all atom pairs</p></li>
 </ul>
 </div>
-<div class="section" id="id28">
-<h3>Bug Fixes<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id32">
+<h3>Bug Fixes<a class="headerlink" href="#id32" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">reaction.calculate_complexes()</span></code> calls <code class="code docutils literal notranslate"><span class="pre">reaction.find_complexes()</span></code> if needed thus can be called in isolation</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id29">
-<h2>1.0.2<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id33">
+<h2>1.0.2<a class="headerlink" href="#id33" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
-<div class="section" id="id30">
-<h3>Usability improvements<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id34">
+<h3>Usability improvements<a class="headerlink" href="#id34" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Effective core potentials can now be specified in <code class="code docutils literal notranslate"><span class="pre">Keywords()</span></code></p></li>
 <li><p>ORCA fitting basis sets now default to def2/J, which should be smaller but as accurate as AutoAux</p></li>
 <li><p>Molecule initialisation from a .xyz file now checks for an odd number of electrons. For example, <code class="code docutils literal notranslate"><span class="pre">Molecule('H_atom.xyz')</span></code> will raise a <code class="code docutils literal notranslate"><span class="pre">ValueError</span></code> but <code class="code docutils literal notranslate"><span class="pre">Molecule('H_atom.xyz',</span> <span class="pre">charge=1)</span></code> or <code class="code docutils literal notranslate"><span class="pre">Molecule('H_atom.xyz',</span> <span class="pre">mult=2)</span></code> are acceptable</p></li>
 </ul>
 </div>
-<div class="section" id="id31">
-<h3>Functionality improvements<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id35">
+<h3>Functionality improvements<a class="headerlink" href="#id35" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">atom.atomic_number</span></code> has been added as an atom attribute</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">atom.atomic_symbol</span></code> is a more intuitive alias for <code class="code docutils literal notranslate"><span class="pre">atom.label</span></code></p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id32">
-<h2>1.0.1<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id36">
+<h2>1.0.1<a class="headerlink" href="#id36" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
-<div class="section" id="id33">
-<h3>Usability improvements<a class="headerlink" href="#id33" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id37">
+<h3>Usability improvements<a class="headerlink" href="#id37" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Molecular complexes can now be initialised with a reasonable geometry <code class="code docutils literal notranslate"><span class="pre">Complex(...,</span> <span class="pre">do_init_translation=True)</span></code></p></li>
 </ul>
 </div>
-<div class="section" id="id34">
-<h3>Functionality improvements<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id38">
+<h3>Functionality improvements<a class="headerlink" href="#id38" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.radius</span></code> has been added as an approximate molecular radius (in Angstroms, excluding VdW radii)</p></li>
 </ul>
 </div>
-<div class="section" id="id35">
-<h3>Bug Fixes<a class="headerlink" href="#id35" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id39">
+<h3>Bug Fixes<a class="headerlink" href="#id39" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Final breaking bond distances are now the minimum of the product X-Y distance if present in the product, or 2x the distance. This is required for breaking bonds that cross a ring.</p></li>
 <li><p>Neighbour lists for comparing possibly equivalent bond rearrangements are now compared using a sorted list</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id36">
-<h2>1.0.0<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id40">
+<h2>1.0.0<a class="headerlink" href="#id40" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>The first stable release! Mostly documentation updates from v.1.0.0b3 with the
 package now being conda-install-able.</p>
-<div class="section" id="id37">
-<h3>Usability improvements<a class="headerlink" href="#id37" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id41">
+<h3>Usability improvements<a class="headerlink" href="#id41" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>More documentation</p></li>
 </ul>
 </div>
-<div class="section" id="id38">
-<h3>Functionality improvements<a class="headerlink" href="#id38" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id42">
+<h3>Functionality improvements<a class="headerlink" href="#id42" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>XTB wrapper now supports v. 6.4 (and hopefully higher)</p></li>
 </ul>
@@ -1618,13 +1757,13 @@ package now being conda-install-able.</p>
 </div>
 </div>
 <div class="section" id="b3">
-<h2>1.0.0b3<a class="headerlink" href="#b3" title="Permalink to this headline">¶</a></h2>
+<h2>1.0.0b3<a class="headerlink" href="#b3" title="Permalink to this headline">#</a></h2>
 <hr class="docutils" />
 <p>This version brings several major changes and in some instances breaks
 backwards compatibility, but does feature significant improvements in speed
 and accuracy for finding transition states.</p>
-<div class="section" id="id39">
-<h3>Usability improvements<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id43">
+<h3>Usability improvements<a class="headerlink" href="#id43" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.get_distance(i,</span> <span class="pre">j)</span></code> is now <code class="code docutils literal notranslate"><span class="pre">species.distance(i,</span> <span class="pre">j)</span></code></p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.set_atoms(new_atoms)</span></code>  is now properly handled with a setter so <code class="code docutils literal notranslate"><span class="pre">species.atoms</span> <span class="pre">=</span> <span class="pre">new_atoms</span></code> will set the new atoms</p></li>
@@ -1634,8 +1773,8 @@ and accuracy for finding transition states.</p>
 <li><p>PBE0/def2-SVP is now the default ‘low opt’ method (<cite>keywords.low_opt</cite>) with loose optimisation. Path exploration uses this method, thus it needs to be very close to the ‘opt’ level</p></li>
 </ul>
 </div>
-<div class="section" id="id40">
-<h3>Functionality improvements<a class="headerlink" href="#id40" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id44">
+<h3>Functionality improvements<a class="headerlink" href="#id44" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>1D, 2D potential energy surface scans and nudged elastic band (NEB) methods to generate TS guesses from reactants have been replaced by an adaptive path search which seems to be very efficient for generating initial paths</p></li>
 </ul>
@@ -1662,8 +1801,8 @@ then the BDE curve calculated at the GFN2-XTB level of theory. A multiplier of ~
 <li><p>There is now a heuristic used to skip TSs that go via small rings (3, 4-membered) if there is a &gt;4-membered equivalent (<code class="code docutils literal notranslate"><span class="pre">ade.Config.skip_small_ring_tss</span></code>)</p></li>
 </ul>
 </div>
-<div class="section" id="id41">
-<h3>Bug Fixes<a class="headerlink" href="#id41" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id45">
+<h3>Bug Fixes<a class="headerlink" href="#id45" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
 <li><p>Calculations are now unique based on constraints, so NEB calculations executed in the same directory are not skipped with different bond rearrangements</p></li>
 </ul>
@@ -1674,9 +1813,11 @@ then the BDE curve calculated at the GFN2-XTB level of theory. A multiplier of ~
 
               </div>
               
-            
-                <!-- Previous / next buttons -->
-<div class='prev-next-area'> 
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
     <a class='left-prev' id="prev-link" href="examples/thermochem.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -1692,24 +1833,28 @@ then the BDE curve calculated at the GFN2-XTB level of theory. A multiplier of ~
     <i class="fas fa-angle-right"></i>
     </a>
 </div>
-            
+            </footer>
         </div>
     </div>
-    <footer class="footer">
-  <p>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Tom Young, Joseph Silcock<br/>
+  
+      &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
+</p>
+        </footer>
+    </div>
     
-      By Tom Young, Joseph Silcock<br/>
-    
-        &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
-  </p>
-</footer>
-</main>
+</div>
 
 
       </div>
     </div>
   
-  <script src="_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
 
   </body>
 </html>

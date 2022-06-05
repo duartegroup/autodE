@@ -7,8 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Code Structure &#8212; autodE  documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet">
-  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -18,20 +19,17 @@
   <link rel="preload" as="font" type="font/woff2" crossorigin
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
-    
-      
-
-    
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-book-theme.css?digest=84ace793992934648b4de8eed757e5a2" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Contributing to autodE" href="contributing.html" />
@@ -43,7 +41,21 @@
     <!-- Google Analytics -->
     
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
     
     <div class="container-fluid" id="banner"></div>
 
@@ -52,14 +64,10 @@
     <div class="container-xl">
       <div class="row">
           
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<div class="col-12 col-md-3 bd-sidebar site-navigation " id="site-navigation">
-    
-        <div class="navbar-brand-box">
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
     <a class="navbar-brand text-wrap" href="../index.html">
       
       
@@ -644,74 +652,135 @@
 </ul>
 
     </div>
-</nav> <!-- To handle the deprecated key -->
-
-<div class="navbar_extra_footer">
-  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-</div>
-
-</div>
-
-
-          
-
-
-          
-<!-- This is an invisible pixel that we watch to see if we've scrolled. -->
-<div class="sbt-scroll-pixel-helper"></div>
-<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
-    
-    <div class="topbar container-xl fixed-top">
-    <div class="topbar-contents row">
-        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
-        <div class="col pl-md-4 topbar-main">
-            <div class="topbar-left">
-                
-                <label class="nav-toggle-button" for="__navigation">
-                    <div class="visually-hidden">Toggle navigation</div>
-                    <i class="fas fa-bars"></i>
-                </label>
-                
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
             </div>
             
-<div class="dropdown-buttons-trigger">
-    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
-            class="fas fa-download"></i></button>
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
 
-    <div class="dropdown-buttons">
-        <!-- ipynb file if we had a myst markdown file -->
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
         
-        <!-- Download raw file -->
-        <a class="dropdown-buttons" href="../_sources/dev/overview.rst.txt"><button type="button"
-                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
-                data-placement="left">.rst</button></a>
-        <!-- Download PDF via print -->
-        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
-                onclick="printPdf(this)" data-toggle="tooltip" data-placement="left">.pdf</button>
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/dev/overview.rst.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.rst</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
     </div>
 </div>
 
-            <!-- Source interaction buttons -->
-
-            <!-- Full screen (wrap in <a> to have style consistency -->
-
-<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
-        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
-        title="Fullscreen mode"><i
-            class="fas fa-expand"></i></button></a>
-
-            <!-- Launch buttons -->
-
-        </div>
-
-        <!-- Table of contents -->
-        <div class="d-none d-md-block col-md-2 bd-toc show noprint">
-            
-            <div class="tocsection onthispage pt-5 pb-3">
-                <i class="fas fa-list"></i> Contents
-            </div>
-            <nav id="bd-toc-nav" aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#overview">
    Overview
@@ -751,12 +820,11 @@
  </li>
 </ul>
 
-            </nav>
-        </div>
-    </div>
+    </nav>
 </div>
-    <div id="main-content" class="row">
-        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
                 <h1>Code Structure</h1>
@@ -812,13 +880,14 @@
                     </div>
                 </div>
             </div>
-            
+            <main id="main-content" role="main">
+                
               <div>
                 
   <div class="section" id="code-structure">
-<h1>Code Structure<a class="headerlink" href="#code-structure" title="Permalink to this headline">¶</a></h1>
+<h1>Code Structure<a class="headerlink" href="#code-structure" title="Permalink to this headline">#</a></h1>
 <div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">#</a></h2>
 <p>The <strong>autodE</strong> code base is structured around a <code class="code docutils literal notranslate"><span class="pre">Reaction</span></code> class, due to
 the initial singular goal of calculating reaction profiles.</p>
 <a class="reference external image-reference" href="../_images/reaction_simple_uml.svg"><img alt="../_images/reaction_simple_uml.svg" class="align-center" src="../_images/reaction_simple_uml.svg" width="550" /></a>
@@ -835,7 +904,7 @@ simply the lowest energy transition state and <code class="code docutils literal
 <code class="code docutils literal notranslate"><span class="pre">len(reaction.tss)</span> <span class="pre">==</span> <span class="pre">0</span></code>.</p>
 </div>
 <div class="section" id="overall-class-structure">
-<h2>Overall class structure<a class="headerlink" href="#overall-class-structure" title="Permalink to this headline">¶</a></h2>
+<h2>Overall class structure<a class="headerlink" href="#overall-class-structure" title="Permalink to this headline">#</a></h2>
 <p>Zooming out, the composition and inheritance between of some of the
 classes arising from <code class="code docutils literal notranslate"><span class="pre">Reaction</span></code> (center) is shown below.</p>
 <div class="line-block">
@@ -846,7 +915,7 @@ classes arising from <code class="code docutils literal notranslate"><span class
 <div class="line"><br /></div>
 </div>
 <div class="section" id="species">
-<h3>Species<a class="headerlink" href="#species" title="Permalink to this headline">¶</a></h3>
+<h3>Species<a class="headerlink" href="#species" title="Permalink to this headline">#</a></h3>
 <p>Individual atoms are collected into a <code class="code docutils literal notranslate"><span class="pre">Atoms</span></code> class which becomes an
 (effective) attribute of an <code class="code docutils literal notranslate"><span class="pre">AtomCollection</span></code>, which serves as a base
 class for all objects with associated <code class="code docutils literal notranslate"><span class="pre">atoms</span></code>. A <code class="code docutils literal notranslate"><span class="pre">Species</span></code> adds
@@ -854,7 +923,7 @@ a molecular graph, solvent and name attributes and is the parent class of
 a <code class="code docutils literal notranslate"><span class="pre">Molecule</span></code>, <code class="code docutils literal notranslate"><span class="pre">Complex</span></code> and <code class="code docutils literal notranslate"><span class="pre">TransitionState</span></code>.</p>
 </div>
 <div class="section" id="values">
-<h3>Values<a class="headerlink" href="#values" title="Permalink to this headline">¶</a></h3>
+<h3>Values<a class="headerlink" href="#values" title="Permalink to this headline">#</a></h3>
 <p>Quantities with associated units e.g. an angle or energy are subclasses of
 <code class="code docutils literal notranslate"><span class="pre">autode.values.Value</span></code>, which facilitate the conversion between units
 (using <code class="code docutils literal notranslate"><span class="pre">value.to()</span></code>). For example, <code class="code docutils literal notranslate"><span class="pre">species.energy</span></code> returns a
@@ -862,14 +931,14 @@ a <code class="code docutils literal notranslate"><span class="pre">Molecule</sp
 <code class="code docutils literal notranslate"><span class="pre">species.single_point()</span></code>).</p>
 </div>
 <div class="section" id="solvent">
-<h3>Solvent<a class="headerlink" href="#solvent" title="Permalink to this headline">¶</a></h3>
+<h3>Solvent<a class="headerlink" href="#solvent" title="Permalink to this headline">#</a></h3>
 <p>Species in the gas phase have <code class="code docutils literal notranslate"><span class="pre">species.solvent</span> <span class="pre">==</span> <span class="pre">None</span></code> while solvated
 ones have an instance of either <code class="code docutils literal notranslate"><span class="pre">ImplicitSolvent</span></code> or <code class="code docutils literal notranslate"><span class="pre">ExplicitSolvent</span></code>,
 inheriting from the base <code class="code docutils literal notranslate"><span class="pre">autode.solvent.Solvent</span></code> class. Explicit solvent
 contains defined atoms, thus inherits also from <code class="code docutils literal notranslate"><span class="pre">AtomCollecion</span></code>.</p>
 </div>
 <div class="section" id="calculation">
-<h3>Calculation<a class="headerlink" href="#calculation" title="Permalink to this headline">¶</a></h3>
+<h3>Calculation<a class="headerlink" href="#calculation" title="Permalink to this headline">#</a></h3>
 <p>Energies and derivatives thereof are obtained but running calculations using
 external QM packages (e.g. Gaussian, etc.) through a <code class="code docutils literal notranslate"><span class="pre">Calculation</span></code> instance.
 A <code class="code docutils literal notranslate"><span class="pre">Calculation</span></code> is initialised with a <code class="code docutils literal notranslate"><span class="pre">Species</span></code>, using a
@@ -878,7 +947,7 @@ perform. See <a class="reference internal" href="adding_est.html#adding-est"><sp
 how to add new ones.</p>
 </div>
 <div class="section" id="calculate-reaction-profile">
-<h3>calculate_reaction_profile<a class="headerlink" href="#calculate-reaction-profile" title="Permalink to this headline">¶</a></h3>
+<h3>calculate_reaction_profile<a class="headerlink" href="#calculate-reaction-profile" title="Permalink to this headline">#</a></h3>
 <p>From the description of a reaction (e.g SMILES strings), <strong>autodE</strong> can generate
 the reaction profile. It starts by building a <code class="xref py py-class docutils literal notranslate"><span class="pre">Reaction</span></code> instance,
 describing the reactants/products involved (see <code class="xref py py-class docutils literal notranslate"><span class="pre">Molecule</span></code>) as well as
@@ -907,9 +976,11 @@ final geometries.</p>
 
               </div>
               
-            
-                <!-- Previous / next buttons -->
-<div class='prev-next-area'> 
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
     <a class='left-prev' id="prev-link" href="index.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -925,24 +996,28 @@ final geometries.</p>
     <i class="fas fa-angle-right"></i>
     </a>
 </div>
-            
+            </footer>
         </div>
     </div>
-    <footer class="footer">
-  <p>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Tom Young, Joseph Silcock<br/>
+  
+      &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
+</p>
+        </footer>
+    </div>
     
-      By Tom Young, Joseph Silcock<br/>
-    
-        &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
-  </p>
-</footer>
-</main>
+</div>
 
 
       </div>
     </div>
   
-  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
 
   </body>
 </html>

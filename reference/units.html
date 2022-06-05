@@ -7,8 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Units &#8212; autodE  documentation</title>
     
-  <link href="../_static/css/theme.css" rel="stylesheet">
-  <link href="../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 
     
   <link rel="stylesheet"
@@ -18,20 +19,17 @@
   <link rel="preload" as="font" type="font/woff2" crossorigin
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
-    
-      
-
-    
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-book-theme.css?digest=84ace793992934648b4de8eed757e5a2" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
     
-  <link rel="preload" as="script" href="../_static/js/index.be7d3bbb2ef33a8344ce.js">
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
 
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Utilities" href="utils.html" />
@@ -43,7 +41,21 @@
     <!-- Google Analytics -->
     
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
     
     <div class="container-fluid" id="banner"></div>
 
@@ -52,14 +64,10 @@
     <div class="container-xl">
       <div class="row">
           
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<div class="col-12 col-md-3 bd-sidebar site-navigation " id="site-navigation">
-    
-        <div class="navbar-brand-box">
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
     <a class="navbar-brand text-wrap" href="../index.html">
       
       
@@ -644,74 +652,123 @@
 </ul>
 
     </div>
-</nav> <!-- To handle the deprecated key -->
-
-<div class="navbar_extra_footer">
-  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-</div>
-
-</div>
-
-
-          
-
-
-          
-<!-- This is an invisible pixel that we watch to see if we've scrolled. -->
-<div class="sbt-scroll-pixel-helper"></div>
-<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
-    
-    <div class="topbar container-xl fixed-top">
-    <div class="topbar-contents row">
-        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
-        <div class="col pl-md-4 topbar-main">
-            <div class="topbar-left">
-                
-                <label class="nav-toggle-button" for="__navigation">
-                    <div class="visually-hidden">Toggle navigation</div>
-                    <i class="fas fa-bars"></i>
-                </label>
-                
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
             </div>
             
-<div class="dropdown-buttons-trigger">
-    <button id="dropdown-buttons-trigger" class="btn btn-secondary topbarbtn" aria-label="Download this page"><i
-            class="fas fa-download"></i></button>
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
 
-    <div class="dropdown-buttons">
-        <!-- ipynb file if we had a myst markdown file -->
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
         
-        <!-- Download raw file -->
-        <a class="dropdown-buttons" href="../_sources/reference/units.rst.txt"><button type="button"
-                class="btn btn-secondary topbarbtn" title="Download source file" data-toggle="tooltip"
-                data-placement="left">.rst</button></a>
-        <!-- Download PDF via print -->
-        <button type="button" id="download-print" class="btn btn-secondary topbarbtn" title="Print to PDF"
-                onclick="printPdf(this)" data-toggle="tooltip" data-placement="left">.pdf</button>
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/reference/units.rst.txt"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.rst</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
     </div>
 </div>
 
-            <!-- Source interaction buttons -->
-
-            <!-- Full screen (wrap in <a> to have style consistency -->
-
-<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
-        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
-        title="Fullscreen mode"><i
-            class="fas fa-expand"></i></button></a>
-
-            <!-- Launch buttons -->
-
-        </div>
-
-        <!-- Table of contents -->
-        <div class="d-none d-md-block col-md-2 bd-toc show noprint">
-            
-        </div>
-    </div>
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
 </div>
-    <div id="main-content" class="row">
-        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
             <!-- Table of contents that is only displayed when printing the page -->
             <div id="jb-print-docs-body" class="onlyprint">
                 <h1>Units</h1>
@@ -722,17 +779,18 @@
                     </div>
                 </div>
             </div>
-            
+            <main id="main-content" role="main">
+                
               <div>
                 
   <div class="section" id="module-autode.units">
-<span id="units"></span><h1>Units<a class="headerlink" href="#module-autode.units" title="Permalink to this headline">¶</a></h1>
+<span id="units"></span><h1>Units<a class="headerlink" href="#module-autode.units" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.units.Unit">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">Unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.Unit" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">Unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.Unit" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="autode.units.Unit.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.Unit.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conversion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.Unit.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Unit</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -753,7 +811,7 @@ unit</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.units.Unit.lower">
-<span class="sig-name descname"><span class="pre">lower</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.Unit.lower" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">lower</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.Unit.lower" title="Permalink to this definition">#</a></dt>
 <dd><p>Lower case name of the unit</p>
 </dd></dl>
 
@@ -761,157 +819,157 @@ unit</p></li>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.ha">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha)</span></em><a class="headerlink" href="#autode.units.ha" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha)</span></em><a class="headerlink" href="#autode.units.ha" title="Permalink to this definition">#</a></dt>
 <dd><p>A unit in the base unit system, thus an identity conversion factor</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.ev">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ev</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(eV)</span></em><a class="headerlink" href="#autode.units.ev" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ev</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(eV)</span></em><a class="headerlink" href="#autode.units.ev" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.kjmol">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">kjmol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(kJ</span> <span class="pre">mol-1)</span></em><a class="headerlink" href="#autode.units.kjmol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">kjmol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(kJ</span> <span class="pre">mol-1)</span></em><a class="headerlink" href="#autode.units.kjmol" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.kcalmol">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">kcalmol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(kcal</span> <span class="pre">mol-1)</span></em><a class="headerlink" href="#autode.units.kcalmol" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">kcalmol</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(kcal</span> <span class="pre">mol-1)</span></em><a class="headerlink" href="#autode.units.kcalmol" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.J">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J)</span></em><a class="headerlink" href="#autode.units.J" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J)</span></em><a class="headerlink" href="#autode.units.J" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.rad">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">rad</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(rad)</span></em><a class="headerlink" href="#autode.units.rad" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">rad</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(rad)</span></em><a class="headerlink" href="#autode.units.rad" title="Permalink to this definition">#</a></dt>
 <dd><p>A unit in the base unit system, thus an identity conversion factor</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.deg">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">deg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(°)</span></em><a class="headerlink" href="#autode.units.deg" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">deg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(°)</span></em><a class="headerlink" href="#autode.units.deg" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.ang">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ang</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Å)</span></em><a class="headerlink" href="#autode.units.ang" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ang</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Å)</span></em><a class="headerlink" href="#autode.units.ang" title="Permalink to this definition">#</a></dt>
 <dd><p>A unit in the base unit system, thus an identity conversion factor</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.a0">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">a0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(bohr)</span></em><a class="headerlink" href="#autode.units.a0" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">a0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(bohr)</span></em><a class="headerlink" href="#autode.units.a0" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.nm">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">nm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(nm)</span></em><a class="headerlink" href="#autode.units.nm" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">nm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(nm)</span></em><a class="headerlink" href="#autode.units.nm" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.pm">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">pm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(pm)</span></em><a class="headerlink" href="#autode.units.pm" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">pm</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(pm)</span></em><a class="headerlink" href="#autode.units.pm" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.m">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(m)</span></em><a class="headerlink" href="#autode.units.m" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">m</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(m)</span></em><a class="headerlink" href="#autode.units.m" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.amu">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">amu</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(amu)</span></em><a class="headerlink" href="#autode.units.amu" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">amu</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(amu)</span></em><a class="headerlink" href="#autode.units.amu" title="Permalink to this definition">#</a></dt>
 <dd><p>A unit in the base unit system, thus an identity conversion factor</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.kg">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">kg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(kg)</span></em><a class="headerlink" href="#autode.units.kg" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">kg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(kg)</span></em><a class="headerlink" href="#autode.units.kg" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.m_e">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">m_e</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(m_e)</span></em><a class="headerlink" href="#autode.units.m_e" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">m_e</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(m_e)</span></em><a class="headerlink" href="#autode.units.m_e" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.amu_ang_sq">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">amu_ang_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(amu</span> <span class="pre">Å^2)</span></em><a class="headerlink" href="#autode.units.amu_ang_sq" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">amu_ang_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(amu</span> <span class="pre">Å^2)</span></em><a class="headerlink" href="#autode.units.amu_ang_sq" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.ha_per_a0">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha_per_a0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha(bohr)^-1)</span></em><a class="headerlink" href="#autode.units.ha_per_a0" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha_per_a0</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha(bohr)^-1)</span></em><a class="headerlink" href="#autode.units.ha_per_a0" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.ev_per_ang">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ev_per_ang</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(eV(Å)^-1)</span></em><a class="headerlink" href="#autode.units.ev_per_ang" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ev_per_ang</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(eV(Å)^-1)</span></em><a class="headerlink" href="#autode.units.ev_per_ang" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.ha_per_ang_sq">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha_per_ang_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha</span> <span class="pre">Å^-2)</span></em><a class="headerlink" href="#autode.units.ha_per_ang_sq" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha_per_ang_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha</span> <span class="pre">Å^-2)</span></em><a class="headerlink" href="#autode.units.ha_per_ang_sq" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.ha_per_a0_sq">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha_per_a0_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha</span> <span class="pre">a0^-2)</span></em><a class="headerlink" href="#autode.units.ha_per_a0_sq" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">ha_per_a0_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(Ha</span> <span class="pre">a0^-2)</span></em><a class="headerlink" href="#autode.units.ha_per_a0_sq" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.J_per_ang_sq">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J_per_ang_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J</span> <span class="pre">ang^-2)</span></em><a class="headerlink" href="#autode.units.J_per_ang_sq" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J_per_ang_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J</span> <span class="pre">ang^-2)</span></em><a class="headerlink" href="#autode.units.J_per_ang_sq" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.J_per_m_sq">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J_per_m_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J</span> <span class="pre">m^-2)</span></em><a class="headerlink" href="#autode.units.J_per_m_sq" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J_per_m_sq</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J</span> <span class="pre">m^-2)</span></em><a class="headerlink" href="#autode.units.J_per_m_sq" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.J_per_ang_sq_kg">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J_per_ang_sq_kg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J</span> <span class="pre">m^-2</span> <span class="pre">kg^-1)</span></em><a class="headerlink" href="#autode.units.J_per_ang_sq_kg" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">J_per_ang_sq_kg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(J</span> <span class="pre">m^-2</span> <span class="pre">kg^-1)</span></em><a class="headerlink" href="#autode.units.J_per_ang_sq_kg" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.wavenumber">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">wavenumber</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(cm^-1)</span></em><a class="headerlink" href="#autode.units.wavenumber" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">wavenumber</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(cm^-1)</span></em><a class="headerlink" href="#autode.units.wavenumber" title="Permalink to this definition">#</a></dt>
 <dd><p>A unit in the base unit system, thus an identity conversion factor</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.hz">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">hz</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(s^-1)</span></em><a class="headerlink" href="#autode.units.hz" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">hz</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(s^-1)</span></em><a class="headerlink" href="#autode.units.hz" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.MB">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">MB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(mb)</span></em><a class="headerlink" href="#autode.units.MB" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">MB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(mb)</span></em><a class="headerlink" href="#autode.units.MB" title="Permalink to this definition">#</a></dt>
 <dd><p>A unit in the base unit system, thus an identity conversion factor</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.GB">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">GB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(gb)</span></em><a class="headerlink" href="#autode.units.GB" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">GB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(gb)</span></em><a class="headerlink" href="#autode.units.GB" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="autode.units.TB">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">TB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(tb)</span></em><a class="headerlink" href="#autode.units.TB" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">TB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">Unit(tb)</span></em><a class="headerlink" href="#autode.units.TB" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.units.BaseUnit">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">BaseUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.BaseUnit" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">BaseUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.BaseUnit" title="Permalink to this definition">#</a></dt>
 <dd><p>A unit in the base unit system, thus an identity conversion factor</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.units.BaseUnit.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.BaseUnit.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Collection</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.units.BaseUnit.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Unit</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -934,7 +992,7 @@ unit</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.units.energy_unit_from_name">
-<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">energy_unit_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.units.Unit" title="autode.units.Unit"><span class="pre">autode.units.Unit</span></a></span></span><a class="headerlink" href="#autode.units.energy_unit_from_name" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.units.</span></span><span class="sig-name descname"><span class="pre">energy_unit_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.units.Unit" title="autode.units.Unit"><span class="pre">autode.units.Unit</span></a></span></span><a class="headerlink" href="#autode.units.energy_unit_from_name" title="Permalink to this definition">#</a></dt>
 <dd><p>Generate an energy unit given a name</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -951,9 +1009,11 @@ unit</p></li>
 
               </div>
               
-            
-                <!-- Previous / next buttons -->
-<div class='prev-next-area'> 
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
     <a class='left-prev' id="prev-link" href="substitution.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
@@ -969,24 +1029,28 @@ unit</p></li>
     <i class="fas fa-angle-right"></i>
     </a>
 </div>
-            
+            </footer>
         </div>
     </div>
-    <footer class="footer">
-  <p>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Tom Young, Joseph Silcock<br/>
+  
+      &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
+</p>
+        </footer>
+    </div>
     
-      By Tom Young, Joseph Silcock<br/>
-    
-        &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
-  </p>
-</footer>
-</main>
+</div>
 
 
       </div>
     </div>
   
-  <script src="../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
 
   </body>
 </html>
