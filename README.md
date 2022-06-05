@@ -57,7 +57,7 @@ additional documentation.
 ## Development
 
 There is a [slack workspace](https://autodeworkspace.slack.com) for development and discussion - please 
-[email](mailto:tom.young@chem.ox.ac.uk?subject=autodE%20slack) to be added. Pull requests are 
+[email](mailto:autodE-gh@outlook.com?subject=autodE%20slack) to be added. Pull requests are 
 very welcome but must pass all the unit tests prior to being merged. Please write code and tests!
 See the [todo list](https://github.com/duartegroup/autodE/projects/1) for features on the horizon. 
 Bugs and feature requests should be raised on the [issue page](https://github.com/duartegroup/autodE/issues). 
