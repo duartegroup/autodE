@@ -8,7 +8,6 @@ from scipy.optimize import minimize
 from autode.conformers import Conformer
 import autode.exceptions as ex
 from autode.utils import log_time
-from autode.bonds import get_ideal_bond_length_matrix
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.mol_graphs import split_mol_across_bond
 from autode.log import logger
@@ -379,8 +378,7 @@ def get_simanl_atoms(species:            'autode.species.Species',
                                              rand=rand)
 
     # Add the distance constraints as fixed bonds
-    d0 = get_ideal_bond_length_matrix(atoms=species.atoms,
-                                      bonds=species.graph.edges())
+    d0 = species.graph.eqm_distance_matrix
 
     # Add distance constraints across stereocentres e.g. for a Z double bond
     # then modify d0 appropriately

@@ -3,7 +3,6 @@ import numpy as np
 from numpy.linalg import norm as length
 from autode.atoms import DummyAtom
 from autode.mol_graphs import connected_components
-from autode.bonds import get_avg_bond_length
 from autode.log import logger
 
 
@@ -17,9 +16,7 @@ class SubstitutionCentre:
         """Set the ideal distance between a and c atoms in a substitution
         centre"""
 
-        r0 = get_avg_bond_length(atom_i_label=species.atoms[self.a_atom].label,
-                                 atom_j_label=species.atoms[self.c_atom].label)
-
+        r0 = species.atoms.eqm_distance(self.a_atom, self.c_atom)
         self.r0_ac = shift_factor * r0
         return None
 
