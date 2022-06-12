@@ -296,16 +296,16 @@ class Atom:
         Returns:
             (int): Maximal valance
         """
-        max_valances = {'H': 1, 'B': 4, 'C': 4, 'N': 4, 'O': 3, 'F': 1,
-                        'Si': 4, 'P': 6, 'S': 6, 'Cl': 4, 'Br': 4, 'I': 6}
 
-        if self.label in max_valances:
-            return max_valances[self.label]
-
-        else:
-            logger.warning(f'Could not find a valid valance for {self}. '
-                           f'Guessing at 6')
+        if self.is_metal:
             return 6
+
+        if self.label in _max_valances:
+            return _max_valances[self.label]
+
+        logger.warning(f'Could not find a valid valance for {self}. '
+                       f'Guessing at 6')
+        return 6
 
     @property
     def vdw_radius(self) -> Distance:
@@ -1304,3 +1304,22 @@ _bond_lengths = {
     "ClCl": 1.988,
     "II": 	2.665
 }
+
+
+_max_valances = {'H': 1,
+                 'He': 0,
+                 'B': 4,
+                 'C': 4,
+                 'N': 4,
+                 'O': 3,
+                 'F': 1,
+                 'Si': 4,
+                 'P': 6,
+                 'S': 6,
+                 'Cl': 4,
+                 'Br': 4,
+                 'I': 6,
+                 'Xe': 6,
+                 'Al': 4,
+                 }
+
