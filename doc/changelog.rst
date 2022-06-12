@@ -2,6 +2,30 @@ Changelog
 =========
 
 
+1.3.0
+--------
+----------
+
+Alters bond assignments...
+
+
+Usability improvements/Changes
+******************************
+- Defines dummy atoms to have zero covalent and vdW radii
+- Removes `autode.bonds.get_ideal_bond_length_matrix` and `autode.bonds.get_avg_bond_length`
+
+
+Functionality improvements
+**************************
+- Adds a :code:`autode.atoms.Atom.covalent_radius` property
+- Adds a :code:`autode.atoms.Atoms.eqm_distance` method for the equilibrium bonded distance between two atoms
+
+
+Bug Fixes
+*********
+-
+
+
 1.2.3
 --------
 ----------
