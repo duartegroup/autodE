@@ -23,7 +23,7 @@ Functionality improvements
 
 Bug Fixes
 *********
--
+- Fixes variable harmonic frequencies (<2 cm-1 differences) due to projection vectors becoming close to rotational axes
 
 
 1.2.3
