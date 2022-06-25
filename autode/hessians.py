@@ -110,8 +110,16 @@ class Hessian(ValueArray):
         """
         n_atoms = len(self.atoms)
 
-        # Get a random orthonormal basis in 3D
-        (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
+        if n_atoms > 2:
+            # Get an orthonormal basis shifted from the principal rotation axis
+            _rot_M = np.array([[1., 0.,                   0.],
+                               [0., 0.09983341664682815, -0.9950041652780258],
+                               [0., 0.9950041652780258,   0.09983341664682815]])
+
+            _, (e_x, e_y, e_z) = np.linalg.eigh(_rot_M.dot(self.atoms.moi))
+        else:
+            # Get a random orthonormal basis in 3D
+            (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
 
         t1 = np.tile(e_x, reps=n_atoms)
         t2 = np.tile(e_y, reps=n_atoms)
