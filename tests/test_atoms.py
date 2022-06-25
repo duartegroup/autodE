@@ -12,6 +12,7 @@ def test_valency():
 
     # Default to 6 if the atom does not have a hard-coded maximum valency
     assert Atom('Sc').maximal_valance == 6
+    assert Atom('Rn').maximal_valance == 6
 
 
 def test_vdw_radius():
