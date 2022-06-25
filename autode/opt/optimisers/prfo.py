@@ -20,7 +20,7 @@ class PRFOOptimiser(RFOOptimiser):
 
         -----------------------------------------------------------------------
         Arguments:
-            init_alpha: Initial step size
+            init_alpha: Maximum step size
 
             imag_mode_idx: Index of the imaginary mode to follow. Default = 0,
                            the most imaginary mode (i.e. most negative

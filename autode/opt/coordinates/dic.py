@@ -17,7 +17,7 @@ summarised below:
 import numpy as np
 from time import time
 from typing import Optional
-from autode.geom import rotate_columns
+from autode.geom import proj
 from autode.log import logger
 from autode.opt.coordinates.primitives import ConstrainedDistance
 from autode.opt.coordinates.internals import (PIC,
@@ -238,3 +238,40 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         self._x = x_k
 
         return self
+
+
+class DICWithConstraints(DIC):
+
+    @staticmethod
+    def _calc_U(primitives: PIC) -> np.ndarray:
+        """Eigenvectors of the G matrix"""
+
+
+    @staticmethod
+    def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
+        """
+        Perform Schmidt orthogonalization to generate orthogonal vectors
+        that include a number of unit vectors, the non-zero components of which
+        are defined by the indexes argument.
+        """
+        logger.info(f"Schmidt-orthogonalizing. Using {indexes} as "
+                    f"orthonormal vectors")
+
+        u = np.zeros_like(arr)
+        _, n_cols = arr.shape
+
+        for i, index in enumerate(indexes):
+            u[index, i] = 1.
+
+        for i in range(len(indexes), n_cols):
+
+            u_i = arr[:, i]
+            for j in range(0, i):
+                u_i -= proj(u[:, j], arr[:, i])
+
+            u_i /= np.linalg.norm(u_i)
+
+            u[:, i] = u_i.copy()
+
+        # Arbitrarily place the defined unit vectors at the end
+        return u[:, ::-1]

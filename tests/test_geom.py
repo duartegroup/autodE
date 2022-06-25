@@ -107,19 +107,3 @@ def test_gram_schmidt():
 
     # Resulting vectors should be orthogonal
     assert np.isclose(np.dot(u1, u2), 0.0)
-
-
-def test_arr_rotation():
-
-    # First argument must be a numpy array
-    with pytest.raises(ValueError):
-        _ = geom.rotate_columns('a', 0)
-
-    # Cannot rotation without indexes
-    with pytest.raises(ValueError):
-        _ = geom.rotate_columns(np.eye(3))
-
-    # Initial array must be orthonormal
-    with pytest.raises(ValueError):
-        _ = geom.rotate_columns(np.arange(0, 4).reshape((2, 2)),
-                                0)

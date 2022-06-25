@@ -1,11 +1,12 @@
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Tuple
-from autode.opt.coordinates.base import CartesianComponent
 
 
 class Primitive(ABC):
     """Primitive internal coordinate"""
+
+    is_constrained = False
 
     @abstractmethod
     def __call__(self,
@@ -47,6 +48,29 @@ class Primitive(ABC):
     @abstractmethod
     def __eq__(self, other):
         """Comparison of two primitive coordinates"""
+
+
+class ConstrainedPrimitive(Primitive, ABC):
+
+    is_constrained = True
+
+    @property
+    @abstractmethod
+    def _value(self) -> float:
+        """Value of the constraint that must be satisfied e.g. r0"""
+
+    def is_satisfied(self,
+                     x:   'autode.opt.coordinates.CartesianCoordinates',
+                     tol: float = 1E-4
+                     ) -> bool:
+        """Is this constraint satisfied to within an absolute tolerance"""
+        return abs(self.delta(x)) < tol
+
+    def delta(self,
+              x: 'autode.opt.coordinates.CartesianCoordinates',
+              ) -> float:
+        """Difference between the observed and required value"""
+        return self(x) - self._value
 
 
 class _DistanceFunction(Primitive, ABC):
@@ -169,7 +193,7 @@ class Distance(_DistanceFunction):
         return np.linalg.norm(_x[self.idx_i] - _x[self.idx_j])
 
 
-class ConstrainedDistance(Distance):
+class ConstrainedDistance(ConstrainedPrimitive, Distance):
 
     def __init__(self,
                  idx_i: int,
@@ -191,15 +215,33 @@ class ConstrainedDistance(Distance):
 
         self._r0 = value
 
-    def is_satisfied(self,
-                     x:   'autode.opt.coordinates.CartesianCoordinates',
-                     tol: float = 1E-4
-                     ) -> bool:
-        """Is this constraint satisfied to within an absolute tolerance"""
-        return abs(self.delta(x)) < tol
+    @property
+    def _value(self) -> float:
+        return self._r0
 
-    def delta(self,
-              x: 'autode.opt.coordinates.CartesianCoordinates',
-              ) -> float:
-        """Difference between the observed and required value"""
-        return self(x) - self._r0
+
+class ConstrainedInverseDistance(ConstrainedPrimitive, Distance):
+
+    def __init__(self,
+                 idx_i: int,
+                 idx_j: int,
+                 value: float):
+        """
+        Inverse Distance constrained to a value
+
+        -----------------------------------------------------------------------
+        Arguments:
+
+            idx_i: Atom index of the first atom
+
+            idx_j: Atom index of the second atom
+
+            value: Required value of the constrained inverse distance 1/r_0
+        """
+        super().__init__(idx_i=idx_i, idx_j=idx_j)
+
+        self._inv_r0 = value
+
+    @property
+    def _value(self) -> float:
+        return self._inv_r0
