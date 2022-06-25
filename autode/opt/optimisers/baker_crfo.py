@@ -28,8 +28,6 @@ class CRFOptimiser(RFOOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._primitives = None
-
         self._hessian_update_types = [BFGSUpdate]
 
     def _step(self) -> None:
@@ -56,15 +54,16 @@ class CRFOptimiser(RFOOptimiser):
             raise RuntimeError("Cannot set initial coordinates. No species set")
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
-        self._populate_primitives()
 
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords,
             primitives=self._primitives
         )
+        self._coords.zero_lagrangian_multipliers()
         return None
 
-    def _populate_primitives(self) -> None:
+    @property
+    def _primitives(self) -> InverseDistances:
         """Primitive internal coordinates in this molecule"""
 
         pic = InverseDistances()
@@ -79,10 +78,4 @@ class CRFOptimiser(RFOOptimiser):
                 else:
                     pic.append(InverseDistance(i, j))
 
-        self._primitives = pic
-        return None
-
-    @property
-    def n_constraints(self) -> int:
-        """Number of constraints imposed"""
-        return sum(p.is_constrained for p in self._primitives)
+        return pic

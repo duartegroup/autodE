@@ -24,15 +24,21 @@ class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
         arr = super().__new__(cls, input_array, units=None)
 
         arr._x = None           # Cartesian coordinates
+        if hasattr(input_array, "_x"):
+            arr._x = input_array._x
+
         arr.primitives = None   # PIC
+        if hasattr(input_array, "primitives"):
+            arr.primitives = input_array.primitives
 
         return arr
 
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
+        OptCoordinates.__array_finalize__(self, obj)
         self._x = getattr(obj, '_x', None)
         self.primitives = getattr(obj, 'primitives', None)
-        return OptCoordinates.__array_finalize__(self, obj)
+        return
 
 
 class PIC(list, ABC):

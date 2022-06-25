@@ -131,7 +131,6 @@ class CRFOOptimiser(RFOOptimiser):
 
         self._coords.update_h_from_cart_h(
                         arr=self._low_level_cart_hessian,
-                        fixed_atom_idxs=self._species.constraints.cartesian
                         )
         self._coords.make_hessian_positive_definite()
 

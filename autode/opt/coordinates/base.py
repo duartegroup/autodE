@@ -169,15 +169,10 @@ class OptCoordinates(ValueArray, ABC):
 
     def update_g_from_cart_g(self,
                              arr:             Optional['autode.values.Gradient'],
-                             fixed_atom_idxs: Optional[List[int]] = None
                              ) -> None:
         """Update the gradient from a Cartesian gradient, zeroing those atoms
          that are constrained"""
         assert arr is None or arr.shape[1] == 3  # Needs an Nx3 matrix
-
-        if arr is not None and fixed_atom_idxs is not None:
-            for atom_idx in fixed_atom_idxs:
-                arr[atom_idx, :] = 0.0
 
         return self._update_g_from_cart_g(arr)
 
@@ -189,16 +184,9 @@ class OptCoordinates(ValueArray, ABC):
 
     def update_h_from_cart_h(self,
                              arr:             Optional['autode.values.Hessian'],
-                             fixed_atom_idxs: Optional[List[int]] = None
                              ) -> None:
         """Update the Hessian from a cartesian Hessian with shape 3N x 3N for
         N atoms, zeroing the second derivatives if required"""
-
-        if arr is not None and fixed_atom_idxs is not None:
-            for atom_idx in fixed_atom_idxs:
-                for i, _ in enumerate(('x', 'y', 'z')):
-                    arr[3*atom_idx+i, :] = arr[:, 3*atom_idx+i] = 0.0
-
         return self._update_h_from_cart_h(arr)
 
     def make_hessian_positive_definite(self) -> None:

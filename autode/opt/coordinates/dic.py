@@ -16,7 +16,7 @@ summarised below:
 """
 import numpy as np
 from time import time
-from typing import Optional
+from typing import Optional, List
 from autode.geom import proj
 from autode.log import logger
 from autode.opt.coordinates.internals import (PIC,
@@ -231,6 +231,33 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
 
 class DICWithConstraints(DIC):
+    r"""
+    Delocalised internal coordinates with constraints. Uses Lagrangian
+    multipliers to enforce the constraints with:
+
+    ..math::
+
+        L(X, λ) = E(s) + \sum_{i=1}^m \lambda_i C_i(X)
+
+    where s are internal coordinates, and C the constraint functions. The
+    optimisation space then is the n non-constrained internal coordinates and
+    the m Lagrangian multipliers (\lambda_i).
+    """
+
+    @property
+    def n_constraints(self) -> int:
+        """Number of constraints in these coordinates"""
+        return sum(p.is_constrained for p in self.primitives)
+
+    @property
+    def constrained_primitives(self) -> List['Primitive']:
+        return [p for p in self.primitives if p.is_constrained]
+
+    def zero_lagrangian_multipliers(self) -> None:
+        r"""Zero all \lambda_i"""
+
+        self[-self.n_constraints:] = 0.
+        return None
 
     @staticmethod
     def _calc_U(primitives: PIC) -> np.ndarray:
@@ -240,7 +267,63 @@ class DICWithConstraints(DIC):
         const_prim_idxs = [i for i, primitive in enumerate(primitives)
                            if primitive.is_constrained]
 
+        logger.info(f"Projecting {len(const_prim_idxs)} constrained primitives")
         return _schmidt_orthogonalise(u, *const_prim_idxs)
+
+    def _update_g_from_cart_g(self,
+                              arr: Optional['autode.values.Gradient']
+                              ) -> None:
+        r"""
+        Updates the gradient from a calculated Cartesian gradient, where
+        the gradient is that of the Lagrangian. Includes dL/d_λi terms where
+        λi is the i-th lagrangian multiplier.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            arr: Cartesian gradient array
+        """
+        if arr is None:
+            self._x.g, self.g = None, None
+
+        else:
+            self._x.g = arr.flatten()
+            n = len(self)
+            self.g = np.zeros(shape=(n,))
+
+            # Set the first part dL/ds_i
+            self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
+
+            for i in range(self.n_constraints):
+                self.g[n-1-i] += self[n-1-i] * 1  # λ dC_i/ds_i
+
+            # and the final dL/dλ_i
+            c = self.constrained_primitives
+            for i in range(self.n_constraints):
+                self.g[n-1+i] = c[i].delta(self._x)  # C_i(x) = Z_ideal - Z
+
+        return None
+
+    def _update_h_from_cart_h(self,
+                              arr: Optional['autode.values.Hessian']
+                              ) -> None:
+        """
+        Update the DIC Hessian matrix from a Cartesian one
+
+        -----------------------------------------------------------------------
+        Arguments:
+            arr: Cartesian Hessian matrix
+        """
+        if arr is None:
+            self._x.h, self.h = None, None
+
+        else:
+            self._x.h = arr
+            self.h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+
+            # Augment here
+            raise NotImplementedError
+
+        return None
 
 
 def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
