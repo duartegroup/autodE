@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from autode.species.molecule import Molecule
 from autode.atoms import Atom
@@ -31,3 +32,8 @@ def test_coordinate_setup():
     opt._species = mol
     opt._set_initial_coordinates()
     assert opt.n_constraints == 1
+
+    # Ensure that the final DIC comprises a single primitive, which is the
+    # first (inverse) distance populated in the coordinates
+    assert np.allclose(opt._coords.U[:, 2],
+                       np.array([1., 0., 0.]))

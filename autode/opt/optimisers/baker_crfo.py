@@ -1,8 +1,8 @@
 """Constrained rational function optimisation"""
 import numpy as np
 from autode.log import logger
-from autode.opt.coordinates import CartesianCoordinates, DIC
-from autode.opt.coordinates.internals import PIC, InverseDistances
+from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
+from autode.opt.coordinates.internals import InverseDistances
 from autode.opt.optimisers.rfo import RFOOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate
 from autode.opt.coordinates.primitives import (InverseDistance,
@@ -39,7 +39,7 @@ class CRFOptimiser(RFOOptimiser):
 
 
 
-        self._coords = self._coords + self._sanitised_step(delta_s)
+        # self._coords = self._coords + self._sanitised_step(delta_s)
         return None
 
     def _initialise_run(self) -> None:
@@ -52,18 +52,20 @@ class CRFOptimiser(RFOOptimiser):
         """Set the initial coordinates to optimise in, formed using
         delocalized internals"""
 
+        if self._species is None:
+            raise RuntimeError("Cannot set initial coordinates. No species set")
+
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
         self._populate_primitives()
 
-        self._coords = DIC.from_cartesian(x=cartesian_coords,
-                                          primitives=self._primitives)
+        self._coords = DICWithConstraints.from_cartesian(
+            x=cartesian_coords,
+            primitives=self._primitives
+        )
         return None
 
     def _populate_primitives(self) -> None:
         """Primitive internal coordinates in this molecule"""
-
-        if self._species is None:
-            raise RuntimeError("Cannot collect primitives. No species set")
 
         pic = InverseDistances()
 

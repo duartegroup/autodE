@@ -19,7 +19,6 @@ from time import time
 from typing import Optional
 from autode.geom import proj
 from autode.log import logger
-from autode.opt.coordinates.primitives import ConstrainedDistance
 from autode.opt.coordinates.internals import (PIC,
                                               InverseDistances,
                                               InternalCoordinates)
@@ -61,22 +60,13 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             (np.ndarray): U
         """
 
-        eigvals, eigvecs = np.linalg.eigh(primitives.G)
+        lambd, u = np.linalg.eigh(primitives.G)
 
         # Form a transform matrix from the primitive internals by removing the
         # redundant subspace comprised of small eigenvalues. This forms a set
         # of 3N - 6 non-redundant internals for a system of N atoms
-        eigvecs = eigvecs[:, np.where(np.abs(eigvals) > 1E-10)[0]]
-
-        # Move all the weight along constrained distances to the single DIC
-        # coordinates, so that Lagrange multipliers are easy to add
-        primitive_idxs = [i for i, coord in enumerate(primitives)
-                          if isinstance(coord, ConstrainedDistance)]
-
-        if len(primitive_idxs) > 0:
-            eigvecs = rotate_columns(eigvecs, *primitive_idxs)
-
-        return eigvecs
+        idxs = np.where(np.abs(lambd) > 1E-10)[0]
+        return u[:, idxs]
 
     @classmethod
     def from_cartesian(cls,
@@ -246,32 +236,37 @@ class DICWithConstraints(DIC):
     def _calc_U(primitives: PIC) -> np.ndarray:
         """Eigenvectors of the G matrix"""
 
+        u = DIC._calc_U(primitives)
+        const_prim_idxs = [i for i, primitive in enumerate(primitives)
+                           if primitive.is_constrained]
 
-    @staticmethod
-    def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
-        """
-        Perform Schmidt orthogonalization to generate orthogonal vectors
-        that include a number of unit vectors, the non-zero components of which
-        are defined by the indexes argument.
-        """
-        logger.info(f"Schmidt-orthogonalizing. Using {indexes} as "
-                    f"orthonormal vectors")
+        return _schmidt_orthogonalise(u, *const_prim_idxs)
 
-        u = np.zeros_like(arr)
-        _, n_cols = arr.shape
 
-        for i, index in enumerate(indexes):
-            u[index, i] = 1.
+def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
+    """
+    Perform Schmidt orthogonalization to generate orthogonal vectors
+    that include a number of unit vectors, the non-zero components of which
+    are defined by the indexes argument.
+    """
+    logger.info(f"Schmidt-orthogonalizing. Using {indexes} as "
+                f"orthonormal vectors")
 
-        for i in range(len(indexes), n_cols):
+    u = np.zeros_like(arr)
+    _, n_cols = arr.shape
 
-            u_i = arr[:, i]
-            for j in range(0, i):
-                u_i -= proj(u[:, j], arr[:, i])
+    for i, index in enumerate(indexes):
+        u[index, i] = 1.
 
-            u_i /= np.linalg.norm(u_i)
+    for i in range(len(indexes), n_cols):
 
-            u[:, i] = u_i.copy()
+        u_i = arr[:, i]
+        for j in range(0, i):
+            u_i -= proj(u[:, j], arr[:, i])
 
-        # Arbitrarily place the defined unit vectors at the end
-        return u[:, ::-1]
+        u_i /= np.linalg.norm(u_i)
+
+        u[:, i] = u_i.copy()
+
+    # Arbitrarily place the defined unit vectors at the end
+    return u[:, ::-1]
