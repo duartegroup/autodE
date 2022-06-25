@@ -18,7 +18,7 @@ Usability improvements/Changes
 Functionality improvements
 **************************
 - Adds a :code:`autode.atoms.Atom.covalent_radius` property
-- Adds a :code:`autode.atoms.Atoms.eqm_distance` method for the equilibrium bonded distance between two atoms
+- Adds a :code:`autode.atoms.Atoms.eqm_bond_distance` method for the equilibrium bonded distance between two atoms
 
 
 Bug Fixes

@@ -948,7 +948,7 @@ class Builder(AtomCollection):
             idx_i, idx_j = bond
             self.graph.add_edge(idx_i, idx_j, order=bond.order)
 
-            bond.r0 = self.atoms.eqm_distance(idx_i, idx_j)
+            bond.r0 = self.atoms.eqm_bond_distance(idx_i, idx_j)
 
         self._set_atom_types()
 

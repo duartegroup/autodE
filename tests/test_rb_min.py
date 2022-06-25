@@ -10,7 +10,7 @@ def rb_minimised_is_reasonable(molecule):
     n_atoms = molecule.n_atoms
     coords = opt_rb_coords(py_coords=molecule.coordinates,
                            py_bonded_matrix=molecule.bond_matrix,
-                           py_r0_matrix=np.asarray(molecule.graph.eqm_distance_matrix,
+                           py_r0_matrix=np.asarray(molecule.graph.eqm_bond_distance_matrix,
                                                    dtype='f8'),
                            py_k_matrix=1 * np.ones((n_atoms, n_atoms),
                                                    dtype='f8'),

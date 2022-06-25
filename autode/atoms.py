@@ -658,9 +658,9 @@ class Atoms(list):
         """Are all these indexes present in this set of atoms"""
         return set(args).issubset(set(range(len(self))))
 
-    def eqm_distance(self,
-                     i: int,
-                     j: int) -> Distance:
+    def eqm_bond_distance(self,
+                          i: int,
+                          j: int) -> Distance:
         """
         Equilibrium distance between two atoms. If known then use the
         experimental dimer distance, otherwise estimate if from the
@@ -674,7 +674,7 @@ class Atoms(list):
             >>> mol = ade.Molecule(atoms=[ade.Atom('H'), ade.Atom('H')])
             >>> mol.distance(0, 1)
             Distance(0.0 Å)
-            >>> mol.eqm_distance(0, 1)
+            >>> mol.eqm_bond_distance(0, 1)
             Distance(0.741 Å)
 
         -----------------------------------------------------------------------
@@ -946,8 +946,8 @@ class AtomCollection:
     def distance(self, i: int, j: int) -> Distance:
         return self.atoms.distance(i, j)
 
-    def eqm_distance(self, i: int, j: int) -> Distance:
-        return self.atoms.eqm_distance(i, j)
+    def eqm_bond_distance(self, i: int, j: int) -> Distance:
+        return self.atoms.eqm_bond_distance(i, j)
 
     def angle(self,
               i: int,

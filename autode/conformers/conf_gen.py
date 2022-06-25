@@ -378,7 +378,7 @@ def get_simanl_atoms(species:            'autode.species.Species',
                                              rand=rand)
 
     # Add the distance constraints as fixed bonds
-    d0 = species.graph.eqm_distance_matrix
+    d0 = species.graph.eqm_bond_distance_matrix
 
     # Add distance constraints across stereocentres e.g. for a Z double bond
     # then modify d0 appropriately

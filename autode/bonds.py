@@ -55,7 +55,7 @@ class FormingBond(ScannedBond):
         self.curr_dist = species.distance(i=i, j=j)
 
         if final_species is None:
-            self.final_dist = species.atoms.eqm_distance(i, j)
+            self.final_dist = species.atoms.eqm_bond_distance(i, j)
         else:
             self.final_dist = final_species.distance(*atom_indexes)
 

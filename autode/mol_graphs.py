@@ -46,7 +46,7 @@ class MolecularGraph(nx.Graph):
         return True
 
     @property
-    def eqm_distance_matrix(self) -> np.ndarray:
+    def eqm_bond_distance_matrix(self) -> np.ndarray:
         """
         An n_atoms x n_atoms matrix of ideal bond lengths. All non-bonded atoms
         will have zero ideal bond lengths
@@ -167,7 +167,7 @@ def make_graph(species:                'autode.Species',
                     continue
 
                 # Get r_avg for this X-Y bond e.g. C-C -> 1.5
-                avg_bond_length = species.atoms.eqm_distance(i, j)
+                avg_bond_length = species.atoms.eqm_bond_distance(i, j)
 
                 # If the distance between atoms i and j are less or equal to
                 # 1.25x average length add a 'bond'

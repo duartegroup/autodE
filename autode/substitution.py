@@ -16,7 +16,7 @@ class SubstitutionCentre:
         """Set the ideal distance between a and c atoms in a substitution
         centre"""
 
-        r0 = species.atoms.eqm_distance(self.a_atom, self.c_atom)
+        r0 = species.atoms.eqm_bond_distance(self.a_atom, self.c_atom)
         self.r0_ac = shift_factor * r0
         return None
 
