@@ -52,7 +52,7 @@ class RFOOptimiser(NDOptimiser):
         aug_H_lmda, aug_H_v = np.linalg.eigh(aug_H)
         # A RF step uses the eigenvector corresponding to the lowest non zero
         # eigenvalue
-        mode = np.where(np.abs(aug_H_lmda) > 1E-8)[0][0]
+        mode = np.where(np.abs(aug_H_lmda) > 1E-16)[0][0]
         logger.info(f'Stepping along mode: {mode}')
 
         # and the step scaled by the final element of the eigenvector
