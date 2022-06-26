@@ -18,7 +18,7 @@ from autode.opt.coordinates.primitives import (InverseDistance,
 class CRFOptimiser(RFOOptimiser):
 
     def __init__(self,
-                 init_alpha:    float = 0.02,
+                 init_alpha:    float = 0.1,
                  *args,
                  **kwargs):
         """
@@ -38,23 +38,23 @@ class CRFOptimiser(RFOOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
+        # TODO: remove
         print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
-
-        self._coords.h = self._updated_h()
 
         if self._coords.some_constraints_are_satisfied:
             logger.info("Rebuilding DIC without satisfied primitives")
             g = self._coords.to("cartesian").reshape((-1, 3))
             e = self._coords.e
-            raise NotImplementedError("Can't rebuild coordinates because "
-                                      "there is not now all the weight along"
-                                      "a constrained mode. need to be smarter")
             self._build_internal_coordinates()
-            self._remove_lagrange_multipliers()
             self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
             self._coords.make_hessian_positive_definite()
             self._coords.update_g_from_cart_g(g)
             self._coords.e = e
+            print("new distance")
+            print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
+
+        else:
+            self._coords.h = self._updated_h()
 
         n, m = len(self._coords), self._coords.n_constraints
 
@@ -80,8 +80,12 @@ class CRFOptimiser(RFOOptimiser):
         for j in range(n):
             delta_s -= f[m+j] * u[:, m+j] / (b[m+j] - lambda_n)
 
-        self._coords._lambda[:] = self._sanitised_step(delta_s[n:])
-        self._coords = self._coords + self._sanitised_step(delta_s[:n])
+        delta_s = self._sanitised_step(delta_s)
+
+        self._coords = self._coords + delta_s[:n]
+        self._coords.set_lagrange_multipliers(delta_s[n:])
+        print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
+
         return None
 
     def _initialise_run(self) -> None:
@@ -97,7 +101,12 @@ class CRFOptimiser(RFOOptimiser):
         if self._species is None:
             raise RuntimeError("Cannot set initial coordinates. No species set")
 
-        cartesian_coords = CartesianCoordinates(self._species.coordinates)
+        if self._coords is None:
+            cartesian_coords = CartesianCoordinates(self._species.coordinates)
+        else:
+            cartesian_coords = self._coords.to("cartesian")
+            cartesian_coords.g = None
+            cartesian_coords.h = None
 
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords,
@@ -112,11 +121,6 @@ class CRFOptimiser(RFOOptimiser):
 
         pic = InverseDistances()
 
-        if self._coords is not None:
-            x = self._coords.to("cartesian")
-        else:
-            x = CartesianCoordinates(self._species.coordinates)
-
         for i in range(self._species.n_atoms):
             for j in range(i+1, self._species.n_atoms):
 
@@ -126,13 +130,7 @@ class CRFOptimiser(RFOOptimiser):
 
                 # i-j is constrained
                 r = self._species.constraints.distance[(i, j)]
-                p = ConstrainedInverseDistance(i, j, value=1./r)
-
-                if p.is_satisfied(x):
-                    logger.info(f"Not including constrained primitive: {i}-{j}")
-                    continue
-
-                pic.append(p)
+                pic.append(ConstrainedInverseDistance(i, j, value=1./r))
 
         return pic
 
@@ -167,76 +165,3 @@ class CRFOptimiser(RFOOptimiser):
         eigenvalues = np.linalg.eigvalsh(aug_h2)
         return eigenvalues[0]
 
-    def _remove_lagrange_multipliers(self) -> None:
-        """
-        Remove the lagrange multipliers associated with constrained primitives
-        that are satisfied from the coordinate space. This also requires
-        setting the components of the gradient and Hessian having removed
-        some coordinates from the optimisation space (along with their
-        associated lagrangian multipliers for e.g. R-R_0). Gradient vector has
-        the form:
-
-        g = (g_0, g_1, ... g_n-1, g_n, dL/dλ_0, dL/dλ_1)
-
-        where, for example, if the first constraint is satisfied then g_n-1
-        and dL/dλ_0 are removed.
-        """
-        s = self._history.penultimate
-
-        idxs = s.satisfied_constraint_indexes
-        assert len(idxs) > 0  # the previous coordinates must have >0 satisfied
-        logger.info(f"Removing {len(idxs)} Lagrange multipliers & associated "
-                    f"satisfied primitives from optimisation space")
-
-        n, m = len(s), s.n_constraints
-
-        _lambda = []
-        for i, lambda_i in enumerate(s._lambda):
-            if i not in idxs:
-                _lambda.append(i)
-
-        self._coords._lambda = np.array(_lambda)
-
-        def idx_should_be_removed(_i: int) -> bool:
-            if any(_i == _j + n for _j in idxs):
-                logger.info(f"Component {_i} was a Lagrange multiplier")
-                return True
-
-            if any(_i == n - 1 - _j for _j in idxs):
-                logger.info(f"Component {_i} was a satisfied primitive")
-                return True
-
-            return False
-
-        print(np.round(s.g, 3))
-        print(np.round(s.h, 3))
-        print()
-
-        n_new, m_new = len(self._coords), self._coords.n_constraints
-        g = np.zeros(shape=(n_new+m_new))
-        h = np.zeros(shape=(n_new+m_new, n_new+m_new))
-
-        i_new = 0
-        for i in range(n + m):
-
-            if not idx_should_be_removed(i):
-                g[i_new] = s.g[i]
-
-                j_new = 0
-                for j in range(n + m):
-                    print(i_new, j_new)
-                    if not idx_should_be_removed(j):
-                        h[i_new, j_new] = s.h[i, j]
-                        j_new += 1
-
-                i_new += 1
-
-        self._coords.e = s.e  # Energy is unchanged
-        self._coords.g = g
-        print(np.round(g, 3))
-
-        self._coords.h = h
-        print(np.round(h, 3))
-
-
-        return None

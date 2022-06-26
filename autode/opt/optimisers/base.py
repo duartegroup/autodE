@@ -521,7 +521,8 @@ class NDOptimiser(Optimiser, ABC):
         """
         coords_l, coords_k = self._history.final, self._history.penultimate
 
-        if len(coords_l) != len(coords_k):
+        if any(getattr(coords_l, a).shape != getattr(coords_k, a).shape
+               for a in ("raw", "g")):
             logger.info("Cannot update the hessian. Coordinates changed "
                         "size")
             return NullUpdate()

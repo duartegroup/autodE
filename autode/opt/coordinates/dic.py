@@ -33,7 +33,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         return f'DIC(n={len(self)})'
 
     @staticmethod
-    def _calc_U(primitives: PIC) -> np.ndarray:
+    def _calc_U(primitives: PIC, x: 'CartesianCoordinates') -> np.ndarray:
         r"""
         Transform matrix containing the non-redundant eigenvectors of the G
         matrix.
@@ -96,7 +96,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             primitives = InverseDistances.from_cartesian(x)
 
         q = primitives(x)
-        U = cls._calc_U(primitives)
+        U = cls._calc_U(primitives, x)
         dic = cls(input_array=np.matmul(U.T, q))
 
         dic.U = U                # Transform matrix primitives -> non-redundant
@@ -265,15 +265,32 @@ class DICWithConstraints(DIC):
         return None
 
     @staticmethod
-    def _calc_U(primitives: PIC) -> np.ndarray:
+    def _calc_U(primitives: PIC, x: 'CartesianCoordinates') -> np.ndarray:
         """Eigenvectors of the G matrix"""
 
-        u = DIC._calc_U(primitives)
+        u = DIC._calc_U(primitives, x)
         const_prim_idxs = [i for i, primitive in enumerate(primitives)
                            if primitive.is_constrained]
 
         logger.info(f"Projecting {len(const_prim_idxs)} constrained primitives")
-        return _schmidt_orthogonalise(u, *const_prim_idxs)
+        u = _schmidt_orthogonalise(u, *const_prim_idxs)
+        print(np.round(u, 4))
+
+
+        n, m = u.shape[1], len(const_prim_idxs)
+        satisfied_idxs = [i for i, idx in enumerate(const_prim_idxs) if
+                          primitives[idx].is_satisfied(x)]
+        print(satisfied_idxs)
+
+        kept_idxs = [i for i in range(n) if i - n + 1 not in satisfied_idxs]
+        print(kept_idxs)
+        print(np.round(u[:, kept_idxs], 4))
+
+        for i in range(n):
+            print(i - n + 1)
+
+
+        return u[:, kept_idxs]
 
     def _update_g_from_cart_g(self,
                               arr: Optional['autode.values.Gradient']
@@ -294,6 +311,7 @@ class DICWithConstraints(DIC):
             self._x.g = arr.flatten()
             n = len(self)
             m = self.n_constraints
+            print(m)
 
             self.g = np.zeros(shape=(n+m,))
 
@@ -348,6 +366,64 @@ class DICWithConstraints(DIC):
 
         n_rows, n_cols = arr.shape
         return arr.ndim == 2 and n_rows == n_cols == len(self) + self.n_constraints
+
+    def set_lagrange_multipliers(self, arr: np.ndarray) -> None:
+        """Set the lagrange multipliers: {λ_0, λ_1, ..}"""
+
+        if arr.shape != self._lambda.shape:
+            raise ValueError("Cannot set lagrange multipliers. Incorrect shape")
+
+        self._lambda[:] = arr
+
+    def remove_satisfied_constraints(self) -> None:
+        """
+        Remove the lagrange multipliers associated with constrained primitives
+        that are satisfied from the coordinate space. This also requires
+        setting the components of the gradient and Hessian having removed
+        some coordinates from the optimisation space (along with their
+        associated lagrangian multipliers for e.g. R-R_0). Gradient vector has
+        the form:
+
+        g = (g_0, g_1, ... g_n-1, g_n, dL/dλ_0, dL/dλ_1)
+
+        where, for example, if the first constraint is satisfied then g_n-1
+        and dL/dλ_0 are removed. Likewise with the Hessian. NOTE: the DICs
+        (which are actually primitives) are not removed from the space, to
+        allow for consistent backtransformations (nor can they be rebuilt),
+        so addition of ∆s needs to allow for padding with 0s in the constrained
+        coordinates
+        """
+
+        idxs = self.satisfied_constraint_indexes
+        k = len(idxs)
+        n, m = len(self), self.n_constraints + k
+
+        if k == 0:
+            return  # Nothing is satisfied, so nothing to do
+
+        print(k, n, m)
+        exit()
+
+        logger.info(f"Removing {k} Lagrange multipliers & associated "
+                    f"satisfied primitives from optimisation space")
+
+        kept_idxs = [i for i in range(n)
+                     if not any(n - m + j == i for j in idxs)]
+        print(kept_idxs)
+
+        exit()
+        self.U = self.U[:, kept_idxs]
+        self = cls(input_array=np.matmul(U.T, q))
+
+
+        self.B = np.matmul(self.U.T, self.primitives.B)
+        self.B_T_inv = np.linalg.pinv(self.B)
+        self.update_g_from_cart_g(self._x.g)
+        self.update_h_from_cart_h(self._x.h)
+
+        print(np.round(self.h, 3))
+
+        return None
 
 
 def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:

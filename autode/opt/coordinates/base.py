@@ -172,7 +172,7 @@ class OptCoordinates(ValueArray, ABC):
                              ) -> None:
         """Update the gradient from a Cartesian gradient, zeroing those atoms
          that are constrained"""
-        assert arr is None or arr.shape[1] == 3  # Needs an Nx3 matrix
+        assert arr is None or len(arr.flatten()) % 3 == 0  # Needs an Nx3 matrix
 
         return self._update_g_from_cart_g(arr)
 
