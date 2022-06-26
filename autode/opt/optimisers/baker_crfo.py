@@ -38,16 +38,23 @@ class CRFOptimiser(RFOOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
+        print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
+
         self._coords.h = self._updated_h()
 
         if self._coords.some_constraints_are_satisfied:
             logger.info("Rebuilding DIC without satisfied primitives")
             g = self._coords.to("cartesian").reshape((-1, 3))
+            e = self._coords.e
+            raise NotImplementedError("Can't rebuild coordinates because "
+                                      "there is not now all the weight along"
+                                      "a constrained mode. need to be smarter")
             self._build_internal_coordinates()
             self._remove_lagrange_multipliers()
             self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
             self._coords.make_hessian_positive_definite()
             self._coords.update_g_from_cart_g(g)
+            self._coords.e = e
 
         n, m = len(self._coords), self._coords.n_constraints
 
