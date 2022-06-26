@@ -216,8 +216,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             self.B_T_inv = np.linalg.pinv(B)
 
             if np.average(s_k - s_new)**2 < 1E-16:
-                logger.info( f'DIC transformation converged in {i} cycle(s) '
-                             f'in {time() - start_time:.4f} s')
+                logger.info(f'DIC transformation converged in {i} cycle(s) '
+                            f'in {time() - start_time:.4f} s')
                 break
 
             if i == _max_back_transform_iterations:
@@ -244,19 +244,24 @@ class DICWithConstraints(DIC):
     the m Lagrangian multipliers (\lambda_i).
     """
 
-    @property
-    def n_constraints(self) -> int:
-        """Number of constraints in these coordinates"""
-        return sum(p.is_constrained for p in self.primitives)
+    def __new__(cls, input_array) -> 'InternalCoordinates':
+        """New instance of these internal coordinates"""
 
-    @property
-    def constrained_primitives(self) -> List['Primitive']:
-        return [p for p in self.primitives if p.is_constrained]
+        arr = super().__new__(cls, input_array)
+
+        arr._lambda = None     # Additional lagrangian multipliers
+        return arr
+
+    def __array_finalize__(self, obj: 'OptCoordinates') -> None:
+        """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
+        super().__array_finalize__(obj)
+        self._lambda = getattr(obj, '_lambda', None)
+        return
 
     def zero_lagrangian_multipliers(self) -> None:
         r"""Zero all \lambda_i"""
 
-        self[-self.n_constraints:] = 0.
+        self._lambda = np.zeros(shape=(self.n_constraints,))
         return None
 
     @staticmethod
@@ -288,18 +293,20 @@ class DICWithConstraints(DIC):
         else:
             self._x.g = arr.flatten()
             n = len(self)
-            self.g = np.zeros(shape=(n,))
+            m = self.n_constraints
+
+            self.g = np.zeros(shape=(n+m,))
 
             # Set the first part dL/ds_i
             self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
 
-            for i in range(self.n_constraints):
-                self.g[n-1-i] += self[n-1-i] * 1  # λ dC_i/ds_i
+            for i in range(m):
+                self.g[n-m+i] += self._lambda[i] * 1  # λ dC_i/ds_i
 
             # and the final dL/dλ_i
             c = self.constrained_primitives
-            for i in range(self.n_constraints):
-                self.g[n-1+i] = c[i].delta(self._x)  # C_i(x) = Z_ideal - Z
+            for i in range(m):
+                self.g[n+i] = c[i].delta(self._x)  # C_i(x) = Z_ideal - Z
 
         return None
 
@@ -318,12 +325,29 @@ class DICWithConstraints(DIC):
 
         else:
             self._x.h = arr
-            self.h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+            n = len(self)
+            m = self.n_constraints
 
-            # Augment here
-            raise NotImplementedError
+            self.h = np.zeros(shape=(n+m, n+m))
+
+            # Fill in the upper left corner with d^2L/ds_i ds_j
+            # where the second derivative of the constraint is zero
+            self.h[:n, :n] = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+
+            # and the d^2L/ds_i dλ_i = dC_i/ds_i = 1
+            for i in range(1, m+1):
+                self.h[n+i-1, :] = self.h[:, n+i-1] = 0.
+                self.h[n+m-i, n-i] = self.h[n-i, n+m-i] = 1.
 
         return None
+
+    def h_or_h_inv_has_correct_shape(self, arr: Optional[np.ndarray]):
+        """Does a Hessian or its inverse have the correct shape?"""
+        if arr is None:
+            return True  # None is always valid
+
+        n_rows, n_cols = arr.shape
+        return arr.ndim == 2 and n_rows == n_cols == len(self) + self.n_constraints
 
 
 def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:

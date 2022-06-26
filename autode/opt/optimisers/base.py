@@ -133,6 +133,9 @@ class Optimiser(ABC):
             raise ValueError(f'{method} must be a autoode.wrappers.base.Method '
                              f'instance but had {type(method)}')
 
+        if species.constraints.n_cartesian > 0:
+            raise NotImplementedError
+
         self._method, self._species = method, species
         return None
 
@@ -161,9 +164,7 @@ class Optimiser(ABC):
         self._species.gradient = grad.get_gradients()
         grad.clean_up(force=True, everything=True)
 
-        fixed_idxs = self._species.constraints.cartesian
-        self._coords.update_g_from_cart_g(arr=self._species.gradient,
-                                          fixed_atom_idxs=fixed_idxs)
+        self._coords.update_g_from_cart_g(arr=self._species.gradient)
         return None
 
     def _update_hessian_gradient_and_energy(self) -> None:
@@ -188,10 +189,7 @@ class Optimiser(ABC):
                              n_cores=self._n_cores)
 
         self._species.hessian = species.hessian.copy()
-
-        fixed_idxs = self._species.constraints.cartesian
-        self._coords.update_h_from_cart_h(self._species.hessian,
-                                          fixed_atom_idxs=fixed_idxs)
+        self._coords.update_h_from_cart_h(self._species.hessian)
         return None
 
     @property
@@ -410,7 +408,7 @@ class NDOptimiser(Optimiser, ABC):
         """
         if self._abs_delta_e < self.etol / 10:
             logger.warning(f'Energy change is overachieved. '
-                           f'{self.etol.to("kcal")/10:.3f} kcal mol-1. '
+                           f'{self.etol.to("kcal")/10:.3E} kcal mol-1. '
                            f'Signaling convergence')
             return True
 
@@ -522,6 +520,11 @@ class NDOptimiser(Optimiser, ABC):
             (RuntimeError): If no suitable strategies are found
         """
         coords_l, coords_k = self._history.final, self._history.penultimate
+
+        if len(coords_l) != len(coords_k):
+            logger.info("Cannot update the hessian. Coordinates changed "
+                        "size")
+            return NullUpdate()
 
         for update_type in self._hessian_update_types:
             updater = update_type(h=coords_k.h,

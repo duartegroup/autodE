@@ -93,6 +93,9 @@ class RFOOptimiser(NDOptimiser):
     def _sanitised_step(self, delta_s: np.ndarray) -> np.ndarray:
         """Ensure the step to be taken isn't too large"""
 
+        if len(delta_s) == 0:  # No need to sanitise a null step
+            return delta_s
+
         max_step_component = np.max(np.abs(delta_s))
 
         if max_step_component > 100 * self.alpha:

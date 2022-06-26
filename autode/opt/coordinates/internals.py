@@ -8,7 +8,9 @@ q : Primitive internal coordinates
 G : Spectroscopic G matrix
 """
 import numpy as np
-from typing import Any, Optional, Type
+
+from copy import deepcopy
+from typing import Any, Optional, Type, List
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (InverseDistance,
@@ -23,22 +25,42 @@ class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
 
         arr = super().__new__(cls, input_array, units=None)
 
-        arr._x = None           # Cartesian coordinates
-        if hasattr(input_array, "_x"):
-            arr._x = input_array._x
-
-        arr.primitives = None   # PIC
-        if hasattr(input_array, "primitives"):
-            arr.primitives = input_array.primitives
+        for attr in ("_x", "primitives"):
+            setattr(arr, attr, getattr(input_array, attr, None))
 
         return arr
 
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
         OptCoordinates.__array_finalize__(self, obj)
-        self._x = getattr(obj, '_x', None)
-        self.primitives = getattr(obj, 'primitives', None)
+
+        for attr in ("_x", "primitives"):
+            setattr(self, attr, getattr(obj, attr, None))
+
         return
+
+    @property
+    def n_constraints(self) -> int:
+        """Number of constraints in these coordinates"""
+        return sum(p.is_constrained for p in self.primitives)
+
+    @property
+    def constrained_primitives(self) -> List['ConstrainedPrimitive']:
+        return [p for p in self.primitives if p.is_constrained]
+
+    @property
+    def satisfied_constraint_indexes(self) -> List[int]:
+        """Indexes of the constraints that have been satisfied. Integers
+        in the range [0, m) where m is the number of constraints"""
+
+        x = self.to("cartesian")
+        return [i for i, p in enumerate(self.constrained_primitives)
+                if p.is_satisfied(x)]
+
+    @property
+    def some_constraints_are_satisfied(self) -> bool:
+        """Is at least one constraint satisfied in the current geometry?"""
+        return len(self.satisfied_constraint_indexes) > 0
 
 
 class PIC(list, ABC):
@@ -139,6 +161,9 @@ class PIC(list, ABC):
     @staticmethod
     def _are_all_primitive_coordinates(args: tuple) -> bool:
         return all(isinstance(arg, Primitive) for arg in args)
+
+    def copy(self) -> 'PIC':
+        return deepcopy(self)
 
 
 class _FunctionOfDistances(PIC):

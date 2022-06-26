@@ -29,10 +29,10 @@ def test_coordinate_setup():
 
     with pytest.raises(RuntimeError):
         # Cannot set coordinates without a species
-        opt._set_initial_coordinates()
+        opt._build_internal_coordinates()
 
     opt._species = mol
-    opt._set_initial_coordinates()
+    opt._build_internal_coordinates()
     assert opt._coords.n_constraints == 1
 
     # Ensure that the final DIC comprises a single primitive, which is the
@@ -43,19 +43,19 @@ def test_coordinate_setup():
     # Initial lagrangian multiplier is close to zero, which is the last
     # component in the optimisation space
     opt._coords.zero_lagrangian_multipliers()
-    assert np.isclose(opt._coords[2], 0.)
+    assert np.isclose(opt._coords._lambda[0], 0.)
 
 
 def crfo_water_coords():
 
     optimiser = CRFOptimiser(maxiter=1, gtol=1E-5, etol=1E-5)
     optimiser._species = water_molecule()
-    optimiser._set_initial_coordinates()
+    optimiser._build_internal_coordinates()
 
     return optimiser._coords
 
 
-def test_gradient_update():
+def test_simple_gradient_update():
 
     coords = crfo_water_coords()
 
@@ -66,5 +66,26 @@ def test_gradient_update():
     ])
     coords.update_g_from_cart_g(cartesian_g)
 
+    print(coords.g)
+
     # dL/dλ = C(x) = (r_OH^-1 - r_ideal^-1)
-    assert np.isclose(coords.g[2], coords.primitives[0].delta(coords._x))
+    assert np.isclose(coords.g[3], coords.primitives[0].delta(coords._x))
+
+
+def test_simple_hessian_update():
+
+    coords = crfo_water_coords()
+
+    cartesian_h = 9.9 * np.eye(9)
+    coords.update_h_from_cart_h(cartesian_h)
+
+    assert coords.h.shape == (4, 4)
+
+    assert not np.isclose(coords.h[0, 0], 0.)  # d^2L/ds_0ds_0
+    assert not np.isclose(coords.h[0, 1], 0.)  # d^2L/ds_0ds_1
+
+    assert np.isclose(coords.h[3, 3], 0.)  # d^2L/dλ^2
+    assert np.isclose(coords.h[2, 3], 1.)  # d^2L/dλ^2
+
+    # Hessian needs to be symmetric
+    assert np.allclose(coords.h.T, coords.h)
