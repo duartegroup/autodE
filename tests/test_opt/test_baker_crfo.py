@@ -5,6 +5,7 @@ from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.values import Distance
 from autode.opt.optimisers.baker_crfo import CRFOptimiser
+from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 
 
 def water_molecule(oh_distance=1):
@@ -89,3 +90,25 @@ def test_simple_hessian_update():
 
     # Hessian needs to be symmetric
     assert np.allclose(coords.h.T, coords.h)
+
+
+def test_primitive_projection_discard():
+
+    optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
+    optimiser._species = water_molecule()
+
+    # Current distance that will be constrained
+    r_initial = optimiser._species.distance(0, 1)
+
+    x = CartesianCoordinates(optimiser._species.coordinates)
+    s = DICWithConstraints.from_cartesian(x, optimiser._primitives)
+    assert len(s) == 3
+
+    # Shift on the first couple of DIC but nothing on the final one
+    s += np.array([0.03, -0.07, 0.])
+
+    def r(_x):
+        return np.linalg.norm(_x[:3] - _x[3:6])
+
+    # Should not change value of the 'removed' coordinate
+    assert np.isclose(r(s.to("cartesian")), r_initial, atol=1E-10)

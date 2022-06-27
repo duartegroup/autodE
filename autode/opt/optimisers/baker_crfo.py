@@ -40,30 +40,22 @@ class CRFOptimiser(RFOOptimiser):
         """Partitioned rational function step"""
         # TODO: remove
         print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
-
-        if self._coords.some_constraints_are_satisfied:
-            logger.info("Rebuilding DIC without satisfied primitives")
-            g = self._coords.to("cartesian").reshape((-1, 3))
-            e = self._coords.e
-            self._build_internal_coordinates()
-            self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
-            self._coords.make_hessian_positive_definite()
-            self._coords.update_g_from_cart_g(g)
-            self._coords.e = e
-            print("new distance")
-            print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
-
-        else:
-            self._coords.h = self._updated_h()
+        self._coords.h = self._updated_h()
 
         n, m = len(self._coords), self._coords.n_constraints
+        logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
-        b, u = np.linalg.eigh(self._coords.h)
+        idxs = self._coords.active_indexes
+        n_satisfied_constraints = (n + m - len(idxs))//2
+        logger.info(f"Satisfied {n_satisfied_constraints} constraints. "
+                    f"Active space is {len(idxs)} dimensional")
+
+        b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])
         logger.info(f"∇^2L has {sum(lmda < 0 for lmda in b)} negative "
-                    f"eigenvalue(s). Should have {m}")
+                    f"eigenvalue(s). Should have {m - n_satisfied_constraints}")
 
         logger.info("Calculating transformed gradient vector")
-        f = u.T.dot(self._coords.g)
+        f = u.T.dot(self._coords.g[idxs])
 
         lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
         logger.info(f"Calculated λ_p={lambda_p:.5f}")
@@ -72,15 +64,18 @@ class CRFOptimiser(RFOOptimiser):
         logger.info(f"Calculated λ_n={lambda_n:.5f}")
 
         # Create the step along the n active DICs and m lagrangian multipliers
+        delta_s_active = np.zeros(shape=(len(idxs),))
+
+        o = m - n_satisfied_constraints
+        for i in range(o):
+            delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
+
+        for j in range(n - n_satisfied_constraints):
+            delta_s_active -= f[o+j] * u[:, o+j] / (b[o+j] - lambda_n)
+
+        # Set all the non active components of the step to zero
         delta_s = np.zeros(shape=(n+m,))
-
-        for i in range(m):
-            delta_s -= f[i] * u[:, i] / (b[i] - lambda_p)
-
-        for j in range(n):
-            delta_s -= f[m+j] * u[:, m+j] / (b[m+j] - lambda_n)
-
-        delta_s = self._sanitised_step(delta_s)
+        delta_s[idxs] = self._sanitised_step(delta_s_active)
 
         self._coords = self._coords + delta_s[:n]
         self._coords.set_lagrange_multipliers(delta_s[n:])

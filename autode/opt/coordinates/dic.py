@@ -199,7 +199,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         s_new = self.raw + value
 
         # Initialise
-        s_k, x_k = self.raw, self._x.copy()
+        s_k, x_k = self.raw, self.to("cartesian").copy()
 
         for i in range(1, _max_back_transform_iterations+1):
 
@@ -273,21 +273,30 @@ class DICWithConstraints(DIC):
                            if primitive.is_constrained]
 
         logger.info(f"Projecting {len(const_prim_idxs)} constrained primitives")
-        u = _schmidt_orthogonalise(u, *const_prim_idxs)
-        print(np.round(u, 4))
+        return _schmidt_orthogonalise(u, *const_prim_idxs)
 
-        # This doesn't work and I don't know why :(
+    @property
+    def inactive_indexes(self) -> List[int]:
+        """
+        Generate a list of mode indexes that are inactive in the optimisation
+        space. This *requires* the m constrained modes being at the end of the
+        coordinate set. It also includes the lagrange multipliers
+        """
 
-        n, m = u.shape[1], len(const_prim_idxs)
-        satisfied_idxs = [i for i, idx in enumerate(const_prim_idxs) if
-                          primitives[idx].is_satisfied(x)]
-        print(satisfied_idxs)
+        n, m = len(self), self.n_constraints
+        x = self.to("cartesian")
+        idxs = [i for i, p in enumerate(self.constrained_primitives)
+                if p.is_satisfied(x)]
 
-        kept_idxs = [i for i in range(n) if i - n + 1 not in satisfied_idxs]
-        print(kept_idxs)
-        print(np.round(u[:, kept_idxs], 4))
+        return [n - m + i for i in idxs] + [n + i for i in idxs]
 
-        return u[:, kept_idxs]
+    @property
+    def active_indexes(self) -> List[int]:
+        """Generate a list of indexes for the active modes in this coordinate
+        set"""
+        n, m = len(self), self.n_constraints  # n dic + m lagrange multipliers
+
+        return [i for i in range(n+m) if i not in self.inactive_indexes]
 
     def _update_g_from_cart_g(self,
                               arr: Optional['autode.values.Gradient']
@@ -308,7 +317,6 @@ class DICWithConstraints(DIC):
             self._x.g = arr.flatten()
             n = len(self)
             m = self.n_constraints
-            print(m)
 
             self.g = np.zeros(shape=(n+m,))
 
