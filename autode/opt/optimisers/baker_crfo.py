@@ -121,6 +121,7 @@ class CRFOptimiser(RFOOptimiser):
     @property
     def _primitives(self) -> InverseDistances:
         """Primitive internal coordinates in this molecule"""
+        logger.info("Generating primitive internal coordinates")
 
         pic = InverseDistances()
 
@@ -135,6 +136,7 @@ class CRFOptimiser(RFOOptimiser):
                 r = self._species.constraints.distance[(i, j)]
                 pic.append(ConstrainedInverseDistance(i, j, value=1./r))
 
+        logger.info(f"Using {pic.n_constrained} constraints")
         return pic
 
     def _lambda_p_from_eigvals_and_gradient(self,

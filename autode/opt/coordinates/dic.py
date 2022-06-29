@@ -360,6 +360,8 @@ class DICWithConstraints(DIC):
             # and the d^2L/ds_i dλ_i = dC_i/ds_i = 1
             for i in range(1, m+1):
                 self.h[n+i-1, :] = self.h[:, n+i-1] = 0.
+
+            for i in range(1, m + 1):
                 self.h[n+m-i, n-i] = self.h[n-i, n+m-i] = 1.
 
         return None

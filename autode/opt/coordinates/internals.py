@@ -157,6 +157,11 @@ class PIC(list, ABC):
     def copy(self) -> 'PIC':
         return deepcopy(self)
 
+    @property
+    def n_constrained(self) -> int:
+        """Number of constrained primitive internal coordinates"""
+        return sum(p.is_constrained for p in self)
+
 
 class _FunctionOfDistances(PIC):
 
