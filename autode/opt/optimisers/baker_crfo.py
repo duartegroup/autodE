@@ -7,6 +7,7 @@ Notation follows:
 import numpy as np
 
 from autode.log import logger
+from autode.values import GradientRMS
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import InverseDistances
 from autode.opt.optimisers.rfo import RFOOptimiser
@@ -38,8 +39,7 @@ class CRFOptimiser(RFOOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
-        # TODO: remove
-        print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
+
         self._coords.h = self._updated_h()
 
         n, m = len(self._coords), self._coords.n_constraints
@@ -79,9 +79,17 @@ class CRFOptimiser(RFOOptimiser):
 
         self._coords = self._coords + delta_s[:n]
         self._coords.set_lagrange_multipliers(delta_s[n:])
-        print(np.linalg.norm(self._coords._x[:3] - self._coords._x[3:6]))
-
         return None
+
+    @property
+    def _g_norm(self) -> GradientRMS:
+        """Calculate the norm of the gradient in the active subspace"""
+
+        if self._coords is None or self._coords.g is None:
+            return super()._g_norm
+
+        gradient = self._coords.g[self._coords.active_indexes]
+        return GradientRMS(np.sqrt(np.mean(np.square(gradient))))
 
     def _initialise_run(self) -> None:
         """Initialise the optimisation"""

@@ -453,12 +453,10 @@ class NDOptimiser(Optimiser, ABC):
             logger.warning('Had no coordinates - cannot determine ||∇E||')
             return GradientRMS(np.inf)
 
-        cartesian_gradient = self._coords.to('cart').g
-
-        if cartesian_gradient is None:
+        if self._coords.g is None:
             return GradientRMS(np.inf)
 
-        return GradientRMS(np.sqrt(np.mean(np.square(cartesian_gradient))))
+        return GradientRMS(np.sqrt(np.mean(np.square(self._coords.g))))
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy """
