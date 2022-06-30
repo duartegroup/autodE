@@ -35,11 +35,10 @@ class CRFOptimiser(RFOOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._hessian_update_types = [NullUpdate]# , BFGSUpdate]
+        self._hessian_update_types = [BFGSUpdate, NullUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
-
         self._coords.h = self._updated_h()
 
         n, m = len(self._coords), self._coords.n_constraints

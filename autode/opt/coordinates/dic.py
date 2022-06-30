@@ -196,10 +196,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             (RuntimeError): If the transformation diverges
         """
         start_time = time()
-        s_new = self.raw + value
+        s_new = np.array(self, copy=True) + value
 
         # Initialise
-        s_k, x_k = self.raw, self.to("cartesian").copy()
+        s_k, x_k = np.array(self, copy=True), self.to("cartesian").copy()
 
         for i in range(1, _max_back_transform_iterations+1):
 
@@ -263,6 +263,11 @@ class DICWithConstraints(DIC):
 
         self._lambda = np.zeros(shape=(self.n_constraints,))
         return None
+
+    @property
+    def raw(self) -> np.ndarray:
+        """Raw numpy array of these coordinates"""
+        return np.array(self.tolist() + self._lambda.tolist(), copy=True)
 
     @staticmethod
     def _calc_U(primitives: PIC, x: 'CartesianCoordinates') -> np.ndarray:
