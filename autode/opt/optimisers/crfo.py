@@ -10,20 +10,20 @@ from autode.log import logger
 from autode.values import GradientRMS
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import InverseDistances
-from autode.opt.optimisers.rfo import RFOOptimiser
+from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (InverseDistance,
                                                ConstrainedInverseDistance)
 
 
-class CRFOptimiser(RFOOptimiser):
+class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha:    float = 0.1,
+                 init_alpha: float = 0.1,
                  *args,
                  **kwargs):
         """
-        TODO
+        Constrained rational function optimisation
 
         -----------------------------------------------------------------------
         Arguments:
@@ -35,11 +35,12 @@ class CRFOptimiser(RFOOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._hessian_update_types = [BFGSUpdate, NullUpdate]
+        self._hessian_update_types = [NullUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
         self._coords.h = self._updated_h()
+        print(np.round(self._coords.h, 3))
 
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
@@ -72,7 +73,7 @@ class CRFOptimiser(RFOOptimiser):
         for j in range(n - n_satisfied_constraints):
             delta_s_active -= f[o+j] * u[:, o+j] / (b[o+j] - lambda_n)
 
-        # Set all the non active components of the step to zero
+        # Set all the non-active components of the step to zero
         delta_s = np.zeros(shape=(n+m,))
         delta_s[idxs] = self._sanitised_step(delta_s_active)
 

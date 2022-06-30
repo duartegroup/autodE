@@ -7,7 +7,7 @@ from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
 
 
-class RFOOptimiser(NDOptimiser):
+class RFOptimiser(NDOptimiser):
     """Rational function optimisation in delocalised internal coordinates"""
 
     def __init__(self,

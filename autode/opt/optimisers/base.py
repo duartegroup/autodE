@@ -519,12 +519,6 @@ class NDOptimiser(Optimiser, ABC):
         """
         coords_l, coords_k = self._history.final, self._history.penultimate
 
-        if any(getattr(coords_l, a).shape != getattr(coords_k, a).shape
-               for a in ("raw", "g")):
-            logger.info("Cannot update the hessian. Coordinates changed "
-                        "size")
-            return NullUpdate()
-
         for update_type in self._hessian_update_types:
             updater = update_type(h=coords_k.h,
                                   h_inv=coords_k.h_inv,

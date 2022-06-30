@@ -2,11 +2,11 @@
 import numpy as np
 from autode.log import logger
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.rfo import RFOOptimiser
+from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BofillUpdate
 
 
-class PRFOOptimiser(RFOOptimiser):
+class PRFOptimiser(RFOptimiser):
 
     def __init__(self,
                  init_alpha:    float = 0.1,

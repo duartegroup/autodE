@@ -144,6 +144,8 @@ class BFGSUpdate(HessianUpdater):
     @property
     def conditions_met(self) -> bool:
         """BFGS update must meet the secant condition"""
+        if self.y.shape != self.s.shape:
+            return False
 
         if np.dot(self.y, self.s) < 0:
             logger.warning('Secant condition not satisfied. Skipping H update')
@@ -200,6 +202,9 @@ class SR1Update(HessianUpdater):
 
         where :math:`r \in (0, 1)` = 1E-8.
         """
+        if self.y.shape != self.s.shape:
+            return False
+
         r = 1E-8
 
         if self.h_inv is not None and self.h is None:
@@ -301,5 +306,8 @@ class BofillUpdate(HessianUpdater):
 
     @property
     def conditions_met(self) -> bool:
-        """No conditions are need to be satisfied to perform a Bofill update"""
-        return True
+        """
+        No conditions are need to be satisfied to perform a Bofill update,
+        apart from that on the shapes of the vectors
+        """
+        return self.y.shape == self.s.shape

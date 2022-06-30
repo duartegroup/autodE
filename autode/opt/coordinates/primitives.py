@@ -220,7 +220,7 @@ class ConstrainedDistance(ConstrainedPrimitive, Distance):
         return self._r0
 
 
-class ConstrainedInverseDistance(ConstrainedPrimitive, Distance):
+class ConstrainedInverseDistance(ConstrainedPrimitive, InverseDistance):
 
     def __init__(self,
                  idx_i: int,
