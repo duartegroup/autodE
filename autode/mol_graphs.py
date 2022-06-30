@@ -8,8 +8,7 @@ from typing import Optional, List
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
-from autode.atoms import metals
-from autode.bonds import get_avg_bond_length
+from autode.atoms import Atom, metals
 from autode.log import logger
 
 
@@ -45,6 +44,32 @@ class MolecularGraph(nx.Graph):
             return False
 
         return True
+
+    @property
+    def eqm_bond_distance_matrix(self) -> np.ndarray:
+        """
+        An n_atoms x n_atoms matrix of ideal bond lengths. All non-bonded atoms
+        will have zero ideal bond lengths
+
+        -----------------------------------------------------------------------
+        Returns:
+            (np.ndarray): Matrix of bond lengths (Å)
+        """
+        logger.info('Getting ideal bond length matrix')
+
+        n_atoms = self.number_of_nodes()
+        matrix = np.zeros((n_atoms, n_atoms))
+
+        for (i, j) in self.edges:
+
+            r0 = self._covalent_radius(i) + self._covalent_radius(j)
+            matrix[i, j] = matrix[j, i] = float(r0)
+
+        return matrix
+
+    def _covalent_radius(self, i) -> 'autode.values.Distance':
+        """Covalent radius of a node in the graph"""
+        return Atom(self.nodes[i]['atom_label']).covalent_radius.to('Å')
 
     def is_isomorphic_to(self, other: 'MolecularGraph') -> bool:
         """Is this graph isomorphic to another?"""
@@ -88,7 +113,9 @@ def make_graph(species:                'autode.Species',
     Arguments:
         species:
 
-        rel_tolerance:
+        rel_tolerance: Relative tolerance on what is considered a bond. E.g
+                       0.3 means anything 1.3 x r0(i, j) is not 'bonded'.
+                       Subject to the other restrictions on valency
 
         bond_list: Explicit bonds between atoms, overriding any attempt to
                    evaluate bonds
@@ -140,8 +167,7 @@ def make_graph(species:                'autode.Species',
                     continue
 
                 # Get r_avg for this X-Y bond e.g. C-C -> 1.5
-                avg_bond_length = get_avg_bond_length(species.atoms[i].label,
-                                                      species.atoms[j].label)
+                avg_bond_length = species.atoms.eqm_bond_distance(i, j)
 
                 # If the distance between atoms i and j are less or equal to
                 # 1.25x average length add a 'bond'
