@@ -34,6 +34,8 @@ def test_basic_attributes():
     assert methane.mult == 1
     assert isinstance(methane.rdkit_mol_obj, Mol)
 
+    assert np.isclose(methane.eqm_bond_distance(0, 1), 1.1, atol=0.2)  # Å
+
     # A molecule without a name should default to the formula
     methane = Molecule(smiles='C')
     assert methane.name == 'CH4' or methane.name == 'H4C'

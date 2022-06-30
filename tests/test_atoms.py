@@ -12,6 +12,7 @@ def test_valency():
 
     # Default to 6 if the atom does not have a hard-coded maximum valency
     assert Atom('Sc').maximal_valance == 6
+    assert Atom('Rn').maximal_valance == 6
 
 
 def test_vdw_radius():
@@ -414,3 +415,24 @@ def test_atom_copy():
     a.label = 'C'
 
     assert b.label == 'H'
+
+
+def test_dummy_atom_radii():
+
+    atom = DummyAtom(0., 0., 0.)
+    assert np.isclose(atom.covalent_radius, 0.)
+    assert np.isclose(atom.vdw_radius, 0.)
+
+
+def test_eqm_bond_distance():
+
+    h2_atoms = Atoms([Atom('H'), Atom('H')])
+
+    assert np.isclose(h2_atoms.eqm_bond_distance(0, 0), 0.)
+
+    assert np.isclose(h2_atoms.distance(0, 1), 0.)
+    assert np.isclose(h2_atoms.eqm_bond_distance(0, 1), 0.7, atol=0.1)
+
+    # Cannot determine the distance between atoms not present in the set
+    with pytest.raises(ValueError):
+        _ = h2_atoms.eqm_bond_distance(0, 2)
