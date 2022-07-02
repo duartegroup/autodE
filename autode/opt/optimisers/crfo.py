@@ -12,8 +12,8 @@ from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import InverseDistances
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
-from autode.opt.coordinates.primitives import (InverseDistance,
-                                               ConstrainedInverseDistance)
+from autode.opt.coordinates.primitives import (Distance,
+                                               ConstrainedDistance)
 
 
 class CRFOptimiser(RFOptimiser):
@@ -40,7 +40,6 @@ class CRFOptimiser(RFOptimiser):
     def _step(self) -> None:
         """Partitioned rational function step"""
         self._coords.h = self._updated_h()
-        print(np.round(self._coords.h, 3))
 
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
@@ -130,12 +129,12 @@ class CRFOptimiser(RFOptimiser):
             for j in range(i+1, self._species.n_atoms):
 
                 if (i, j) not in self._species.constraints.distance:
-                    pic.append(InverseDistance(i, j))
+                    pic.append(Distance(i, j))
                     continue
 
                 # i-j is constrained
                 r = self._species.constraints.distance[(i, j)]
-                pic.append(ConstrainedInverseDistance(i, j, value=1./r))
+                pic.append(ConstrainedDistance(i, j, value=r))
 
         logger.info(f"Using {pic.n_constrained} constraints")
         return pic
