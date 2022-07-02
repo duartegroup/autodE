@@ -19,7 +19,7 @@ from autode.opt.coordinates.primitives import (Distance,
 class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha: float = 0.1,
+                 init_alpha: float = 0.2,
                  *args,
                  **kwargs):
         """
@@ -104,13 +104,7 @@ class CRFOptimiser(RFOptimiser):
         if self._species is None:
             raise RuntimeError("Cannot set initial coordinates. No species set")
 
-        if self._coords is None:
-            cartesian_coords = CartesianCoordinates(self._species.coordinates)
-        else:
-            cartesian_coords = self._coords.to("cartesian")
-            cartesian_coords.g = None
-            cartesian_coords.h = None
-
+        cartesian_coords = CartesianCoordinates(self._species.coordinates)
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords,
             primitives=self._primitives

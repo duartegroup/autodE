@@ -1,4 +1,6 @@
 import numpy as np
+
+from typing import Sequence
 from scipy.spatial.distance import cdist
 from scipy.spatial import distance_matrix
 from autode.log import logger
@@ -48,7 +50,7 @@ def proj(u: np.ndarray, v: np.ndarray) -> np.ndarray:
     return (np.dot(u, v) / np.dot(u, u)) * u
 
 
-def get_atoms_linear_interp(atoms, bonds, final_distances):
+def get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Atoms':
     """For a geometry defined by a set of xyzs, set the constrained bonds to
     the correct lengths
 
@@ -88,7 +90,7 @@ def get_atoms_linear_interp(atoms, bonds, final_distances):
     return atoms
 
 
-def get_rot_mat_kabsch(p_matrix, q_matrix):
+def get_rot_mat_kabsch(p_matrix: np.ndarray, q_matrix: np.ndarray) -> np.ndarray:
     """
     Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
     https://en.wikipedia.org/wiki/Kabsch_algorithm
@@ -113,7 +115,7 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     return rot_matrix
 
 
-def get_rot_mat_euler_from_terms(a, b, c, d):
+def get_rot_mat_euler_from_terms(a: float, b: float, c: float, d: float) -> np.ndarray:
     """3D rotation matrix from terms unique terms in the matrix"""
 
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
@@ -125,7 +127,7 @@ def get_rot_mat_euler_from_terms(a, b, c, d):
     return rot_matrix
 
 
-def get_rot_mat_euler(axis, theta):
+def get_rot_mat_euler(axis: np.ndarray, theta: float) -> np.ndarray:
     """
     Compute the 3D rotation matrix using the Euler Rodrigues formula
     https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
@@ -152,7 +154,10 @@ def get_rot_mat_euler(axis, theta):
     return rot_matrix
 
 
-def get_neighbour_list(species, atom_i, index_set):
+def get_neighbour_list(species: 'autode.species.species.Species',
+                       atom_i: int,
+                       index_set: Sequence[int]
+                       ) -> Sequence[int]:
     """Calculate a neighbour list from atom i as a list of atom labels
 
     ---------------------------------------------------------------------------
@@ -190,7 +195,7 @@ def get_neighbour_list(species, atom_i, index_set):
     return atom_label_neighbour_list
 
 
-def get_distance_constraints(species):
+def get_distance_constraints(species: 'autode.species.species.Species') -> dict:
     """
     Set all the distance constraints required in an optimisation as the
     active bonds
@@ -220,7 +225,9 @@ def get_distance_constraints(species):
     return distance_constraints
 
 
-def calc_heavy_atom_rmsd(atoms1, atoms2):
+def calc_heavy_atom_rmsd(atoms1: 'autode.atoms.Atoms',
+                         atoms2: 'autode.atoms.Atoms'
+                         ) -> float:
     """
     Calculate the RMSD between two sets of atoms considering only the 'heavy'
     atoms, i.e. the non-hydrogen atoms
@@ -248,7 +255,7 @@ def calc_heavy_atom_rmsd(atoms1, atoms2):
     return calc_rmsd(coords1, coords2)
 
 
-def calc_rmsd(coords1, coords2):
+def calc_rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
     """
     Calculate the RMSD between two sets of coordinates using the Kabsch
     algorithm
@@ -276,7 +283,7 @@ def calc_rmsd(coords1, coords2):
     return np.sqrt(np.average(np.square(fitted_coords - q_mat)))
 
 
-def get_points_on_sphere(n_points, r=1):
+def get_points_on_sphere(n_points: int, r: float = 1) -> Sequence[np.ndarray]:
     """
     Find n evenly spaced points on a sphere using the "How to generate
     equidistributed points on the surface of a sphere" by Markus Deserno, 2004.
@@ -313,7 +320,7 @@ def get_points_on_sphere(n_points, r=1):
     return points
 
 
-def symm_matrix_from_ltril(array):
+def symm_matrix_from_ltril(array: Sequence[float]) -> np.ndarray:
     """
     Construct a symmetric matrix from the lower triangular elements e.g.::
 

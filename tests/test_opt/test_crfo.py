@@ -59,6 +59,15 @@ def crfo_water_coords():
     return optimiser._coords
 
 
+def test_setting_invalid_lagrange_multipliers():
+
+    s = crfo_water_coords()
+    invalid_multipliers = np.ones(shape=(4,))
+
+    with pytest.raises(ValueError):
+        s.set_lagrange_multipliers(invalid_multipliers)
+
+
 def test_simple_gradient_update():
 
     coords = crfo_water_coords()
@@ -115,6 +124,19 @@ def test_primitive_projection_discard():
 
     # Should not change value of the 'removed' coordinate
     assert np.isclose(r(s.to("cartesian")), r_initial, atol=1E-10)
+
+
+def test_init_g_norm_is_none():
+
+    optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
+    assert optimiser._g_norm > 0
+
+
+def test_sanitised_zero_length_step():
+
+    optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
+    empty_step = np.array([])
+    assert len(optimiser._sanitised_step(empty_step)) == 0
 
 
 @requires_with_working_xtb_install

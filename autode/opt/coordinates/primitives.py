@@ -218,30 +218,3 @@ class ConstrainedDistance(ConstrainedPrimitive, Distance):
     @property
     def _value(self) -> float:
         return self._r0
-
-
-class ConstrainedInverseDistance(ConstrainedPrimitive, InverseDistance):
-
-    def __init__(self,
-                 idx_i: int,
-                 idx_j: int,
-                 value: float):
-        """
-        Inverse Distance constrained to a value
-
-        -----------------------------------------------------------------------
-        Arguments:
-
-            idx_i: Atom index of the first atom
-
-            idx_j: Atom index of the second atom
-
-            value: Required value of the constrained inverse distance 1/r_0
-        """
-        super().__init__(idx_i=idx_i, idx_j=idx_j)
-
-        self._inv_r0 = value
-
-    @property
-    def _value(self) -> float:
-        return self._inv_r0

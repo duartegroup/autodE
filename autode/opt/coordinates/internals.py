@@ -154,9 +154,6 @@ class PIC(list, ABC):
     def _are_all_primitive_coordinates(args: tuple) -> bool:
         return all(isinstance(arg, Primitive) for arg in args)
 
-    def copy(self) -> 'PIC':
-        return deepcopy(self)
-
     @property
     def n_constrained(self) -> int:
         """Number of constrained primitive internal coordinates"""
