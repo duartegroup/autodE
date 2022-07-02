@@ -49,10 +49,10 @@ class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
         return [p for p in self.primitives if p.is_constrained]
 
     @property
-    def some_constraints_are_satisfied(self) -> bool:
-        """Is at least one constraint satisfied in the current geometry?"""
+    def n_satisfied_constraints(self) -> int:
+        """Number of constraints that are satisfied in these coordinates"""
         x = self.to("cartesian")
-        return any(p.is_satisfied(x) for p in self.primitives)
+        return sum(p.is_satisfied(x) for p in self.constrained_primitives)
 
 
 class PIC(list, ABC):

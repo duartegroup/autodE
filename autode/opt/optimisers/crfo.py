@@ -19,7 +19,7 @@ from autode.opt.coordinates.primitives import (InverseDistance,
 class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha: float = 0.3,
+                 init_alpha: float = 0.1,
                  *args,
                  **kwargs):
         """
@@ -67,6 +67,7 @@ class CRFOptimiser(RFOptimiser):
         delta_s_active = np.zeros(shape=(len(idxs),))
 
         o = m - n_satisfied_constraints
+        logger.info(f"Maximising {o} modes")
         for i in range(o):
             delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
 
@@ -147,7 +148,7 @@ class CRFOptimiser(RFOptimiser):
         the eigenvalues of the full lagrangian Hessian matrix (b) and the
         gradient in the Hessian eigenbasis
         """
-        m = self._coords.n_constraints
+        m = self._coords.n_constraints - self._coords.n_satisfied_constraints
 
         aug_h = np.zeros(shape=(m+1, m+1))
         aug_h[:m, :m] = np.diag(b[:m])
@@ -160,8 +161,9 @@ class CRFOptimiser(RFOptimiser):
                                             b: np.ndarray,
                                             f: np.ndarray) -> float:
         """Like lambda_p but for the negative component"""
-        m = self._coords.n_constraints
-        n = len(self._coords)
+        n_satisfied = self._coords.n_satisfied_constraints
+        m = self._coords.n_constraints - n_satisfied
+        n = len(self._coords) - n_satisfied
 
         aug_h2 = np.zeros(shape=(n + 1, n + 1))
         aug_h2[:n, :n] = np.diag(b[m:])
