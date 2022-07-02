@@ -19,7 +19,7 @@ from autode.opt.coordinates.primitives import (InverseDistance,
 class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha: float = 0.1,
+                 init_alpha: float = 0.3,
                  *args,
                  **kwargs):
         """
@@ -35,7 +35,7 @@ class CRFOptimiser(RFOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._hessian_update_types = [NullUpdate]
+        self._hessian_update_types = [BFGSUpdate, NullUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""

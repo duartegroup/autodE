@@ -1,5 +1,7 @@
 import numpy as np
+
 from abc import ABC, abstractmethod
+from typing import List, Optional
 from autode.log import logger
 
 
@@ -20,12 +22,58 @@ class HessianUpdater(ABC):
 
             y (np.ndarray): Gradient shift.
                             :math:`y = \nabla E_{i+1} - \nabla E_i`
+
+            subspace_idxs (list(int)): Indexes of the components of the
+                                       hessian to update
         """
 
         self.h = kwargs.get('h', None)
         self.h_inv = kwargs.get('h_inv', None)
+        self._h_init, self._h_inv_init = None, None
+
         self.s = kwargs.get('s', None)
         self.y = kwargs.get('y', None)
+        self.subspace_idxs = kwargs.get('subspace_idxs', None)
+        self._apply_subspace()
+
+    def _apply_subspace(self) -> None:
+        """
+        Reduce the step, gradient difference vectors and the Hessian & inverse
+        to include only a subset of the total elements
+        """
+        idxs = self.subspace_idxs
+
+        if idxs is None:
+            return  # Cannot apply with no defined indexes
+
+        if len(idxs) == 0:
+            raise ValueError("Cannot reduce s, y, h to 0 dimensional. "
+                             "idxs must have at least one element")
+
+        logger.info(f"Updated hessian will have shape {len(idxs)}x{len(idxs)}")
+
+        for attr in ('h', 'h_inv'):
+            m = getattr(self, attr)
+            setattr(self, f'_{attr}_init', None if m is None else m.copy())
+            setattr(self, attr, None if m is None else m[:, idxs][idxs, :])
+
+        for attr in ('s', 'y'):
+            v = getattr(self, attr)
+            setattr(self, attr, None if v is None else v[idxs])
+
+        return None
+
+    def _matrix_in_full_space(self, m, m_sub) -> np.ndarray:
+        """
+        Create a Hessian in the full initial space i.e. having only updated
+        the components present in self.subspace_idxs
+        """
+
+        for i, idx_i in enumerate(self.subspace_idxs):
+            for j, idx_j in enumerate(self.subspace_idxs):
+                m[idx_i, idx_j] = m_sub[i, j]
+
+        return m
 
     @property
     def updated_h_inv(self) -> np.ndarray:
@@ -44,7 +92,10 @@ class HessianUpdater(ABC):
         if self.h_inv is None:
             raise RuntimeError('Cannot update H^-1, no inverse defined')
 
-        return self._updated_h_inv
+        if self._h_inv_init is None:
+            return self._updated_h_inv
+
+        return self._matrix_in_full_space(self._h_inv_init, self._updated_h_inv)
 
     @property
     def updated_h(self) -> np.ndarray:
@@ -63,7 +114,10 @@ class HessianUpdater(ABC):
         if self.h is None:
             raise RuntimeError('Cannot update H, no Hessian defined')
 
-        return self._updated_h
+        if self._h_init is None:
+            return self._updated_h
+
+        return self._matrix_in_full_space(self._h_init, self._updated_h)
 
     @property
     @abstractmethod

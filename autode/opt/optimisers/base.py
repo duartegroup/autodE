@@ -488,7 +488,7 @@ class NDOptimiser(Optimiser, ABC):
 
     def _updated_h(self) -> np.ndarray:
         r"""
-        Update the the Hessian matrix :math:`H` for the current set of
+        Update the Hessian matrix :math:`H` for the current set of
         coordinates. If the first iteration then use the initial Hessian
 
         .. math::
@@ -523,7 +523,8 @@ class NDOptimiser(Optimiser, ABC):
             updater = update_type(h=coords_k.h,
                                   h_inv=coords_k.h_inv,
                                   s=coords_l.raw - coords_k.raw,
-                                  y=coords_l.g - coords_k.g)
+                                  y=coords_l.g - coords_k.g,
+                                  subspace_idxs=coords_l.indexes)
 
             if not updater.conditions_met:
                 continue

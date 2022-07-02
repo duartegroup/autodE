@@ -49,6 +49,11 @@ class OptCoordinates(ValueArray, ABC):
         return None
 
     @property
+    def indexes(self) -> List[int]:
+        """Indexes of the coordinates in this set"""
+        return list(range(len(self)))
+
+    @property
     def raw(self) -> np.ndarray:
         """Raw numpy array of these coordinates"""
         return np.array(self, copy=True)
