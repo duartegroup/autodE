@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from .molecules import h2, methane_mol, water_mol
+from .molecules import h2, methane_mol, water_mol, h2o2_mol
+from autode.values import Angle
 from autode.opt.coordinates.base import CartesianComponent
 from autode.opt.coordinates.internals import InverseDistances, PIC
 from autode.opt.coordinates.cartesian import CartesianCoordinates
@@ -8,7 +9,8 @@ from autode.opt.coordinates.dic import DIC
 from autode.opt.coordinates.primitives import (InverseDistance,
                                                Distance,
                                                ConstrainedDistance,
-                                               BondAngle)
+                                               BondAngle,
+                                               DihedralAngle)
 
 
 def test_inv_dist_primitives():
@@ -487,7 +489,7 @@ def test_coords_back_transform_tensor_clear():
     assert dic.g is None and dic._x.g is None
 
 
-def test_pic_B_no_primitives():
+def test_pic_b_no_primitives():
 
     c = PIC()
 
@@ -535,4 +537,48 @@ def test_angle_primitive_derivative():
 
     # Derivative should be zero for an atom not present the bond angle
     assert np.isclose(angle.derivative(3, CartesianComponent.x, init_coords),
+                      0.)
+
+
+def test_angle_primitive_equality():
+
+    assert BondAngle(0, 1, 2) == BondAngle(0, 2, 1)
+    assert BondAngle(0, 1, 2) != BondAngle(2, 1, 0)
+
+
+def test_dihedral_value():
+
+    m = h2o2_mol()
+    dihedral = DihedralAngle(2, 0, 1, 3)
+
+    assert np.isclose(dihedral(m.coordinates),
+                      Angle(100.8, units='deg').to('rad'),
+                      atol=1.0)
+
+
+def test_dihedral_primitive_derivative():
+
+    def numerical_derivative(a, b, h=1E-8):
+
+        y = dihedral(init_coords)
+        coords = init_coords.copy()
+        coords[a, int(b)] += h
+        y_plus = dihedral(coords)
+
+        return (y_plus - y) / h
+
+    m = h2o2_mol()
+    init_coords = m.coordinates.copy()
+
+    dihedral = DihedralAngle(2, 0, 1, 3)
+
+    for atom_idx in (0, 1, 2, 3):
+        for component in CartesianComponent:
+            analytic = dihedral.derivative(atom_idx, component, init_coords)
+            numerical = numerical_derivative(atom_idx, component)
+
+            print(atom_idx, component)
+            assert np.isclose(analytic, numerical,  atol=1E-6)
+
+    assert np.isclose(dihedral.derivative(5, CartesianComponent.x, init_coords),
                       0.)

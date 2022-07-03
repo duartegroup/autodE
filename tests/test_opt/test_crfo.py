@@ -51,7 +51,7 @@ def test_coordinate_setup():
     # Ensure that the final DIC comprises a single primitive, which is the
     # first (inverse) distance populated in the coordinates
     assert np.allclose(opt._coords.U[:, 2],
-                       np.array([1., 0., 0.]))
+                       np.array([1., 0., 0., 0.]))
 
     # Initial lagrangian multiplier is close to zero, which is the last
     # component in the optimisation space
@@ -180,12 +180,23 @@ def _test_step_c4h6():
         Atom('H',  2.16678,  0.33235,  0.5350),
         Atom('H',  2.40567, -1.34207, -0.1653),
     ])
+
+    m = Molecule(atoms=[
+        Atom('C',  0.63365,  0.11934, -0.13163),
+        Atom('C', -0.63367, -0.11938,  0.13153),
+        Atom('H',  1.28230, -0.63391, -0.54779),
+        Atom('H',  1.08517,  1.07993,  0.05600),
+        Atom('H', -1.08517, -1.07984, -0.05599),
+    ])
+
     m.print_xyz_file()
-    m.constraints.distance = {(0, 1): m.distance(0, 1)+0.1}
+    m.constraints.distance = {(0, 1): m.distance(0, 1)}
 
     coords = crfo_coords(m)
 
     coords += np.random.uniform(-0.01, 0.01, size=coords.shape)
+    # coords += 0.01*np.ones_like(coords)
+
     print(np.round(coords.U, 3))
     print(coords.U.shape)
 

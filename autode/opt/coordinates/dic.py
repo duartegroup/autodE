@@ -23,7 +23,7 @@ from autode.opt.coordinates.internals import (PIC,
                                               InverseDistances,
                                               InternalCoordinates)
 
-_max_back_transform_iterations = 100
+_max_back_transform_iterations = 10
 
 
 class DIC(InternalCoordinates):  # lgtm [py/missing-equals]

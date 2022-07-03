@@ -6,13 +6,14 @@ Notation follows:
 """
 import numpy as np
 
+from itertools import combinations
 from autode.log import logger
 from autode.values import GradientRMS
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
-from autode.opt.coordinates.primitives import (Distance, BondAngle,
+from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngle,
                                                ConstrainedDistance)
 
 
@@ -136,22 +137,29 @@ class CRFOptimiser(RFOptimiser):
 
         graph = self._species.graph
 
-        for (i, j) in graph.edges:
-            for (k, l) in graph.edges:
-                if len({i, j, k, j}) != 3:
-                    continue
-
-                o = i if i in (k, l) else j
-                m = j if i in (k, l) else i
-                n = k if l in (i, j) else l
+        for o in range(self._species.n_atoms):
+            for (n, m) in combinations(graph.neighbors(o), r=2):
                 angle = BondAngle(o=o, m=m, n=n)
 
                 if angle not in pic:
                     pic.append(angle)
 
-        print(len(pic))
+        for (o, p) in graph.edges:
+            for m in graph.neighbors(o):
+                if m == p:
+                    continue
 
-        logger.info(f"Using {pic.n_constrained} constraints")
+                for n in graph.neighbors(p):
+                    if n == o:
+                        continue
+
+                    dihedral = DihedralAngle(m=m, o=o, p=p, n=n)
+
+                    if dihedral not in pic:
+                        pic.append(dihedral)
+
+        logger.info(f"Using {pic.n_constrained} constraints in {len(pic)}"
+                    f"primitive internal coordinates")
         return pic
 
     def _lambda_p_from_eigvals_and_gradient(self,
