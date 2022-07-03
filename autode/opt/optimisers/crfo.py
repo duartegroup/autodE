@@ -9,10 +9,10 @@ import numpy as np
 from autode.log import logger
 from autode.values import GradientRMS
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.internals import InverseDistances
+from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
-from autode.opt.coordinates.primitives import (Distance,
+from autode.opt.coordinates.primitives import (Distance, BondAngle,
                                                ConstrainedDistance)
 
 
@@ -117,11 +117,11 @@ class CRFOptimiser(RFOptimiser):
         return None
 
     @property
-    def _primitives(self) -> InverseDistances:
+    def _primitives(self) -> PIC:
         """Primitive internal coordinates in this molecule"""
         logger.info("Generating primitive internal coordinates")
 
-        pic = InverseDistances()
+        pic = PIC()
 
         for i in range(self._species.n_atoms):
             for j in range(i+1, self._species.n_atoms):
@@ -133,6 +133,23 @@ class CRFOptimiser(RFOptimiser):
                 # i-j is constrained
                 r = self._species.constraints.distance[(i, j)]
                 pic.append(ConstrainedDistance(i, j, value=r))
+
+        graph = self._species.graph
+
+        for (i, j) in graph.edges:
+            for (k, l) in graph.edges:
+                if len({i, j, k, j}) != 3:
+                    continue
+
+                o = i if i in (k, l) else j
+                m = j if i in (k, l) else i
+                n = k if l in (i, j) else l
+                angle = BondAngle(o=o, m=m, n=n)
+
+                if angle not in pic:
+                    pic.append(angle)
+
+        print(len(pic))
 
         logger.info(f"Using {pic.n_constrained} constraints")
         return pic

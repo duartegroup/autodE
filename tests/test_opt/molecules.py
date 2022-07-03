@@ -12,3 +12,9 @@ def methane_mol():
 
 def h2():
     return Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.5)])
+
+
+def water_mol():
+    return Molecule(atoms=[Atom('O', -0.00110, 0.36310, 0.00000),
+                           Atom('H', -0.82500, -0.18190, 0.00000),
+                           Atom('H', 0.82610, -0.18120, 0.00000)])

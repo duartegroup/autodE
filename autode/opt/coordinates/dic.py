@@ -216,8 +216,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             self.B_T_inv = np.linalg.pinv(B)
 
             rms_s = np.sqrt(np.mean(np.square(s_k - s_new)))
+            print(rms_s)
 
-            if rms_s < 1E-16:
+            if rms_s < 1E-10:
                 logger.info(f'DIC transformation converged in {i} cycle(s) '
                             f'in {time() - start_time:.4f} s')
                 break

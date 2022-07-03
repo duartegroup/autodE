@@ -1,13 +1,14 @@
 import pytest
 import numpy as np
-from .molecules import h2, methane_mol
+from .molecules import h2, methane_mol, water_mol
 from autode.opt.coordinates.base import CartesianComponent
 from autode.opt.coordinates.internals import InverseDistances, PIC
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
 from autode.opt.coordinates.primitives import (InverseDistance,
                                                Distance,
-                                               ConstrainedDistance)
+                                               ConstrainedDistance,
+                                               BondAngle)
 
 
 def test_inv_dist_primitives():
@@ -506,3 +507,32 @@ def test_constrained_distance_satisfied():
 
     x[1, 2] = 1.0
     assert d.is_satisfied(x)
+
+
+def test_angle_primitive_derivative():
+
+    def numerical_derivative(a, b, h=1E-8):
+
+        y = angle(init_coords)
+        coords = init_coords.copy()
+        coords[a, int(b)] += h
+        y_plus = angle(coords)
+
+        return (y_plus - y) / h
+
+    m = water_mol()
+    init_coords = m.coordinates.copy()
+
+    angle = BondAngle(0, 1, 2)
+
+    for atom_idx in (0, 1, 2):
+        for component in CartesianComponent:
+            analytic = angle.derivative(atom_idx, component, init_coords)
+
+            assert np.isclose(analytic,
+                              numerical_derivative(atom_idx, component),
+                              atol=1E-6)
+
+    # Derivative should be zero for an atom not present the bond angle
+    assert np.isclose(angle.derivative(3, CartesianComponent.x, init_coords),
+                      0.)

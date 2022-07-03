@@ -1,6 +1,7 @@
 import numpy as np
+
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, List
 
 
 class Primitive(ABC):
@@ -218,3 +219,76 @@ class ConstrainedDistance(ConstrainedPrimitive, Distance):
     @property
     def _value(self) -> float:
         return self._r0
+
+
+class BondAngle(Primitive):
+
+    def __init__(self, o: int, m: int, n: int):
+        self.o = o
+        self.m = m
+        self.n = n
+
+    @property
+    def _ordered_idxs(self) -> List[int]:
+        return list(sorted([self.o, self.m, self.n]))
+
+    def __eq__(self, other) -> bool:
+        """Equality of two distance functions"""
+
+        return (isinstance(other, self.__class__)
+                and other._ordered_idxs == self._ordered_idxs)
+
+    def __call__(self,
+                 x: 'autode.opt.coordinates.CartesianCoordinates') -> float:
+
+        _x = x.reshape((-1, 3))
+        u = _x[self.m, :] - _x[self.o, :]
+        v = _x[self.n, :] - _x[self.o, :]
+
+        theta = np.arccos(u.dot(v)
+                          / (np.linalg.norm(u) * np.linalg.norm(v)))
+        return theta
+
+    def derivative(self,
+                   i: int,
+                   component: 'autode.opt.coordinates.CartesianComponent',
+                   x: 'autode.opt.coordinates.CartesianCoordinates'
+                   ) -> float:
+
+        if i not in (self.o, self.m, self.n):
+            return 0.
+
+        k = int(component)
+
+        _x = x.reshape((-1, 3))
+        u = _x[self.m, :] - _x[self.o, :]
+        lambda_u = np.linalg.norm(u)
+        u /= lambda_u
+
+        v = _x[self.n, :] - _x[self.o, :]
+        lambda_v = np.linalg.norm(v)
+        v /= lambda_v
+
+        t0, t1 = np.array([1., -1., 1.]), np.array([-1., 1., 1.])
+
+        if not np.isclose(np.arccos(u.dot(v)), 0.):
+            w = np.cross(u, v)
+        elif (not np.isclose(np.arccos(u.dot(t0)), 0.)
+              and not np.isclose(np.arccos(v.dot(t0)), 0.)):
+            w = np.cross(u, t0)
+        else:
+            w = np.cross(u, t1)
+
+        w /= np.linalg.norm(w)
+
+        dqdx = 0.
+
+        if i in (self.m, self.o):
+            sign = 1 if i == self.m else -1
+            dqdx += sign * np.cross(u, w)[k] / lambda_u
+
+        if i in (self.n, self.o):
+            sign = 1 if i == self.n else -1
+            dqdx += sign * np.cross(w, v)[k] / lambda_v
+
+        return dqdx
