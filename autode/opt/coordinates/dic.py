@@ -215,14 +215,16 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             B = np.matmul(self.U.T, self.primitives.B)
             self.B_T_inv = np.linalg.pinv(B)
 
-            if np.average(s_k - s_new)**2 < 1E-16:
+            rms_s = np.sqrt(np.mean(np.square(s_k - s_new)))
+
+            if rms_s < 1E-16:
                 logger.info(f'DIC transformation converged in {i} cycle(s) '
                             f'in {time() - start_time:.4f} s')
                 break
 
             if i == _max_back_transform_iterations:
-                raise RuntimeError(f'Failed to transform in '
-                                   f'{_max_back_transform_iterations} cycles')
+                raise RuntimeError(f'Failed to transform in {i} cycles. '
+                                   f'Final RMS(s) = {rms_s:.8f}')
 
         self[:] = s_k
         self._x = x_k

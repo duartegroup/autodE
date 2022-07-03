@@ -83,6 +83,7 @@ class RFOptimiser(NDOptimiser):
         see e.g. (https://manual.q-chem.com/5.2/A1.S2.html). To ensure this
         condition is satisfied
         """
+        logger.info("Calculating low-level Hessian")
 
         species = self._species.copy()
         species.calc_hessian(method=get_lmethod(),
