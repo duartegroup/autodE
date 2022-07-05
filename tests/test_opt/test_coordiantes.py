@@ -1,6 +1,8 @@
 import pytest
 import numpy as np
 from .molecules import h2, methane_mol, water_mol, h2o2_mol
+from autode.atoms import Atom
+from autode.species.molecule import Molecule
 from autode.values import Angle
 from autode.opt.coordinates.base import CartesianComponent
 from autode.opt.coordinates.internals import InverseDistances, PIC
@@ -75,7 +77,7 @@ def test_primitives_equality():
 
     assert primitives != 'a'
     assert primitives == InverseDistances.from_cartesian(x)
-    
+
     # Order does not matter for equality
     assert primitives == InverseDistances(InverseDistance(1, 0))
 
@@ -577,8 +579,40 @@ def test_dihedral_primitive_derivative():
             analytic = dihedral.derivative(atom_idx, component, init_coords)
             numerical = numerical_derivative(atom_idx, component)
 
-            print(atom_idx, component)
             assert np.isclose(analytic, numerical,  atol=1E-6)
 
     assert np.isclose(dihedral.derivative(5, CartesianComponent.x, init_coords),
                       0.)
+
+
+@pytest.mark.parametrize("h_coord", [
+    np.array([1.08517, 1.07993, 0.05600]),
+    np.array([1.28230, -0.63391, -0.54779])
+])
+def test_dihedral_primitive_derivative_over_zero(h_coord):
+
+    def numerical_derivative(a, b, h=1E-6):
+
+        coords = init_coords.copy()
+        coords[a, int(b)] += h
+        y_plus = dihedral(coords)
+        coords[a, int(b)] -= 2*h
+        y_minus = dihedral(coords)
+        return (y_plus - y_minus) / (2*h)
+
+    m = Molecule(atoms=[
+        Atom('C',  0.63365,  0.11934, -0.13163),
+        Atom('C', -0.63367, -0.11938,  0.13153),
+        Atom('H',  0.,       0.,       0.     ),
+        Atom('H', -1.08517, -1.07984, -0.05599),
+    ])
+    m.atoms[2].coord = h_coord
+    init_coords = m.coordinates
+
+    dihedral = DihedralAngle(2, 0, 1, 3)
+
+    for atom_idx in (0, 1, 2, 3):
+        for component in CartesianComponent:
+            analytic = dihedral.derivative(atom_idx, component, init_coords)
+            numerical = numerical_derivative(atom_idx, component)
+            assert np.isclose(analytic, numerical,  atol=1E-6)

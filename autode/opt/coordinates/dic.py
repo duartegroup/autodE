@@ -200,23 +200,22 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Initialise
         s_k, x_k = np.array(self, copy=True), self.to("cartesian").copy()
+        x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         for i in range(1, _max_back_transform_iterations+1):
 
             x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
 
-            if np.max(np.abs(x_k)) > 1E5:
+            if np.max(np.abs(x_k)) > 1E8:
                 raise RuntimeError('Something went very wrong in the back '
                                    'transformation from internal -> carts')
 
             # Rebuild the primitives & DIC from the back-transformed Cartesians
             s_k = np.matmul(self.U.T, self.primitives(x_k))
-
-            B = np.matmul(self.U.T, self.primitives.B)
-            self.B_T_inv = np.linalg.pinv(B)
+            self.B = np.matmul(self.U.T, self.primitives.B)
+            self.B_T_inv = np.linalg.pinv(self.B)
 
             rms_s = np.sqrt(np.mean(np.square(s_k - s_new)))
-            print(rms_s)
 
             if rms_s < 1E-10:
                 logger.info(f'DIC transformation converged in {i} cycle(s) '
@@ -224,8 +223,13 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                 break
 
             if i == _max_back_transform_iterations:
-                raise RuntimeError(f'Failed to transform in {i} cycles. '
-                                   f'Final RMS(s) = {rms_s:.8f}')
+                logger.warning(f'Failed to transform in {i} cycles. '
+                               f'Final RMS(s) = {rms_s:.8f}')
+                x_k = x_1
+                s_k = np.matmul(self.U.T, self.primitives(x_k))
+                self.B = np.matmul(self.U.T, self.primitives.B)
+                self.B_T_inv = np.linalg.pinv(self.B)
+                break
 
         self[:] = s_k
         self._x = x_k

@@ -357,9 +357,10 @@ class DihedralAngle(Primitive):
         phi_v = np.arccos(w.dot(v))
 
         if not return_derivative:
-            cos_q = ((np.cross(u, w).dot(np.cross(v, w)))
-                     / (np.sin(phi_u) * np.sin(phi_v)))
-            return np.arccos(cos_q)
+            v1 = np.cross(u, w)
+            v2 = np.cross(-w, v)
+            return -np.arctan2(np.cross(v1, w).dot(v2),
+                               (v1.dot(v2)))
 
         # are now computing the derivative..
         if i not in self._atom_indexes:

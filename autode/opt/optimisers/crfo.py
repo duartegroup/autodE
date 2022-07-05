@@ -20,7 +20,7 @@ from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngl
 class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha: float = 0.2,
+                 init_alpha: float = 0.1,
                  *args,
                  **kwargs):
         """
@@ -127,7 +127,8 @@ class CRFOptimiser(RFOptimiser):
         for i in range(self._species.n_atoms):
             for j in range(i+1, self._species.n_atoms):
 
-                if (i, j) not in self._species.constraints.distance:
+                if (not self._species.constraints.distance
+                        or (i, j) not in self._species.constraints.distance):
                     pic.append(Distance(i, j))
                     continue
 
@@ -149,16 +150,18 @@ class CRFOptimiser(RFOptimiser):
                 if m == p:
                     continue
 
+                # TODO: test angle is not 180º
+
                 for n in graph.neighbors(p):
                     if n == o:
                         continue
 
-                    dihedral = DihedralAngle(m=m, o=o, p=p, n=n)
-
-                    if dihedral not in pic:
+                    quadruple = (m, o, p, n)
+                    for (a, b, c, d) in [quadruple, reversed(quadruple)]:
+                        dihedral = DihedralAngle(a, b, c, d)
                         pic.append(dihedral)
 
-        logger.info(f"Using {pic.n_constrained} constraints in {len(pic)}"
+        logger.info(f"Using {pic.n_constrained} constraints in {len(pic)} "
                     f"primitive internal coordinates")
         return pic
 

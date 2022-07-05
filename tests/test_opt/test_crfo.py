@@ -19,7 +19,6 @@ def crfo_coords(molecule):
     return optimiser._coords
 
 
-#def _tmp():
 def water_molecule(oh_distance=1):
     """Water molecule with a constraint"""
 
@@ -166,7 +165,7 @@ def test_xtb_opt_with_distance_constraint():
                       atol=1E-4)
 
 
-def _test_step_c4h6():
+def test_step_c4h6():
 
     m = Molecule(atoms=[
         Atom('C', -1.74017,  0.51876, -0.4458),
@@ -194,13 +193,5 @@ def _test_step_c4h6():
 
     coords = crfo_coords(m)
 
-    coords += np.random.uniform(-0.01, 0.01, size=coords.shape)
-    # coords += 0.01*np.ones_like(coords)
-
-    print(np.round(coords.U, 3))
-    print(coords.U.shape)
-
-    print(np.linalg.matrix_rank(coords.U))
-
-
-
+    # Should be able to add an arbitrary vector to the coordinates
+    coords += np.random.uniform(-0.1, 0.1, size=coords.shape)
