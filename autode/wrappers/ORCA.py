@@ -330,7 +330,7 @@ class ORCA(ElectronicStructureMethod):
                 charges = []
                 first, last = i+7, i+7+calc.molecule.n_atoms
                 for charge_line in calc.output.file_lines[first:last]:
-                    charges.append(float(charge_line.split()[-1]))
+                    charges.append(float(charge_line.split()[-2]))
 
         return charges
 
