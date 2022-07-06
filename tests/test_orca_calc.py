@@ -56,9 +56,7 @@ def test_orca_opt_calculation():
 
     # Should have a partial atomic charge for every atom
     charges = calc.get_atomic_charges()
-    assert len(charges) == 5
-    assert type(charges[0]) == float
-    assert -1.0 < charges[0] < 1.0
+    assert charges == [-0.006954, -0.147352,  0.052983,  0.052943,  0.053457]
 
     calc = Calculation(name='opt', molecule=methylchloride, method=method,
                        keywords=opt_keywords)
@@ -352,3 +350,19 @@ def test_other_input_block():
 
     assert scf_line_exists
     Config.ORCA.other_input_block = curr_other_input_block
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
+def test_charges_from_v5_output_file():
+
+    water = Molecule(smiles='O')
+    calc = Calculation(name='h2_grad',
+                       molecule=water,
+                       method=method,
+                       keywords=method.keywords.sp)
+    calc.output.filename = "h2o_orca_v5_charges.out"
+
+    assert calc.output.exists
+
+    #                                       q_O        q_H       q_H
+    assert calc.get_atomic_charges() == [-0.313189, 0.156594, 0.156594]
