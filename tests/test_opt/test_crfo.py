@@ -1,16 +1,19 @@
 import pytest
 import numpy as np
+import autode.values as val
+import autode.opt.coordinates.primitives as prim
 
 from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
-from autode.values import Distance
+from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_with_working_xtb_install
 
 
+#def tmp():
 def crfo_coords(molecule):
     optimiser = CRFOptimiser(maxiter=1, gtol=1E-5, etol=1E-5)
     optimiser._species = molecule
@@ -26,7 +29,7 @@ def water_molecule(oh_distance=1):
                  atoms=[Atom('O', -0.00110, 0.36310, 0.00000),
                         Atom('H', -0.82500, -0.18190, 0.00000),
                         Atom('H', 0.82610, -0.18120, 0.00000)])
-    m.constraints.distance = {(0, 1): Distance(oh_distance, "Å")}
+    m.constraints.distance = {(0, 1): val.Distance(oh_distance, "Å")}
 
     return m
 
@@ -151,7 +154,7 @@ def test_xtb_opt_with_distance_constraint():
                             Atom('H', -0.82500, -0.18190, 0.00000),
                             Atom('H',  0.82610, -0.18120, 0.00000)])
 
-    water.constraints.distance = {(0, 1): Distance(1.1, units='Å')}
+    water.constraints.distance = {(0, 1): val.Distance(1.1, units='Å')}
 
     assert np.isclose(water.distance(0, 1),
                       0.99,
@@ -182,3 +185,37 @@ def test_step_c2h3():
 
     # Should be able to add an arbitrary vector to the coordinates
     coords += np.random.uniform(-0.1, 0.1, size=coords.shape)
+
+
+def test_baker1997_example():
+
+    c2h3f = Molecule(atoms=[
+       Atom('C',  .061684,  .673790, .0),
+       Atom('C',  .061684,  .726210, .0),
+       Atom('F', 1.174443, 1.331050, .0),
+       Atom('H',  .927709, 1.173790, .0),
+       Atom('H',  .927709, 1.226210, .0),
+       Atom('H',  .804342, 1.226210, .0),
+    ])
+
+    r1 = prim.ConstrainedDistance(0, 1, value=1.5)
+    r2 = prim.ConstrainedDistance(3, 4, value=2.5)
+    theta = prim.ConstrainedBondAngle(1, 0, 5,
+                                      value=val.Angle(123.0, 'º').to('rad'))
+
+    pic = PIC(r1, r2, theta)
+    for pair in ((2, 0), (3, 0), (4, 1), (5, 1)):
+        pic.append(prim.Distance(*pair))
+
+    for triple in ((1, 0, 3), (1, 0, 3), (2, 0, 3),
+                   (4, 1, 0), (5, 1, 0), (4, 1, 5)):
+        pic.append(prim.BondAngle(*triple))
+
+    for quadruple in ((4, 1, 0, 2), (4, 1, 0, 3), (5, 1, 0, 2), (5, 1, 0, 3)):
+        pic.append(prim.DihedralAngle(*quadruple))
+
+    dic = DICWithConstraints.from_cartesian(
+        x=CartesianCoordinates(c2h3f.coordinates),
+        primitives=pic
+    )
+    assert len(dic) == 9  # Should remove vectors due to symmetry

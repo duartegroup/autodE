@@ -306,6 +306,39 @@ class BondAngle(Primitive):
         return f'Angle({self.m}-{self.o}-{self.n})'
 
 
+class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
+
+    def __init__(self,
+                 o: int,
+                 m: int,
+                 n: int,
+                 value: float):
+        """
+        Angle (m-o-n) constrained to a value (in radians)
+
+        -----------------------------------------------------------------------
+        Arguments:
+
+            o: Atom index
+
+            m: Atom index
+
+            n: Atom index
+
+            value: Required value of the constrained angle
+        """
+        super().__init__(o=o, m=m, n=n)
+
+        self._theta0 = value
+
+    @property
+    def _value(self) -> float:
+        return self._theta0
+
+    def __repr__(self):
+        return f'ConstrainedCAngle({self.m}-{self.o}-{self.n})'
+
+
 class DihedralAngle(Primitive):
 
     def __init__(self, m: int, o: int, p: int, n: int):

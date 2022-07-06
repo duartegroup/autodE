@@ -66,6 +66,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         # redundant subspace comprised of small eigenvalues. This forms a set
         # of 3N - 6 non-redundant internals for a system of N atoms
         idxs = np.where(np.abs(lambd) > 1E-10)[0]
+
+        logger.info(f"Removed {len(lambd) - len(idxs)} redundant vectors")
         return u[:, idxs]
 
     @classmethod
@@ -97,6 +99,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         q = primitives(x)
         U = cls._calc_U(primitives, x)
+        U = _symmetry_inequivalent(U, q)
+
         dic = cls(input_array=np.matmul(U.T, q))
 
         dic.U = U                # Transform matrix primitives -> non-redundant
@@ -421,3 +425,18 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
 
     # Arbitrarily place the defined unit vectors at the end
     return u[:, ::-1]
+
+
+def _symmetry_inequivalent(u, q) -> np.ndarray:
+    """Remove symmetry equivalent vectors from the U matrix"""
+
+    # The non-redundant space can be further pruned by considering symmetry
+    unique_idxs = []
+    s = np.matmul(u.T, q)
+
+    for i, s_i in enumerate(s):
+        if all(not np.isclose(s_i, s[j], atol=1E-10) for j in unique_idxs):
+            unique_idxs.append(i)
+
+    logger.info(f"Removing {len(s) - len(unique_idxs)} symmetry equiv. DICs")
+    return u[:, unique_idxs]
