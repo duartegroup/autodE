@@ -246,10 +246,11 @@ def test_simple_dic_to_cart():
     x = dic.to('cartesian')
     assert np.allclose(CartesianCoordinates(arr), x)
 
-    assert np.isclose(0.6, (dic + 0.1)[0], atol=1E-6)
+    delta = np.array([0.1])
+    assert np.isclose(0.6, (dic + delta)[0], atol=1E-6)
     # Updating the DICs should afford cartesian coordinates that are
     # ~1.7 Å apart (1/r = 0.6)
-    dic.iadd(value=0.1)
+    dic.iadd(value=delta)
     assert dic.shape == (1,)
     assert np.isclose(dic[0], 0.6)
 

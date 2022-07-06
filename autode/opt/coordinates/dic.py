@@ -189,9 +189,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         ----------------------------------------------------------------------
         Keyword Arguments:
 
-            value (int | float | np.ndarray): Difference between the current
-                                              and new DICs. Must be
-                                              broadcastable into self.shape.
+            value: Difference between the current and new DICs. Must be
+                   the same shape as self into self.shape.
         Raises:
             (RuntimeError): If the transformation diverges
         """

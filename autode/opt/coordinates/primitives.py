@@ -1,7 +1,7 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple
 
 
 class Primitive(ABC):

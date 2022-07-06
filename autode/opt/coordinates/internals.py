@@ -9,7 +9,6 @@ G : Spectroscopic G matrix
 """
 import numpy as np
 
-from copy import deepcopy
 from typing import Any, Optional, Type, List
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
