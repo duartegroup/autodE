@@ -406,6 +406,7 @@ def test_is_linear():
                            Atom('H', x=-0.54, y=2.72),
                            Atom('H', x=-1.82, y=2.82, z=-0.92)])
     assert not water.is_linear()
+    assert water.is_planar()
 
     lin_water = Species(name='linear_water', charge=0, mult=1,
                         atoms=[Atom('O', x=-1.52, y=2.72),

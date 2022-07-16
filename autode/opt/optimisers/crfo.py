@@ -36,7 +36,7 @@ class CRFOptimiser(RFOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._hessian_update_types = [BFGSUpdate, NullUpdate]
+        self._hessian_update_types = [NullUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
@@ -145,21 +145,19 @@ class CRFOptimiser(RFOptimiser):
                 if angle not in pic:
                     pic.append(angle)
 
-        for (o, p) in graph.edges:
-            for m in graph.neighbors(o):
-                if m == p:
-                    continue
-
-                # TODO: test angle is not 180º
-
-                for n in graph.neighbors(p):
-                    if n == o:
+        if self._species.n_atoms > 2 and self._species.is_planar():
+            for (o, p) in graph.edges:
+                for m in graph.neighbors(o):
+                    if m == p:
                         continue
 
-                    quadruple = (m, o, p, n)
-                    for (a, b, c, d) in [quadruple, reversed(quadruple)]:
-                        dihedral = DihedralAngle(a, b, c, d)
-                        pic.append(dihedral)
+                    # TODO: test angle is not 180º
+
+                    for n in graph.neighbors(p):
+                        if n == o:
+                            continue
+
+                        pic.append(DihedralAngle(m, o, p, n))
 
         logger.info(f"Using {pic.n_constrained} constraints in {len(pic)} "
                     f"primitive internal coordinates")
