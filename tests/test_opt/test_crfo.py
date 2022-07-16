@@ -177,8 +177,6 @@ def test_step_c2h3():
         Atom('H',  1.08517,  1.07993,  0.05600),
         Atom('H', -1.08517, -1.07984, -0.05599),
     ])
-
-    m.print_xyz_file()
     m.constraints.distance = {(0, 1): m.distance(0, 1)}
 
     coords = crfo_coords(m)
