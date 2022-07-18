@@ -12,6 +12,7 @@ from autode.opt.coordinates.primitives import (InverseDistance,
                                                Distance,
                                                ConstrainedDistance,
                                                BondAngle,
+                                               ConstrainedBondAngle,
                                                DihedralAngle)
 
 
@@ -586,6 +587,12 @@ def test_dihedral_primitive_derivative():
                       0.)
 
 
+def test_dihedral_equality():
+
+    assert DihedralAngle(2, 0, 1, 3) == DihedralAngle(2, 0, 1, 3)
+    assert DihedralAngle(2, 0, 1, 3) == DihedralAngle(3, 1, 0, 2)
+
+
 @pytest.mark.parametrize("h_coord", [
     np.array([1.08517, 1.07993, 0.05600]),
     np.array([1.28230, -0.63391, -0.54779])
@@ -617,3 +624,29 @@ def test_dihedral_primitive_derivative_over_zero(h_coord):
             analytic = dihedral.derivative(atom_idx, component, init_coords)
             numerical = numerical_derivative(atom_idx, component)
             assert np.isclose(analytic, numerical,  atol=1E-6)
+
+
+def test_repr():
+    """Test that each primitive has a representation"""
+
+    prims = [InverseDistance(0, 1), Distance(0, 1),
+             ConstrainedDistance(0, 1, value=1E-3),
+             BondAngle(0, 1, 2),
+             ConstrainedBondAngle(0, 1, 2, value=1.),
+             DihedralAngle(0, 1, 2, 3)]
+
+    for p in prims:
+        assert repr(p) is not None
+
+
+@pytest.mark.parametrize("sign", [1, -1])
+def test_angle_normal(sign):
+
+    angle = BondAngle(0, 1, 2)
+    x = np.array([[0., 0., 0.],
+                  [1., sign*1., 1.],
+                  [1., 0., 1.]])
+
+    assert not np.isinf(angle.derivative(0, 1, x))
+
+

@@ -280,10 +280,10 @@ class BondAngle(Primitive):
 
         t0, t1 = np.array([1., -1., 1.]), np.array([-1., 1., 1.])
 
-        if not np.isclose(np.arccos(u.dot(v)), 0.):
+        if not np.isclose(np.abs(np.arccos(u.dot(v))), 1.):
             w = np.cross(u, v)
-        elif (not np.isclose(np.arccos(u.dot(t0)), 0.)
-              and not np.isclose(np.arccos(v.dot(t0)), 0.)):
+        elif (not np.isclose(np.abs(np.arccos(u.dot(t0))), 1.)
+              and not np.isclose(np.abs(np.arccos(v.dot(t0))), 1.)):
             w = np.cross(u, t0)
         else:
             w = np.cross(u, t1)
@@ -363,10 +363,9 @@ class DihedralAngle(Primitive):
 
     def __eq__(self, other) -> bool:
         """Equality of two distance functions"""
-
         return (isinstance(other, self.__class__)
                 and (self._atom_indexes == other._atom_indexes
-                     or self._atom_indexes == list(reversed(other._atom_indexes)))
+                     or self._atom_indexes == tuple(reversed(other._atom_indexes)))
                 )
 
     def _value(self, x, i=None, component=None, return_derivative=False):

@@ -122,22 +122,20 @@ class CRFOptimiser(RFOptimiser):
     def _primitives(self) -> PIC:
         """Primitive internal coordinates in this molecule"""
         logger.info("Generating primitive internal coordinates")
+        graph = self._species.graph
 
         pic = PIC()
 
-        for i in range(self._species.n_atoms):
-            for j in range(i+1, self._species.n_atoms):
+        for (i, j) in sorted(graph.edges):
 
-                if (not self._species.constraints.distance
-                        or (i, j) not in self._species.constraints.distance):
-                    pic.append(Distance(i, j))
-                    continue
+            if (not self._species.constraints.distance
+                    or (i, j) not in self._species.constraints.distance):
+                pic.append(Distance(i, j))
+                continue
 
-                # i-j is constrained
-                r = self._species.constraints.distance[(i, j)]
-                pic.append(ConstrainedDistance(i, j, value=r))
-
-        graph = self._species.graph
+            # i-j is constrained
+            r = self._species.constraints.distance[(i, j)]
+            pic.append(ConstrainedDistance(i, j, value=r))
 
         for o in range(self._species.n_atoms):
             for (n, m) in combinations(graph.neighbors(o), r=2):

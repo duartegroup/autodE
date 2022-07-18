@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
+
 import autode.values as val
 import autode.opt.coordinates.primitives as prim
-
 from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
@@ -10,10 +10,10 @@ from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.utils import work_in_tmp_dir
+from .molecules import h2o2_mol
 from ..testutils import requires_with_working_xtb_install
 
 
-#def tmp():
 def crfo_coords(molecule):
     optimiser = CRFOptimiser(maxiter=1, gtol=1E-5, etol=1E-5)
     optimiser._species = molecule
@@ -53,7 +53,7 @@ def test_coordinate_setup():
     # Ensure that the final DIC comprises a single primitive, which is the
     # first (inverse) distance populated in the coordinates
     assert np.allclose(opt._coords.U[:, 2],
-                       np.array([1., 0., 0., 0.]))
+                       np.array([1., 0., 0.]))
 
     # Initial lagrangian multiplier is close to zero, which is the last
     # component in the optimisation space
@@ -84,8 +84,6 @@ def test_simple_gradient_update():
         [0.7, 0.8, 0.9]
     ])
     coords.update_g_from_cart_g(cartesian_g)
-
-    print(coords.g)
 
     # dL/dλ = C(x) = (r_OH^-1 - r_ideal^-1)
     assert np.isclose(coords.g[3], coords.primitives[0].delta(coords._x))
@@ -217,3 +215,18 @@ def test_baker1997_example():
         primitives=pic
     )
     assert len(dic) == 9  # Should remove vectors due to symmetry
+
+
+@requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_crfo_with_dihedral():
+
+    mol = h2o2_mol()
+    constrained_distance = mol.distance(0, 1) + 0.1
+    mol.constraints.distance = {(0, 1): constrained_distance}
+
+    CRFOptimiser.optimise(species=mol, method=XTB(), maxiter=10)
+
+    assert np.isclose(mol.distance(0, 1),
+                      constrained_distance,
+                      atol=1E-4)
