@@ -20,7 +20,7 @@ from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngl
 class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha: float = 0.05,
+                 init_alpha: float = 0.1,
                  *args,
                  **kwargs):
         """
@@ -60,8 +60,7 @@ class CRFOptimiser(RFOptimiser):
         lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
         logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
 
-        lambda_n = min(self._lambda_n_from_eigvals_and_gradient(b, f),
-                       -1E-3)
+        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
         logger.info(f"Calculated λ_n={lambda_n:.8f}")
 
         # Create the step along the n active DICs and m lagrangian multipliers
@@ -79,8 +78,8 @@ class CRFOptimiser(RFOptimiser):
         delta_s = np.zeros(shape=(n+m,))
         delta_s[idxs] = delta_s_active
 
-        self._take_sanitised_step(delta_s[:n])
-        self._coords.set_lagrange_multipliers(delta_s[n:])
+        c = self._take_sanitised_step(delta_s[:n])
+        self._coords.set_lagrange_multipliers(c * delta_s[n:])
         return None
 
     @property
@@ -144,7 +143,7 @@ class CRFOptimiser(RFOptimiser):
                 if angle not in pic:
                     pic.append(angle)
 
-        if self._species.n_atoms > 2 and self._species.is_planar():
+        if self._species.n_atoms > 2 and not self._species.is_planar():
             for (o, p) in graph.edges:
                 for m in graph.neighbors(o):
                     if m == p:

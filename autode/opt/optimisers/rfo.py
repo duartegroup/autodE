@@ -91,7 +91,9 @@ class RFOptimiser(NDOptimiser):
 
         return species.hessian
 
-    def _take_sanitised_step(self, delta_s: np.ndarray) -> None:
+    def _take_sanitised_step(self,
+                             delta_s: np.ndarray,
+                             factor: float = 1.) -> float:
         """
         Update the coordinates while ensuring the step isn't too large in
         cartesian coordinates
@@ -99,19 +101,22 @@ class RFOptimiser(NDOptimiser):
         -----------------------------------------------------------------------
         Arguments:
             delta_s: Step in internal coordinates
+
+        Returns:
+            factor: The coefficient of the step taken
         """
 
         if len(delta_s) == 0:  # No need to sanitise a null step
-            return None
+            return 0.0
 
-        new_coords = self._coords + delta_s
+        new_coords = self._coords + factor * delta_s
         cartesian_delta = new_coords.to("cart") - self._coords.to("cart")
         max_component = np.max(np.abs(cartesian_delta))
 
         if max_component > self.alpha:
             logger.info(f"Calculated step is too large ({max_component:.3f} Å)"
                         f" - scaling down")
-            return self._take_sanitised_step(delta_s/2.)
+            return self._take_sanitised_step(delta_s, factor=factor/2)
 
         self._coords = new_coords
-        return None
+        return factor

@@ -218,7 +218,7 @@ class BFGSUpdate(HessianUpdater):
 class BFGSPDUpdate(BFGSUpdate):
     """BFGS update while ensuring positive definiteness"""
 
-    def __init__(self, min_eigenvalue: float = 1E-4, **kwargs):
+    def __init__(self, min_eigenvalue: float = 1E-5, **kwargs):
         super().__init__(**kwargs)
 
         self.min_eigenvalue = min_eigenvalue
