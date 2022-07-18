@@ -284,11 +284,6 @@ def test_co2_cart_to_dic():
     dic = x.to('dic')
     assert len(dic) == 3
 
-    # Applying a shift to the internal coordinates that are close to linear
-    # can break the back transformation to Cartesians
-    with pytest.raises(RuntimeError):
-        dic.iadd(value=np.array([0.0, 0.0, 0.1]))
-
 
 def test_grad_transform_linear():
 

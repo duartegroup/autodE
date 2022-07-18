@@ -20,7 +20,7 @@ from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngl
 class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha: float = 0.1,
+                 init_alpha: float = 0.05,
                  *args,
                  **kwargs):
         """
@@ -77,9 +77,9 @@ class CRFOptimiser(RFOptimiser):
 
         # Set all the non-active components of the step to zero
         delta_s = np.zeros(shape=(n+m,))
-        delta_s[idxs] = self._sanitised_step(delta_s_active)
+        delta_s[idxs] = delta_s_active
 
-        self._coords = self._coords + delta_s[:n]
+        self._take_sanitised_step(delta_s[:n])
         self._coords.set_lagrange_multipliers(delta_s[n:])
         return None
 

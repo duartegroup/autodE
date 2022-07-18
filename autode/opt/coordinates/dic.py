@@ -23,7 +23,7 @@ from autode.opt.coordinates.internals import (PIC,
                                               InverseDistances,
                                               InternalCoordinates)
 
-_max_back_transform_iterations = 10
+_max_back_transform_iterations = 20
 
 
 class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
@@ -208,10 +208,6 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         for i in range(1, _max_back_transform_iterations+1):
 
             x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
-
-            if np.max(np.abs(x_k)) > 1E8:
-                raise RuntimeError('Something went very wrong in the back '
-                                   'transformation from internal -> carts')
 
             # Rebuild the primitives & DIC from the back-transformed Cartesians
             s_k = np.matmul(self.U.T, self.primitives(x_k))

@@ -58,7 +58,7 @@ class RFOptimiser(NDOptimiser):
         # and the step scaled by the final element of the eigenvector
         delta_s = aug_H_v[:-1, mode] / aug_H_v[-1, mode]
 
-        self._coords = self._coords + self._sanitised_step(delta_s)
+        self._take_sanitised_step(delta_s)
         return None
 
     def _initialise_run(self) -> None:
@@ -91,21 +91,27 @@ class RFOptimiser(NDOptimiser):
 
         return species.hessian
 
-    def _sanitised_step(self, delta_s: np.ndarray) -> np.ndarray:
-        """Ensure the step to be taken isn't too large"""
+    def _take_sanitised_step(self, delta_s: np.ndarray) -> None:
+        """
+        Update the coordinates while ensuring the step isn't too large in
+        cartesian coordinates
+
+        -----------------------------------------------------------------------
+        Arguments:
+            delta_s: Step in internal coordinates
+        """
 
         if len(delta_s) == 0:  # No need to sanitise a null step
-            return delta_s
+            return None
 
-        max_step_component = np.max(np.abs(delta_s))
+        new_coords = self._coords + delta_s
+        cartesian_delta = new_coords.to("cart") - self._coords.to("cart")
+        max_component = np.max(np.abs(cartesian_delta))
 
-        if max_step_component > 100 * self.alpha:
-            raise RuntimeError('About to perform a huge unreasonable step!')
+        if max_component > self.alpha:
+            logger.info(f"Calculated step is too large ({max_component:.3f} Å)"
+                        f" - scaling down")
+            return self._take_sanitised_step(delta_s/2.)
 
-        if max_step_component > self.alpha:
-            logger.warning(f'Maximum component of the step '
-                           f'{max_step_component:.4} > {self.alpha:.4f} '
-                           f'. Scaling down')
-            delta_s *= self.alpha / max_step_component
-
-        return delta_s
+        self._coords = new_coords
+        return None

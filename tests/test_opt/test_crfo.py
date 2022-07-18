@@ -137,10 +137,10 @@ def test_init_g_norm_is_none():
 
 
 def test_sanitised_zero_length_step():
+    """Should be able to update with a null step"""
 
     optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
-    empty_step = np.array([])
-    assert len(optimiser._sanitised_step(empty_step)) == 0
+    optimiser._take_sanitised_step(np.array([]))
 
 
 @requires_with_working_xtb_install
