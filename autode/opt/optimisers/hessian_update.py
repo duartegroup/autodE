@@ -62,17 +62,21 @@ class HessianUpdater(ABC):
 
         return None
 
-    def _matrix_in_full_space(self, m, m_sub) -> np.ndarray:
+    def _matrix_in_full_space(self, m: np.ndarray, m_sub: np.ndarray) -> np.ndarray:
         """
         Create a Hessian in the full initial space i.e. having only updated
-        the components present in self.subspace_idxs
+        the components present in self.subspace_idxs. Also ensures that the
+        Hessian is Hermitian
         """
+
+        if self.subspace_idxs is None:
+            return _ensure_hermitian(m_sub)
 
         for i, idx_i in enumerate(self.subspace_idxs):
             for j, idx_j in enumerate(self.subspace_idxs):
                 m[idx_i, idx_j] = m_sub[i, j]
 
-        return m
+        return _ensure_hermitian(m)
 
     @property
     def updated_h_inv(self) -> np.ndarray:
@@ -133,8 +137,14 @@ class HessianUpdater(ABC):
     def _updated_h_inv(self) -> np.ndarray:
         """Calculate H^{-1}"""
 
+    def __str__(self):
+        return self.__repr__()
+
 
 class BFGSUpdate(HessianUpdater):
+
+    def __repr__(self):
+        return "BFGS"
 
     @property
     def _updated_h(self) -> np.ndarray:
@@ -205,7 +215,29 @@ class BFGSUpdate(HessianUpdater):
         return True
 
 
+class BFGSPDUpdate(BFGSUpdate):
+    """BFGS update while ensuring positive definiteness"""
+
+    def __init__(self, min_eigenvalue: float = 1E-3, **kwargs):
+        super().__init__(**kwargs)
+
+        self.min_eigenvalue = min_eigenvalue
+
+    def __repr__(self):
+        return "BFGS positive definite"
+
+    @property
+    def conditions_met(self) -> bool:
+        """Are all the conditions met to update the Hessian"""
+
+        eigvals = np.linalg.eigvals(self._updated_h)
+        return super().conditions_met and np.all(eigvals > self.min_eigenvalue)
+
+
 class SR1Update(HessianUpdater):
+
+    def __repr__(self):
+        return "SR1"
 
     @property
     def _updated_h(self) -> np.ndarray:
@@ -269,6 +301,9 @@ class SR1Update(HessianUpdater):
 
 class NullUpdate(HessianUpdater):
 
+    def __repr__(self):
+        return "Null"
+
     @property
     def conditions_met(self) -> bool:
         """Conditions are always met for a null optimiser"""
@@ -297,6 +332,9 @@ class BofillUpdate(HessianUpdater):
     # Threshold on |Δg - HΔx| below which the Hessian will not be updated, to
     # prevent dividing by zero
     min_update_tol = 1E-6
+
+    def __repr__(self):
+        return "Bofill"
 
     @property
     def _updated_h(self) -> np.ndarray:
@@ -359,3 +397,8 @@ class BofillUpdate(HessianUpdater):
         apart from that on the shapes of the vectors
         """
         return True
+
+
+def _ensure_hermitian(matrix: np.ndarray) -> np.ndarray:
+    return (matrix + matrix.T) / 2.0
+

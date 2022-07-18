@@ -12,7 +12,7 @@ from autode.values import GradientRMS
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.rfo import RFOptimiser
-from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
+from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngle,
                                                ConstrainedDistance)
 
@@ -36,7 +36,7 @@ class CRFOptimiser(RFOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._hessian_update_types = [NullUpdate]
+        self._hessian_update_types = [BFGSPDUpdate, NullUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
@@ -58,10 +58,11 @@ class CRFOptimiser(RFOptimiser):
         f = u.T.dot(self._coords.g[idxs])
 
         lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_p={lambda_p:.5f}")
+        logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
 
-        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_n={lambda_n:.5f}")
+        lambda_n = min(self._lambda_n_from_eigvals_and_gradient(b, f),
+                       -1E-3)
+        logger.info(f"Calculated λ_n={lambda_n:.8f}")
 
         # Create the step along the n active DICs and m lagrangian multipliers
         delta_s_active = np.zeros(shape=(len(idxs),))
@@ -188,10 +189,10 @@ class CRFOptimiser(RFOptimiser):
         m = self._coords.n_constraints - n_satisfied
         n = len(self._coords) - n_satisfied
 
-        aug_h2 = np.zeros(shape=(n + 1, n + 1))
-        aug_h2[:n, :n] = np.diag(b[m:])
-        aug_h2[-1, :n] = aug_h2[:n, -1] = f[m:]
+        aug_h = np.zeros(shape=(n + 1, n + 1))
+        aug_h[:n, :n] = np.diag(b[m:])
+        aug_h[-1, :n] = aug_h[:n, -1] = f[m:]
 
-        eigenvalues = np.linalg.eigvalsh(aug_h2)
+        eigenvalues = np.linalg.eigvalsh(aug_h)
         return eigenvalues[0]
 

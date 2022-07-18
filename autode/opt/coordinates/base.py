@@ -3,9 +3,11 @@ from copy import deepcopy
 from enum import IntEnum, unique
 from typing import Optional, Union, Sequence, List
 from abc import ABC, abstractmethod
+
 from autode.log import logger
 from autode.units import (ang, nm, pm, m)
 from autode.values import ValueArray, PotentialEnergy
+from autode.geom import ensure_positive_definite
 
 
 @unique
@@ -198,23 +200,7 @@ class OptCoordinates(ValueArray, ABC):
         """
         Make the Hessian matrix positive definite by shifting eigenvalues
         """
-        hessian = self.h
-
-        if hessian is None:
-            raise RuntimeError('Cannot make a positive definite Hessian - '
-                               'had no Hessian')
-
-        lmd, v = np.linalg.eig(hessian)  # Eigenvalues and eigenvectors
-
-        if np.all(lmd > 1E-8):
-            logger.info('Hessian was positive definite')
-            return
-
-        logger.warning('Hessian was not positive definite. '
-                       'Shifting eigenvalues to X and reconstructing')
-        lmd[lmd < 1E-8] = 1
-        self._h = np.linalg.multi_dot((v, np.diag(lmd), v.T)).real
-
+        self._h = ensure_positive_definite(self.h)
         return None
 
     @abstractmethod

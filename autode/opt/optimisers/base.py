@@ -527,6 +527,7 @@ class NDOptimiser(Optimiser, ABC):
                                   subspace_idxs=coords_l.indexes)
 
             if not updater.conditions_met:
+                logger.info(f"Conditions for {update_type} not met")
                 continue
 
             return updater

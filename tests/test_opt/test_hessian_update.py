@@ -1,10 +1,10 @@
 import pytest
 import numpy as np
 from autode.opt.optimisers.hessian_update import (BFGSUpdate,
+                                                  BFGSPDUpdate,
                                                   SR1Update,
                                                   NullUpdate,
                                                   BofillUpdate)
-
 
 def update_improves_hessian(updater, guess, true):
 
@@ -79,12 +79,12 @@ def test_polynomial_hessian_update():
 
 
 def test_null_update():
-    
+
     updater = NullUpdate(h=10.*np.eye(4))
-    
+
     # Null update has no conditions on update
     assert updater.conditions_met
-    
+
     # and just returns the hessian back
     assert np.allclose(updater.updated_h,
                        10.*np.eye(4))
@@ -137,3 +137,44 @@ def test_bofill_update():
     assert np.allclose(updater.updated_h,
                        G_bofill,
                        atol=1E-10)
+
+
+def test_repr_and_strings():
+    """
+    Test that the hessian update types have defined representation
+    and strings
+    """
+
+    for update_type in (BFGSUpdate, BFGSPDUpdate, SR1Update,
+                        NullUpdate, BofillUpdate):
+
+        assert update_type().__repr__() is not None
+        assert str(update_type()) is not None
+
+
+class BFGSPDUpdateNoUpdate(BFGSPDUpdate):
+
+    @property
+    def _updated_h(self) -> np.ndarray:
+        return self.h
+
+    @property
+    def _updated_h_inv(self) -> np.ndarray:
+        return self.h_inv
+
+
+@pytest.mark.parametrize(('eigval', 'expected'),
+                         ([-1., False], [1., True]))
+def test_bfgs_pd_update(eigval, expected):
+
+    h = np.array([[1.0, 0.0],
+                  [0.0, eigval]])
+
+    updater = BFGSPDUpdateNoUpdate(min_eigenvalue=0.1,
+                           h=h,
+                           s=np.array([0.1, 0.1]),
+                           y=np.array([0.1, 0.1]))
+
+    # Needs to satisfy the secant equation
+    assert updater.y.dot(updater.s) > 0
+    assert updater.conditions_met == expected
