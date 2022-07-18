@@ -200,7 +200,7 @@ class OptCoordinates(ValueArray, ABC):
         """
         Make the Hessian matrix positive definite by shifting eigenvalues
         """
-        self._h = ensure_positive_definite(self.h)
+        self._h = ensure_positive_definite(self.h, min_eigenvalue=1.0)
         return None
 
     @abstractmethod
