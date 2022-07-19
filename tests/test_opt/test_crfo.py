@@ -214,7 +214,7 @@ def test_baker1997_example():
         x=CartesianCoordinates(c2h3f.coordinates),
         primitives=pic
     )
-    assert len(dic) == 9  # Should remove vectors due to symmetry
+    assert len(dic) == 10
 
 
 @requires_with_working_xtb_install
@@ -230,3 +230,45 @@ def test_crfo_with_dihedral():
     assert np.isclose(mol.distance(0, 1),
                       constrained_distance,
                       atol=1E-4)
+
+
+@requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_opt_with_two_distance_constraint():
+
+    water = Molecule(name='water', charge=0, mult=1,
+                     atoms=[Atom('O', -0.00110, 0.36310,  0.00000),
+                            Atom('H', -0.82500, -0.18190, 0.00000),
+                            Atom('H',  0.82610, -0.18120, 0.00000)])
+
+    water.constraints.distance = {
+            (0, 1): val.Distance(1.0, units='Å'),
+            (0, 2): val.Distance(1.0, units='Å'),
+            }
+
+    opt = CRFOptimiser(maxiter=1, gtol=1E-5, etol=1E-5, init_alpha=0.1)
+    opt._species = water
+    opt._method = XTB()
+    opt._initialise_run()
+
+    # Moving the angle should preserve the distances
+    s = opt._coords + np.array([0.1, 0.0, 0.0])
+    x = s.to("cart").reshape((3, 3))
+    for (i, j) in ((0, 1), (0, 2)):
+        assert np.isclose(
+                np.linalg.norm(x[i, :] - x[j, :]),
+                water.distance(i, j)
+                )
+
+    opt._step()
+    x = opt._coords.to("cart").reshape((3, 3))
+    for (i, j) in ((0, 1), (0, 2)):
+        assert (np.abs(np.linalg.norm(x[i, :] - x[j, :]) - 1.0)
+                < np.abs(water.distance(i, j) - 1.0))
+
+    opt = CRFOptimiser(maxiter=10, gtol=1E-5, etol=1E-5, init_alpha=0.1)
+    opt.run(species=water, method=XTB())
+    assert opt.converged
+
+    for pair in ((0, 1), (0, 2)):
+        assert np.isclose(water.distance(*pair).to('Å'), 1.0, atol=1E-2)
