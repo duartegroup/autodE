@@ -99,7 +99,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         q = primitives(x)
         U = cls._calc_U(primitives, x)
-        U = _symmetry_inequivalent(U, q)
+        U = _symmetry_inequivalent_u(U, q)
 
         dic = cls(input_array=np.matmul(U.T, q))
 
@@ -369,7 +369,7 @@ class DICWithConstraints(DIC):
             self.h[:n, :n] = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
 
             # and the d^2L/ds_i dλ_i = dC_i/ds_i = 1
-            for i in range(1, m+1):
+            for i in range(1, m + 1):
                 self.h[n+i-1, :] = self.h[:, n+i-1] = 0.
 
             for i in range(1, m + 1):
@@ -423,16 +423,30 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
     return u[:, ::-1]
 
 
-def _symmetry_inequivalent(u, q) -> np.ndarray:
+def _symmetry_inequivalent_u(u, q) -> np.ndarray:
     """Remove symmetry equivalent vectors from the U matrix"""
 
     # The non-redundant space can be further pruned by considering symmetry
-    unique_idxs = []
+    idxs = []
     s = np.matmul(u.T, q)
 
     for i, s_i in enumerate(s):
-        if all(not np.isclose(s_i, s[j], atol=1E-10) for j in unique_idxs):
-            unique_idxs.append(i)
+        is_unique = all(not np.isclose(s_i, s[j], atol=1E-20) for j in idxs)
 
-    logger.info(f"Removing {len(s) - len(unique_idxs)} symmetry equiv. DICs")
-    return u[:, unique_idxs]
+        if is_unique or _is_pure_primitive(u[:, i]):
+            idxs.append(i)
+
+    logger.info(f"Removing {len(s) - len(idxs)} symmetry equiv. DICs")
+    return u[:, idxs]
+
+
+def _is_pure_primitive(v: np.ndarray) -> bool:
+    """
+    Is this vector a pure primitive? where all but one of the coefficients
+    are zero.
+    """
+
+    def n_values(value):
+        return sum(np.isclose(v_i, value) for v_i in v)
+
+    return n_values(0.0) == len(v) - 1 and n_values(1.0) == 1
