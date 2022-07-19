@@ -8,7 +8,7 @@ import numpy as np
 
 from itertools import combinations
 from autode.log import logger
-from autode.values import GradientRMS
+from autode.values import GradientRMS, Angle
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.rfo import RFOptimiser
@@ -127,14 +127,14 @@ class CRFOptimiser(RFOptimiser):
 
         for (i, j) in sorted(graph.edges):
 
-            if (not self._species.constraints.distance
-                    or (i, j) not in self._species.constraints.distance):
-                pic.append(Distance(i, j))
-                continue
+            if (self._species.constraints.distance
+                    and (i, j) in self._species.constraints.distance):
 
-            # i-j is constrained
-            r = self._species.constraints.distance[(i, j)]
-            pic.append(ConstrainedDistance(i, j, value=r))
+                r = self._species.constraints.distance[(i, j)]
+                pic.append(ConstrainedDistance(i, j, value=r))
+
+            else:
+                pic.append(Distance(i, j))
 
         for o in range(self._species.n_atoms):
             for (n, m) in combinations(graph.neighbors(o), r=2):
@@ -144,18 +144,8 @@ class CRFOptimiser(RFOptimiser):
                     pic.append(angle)
 
         if self._species.n_atoms > 2 and not self._species.is_planar():
-            for (o, p) in graph.edges:
-                for m in graph.neighbors(o):
-                    if m == p:
-                        continue
-
-                    # TODO: test angle is not 180º
-
-                    for n in graph.neighbors(p):
-                        if n == o:
-                            continue
-
-                        pic.append(DihedralAngle(m, o, p, n))
+            for dihedral in _dihedrals(self._species):
+                pic.append(dihedral)
 
         logger.info(f"Using {pic.n_constrained} constraints in {len(pic)} "
                     f"primitive internal coordinates")
@@ -193,3 +183,23 @@ class CRFOptimiser(RFOptimiser):
         eigenvalues = np.linalg.eigvalsh(aug_h)
         return eigenvalues[0]
 
+
+def _dihedrals(species):
+    """Iterator over the dihedrals in a species"""
+
+    for (o, p) in species.graph.edges:
+        for m in species.graph.neighbors(o):
+            if m == p:
+                continue
+
+            if np.isclose(species.angle(m, o, p), Angle(np.pi)):
+                continue  # Don't add potentially ill-defined dihedrals
+
+            for n in species.graph.neighbors(p):
+                if n == o:
+                    continue
+
+                if np.isclose(species.angle(o, p, n), Angle(np.pi)):
+                    continue
+
+                yield DihedralAngle(m, o, p, n)
