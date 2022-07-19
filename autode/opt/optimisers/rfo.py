@@ -4,7 +4,7 @@ from autode.utils import work_in_tmp_dir
 from autode.methods import get_lmethod
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
+from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
 
 
 class RFOptimiser(NDOptimiser):
@@ -32,7 +32,7 @@ class RFOptimiser(NDOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = init_alpha
-        self._hessian_update_types = [BFGSUpdate, NullUpdate]
+        self._hessian_update_types = [BFGSPDUpdate, NullUpdate]
 
     def _step(self) -> None:
         """RFO step"""
