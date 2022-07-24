@@ -7,10 +7,10 @@ from autode.calculation import Calculation, CalculationOutput
 from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
-from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
+from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
 from autode.wrappers.implicit_solvent_types import cpcm
-from autode.exceptions import CouldNotGetProperty
+from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
 from autode.solvent.solvents import ImplicitSolvent
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
@@ -366,3 +366,17 @@ def test_charges_from_v5_output_file():
 
     #                                       q_O        q_H       q_H
     assert calc.get_atomic_charges() == [-0.313189, 0.156594, 0.156594]
+
+
+def test_unsupported_freq_scaling():
+
+    kwds = HessianKeywords(['Freq', 'PBE0', 'def2-SVP',
+                            '%freq\nscalfreq 0.95\nend'])
+
+    calc = Calculation(name='opt',
+                       molecule=test_mol,
+                       method=method,
+                       keywords=kwds)
+
+    with pytest.raises(UnsupportedCalculationInput):
+        calc.generate_input()

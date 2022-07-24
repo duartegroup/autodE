@@ -277,7 +277,8 @@ class Hessian(ValueArray):
     def _eigenvalues_to_freqs(lambdas) -> List[Frequency]:
         """
         Convert eigenvalues of the Hessian matrix (SI units) to
-        frequencies in wavenumber units
+        frequencies in wavenumber units. Will use ade.Config.freq_scale_factor
+        to scale the frequencies.
 
         -----------------------------------------------------------------------
         Arguments:
@@ -289,10 +290,12 @@ class Hessian(ValueArray):
 
         nus = (np.sqrt(np.complex_(lambdas))
                / (2.0 * np.pi * Constants.ang_to_m * Constants.c_in_cm))
+        nus *= Config.freq_scale_factor
 
         # Cast the purely complex eigenvalues to negative real numbers, as is
         # usual in quantum chemistry codes
-        nus[np.iscomplex(nus)] = -np.abs(nus[np.iscomplex(nus)])
+        idx_to_alter = np.iscomplex(nus)
+        nus[idx_to_alter] = -np.abs(nus[idx_to_alter])
 
         return [Frequency(np.real(nu), units=wavenumber) for nu in nus]
 

@@ -3,11 +3,12 @@ import pytest
 import numpy as np
 import autode as ade
 from . import testutils
+from autode.config import Config
 from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
 from autode.calculation import Calculation
 from autode.species import Molecule
-from autode.values import Frequency, Distance
+from autode.values import Frequency
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
@@ -164,6 +165,23 @@ def test_hessian_freqs():
     assert np.isclose(nu_1, 1567.610851, atol=1.0)
     assert np.isclose(nu_2, 3467.698182, atol=1.0)
     assert np.isclose(nu_3, 3651.462209, atol=1.0)
+
+
+def test_hessian_scaled_freqs():
+
+    h2o = Molecule(smiles='O')
+    h2o.hessian = h2o_hessian_arr
+
+    nu_no_scaling = h2o.hessian.frequencies_proj[-1]
+
+    Config.freq_scale_factor = 0.9
+    h2o.hessian = h2o_hessian_arr
+
+    assert np.isclose(0.9 * nu_no_scaling,
+                      h2o.hessian.frequencies_proj[-1]
+                      )
+
+    Config.freq_scale_factor = 1.0
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
