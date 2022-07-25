@@ -535,6 +535,15 @@ class Functional(Keyword):
     def __repr__(self):
         return f'Functional({self.name})'
 
+    def __init__(self, name,
+                 doi=None,
+                 doi_list=None,
+                 freq_scale_factor: float = 1.0,
+                 **kwargs):
+        super().__init__(name, doi=doi, doi_list=doi_list, **kwargs)
+
+        self.freq_scale_factor = freq_scale_factor
+
 
 class ImplicitSolventType(Keyword):
     """

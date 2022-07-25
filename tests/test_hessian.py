@@ -12,6 +12,7 @@ from autode.values import Frequency
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
+from autode.wrappers.functionals import pbe0
 from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
@@ -182,6 +183,21 @@ def test_hessian_scaled_freqs():
                       )
 
     Config.freq_scale_factor = 1.0
+
+
+def test_hessian_scaled_factor():
+
+    h2o = Molecule(smiles='O')
+    hessian = Hessian(h2o_hessian_arr, atoms=h2o.atoms, functional=pbe0)
+
+    assert np.isclose(hessian._freq_scale_factor, 0.96)
+
+    Config.freq_scale_factor = 0.9
+    assert np.isclose(hessian._freq_scale_factor, 0.9)
+
+    Config.freq_scale_factor = 1.0
+    hessian.functional = None
+    assert np.isclose(hessian._freq_scale_factor, 1.0)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
