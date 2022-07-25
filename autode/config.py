@@ -162,7 +162,7 @@ class _ConfigClass:
     # systematic error. This value must be between 0 and 1. For example,
     # PBEh-3c has a scale factor of 0.95.
     #
-    freq_scale_factor = 1.0
+    freq_scale_factor = None
     # -------------------------------------------------------------------------
     # Minimum number of atoms that are removed for truncation to be used in
     # locating TSs. Below this number any truncation is skipped
@@ -376,14 +376,12 @@ class _ConfigClass:
 
         if key == 'freq_scale_factor':
 
-            if value is None:  # No scale factor defaults to 1.0
-                value = 1.0
+            if value is not None:
+                if not (0. < value <= 1.):
+                    raise ValueError("Cannot set the frequency scale factor "
+                                     "outside of (0, 1]")
 
-            if not (0. < value <= 1.):
-                raise ValueError("Cannot set the frequency scale factor "
-                                 "outside of (0, 1]")
-
-            value = float(value)
+                value = float(value)
 
         if key in ('max_atom_displacement', 'min_step_size', 'max_step_size'):
             if float(value) < 0:

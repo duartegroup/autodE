@@ -19,6 +19,7 @@ Functionality improvements
 **************************
 - Adds a :code:`autode.atoms.Atom.covalent_radius` property
 - Adds a :code:`autode.atoms.Atoms.eqm_bond_distance` method for the equilibrium bonded distance between two atoms
+- Adds vibrational frequency scaling through both :code:`autode.Config.freq_scale_factor` and a default value in wrapped functional keywords
 
 
 Bug Fixes

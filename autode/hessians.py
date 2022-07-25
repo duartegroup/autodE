@@ -280,7 +280,7 @@ class Hessian(ValueArray):
     def _freq_scale_factor(self) -> float:
         """Determine the correct frequency scale factor"""
 
-        if not np.isclose(Config.freq_scale_factor, 1.0):
+        if Config.freq_scale_factor is not None:
             return Config.freq_scale_factor
 
         if self.functional is not None:

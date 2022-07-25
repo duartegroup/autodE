@@ -21,7 +21,7 @@ from autode.hessians import (Hessian,
                              HybridHessianCalculator)
 
 here = os.path.dirname(os.path.abspath(__file__))
-
+Config.freq_scale_factor = 1.0
 
 # Ha/Å-2
 h2o_hessian_arr = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
@@ -182,7 +182,7 @@ def test_hessian_scaled_freqs():
                       h2o.hessian.frequencies_proj[-1]
                       )
 
-    Config.freq_scale_factor = 1.0
+    Config.freq_scale_factor = None
 
 
 def test_hessian_scaled_factor():
