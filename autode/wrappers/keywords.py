@@ -502,11 +502,13 @@ class Keyword(ABC):
 
     @property
     def has_only_name(self):
-        """Determine if only a name has been set, in which case it will
+        """
+        Determine if only a name has been set, in which case it will
         be printed verbatim into an input file, otherwise needs keyword.method
-        to be set, where method is e.g. orca"""
+        to be set, where method is e.g. orca
+        """
 
-        excl_attrs = ('name', 'doi_list')
+        excl_attrs = ('name', 'doi_list', 'freq_scale_factor')
         for attr in self.__dict__:
             if attr in excl_attrs:
                 continue

@@ -259,15 +259,16 @@ def test_mp2_numerical_gradients():
 def test_keyword_setting():
 
     orca = ORCA()
-    orca.keywords.sp.functional = 'B3LYP'
+    kwds = orca.keywords.sp
+    kwds.functional = 'B3LYP'
 
     # Setter should generate a Functional from the keyword string
-    assert isinstance(orca.keywords.sp.functional, Functional)
+    assert isinstance(kwds.functional, Functional)
 
     calc = Calculation(name='tmp',
                        molecule=test_mol.copy(),
                        method=orca,
-                       keywords=orca.keywords.sp)
+                       keywords=kwds)
     calc.generate_input()
     assert calc.input.exists
 

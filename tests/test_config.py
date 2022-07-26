@@ -53,12 +53,6 @@ def test_invalid_freq_scale_factor(factor):
         Config.freq_scale_factor = factor
 
 
-def test_none_freq_scale_factor():
-
-    Config.freq_scale_factor = None
-    assert np.isclose(Config.freq_scale_factor, 1.0)
-
-
 def test_unknown_attr():
 
     # Attributes not already present should raise an exception e.g. for
