@@ -185,7 +185,7 @@ def test_hessian_scaled_freqs():
     Config.freq_scale_factor = None
 
 
-def test_hessian_scaled_factor():
+def test_hessian_scale_factor():
 
     h2o = Molecule(smiles='O')
     hessian = Hessian(h2o_hessian_arr, atoms=h2o.atoms, functional=pbe0)
@@ -198,6 +198,12 @@ def test_hessian_scaled_factor():
     Config.freq_scale_factor = 1.0
     hessian.functional = None
     assert np.isclose(hessian._freq_scale_factor, 1.0)
+
+    Config.freq_scale_factor = None
+    hessian.functional = None
+    assert np.isclose(hessian._freq_scale_factor, 1.0)
+
+    Config.freq_scale_factor = 1.0
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
