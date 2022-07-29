@@ -549,6 +549,9 @@ class Functional(Keyword):
     def __eq__(self, other):
         return isinstance(other, Functional) and self.name == other.name
 
+    def __hash__(self):
+        return hash(self.name)
+    
 
 class ImplicitSolventType(Keyword):
     """
