@@ -213,3 +213,9 @@ def test_keywords_contain():
     assert kwds.contain_any_of('opt')
 
     assert not kwds.contain_any_of('PBE0')
+
+
+def test_functional_equality():
+
+    assert Functional("PBE0") == Functional("PBE0")
+    assert Functional("PBE0") != 1

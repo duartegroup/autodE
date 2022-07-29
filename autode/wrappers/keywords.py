@@ -534,9 +534,6 @@ class DispersionCorrection(Keyword):
 class Functional(Keyword):
     """Functional for a DFT method"""
 
-    def __repr__(self):
-        return f'Functional({self.name})'
-
     def __init__(self, name,
                  doi=None,
                  doi_list=None,
@@ -545,6 +542,12 @@ class Functional(Keyword):
         super().__init__(name, doi=doi, doi_list=doi_list, **kwargs)
 
         self.freq_scale_factor = freq_scale_factor
+
+    def __repr__(self):
+        return f'Functional({self.name})'
+
+    def __eq__(self, other):
+        return isinstance(other, Functional) and self.name == other.name
 
 
 class ImplicitSolventType(Keyword):
