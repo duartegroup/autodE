@@ -40,12 +40,20 @@ class CRFOptimiser(RFOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
-        self._coords.h = self._updated_h()
-
+        # self._coords.h = self._updated_h()
+        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
+        print('r1', self._species.distance(0, 1))
+        print('r2', self._species.distance(0, 2))
+        
+        print('primitives', self._coords.primitives)
+        print('gradient', self._coords.g)
+        print('lambda', self._coords._lambda)
+        
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
         idxs = self._coords.active_indexes
+        print(idxs)
         n_satisfied_constraints = (n + m - len(idxs))//2
         logger.info(f"Satisfied {n_satisfied_constraints} constraints. "
                     f"Active space is {len(idxs)} dimensional")
@@ -68,8 +76,10 @@ class CRFOptimiser(RFOptimiser):
 
         o = m - n_satisfied_constraints
         logger.info(f"Maximising {o} modes")
+
         for i in range(o):
             delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
+            print(f'const step {i}', f[i] * u[:, i] / (b[i] - lambda_p))
 
         for j in range(n - n_satisfied_constraints):
             delta_s_active -= f[o+j] * u[:, o+j] / (b[o+j] - lambda_n)
@@ -78,8 +88,15 @@ class CRFOptimiser(RFOptimiser):
         delta_s = np.zeros(shape=(n+m,))
         delta_s[idxs] = delta_s_active
 
+        print('step', delta_s)
+
+        # self._coords._lambda[0] -= 10 * self._coords.g[n]
+        # self._coords._lambda[1] += 1 * self._coords.g[n+1]
+
         c = self._take_sanitised_step(delta_s[:n])
-        self._coords.set_lagrange_multipliers(c * delta_s[n:])
+        self._coords.update_lagrange_multipliers(delta_s[n:])
+
+        print('new lambda', self._coords._lambda)
         return None
 
     @property
@@ -125,6 +142,14 @@ class CRFOptimiser(RFOptimiser):
 
         pic = PIC()
 
+        for o in range(self._species.n_atoms):
+            for (n, m) in combinations(graph.neighbors(o), r=2):
+                angle = BondAngle(o=o, m=m, n=n)
+
+                if angle not in pic:
+                    pic.append(angle)
+
+
         for (i, j) in sorted(graph.edges):
 
             if (self._species.constraints.distance
@@ -136,12 +161,6 @@ class CRFOptimiser(RFOptimiser):
             else:
                 pic.append(Distance(i, j))
 
-        for o in range(self._species.n_atoms):
-            for (n, m) in combinations(graph.neighbors(o), r=2):
-                angle = BondAngle(o=o, m=m, n=n)
-
-                if angle not in pic:
-                    pic.append(angle)
 
         if self._species.n_atoms > 2 and not self._species.is_planar():
             for dihedral in _dihedrals(self._species):
@@ -203,3 +222,17 @@ def _dihedrals(species):
                     continue
 
                 yield DihedralAngle(m, o, p, n)
+
+
+class CRFOptimiserSD(CRFOptimiser):
+
+    def _step(self) -> None:
+        n, m = len(self._coords), self._coords.n_constraints
+        print('r1', self._species.distance(0, 1))
+        print('r2', self._species.distance(0, 2))
+        delta_s = 0.1 * self._coords.g
+
+        c = self._take_sanitised_step(-delta_s[:n])
+        self._coords.update_lagrange_multipliers(c * delta_s[n:])
+
+        return None

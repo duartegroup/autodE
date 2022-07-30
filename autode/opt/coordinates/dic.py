@@ -335,12 +335,16 @@ class DICWithConstraints(DIC):
             self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
 
             for i in range(m):
-                self.g[n-m+i] += self._lambda[i] * 1  # λ dC_i/ds_i
+                print(f"adding {self._lambda[i]} to g_{i}")
+                self.g[n-m+i] -= self._lambda[i] * 1  # λ dC_i/ds_i
 
             # and the final dL/dλ_i
             c = self.constrained_primitives
+
+            print('c = ', c)
             for i in range(m):
-                self.g[n+i] = c[i].delta(self._x)  # C_i(x) = Z_ideal - Z
+                print('delta',  c[i].delta(self._x))
+                self.g[n+i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
 
         return None
 
@@ -368,13 +372,19 @@ class DICWithConstraints(DIC):
             # where the second derivative of the constraint is zero
             self.h[:n, :n] = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
 
-            # and the d^2L/ds_i dλ_i = dC_i/ds_i = 1
-            for i in range(1, m + 1):
-                self.h[n+i-1, :] = self.h[:, n+i-1] = 0.
+            # and the d^2L/ds_i dλ_i = -dC_i/ds_i = -1
+            #         d^2L/dλ_i dλ_j = 0
 
-            for i in range(1, m + 1):
-                self.h[n+m-i, n-i] = self.h[n-i, n+m-i] = 1.
+            for i in range(m):
+                self.h[n+i, :] = self.h[:, n+i] = 0.
 
+            for i in range(m):
+                self.h[n-m+i, n+i] = self.h[n+i, n-m+i] = -1.
+
+            print(self.primitives)
+            print('U=', self.U)
+
+            print("h = ", np.round(self.h, 3))
         return None
 
     def h_or_h_inv_has_correct_shape(self, arr: Optional[np.ndarray]):
@@ -393,6 +403,15 @@ class DICWithConstraints(DIC):
 
         self._lambda[:] = arr
 
+    def update_lagrange_multipliers(self, arr: np.ndarray) -> None:
+        """Update the lagrange multipliers by adding a set of values"""
+
+        if arr.shape != self._lambda.shape:
+            raise ValueError("Cannot set lagrange multipliers. Incorrect shape")
+
+        self._lambda[:] = np.asarray(self._lambda) + np.asarray(arr)
+        return None 
+    
 
 def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
     """
@@ -420,6 +439,7 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
         u[:, i] = u_i.copy()
 
     # Arbitrarily place the defined unit vectors at the end
+    return np.eye(3)
     return u[:, ::-1]
 
 
