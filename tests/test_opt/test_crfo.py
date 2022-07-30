@@ -85,8 +85,8 @@ def test_simple_gradient_update():
     ])
     coords.update_g_from_cart_g(cartesian_g)
 
-    # dL/dλ = C(x) = (r_OH^-1 - r_ideal^-1)
-    assert np.isclose(coords.g[3], coords.primitives[0].delta(coords._x))
+    # dL/dλ = -C(x) = -(r_OH^-1 - r_ideal^-1)
+    assert np.isclose(coords.g[3], -coords.primitives[0].delta(coords._x))
 
 
 def test_simple_hessian_update():
@@ -102,7 +102,7 @@ def test_simple_hessian_update():
     assert not np.isclose(coords.h[0, 1], 0.)  # d^2L/ds_0ds_1
 
     assert np.isclose(coords.h[3, 3], 0.)  # d^2L/dλ^2
-    assert np.isclose(coords.h[2, 3], 1.)  # d^2L/dλ^2
+    assert np.isclose(coords.h[2, 3], -1.)  # d^2L/dλ^2
 
     # Hessian needs to be symmetric
     assert np.allclose(coords.h.T, coords.h)
