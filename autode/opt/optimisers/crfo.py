@@ -40,20 +40,12 @@ class CRFOptimiser(RFOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
-        # self._coords.h = self._updated_h()
-        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
-        print('r1', self._species.distance(0, 1))
-        print('r2', self._species.distance(0, 2))
-        
-        print('primitives', self._coords.primitives)
-        print('gradient', self._coords.g)
-        print('lambda', self._coords._lambda)
-        
+        self._coords.h = self._updated_h()
+
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
         idxs = self._coords.active_indexes
-        print(idxs)
         n_satisfied_constraints = (n + m - len(idxs))//2
         logger.info(f"Satisfied {n_satisfied_constraints} constraints. "
                     f"Active space is {len(idxs)} dimensional")
@@ -88,15 +80,8 @@ class CRFOptimiser(RFOptimiser):
         delta_s = np.zeros(shape=(n+m,))
         delta_s[idxs] = delta_s_active
 
-        print('step', delta_s)
-
-        # self._coords._lambda[0] -= 10 * self._coords.g[n]
-        # self._coords._lambda[1] += 1 * self._coords.g[n+1]
-
         c = self._take_sanitised_step(delta_s[:n])
-        self._coords.update_lagrange_multipliers(delta_s[n:])
-
-        print('new lambda', self._coords._lambda)
+        self._coords.update_lagrange_multipliers(c * delta_s[n:])
         return None
 
     @property
@@ -142,14 +127,6 @@ class CRFOptimiser(RFOptimiser):
 
         pic = PIC()
 
-        for o in range(self._species.n_atoms):
-            for (n, m) in combinations(graph.neighbors(o), r=2):
-                angle = BondAngle(o=o, m=m, n=n)
-
-                if angle not in pic:
-                    pic.append(angle)
-
-
         for (i, j) in sorted(graph.edges):
 
             if (self._species.constraints.distance
@@ -161,6 +138,12 @@ class CRFOptimiser(RFOptimiser):
             else:
                 pic.append(Distance(i, j))
 
+        for o in range(self._species.n_atoms):
+            for (n, m) in combinations(graph.neighbors(o), r=2):
+                angle = BondAngle(o=o, m=m, n=n)
+
+                if angle not in pic:
+                    pic.append(angle)
 
         if self._species.n_atoms > 2 and not self._species.is_planar():
             for dihedral in _dihedrals(self._species):

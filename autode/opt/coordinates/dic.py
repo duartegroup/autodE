@@ -335,15 +335,11 @@ class DICWithConstraints(DIC):
             self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
 
             for i in range(m):
-                print(f"adding {self._lambda[i]} to g_{i}")
                 self.g[n-m+i] -= self._lambda[i] * 1  # λ dC_i/ds_i
 
             # and the final dL/dλ_i
             c = self.constrained_primitives
-
-            print('c = ', c)
             for i in range(m):
-                print('delta',  c[i].delta(self._x))
                 self.g[n+i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
 
         return None
@@ -381,10 +377,6 @@ class DICWithConstraints(DIC):
             for i in range(m):
                 self.h[n-m+i, n+i] = self.h[n+i, n-m+i] = -1.
 
-            print(self.primitives)
-            print('U=', self.U)
-
-            print("h = ", np.round(self.h, 3))
         return None
 
     def h_or_h_inv_has_correct_shape(self, arr: Optional[np.ndarray]):
@@ -423,12 +415,15 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
                 f"orthonormal vectors")
 
     u = np.zeros_like(arr)
-    _, n_cols = arr.shape
+    _, n = arr.shape
+    m = len(indexes)
 
+    # Set the unit vectors as the first m columns
     for i, index in enumerate(indexes):
         u[index, i] = 1.
 
-    for i in range(len(indexes), n_cols):
+    # and the remaining n-m columns as the orthogonalised values
+    for i in range(m, n):
 
         u_i = arr[:, i]
         for j in range(0, i):
@@ -439,8 +434,8 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
         u[:, i] = u_i.copy()
 
     # Arbitrarily place the defined unit vectors at the end
-    return np.eye(3)
-    return u[:, ::-1]
+    permutation = list(range(m, n)) + list(range(m))
+    return u[:, permutation]
 
 
 def _symmetry_inequivalent_u(u, q) -> np.ndarray:
