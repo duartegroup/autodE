@@ -20,7 +20,7 @@ from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngl
 class CRFOptimiser(RFOptimiser):
 
     def __init__(self,
-                 init_alpha: float = 0.1,
+                 init_alpha: float = 0.05,
                  *args,
                  **kwargs):
         """
@@ -71,7 +71,6 @@ class CRFOptimiser(RFOptimiser):
 
         for i in range(o):
             delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
-            print(f'const step {i}', f[i] * u[:, i] / (b[i] - lambda_p))
 
         for j in range(n - n_satisfied_constraints):
             delta_s_active -= f[o+j] * u[:, o+j] / (b[o+j] - lambda_n)
@@ -206,16 +205,3 @@ def _dihedrals(species):
 
                 yield DihedralAngle(m, o, p, n)
 
-
-class CRFOptimiserSD(CRFOptimiser):
-
-    def _step(self) -> None:
-        n, m = len(self._coords), self._coords.n_constraints
-        print('r1', self._species.distance(0, 1))
-        print('r2', self._species.distance(0, 2))
-        delta_s = 0.1 * self._coords.g
-
-        c = self._take_sanitised_step(-delta_s[:n])
-        self._coords.update_lagrange_multipliers(c * delta_s[n:])
-
-        return None

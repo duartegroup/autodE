@@ -33,8 +33,7 @@ class HessianUpdater(ABC):
         self.s = kwargs.get('s', None)
         self.y = kwargs.get('y', None)
         self.subspace_idxs = kwargs.get('subspace_idxs', None)
-        self.subspace_idxs = None
-        # self._apply_subspace()
+        self._apply_subspace()
 
     def _apply_subspace(self) -> None:
         """
@@ -219,7 +218,7 @@ class BFGSUpdate(HessianUpdater):
 class BFGSPDUpdate(BFGSUpdate):
     """BFGS update while ensuring positive definiteness"""
 
-    def __init__(self, min_eigenvalue: float = 1E-10, **kwargs):
+    def __init__(self, min_eigenvalue: float = 1E-3, **kwargs):
         super().__init__(**kwargs)
 
         self.min_eigenvalue = min_eigenvalue
