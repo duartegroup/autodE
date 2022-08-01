@@ -14,7 +14,8 @@ from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (InverseDistance,
                                                Primitive,
-                                               Distance)
+                                               Distance,
+                                               DihedralAngle)
 
 
 class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
@@ -103,6 +104,28 @@ class PIC(list, ABC):
 
         q = self._calc_q(x)
         self._calc_B(x)
+
+        return q
+
+    def close_to(self, x: np.ndarray, other: np.ndarray) -> np.ndarray:
+        """
+        Calculate a set of primitive internal coordinates (PIC) that are
+        'close to' another set. This means that the restriction on dihedral
+        angles being in the range (-π, π] is relaxed in favour of the smallest
+        ∆q possible (where q is a value of a primitive coordinate).
+        """
+        assert len(self) == len(other) and isinstance(other, np.ndarray)
+
+        q = self._calc_q(x)
+        self._calc_B(x)
+
+        for i, primitive in enumerate(self):
+            if isinstance(primitive, DihedralAngle):
+
+                dq = q[i] - other[i]
+
+                if np.abs(dq) > np.pi:  # Ensure |dq| < π
+                    q[i] -= np.sign(dq) * 2 * np.pi
 
         return q
 

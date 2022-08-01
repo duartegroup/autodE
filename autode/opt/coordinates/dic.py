@@ -203,6 +203,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Initialise
         s_k, x_k = np.array(self, copy=True), self.to("cartesian").copy()
+        q_init = self.primitives(x_k)
         x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         for i in range(1, _max_back_transform_iterations+1):
@@ -210,7 +211,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
 
             # Rebuild the primitives & DIC from the back-transformed Cartesians
-            s_k = np.matmul(self.U.T, self.primitives(x_k))
+            q_k = self.primitives.close_to(x_k, q_init)
+            s_k = np.matmul(self.U.T, q_k)
             self.B = np.matmul(self.U.T, self.primitives.B)
             self.B_T_inv = np.linalg.pinv(self.B)
 
@@ -225,15 +227,21 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                 logger.warning(f'Failed to transform in {i} cycles. '
                                f'Final RMS(s) = {rms_s:.8f}')
                 x_k = x_1
-                s_k = np.matmul(self.U.T, self.primitives(x_k))
-                self.B = np.matmul(self.U.T, self.primitives.B)
-                self.B_T_inv = np.linalg.pinv(self.B)
-                break
+                if self._allow_unconverged_back_transform:
+                    break
+
+        s_k = np.matmul(self.U.T, self.primitives(x_k))
+        self.B = np.matmul(self.U.T, self.primitives.B)
+        self.B_T_inv = np.linalg.pinv(self.B)
 
         self[:] = s_k
         self._x = x_k
 
         return self
+
+    @property
+    def _allow_unconverged_back_transform(self) -> bool:
+        return True
 
 
 class DICWithConstraints(DIC):
