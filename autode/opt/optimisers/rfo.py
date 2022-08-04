@@ -116,7 +116,9 @@ class RFOptimiser(NDOptimiser):
         if max_component > self.alpha:
             logger.info(f"Calculated step is too large ({max_component:.3f} Å)"
                         f" - scaling down")
-            return self._take_sanitised_step(delta_s, factor=factor/2)
+
+            factor = self.alpha/max_component
+            new_coords = self._coords + self.alpha/max_component * delta_s
 
         self._coords = new_coords
         return factor

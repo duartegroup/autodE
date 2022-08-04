@@ -362,6 +362,7 @@ class DICWithConstraints(DIC):
         Arguments:
             arr: Cartesian Hessian matrix
         """
+
         if arr is None:
             self._x.h, self.h = None, None
 
