@@ -12,7 +12,7 @@ from autode.values import GradientRMS, Angle
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.rfo import RFOptimiser
-from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
+from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate, BFGSDampedUpdate
 from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngle,
                                                ConstrainedDistance)
 
@@ -36,7 +36,9 @@ class CRFOptimiser(RFOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._hessian_update_types = [BFGSPDUpdate, NullUpdate]
+        self._hessian_update_types = [# BFGSPDUpdate,
+                                      BFGSDampedUpdate,
+                                      NullUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""

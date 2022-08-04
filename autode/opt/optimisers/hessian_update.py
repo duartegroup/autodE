@@ -234,6 +234,35 @@ class BFGSPDUpdate(BFGSUpdate):
         return super().conditions_met and np.all(eigvals > self.min_eigenvalue)
 
 
+class BFGSDampedUpdate(BFGSPDUpdate):
+
+    @property
+    def _updated_h(self) -> np.ndarray:
+        """
+        Powell damped BFGS from: Math. Prog. Comp. (2016) 8:435–459
+        (10.1007/s12532-016-0101-2)
+        """
+
+        h, s, y = self.h, self.s, self.y
+        shs = np.linalg.multi_dot((s.T, h, s))
+
+        if s.dot(y) < 0.2 * shs:
+            theta = ((0.8 * shs)
+                     / (shs - s.dot(y)))
+        else:
+            theta = 1.0
+
+        y_ = theta * y - (1.0 - theta) * h.dot(s)
+
+        h_new = (h
+                 - (np.outer(h.dot(s), np.matmul(s.T, h))
+                    / shs)
+                 + np.outer(y_, y_)/np.dot(y_, s)
+                 )
+
+        return h_new
+
+
 class SR1Update(HessianUpdater):
 
     def __repr__(self):
