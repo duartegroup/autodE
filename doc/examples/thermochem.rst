@@ -145,6 +145,22 @@ which differs from the Gaussian-calculated value (0.104216 Ha) by ~0.01 kcal mol
     Gaussian 09 has very tight tolerances on symmetry and uses a pure
     harmonic oscillator treatment of low frequency modes.
 
+*****************
+
+Frequency scaling
+-----------------
+
+Default methods use frequency scaling automatically to generate the most accurate
+thermochemistry possible. Unscaled frequencies can be obtained by setting
+
+.. code-block:: Python
+
+    ade.Config.freq_scale_factor = 1.0
+
+.. note::
+
+    The above examples were generated using unscaled frequencies.
+
 
 References
 ----------

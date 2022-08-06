@@ -502,11 +502,13 @@ class Keyword(ABC):
 
     @property
     def has_only_name(self):
-        """Determine if only a name has been set, in which case it will
+        """
+        Determine if only a name has been set, in which case it will
         be printed verbatim into an input file, otherwise needs keyword.method
-        to be set, where method is e.g. orca"""
+        to be set, where method is e.g. orca
+        """
 
-        excl_attrs = ('name', 'doi_list')
+        excl_attrs = ('name', 'doi_list', 'freq_scale_factor')
         for attr in self.__dict__:
             if attr in excl_attrs:
                 continue
@@ -532,9 +534,24 @@ class DispersionCorrection(Keyword):
 class Functional(Keyword):
     """Functional for a DFT method"""
 
+    def __init__(self, name,
+                 doi=None,
+                 doi_list=None,
+                 freq_scale_factor: float = 1.0,
+                 **kwargs):
+        super().__init__(name, doi=doi, doi_list=doi_list, **kwargs)
+
+        self.freq_scale_factor = freq_scale_factor
+
     def __repr__(self):
         return f'Functional({self.name})'
 
+    def __eq__(self, other):
+        return isinstance(other, Functional) and self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
+    
 
 class ImplicitSolventType(Keyword):
     """
