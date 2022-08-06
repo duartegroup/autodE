@@ -3,14 +3,16 @@ import pytest
 import numpy as np
 import autode as ade
 from . import testutils
+from autode.config import Config
 from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
 from autode.calculation import Calculation
 from autode.species import Molecule
-from autode.values import Frequency, Distance
+from autode.values import Frequency
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
+from autode.wrappers.functionals import pbe0
 from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
@@ -19,7 +21,7 @@ from autode.hessians import (Hessian,
                              HybridHessianCalculator)
 
 here = os.path.dirname(os.path.abspath(__file__))
-
+Config.freq_scale_factor = 1.0
 
 # Ha/Å-2
 h2o_hessian_arr = np.array([[2.31423829e+00,  1.56166837e-02,  8.61890193e-09,
@@ -164,6 +166,46 @@ def test_hessian_freqs():
     assert np.isclose(nu_1, 1567.610851, atol=1.0)
     assert np.isclose(nu_2, 3467.698182, atol=1.0)
     assert np.isclose(nu_3, 3651.462209, atol=1.0)
+
+
+def test_hessian_scaled_freqs():
+
+    h2o = Molecule(smiles='O')
+    h2o.hessian = h2o_hessian_arr
+
+    nu_no_scaling = h2o.hessian.frequencies_proj[-1]
+
+    Config.freq_scale_factor = 0.9
+    h2o.hessian = h2o_hessian_arr
+
+    assert np.isclose(0.9 * nu_no_scaling,
+                      h2o.hessian.frequencies_proj[-1]
+                      )
+
+    Config.freq_scale_factor = None
+
+
+def test_hessian_scale_factor():
+
+    h2o = Molecule(smiles='O')
+    hessian = Hessian(h2o_hessian_arr, atoms=h2o.atoms, functional=pbe0)
+
+    # 0.96 is the appropriate scale factor for PBE0, also known as PBE1PBE in
+    # Gaussian
+    assert np.isclose(hessian._freq_scale_factor, 0.96)
+
+    Config.freq_scale_factor = 0.9
+    assert np.isclose(hessian._freq_scale_factor, 0.9)
+
+    Config.freq_scale_factor = 1.0
+    hessian.functional = None
+    assert np.isclose(hessian._freq_scale_factor, 1.0)
+
+    Config.freq_scale_factor = None
+    hessian.functional = None
+    assert np.isclose(hessian._freq_scale_factor, 1.0)
+
+    Config.freq_scale_factor = 1.0
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))

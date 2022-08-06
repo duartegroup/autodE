@@ -158,6 +158,12 @@ class _ConfigClass:
     # value before the entropy is calculated
     vib_freq_shift = Frequency(100, units='cm-1')
     # -------------------------------------------------------------------------
+    # Frequency scale factor, useful for DFT functions known to have a
+    # systematic error. This value must be between 0 and 1 inclusive. For
+    # example, PBEh-3c has a scale factor of 0.95.
+    #
+    freq_scale_factor = None
+    # -------------------------------------------------------------------------
     # Minimum number of atoms that are removed for truncation to be used in
     # locating TSs. Below this number any truncation is skipped
     #
@@ -367,6 +373,15 @@ class _ConfigClass:
 
         if key == 'max_core':
             value = Allocation(value).to('MB')
+
+        if key == 'freq_scale_factor':
+
+            if value is not None:
+                if not (0. < value <= 1.):
+                    raise ValueError("Cannot set the frequency scale factor "
+                                     "outside of (0, 1]")
+
+                value = float(value)
 
         if key in ('max_atom_displacement', 'min_step_size', 'max_step_size'):
             if float(value) < 0:

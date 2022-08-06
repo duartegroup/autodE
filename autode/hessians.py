@@ -3,8 +3,9 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-from typing import List, Tuple, Iterator, Optional, Sequence
+from typing import List, Tuple, Iterator, Optional, Sequence, Union
 from multiprocessing import Pool
+from autode.wrappers.keywords import Functional
 from autode.wrappers.keywords import GradientKeywords
 from autode.log import logger
 from autode.utils import cached_property
@@ -13,7 +14,7 @@ from autode.constants import Constants
 from autode import methods
 from autode.values import ValueArray, Frequency, Coordinates
 from autode.utils import work_in, hashable
-from autode.units import (wavenumber,
+from autode.units import (Unit, wavenumber,
                           ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
                           J_per_ang_sq_kg)
 
@@ -31,23 +32,23 @@ class Hessian(ValueArray):
         return hash(str(self))
 
     def __new__(cls,
-                input_array,
-                units=ha_per_ang_sq,
-                atoms=None):
+                input_array: np.ndarray,
+                units:       Union[Unit, str] = ha_per_ang_sq,
+                atoms:       Optional['autode.atoms.Atoms'] = None,
+                functional:  Optional[Functional] = None):
         """
         Hessian matrix
 
         -----------------------------------------------------------------------
         Arguments:
-            input_array (np.ndarray | autode.values.ValueArray):
-            units (autode.units.Unit | str):
-            atoms (list(autode.atoms.Atom) | None):
-
-        Returns:
-            (autode.thermo.hessians.Hessian):
+            input_array: Hessian matrix
+            units: Units of the Hessian
+            atoms: Atoms on which the Hessian has been calculated
+            functional: Density functional used to derive the frequency scaling
+                        factor
 
         Raises:
-            (ValueError):
+            (ValueError): If the atoms are not the correct shape
         """
         arr = super().__new__(cls, input_array, units=units)
 
@@ -55,7 +56,9 @@ class Hessian(ValueArray):
             raise ValueError(f'Shape mismatch. Expecting '
                              f'{input_array.shape[0]//3} atoms from the Hessian'
                              f' shape, but had {len(atoms)}')
+
         arr.atoms = atoms
+        arr.functional = functional
 
         return arr
 
@@ -273,11 +276,23 @@ class Hessian(ValueArray):
 
         return modes
 
-    @staticmethod
-    def _eigenvalues_to_freqs(lambdas) -> List[Frequency]:
+    @property
+    def _freq_scale_factor(self) -> float:
+        """Determine the correct frequency scale factor"""
+
+        if Config.freq_scale_factor is not None:
+            return Config.freq_scale_factor
+
+        if self.functional is not None:
+            return self.functional.freq_scale_factor
+
+        return 1.0
+
+    def _eigenvalues_to_freqs(self, lambdas) -> List[Frequency]:
         """
         Convert eigenvalues of the Hessian matrix (SI units) to
-        frequencies in wavenumber units
+        frequencies in wavenumber units. Will use ade.Config.freq_scale_factor
+        to scale the frequencies.
 
         -----------------------------------------------------------------------
         Arguments:
@@ -289,10 +304,12 @@ class Hessian(ValueArray):
 
         nus = (np.sqrt(np.complex_(lambdas))
                / (2.0 * np.pi * Constants.ang_to_m * Constants.c_in_cm))
+        nus *= self._freq_scale_factor
 
         # Cast the purely complex eigenvalues to negative real numbers, as is
         # usual in quantum chemistry codes
-        nus[np.iscomplex(nus)] = -np.abs(nus[np.iscomplex(nus)])
+        idx_to_alter = np.iscomplex(nus)
+        nus[idx_to_alter] = -np.abs(nus[idx_to_alter])
 
         return [Frequency(np.real(nu), units=wavenumber) for nu in nus]
 

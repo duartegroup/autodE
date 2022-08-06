@@ -412,7 +412,8 @@ class Calculation:
         try:
             hessian = Hessian(self.method.get_hessian(self),
                               atoms=self.get_final_atoms(),
-                              units='Ha/ang^2')
+                              units='Ha/ang^2',
+                              functional=self.input.keywords.functional)
 
             assert hessian.shape == (3*self.molecule.n_atoms,
                                      3*self.molecule.n_atoms)

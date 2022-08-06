@@ -467,6 +467,13 @@ class ORCA(ElectronicStructureMethod):
         new_keywords = kwds_cls()
 
         for keyword in calc_input.keywords:
+
+            if 'scalfreq' in keyword.lower():
+                raise UnsupportedCalculationInput(
+                    "Frequency scaling within ORCA will not alter the "
+                    "calculated frequencies. Use ade.Config.freq_scale_factor"
+                )
+
             if 'opt' in keyword.lower() and molecule.n_atoms == 1:
                 logger.warning('Can\'t optimise a single atom')
                 continue
