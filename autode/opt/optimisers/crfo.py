@@ -36,9 +36,7 @@ class CRFOptimiser(RFOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self._hessian_update_types = [# BFGSPDUpdate,
-                                      BFGSDampedUpdate,
-                                      NullUpdate]
+        self._hessian_update_types = [BFGSDampedUpdate, NullUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
@@ -188,22 +186,24 @@ class CRFOptimiser(RFOptimiser):
 
 
 def _dihedrals(species):
-    """Iterator over the dihedrals in a species"""
+    """
+    Iterator over the dihedrals in a species. Skipping those that contain
+    bond angles close to 180 degrees (tolerance <179)
+    """
 
     for (o, p) in species.graph.edges:
         for m in species.graph.neighbors(o):
             if m == p:
                 continue
 
-            if np.isclose(species.angle(m, o, p), Angle(np.pi)):
+            if np.isclose(species.angle(m, o, p), Angle(np.pi), atol=0.04):
                 continue  # Don't add potentially ill-defined dihedrals
 
             for n in species.graph.neighbors(p):
                 if n == o:
                     continue
 
-                if np.isclose(species.angle(o, p, n), Angle(np.pi)):
+                if np.isclose(species.angle(o, p, n), Angle(np.pi), atol=0.04):
                     continue
 
                 yield DihedralAngle(m, o, p, n)
-

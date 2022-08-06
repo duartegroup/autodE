@@ -210,3 +210,11 @@ def test_bfgs_update_water():
     new_true_h = np.loadtxt("water_cart_hessian1.txt")
 
     assert np.sum(np.abs(new_bfgs_h - new_true_h)) < np.sum(np.abs(h - new_true_h))
+
+
+def test_hessian_requires_at_least_one_index():
+
+    h = np.eye(3)
+    s = y = np.zeros(3)
+    with pytest.raises(ValueError):
+        updater = BFGSUpdate(h=h, s=s, y=y, subspace_idxs=[])

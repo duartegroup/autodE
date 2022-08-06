@@ -645,3 +645,23 @@ def test_angle_normal(sign):
     assert not np.isinf(angle.derivative(0, 1, x))
 
 
+def test_dic_large_step_allowed_unconverged_back_transform():
+
+    x = CartesianCoordinates(water_mol().coordinates)
+    dic = DIC.from_cartesian(x)
+
+    dic += 1.0 * np.ones(shape=(len(dic),))
+    new_x = dic.to("cartesian")
+
+    # DIC transform should have moved the cartesian coordinates
+    assert not np.allclose(new_x, x)
+
+
+def test_constrained_angle_delta():
+
+    q = ConstrainedBondAngle(0, 1, 2, value=np.pi)
+    mol = water_mol()
+    theta = mol.angle(1, 0, 2)
+    x = CartesianCoordinates(mol.coordinates)
+
+    assert np.isclose(q.delta(x), theta - np.pi)

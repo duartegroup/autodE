@@ -9,6 +9,7 @@ from autode.methods import XTB
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
+from autode.opt.coordinates.primitives import DihedralAngle
 from autode.utils import work_in_tmp_dir
 from .molecules import h2o2_mol
 from ..testutils import requires_with_working_xtb_install
@@ -302,3 +303,16 @@ def test_step_with_180degree_dihedrals():
     dic = crfo_coords(ethane)
     dic.__class__ = DICEnsureBackTransform   # oh so hacky
     dic += ds
+
+
+def test_linear_dihedrals_are_removed():
+
+    allene = Molecule(atoms=[
+        Atom("C",  0.35540, -0.20370, -0.44810),
+        Atom("C", -0.37180,  0.21470,  0.40200),
+        Atom("H",  1.01560, -0.60550, -1.23530),
+        Atom("H", -0.99920,  0.59450,  1.15720),
+    ])
+
+    dic = crfo_coords(allene)
+    assert not any(isinstance(q, DihedralAngle) for q in dic.primitives)
