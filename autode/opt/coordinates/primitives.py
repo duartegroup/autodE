@@ -338,6 +338,9 @@ class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
     def __repr__(self):
         return f'ConstrainedCAngle({self.m}-{self.o}-{self.n})'
 
+    def __eq__(self, other):
+        return super().__eq__(other) and np.isclose(self._theta0, other._theta0)
+
 
 class DihedralAngle(Primitive):
 

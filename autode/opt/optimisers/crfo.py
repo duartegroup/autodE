@@ -12,7 +12,7 @@ from autode.values import GradientRMS, Angle
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.rfo import RFOptimiser
-from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate, BFGSDampedUpdate
+from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngle,
                                                ConstrainedDistance)
 
