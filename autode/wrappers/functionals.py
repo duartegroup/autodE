@@ -1,7 +1,7 @@
 """
 Functional instances. Frequency scale factors have been obtained from
 https://cccbdb.nist.gov/vibscalejust.asp and the basis set dependence assumed
-to be negligible for moderately sized (>6-31G)
+to be negligible at least double zetas (i.e. >6-31G)
 """
 from autode.wrappers.keywords import Functional
 

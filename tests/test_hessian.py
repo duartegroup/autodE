@@ -190,6 +190,8 @@ def test_hessian_scale_factor():
     h2o = Molecule(smiles='O')
     hessian = Hessian(h2o_hessian_arr, atoms=h2o.atoms, functional=pbe0)
 
+    # 0.96 is the appropriate scale factor for PBE0, also known as PBE1PBE in
+    # Gaussian
     assert np.isclose(hessian._freq_scale_factor, 0.96)
 
     Config.freq_scale_factor = 0.9

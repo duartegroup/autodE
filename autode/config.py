@@ -159,8 +159,8 @@ class _ConfigClass:
     vib_freq_shift = Frequency(100, units='cm-1')
     # -------------------------------------------------------------------------
     # Frequency scale factor, useful for DFT functions known to have a
-    # systematic error. This value must be between 0 and 1. For example,
-    # PBEh-3c has a scale factor of 0.95.
+    # systematic error. This value must be between 0 and 1 inclusive. For
+    # example, PBEh-3c has a scale factor of 0.95.
     #
     freq_scale_factor = None
     # -------------------------------------------------------------------------
