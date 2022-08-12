@@ -280,7 +280,7 @@ class DICWithConstraints(DIC):
 
     @property
     def raw(self) -> np.ndarray:
-        """Raw numpy array of these coordinates"""
+        """Raw numpy array of these coordinates including the multipliers"""
         return np.array(self.tolist() + self._lambda.tolist(), copy=True)
 
     @staticmethod
@@ -396,14 +396,6 @@ class DICWithConstraints(DIC):
         n_rows, n_cols = arr.shape
         return arr.ndim == 2 and n_rows == n_cols == len(self) + self.n_constraints
 
-    def set_lagrange_multipliers(self, arr: np.ndarray) -> None:
-        """Set the lagrange multipliers: {λ_0, λ_1, ..}"""
-
-        if arr.shape != self._lambda.shape:
-            raise ValueError("Cannot set lagrange multipliers. Incorrect shape")
-
-        self._lambda[:] = arr
-
     def update_lagrange_multipliers(self, arr: np.ndarray) -> None:
         """Update the lagrange multipliers by adding a set of values"""
 
@@ -418,7 +410,8 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
     """
     Perform Schmidt orthogonalization to generate orthogonal vectors
     that include a number of unit vectors, the non-zero components of which
-    are defined by the indexes argument.
+    are defined by indexes. This generates a transform matrix U which will
+    provide pure primitive coordinates, which can then be constrained simply
     """
     logger.info(f"Schmidt-orthogonalizing. Using {indexes} as "
                 f"orthonormal vectors")
@@ -470,7 +463,7 @@ def _is_pure_primitive(v: np.ndarray) -> bool:
     are zero.
     """
 
-    def n_values(value):
+    def n_values_close_to(value):
         return sum(np.isclose(v_i, value) for v_i in v)
 
-    return n_values(0.0) == len(v) - 1 and n_values(1.0) == 1
+    return n_values_close_to(0.0) == len(v) - 1 and n_values_close_to(1.0) == 1

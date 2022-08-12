@@ -68,9 +68,7 @@ class HessianUpdater(ABC):
         the components present in self.subspace_idxs. Also ensures that the
         Hessian is Hermitian
         """
-
-        if self.subspace_idxs is None:
-            return _ensure_hermitian(m_sub)
+        assert self.subspace_idxs is not None
 
         for i, idx_i in enumerate(self.subspace_idxs):
             for j, idx_j in enumerate(self.subspace_idxs):
@@ -235,6 +233,10 @@ class BFGSPDUpdate(BFGSUpdate):
 
 
 class BFGSDampedUpdate(BFGSPDUpdate):
+    """
+    Powell damped BFGS update that ensures reasonable conditioning with the
+    'positive definite' conditions still imposed
+    """
 
     @property
     def _updated_h(self) -> np.ndarray:

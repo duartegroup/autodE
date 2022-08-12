@@ -139,10 +139,7 @@ class CRFOptimiser(RFOptimiser):
 
         for o in range(self._species.n_atoms):
             for (n, m) in combinations(graph.neighbors(o), r=2):
-                angle = BondAngle(o=o, m=m, n=n)
-
-                if angle not in pic:
-                    pic.append(angle)
+                pic.append(BondAngle(o=o, m=m, n=n))
 
         if self._species.n_atoms > 2 and not self._species.is_planar():
             for dihedral in _dihedrals(self._species):

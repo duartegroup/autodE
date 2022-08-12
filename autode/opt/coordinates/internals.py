@@ -42,7 +42,7 @@ class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
     @property
     def n_constraints(self) -> int:
         """Number of constraints in these coordinates"""
-        return sum(p.is_constrained for p in self.primitives)
+        return self.primitives.n_constrained
 
     @property
     def constrained_primitives(self) -> List['ConstrainedPrimitive']:

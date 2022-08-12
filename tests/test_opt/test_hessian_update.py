@@ -218,3 +218,6 @@ def test_hessian_requires_at_least_one_index():
     s = y = np.zeros(3)
     with pytest.raises(ValueError):
         updater = BFGSUpdate(h=h, s=s, y=y, subspace_idxs=[])
+
+
+

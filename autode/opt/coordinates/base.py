@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 from autode.log import logger
 from autode.units import (ang, nm, pm, m)
 from autode.values import ValueArray, PotentialEnergy
-from autode.geom import ensure_positive_definite
 
 
 @unique
@@ -200,7 +199,7 @@ class OptCoordinates(ValueArray, ABC):
         """
         Make the Hessian matrix positive definite by shifting eigenvalues
         """
-        self._h = ensure_positive_definite(self.h, min_eigenvalue=1.0)
+        self._h = _ensure_positive_definite(self.h, min_eigenvalue=1.0)
         return None
 
     @abstractmethod
@@ -280,3 +279,37 @@ class OptCoordinates(ValueArray, ABC):
 
     def copy(self, *args, **kwargs) -> 'OptCoordinates':
         return deepcopy(self)
+
+
+def _ensure_positive_definite(matrix: np.ndarray,
+                              min_eigenvalue: float = 1E-10
+                              ) -> np.ndarray:
+    """
+    Ensure that the eigenvalues of a matrix are all >0 i.e. the matrix
+    is positive definite. Will shift all values below min_eigenvalue to that
+    value.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        matrix: Matrix to make positive definite
+
+        min_eigenvalue: Minimum value eigenvalue of the matrix
+
+    Returns:
+        (np.ndarray): Matrix with eigenvalues at least min_eigenvalue
+    """
+
+    if matrix is None:
+        raise RuntimeError('Cannot make a positive definite matrix - '
+                           'had no matrix')
+
+    lmd, v = np.linalg.eig(matrix)  # Eigenvalues and eigenvectors
+
+    if np.all(lmd > min_eigenvalue):
+        logger.info('Matrix was positive definite')
+        return matrix
+
+    logger.warning('Matrix was not positive definite. '
+                   'Shifting eigenvalues to X and reconstructing')
+    lmd[lmd < min_eigenvalue] = min_eigenvalue
+    return np.linalg.multi_dot((v, np.diag(lmd), v.T)).real

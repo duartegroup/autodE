@@ -6,26 +6,29 @@ Changelog
 --------
 ----------
 
-Alters bond assignments...
+Alters bond assignments and improces
 
 
 Usability improvements/Changes
 ******************************
 - Defines dummy atoms to have zero covalent and vdW radii
 - Removes `autode.bonds.get_ideal_bond_length_matrix` and `autode.bonds.get_avg_bond_length`
-
+- Removes `autode.geom.rotate_columns`
+- Modifies the names of most optimiser classes e.g. `autode.opt.optimisers.PRFOOptimiser` -> `PRFOptimiser`
 
 Functionality improvements
 **************************
 - Adds a :code:`autode.atoms.Atom.covalent_radius` property
 - Adds a :code:`autode.atoms.Atoms.eqm_bond_distance` method for the equilibrium bonded distance between two atoms
 - Adds vibrational frequency scaling through both :code:`autode.Config.freq_scale_factor` and a default value in wrapped functional keywords
-
+- Adds a *much* more robust constrained rational function constrained optimiser in delocalised internal coordinates (DIC)
+- Adds bond angle and dihedral primitive coordinates which can form part of the DIC set
+- Improves the back transformation
 
 Bug Fixes
 *********
 - Fixes variable harmonic frequencies (<2 cm-1 differences) due to projection vectors becoming close to rotational axes
-
+- Fixes the extraction of atomic partial charges from ORCA output files
 
 1.2.3
 --------

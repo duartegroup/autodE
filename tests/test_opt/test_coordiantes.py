@@ -665,3 +665,14 @@ def test_constrained_angle_delta():
     x = CartesianCoordinates(mol.coordinates)
 
     assert np.isclose(q.delta(x), theta - np.pi)
+
+
+def test_constrained_angle_equality():
+
+    a = ConstrainedBondAngle(0, 1, 2, value=np.pi)
+    b = ConstrainedBondAngle(0, 2, 1, value=np.pi)
+
+    assert a == b
+
+    b._theta0 = 0.0
+    assert a != b

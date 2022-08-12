@@ -69,10 +69,12 @@ def crfo_water_coords():
 def test_setting_invalid_lagrange_multipliers():
 
     s = crfo_water_coords()
+    # the vector of lagrange multipliers must be of length one to be
+    # appropriate for a water molecule with a single constrained distance
     invalid_multipliers = np.ones(shape=(4,))
 
     with pytest.raises(ValueError):
-        s.set_lagrange_multipliers(invalid_multipliers)
+        s.update_lagrange_multipliers(invalid_multipliers)
 
 
 def test_simple_gradient_update():
