@@ -6,15 +6,16 @@ Changelog
 --------
 ----------
 
-Alters bond assignments and improces
+Optimisation features, graph assignment improvements and bugfixes.
 
 
 Usability improvements/Changes
 ******************************
 - Defines dummy atoms to have zero covalent and vdW radii
-- Removes `autode.bonds.get_ideal_bond_length_matrix` and `autode.bonds.get_avg_bond_length`
-- Removes `autode.geom.rotate_columns`
-- Modifies the names of most optimiser classes e.g. `autode.opt.optimisers.PRFOOptimiser` -> `PRFOptimiser`
+- Removes :code:`autode.bonds.get_ideal_bond_length_matrix` and :code:`autode.bonds.get_avg_bond_length`
+- Removes :code:`autode.geom.rotate_columns`
+- Modifies the names of most optimiser classes e.g. :code:`autode.opt.optimisers.PRFOOptimiser` -> :code:`PRFOptimiser`
+
 
 Functionality improvements
 **************************
@@ -25,10 +26,45 @@ Functionality improvements
 - Adds bond angle and dihedral primitive coordinates which can form part of the DIC set
 - Improves the back transformation
 
+
 Bug Fixes
 *********
 - Fixes variable harmonic frequencies (<2 cm-1 differences) due to projection vectors becoming close to rotational axes
 - Fixes the extraction of atomic partial charges from ORCA output files
+
+
+See the table below for a quick benchmark of constrained optimisations in autodE
+compared to ORCA. In all cases the structures were generated from SMILES strings (RDKit)
+and optimised with a single constraint on the (0,1) distance of +0.1 Å from its current
+value.
+
+.. list-table::
+    :header-rows: 1
+
+    * - Molecule
+      - autodE
+      - ORCA
+    * - C7H12
+      - 6
+      - 7
+    * - C3H7
+      - 8
+      - 17
+    * - C4H6
+      - 3
+      - 5
+    * - CClH3
+      - 3
+      - 4
+    * - C2H3O2
+      - 3
+      - 7
+    * - C2FH5
+      - 3
+      - 5
+    * - C4H6O2S
+      - 6
+      - 11
 
 1.2.3
 --------
