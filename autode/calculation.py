@@ -49,7 +49,6 @@ class Calculation:
                  keywords:              'autode.wrappers.keywords.Keywords',
                  n_cores:               int = 1,
                  bond_ids_to_add:       Optional[List[tuple]] = None,
-                 other_input_block:     Optional[str] = None,
                  distance_constraints:  Optional[dict] = None,
                  cartesian_constraints: Optional[List[int]] = None,
                  point_charges:         Optional[List[PointCharge]] = None):
@@ -72,8 +71,6 @@ class Calculation:
 
             bond_ids_to_add (list(tuples)): List of bonds to add to internal
                                             coordinates (default: {None})
-
-            other_input_block (str): Other input block to add (default: {None})
 
             distance_constraints (dict): keys = tuple of atom ids for a bond to
                                          be kept at fixed length, value = dist
@@ -107,7 +104,6 @@ class Calculation:
 
         # ------------------- Calculation input/output ------------------------
         self.input = CalculationInput(keywords=keywords.copy(),
-                                      additional_input=other_input_block,
                                       added_internals=bond_ids_to_add,
                                       point_charges=point_charges)
 
@@ -610,7 +606,6 @@ class CalculationInput:
 
     def __init__(self,
                  keywords:        'autode.wrappers.keywords.Keywords',
-                 additional_input: Optional[str] = None,
                  added_internals:  Optional[list] = None,
                  point_charges:    Optional[List[PointCharge]] = None):
         """
@@ -628,7 +623,6 @@ class CalculationInput:
                           for each point charge
         """
         self.keywords = keywords
-        self.other_block = additional_input
 
         self.added_internals = added_internals
         self.point_charges = point_charges
@@ -642,8 +636,6 @@ class CalculationInput:
         """Check that the input parameters have the expected format"""
         if self.keywords is not None:
             assert isinstance(self.keywords, kws.Keywords)
-
-        assert self.other_block is None or type(self.other_block) is str
 
         # Ensure the point charges are given as a list of PointCharge objects
         if self.point_charges is not None:

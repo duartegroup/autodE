@@ -90,8 +90,7 @@ class TransitionState(TSbase):
                                  method=method,
                                  n_cores=Config.n_cores,
                                  keywords=method.keywords.opt_ts,
-                                 bond_ids_to_add=self._active_bonds,
-                                 other_input_block=method.keywords.optts_block)
+                                 bond_ids_to_add=self._active_bonds)
         optts_calc.run()
 
         if not optts_calc.optimisation_converged():
@@ -126,8 +125,7 @@ class TransitionState(TSbase):
                                method=method,
                                n_cores=Config.n_cores,
                                keywords=method.keywords.opt_ts,
-                               bond_ids_to_add=self._active_bonds,
-                               other_input_block=method.keywords.optts_block)
+                               bond_ids_to_add=self._active_bonds)
             calc.run()
         else:
             logger.info('Lost imaginary mode')

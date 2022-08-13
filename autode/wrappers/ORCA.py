@@ -153,11 +153,6 @@ class ORCA(ElectronicStructureMethod):
             print_num_optimisation_steps(inp_file, molecule, calc.input)
             print_point_charges(inp_file, calc.input)
             print_default_params(inp_file)
-            if Config.ORCA.other_input_block is not None:
-                print(Config.ORCA.other_input_block, file=inp_file)
-
-            if calc.input.other_block is not None:
-                print(calc.input.other_block, file=inp_file)
 
             if calc.n_cores > 1:
                 print(f'%pal nprocs {calc.n_cores}\nend', file=inp_file)

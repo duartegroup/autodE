@@ -11,10 +11,15 @@ Optimisation features, graph assignment improvements and bugfixes.
 
 Usability improvements/Changes
 ******************************
-- Defines dummy atoms to have zero covalent and vdW radii
-- Removes :code:`autode.bonds.get_ideal_bond_length_matrix` and :code:`autode.bonds.get_avg_bond_length`
-- Removes :code:`autode.geom.rotate_columns`
-- Modifies the names of most optimiser classes e.g. :code:`autode.opt.optimisers.PRFOOptimiser` -> :code:`PRFOptimiser`
+* Defines dummy atoms to have zero covalent and vdW radii
+* Removes :code:`autode.bonds.get_ideal_bond_length_matrix` and :code:`autode.bonds.get_avg_bond_length`
+* Removes :code:`autode.geom.rotate_columns`
+* Modifies the names of most optimiser classes e.g. :code:`autode.opt.optimisers.PRFOOptimiser` -> :code:`PRFOptimiser`
+* Simplifies initialising a :code:`autode.calculations.Calculation` by:
+
+  * Requiring constraints to be attributed to a molecule
+  * Removing the :code:`bond_ids_to_add` argument and using the labeled graph instead (active edges)
+  * Removing the :code:`other_input_block` argument and appending to the keywords instead
 
 
 Functionality improvements

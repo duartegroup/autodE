@@ -102,16 +102,17 @@ def test_orca_optts_calculation():
     ts_guess = TSguess(Molecule('test_ts_reopt_optts_orca.xyz', charge=-1).atoms)
     ts = TransitionState(ts_guess)
 
+    optts_str = ('\n%geom\n'
+                 'Calc_Hess true\n'
+                 'Recalc_Hess 40\n'
+                 'Trust 0.2\n'
+                 'MaxIter 100\nend')
+
     calc = Calculation(name='test_ts_reopt_optts',
                        molecule=ts,
                        method=method,
                        bond_ids_to_add=[(0, 1)],
-                       keywords=opt_keywords,
-                       other_input_block='%geom\n'
-                                         'Calc_Hess true\n'
-                                         'Recalc_Hess 40\n'
-                                         'Trust 0.2\n'
-                                         'MaxIter 100\nend')
+                       keywords=opt_keywords + [optts_str])
     calc.run()
 
     ts.calc_thermo(calc=calc, ss='1atm', sn=1)
@@ -328,29 +329,6 @@ def test_hessian_extraction():
     calc.output = CalculationOutput(filename='H2O_hess_broken.out')
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_hessian()
-
-
-@utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def test_other_input_block():
-
-    curr_other_input_block = deepcopy(Config.ORCA.other_input_block)
-    Config.ORCA.other_input_block = '%scf\n MaxIter 1500\n end'
-    calc = Calculation(name='other_input_block',
-                       molecule=test_mol,
-                       method=method,
-                       keywords=method.keywords.sp)
-    calc.generate_input()
-
-    assert os.path.exists('other_input_block_orca.inp')
-
-    scf_line_exists = False
-    for line in open('other_input_block_orca.inp', 'r'):
-        if 'MaxIter 1500' in line:
-            scf_line_exists = True
-            break
-
-    assert scf_line_exists
-    Config.ORCA.other_input_block = curr_other_input_block
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
