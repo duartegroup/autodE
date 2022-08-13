@@ -133,16 +133,19 @@ class PathPoint:
                         a tuple with distances (floats) as values
         """
         self.species = species
-
-        assert type(constraints) is dict
-        self.constraints = constraints
+        self.species.constraints.distance = constraints
 
         self.energy = None    # Ha
         self.grad = None      # Ha Å^-1
 
+    @property
+    def constraints(self) -> dict:
+        return self.species.constraints.distance
+
     def copy(self):
         """Return a copy of this point"""
-        return PathPoint(self.species.new_species(), deepcopy(self.constraints))
+        return PathPoint(species=self.species.new_species(),
+                         constraints=deepcopy(self.species.constraints.distance))
 
 
 class AdaptivePath(Path):
@@ -208,8 +211,7 @@ class AdaptivePath(Path):
                                molecule=self[idx].species,
                                method=self.method,
                                keywords=keywords,
-                               n_cores=ade.Config.n_cores,
-                               distance_constraints=self[idx].constraints)
+                               n_cores=ade.Config.n_cores)
         calc.run()
 
         # Set the required properties from the calculation

@@ -41,7 +41,6 @@ def test_printing_ecp():
     assert n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol) == 0
 
     calc_input = CalculationInput(keywords,
-                                  additional_input=None,
                                   added_internals=None,
                                   point_charges=None)
 
@@ -215,15 +214,19 @@ def test_fix_angle_error():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_constraints():
 
-    calc = Calculation(name='const_dist_opt', molecule=test_mol, method=method,
-                       keywords=opt_keywords, distance_constraints={(0, 1): 1.2})
+    a = test_mol.copy()
+    a.constraints.distance = {(0, 1): 1.2}
+    calc = Calculation(name='const_dist_opt', molecule=a, method=method,
+                       keywords=opt_keywords)
     calc.run()
     opt_atoms = calc.get_final_atoms()
 
     assert 1.199 < np.linalg.norm(opt_atoms[0].coord - opt_atoms[1].coord) < 1.201
 
-    calc = Calculation(name='const_cart_opt', molecule=test_mol, method=method,
-                       keywords=opt_keywords, cartesian_constraints=[0])
+    b = test_mol.copy()
+    b.constraints.cartesian = [0]
+    calc = Calculation(name='const_cart_opt', molecule=b, method=method,
+                       keywords=opt_keywords)
     calc.run()
     opt_atoms = calc.get_final_atoms()
     assert np.linalg.norm(test_mol.atoms[0].coord - opt_atoms[0].coord) < 1E-3

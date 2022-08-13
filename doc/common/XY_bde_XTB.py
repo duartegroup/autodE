@@ -16,11 +16,12 @@ def bde_curve(smiles):
 
     for i in range(12):
         r = rs[-1] + 0.2
+        mol.constraints.distance = {(0, 1), r}
+
         calc = ade.Calculation(name=f'{smiles}_step{i}',
                                molecule=mol,
                                method=xtb,
-                               keywords=xtb.keywords.opt,
-                               distance_constraints={(0, 1): r})
+                               keywords=xtb.keywords.opt)
         try:
             mol.optimise(calc=calc)
         except:  # optimising long bond lengths can break!

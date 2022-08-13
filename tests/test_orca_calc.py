@@ -67,35 +67,6 @@ def test_orca_opt_calculation():
         execute_calc(calc)
 
 
-def test_calc_bad_mol():
-
-    class Mol:
-        pass
-
-    mol = Mol()
-
-    with pytest.raises(Exception):
-        Calculation(name='bad_mol_object', molecule=mol, method=method,
-                    keywords=opt_keywords)
-
-    mol.atoms = None
-    mol.mult = 1
-    mol.n_atoms = 0
-    mol.charge = 0
-    mol.solvent = None
-
-    with pytest.raises(ex.NoInputError):
-        Calculation(name='no_atoms_mol', molecule=mol, method=method,
-                    keywords=opt_keywords)
-
-    mol = Molecule(name='methane', smiles='C')
-    mol.solvent = ImplicitSolvent(name='xx', smiles='X', aliases=['X'])
-
-    with pytest.raises(ex.SolventUnavailable):
-        Calculation(name='tmp', molecule=mol, method=method,
-                    keywords=opt_keywords)
-
-
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
 def test_orca_optts_calculation():
 

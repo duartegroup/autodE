@@ -76,10 +76,6 @@ def print_num_optimisation_steps(inp_file, molecule, calc_input):
     if molecule.n_atoms > 33:
         return  # Use default behaviour
 
-    block = calc_input.other_block
-    if block is None or 'maxit' not in block.lower():
-        print('%geom MaxIter 100 end', file=inp_file)
-
     return
 
 

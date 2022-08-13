@@ -49,8 +49,6 @@ class Calculation:
                  keywords:              'autode.wrappers.keywords.Keywords',
                  n_cores:               int = 1,
                  bond_ids_to_add:       Optional[List[tuple]] = None,
-                 distance_constraints:  Optional[dict] = None,
-                 cartesian_constraints: Optional[List[int]] = None,
                  point_charges:         Optional[List[PointCharge]] = None):
         """
         Calculation e.g. single point energy evaluation on a molecule
@@ -59,7 +57,9 @@ class Calculation:
         Arguments:
             name (str):
 
-            molecule (autode.species.Species): Molecule to be calculated
+            molecule (autode.species.Species): Molecule to be calculated. This
+                     may have a set of associated cartesian or distance
+                     constraints
 
             method (autode.wrappers.base.ElectronicStructureMethod):
 
@@ -72,33 +72,14 @@ class Calculation:
             bond_ids_to_add (list(tuples)): List of bonds to add to internal
                                             coordinates (default: {None})
 
-            distance_constraints (dict): keys = tuple of atom ids for a bond to
-                                         be kept at fixed length, value = dist
-                                         to be fixed at (default: {None})
-
-            cartesian_constraints (list(int)): List of atom ids to fix at their
-                                               cartesian coordinates
-                                               (default: {None})
-
             point_charges (list(autode.point_charges.PointCharge)): List of
                                              float of point charges, x, y, z
                                              coordinates for each point charge
         """
         # Calculation names that start with "-" can break EST methods
-        self.name = (f'{name}_{method.name}' if not name.startswith('-')
-                     else f'_{name}_{method.name}')
+        self.name = f'{_string_without_leading_hyphen(name)}_{method.name}'
 
-        # ------------------- System specific parameters ----------------------
-        self.molecule = deepcopy(molecule)
-
-        if hasattr(self.molecule, 'constraints'):
-            self.molecule.constraints.update(distance=distance_constraints,
-                                             cartesian=cartesian_constraints)
-        else:
-            self.molecule.constraints = Constraints(distance=distance_constraints,
-                                                    cartesian=cartesian_constraints)
-
-        # --------------------- Calculation parameters ------------------------
+        self.molecule = molecule.copy()
         self.method = method
         self.n_cores = int(n_cores)
 
@@ -612,9 +593,6 @@ class CalculationInput:
         Arguments:
             keywords (autode.wrappers.keywords.Keywords):
 
-            additional_input (str or None): Any additional input string to add
-                                            to the input file, or None
-
             added_internals (list(tuple(int)) or None): Atom indexes to add to
                                                        the internal coordinates
 
@@ -659,3 +637,7 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
+
+
+def _string_without_leading_hyphen(s: str) -> str:
+    return s if not s.startswith('-') else f'_{s}'
