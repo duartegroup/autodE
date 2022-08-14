@@ -363,15 +363,15 @@ def requires_output(func):
     return wrapped_function
 
 
-def timeout(seconds, return_value=None):
+def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
     """
-    Function dectorator that times-out after a number of seconds
+    Function decorator that times-out after a number of seconds
 
+    ---------------------------------------------------------------------------
     Arguments:
-        seconds (float):
+        seconds:
 
-    Keyword Arguments:
-        return_value (Any): Value returned if the function times out
+        return_value: Value returned if the function times out
 
     Returns:
         (Any): Result of the function | return_value
@@ -386,8 +386,14 @@ def timeout(seconds, return_value=None):
             p = multiprocessing.Process(target=handler,
                                         args=(q, func, args, kwargs))
 
-            if isinstance(mp.get_context(), mp.context.ForkContext):
+            if mp.current_process().daemon:
+                # Cannot run a subprocess in a daemon process - timeout is not
+                # possible
+                return func(*args, **kwargs)
+
+            elif isinstance(mp.get_context(), mp.context.ForkContext):
                 p.start()
+
             else:
                 logger.error('Failed to wrap function')
                 return func(*args, **kwargs)

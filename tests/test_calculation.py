@@ -1,5 +1,6 @@
-from autode.calculation import Calculation, Constraints, CalculationOutput
+from autode.calculation import Calculation, CalculationOutput
 from autode.solvent.solvents import get_solvent
+from autode.constraints import Constraints
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import Functional
 from autode.utils import run_external

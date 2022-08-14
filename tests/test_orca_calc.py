@@ -72,6 +72,7 @@ def test_orca_optts_calculation():
 
     ts_guess = TSguess(Molecule('test_ts_reopt_optts_orca.xyz', charge=-1).atoms)
     ts = TransitionState(ts_guess)
+    ts.graph.add_active_edge(0, 1)
 
     optts_str = ('\n%geom\n'
                  'Calc_Hess true\n'
@@ -82,7 +83,6 @@ def test_orca_optts_calculation():
     calc = Calculation(name='test_ts_reopt_optts',
                        molecule=ts,
                        method=method,
-                       bond_ids_to_add=[(0, 1)],
                        keywords=opt_keywords + [optts_str])
     calc.run()
 

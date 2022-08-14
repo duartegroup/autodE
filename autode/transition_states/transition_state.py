@@ -11,7 +11,7 @@ from autode.exceptions import CalculationException
 from autode.geom import get_distance_constraints, calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod
-from autode.mol_graphs import set_active_mol_graph, get_truncated_active_mol_graph
+from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.utils import requires_atoms, requires_graph
 
 
@@ -63,23 +63,11 @@ class TransitionState(TSbase):
             active_bonds = []
 
         else:
-            active_bonds = self.bond_rearrangement.all
-
-        set_active_mol_graph(species=self, active_bonds=active_bonds)
+            for bond in self.bond_rearrangement.all:
+                self.graph.add_active_edge(*bond)
 
         logger.info(f'Molecular graph updated with active bonds')
         return None
-
-    @property
-    def _active_bonds(self) -> Optional[list]:
-        """Active bonds that are present in the associated bond rearrangement"""
-
-        if self.bond_rearrangement is None:
-            logger.warning('Cannot add redundant internal coordinates for the '
-                           'active bonds with no bond rearrangement')
-            return None
-
-        return self.bond_rearrangement.all
 
     def _run_opt_ts_calc(self, method, name_ext):
         """Run an optts calculation and attempt to set the geometry, energy and
@@ -89,8 +77,7 @@ class TransitionState(TSbase):
                                  molecule=self,
                                  method=method,
                                  n_cores=Config.n_cores,
-                                 keywords=method.keywords.opt_ts,
-                                 bond_ids_to_add=self._active_bonds)
+                                 keywords=method.keywords.opt_ts)
         optts_calc.run()
 
         if not optts_calc.optimisation_converged():
@@ -124,8 +111,7 @@ class TransitionState(TSbase):
                                molecule=self,
                                method=method,
                                n_cores=Config.n_cores,
-                               keywords=method.keywords.opt_ts,
-                               bond_ids_to_add=self._active_bonds)
+                               keywords=method.keywords.opt_ts)
             calc.run()
         else:
             logger.info('Lost imaginary mode')
