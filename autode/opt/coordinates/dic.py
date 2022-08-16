@@ -27,7 +27,7 @@ _max_back_transform_iterations = 20
 
 
 class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
-    """Delocalised internal coordinates"""
+    """Delocalised internal coordinates (DIC)"""
 
     def __repr__(self):
         return f'DIC(n={len(self)})'
@@ -246,7 +246,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
 class DICWithConstraints(DIC):
     r"""
-    Delocalised internal coordinates with constraints. Uses Lagrangian
+    Delocalised internal coordinates (DIC) with constraints. Uses Lagrangian
     multipliers to enforce the constraints with:
 
     ..math::
@@ -459,11 +459,11 @@ def _symmetry_inequivalent_u(u, q) -> np.ndarray:
 
 def _is_pure_primitive(v: np.ndarray) -> bool:
     """
-    Is this vector a pure primitive? where all but one of the coefficients
-    are zero.
+    Is this vector a pure primitive? Defined by all but one of the coefficients
+    being zero
     """
 
     def n_values_close_to(value):
-        return sum(np.isclose(v_i, value) for v_i in v)
+        return sum(np.isclose(v_i, value, atol=1E-10) for v_i in v)
 
     return n_values_close_to(0.0) == len(v) - 1 and n_values_close_to(1.0) == 1

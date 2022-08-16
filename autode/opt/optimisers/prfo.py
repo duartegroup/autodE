@@ -95,7 +95,7 @@ class PRFOptimiser(RFOptimiser):
         # Transform back from the eigenbasis with eqn. 52 in ref [1]
         delta_s = np.matmul(v, s_tilde)
 
-        self._take_sanitised_step(delta_s)
+        self._take_step_within_trust_radius(delta_s)
         return None
 
     def _initialise_run(self) -> None:

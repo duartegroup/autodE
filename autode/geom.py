@@ -50,46 +50,6 @@ def proj(u: np.ndarray, v: np.ndarray) -> np.ndarray:
     return (np.dot(u, v) / np.dot(u, u)) * u
 
 
-def get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Atoms':
-    """For a geometry defined by a set of xyzs, set the constrained bonds to
-    the correct lengths
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        atoms (list(autode.atoms.Atom)): list of atoms
-
-        bonds (list(tuple)): List of bond ids on for which the final_distances
-                             apply
-        final_distances (list(float)): List of final bond distances for the
-                                       bonds
-
-    Returns:
-        (list(autode.atoms.Atom)): Shifted atoms
-    """
-
-    coords = np.array([atom.coord for atom in atoms])
-    atoms_and_shift_vecs = {}
-
-    for n, bond in enumerate(bonds):
-        atom_a, atom_b = bond
-        ab_vec = coords[atom_b] - coords[atom_a]
-        d_crr = np.linalg.norm(ab_vec)
-        d_final = final_distances[n]
-
-        ab_norm_vec = ab_vec / d_crr
-
-        atoms_and_shift_vecs[atom_b] = 0.5 * (d_final - d_crr) * ab_norm_vec
-        atoms_and_shift_vecs[atom_a] = -0.5 * (d_final - d_crr) * ab_norm_vec
-
-    for n, coord in enumerate(coords):
-        if n in atoms_and_shift_vecs.keys():
-            coord += atoms_and_shift_vecs[n]
-
-        atoms[n].coord = coord
-
-    return atoms
-
-
 def get_rot_mat_kabsch(p_matrix: np.ndarray, q_matrix: np.ndarray) -> np.ndarray:
     """
     Get the optimal rotation matrix with the Kabsch algorithm. Notation is from

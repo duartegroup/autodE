@@ -79,7 +79,7 @@ class CRFOptimiser(RFOptimiser):
         delta_s = np.zeros(shape=(n+m,))
         delta_s[idxs] = delta_s_active
 
-        c = self._take_sanitised_step(delta_s[:n])
+        c = self._take_step_within_trust_radius(delta_s[:n])
         self._coords.update_lagrange_multipliers(c * delta_s[n:])
         return None
 

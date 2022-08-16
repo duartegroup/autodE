@@ -61,6 +61,7 @@ class Primitive(ABC):
 
 
 class ConstrainedPrimitive(Primitive, ABC):
+    """A primitive internal coordinate constrained to a value"""
 
     is_constrained = True
 

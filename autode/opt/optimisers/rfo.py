@@ -58,7 +58,7 @@ class RFOptimiser(NDOptimiser):
         # and the step scaled by the final element of the eigenvector
         delta_s = aug_H_v[:-1, mode] / aug_H_v[-1, mode]
 
-        self._take_sanitised_step(delta_s)
+        self._take_step_within_trust_radius(delta_s)
         return None
 
     def _initialise_run(self) -> None:
@@ -91,9 +91,9 @@ class RFOptimiser(NDOptimiser):
 
         return species.hessian
 
-    def _take_sanitised_step(self,
-                             delta_s: np.ndarray,
-                             factor: float = 1.) -> float:
+    def _take_step_within_trust_radius(self,
+                                       delta_s: np.ndarray,
+                                       factor: float = 1.) -> float:
         """
         Update the coordinates while ensuring the step isn't too large in
         cartesian coordinates
@@ -117,6 +117,8 @@ class RFOptimiser(NDOptimiser):
             logger.info(f"Calculated step is too large ({max_component:.3f} Å)"
                         f" - scaling down")
 
+            # Note because the transformation is not linear this will not
+            # generate a step exactly max(∆x) ≡ α, but is empirically close
             factor = self.alpha/max_component
             new_coords = self._coords + self.alpha/max_component * delta_s
 
