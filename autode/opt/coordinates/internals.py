@@ -8,12 +8,14 @@ q : Primitive internal coordinates
 G : Spectroscopic G matrix
 """
 import numpy as np
-from typing import Any, Optional, Type
+
+from typing import Any, Optional, Type, List
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (InverseDistance,
                                                Primitive,
-                                               Distance)
+                                               Distance,
+                                               DihedralAngle)
 
 
 class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
@@ -23,16 +25,34 @@ class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
 
         arr = super().__new__(cls, input_array, units=None)
 
-        arr._x = None           # Cartesian coordinates
-        arr.primitives = None   # PIC
+        for attr in ("_x", "primitives"):
+            setattr(arr, attr, getattr(input_array, attr, None))
 
         return arr
 
     def __array_finalize__(self, obj: 'OptCoordinates') -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
-        self._x = getattr(obj, '_x', None)
-        self.primitives = getattr(obj, 'primitives', None)
-        return OptCoordinates.__array_finalize__(self, obj)
+        OptCoordinates.__array_finalize__(self, obj)
+
+        for attr in ("_x", "primitives"):
+            setattr(self, attr, getattr(obj, attr, None))
+
+        return
+
+    @property
+    def n_constraints(self) -> int:
+        """Number of constraints in these coordinates"""
+        return self.primitives.n_constrained
+
+    @property
+    def constrained_primitives(self) -> List['ConstrainedPrimitive']:
+        return [p for p in self.primitives if p.is_constrained]
+
+    @property
+    def n_satisfied_constraints(self) -> int:
+        """Number of constraints that are satisfied in these coordinates"""
+        x = self.to("cartesian")
+        return sum(p.is_satisfied(x) for p in self.constrained_primitives)
 
 
 class PIC(list, ABC):
@@ -87,6 +107,28 @@ class PIC(list, ABC):
 
         return q
 
+    def close_to(self, x: np.ndarray, other: np.ndarray) -> np.ndarray:
+        """
+        Calculate a set of primitive internal coordinates (PIC) that are
+        'close to' another set. This means that the restriction on dihedral
+        angles being in the range (-π, π] is relaxed in favour of the smallest
+        ∆q possible (where q is a value of a primitive coordinate).
+        """
+        assert len(self) == len(other) and isinstance(other, np.ndarray)
+
+        q = self._calc_q(x)
+        self._calc_B(x)
+
+        for i, primitive in enumerate(self):
+            if isinstance(primitive, DihedralAngle):
+
+                dq = q[i] - other[i]
+
+                if np.abs(dq) > np.pi:  # Ensure |dq| < π
+                    q[i] -= np.sign(dq) * 2 * np.pi
+
+        return q
+
     def __eq__(self, other: Any):
         """Comparison of two PIC sets"""
 
@@ -133,6 +175,11 @@ class PIC(list, ABC):
     @staticmethod
     def _are_all_primitive_coordinates(args: tuple) -> bool:
         return all(isinstance(arg, Primitive) for arg in args)
+
+    @property
+    def n_constrained(self) -> int:
+        """Number of constrained primitive internal coordinates"""
+        return sum(p.is_constrained for p in self)
 
 
 class _FunctionOfDistances(PIC):

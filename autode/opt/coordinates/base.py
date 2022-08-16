@@ -3,6 +3,7 @@ from copy import deepcopy
 from enum import IntEnum, unique
 from typing import Optional, Union, Sequence, List
 from abc import ABC, abstractmethod
+
 from autode.log import logger
 from autode.units import (ang, nm, pm, m)
 from autode.values import ValueArray, PotentialEnergy
@@ -47,6 +48,11 @@ class OptCoordinates(ValueArray, ABC):
             self.__dict__[attr] = getattr(obj, attr, None)
 
         return None
+
+    @property
+    def indexes(self) -> List[int]:
+        """Indexes of the coordinates in this set"""
+        return list(range(len(self)))
 
     @property
     def raw(self) -> np.ndarray:
@@ -169,15 +175,10 @@ class OptCoordinates(ValueArray, ABC):
 
     def update_g_from_cart_g(self,
                              arr:             Optional['autode.values.Gradient'],
-                             fixed_atom_idxs: Optional[List[int]] = None
                              ) -> None:
         """Update the gradient from a Cartesian gradient, zeroing those atoms
          that are constrained"""
-        assert arr is None or arr.shape[1] == 3  # Needs an Nx3 matrix
-
-        if arr is not None and fixed_atom_idxs is not None:
-            for atom_idx in fixed_atom_idxs:
-                arr[atom_idx, :] = 0.0
+        assert arr is None or len(arr.flatten()) % 3 == 0  # Needs an Nx3 matrix
 
         return self._update_g_from_cart_g(arr)
 
@@ -189,39 +190,16 @@ class OptCoordinates(ValueArray, ABC):
 
     def update_h_from_cart_h(self,
                              arr:             Optional['autode.values.Hessian'],
-                             fixed_atom_idxs: Optional[List[int]] = None
                              ) -> None:
         """Update the Hessian from a cartesian Hessian with shape 3N x 3N for
         N atoms, zeroing the second derivatives if required"""
-
-        if arr is not None and fixed_atom_idxs is not None:
-            for atom_idx in fixed_atom_idxs:
-                for i, _ in enumerate(('x', 'y', 'z')):
-                    arr[3*atom_idx+i, :] = arr[:, 3*atom_idx+i] = 0.0
-
         return self._update_h_from_cart_h(arr)
 
     def make_hessian_positive_definite(self) -> None:
         """
         Make the Hessian matrix positive definite by shifting eigenvalues
         """
-        hessian = self.h
-
-        if hessian is None:
-            raise RuntimeError('Cannot make a positive definite Hessian - '
-                               'had no Hessian')
-
-        lmd, v = np.linalg.eig(hessian)  # Eigenvalues and eigenvectors
-
-        if np.all(lmd > 1E-8):
-            logger.info('Hessian was positive definite')
-            return
-
-        logger.warning('Hessian was not positive definite. '
-                       'Shifting eigenvalues to X and reconstructing')
-        lmd[lmd < 1E-8] = 1
-        self._h = np.linalg.multi_dot((v, np.diag(lmd), v.T)).real
-
+        self._h = _ensure_positive_definite(self.h, min_eigenvalue=1.0)
         return None
 
     @abstractmethod
@@ -301,3 +279,37 @@ class OptCoordinates(ValueArray, ABC):
 
     def copy(self, *args, **kwargs) -> 'OptCoordinates':
         return deepcopy(self)
+
+
+def _ensure_positive_definite(matrix: np.ndarray,
+                              min_eigenvalue: float = 1E-10
+                              ) -> np.ndarray:
+    """
+    Ensure that the eigenvalues of a matrix are all >0 i.e. the matrix
+    is positive definite. Will shift all values below min_eigenvalue to that
+    value.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        matrix: Matrix to make positive definite
+
+        min_eigenvalue: Minimum value eigenvalue of the matrix
+
+    Returns:
+        (np.ndarray): Matrix with eigenvalues at least min_eigenvalue
+    """
+
+    if matrix is None:
+        raise RuntimeError('Cannot make a positive definite matrix - '
+                           'had no matrix')
+
+    lmd, v = np.linalg.eig(matrix)  # Eigenvalues and eigenvectors
+
+    if np.all(lmd > min_eigenvalue):
+        logger.info('Matrix was positive definite')
+        return matrix
+
+    logger.warning('Matrix was not positive definite. '
+                   'Shifting eigenvalues to X and reconstructing')
+    lmd[lmd < min_eigenvalue] = min_eigenvalue
+    return np.linalg.multi_dot((v, np.diag(lmd), v.T)).real

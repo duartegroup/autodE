@@ -2,11 +2,11 @@
 import numpy as np
 from autode.log import logger
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.rfo import RFOOptimiser
+from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BofillUpdate
 
 
-class PRFOOptimiser(RFOOptimiser):
+class PRFOptimiser(RFOptimiser):
 
     def __init__(self,
                  init_alpha:    float = 0.1,
@@ -20,7 +20,7 @@ class PRFOOptimiser(RFOOptimiser):
 
         -----------------------------------------------------------------------
         Arguments:
-            init_alpha: Initial step size
+            init_alpha: Maximum step size
 
             imag_mode_idx: Index of the imaginary mode to follow. Default = 0,
                            the most imaginary mode (i.e. most negative
@@ -95,7 +95,7 @@ class PRFOOptimiser(RFOOptimiser):
         # Transform back from the eigenbasis with eqn. 52 in ref [1]
         delta_s = np.matmul(v, s_tilde)
 
-        self._coords = self._coords + self._sanitised_step(delta_s)
+        self._take_step_within_trust_radius(delta_s)
         return None
 
     def _initialise_run(self) -> None:

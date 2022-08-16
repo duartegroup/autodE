@@ -1,10 +1,12 @@
 import numpy as np
+
+from typing import Sequence
 from scipy.spatial.distance import cdist
 from scipy.spatial import distance_matrix
 from autode.log import logger
 
 
-def are_coords_reasonable(coords):
+def are_coords_reasonable(coords: np.ndarray) -> bool:
     """
     Determine if a set of coords are reasonable. No distances can be < 0.7 Å
     and if there are more than 4 atoms ensure they do not all lie in the same
@@ -31,7 +33,7 @@ def are_coords_reasonable(coords):
     return True
 
 
-def proj(u, v):
+def proj(u: np.ndarray, v: np.ndarray) -> np.ndarray:
     """
     Calculate the projection of v onto the direction of u. Useful for
     https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
@@ -45,52 +47,10 @@ def proj(u, v):
     Returns:
         (np.ndarray): proj_u(v)
     """
-
-    u_hat = u / np.linalg.norm(u)
-    return np.dot(u_hat, v) * u_hat
+    return (np.dot(u, v) / np.dot(u, u)) * u
 
 
-def get_atoms_linear_interp(atoms, bonds, final_distances):
-    """For a geometry defined by a set of xyzs, set the constrained bonds to
-    the correct lengths
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        atoms (list(autode.atoms.Atom)): list of atoms
-
-        bonds (list(tuple)): List of bond ids on for which the final_distances
-                             apply
-        final_distances (list(float)): List of final bond distances for the
-                                       bonds
-
-    Returns:
-        (list(autode.atoms.Atom)): Shifted atoms
-    """
-
-    coords = np.array([atom.coord for atom in atoms])
-    atoms_and_shift_vecs = {}
-
-    for n, bond in enumerate(bonds):
-        atom_a, atom_b = bond
-        ab_vec = coords[atom_b] - coords[atom_a]
-        d_crr = np.linalg.norm(ab_vec)
-        d_final = final_distances[n]
-
-        ab_norm_vec = ab_vec / d_crr
-
-        atoms_and_shift_vecs[atom_b] = 0.5 * (d_final - d_crr) * ab_norm_vec
-        atoms_and_shift_vecs[atom_a] = -0.5 * (d_final - d_crr) * ab_norm_vec
-
-    for n, coord in enumerate(coords):
-        if n in atoms_and_shift_vecs.keys():
-            coord += atoms_and_shift_vecs[n]
-
-        atoms[n].coord = coord
-
-    return atoms
-
-
-def get_rot_mat_kabsch(p_matrix, q_matrix):
+def get_rot_mat_kabsch(p_matrix: np.ndarray, q_matrix: np.ndarray) -> np.ndarray:
     """
     Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
     https://en.wikipedia.org/wiki/Kabsch_algorithm
@@ -115,7 +75,7 @@ def get_rot_mat_kabsch(p_matrix, q_matrix):
     return rot_matrix
 
 
-def get_rot_mat_euler_from_terms(a, b, c, d):
+def get_rot_mat_euler_from_terms(a: float, b: float, c: float, d: float) -> np.ndarray:
     """3D rotation matrix from terms unique terms in the matrix"""
 
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
@@ -127,7 +87,7 @@ def get_rot_mat_euler_from_terms(a, b, c, d):
     return rot_matrix
 
 
-def get_rot_mat_euler(axis, theta):
+def get_rot_mat_euler(axis: np.ndarray, theta: float) -> np.ndarray:
     """
     Compute the 3D rotation matrix using the Euler Rodrigues formula
     https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
@@ -154,7 +114,10 @@ def get_rot_mat_euler(axis, theta):
     return rot_matrix
 
 
-def get_neighbour_list(species, atom_i, index_set):
+def get_neighbour_list(species: 'autode.species.species.Species',
+                       atom_i: int,
+                       index_set: Sequence[int]
+                       ) -> Sequence[int]:
     """Calculate a neighbour list from atom i as a list of atom labels
 
     ---------------------------------------------------------------------------
@@ -192,7 +155,7 @@ def get_neighbour_list(species, atom_i, index_set):
     return atom_label_neighbour_list
 
 
-def get_distance_constraints(species):
+def get_distance_constraints(species: 'autode.species.species.Species') -> dict:
     """
     Set all the distance constraints required in an optimisation as the
     active bonds
@@ -222,7 +185,9 @@ def get_distance_constraints(species):
     return distance_constraints
 
 
-def calc_heavy_atom_rmsd(atoms1, atoms2):
+def calc_heavy_atom_rmsd(atoms1: 'autode.atoms.Atoms',
+                         atoms2: 'autode.atoms.Atoms'
+                         ) -> float:
     """
     Calculate the RMSD between two sets of atoms considering only the 'heavy'
     atoms, i.e. the non-hydrogen atoms
@@ -250,7 +215,7 @@ def calc_heavy_atom_rmsd(atoms1, atoms2):
     return calc_rmsd(coords1, coords2)
 
 
-def calc_rmsd(coords1, coords2):
+def calc_rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
     """
     Calculate the RMSD between two sets of coordinates using the Kabsch
     algorithm
@@ -278,7 +243,7 @@ def calc_rmsd(coords1, coords2):
     return np.sqrt(np.average(np.square(fitted_coords - q_mat)))
 
 
-def get_points_on_sphere(n_points, r=1):
+def get_points_on_sphere(n_points: int, r: float = 1) -> Sequence[np.ndarray]:
     """
     Find n evenly spaced points on a sphere using the "How to generate
     equidistributed points on the surface of a sphere" by Markus Deserno, 2004.
@@ -315,7 +280,7 @@ def get_points_on_sphere(n_points, r=1):
     return points
 
 
-def symm_matrix_from_ltril(array):
+def symm_matrix_from_ltril(array: Sequence[float]) -> np.ndarray:
     """
     Construct a symmetric matrix from the lower triangular elements e.g.::
 
@@ -353,54 +318,3 @@ def symm_matrix_from_ltril(array):
     return matrix
 
 
-def rotate_columns(arr:   np.ndarray,
-                   *idxs: int
-                   ) -> np.ndarray:
-    """
-    Rotate an orthogonal matrix such that some of the columns are unit vectors
-    with unit components in the index. Uses a Schmidt orthrogonalisation
-    (https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process)
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        arr: Input matrix
-
-        *idxs: Indexes of the rows which need to have unit components in each
-               column
-
-    Returns:
-        (np.ndarray): Matrix
-    """
-    if not (isinstance(arr, np.ndarray) and arr.ndim == 2):
-        raise ValueError('Column rotation is only supported for matrices')
-
-    n, m = arr.shape
-
-    if len(idxs) > m or len(idxs) == 0:
-        raise ValueError(f'Cannot rotate {len(idxs)} indexes - only had a '
-                         f'{m}x{m} matrix')
-
-    if not np.allclose(np.dot(arr.T, arr), np.eye(m), atol=1E-6):
-        raise ValueError('Column rotation is only for orthogonal matrices')
-
-    r_arr = arr.copy()  # Rotated array
-
-    for i, idx in enumerate(idxs):
-
-        # Fill the column with e.g. (0, 0, 0, 1) for idx == 3 (and n = 4)
-        r_arr[:, i] = np.array([0 if j != idx else 1 for j in range(n)])
-
-        us = [r_arr[:, i]]
-        for j in range(m):
-            if j == i:
-                continue
-
-            v = r_arr[:, j].copy()
-            u = v - sum(proj(u, v) for u in us)
-            u /= np.linalg.norm(u)
-
-            us.append(u)
-
-        r_arr = np.stack(us, axis=-1)
-
-    return r_arr

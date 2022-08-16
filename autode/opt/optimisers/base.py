@@ -133,6 +133,9 @@ class Optimiser(ABC):
             raise ValueError(f'{method} must be a autoode.wrappers.base.Method '
                              f'instance but had {type(method)}')
 
+        if species.constraints.n_cartesian > 0:
+            raise NotImplementedError
+
         self._method, self._species = method, species
         return None
 
@@ -161,9 +164,7 @@ class Optimiser(ABC):
         self._species.gradient = grad.get_gradients()
         grad.clean_up(force=True, everything=True)
 
-        fixed_idxs = self._species.constraints.cartesian
-        self._coords.update_g_from_cart_g(arr=self._species.gradient,
-                                          fixed_atom_idxs=fixed_idxs)
+        self._coords.update_g_from_cart_g(arr=self._species.gradient)
         return None
 
     def _update_hessian_gradient_and_energy(self) -> None:
@@ -188,10 +189,7 @@ class Optimiser(ABC):
                              n_cores=self._n_cores)
 
         self._species.hessian = species.hessian.copy()
-
-        fixed_idxs = self._species.constraints.cartesian
-        self._coords.update_h_from_cart_h(self._species.hessian,
-                                          fixed_atom_idxs=fixed_idxs)
+        self._coords.update_h_from_cart_h(self._species.hessian)
         return None
 
     @property
@@ -410,7 +408,7 @@ class NDOptimiser(Optimiser, ABC):
         """
         if self._abs_delta_e < self.etol / 10:
             logger.warning(f'Energy change is overachieved. '
-                           f'{self.etol.to("kcal")/10:.3f} kcal mol-1. '
+                           f'{self.etol.to("kcal")/10:.3E} kcal mol-1. '
                            f'Signaling convergence')
             return True
 
@@ -455,12 +453,10 @@ class NDOptimiser(Optimiser, ABC):
             logger.warning('Had no coordinates - cannot determine ||∇E||')
             return GradientRMS(np.inf)
 
-        cartesian_gradient = self._coords.to('cart').g
-
-        if cartesian_gradient is None:
+        if self._coords.g is None:
             return GradientRMS(np.inf)
 
-        return GradientRMS(np.sqrt(np.mean(np.square(cartesian_gradient))))
+        return GradientRMS(np.sqrt(np.mean(np.square(self._coords.g))))
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy """
@@ -492,7 +488,7 @@ class NDOptimiser(Optimiser, ABC):
 
     def _updated_h(self) -> np.ndarray:
         r"""
-        Update the the Hessian matrix :math:`H` for the current set of
+        Update the Hessian matrix :math:`H` for the current set of
         coordinates. If the first iteration then use the initial Hessian
 
         .. math::
@@ -527,9 +523,11 @@ class NDOptimiser(Optimiser, ABC):
             updater = update_type(h=coords_k.h,
                                   h_inv=coords_k.h_inv,
                                   s=coords_l.raw - coords_k.raw,
-                                  y=coords_l.g - coords_k.g)
+                                  y=coords_l.g - coords_k.g,
+                                  subspace_idxs=coords_l.indexes)
 
             if not updater.conditions_met:
+                logger.info(f"Conditions for {update_type} not met")
                 continue
 
             return updater

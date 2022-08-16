@@ -13,19 +13,6 @@ def test_are_coords_reasonable():
     assert not geom.are_coords_reasonable(coords=bad_coords1)
 
 
-def test_shifted_atoms():
-
-    atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.0, 0.0, 2.0)]
-
-    new_atoms = geom.get_atoms_linear_interp(atoms, bonds=[(0, 1)],
-                                             final_distances=[1.0])
-
-    # Linear interpolation of the coordinates should move the atom either
-    # end of the bond half way
-    assert np.linalg.norm(new_atoms[0].coord - np.array([0.0, 0.0, 0.5])) < 1E-6
-    assert np.linalg.norm(new_atoms[1].coord - np.array([0.0, 0.0, 1.5])) < 1E-6
-
-
 def test_points_on_sphere():
 
     points = geom.get_points_on_sphere(n_points=4)
@@ -107,19 +94,3 @@ def test_gram_schmidt():
 
     # Resulting vectors should be orthogonal
     assert np.isclose(np.dot(u1, u2), 0.0)
-
-
-def test_arr_rotation():
-
-    # First argument must be a numpy array
-    with pytest.raises(ValueError):
-        _ = geom.rotate_columns('a', 0)
-
-    # Cannot rotation without indexes
-    with pytest.raises(ValueError):
-        _ = geom.rotate_columns(np.eye(3))
-
-    # Initial array must be orthonormal
-    with pytest.raises(ValueError):
-        _ = geom.rotate_columns(np.arange(0, 4).reshape((2, 2)),
-                                0)

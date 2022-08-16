@@ -7,7 +7,6 @@ from autode.atoms import Atom
 from autode.config import Config
 from autode.constants import Constants
 from autode.exceptions import UnsupportedCalculationInput
-from autode.geom import get_atoms_linear_interp
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from autode.exceptions import CouldNotGetProperty
@@ -84,8 +83,8 @@ def get_atoms_and_fixed_atom_indexes(molecule):
     distances = list(molecule.constraints.distance.values())
 
     # Get a set of atoms that have been shifted using a linear interpolation
-    atoms = get_atoms_linear_interp(atoms=molecule.atoms, bonds=bonds,
-                                    final_distances=distances)
+    atoms = _get_atoms_linear_interp(atoms=molecule.atoms, bonds=bonds,
+                                     final_distances=distances)
 
     # Populate a flat list of atom ids to fix
     fixed_atoms = [i for bond in bonds for i in bond]
@@ -136,6 +135,45 @@ def print_point_charges(calc, atoms):
     calc.input.additional_filenames.append(f'{calc.name}_mol.in')
     return
 
+
+def _get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Atoms':
+    """For a geometry defined by a set of xyzs, set the constrained bonds to
+    the correct lengths
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        atoms (list(autode.atoms.Atom)): list of atoms
+
+        bonds (list(tuple)): List of bond ids on for which the final_distances
+                             apply
+        final_distances (list(float)): List of final bond distances for the
+                                       bonds
+
+    Returns:
+        (list(autode.atoms.Atom)): Shifted atoms
+    """
+
+    coords = np.array([atom.coord for atom in atoms])
+    atoms_and_shift_vecs = {}
+
+    for n, bond in enumerate(bonds):
+        atom_a, atom_b = bond
+        ab_vec = coords[atom_b] - coords[atom_a]
+        d_crr = np.linalg.norm(ab_vec)
+        d_final = final_distances[n]
+
+        ab_norm_vec = ab_vec / d_crr
+
+        atoms_and_shift_vecs[atom_b] = 0.5 * (d_final - d_crr) * ab_norm_vec
+        atoms_and_shift_vecs[atom_a] = -0.5 * (d_final - d_crr) * ab_norm_vec
+
+    for n, coord in enumerate(coords):
+        if n in atoms_and_shift_vecs.keys():
+            coord += atoms_and_shift_vecs[n]
+
+        atoms[n].coord = coord
+
+    return atoms
 
 class MOPAC(ElectronicStructureMethod):
 
@@ -306,3 +344,4 @@ class MOPAC(ElectronicStructureMethod):
 
 
 mopac = MOPAC()
+
