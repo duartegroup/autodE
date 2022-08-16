@@ -1,5 +1,5 @@
 from autode.wrappers.MOPAC import MOPAC
-from autode.wrappers.MOPAC import get_keywords
+from autode.wrappers.MOPAC import get_keywords, _get_atoms_linear_interp
 from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
 from autode.calculation import Calculation, CalculationInput
 from autode.species.molecule import Molecule
@@ -269,3 +269,16 @@ def test_mopac_solvent_no_dielectric():
 
     if os.path.exists('tmp_mopac.mop'):
         os.remove('tmp_mopac.mop')
+
+
+def test_shifted_atoms():
+
+    atoms = [Atom('H', 0.0, 0.0, 0.0), Atom('H', 0.0, 0.0, 2.0)]
+
+    new_atoms = _get_atoms_linear_interp(atoms, bonds=[(0, 1)],
+                                         final_distances=[1.0])
+
+    # Linear interpolation of the coordinates should move the atom either
+    # end of the bond half way
+    assert np.linalg.norm(new_atoms[0].coord - np.array([0.0, 0.0, 0.5])) < 1E-6
+    assert np.linalg.norm(new_atoms[1].coord - np.array([0.0, 0.0, 1.5])) < 1E-6

@@ -3,12 +3,12 @@ from autode.species.molecule import Molecule
 from autode.wrappers.XTB import XTB
 from autode.wrappers.base import Method
 from autode.utils import work_in_tmp_dir
-from autode.opt.optimisers.rfo import RFOOptimiser
+from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.coordinates import CartesianCoordinates
 from ..testutils import requires_with_working_xtb_install
 
 
-class TestRFOOptimiser2D(RFOOptimiser):
+class TestRFOOptimiser2D(RFOptimiser):
     """Simple 2D optimiser using a BFGS update step"""
 
     __test__ = False
@@ -83,7 +83,7 @@ def test_molecular_opt():
     mol = Molecule(smiles='O')
     assert [atom.label for atom in mol.atoms] == ['O', 'H', 'H']
 
-    RFOOptimiser.optimise(mol, method=XTB())
+    RFOptimiser.optimise(mol, method=XTB())
 
     # Check optimised distances are similar to running the optimiser in XTB
     for oh_atom_idx_pair in [(0, 1), (0, 2)]:

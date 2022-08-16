@@ -876,6 +876,20 @@ class Species(AtomCollection):
         return self.atoms.are_linear(angle_tol=angle_tol)
 
     @requires_atoms
+    def is_planar(self,
+                  tol: Union[float, val.Distance] = val.Distance(1E-4)
+                  ) -> bool:
+        """
+        Determine if a species is planar i.e all atoms are coplanar
+
+        -----------------------------------------------------------------------
+        Keyword Arguments:
+            tol (float | None): Tolerance on the dot product between normal
+                                vectors.
+        """
+        return self.atoms.are_planar(distance_tol=tol)
+
+    @requires_atoms
     def translate(self, vec: Sequence[float]) -> None:
         """
         Translate the molecule by vector
