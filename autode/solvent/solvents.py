@@ -15,13 +15,11 @@ def get_solvent(solvent_name: str,
 
     ---------------------------------------------------------------------------
     Arguments:
-        solvent_name (str): Name of the solvent e.g. DCM. Not case sensitive
+        solvent_name: Name of the solvent e.g. DCM. Not case-sensitive
 
-        kind (str): Kind of solvent. One of: {"implicit", "explicit"}
+        kind: Kind of solvent. One of: {"implicit", "explicit"}
 
-    Keyword Arguments:
-        num (int | None): Number of explicit solvent molecules to include in
-                          the explicit solvent
+        num: Number of solvent molecules to include in the explicit solvent
 
     Returns:
         (autode.solvent.solvents.Solvent | None): Solvent
@@ -35,7 +33,6 @@ def get_solvent(solvent_name: str,
         raise ValueError(f'Solvent must be explicit or implicit. Had: {kind}')
 
     if solvent_name is None:
-        logger.warning('Not requested any solvent - returning None')
         return None
 
     if kind == 'explicit' and num is None:

@@ -499,8 +499,6 @@ def test_opt_single_atom():
 
     assert os.path.exists('tmp.in')
 
-    print(''.join(open('tmp.in').readlines()))
-
     # A single atom cannot be optimised so there should be no opt in the input
     assert not any('opt' in line.lower() for line in open('tmp.in'))
 

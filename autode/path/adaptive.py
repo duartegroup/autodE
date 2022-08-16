@@ -225,7 +225,7 @@ class AdaptivePath(Path):
             # so rerun a gradient calculation, which should be very fast
             # while MOPAC doesn't print gradients for a constrained opt
             calc = ade.Calculation(name=f'path_grad{idx}',
-                                   molecule=self[idx].species,
+                                   molecule=self[idx].species.new_species(),
                                    method=self.method,
                                    keywords=self.method.keywords.grad,
                                    n_cores=ade.Config.n_cores)

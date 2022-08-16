@@ -443,7 +443,9 @@ class ORCA(ElectronicStructureMethod):
         """
 
         try:
-            run_external(params=[self.path, '-h'], output_filename='tmp')
+            run_external(params=[self.path, '-h'],
+                         output_filename='tmp',
+                         stderr_to_log=False)
             line = next(l for l in open('tmp', 'r') if 'Program Version' in l)
             return line.split()[2]
 
