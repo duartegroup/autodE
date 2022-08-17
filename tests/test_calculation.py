@@ -1,5 +1,6 @@
-from autode.calculation import Calculation, Constraints, CalculationOutput
+from autode.calculation import Calculation, CalculationOutput
 from autode.solvent.solvents import get_solvent
+from autode.constraints import Constraints
 from autode.wrappers.keywords import SinglePointKeywords
 from autode.wrappers.functionals import Functional
 from autode.utils import run_external
@@ -146,28 +147,32 @@ def test_calc_string():
 
     xtb = XTB()
 
+    a = test_mol.copy()
     no_const = Calculation(name='tmp',
-                           molecule=test_mol,
+                           molecule=a,
                            method=xtb,
                            keywords=xtb.keywords.sp)
 
+    b = test_mol.copy()
+    b.constraints.cartesian = [0]
     cart_const = Calculation(name='tmp',
-                             molecule=test_mol,
+                             molecule=b,
                              method=xtb,
-                             keywords=xtb.keywords.sp,
-                             cartesian_constraints=[0])
+                             keywords=xtb.keywords.sp)
 
+    c = test_mol.copy()
+    c.constraints.distance = {(0, 1): 1.0}
     dist_const = Calculation(name='tmp',
-                             molecule=test_mol,
+                             molecule=c,
                              method=xtb,
-                             keywords=xtb.keywords.sp,
-                             distance_constraints={(0, 1): 1.0})
+                             keywords=xtb.keywords.sp)
 
+    d = test_mol.copy()
+    d.constraints.distance = {(0, 1): 1.5}
     dist_const2 = Calculation(name='tmp',
-                              molecule=test_mol,
+                              molecule=d,
                               method=xtb,
-                              keywords=xtb.keywords.sp,
-                              distance_constraints={(0, 1): 1.5})
+                              keywords=xtb.keywords.sp)
 
     assert str(no_const) == str(no_const)
     assert str(no_const) != str(cart_const)

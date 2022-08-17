@@ -141,7 +141,8 @@ def test_constrained_opt():
 
     methane = Molecule(name='methane', smiles='C')
 
-    calc = Calculation(name='methane_opt', molecule=methane,
+    calc = Calculation(name='methane_opt',
+                       molecule=methane,
                        method=method,
                        keywords=Config.MOPAC.keywords.opt)
     calc.run()
@@ -149,10 +150,11 @@ def test_constrained_opt():
 
     # Constrained optimisation with a C–H distance of 1.2 Å
     # (carbon is the first atom in the file)
-    const = Calculation(name='methane_const', molecule=methane,
+    methane.constraints.distance = {(0, 1): 1.2}
+    const = Calculation(name='methane_const',
+                        molecule=methane,
                         method=method,
-                        keywords=Config.MOPAC.keywords.opt,
-                        distance_constraints={(0, 1): 1.2})
+                        keywords=Config.MOPAC.keywords.opt)
     const.run()
 
     assert opt_energy < const.get_energy()
@@ -216,7 +218,6 @@ def test_mopac_keywords():
 
     calc_input = CalculationInput(keywords=Config.MOPAC.keywords.sp,
                                   added_internals=None,
-                                  additional_input=None,
                                   point_charges=None)
 
     keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)

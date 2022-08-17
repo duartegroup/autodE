@@ -2,7 +2,7 @@ import os
 import sys
 import shutil
 from time import time
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, List, Callable
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
@@ -47,7 +47,7 @@ if sys.version_info.minor <= 7:                                   # Python <3.7
         __get__ = cached_property_wrapper
 
 
-def check_sufficient_memory(func):
+def check_sufficient_memory(func: Callable):
     """Decorator to check that enough memory is available for a calculation"""
 
     @wraps(func)
@@ -73,16 +73,20 @@ def check_sufficient_memory(func):
 
 
 @check_sufficient_memory
-def run_external(params, output_filename):
+def run_external(params:          List[str],
+                 output_filename: str,
+                 stderr_to_log:   bool = True):
     """
     Standard method to run a EST calculation with subprocess writing the
     output to the calculation output filename
 
     ---------------------------------------------------------------------------
     Arguments:
-        output_filename (str):
+        params: e.g. [/path/to/method, input-filename]
 
-        params (list(str)): e.g. [/path/to/method, input-filename]
+        output_filename: Filename to output stdout to
+
+        stderr_to_log: Should the stderr be added to the logged warnings?
     """
 
     with open(output_filename, 'w') as output_file:
@@ -91,7 +95,8 @@ def run_external(params, output_filename):
 
         with process.stderr:
             for line in iter(process.stderr.readline, b''):
-                logger.warning('STDERR: %r', line.decode())
+                if stderr_to_log:
+                    logger.warning('STDERR: %r', line.decode())
 
         process.wait()
 
@@ -102,7 +107,7 @@ def run_external(params, output_filename):
 def run_external_monitored(params:          Sequence[str],
                            output_filename: str,
                            break_word:      str = 'MPI_ABORT',
-                           break_words:     Optional[str] = None):
+                           break_words:     Optional[List[str]] = None):
     """
     Run an external process monitoring the standard output and error for a
     word that will terminate the process
@@ -144,7 +149,7 @@ def run_external_monitored(params:          Sequence[str],
     return None
 
 
-def work_in(dir_ext):
+def work_in(dir_ext: str):
     """Execute a function in a different directory"""
 
     def func_decorator(func):
@@ -241,7 +246,7 @@ def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
     return func_decorator
 
 
-def log_time(prefix='Executed in: ', units='ms'):
+def log_time(prefix: str = 'Executed in: ', units: str = 'ms'):
     """A function requiring a number of atoms to run"""
 
     if units.lower() == 's' or units.lower() == 'seconds':
@@ -270,7 +275,7 @@ def log_time(prefix='Executed in: ', units='ms'):
     return func_decorator
 
 
-def requires_atoms(func):
+def requires_atoms(func: Callable):
     """A function requiring a number of atoms to run"""
 
     @wraps(func)
@@ -287,7 +292,7 @@ def requires_atoms(func):
     return wrapped_function
 
 
-def requires_graph(func):
+def requires_graph(func: Callable):
     """A function requiring a number of atoms to run"""
 
     @wraps(func)
@@ -304,7 +309,7 @@ def requires_graph(func):
     return wrapped_function
 
 
-def requires_conformers(func):
+def requires_conformers(func: Callable):
     """A function requiring the species to have a list of conformers"""
 
     @wraps(func)
@@ -321,7 +326,7 @@ def requires_conformers(func):
     return wrapped_function
 
 
-def requires_hl_level_methods(func):
+def requires_hl_level_methods(func: Callable):
     """A function requiring both high and low-level methods to be available"""
 
     @wraps(func)
@@ -347,7 +352,7 @@ def requires_hl_level_methods(func):
     return wrapped_function
 
 
-def requires_output(func):
+def requires_output(func: Callable):
     """A function requiring an output file and output file lines"""
 
     @wraps(func)
@@ -363,15 +368,15 @@ def requires_output(func):
     return wrapped_function
 
 
-def timeout(seconds, return_value=None):
+def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
     """
-    Function dectorator that times-out after a number of seconds
+    Function decorator that times-out after a number of seconds
 
+    ---------------------------------------------------------------------------
     Arguments:
-        seconds (float):
+        seconds:
 
-    Keyword Arguments:
-        return_value (Any): Value returned if the function times out
+        return_value: Value returned if the function times out
 
     Returns:
         (Any): Result of the function | return_value
@@ -386,8 +391,14 @@ def timeout(seconds, return_value=None):
             p = multiprocessing.Process(target=handler,
                                         args=(q, func, args, kwargs))
 
-            if isinstance(mp.get_context(), mp.context.ForkContext):
+            if mp.current_process().daemon:
+                # Cannot run a subprocess in a daemon process - timeout is not
+                # possible
+                return func(*args, **kwargs)
+
+            elif isinstance(mp.get_context(), mp.context.ForkContext):
                 p.start()
+
             else:
                 logger.error('Failed to wrap function')
                 return func(*args, **kwargs)

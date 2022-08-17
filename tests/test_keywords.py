@@ -219,3 +219,17 @@ def test_functional_equality():
 
     assert Functional("PBE0") == Functional("PBE0")
     assert Functional("PBE0") != 1
+
+
+def test_keyword_addition():
+
+    a = OptKeywords("a")
+    b = OptKeywords("b")
+
+    assert "b" in (a + b)
+    assert "b" in a + ["b"]
+
+    with pytest.raises(ValueError):
+        _ = a + 2
+
+    assert isinstance(a + b, OptKeywords)

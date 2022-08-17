@@ -5,6 +5,7 @@ from autode.point_charges import PointCharge
 from autode.wrappers.QChem import QChem
 from autode.calculation import Calculation
 from autode.atoms import Atom
+from autode.config import Config
 from autode.wrappers.implicit_solvent_types import cpcm
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import SinglePointKeywords
@@ -406,6 +407,8 @@ def test_calc_terminated_normally_max_opt_cycles():
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_ts_opt():
 
+    Config.freq_scale_factor = 1.0
+
     ts_mol = Molecule(name='ts', charge=-1, mult=1, solvent_name='water',
                       atoms=[Atom('F',  -4.17085, 3.55524,  1.59944),
                              Atom('Cl', -0.75962, 3.53830, -0.72354),
@@ -414,12 +417,14 @@ def test_ts_opt():
                              Atom('H',  -2.54985, 2.47411,  0.62732),
                              Atom('H',  -2.10961, 4.17548,  1.25945)])
 
+    for pair in [(0, 2), (1, 2)]:
+        ts_mol.graph.add_active_edge(*pair)
+
     calc = Calculation(name='sn2_ts',
                        molecule=ts_mol,
                        method=method,
                        keywords=method.keywords.opt_ts,
-                       n_cores=4,
-                       bond_ids_to_add=[(0, 2), (1, 2)])
+                       n_cores=4)
 
     # Should skip calculation for already completed and saved calculation
     calc.run()

@@ -81,7 +81,7 @@ def test_point_properties():
 
     assert point.energy is None
     assert point.grad is None
-    assert point.constraints == {}
+    assert not point.species.constraints.any
     assert point.species.name == 'tmp'
 
     point.energy = 1

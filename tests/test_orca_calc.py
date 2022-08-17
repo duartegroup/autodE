@@ -67,51 +67,23 @@ def test_orca_opt_calculation():
         execute_calc(calc)
 
 
-def test_calc_bad_mol():
-
-    class Mol:
-        pass
-
-    mol = Mol()
-
-    with pytest.raises(Exception):
-        Calculation(name='bad_mol_object', molecule=mol, method=method,
-                    keywords=opt_keywords)
-
-    mol.atoms = None
-    mol.mult = 1
-    mol.n_atoms = 0
-    mol.charge = 0
-    mol.solvent = None
-
-    with pytest.raises(ex.NoInputError):
-        Calculation(name='no_atoms_mol', molecule=mol, method=method,
-                    keywords=opt_keywords)
-
-    mol = Molecule(name='methane', smiles='C')
-    mol.solvent = ImplicitSolvent(name='xx', smiles='X', aliases=['X'])
-
-    with pytest.raises(ex.SolventUnavailable):
-        Calculation(name='tmp', molecule=mol, method=method,
-                    keywords=opt_keywords)
-
-
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
 def test_orca_optts_calculation():
 
     ts_guess = TSguess(Molecule('test_ts_reopt_optts_orca.xyz', charge=-1).atoms)
     ts = TransitionState(ts_guess)
+    ts.graph.add_active_edge(0, 1)
+
+    optts_str = ('\n%geom\n'
+                 'Calc_Hess true\n'
+                 'Recalc_Hess 40\n'
+                 'Trust 0.2\n'
+                 'MaxIter 100\nend')
 
     calc = Calculation(name='test_ts_reopt_optts',
                        molecule=ts,
                        method=method,
-                       bond_ids_to_add=[(0, 1)],
-                       keywords=opt_keywords,
-                       other_input_block='%geom\n'
-                                         'Calc_Hess true\n'
-                                         'Recalc_Hess 40\n'
-                                         'Trust 0.2\n'
-                                         'MaxIter 100\nend')
+                       keywords=opt_keywords + [optts_str])
     calc.run()
 
     ts.calc_thermo(calc=calc, ss='1atm', sn=1)
@@ -328,29 +300,6 @@ def test_hessian_extraction():
     calc.output = CalculationOutput(filename='H2O_hess_broken.out')
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_hessian()
-
-
-@utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def test_other_input_block():
-
-    curr_other_input_block = deepcopy(Config.ORCA.other_input_block)
-    Config.ORCA.other_input_block = '%scf\n MaxIter 1500\n end'
-    calc = Calculation(name='other_input_block',
-                       molecule=test_mol,
-                       method=method,
-                       keywords=method.keywords.sp)
-    calc.generate_input()
-
-    assert os.path.exists('other_input_block_orca.inp')
-
-    scf_line_exists = False
-    for line in open('other_input_block_orca.inp', 'r'):
-        if 'MaxIter 1500' in line:
-            scf_line_exists = True
-            break
-
-    assert scf_line_exists
-    Config.ORCA.other_input_block = curr_other_input_block
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))

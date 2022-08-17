@@ -4,13 +4,14 @@ import numpy as np
 from autode.wrappers.G09 import (G09, print_custom_basis, get_keywords,
                                  n_ecp_elements, add_opt_option)
 from autode.wrappers.G16 import G16
-from autode.calculation import Calculation, CalculationInput, Constraints
+from autode.calculation import Calculation, CalculationInput
+from autode.constraints import Constraints
 from autode.species.molecule import Molecule
 from autode.wrappers import keywords as kwds
 from autode.wrappers.basis_sets import def2tzecp, def2tzvp
 from autode.wrappers.functionals import pbe0
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
-from autode.exceptions import AtomsNotFound, NoInputError, CalculationException
+from autode.exceptions import NoInputError, CalculationException
 from autode.point_charges import PointCharge
 from autode.atoms import Atom
 from . import testutils
@@ -41,7 +42,6 @@ def test_printing_ecp():
     assert n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol) == 0
 
     calc_input = CalculationInput(keywords,
-                                  additional_input=None,
                                   added_internals=None,
                                   point_charges=None)
 
@@ -145,11 +145,13 @@ def test_gauss_opt_calc():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_optts_calc():
 
+    test_mol = Molecule(name='methane', smiles='C')
+    test_mol.graph.add_active_edge(0, 1)
+
     calc = Calculation(name='test_ts_reopt_optts',
                        molecule=test_mol,
                        method=method,
-                       keywords=optts_keywords,
-                       bond_ids_to_add=[(0, 1)])
+                       keywords=optts_keywords)
     calc.run()
     assert calc.output.exists
 
@@ -215,15 +217,19 @@ def test_fix_angle_error():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_constraints():
 
-    calc = Calculation(name='const_dist_opt', molecule=test_mol, method=method,
-                       keywords=opt_keywords, distance_constraints={(0, 1): 1.2})
+    a = test_mol.copy()
+    a.constraints.distance = {(0, 1): 1.2}
+    calc = Calculation(name='const_dist_opt', molecule=a, method=method,
+                       keywords=opt_keywords)
     calc.run()
     opt_atoms = calc.get_final_atoms()
 
     assert 1.199 < np.linalg.norm(opt_atoms[0].coord - opt_atoms[1].coord) < 1.201
 
-    calc = Calculation(name='const_cart_opt', molecule=test_mol, method=method,
-                       keywords=opt_keywords, cartesian_constraints=[0])
+    b = test_mol.copy()
+    b.constraints.cartesian = [0]
+    calc = Calculation(name='const_cart_opt', molecule=b, method=method,
+                       keywords=opt_keywords)
     calc.run()
     opt_atoms = calc.get_final_atoms()
     assert np.linalg.norm(test_mol.atoms[0].coord - opt_atoms[0].coord) < 1E-3

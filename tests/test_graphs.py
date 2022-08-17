@@ -231,7 +231,8 @@ def test_isomorphic_no_active():
     ts_syn = Conformer(name='syn_ts', charge=-1, mult=0,
                        atoms=xyz_file_to_atoms('E2_ts_syn.xyz'))
     mol_graphs.make_graph(ts_syn)
-    mol_graphs.set_active_mol_graph(ts_syn, active_bonds=[(8, 5), (0, 5), (1, 2)])
+    for pair in [(8, 5), (0, 5), (1, 2)]:
+        ts_syn.graph.add_active_edge(*pair)
 
     ts_anti = Conformer(name='anti_ts', charge=-1, mult=0,
                         atoms=xyz_file_to_atoms('E2_ts.xyz'))
@@ -335,3 +336,13 @@ def test_expected_planar_geometry():
 
     # Methane is not expected to have a planar geometry
     assert not methane.graph.expected_planar_geometry
+
+
+def test_graph_active_bonds_property():
+
+    assert len(h2.graph.active_bonds) == 0
+
+    tmp_h2 = h2.copy()
+    tmp_h2.graph.add_active_edge(0, 1)
+
+    assert tmp_h2.graph.active_bonds == [(0, 1)]

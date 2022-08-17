@@ -1,15 +1,15 @@
-from copy import deepcopy
 import os
 import hashlib
 import base64
-from typing import Optional, List
-from functools import wraps
 import autode.wrappers.keywords as kws
 import autode.exceptions as ex
+
+from copy import deepcopy
+from typing import Optional, List, Tuple
+from functools import wraps
 from autode.utils import cached_property
 from autode.atoms import Atoms
 from autode.point_charges import PointCharge
-from autode.constraints import Constraints
 from autode.config import Config
 from autode.log import logger
 from autode.hessians import Hessian
@@ -48,67 +48,38 @@ class Calculation:
                  method:                'autode.wrappers.base.Method',
                  keywords:              'autode.wrappers.keywords.Keywords',
                  n_cores:               int = 1,
-                 bond_ids_to_add:       Optional[List[tuple]] = None,
-                 other_input_block:     Optional[str] = None,
-                 distance_constraints:  Optional[dict] = None,
-                 cartesian_constraints: Optional[List[int]] = None,
                  point_charges:         Optional[List[PointCharge]] = None):
         """
         Calculation e.g. single point energy evaluation on a molecule
 
         -----------------------------------------------------------------------
         Arguments:
-            name (str):
+            name: Name of the calculation. Will be modified with a method
+                  suffix
 
-            molecule (autode.species.Species): Molecule to be calculated
+            molecule: Molecule to be calculated. This may have a set of
+                      associated cartesian or distance constraints
 
-            method (autode.wrappers.base.ElectronicStructureMethod):
+            method: Wrapped electronic structure method, or other e.g.
+                    forcefield capable of calculating energies and gradients
 
-            keywords (autode.wrappers.keywords.Keywords):
+            keywords: Keywords defining the type of calculation and e.g. what
+                      basis set and functional to use.
 
-        Keyword Arguments:
+            n_cores: Number of cores available (default: {1})
 
-            n_cores (int): Number of cores available (default: {1})
-
-            bond_ids_to_add (list(tuples)): List of bonds to add to internal
-                                            coordinates (default: {None})
-
-            other_input_block (str): Other input block to add (default: {None})
-
-            distance_constraints (dict): keys = tuple of atom ids for a bond to
-                                         be kept at fixed length, value = dist
-                                         to be fixed at (default: {None})
-
-            cartesian_constraints (list(int)): List of atom ids to fix at their
-                                               cartesian coordinates
-                                               (default: {None})
-
-            point_charges (list(autode.point_charges.PointCharge)): List of
-                                             float of point charges, x, y, z
-                                             coordinates for each point charge
+            point_charges: List of  float of point charges
         """
         # Calculation names that start with "-" can break EST methods
-        self.name = (f'{name}_{method.name}' if not name.startswith('-')
-                     else f'_{name}_{method.name}')
+        self.name = f'{_string_without_leading_hyphen(name)}_{method.name}'
 
-        # ------------------- System specific parameters ----------------------
-        self.molecule = deepcopy(molecule)
-
-        if hasattr(self.molecule, 'constraints'):
-            self.molecule.constraints.update(distance=distance_constraints,
-                                             cartesian=cartesian_constraints)
-        else:
-            self.molecule.constraints = Constraints(distance=distance_constraints,
-                                                    cartesian=cartesian_constraints)
-
-        # --------------------- Calculation parameters ------------------------
+        self.molecule = molecule.copy()
         self.method = method
         self.n_cores = int(n_cores)
 
         # ------------------- Calculation input/output ------------------------
         self.input = CalculationInput(keywords=keywords.copy(),
-                                      additional_input=other_input_block,
-                                      added_internals=bond_ids_to_add,
+                                      added_internals=_active_bonds(molecule),
                                       point_charges=point_charges)
 
         self.output = CalculationOutput()
@@ -610,15 +581,11 @@ class CalculationInput:
 
     def __init__(self,
                  keywords:        'autode.wrappers.keywords.Keywords',
-                 additional_input: Optional[str] = None,
                  added_internals:  Optional[list] = None,
                  point_charges:    Optional[List[PointCharge]] = None):
         """
         Arguments:
             keywords (autode.wrappers.keywords.Keywords):
-
-            additional_input (str or None): Any additional input string to add
-                                            to the input file, or None
 
             added_internals (list(tuple(int)) or None): Atom indexes to add to
                                                        the internal coordinates
@@ -628,9 +595,12 @@ class CalculationInput:
                           for each point charge
         """
         self.keywords = keywords
-        self.other_block = additional_input
 
-        self.added_internals = added_internals
+        if added_internals is not None and len(added_internals) > 0:
+            self.added_internals = added_internals
+        else:
+            self.added_internals = None
+
         self.point_charges = point_charges
 
         self.filename = None
@@ -642,8 +612,6 @@ class CalculationInput:
         """Check that the input parameters have the expected format"""
         if self.keywords is not None:
             assert isinstance(self.keywords, kws.Keywords)
-
-        assert self.other_block is None or type(self.other_block) is str
 
         # Ensure the point charges are given as a list of PointCharge objects
         if self.point_charges is not None:
@@ -667,3 +635,11 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
+
+
+def _string_without_leading_hyphen(s: str) -> str:
+    return s if not s.startswith('-') else f'_{s}'
+
+
+def _active_bonds(molecule: 'autode.species.Species') -> List[Tuple[int, int]]:
+    return [] if molecule.graph is None else molecule.graph.active_bonds
