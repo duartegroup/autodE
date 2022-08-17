@@ -109,8 +109,7 @@ set the keywords to use. For example
   >>> kwds.low_opt = ['Opt', 'XTB2']
   >>> kwds.hess = ['NumFreq', 'XTB2']
   >>> kwds.grad = ['EnGrad', 'XTB2']
-  >>> kwds.opt_ts = ['OptTS', 'NumFreq', 'XTB2'] + [
-    '\n'
+  >>> kwds.opt_ts = ['OptTS', 'NumFreq', 'XTB2\n',
     '%geom\n'
     'NumHess true\n'
     'Calc_Hess true\n'

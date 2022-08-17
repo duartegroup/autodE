@@ -5,7 +5,7 @@ import autode.wrappers.keywords as kws
 import autode.exceptions as ex
 
 from copy import deepcopy
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from functools import wraps
 from autode.utils import cached_property
 from autode.atoms import Atoms
@@ -641,5 +641,5 @@ def _string_without_leading_hyphen(s: str) -> str:
     return s if not s.startswith('-') else f'_{s}'
 
 
-def _active_bonds(molecule: 'autode.species.Species') -> Optional[list]:
+def _active_bonds(molecule: 'autode.species.Species') -> List[Tuple[int, int]]:
     return [] if molecule.graph is None else molecule.graph.active_bonds
