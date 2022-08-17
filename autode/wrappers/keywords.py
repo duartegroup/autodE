@@ -14,8 +14,7 @@ class KeywordsSet:
                  opt_ts:      Optional[Sequence[str]] = None,
                  hess:        Optional[Sequence[str]] = None,
                  sp:          Optional[Sequence[str]] = None,
-                 ecp:         Optional['autode.wrappers.keywords.ECP'] = None,
-                 optts_block: str = ''):
+                 ecp:         Optional['autode.wrappers.keywords.ECP'] = None):
         """
         Keywords used to specify the type and method used in electronic
         structure theory calculations. The input file for a single point
@@ -23,7 +22,6 @@ class KeywordsSet:
 
             -------------------------------------------------------------------
             <keyword line directive> autode.KeywordsSet.keywords[0] ...
-            autode.KeywordsSet.optts_block
 
             <coordinate directive> <charge> <multiplicity>
             .
@@ -66,8 +64,6 @@ class KeywordsSet:
 
         self._low_sp = SinglePointKeywords(low_sp)     # Low-level single point
         self._sp = SinglePointKeywords(sp)             # Single point
-
-        self.optts_block = optts_block
 
         if ecp is not None:
             self.set_ecp(ecp)
@@ -209,6 +205,19 @@ class Keywords(ABC):
         """Equality of these keywords to another kind"""
         return (isinstance(other, self.__class__)
                 and set(self._list) == set(other._list))
+
+    def __add__(self, other):
+        """Add some keywords to these"""
+
+        if isinstance(other, Keywords):
+            return self.__class__(self._list + other._list)
+
+        elif isinstance(other, list):
+            return self.__class__(self._list + other)
+
+        else:
+            raise ValueError(f"Cannot add {other} to the keywords. Must be a "
+                             f"list or a Keywords object")
 
     @abstractmethod
     def __repr__(self):

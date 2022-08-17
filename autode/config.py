@@ -184,26 +184,24 @@ class _ConfigClass:
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
 
-        keywords = KeywordsSet(low_opt=['LooseOpt', pbe0, rijcosx, d3bj,
-                                        def2svp, 'def2/J', MaxOptCycles(10)],
-                               grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
-                               low_sp=['SP', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
-                               opt=['Opt', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
-                               opt_ts=['OptTS', 'Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
-                               hess=['Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
-                               sp=['SP', pbe0, rijcosx, d3bj, def2tzvp, 'def2/J'],
-                               optts_block=('%geom\n'
-                                            'Calc_Hess true\n' 
-                                            'Recalc_Hess 30\n'
-                                            'Trust -0.1\n'
-                                            'MaxIter 150\n'
-                                            'end'),
-                               ecp=def2ecp)
+        optts_block = ('\n%geom\n'
+                       'Calc_Hess true\n' 
+                       'Recalc_Hess 30\n'
+                       'Trust -0.1\n'
+                       'MaxIter 150\n'
+                       'end')
 
-        # A separate input block to be printed in the ORCA input file
-        # for all calculations e.g.
-        # other_input_block = '%scf\n MaxIter 1500\n end'
-        other_input_block = None
+        keywords = KeywordsSet(
+            low_opt=['LooseOpt', pbe0, rijcosx, d3bj,
+                                        def2svp, 'def2/J', MaxOptCycles(10)],
+            grad=['EnGrad', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+            low_sp=['SP', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+            opt=['Opt', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+            opt_ts=['OptTS', 'Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J', optts_block],
+            hess=['Freq', pbe0, rijcosx, d3bj, def2svp, 'def2/J'],
+            sp=['SP', pbe0, rijcosx, d3bj, def2tzvp, 'def2/J'],
+            ecp=def2ecp
+        )
 
         # Implicit solvent in ORCA is either treated with CPCM or SMD, the
         # former has support for a VdW surface construction which provides
@@ -221,17 +219,19 @@ class _ConfigClass:
         path = None
         #
         grid = 'integral=ultrafinegrid'
-        ts_str = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, '
-                  'NoTrustUpdate)')
+        optts_block = ('Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, '
+                       'MaxStep=10, NoTrustUpdate)')
 
-        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'Opt=Loose', MaxOptCycles(10), d3bj, grid],
-                               grad=[pbe0, def2svp, 'Force(NoStep)', d3bj, grid],
-                               low_sp=[pbe0, def2svp, d3bj, grid],
-                               opt=[pbe0, def2svp, 'Opt', d3bj, grid],
-                               opt_ts=[pbe0, def2svp, 'Freq', d3bj, grid, ts_str],
-                               hess=[pbe0, def2svp, 'Freq', d3bj, grid],
-                               sp=[pbe0, def2tzvp, d3bj, grid],
-                               ecp=def2tzecp)
+        keywords = KeywordsSet(
+            low_opt=[pbe0, def2svp, 'Opt=Loose', MaxOptCycles(10), d3bj, grid],
+            grad=[pbe0, def2svp, 'Force(NoStep)', d3bj, grid],
+            low_sp=[pbe0, def2svp, d3bj, grid],
+            opt=[pbe0, def2svp, 'Opt', d3bj, grid],
+            opt_ts=[pbe0, def2svp, 'Freq', d3bj, grid, optts_block],
+            hess=[pbe0, def2svp, 'Freq', d3bj, grid],
+            sp=[pbe0, def2tzvp, d3bj, grid],
+            ecp=def2tzecp
+        )
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
@@ -285,24 +285,18 @@ class _ConfigClass:
                      '  eprec 0.000005\n'
                      'end')
 
-        keywords = KeywordsSet(low_opt=[loose_opt_block, def2svp, pbe0, MaxOptCycles(10),
-                                        'task dft optimize'],
-                               grad=[def2svp, pbe0,
-                                     'task dft gradient'],
-                               low_sp=[def2svp, pbe0,
-                                       'task dft energy'],
-                               opt=[opt_block, def2svp, pbe0, MaxOptCycles(100),
-                                    'task dft optimize',
-                                    'task dft property'],
-                               opt_ts=[opt_block, def2svp, pbe0,
-                                       'task dft saddle',
-                                       'task dft freq',
-                                       'task dft property'],
-                               hess=[def2svp, pbe0,
-                                     'task dft freq'],
-                               sp=[def2tzvp, pbe0,
-                                   'task dft energy'],
-                               ecp=def2ecp)
+        keywords = KeywordsSet(
+            low_opt=[loose_opt_block, def2svp, pbe0, MaxOptCycles(10), 'task dft optimize'],
+            grad=[def2svp, pbe0, 'task dft gradient'],
+            low_sp=[def2svp, pbe0, 'task dft energy'],
+            opt=[opt_block, def2svp, pbe0, MaxOptCycles(100),
+                 'task dft optimize', 'task dft property'],
+            opt_ts=[opt_block, def2svp, pbe0,
+                    'task dft saddle', 'task dft freq', 'task dft property'],
+            hess=[def2svp, pbe0, 'task dft freq'],
+            sp=[def2tzvp, pbe0, 'task dft energy'],
+            ecp=def2ecp
+        )
 
         # Only SMD implemented
         implicit_solvation_type = solv.smd
@@ -349,14 +343,17 @@ class _ConfigClass:
         path = None
         #
         # Default set of keywords to use for different types of calculation
-        keywords = KeywordsSet(low_opt=[pbe0, def2svp, 'jobtype opt', MaxOptCycles(10), d3bj],
-                               grad=[pbe0, def2svp, 'jobtype force', d3bj],
-                               low_sp=[pbe0, def2svp, d3bj],
-                               opt=[pbe0, def2svp, 'jobtype opt', d3bj],
-                               opt_ts=[pbe0, def2svp, 'jobtype TS', d3bj],
-                               hess=[pbe0, def2svp, 'jobtype Freq', d3bj],
-                               sp=[pbe0, def2tzvp, d3bj],
-                               ecp=def2ecp)
+        keywords = KeywordsSet(
+            low_opt=[pbe0, def2svp, 'jobtype opt', MaxOptCycles(10), d3bj],
+            grad=[pbe0, def2svp, 'jobtype force', d3bj],
+            low_sp=[pbe0, def2svp, d3bj],
+            opt=[pbe0, def2svp, 'jobtype opt', d3bj],
+            opt_ts=[pbe0, def2svp, 'jobtype TS', d3bj],
+            hess=[pbe0, def2svp, 'jobtype Freq', d3bj],
+            sp=[pbe0, def2tzvp, d3bj],
+            ecp=def2ecp
+        )
+
         #
         # Only SMD is implemented
         implicit_solvation_type = solv.smd

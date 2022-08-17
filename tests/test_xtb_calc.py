@@ -41,10 +41,12 @@ def test_xtb_calculation():
     assert len(charges) == 22
     assert all(-1.0 < c < 1.0 for c in charges)
 
-    const_opt = Calculation(name='const_opt', molecule=test_mol,
+    test_mol.constraints.update(distance={(0, 1): 1.2539792},
+                                cartesian=[0])
+
+    const_opt = Calculation(name='const_opt',
+                            molecule=test_mol,
                             method=method,
-                            distance_constraints={(0, 1): 1.2539792},
-                            cartesian_constraints=[0],
                             keywords=Config.XTB.keywords.opt)
 
     const_opt.generate_input()

@@ -176,12 +176,13 @@ class TSguess(TSbase):
                 delta_dist = final_constraints[atom_idx_pair] - c_dist   # ∆r
                 constraints[atom_idx_pair] = c_dist + i * delta_dist / n_steps
 
+            self.constraints.distance = constraints
+
             opt = Calculation(name=f'{self.name}_const_opt_ll_{i}',
                               molecule=self,
                               method=l_method,
                               keywords=l_method.keywords.low_opt,
-                              n_cores=Config.n_cores,
-                              distance_constraints=constraints)
+                              n_cores=Config.n_cores)
 
             self.optimise(calc=opt)           # Can raise CalculationException
 
