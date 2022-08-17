@@ -107,7 +107,7 @@ def run_external(params:          List[str],
 def run_external_monitored(params:          Sequence[str],
                            output_filename: str,
                            break_word:      str = 'MPI_ABORT',
-                           break_words:     Optional[str] = None):
+                           break_words:     Optional[List[str]] = None):
     """
     Run an external process monitoring the standard output and error for a
     word that will terminate the process

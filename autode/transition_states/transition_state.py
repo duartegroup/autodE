@@ -60,8 +60,6 @@ class TransitionState(TSbase):
         if self.bond_rearrangement is None:
             logger.warning('Bond rearrangement not set - molecular graph '
                            'updating with no active bonds')
-            active_bonds = []
-
         else:
             for bond in self.bond_rearrangement.all:
                 self.graph.add_active_edge(*bond)
