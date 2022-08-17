@@ -3,13 +3,26 @@ from abc import ABC, abstractmethod
 from typing import Union, Optional
 from autode.log import logger
 from autode.config import Config
-from autode.calculation import Calculation
 from autode.values import GradientRMS, PotentialEnergy
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
 
 
-class Optimiser(ABC):
+class BaseOptimiser(ABC):
+    """Base abstract class for an optimiser"""
+
+    @property
+    @abstractmethod
+    def converged(self) -> bool:
+        """Has this optimisation converged"""
+
+    @property
+    @abstractmethod
+    def last_energy_change(self) -> PotentialEnergy:
+        """The energy change on between the final two optimisation cycles"""
+
+
+class Optimiser(BaseOptimiser, ABC):
     """Abstract base class for an optimiser"""
 
     def __init__(self,
@@ -149,6 +162,9 @@ class Optimiser(ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
+        from autode.calculation import Calculation
+        # TODO: species.calc_grad() method
+
         # Calculations need to be performed in cartesian coordinates
         self._species.coordinates = self._coords.to('cart')
 
@@ -250,6 +266,21 @@ class Optimiser(ABC):
     def converged(self) -> bool:
         """Has this optimisation converged"""
 
+    @property
+    def last_energy_change(self) -> PotentialEnergy:
+        """Last ∆E found in this """
+
+        if self.iteration > 0:
+            delta_e = self._history.final.e - self._history.penultimate.e
+            return PotentialEnergy(delta_e, units="Ha")
+
+        if self.converged:
+            logger.warning("Optimiser was converged in less than two "
+                           "cycles. Assuming an energy change of 0")
+            return PotentialEnergy(0)
+
+        return PotentialEnergy(np.inf)
+
     def _log_convergence(self) -> None:
         """Log the iterations in the form:
         Iteration   |∆E| / kcal mol-1    ||∇E|| / Ha Å-1
@@ -277,6 +308,18 @@ class Optimiser(ABC):
 
         else:
             return False
+
+
+class NullOptimiser(BaseOptimiser):
+    """An optimiser that does nothing"""
+
+    @property
+    def converged(self) -> bool:
+        return False
+
+    @property
+    def last_energy_change(self) -> PotentialEnergy:
+        return PotentialEnergy(np.inf)
 
 
 class NDOptimiser(Optimiser, ABC):

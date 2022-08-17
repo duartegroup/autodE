@@ -13,7 +13,7 @@ from autode.wrappers.basis_sets import def2svp
 from autode.wrappers.functionals import pbe0
 from autode.utils import work_in_tmp_dir
 from autode.exceptions import CalculationException
-from .testutils import work_in_zipped_dir
+from ..testutils import work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
 qchem_data_zip_path = os.path.join(here, 'data', 'qchem.zip')

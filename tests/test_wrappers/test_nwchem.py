@@ -6,9 +6,10 @@ from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, MaxOptCycles, SinglePointKeywords
 from autode.wrappers.basis_sets import def2svp
 from autode.wrappers.wf import hf
+from autode.config import Config
 from autode.wrappers.functionals import pbe0
 from autode.atoms import Atom
-from . import testutils
+from .. import testutils
 import numpy as np
 import pytest
 import os
@@ -189,6 +190,8 @@ def test_hessian_extract_ts():
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_hessian_extract_butane():
+
+    Config.freq_scale_factor = 1.0
 
     calc = Calculation(name='butane',
                        molecule=Molecule('butane.xyz'),

@@ -123,7 +123,7 @@ class QChem(ElectronicStructureMethod):
 
             if 'fatal error' in line or 'input file has failed' in line:
                 logger.error('Fatal error in QChem calculation. Final lines:')
-                calc.print_final_output_lines(n=50)
+                calc.output.try_to_print_final_lines(n=50)
                 return False
 
         return True if calc_started else False

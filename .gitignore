@@ -1,7 +1,7 @@
 \build/
 \dist/
 \.idea/
-tests/*/__MACOSX/
+**__MACOSX/
 autode/ext/*.cpp
 **cmake-build-debug/
 autode/ext/CMakeFiles/

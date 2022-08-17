@@ -14,7 +14,7 @@ from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import NoInputError, CalculationException
 from autode.point_charges import PointCharge
 from autode.atoms import Atom
-from . import testutils
+from .. import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')

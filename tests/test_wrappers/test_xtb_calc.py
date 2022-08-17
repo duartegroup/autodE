@@ -8,7 +8,7 @@ from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
 from autode.exceptions import AtomsNotFound, CalculationException
 from autode.config import Config
-from . import testutils
+from .. import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
 

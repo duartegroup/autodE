@@ -1,5 +1,4 @@
 import autode.exceptions as ex
-from autode.config import Config
 from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
 from autode.constants import Constants
@@ -11,12 +10,10 @@ from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKe
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
 from autode.wrappers.implicit_solvent_types import cpcm
 from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
-from autode.solvent.solvents import ImplicitSolvent
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
 from autode import utils
-from . import testutils
-from copy import deepcopy
+from .. import testutils
 import numpy as np
 import pytest
 
