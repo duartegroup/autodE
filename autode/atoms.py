@@ -54,7 +54,7 @@ class Atom:
         self.label = atomic_symbol
         self._coord = Coordinate(float(x), float(y), float(z))
         self.atom_class = atom_class
-        self.partial_charge = float(partial_charge)
+        self.partial_charge = None if partial_charge is None else float(partial_charge)
 
     def __repr__(self):
         """

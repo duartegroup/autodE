@@ -643,7 +643,7 @@ class Coordinates(ValueArray):
         return f'Coordinates({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls, input_array, units=ang):
-        return super().__new__(cls, input_array.reshape(-1, 3), units)
+        return super().__new__(cls, np.asarray(input_array).reshape(-1, 3), units)
 
 
 class Gradient(ValueArray):

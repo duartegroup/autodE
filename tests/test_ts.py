@@ -15,7 +15,7 @@ from autode.species.molecule import Reactant, Product
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.wrappers.keywords import SinglePointKeywords, KeywordsSet
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.implicit_solvent_types import cpcm

@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Optional, List
+from typing import Union, Optional
 from autode.log import logger
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
@@ -162,7 +162,7 @@ class Optimiser(BaseOptimiser, ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
-        from autode.calculation import Calculation
+        from autode.calculations import Calculation
         # TODO: species.calc_grad() method
 
         # Calculations need to be performed in cartesian coordinates

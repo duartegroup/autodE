@@ -1,7 +1,7 @@
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.MOPAC import get_keywords, _get_atoms_linear_interp
 from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
-from autode.calculation import Calculation, CalculationInput
+from autode.calculations import Calculation, CalculationInput
 from autode.species.molecule import Molecule
 from autode.solvent import ImplicitSolvent
 from autode.atoms import Atom

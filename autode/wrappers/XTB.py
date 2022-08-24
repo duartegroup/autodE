@@ -136,6 +136,13 @@ class XTB(ExternalMethodOEG):
         logger.warning('Could not find the XTB version in the output file')
         return '???'
 
+    @staticmethod
+    def _remove_xtbopt_xyz_file() -> None:
+        if os.path.exists("xtbopt.xyz"):
+            os.remove("xtbopt.xyz")
+
+        return None
+
     def execute(self, calc):
         """Execute an XTB calculation using the runtime flags"""
         # XTB calculation keywords must be a class
@@ -180,6 +187,7 @@ class XTB(ExternalMethodOEG):
                 shutil.move('gradient', f'{calc.name}_OLD.grad')
 
         execute_xtb()
+        self._remove_xtbopt_xyz_file()
         return None
 
     def terminated_normally_in(self, calc):
@@ -221,7 +229,7 @@ class XTB(ExternalMethodOEG):
         return XTBOptimiser(converged=self.converged_line_in_output(calc))
 
     @staticmethod
-    def _get_final_coords_2_above(calc):
+    def _get_final_coords_6_2_above(calc):
         """
         e.g.
 
@@ -290,7 +298,7 @@ class XTB(ExternalMethodOEG):
                     return self._get_final_coords_old(calc)
 
                 else:
-                    return self._get_final_coords_2_above(calc)
+                    return self._get_final_coords_6_2_above(calc)
 
             # Version is not recognised if we're 50 lines into the output file
             # - try and use the old version

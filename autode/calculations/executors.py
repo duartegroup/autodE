@@ -15,7 +15,6 @@ from autode.config import Config
 from autode.utils import requires_output_to_exist
 from autode.point_charges import PointCharge
 from autode.opt.optimisers.base import NullOptimiser
-from autode.wrappers.keywords import OptKeywords
 from autode.calculations.input import CalculationInput
 from autode.calculations.output import CalculationOutput
 
@@ -64,7 +63,7 @@ class CalculationExecutor:
 
         if self.method.uses_external_io:
             self.generate_input()
-            self.output.filename = self.method.get_output_filename(self)
+            self.output.filename = self.method.output_filename_for(self)
             self._execute_external()
             self._set_properties()
             self.clean_up()
@@ -132,11 +131,11 @@ class CalculationExecutor:
     def _set_properties(self) -> None:
         """Set the properties of a molecule from this calculation"""
 
-        if isinstance(self.input.keywords, OptKeywords):
+        if isinstance(self.input.keywords, kws.OptKeywords):
             # Only need to set the atoms if the geometry has changed in an
             # optimisation
-            self.method.set_optimiser_from(self)
-            self.molecule.coordinates = self.method.coordiantes_from(self)
+            self.method.optimiser_from(self)
+            self.molecule.coordinates = self.method.coordinates_from(self)
 
         try:
             self.molecule.energy = self.method.energy_from(self)

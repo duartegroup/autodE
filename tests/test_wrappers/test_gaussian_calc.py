@@ -4,7 +4,7 @@ import numpy as np
 from autode.wrappers.G09 import (G09, print_custom_basis, get_keywords,
                                  n_ecp_elements, add_opt_option)
 from autode.wrappers.G16 import G16
-from autode.calculation import Calculation, CalculationInput
+from autode.calculations import Calculation, CalculationInput
 from autode.constraints import Constraints
 from autode.species.molecule import Molecule
 from autode.wrappers import keywords as kwds

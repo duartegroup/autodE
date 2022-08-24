@@ -1,4 +1,4 @@
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.transition_states.base import TSbase
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.transition_states.base import displaced_species_along_mode

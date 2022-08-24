@@ -71,6 +71,17 @@ class Method(ABC):
         return [s.name for s in solvents
                 if s.is_implicit and hasattr(s, self.name)]
 
+    def _all_equal(self, other, attrs) -> bool:
+        return all(getattr(other, a) == getattr(self, a) for a in attrs)
+
+    def __eq__(self, other) -> bool:
+        """Equality of this method to another one"""
+
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self._all_equal(other, attrs=('name', 'keywords'))
+
 
 class ExternalMethod(Method, ABC):
 
@@ -138,6 +149,8 @@ class ExternalMethod(Method, ABC):
         Get an energy with a set of associated attributes, defined by the
         method which was used to execute the calculation.
         """
+        logger.info(f'Getting energy from {calc.output.filename}')
+
         energy = self._energy_from(calc)
         if energy is not None:
             energy.set_method_str(method=self, keywords=calc.input.keywords)
@@ -217,6 +230,10 @@ class ExternalMethod(Method, ABC):
                            calc: "CalculationExecutor"
                            ) -> None:
         """Generate the input required for a calculation"""
+
+    def __eq__(self, other) -> bool:
+        attrs = ('name', 'keywords', 'path', 'implicit_solvation_type')
+        return isinstance(other, self.__class__) and self._all_equal(other, attrs)
 
 
 class ExternalMethodOEG(ExternalMethod, ABC):

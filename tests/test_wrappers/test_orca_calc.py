@@ -2,7 +2,7 @@ import autode.exceptions as ex
 from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
 from autode.constants import Constants
-from autode.calculation import Calculation, CalculationOutput
+from autode.calculations import Calculation, CalculationOutput
 from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKeywords

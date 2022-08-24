@@ -183,7 +183,7 @@ class KeywordsSet:
 class Keywords(ABC):
 
     def __init__(self,
-                 keyword_list: Union[Sequence[str], str, None] = None):
+                 keyword_list: Union[Sequence, str, None] = None):
         """
         List of keywords used in an electronic structure calculation
 
@@ -223,7 +223,7 @@ class Keywords(ABC):
     def __repr__(self):
         """Representation of these keywords"""
 
-    def _get_keyword(self, keyword_type):
+    def _get_keyword(self, keyword_type) -> Optional["Keyword"]:
         """Get a keyword given a type"""
 
         for keyword in self._list:

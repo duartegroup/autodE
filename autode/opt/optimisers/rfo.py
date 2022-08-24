@@ -1,7 +1,6 @@
 import numpy as np
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
-from autode.methods import get_lmethod
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
@@ -83,6 +82,7 @@ class RFOptimiser(NDOptimiser):
         see e.g. (https://manual.q-chem.com/5.2/A1.S2.html). To ensure this
         condition is satisfied
         """
+        from autode.methods import get_lmethod
         logger.info("Calculating low-level Hessian")
 
         species = self._species.copy()

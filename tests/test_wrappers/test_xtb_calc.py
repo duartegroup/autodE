@@ -3,7 +3,7 @@ import os
 import pytest
 from autode.atoms import Atom
 from autode.wrappers.XTB import XTB
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
 from autode.exceptions import AtomsNotFound, CalculationException

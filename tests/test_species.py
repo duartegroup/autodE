@@ -2,7 +2,7 @@ from autode.species.species import Species
 from autode.species.molecule import Molecule
 from autode.wrappers.ORCA import orca
 from autode.wrappers.XTB import xtb
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent

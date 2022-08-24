@@ -11,7 +11,7 @@ from autode.atoms import Atom
 from autode.species.molecule import (Reactant,  Product, Molecule, Species)
 from autode.species.complex import NCIComplex
 from autode.config import Config
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
                                       HessianKeywords, SinglePointKeywords,
                                       Keywords, GradientKeywords)

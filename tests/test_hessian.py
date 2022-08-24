@@ -6,7 +6,7 @@ from . import testutils
 from autode.config import Config
 from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.geom import calc_rmsd

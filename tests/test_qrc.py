@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species import Reactant, Molecule
 from autode.methods import ORCA
 from autode.transition_states.base import displaced_species_along_mode

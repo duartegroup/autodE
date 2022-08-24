@@ -497,7 +497,7 @@ class NumericalHessianCalculator:
 
     def _gradient(self, species) -> 'autode.values.Gradient':
         """Evaluate the flat gradient, with shape = (3 n_atoms,) """
-        from autode.calculation import Calculation
+        from autode.calculations import Calculation
 
         calc = Calculation(name=species.name,
                            molecule=species,

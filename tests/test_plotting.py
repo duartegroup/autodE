@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import CouldNotPlotSmoothProfile
 from autode.species.molecule import Reactant, Product
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.methods import ORCA
 from autode.transition_states.transition_state import TransitionState
 from autode.species.complex import ReactantComplex, ProductComplex

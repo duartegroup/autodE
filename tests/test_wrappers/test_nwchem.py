@@ -1,6 +1,6 @@
 from autode.wrappers.NWChem import NWChem, ecp_block, get_keywords
 from autode.point_charges import PointCharge
-from autode.calculation import Calculation, CalculationInput
+from autode.calculations import Calculation, CalculationInput
 from autode.exceptions import CouldNotGetProperty, CalculationException
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, MaxOptCycles, SinglePointKeywords

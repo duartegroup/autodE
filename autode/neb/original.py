@@ -4,7 +4,7 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
 from typing import Optional
 from autode.log import logger
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.wrappers.base import ElectronicStructureMethod
 from autode.path import Path
 from autode.utils import work_in

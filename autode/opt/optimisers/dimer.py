@@ -13,7 +13,7 @@ g : gradient in cartesian coordinates
 import numpy as np
 from typing import Optional
 from enum import Enum
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.log import logger
 from autode.values import GradientRMS, Angle, MWDistance
 from autode.opt.optimisers.base import Optimiser

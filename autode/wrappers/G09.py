@@ -259,7 +259,7 @@ def rerun_angle_failure(calc):
     Returns:
         (autode.calculation.Calculation):
     """
-    from autode.calculation import CalculationOutput
+    from autode.calculations import CalculationOutput
 
     cart_calc = deepcopy(calc)
 
@@ -325,7 +325,7 @@ def _run_hessian(calc):
     Returns:
         (autode.calculation.Calculation):
     """
-    from autode.calculation import CalculationOutput
+    from autode.calculations import CalculationOutput
 
     hess_calc = deepcopy(calc)  # Uses a copy so the current calc. is unchanged
 

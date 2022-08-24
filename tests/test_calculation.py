@@ -1,4 +1,4 @@
-from autode.calculation import Calculation, CalculationOutput
+from autode.calculations import Calculation, CalculationOutput
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
 from autode.wrappers.keywords import SinglePointKeywords

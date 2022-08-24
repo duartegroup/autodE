@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 from autode.point_charges import PointCharge
 from autode.wrappers.QChem import QChem
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.atoms import Atom
 from autode.config import Config
 from autode.wrappers.implicit_solvent_types import cpcm

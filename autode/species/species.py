@@ -448,6 +448,13 @@ class Species(AtomCollection):
     def partial_charges(self, value: List[float]):
         """Partial charges on all the atoms present in this species"""
 
+        try:
+            _ = list(value)
+            assert len(value) == self.n_atoms
+        except (ValueError, AssertionError):
+            raise ValueError(f"Failed to assign partial charges from {value} "
+                             f"must be a list with length n_atoms")
+
         for atom, charge in zip(self.atoms, value):
             atom.partial_charge = charge
 
@@ -1079,8 +1086,6 @@ class Species(AtomCollection):
             calc = self._default_opt_calculation(method, keywords, n_cores)
 
         calc.run()
-        self.atoms = calc.get_final_atoms()
-        self.energy = calc.get_energy()
 
         method_name = '' if method is None else method.name
         self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
