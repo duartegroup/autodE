@@ -45,35 +45,6 @@ class ElectronicStructureMethod(Method, ABC):
         self.keywords = deepcopy(keywords_set)
         self.implicit_solvation_type = implicit_solvation_type
 
-    @abstractmethod
-    def __repr__(self):
-        """Representation of this method"""
-
-    @property
-    def available(self):
-        """Is this method available?"""
-        logger.info(f'Setting the availability of {self.__name__}')
-
-        if self.path is not None:
-            if os.path.exists(self.path):
-                logger.info(f'{self.__name__} is available')
-                return True
-
-        logger.info(f'{self.__name__} is not available')
-        return False
-
-    @property
-    def available_implicit_solvents(self) -> List[str]:
-        """Available implicit solvent models for this EST method"""
-        from autode.solvent.solvents import solvents
-
-        return [s.name for s in solvents
-                if s.is_implicit and hasattr(s, self.name)]
-
-    @property
-    def doi_str(self):
-        return " ".join(self.doi_list)
-
     @property
     def implements_hessian(self) -> bool:
         """

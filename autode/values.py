@@ -232,28 +232,6 @@ class Energy(Value):
 
     implemented_units = [ha, kcalmol, kjmol, ev, J]
 
-    def __repr__(self):
-        return f'Energy({round(self, 5)} {self.units.name})'
-
-    def __eq__(self, other):
-        """Is an energy equal to another? Compares only the value, with
-        implicit unit conversion"""
-        tol_ha = 0.0000159    # 0.01 kcal mol-1
-
-        # A PotentialEnergy is not equal to a FreeEnergy, for example
-        if isinstance(other, Value) and not isinstance(other, self.__class__):
-            return False
-
-        if isinstance(other, Value):
-            other = other.to('Ha')
-
-        try:
-            other = float(other)   # Must be float-able
-        except TypeError:
-            return False
-
-        return abs(other - float(self.to('Ha'))) < tol_ha
-
     def __init__(self,
                  value,
                  units:     Union[Unit, str] = ha,
@@ -283,8 +261,41 @@ class Energy(Value):
         super().__init__(value, units=units)
 
         self.is_estimated = estimated
+        self.method_str = ""
+        self.set_method_str(method, keywords)
+
+    def set_method_str(self,
+                       method:   Optional['autode.wrappers.base.Method'],
+                       keywords: Optional['autode.wrappers.keywords.Keywords'],
+                       ) -> None:
+        """
+        Set the method string for a method and the keywords that were used
+        to calculate it
+        """
         self.method_str = f'{method.name} ' if method is not None else 'unknown'
         self.method_str += keywords.bstring if keywords is not None else ''
+
+    def __repr__(self):
+        return f'Energy({round(self, 5)} {self.units.name})'
+
+    def __eq__(self, other):
+        """Is an energy equal to another? Compares only the value, with
+        implicit unit conversion"""
+        tol_ha = 0.0000159    # 0.01 kcal mol-1
+
+        # A PotentialEnergy is not equal to a FreeEnergy, for example
+        if isinstance(other, Value) and not isinstance(other, self.__class__):
+            return False
+
+        if isinstance(other, Value):
+            other = other.to('Ha')
+
+        try:
+            other = float(other)   # Must be float-able
+        except TypeError:
+            return False
+
+        return abs(other - float(self.to('Ha'))) < tol_ha
 
 
 class PotentialEnergy(Energy):

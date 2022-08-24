@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Optional
+from typing import Union, Optional, List
 from autode.log import logger
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
@@ -647,3 +647,16 @@ class _OptimiserHistory(list):
                 return True
 
         return False
+
+
+class ExternalOptimiser(BaseOptimiser, ABC):
+
+    @property
+    @abstractmethod
+    def converged(self) -> bool:
+        """Has this optimisation has converged"""
+
+    @property
+    @abstractmethod
+    def last_energy_change(self) -> PotentialEnergy:
+        """The final energy change in this optimisation"""

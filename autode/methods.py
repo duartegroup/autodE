@@ -106,7 +106,7 @@ def get_first_available_method(possibilities) -> ElectronicStructureMethod:
     """
     for method in possibilities:
 
-        if method.available:
+        if method.is_available:
             return method
 
     raise MethodUnavailable('No electronic structure methods available')
@@ -131,7 +131,7 @@ def get_defined_method(name, possibilities) -> ElectronicStructureMethod:
     for method in possibilities:
         if method.name.lower() == name.lower():
 
-            if method.available:
+            if method.is_available:
                 return method
 
             else:

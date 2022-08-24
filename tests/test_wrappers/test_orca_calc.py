@@ -3,7 +3,6 @@ from autode.wrappers.ORCA import ORCA
 from autode.atoms import Atom
 from autode.constants import Constants
 from autode.calculation import Calculation, CalculationOutput
-from autode.calculation import execute_calc
 from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKeywords
@@ -61,7 +60,8 @@ def test_orca_opt_calculation():
     # If the calculation is not run with calc.run() then there should be no
     # input and the calc should raise that there is no input
     with pytest.raises(ex.NoInputError):
-        execute_calc(calc)
+        f = utils.hashable("execute", calc)
+        f()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))

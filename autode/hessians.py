@@ -5,8 +5,7 @@ for mathematical background
 import numpy as np
 from typing import List, Tuple, Iterator, Optional, Sequence, Union
 from multiprocessing import Pool
-from autode.wrappers.keywords import Functional
-from autode.wrappers.keywords import GradientKeywords
+from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
 from autode.utils import cached_property
 from autode.config import Config

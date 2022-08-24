@@ -41,6 +41,10 @@ class CouldNotGetProperty(CalculationException):
             super().__init__(*args)
 
 
+class NotImplementedInMethod(CalculationException):
+    """Exception for where a method is not implemented in a wrapped method"""
+
+
 # -----------------------------------------------------------------------------
 class NoAtomsInMolecule(AutodeException):
     """Exception for no atoms existing in a molecule"""

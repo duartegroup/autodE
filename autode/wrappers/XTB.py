@@ -1,21 +1,23 @@
 import os
 import shutil
 import numpy as np
-from autode.wrappers.base import ElectronicStructureMethod
+
+from typing import Optional
+from autode.wrappers.methods import ExternalMethodOEG
+from autode.values import Coordinates, Gradient, PotentialEnergy
 from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
-from autode.atoms import Atom
 from autode.config import Config
-from autode.constants import Constants
+from autode.opt.optimisers.base import ExternalOptimiser
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.utils import work_in_tmp_dir, run_in_tmp_environment
 from autode.log import logger
 
 
-class XTB(ElectronicStructureMethod):
+class XTB(ExternalMethodOEG):
 
     def __init__(self):
-        super().__init__(name='xtb',
+        super().__init__(executable_name='xtb',
                          path=Config.XTB.path,
                          keywords_set=Config.XTB.keywords,
                          implicit_solvation_type=Config.XTB.implicit_solvation_type,
@@ -24,7 +26,7 @@ class XTB(ElectronicStructureMethod):
         self.force_constant = Config.XTB.force_constant
 
     def __repr__(self):
-        return f'XTB(available = {self.available})'
+        return f'XTB(available = {self.is_available})'
 
     def print_distance_constraints(self, inp_file, molecule):
         """Add distance constraints to the input file"""
@@ -105,8 +107,9 @@ class XTB(ElectronicStructureMethod):
         calc.input.additional_filenames.append(xcontrol_filename)
         return
 
-    def generate_input(self, calc, molecule):
+    def generate_input_for(self, calc):
 
+        molecule = calc.molecule
         calc.molecule.print_xyz_file(filename=calc.input.filename)
 
         if molecule.constraints.any or calc.input.point_charges:
@@ -114,13 +117,15 @@ class XTB(ElectronicStructureMethod):
 
         return None
 
-    def get_input_filename(self, calc):
+    @staticmethod
+    def input_filename_for(calc):
         return f'{calc.name}.xyz'
 
-    def get_output_filename(self, calc):
+    @staticmethod
+    def output_filename_for(calc):
         return f'{calc.name}.out'
 
-    def get_version(self, calc):
+    def version_in(self, calc):
         """Get the XTB version from the output file"""
 
         for line in calc.output.file_lines:
@@ -177,7 +182,7 @@ class XTB(ElectronicStructureMethod):
         execute_xtb()
         return None
 
-    def calculation_terminated_normally(self, calc):
+    def terminated_normally_in(self, calc):
 
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
             if 'ERROR' in line:
@@ -189,17 +194,20 @@ class XTB(ElectronicStructureMethod):
 
         return False
 
-    def get_energy(self, calc):
+    def _energy_from(self,
+                     calc: "CalculationExecutor"
+                     ) -> Optional[PotentialEnergy]:
 
         for line in reversed(calc.output.file_lines):
             if 'total E' in line:
-                return float(line.split()[-1])
+                return PotentialEnergy(line.split()[-1], units="Ha")
             if 'TOTAL ENERGY' in line:
-                return float(line.split()[-3])
+                return PotentialEnergy(line.split()[-3], units="Ha")
 
         raise CouldNotGetProperty(name='energy')
 
-    def optimisation_converged(self, calc):
+    @staticmethod
+    def converged_line_in_output(calc):
 
         for line in reversed(calc.output.file_lines):
             if 'GEOMETRY OPTIMIZATION CONVERGED' in line:
@@ -207,11 +215,13 @@ class XTB(ElectronicStructureMethod):
 
         return False
 
-    def optimisation_nearly_converged(self, calc):
-        raise NotImplementedError
+    def optimiser_from(self,
+                       calc: "CalculationExecutor"
+                       ) -> "autode.opt.optimisers.base.BaseOptimiser":
+        return XTBOptimiser(converged=self.converged_line_in_output(calc))
 
     @staticmethod
-    def _get_final_atoms_6_2_above(calc):
+    def _get_final_coords_2_above(calc):
         """
         e.g.
 
@@ -226,22 +236,21 @@ class XTB(ElectronicStructureMethod):
         H        -0.44751262498645   -0.49575975568264    0.92748366742968
         H        -0.55236139359212    0.99971129991918   -0.04744587811734
         """
-        atoms = []
+        matrix = []
 
         for i, line in enumerate(calc.output.file_lines):
             if 'final structure' in line:
                 n_atoms = int(calc.output.file_lines[i+2].split()[0])
 
                 for xyz_line in calc.output.file_lines[i+4:i+4+n_atoms]:
-                    atom_label, x, y, z = xyz_line.split()
-                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
-
+                    _, x, y, z = xyz_line.split()
+                    matrix.append([float(x), float(y), float(z)])
                 break
 
-        return atoms
+        return Coordinates(matrix, units="Å")
 
     @staticmethod
-    def _get_final_atoms_old(calc):
+    def _get_final_coords_old(calc):
         """
         e.g.
 
@@ -252,7 +261,7 @@ class XTB(ElectronicStructureMethod):
             2.52072290250473   -0.04782551206377   -0.50388676977877      C
                     .                 .                    .              .
         """
-        atoms = []
+        matrix = []
         geom_section = False
 
         for line in calc.output.file_lines:
@@ -264,19 +273,12 @@ class XTB(ElectronicStructureMethod):
                 geom_section = False
 
             if len(line.split()) == 4 and geom_section:
-                x, y, z, atom_label = line.split()
+                x, y, z, _ = line.split()
+                matrix.append([float(x), float(y), float(z)])
 
-                atom = Atom(atom_label,
-                            x=float(x) * Constants.a0_to_ang,
-                            y=float(y) * Constants.a0_to_ang,
-                            z=float(z) * Constants.a0_to_ang)
+        return Coordinates(matrix, units="a0").to("Å")
 
-                atoms.append(atom)
-
-        return atoms
-
-    def get_final_atoms(self, calc):
-        atoms = []
+    def coordinates_from(self, calc):
 
         for i, line in enumerate(calc.output.file_lines):
 
@@ -285,25 +287,20 @@ class XTB(ElectronicStructureMethod):
                     and len(line.split()) >= 4):
 
                 if line.split()[3] == '6.2.2' or '6.1' in line.split()[2]:
-                    atoms = self._get_final_atoms_old(calc)
-                    break
+                    return self._get_final_coords_old(calc)
 
                 else:
-                    atoms = self._get_final_atoms_6_2_above(calc)
-                    break
+                    return self._get_final_coords_2_above(calc)
 
             # Version is not recognised if we're 50 lines into the output file
             # - try and use the old version
             if i > 50:
-                atoms = self._get_final_atoms_old(calc)
-                break
+                return self._get_final_coords_old(calc)
 
-        if len(atoms) == 0:
-            raise AtomsNotFound
+        raise AtomsNotFound("Failed to find any coordinates in XTB "
+                            "output file")
 
-        return atoms
-
-    def get_atomic_charges(self, calc):
+    def partial_charges_from(self, calc):
         charges_sect = False
         charges = []
         for line in calc.output.file_lines:
@@ -315,15 +312,15 @@ class XTB(ElectronicStructureMethod):
                 charges_sect = True
         return charges
 
-    def get_gradients(self, calc):
-        gradients = []
+    def gradient_from(self, calc):
+        raw = []
 
         if os.path.exists(f'{calc.name}_xtb.grad'):
             grad_file_name = f'{calc.name}_xtb.grad'
             with open(grad_file_name, 'r') as grad_file:
                 for line in grad_file:
                     x, y, z = line.split()
-                    gradients.append(np.array([float(x), float(y), float(z)]))
+                    raw.append(np.array([float(x), float(y), float(z)]))
 
         elif os.path.exists(f'{calc.name}_OLD.grad'):
             with open(f'{calc.name}_OLD.grad', 'r') as grad_file:
@@ -334,17 +331,29 @@ class XTB(ElectronicStructureMethod):
                                float(y.replace('D', 'E')),
                                float(z.replace('D', 'E'))]
 
-                        gradients.append(np.array(vec))
+                        raw.append(np.array(vec))
 
             os.remove(f'{calc.name}_OLD.grad')
 
             with open(f'{calc.name}_xtb.grad', 'w') as new_grad_file:
                 [print('{:^12.8f} {:^12.8f} {:^12.8f}'.format(*line),
-                       file=new_grad_file) for line in gradients]
+                       file=new_grad_file) for line in raw]
 
-        # Convert from Ha a0^-1 to Ha A-1
-        gradients = [grad / Constants.a0_to_ang for grad in gradients]
-        return np.array(gradients)
+        return Gradient(raw, units="Ha a0^-1").to("Ha Å^-1")
+
+
+class XTBOptimiser(ExternalOptimiser):
+
+    def __init__(self, converged: bool):
+        self._converged = converged
+
+    @property
+    def converged(self) -> bool:
+        return self._converged
+
+    @property
+    def last_energy_change(self) -> "PotentialEnergy":
+        raise NotImplementedError
 
 
 xtb = XTB()

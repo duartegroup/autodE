@@ -10,11 +10,12 @@ from autode.values import (Distance, Angle, Mass, Coordinate,
 class Atom:
 
     def __init__(self,
-                 atomic_symbol: str,
-                 x:             float = 0.0,
-                 y:             float = 0.0,
-                 z:             float = 0.0,
-                 atom_class:    Optional[int] = None):
+                 atomic_symbol:  str,
+                 x:              float = 0.0,
+                 y:              float = 0.0,
+                 z:              float = 0.0,
+                 atom_class:     Optional[int] = None,
+                 partial_charge: Optional[float] = None):
         """
         Atom class. Centered at the origin by default. Can be initialised from
         positional or keyword arguments:
@@ -44,12 +45,16 @@ class Atom:
             atom_class: Fictitious additional labels to distinguish otherwise
                         identical atoms. Useful in finding bond isomorphisms
                         over identity reactions
+
+            partial_charge: Partial atomic charge in units of e, determined by
+                            the atomic envrionment. Not an observable property.
         """
         assert atomic_symbol in elements
 
         self.label = atomic_symbol
         self._coord = Coordinate(float(x), float(y), float(z))
         self.atom_class = atom_class
+        self.partial_charge = float(partial_charge)
 
     def __repr__(self):
         """

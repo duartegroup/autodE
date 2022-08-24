@@ -281,7 +281,7 @@ def test_species_single_point():
 def test_species_optimise():
 
     orca.path = here
-    assert orca.available
+    assert orca.is_available
 
     dihydrogen = Species(name='H2', atoms=[Atom('H'), Atom('H', x=1)],
                          charge=0, mult=1)
@@ -464,7 +464,7 @@ def test_hessian_calculation():
 
     # Spoof ORCA install
     orca.path = here
-    assert orca.available
+    assert orca.is_available
 
     h2o._run_hess_calculation(method=orca)
     assert h2o.hessian is not None
@@ -535,7 +535,7 @@ def test_keywords_opt_sp_thermo():
 
     h2o = Molecule(smiles='O', name='water_tmp')
     orca.path = here
-    assert orca.available
+    assert orca.is_available
 
     # Check that the calculations work with keywords specified as either a
     # regular list or as a single string

@@ -449,7 +449,10 @@ class SinglePointKeywords(Keywords):
 
 class Keyword(ABC):
 
-    def __init__(self, name, doi=None, doi_list=None, **kwargs):
+    def __init__(self,
+                 name: str,
+                 doi_list: Optional[List[str]] = None,
+                 **kwargs):
         """
         A keyword for an electronic structure theory method e.g. basis set or
         functional, with possibly a an associated reference or set of
@@ -472,8 +475,8 @@ class Keyword(ABC):
         self.name = name
 
         self.doi_list = []
-        if doi is not None:
-            self.doi_list.append(doi)
+        if "doi" in kwargs:
+            self.doi_list.append(kwargs["doi"])
 
         if doi_list is not None:
             self.doi_list += doi_list
@@ -621,7 +624,7 @@ class ECP(Keyword):
             doi_list (list(str)):
             kwargs:
         """
-        super().__init__(name, doi, doi_list, **kwargs)
+        super().__init__(name, doi=doi, doi_list=doi_list, **kwargs)
 
         self.min_atomic_number = min_atomic_number
 

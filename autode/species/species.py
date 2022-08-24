@@ -12,7 +12,7 @@ from autode.constraints import Constraints
 from autode.log.methods import methods as method_log
 from autode.conformers.conformers import Conformers
 from autode.solvent import get_solvent, Solvent, ExplicitSolvent
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import MolecularGraph, make_graph, reorder_nodes, is_isomorphic
@@ -438,6 +438,18 @@ class Species(AtomCollection):
             matrix[tuple(bond)] = matrix[tuple(reversed(bond))] = True
 
         return matrix
+
+    @property
+    def partial_charges(self) -> List[float]:
+        """Partial charges on all the atoms present in this species"""
+        return [atom.partial_charge for atom in self.atoms]
+
+    @partial_charges.setter
+    def partial_charges(self, value: List[float]):
+        """Partial charges on all the atoms present in this species"""
+
+        for atom, charge in zip(self.atoms, value):
+            atom.partial_charge = charge
 
     @property
     def radius(self) -> val.Distance:
