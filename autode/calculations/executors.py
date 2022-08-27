@@ -65,7 +65,7 @@ class CalculationExecutor:
             self.generate_input()
             self.output.filename = self.method.output_filename_for(self)
             self._execute_external()
-            self._set_properties()
+            self.set_properties()
             self.clean_up()
 
         else:
@@ -128,22 +128,29 @@ class CalculationExecutor:
         return None
 
     @requires_output_to_exist
-    def _set_properties(self) -> None:
+    def set_properties(self) -> None:
         """Set the properties of a molecule from this calculation"""
 
         if isinstance(self.input.keywords, kws.OptKeywords):
             # Only need to set the atoms if the geometry has changed in an
             # optimisation
-            self.method.optimiser_from(self)
+            self.optimiser = self.method.optimiser_from(self)
             self.molecule.coordinates = self.method.coordinates_from(self)
 
-        try:
-            self.molecule.energy = self.method.energy_from(self)
+        # All calculations must have generated an energy
+        self.molecule.energy = self.method.energy_from(self)
+        print(self.molecule.energy)
+
+        if isinstance(self.input.keywords, kws.GradientKeywords):
             self.molecule.gradient = self.method.gradient_from(self)
+
+        if isinstance(self.input.keywords, kws.HessianKeywords):
             self.molecule.hessian = self.method.hessian_from(self)
+
+        try:
             self.molecule.partial_charges = self.method.partial_charges_from(self)
         except (ValueError, IndexError, ex.AutodeException):
-            pass  # Appropriate exceptions raised in _check_properties_exist()
+            logger.warning("Failed to set partial charges")
 
         return None
 

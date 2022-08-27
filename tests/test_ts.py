@@ -16,9 +16,9 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.config import Config
 from autode.wrappers.keywords import SinglePointKeywords, KeywordsSet
 from autode.calculations import Calculation
-from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.methods import Method
 from autode.wrappers.ORCA import ORCA
-from autode.wrappers.implicit_solvent_types import cpcm
+from autode.wrappers.keywords.implicit_solvent_types import cpcm
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.transition_states.base import displaced_species_along_mode
 from autode.wrappers.G09 import G09
@@ -320,7 +320,7 @@ def test_truncated_ts():
     assert reaction.ts is not None
 
 
-class TestMethod(ElectronicStructureMethod):
+class TestMethod(Method):
 
     __test__ = False
 

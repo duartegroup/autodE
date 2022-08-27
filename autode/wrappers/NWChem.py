@@ -1,6 +1,6 @@
 import numpy as np
 import autode.wrappers.keywords as kws
-from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.methods import ExternalMethodEGH
 from autode.utils import run_external_monitored
 from autode.atoms import Atom
 from autode.geom import symm_matrix_from_ltril
@@ -191,7 +191,7 @@ def print_constraints(inp_file, molecule, force_constant=20):
     return
 
 
-class NWChem(ElectronicStructureMethod):
+class NWChem(ExternalMethodEGH):
 
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,
@@ -490,4 +490,4 @@ class NWChem(ElectronicStructureMethod):
         return hess / Constants.a0_to_ang**2
 
 
-nwchem = NWChem()
+# TODO: nwchem = NWChem()

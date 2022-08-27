@@ -2,7 +2,6 @@ import os
 import shutil
 import numpy as np
 
-from typing import Optional
 from autode.wrappers.methods import ExternalMethodOEG
 from autode.values import Coordinates, Gradient, PotentialEnergy
 from autode.utils import run_external
@@ -204,7 +203,7 @@ class XTB(ExternalMethodOEG):
 
     def _energy_from(self,
                      calc: "CalculationExecutor"
-                     ) -> Optional[PotentialEnergy]:
+                     ) -> PotentialEnergy:
 
         for line in reversed(calc.output.file_lines):
             if 'total E' in line:
@@ -346,6 +345,9 @@ class XTB(ExternalMethodOEG):
             with open(f'{calc.name}_xtb.grad', 'w') as new_grad_file:
                 [print('{:^12.8f} {:^12.8f} {:^12.8f}'.format(*line),
                        file=new_grad_file) for line in raw]
+
+        if len(raw) == 0:
+            raise CouldNotGetProperty(name="gradient")
 
         return Gradient(raw, units="Ha a0^-1").to("Ha Å^-1")
 

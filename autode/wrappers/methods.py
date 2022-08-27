@@ -144,7 +144,7 @@ class ExternalMethod(Method, ABC):
 
     def energy_from(self,
                     calc: "CalculationExecutor"
-                    ) -> Optional[PotentialEnergy]:
+                    ) -> PotentialEnergy:
         """
         Get an energy with a set of associated attributes, defined by the
         method which was used to execute the calculation.
@@ -160,7 +160,7 @@ class ExternalMethod(Method, ABC):
     @abstractmethod
     def _energy_from(self,
                      calc: "CalculationExecutor"
-                     ) -> Optional[PotentialEnergy]:
+                     ) -> PotentialEnergy:
         """
         Extract the energy from this calculation
         """
@@ -168,7 +168,7 @@ class ExternalMethod(Method, ABC):
     @abstractmethod
     def gradient_from(self,
                       calc: "CalculationExecutor"
-                      ) -> Optional[Gradient]:
+                      ) -> Gradient:
         """
         Extract the gradient from this calculation
         """
@@ -176,7 +176,7 @@ class ExternalMethod(Method, ABC):
     @abstractmethod
     def hessian_from(self,
                      calc: "autode.calculations.executors.CalculationExecutor"
-                     ) -> Optional[Hessian]:
+                     ) -> Hessian:
         """
         Extract the Hessian from this calculation
         """
@@ -184,7 +184,7 @@ class ExternalMethod(Method, ABC):
     @abstractmethod
     def coordinates_from(self,
                          calc: "CalculationExecutor"
-                         ) -> Optional[Coordinates]:
+                         ) -> Coordinates:
         """
         Extract the final set of atomic coordinates from the output file. They
         *must* be in the same order as they were specified
@@ -193,7 +193,7 @@ class ExternalMethod(Method, ABC):
     @abstractmethod
     def partial_charges_from(self,
                              calc: "CalculationExecutor"
-                             ) -> Optional[List[float]]:
+                             ) -> List[float]:
         """
         Extract the partial atomic charges corresponding to the final geometry
         present in the output file
@@ -217,12 +217,12 @@ class ExternalMethod(Method, ABC):
 
     @staticmethod
     @abstractmethod
-    def input_filename_for(calc: "CalculationExecutor") -> None:
+    def input_filename_for(calc: "CalculationExecutor") -> str:
         """Determine the input filename for a calculation"""
 
     @staticmethod
     @abstractmethod
-    def output_filename_for(calc: "CalculationExecutor") -> None:
+    def output_filename_for(calc: "CalculationExecutor") -> str:
         """Determine the output filename for a calculation"""
 
     @abstractmethod
@@ -242,9 +242,27 @@ class ExternalMethodOEG(ExternalMethod, ABC):
     def implements(self,
                    calculation_type: "autode.calculations.types.CalculationType"
                    ) -> bool:
-        return calculation_type in (ct.opt, ct.energy, ct.hessian)
+        return calculation_type in (ct.opt, ct.energy, ct.gradient)
 
     def hessian_from(self,
                      calc: "autode.calculations.executors.CalculationExecutor"
                      ) -> Optional[Hessian]:
         raise NotImplementedInMethod
+
+
+class ExternalMethodOEGH(ExternalMethod, ABC):
+    """External method that implements opt, energy, gradient and Hessians"""
+
+    def implements(self,
+                   calculation_type: "autode.calculations.types.CalculationType"
+                   ) -> bool:
+        return calculation_type in (ct.opt, ct.energy, ct.gradient, ct.hessian)
+
+
+class ExternalMethodEGH(ExternalMethod, ABC):
+    """External method that implements energy, gradient and Hessians"""
+
+    def implements(self,
+                   calculation_type: "autode.calculations.types.CalculationType"
+                   ) -> bool:
+        return calculation_type in (ct.energy, ct.gradient, ct.hessian)

@@ -6,11 +6,11 @@ from autode.log import logger
 from autode.atoms import Atom
 from autode.constants import Constants
 from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
-from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.methods import ExternalMethodOEGH
 from autode.utils import run_external, work_in_tmp_dir
 
 
-class QChem(ElectronicStructureMethod):
+class QChem(ExternalMethodOEGH):
     """
     QChem Electronic Structure package.
 
@@ -26,7 +26,7 @@ class QChem(ElectronicStructureMethod):
                          path=Config.QChem.path,
                          keywords_set=Config.QChem.keywords,
                          implicit_solvation_type=Config.QChem.implicit_solvation_type,
-                         doi='10.1080/00268976.2014.952696')
+                         doi_list=['10.1080/00268976.2014.952696'])
 
     def __repr__(self):
         return f'QChem(available = {self.available})'

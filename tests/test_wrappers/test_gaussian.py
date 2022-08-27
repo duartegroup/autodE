@@ -1,8 +1,8 @@
 import pytest
 import os
 import numpy as np
-from autode.wrappers.G09 import (G09, print_custom_basis, get_keywords,
-                                 n_ecp_elements, add_opt_option)
+from autode.wrappers.G09 import (G09, _print_custom_basis, _get_keywords,
+                                 _n_ecp_elements, _add_opt_option)
 from autode.wrappers.G16 import G16
 from autode.calculations import Calculation, CalculationInput
 from autode.constraints import Constraints
@@ -35,21 +35,21 @@ def test_printing_ecp():
     tmp_mol.constraints = Constraints(distance={}, cartesian=[])
 
     keywords = kwds.OptKeywords(keyword_list=[def2tzecp])
-    assert n_ecp_elements(keywords, molecule=tmp_mol) == 1
+    assert _n_ecp_elements(keywords, molecule=tmp_mol) == 1
     # Light elements should not default to ECPs
-    assert n_ecp_elements(keywords, molecule=Molecule(smiles='O')) == 0
+    assert _n_ecp_elements(keywords, molecule=Molecule(smiles='O')) == 0
     # no ECP keywords -> no elements needing an ECP
-    assert n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol) == 0
+    assert _n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol) == 0
 
     calc_input = CalculationInput(keywords,
                                   added_internals=None,
                                   point_charges=None)
 
     with pytest.raises(RuntimeError):
-        print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
+        _print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
 
     calc_input.keywords = kwds.OptKeywords(keyword_list=[pbe0, def2tzvp, def2tzecp])
-    print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
+    _print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
     assert os.path.exists('basis.gbs')
 
     os.remove('tmp.com')
@@ -57,14 +57,14 @@ def test_printing_ecp():
 
     # Should have GenECP in the keywords rather than the ECP or basis
     # definitions
-    g09_kwds = get_keywords(calc_input, molecule=tmp_mol)
+    g09_kwds = _get_keywords(calc_input, molecule=tmp_mol)
     assert not any(kwd.lower() == 'def2tzvp' for kwd in g09_kwds)
 
 
 def test_add_opt_option():
 
     keywds = ['Opt=Loose']
-    add_opt_option(keywds, 'MaxCycles=10')
+    _add_opt_option(keywds, 'MaxCycles=10')
     assert keywds[0].lower() == 'opt=(loose, maxcycles=10)'
 
 
@@ -73,8 +73,8 @@ def test_input_print_max_opt():
     keywds = opt_keywords.copy()
     keywds.max_opt_cycles = 10
 
-    str_keywords = get_keywords(CalculationInput(keywds),
-                                molecule=test_mol)
+    str_keywords = _get_keywords(CalculationInput(keywds),
+                                 molecule=test_mol)
 
     # Should be only a single instance of the maxcycles declaration
     assert sum('maxcycles=10' in kw.lower() for kw in str_keywords) == 1

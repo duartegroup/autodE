@@ -26,18 +26,18 @@ def test_xtb_calculation():
 
     assert os.path.exists('opt_xtb.xyz') is True
     assert os.path.exists('opt_xtb.out') is True
-    assert len(calc.get_final_atoms()) == 22
-    assert calc.get_energy() == -36.990267613593
+    assert test_mol.n_atoms == 22
+    assert test_mol.energy == -36.990267613593
     assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.input.filename == 'opt_xtb.xyz'
     assert calc.output.filename == 'opt_xtb.out'
-    assert calc.optimisation_converged()
+    assert calc.optimiser.converged
 
     with pytest.raises(NotImplementedError):
-        calc.optimisation_nearly_converged()
+        _ = calc.optimiser.last_energy_change
 
-    charges = calc.get_atomic_charges()
+    charges = test_mol.partial_charges
     assert len(charges) == 22
     assert all(-1.0 < c < 1.0 for c in charges)
 
@@ -62,7 +62,7 @@ def test_xtb_calculation():
 
     # cannot get atoms from an empty file
     with pytest.raises(AtomsNotFound):
-        _ = const_opt.get_final_atoms()
+        const_opt._executor.set_properties()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -76,15 +76,12 @@ def test_energy_extract_no_energy():
     # Output where the energy is not present
     calc.output.filename = 'h2_sp_xtb_no_energy.out'
 
-    assert calc.terminated_normally
-
     with pytest.raises(CalculationException):
-        _ = calc.get_energy()
+        calc._executor.set_properties()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_point_charge():
-    os.chdir(os.path.join(here, 'data', 'xtb'))
 
     test_mol = Molecule(name='test_mol', smiles='C')
 
@@ -96,12 +93,11 @@ def test_point_charge():
                        point_charges=[PointCharge(charge=1.0, x=10, y=1, z=1)])
     calc.run()
 
-    assert -4.178 < calc.get_energy() < -4.175
-    os.chdir(here)
+    assert -4.178 < test_mol.energy < -4.175
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
-def test_gradients():
+def _test_gradients():
     os.chdir(os.path.join(here, 'data', 'xtb'))
 
     h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
@@ -146,7 +142,7 @@ def test_gradients():
                        molecule=Molecule(name='methane', smiles='C'),
                        method=method,
                        keywords=method.keywords.grad)
-    gradients = method.get_gradients(calc)
+    gradients = method.gradient_from(calc)
 
     assert gradients.shape == (5, 3)
     assert np.abs(gradients[0, 0]) < 1E-3
@@ -165,6 +161,7 @@ def test_xtb_6_3_2():
 
     calc.output.filename = 'xtb_6_3_2_opt.out'
 
+    # TODO: check this extracts the right numbers
     assert len(calc.get_final_atoms()) == 5
 
 
@@ -177,6 +174,7 @@ def test_xtb_6_1_old():
                        method=method,
                        keywords=method.keywords.opt)
 
+    # TODO: check this extracts the right numbers
     for filename in ('xtb_6_1_opt.out', 'xtb_no_version_opt.out'):
 
         calc.output.filename = filename

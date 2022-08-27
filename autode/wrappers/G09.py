@@ -1,10 +1,14 @@
-from copy import deepcopy
 import numpy as np
 import autode.wrappers.keywords as kws
+
+from typing import Optional, List
+from copy import deepcopy
 from autode.constants import Constants
-from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.methods import ExternalMethodOEGH
 from autode.utils import run_external
-from autode.atoms import Atom
+from autode.opt.optimisers.base import ExternalOptimiser
+from autode.values import PotentialEnergy, Coordinates, Gradient
+from autode.hessians import Hessian
 from autode.geom import symm_matrix_from_ltril
 from autode.config import Config
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
@@ -13,7 +17,7 @@ from autode.constraints import Constraints
 from autode.utils import work_in_tmp_dir
 
 
-def add_opt_option(keywords, new_option):
+def _add_opt_option(keywords, new_option):
 
     for keyword in keywords:
         if 'opt' not in keyword.lower():
@@ -38,18 +42,18 @@ def add_opt_option(keywords, new_option):
     return None
 
 
-def modify_keywords_for_point_charges(keywords):
+def _modify_keywords_for_point_charges(keywords):
     """For a list of Gaussian keywords modify to include z-matrix if not
     already included. Required if point charges are included in the calc"""
     logger.warning('Modifying keywords as point charges are present')
 
     keywords.append('Charge')
-    add_opt_option(keywords, new_option='Z-Matrix')
+    _add_opt_option(keywords, new_option='Z-Matrix')
 
     return None
 
 
-def n_ecp_elements(keywords, molecule):
+def _n_ecp_elements(keywords, molecule):
     """Number of elements that require an ECP"""
 
     ecp_kwd = keywords.ecp
@@ -63,7 +67,7 @@ def n_ecp_elements(keywords, molecule):
     return len(ecp_elems)
 
 
-def get_keywords(calc_input, molecule):
+def _get_keywords(calc_input, molecule):
     """Modify the input keywords to try and fix some Gaussian's quirks"""
 
     new_keywords = []   # List of keywords as strings for this calculation
@@ -77,7 +81,7 @@ def get_keywords(calc_input, molecule):
             continue
 
         if (isinstance(keyword, kws.BasisSet)
-                and n_ecp_elements(calc_input.keywords, molecule) > 0):
+                and _n_ecp_elements(calc_input.keywords, molecule) > 0):
             logger.info('Required and ECP so will print a custom basis set')
             new_keywords.append('genecp')
             continue
@@ -127,13 +131,13 @@ def get_keywords(calc_input, molecule):
 
     # Further modification is required if there are surrounding point charges
     if calc_input.point_charges is not None:
-        modify_keywords_for_point_charges(new_keywords)
+        _modify_keywords_for_point_charges(new_keywords)
 
     if isinstance(calc_input.keywords, kws.OptKeywords):
         max_cycles = calc_input.keywords.max_opt_cycles
 
         if max_cycles is not None:
-            add_opt_option(new_keywords, f'MaxCycles={int(max_cycles)}')
+            _add_opt_option(new_keywords, f'MaxCycles={int(max_cycles)}')
 
     # By default perform all optimisations without symmetry
     if opt and not any(kw.lower() == 'nosymm' for kw in new_keywords):
@@ -147,7 +151,7 @@ def get_keywords(calc_input, molecule):
     return new_keywords
 
 
-def print_point_charges(inp_file, calc_input):
+def _print_point_charges(inp_file, calc_input):
     """Add point charges to the input file"""
 
     if calc_input.point_charges is None:
@@ -161,7 +165,7 @@ def print_point_charges(inp_file, calc_input):
     return
 
 
-def print_added_internals(inp_file, calc_input):
+def _print_added_internals(inp_file, calc_input):
     """Add any internal coordinates to the input file"""
 
     if calc_input.added_internals is None:
@@ -174,7 +178,7 @@ def print_added_internals(inp_file, calc_input):
     return
 
 
-def print_constraints(inp_file, molecule):
+def _print_constraints(inp_file, molecule):
     """Add any distance or cartesian constraints to the input file"""
 
     if molecule.constraints.distance is not None:
@@ -192,7 +196,7 @@ def print_constraints(inp_file, molecule):
     return
 
 
-def print_custom_basis(inp_file, calc_input, molecule):
+def _print_custom_basis(inp_file, calc_input, molecule):
     """Print the definition of the custom basis set file """
     keywords = calc_input.keywords
 
@@ -206,7 +210,7 @@ def print_custom_basis(inp_file, calc_input, molecule):
             print(f'@{keyword}', file=inp_file)
             return
 
-    if n_ecp_elements(keywords, molecule) == 0:
+    if _n_ecp_elements(keywords, molecule) == 0:
         return
 
     # Must need a custom basis set file because there are ECPs to print
@@ -247,7 +251,7 @@ def print_custom_basis(inp_file, calc_input, molecule):
     return None
 
 
-def rerun_angle_failure(calc):
+def _rerun_angle_failure(calc):
     """
     Gaussian will sometimes encounter a 180 degree angle and crash. This
     function performs a few geometry optimisation cycles in cartesian
@@ -347,19 +351,19 @@ def _run_hessian(calc):
     return hess_calc
 
 
-def freq_in_keywords(calc):
+def _freq_in_keywords(calc):
     """Is 'Freq' in a a set of keywords used to run a calculation"""
     return any('freq' in keyword.lower() for keyword in calc.input.keywords)
 
 
-def calc_uses_external_method(calc):
+def _calc_uses_external_method(calc):
     """Does this Gaussian calculation use an external force driver?"""
     return any('external' in kwd.lower() for kwd in calc.input.keywords)
 
 
-class G09(ElectronicStructureMethod):
+class G09(ExternalMethodOEGH):
 
-    def __init__(self, name='g09', path=None, keywords_set=None,
+    def __init__(self, executable_name="g09", path=None, keywords_set=None,
                  implicit_solvation_type=None):
         """Gaussian 09"""
 
@@ -369,17 +373,18 @@ class G09(ElectronicStructureMethod):
         if implicit_solvation_type is None:
             implicit_solvation_type = Config.G09.implicit_solvation_type
 
-        super().__init__(name=name,
+        super().__init__(executable_name=executable_name,
                          path=Config.G09.path if path is None else path,
                          keywords_set=keywords_set,
                          implicit_solvation_type=implicit_solvation_type,
-                         doi='http://gaussian.com/citation/')
+                         doi_list=['http://gaussian.com/citation/'])
 
     def __repr__(self):
-        return f'Gaussian09(available = {self.available})'
+        return f'Gaussian09(available = {self.is_available})'
 
-    def generate_input(self, calc, molecule):
+    def generate_input_for(self, calc) -> None:
         """Print a Gaussian input file"""
+        molecule = calc.molcule
 
         with open(calc.input.filename, 'w') as inp_file:
 
@@ -391,7 +396,7 @@ class G09(ElectronicStructureMethod):
             if calc.n_cores > 1:
                 print(f'%nprocshared={calc.n_cores}', file=inp_file)
 
-            keywords = get_keywords(calc.input, molecule)
+            keywords = _get_keywords(calc.input, molecule)
             print('#', *keywords, file=inp_file, end=' ')
 
             if molecule.solvent is not None:
@@ -408,27 +413,29 @@ class G09(ElectronicStructureMethod):
                 print(f'{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}',
                       file=inp_file)
 
-            print_point_charges(inp_file, calc.input)
+            _print_point_charges(inp_file, calc.input)
             print('', file=inp_file)
-            print_added_internals(inp_file, calc.input)
-            print_constraints(inp_file, molecule)
+            _print_added_internals(inp_file, calc.input)
+            _print_constraints(inp_file, molecule)
 
             if molecule.constraints.any or calc.input.added_internals:
                 print('', file=inp_file)   # needs an extra blank line
-            print_custom_basis(inp_file, calc.input, molecule)
+            _print_custom_basis(inp_file, calc.input, molecule)
 
             # Gaussian needs blank lines at the end of the file
             print('\n', file=inp_file)
 
         return None
 
-    def get_input_filename(self, calc):
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.com'
 
-    def get_output_filename(self, calc):
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.log'
 
-    def get_version(self, calc):
+    def version_in(self, calc) -> str:
         """Get the version of Gaussian used in this calculation"""
 
         for line in calc.output.file_lines:
@@ -439,7 +446,7 @@ class G09(ElectronicStructureMethod):
         logger.warning('Could not find the Gaussian version number')
         return '???'
 
-    def execute(self, calc):
+    def execute(self, calc) -> None:
 
         @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
                          kept_file_exts=('.log', '.com', '.gbs'))
@@ -450,7 +457,7 @@ class G09(ElectronicStructureMethod):
         execute_g09()
         return None
 
-    def calculation_terminated_normally(self, calc, rerun_if_failed=True):
+    def terminated_normally_in(self, calc, rerun_if_failed=True):
 
         termination_strings = ['Normal termination of Gaussian',
                                'Number of steps exceeded']
@@ -476,7 +483,7 @@ class G09(ElectronicStructureMethod):
 
         try:
             # To fix the calculation requires the atoms to be in the output
-            fixed_calc = rerun_angle_failure(calc)
+            fixed_calc = _rerun_angle_failure(calc)
 
         except AtomsNotFound:
             return False
@@ -489,45 +496,34 @@ class G09(ElectronicStructureMethod):
 
         return False
 
-    def get_energy(self, calc):
+    def _energy_from(self,
+                     calc: "CalculationExecutor"
+                     ) -> Optional[PotentialEnergy]:
 
         for line in reversed(calc.output.file_lines):
             if 'SCF Done' in line or 'E(CIS)' in line:
-                return float((line.split()[4]))
+                return PotentialEnergy((line.split()[4]), units="Ha")
 
             if 'E(CORR)' in line or 'E(CI)' in line:
-                return float(line.split()[3])
+                return PotentialEnergy(line.split()[3], units="Ha")
 
             if 'E(CIS(D))' in line:
-                return float(line.split()[5])
+                return PotentialEnergy(line.split()[5], units="Ha")
 
             if line.startswith(' Energy=') and 'NIter=' in line:
-                return float(line.split()[1])
+                return PotentialEnergy(line.split()[1], units="Ha")
 
         raise CouldNotGetProperty(name='energy')
 
-    def optimisation_converged(self, calc):
-        for line in reversed(calc.output.file_lines):
-            if 'Optimization completed' in line:
-                return True
+    def optimiser_from(self,
+                       calc: "CalculationExecutor"
+                       ) -> "autode.opt.optimisers.base.BaseOptimiser":
+        return G09Optimiser(output_lines=calc.output.file_lines)
 
-        return False
-
-    def optimisation_nearly_converged(self, calc):
-        geom_conv_block = False
-
-        for line in reversed(calc.output.file_lines):
-            if geom_conv_block and 'Item' in line:
-                geom_conv_block = False
-            if 'Predicted change in Energy' in line:
-                geom_conv_block = True
-            if geom_conv_block and len(line.split()) == 4:
-                if line.split()[-1] == 'YES':
-                    return True
-        return False
-
-    def get_final_atoms(self, calc):
-        """Get the final set of atoms (with coordinates) from a G09 ouput"""
+    def coordinates_from(self,
+                         calc: "CalculationExecutor"
+                         ) -> Optional[Coordinates]:
+        """Get the final set of coordinates from a G09 output"""
 
         init_atoms = calc.molecule.atoms
 
@@ -536,23 +532,24 @@ class G09(ElectronicStructureMethod):
                         'have identical positions')
             return init_atoms
 
-        atoms = []
+        coords = []
 
         for i, line in enumerate(calc.output.file_lines):
 
             if 'Input orientation' in line:
 
-                atoms.clear()
+                coords.clear()
                 xyz_lines = calc.output.file_lines[i+5:i+5+calc.molecule.n_atoms]
 
                 for xyz_line in xyz_lines:
-                    idx, _, _, x, y, z = xyz_line.split()
-                    idx = int(idx) - 1
-                    atoms.append(Atom(init_atoms[idx].label, x=x, y=y, z=z))
+                    _, _, _, x, y, z = xyz_line.split()
+                    coords.append([float(x), float(y), float(z)])
 
-        return atoms
+        return Coordinates(coords, units="Å")
 
-    def get_atomic_charges(self, calc):
+    def partial_charges_from(self,
+                             calc: "CalculationExecutor"
+                             ) -> Optional[List[float]]:
 
         charges_section = False
         charges = []
@@ -569,7 +566,9 @@ class G09(ElectronicStructureMethod):
         logger.error('Something went wrong finding the atomic charges')
         return None
 
-    def get_gradients(self, calc):
+    def gradient_from(self,
+                      calc: "CalculationExecutor"
+                      ) -> Optional[Gradient]:
         """
         Get gradients from a Gaussian output file in the format
 
@@ -582,33 +581,32 @@ class G09(ElectronicStructureMethod):
           .        .                .              .               .
         """
         n_atoms = calc.molecule.n_atoms
-        gradients = []
+        raw_gradient = []
 
         for i, line in enumerate(calc.output.file_lines):
 
             if 'Forces (Hartrees/Bohr)' not in line:
                 continue
 
-            # Reset the gradients, possibly multiple in a file
-            gradients = []
+            raw_gradient = []  # NOTE: possibly multiple gradients in a file
 
             for force_line in calc.output.file_lines[i+3:i+3+n_atoms]:
 
                 try:
                     _, _, fx, fy, fz = force_line.split()
-
-                    # Ha / a0
                     force = np.array([float(fx), float(fy), float(fz)])
 
                     grad = -force / Constants.a0_to_ang
-                    gradients.append(grad)
+                    raw_gradient.append(grad)
 
                 except ValueError:
                     logger.warning('Failed to set gradient line')
 
-        return np.array(gradients)
+        return Gradient(raw_gradient, units="Ha a0^-1").to("Ha Å^-1")
 
-    def get_hessian(self, calc):
+    def hessian_from(self,
+                     calc: "autode.calculations.executors.CalculationExecutor"
+                     ) -> Optional[Hessian]:
         r"""
         Extract the Hessian from a Gaussian09 calculation, which is printed as
         just the lower triangular portion but is symmetric so the full 3Nx3N
@@ -625,7 +623,7 @@ class G09(ElectronicStructureMethod):
             (IndexError | ValueError):
         """
 
-        if calc_uses_external_method(calc) and not freq_in_keywords(calc):
+        if _calc_uses_external_method(calc) and not _freq_in_keywords(calc):
             # Using external force drivers can lead to failed Hessian calcs.
             calc = _run_hessian(calc)
 
@@ -663,8 +661,41 @@ class G09(ElectronicStructureMethod):
             raise CouldNotGetProperty('Not enough elements of the Hessian '
                                       'matrix found')
 
-        # Gaussian Hessians are quoted in Ha a0^-2
-        return symm_matrix_from_ltril(hess_values) / Constants.a0_to_ang**2
+        return Hessian(symm_matrix_from_ltril(hess_values),
+                       atoms=calc.molecule.atoms,
+                       functional=calc.input.keywords.functional,
+                       units="Ha a0^-2").to("Ha Å^-2")
+
+
+class G09Optimiser(ExternalOptimiser):
+
+    def __init__(self, output_lines: List[str]):
+        self._lines = output_lines
+
+    @property
+    def converged(self) -> bool:
+        """Has the optimisation converged?"""
+
+        for line in reversed(self._lines):
+            if 'Optimization completed' in line:
+                return True
+
+        return False
+
+    @property
+    def last_energy_change(self) -> "PotentialEnergy":
+        """Find the last energy change in the file"""
+
+        energies = []
+        for line in self._lines:
+            if 'SCF Done' in line or 'E(CIS)' in line:
+                energy_str = line.split()[4]
+                energies.append(PotentialEnergy(energy_str, units="Ha"))
+
+        if len(energies) < 2:
+            return PotentialEnergy(np.inf)
+
+        return energies[-1] - energies[-2]
 
 
 g09 = G09()

@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import autode.wrappers.keywords as kwds
-from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.methods import ExternalMethodOEG
 from autode.utils import run_external
 from autode.atoms import Atom
 from autode.config import Config
@@ -175,7 +175,8 @@ def _get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Ato
 
     return atoms
 
-class MOPAC(ElectronicStructureMethod):
+
+class MOPAC(ExternalMethodOEG):
 
     def __init__(self):
         super().__init__(name='mopac', path=Config.MOPAC.path,
@@ -343,5 +344,5 @@ class MOPAC(ElectronicStructureMethod):
         return grad_array
 
 
-mopac = MOPAC()
+# TODO: mopac = MOPAC()
 

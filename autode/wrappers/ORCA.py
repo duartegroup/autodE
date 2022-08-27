@@ -3,7 +3,7 @@ import os
 import autode.wrappers.keywords as kws
 from autode.constants import Constants
 from autode.utils import run_external
-from autode.wrappers.base import ElectronicStructureMethod
+from autode.wrappers.methods import ExternalMethodOEGH
 from autode.atoms import Atom
 from autode.input_output import xyz_file_to_atoms
 from autode.config import Config
@@ -123,7 +123,7 @@ def print_coordinates(inp_file, molecule):
     return
 
 
-class ORCA(ElectronicStructureMethod):
+class ORCA(ExternalMethodOEGH):
 
     def __init__(self):
         super().__init__('orca',
@@ -556,4 +556,4 @@ class ORCA(ElectronicStructureMethod):
         return self._get_version_no_output()[0] == '5'
 
 
-orca = ORCA()
+#  TODO orca = ORCA()
