@@ -1208,7 +1208,6 @@ class Species(AtomCollection):
                          keywords=keywords,
                          n_cores=Config.n_cores if n_cores is None else n_cores)
         sp.run()
-        self.energy = sp.get_energy()
         return None
 
     @work_in('conformers')

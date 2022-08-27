@@ -321,6 +321,7 @@ class XTB(ExternalMethodOEG):
 
     def gradient_from(self, calc):
         raw = []
+        print(f'{calc.name}_OLD.grad')
 
         if os.path.exists(f'{calc.name}_xtb.grad'):
             grad_file_name = f'{calc.name}_xtb.grad'
@@ -330,6 +331,7 @@ class XTB(ExternalMethodOEG):
                     raw.append(np.array([float(x), float(y), float(z)]))
 
         elif os.path.exists(f'{calc.name}_OLD.grad'):
+            print("old file exists\n\n\n")
             with open(f'{calc.name}_OLD.grad', 'r') as grad_file:
                 for i, line in enumerate(grad_file):
                     if i > 1 and len(line.split()) == 3:

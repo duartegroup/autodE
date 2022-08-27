@@ -97,8 +97,7 @@ def test_point_charge():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
-def _test_gradients():
-    os.chdir(os.path.join(here, 'data', 'xtb'))
+def test_gradients():
 
     h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
     h2.single_point(method)
@@ -117,13 +116,13 @@ def _test_gradients():
 
     calc.run()
 
-    diff = calc.get_gradients()[1, 0] - grad    # Ha A^-1
+    diff = h2.gradient[1, 0] - grad    # Ha A^-1
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(diff) < 1E-5
 
     # Older xtb version
-    with open('gradient', 'w') as gradient_file:
+    with open(f'methane_OLD.grad', 'w') as gradient_file:
         print('$gradient\n'
               'cycle =      1    SCF energy =    -4.17404780397   |dE/dxyz| =  0.027866\n'
               '3.63797523123375     -1.13138130908142     -0.00032759661848      C \n'
@@ -147,8 +146,6 @@ def _test_gradients():
     assert gradients.shape == (5, 3)
     assert np.abs(gradients[0, 0]) < 1E-3
 
-    os.chdir(here)
-
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_xtb_6_3_2():
@@ -159,10 +156,9 @@ def test_xtb_6_3_2():
                        method=method,
                        keywords=method.keywords.opt)
 
-    calc.output.filename = 'xtb_6_3_2_opt.out'
-
-    # TODO: check this extracts the right numbers
-    assert len(calc.get_final_atoms()) == 5
+    calc.set_output_filename('xtb_6_3_2_opt.out')
+    assert mol.n_atoms == 5 
+    assert np.isclose(mol.atoms[-2].coord[1], -0.47139030225766)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -177,10 +173,7 @@ def test_xtb_6_1_old():
     # TODO: check this extracts the right numbers
     for filename in ('xtb_6_1_opt.out', 'xtb_no_version_opt.out'):
 
-        calc.output.filename = filename
-
-        assert len(calc.get_final_atoms()) == 5
-        mol.atoms = calc.get_final_atoms()
+        calc.set_output_filename(filename)
 
         assert set([atom.label for atom in mol.atoms]) == {'C', 'H'}
         assert 0.9 < mol.distance(0, 1) < 1.2

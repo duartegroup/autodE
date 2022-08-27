@@ -139,7 +139,6 @@ class CalculationExecutor:
 
         # All calculations must have generated an energy
         self.molecule.energy = self.method.energy_from(self)
-        print(self.molecule.energy)
 
         if isinstance(self.input.keywords, kws.GradientKeywords):
             self.molecule.gradient = self.method.gradient_from(self)
