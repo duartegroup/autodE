@@ -1,6 +1,6 @@
 import os
-from autode.wrappers import implicit_solvent_types as solv
 from autode.values import Frequency, Distance, Allocation
+from autode.wrappers.keywords import implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
 from autode.wrappers.keywords.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
 from autode.wrappers.keywords.functionals import pbe0

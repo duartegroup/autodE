@@ -294,9 +294,8 @@ def _rerun_angle_failure(calc):
 
     # Generate the new calculation and run
     cart_calc.name += '_cartesian'
-    cart_calc.molecule.atoms = calc.get_final_atoms()
     cart_calc.molecule.constraints = Constraints(distance=None, cartesian=None)
-    cart_calc.input.added_internals = None
+    cart_calc.molecule.reset_graph() 
     cart_calc.output = CalculationOutput()
     cart_calc.run()
 
@@ -309,7 +308,6 @@ def _rerun_angle_failure(calc):
     # Reset the required parameters for the new calculation
     fixed_calc = deepcopy(calc)
     fixed_calc.name += '_internal'
-    fixed_calc.molecule.atoms = cart_calc.get_final_atoms()
     fixed_calc.output = CalculationOutput()
     fixed_calc.run()
 
@@ -342,9 +340,7 @@ def _run_hessian(calc):
 
     # Generate the new calculation and run
     hess_calc.name += '_hess'
-    hess_calc.molecule.atoms = calc.get_final_atoms()
     hess_calc.molecule.constraints = Constraints(distance=None, cartesian=None)
-    hess_calc.input.added_internals = None
     hess_calc.output = CalculationOutput()
     hess_calc.run()
 
@@ -384,7 +380,7 @@ class G09(ExternalMethodOEGH):
 
     def generate_input_for(self, calc) -> None:
         """Print a Gaussian input file"""
-        molecule = calc.molcule
+        molecule = calc.molecule
 
         with open(calc.input.filename, 'w') as inp_file:
 
@@ -568,7 +564,7 @@ class G09(ExternalMethodOEGH):
 
     def gradient_from(self,
                       calc: "CalculationExecutor"
-                      ) -> Optional[Gradient]:
+                      ) -> Gradient:
         """
         Get gradients from a Gaussian output file in the format
 

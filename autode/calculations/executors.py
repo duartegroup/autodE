@@ -130,8 +130,9 @@ class CalculationExecutor:
     @requires_output_to_exist
     def set_properties(self) -> None:
         """Set the properties of a molecule from this calculation"""
+        keywords = self.input.keywords
 
-        if isinstance(self.input.keywords, kws.OptKeywords):
+        if isinstance(keywords, kws.OptKeywords):
             # Only need to set the atoms if the geometry has changed in an
             # optimisation
             self.optimiser = self.method.optimiser_from(self)
@@ -140,11 +141,15 @@ class CalculationExecutor:
         # All calculations must have generated an energy
         self.molecule.energy = self.method.energy_from(self)
 
-        if isinstance(self.input.keywords, kws.GradientKeywords):
+        if not isinstance(keywords, kws.SinglePointKeywords):
             self.molecule.gradient = self.method.gradient_from(self)
 
-        if isinstance(self.input.keywords, kws.HessianKeywords):
-            self.molecule.hessian = self.method.hessian_from(self)
+        if (isinstance(keywords, kws.HessianKeywords)
+                or isinstance(keywords, kws.OptKeywords)):
+            try:
+                self.molecule.hessian = self.method.hessian_from(self)
+            except (ValueError, IndexError, ex.AutodeException):
+                pass  # An exception will be raised by Calculation, if required 
 
         try:
             self.molecule.partial_charges = self.method.partial_charges_from(self)

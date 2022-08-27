@@ -475,8 +475,8 @@ class Keyword(ABC):
         self.name = name
 
         self.doi_list = []
-        if "doi" in kwargs:
-            self.doi_list.append(kwargs["doi"])
+        if "doi" in kwargs and kwargs["doi"] is not None:
+            self.doi_list.append(kwargs.pop("doi"))
 
         if doi_list is not None:
             self.doi_list += doi_list
@@ -484,7 +484,7 @@ class Keyword(ABC):
         # Update the attributes with any keyword arguments
         self.__dict__.update(kwargs)
 
-        # Gaussian 09 and Gaussian 16 keywords are the same(?)
+        # Gaussian 09 and Gaussian 16 keywords are the same
         if 'g09' in kwargs.keys():
             self.g16 = kwargs['g09']
 

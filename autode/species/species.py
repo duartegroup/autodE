@@ -451,7 +451,7 @@ class Species(AtomCollection):
         try:
             _ = list(value)
             assert len(value) == self.n_atoms
-        except (ValueError, AssertionError):
+        except (TypeError, ValueError, AssertionError):
             raise ValueError(f"Failed to assign partial charges from {value} "
                              f"must be a list with length n_atoms")
 

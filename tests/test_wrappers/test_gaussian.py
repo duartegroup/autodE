@@ -8,9 +8,9 @@ from autode.calculations import Calculation, CalculationInput
 from autode.constraints import Constraints
 from autode.species.molecule import Molecule
 from autode.wrappers import keywords as kwds
-from autode.wrappers.basis_sets import def2tzecp, def2tzvp
-from autode.wrappers.functionals import pbe0
-from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
+from autode.wrappers.keywords.basis_sets import def2tzecp, def2tzvp
+from autode.wrappers.keywords.functionals import pbe0
+from autode.wrappers.keywords.keywords import OptKeywords, SinglePointKeywords
 from autode.exceptions import NoInputError, CalculationException
 from autode.point_charges import PointCharge
 from autode.atoms import Atom
@@ -98,9 +98,9 @@ def test_get_gradients():
 
     calc = Calculation(name='ester', molecule=ester,
                        method=method, keywords=method.keywords.opt)
-    calc.output.filename = 'ester_opt_g09.log'
+    calc.set_output_filename('ester_opt_g09.log')
 
-    gradients = calc.get_gradients()
+    gradients = ester.gradient
     assert gradients is not None
     assert gradients.shape == (ester.n_atoms, 3)
 
@@ -192,8 +192,6 @@ def test_bad_gauss_output():
     with pytest.raises(CalculationException):
         calc.get_final_atoms()
 
-    with pytest.raises(NoInputError):
-        calc.execute_calculation()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
