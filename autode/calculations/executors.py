@@ -230,7 +230,7 @@ class CalculationExecutor:
                 register[calc_name] = identifier
 
         if is_identical():
-            logger.info('Calculation has already been run')
+            logger.info('Calculation exists in registry')
             return None
 
         # If this calculation doesn't yet appear in the register add it
