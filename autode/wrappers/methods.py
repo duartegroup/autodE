@@ -246,7 +246,7 @@ class ExternalMethodOEG(ExternalMethod, ABC):
 
     def hessian_from(self,
                      calc: "autode.calculations.executors.CalculationExecutor"
-                     ) -> Optional[Hessian]:
+                     ) -> Hessian:
         raise NotImplementedInMethod
 
 
@@ -266,3 +266,12 @@ class ExternalMethodEGH(ExternalMethod, ABC):
                    calculation_type: "autode.calculations.types.CalculationType"
                    ) -> bool:
         return calculation_type in (ct.energy, ct.gradient, ct.hessian)
+
+
+    def optimiser_from(self,
+                       calc: "autode.calculations.executors.CalculationExecutor"
+                       ) -> "autode.opt.optimisers.base.BaseOptimiser":
+        raise NotImplementedInMethod
+
+
+

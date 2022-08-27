@@ -1,8 +1,8 @@
 import pytest
-from autode.wrappers.functionals import pbe
-from autode.wrappers.dispersion import d3bj
-from autode.wrappers.wf import hf
-from autode.wrappers.basis_sets import def2tzvp, def2ecp
+from autode.wrappers.keywords.functionals import pbe
+from autode.wrappers.keywords.dispersion import d3bj
+from autode.wrappers.keywords.wf import hf
+from autode.wrappers.keywords.basis_sets import def2tzvp, def2ecp
 from autode.config import Config
 from copy import deepcopy
 from autode.wrappers.keywords import (Keywords,

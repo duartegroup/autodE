@@ -4,10 +4,10 @@ from autode.calculations import Calculation, CalculationInput
 from autode.exceptions import CouldNotGetProperty, CalculationException
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, MaxOptCycles, SinglePointKeywords
-from autode.wrappers.basis_sets import def2svp
-from autode.wrappers.wf import hf
+from autode.wrappers.keywords.basis_sets import def2svp
+from autode.wrappers.keywords.wf import hf
 from autode.config import Config
-from autode.wrappers.functionals import pbe0
+from autode.wrappers.keywords.functionals import pbe0
 from autode.atoms import Atom
 from .. import testutils
 import numpy as np
