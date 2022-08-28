@@ -124,7 +124,7 @@ class NWChem(ExternalMethodEGH):
                          doi_list=['10.1063/5.0004997'])
 
     def __repr__(self):
-        return f'NWChem(available = {self.available})'
+        return f'NWChem(available = {self.is_available})'
 
     def generate_input_for(self, calc):
         molecule = calc.molecule
@@ -284,18 +284,17 @@ class NWChem(ExternalMethodEGH):
 
     def gradient_from(self, calc):
 
-        gradients_section = False
         gradients = []
-        for line in calc.output.file_lines:
-            if 'DFT ENERGY GRADIENTS' in line:
-                gradients_section = True
-                gradients = []
+        n_atoms = calc.molecule.n_atoms
 
-            if '----------------------------------------' in line and gradients_section:
-                gradients_section = False
+        for i, line in enumerate(calc.output.file_lines):
+            if 'DFT ENERGY GRADIENTS' not in line:
+                continue
+            
+            gradients = []
 
-            if gradients_section and len(line.split()) == 8:
-                x, y, z = line.split()[5:]
+            for grad_line in calc.output.file_lines[i+4:i+4+n_atoms]:
+                x, y, z = grad_line.split()[5:]
                 gradients.append(np.array([float(x), float(y), float(z)]))
 
         return Gradient(gradients, units="Ha a0^-1").to("Ha Å^-1")
@@ -356,6 +355,7 @@ class NWChem(ExternalMethodEGH):
         Returns:
             (np.ndarray):
         """
+        logger.info(f"Attempting to set the Hessian from {calc.name}")
 
         try:
             line_idx = next(i for i, line in enumerate(calc.output.file_lines)

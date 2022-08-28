@@ -58,11 +58,13 @@ class Calculation:
         self.keywords = keywords
         self.n_cores = int(n_cores)
         self.point_charges = point_charges
-        self._executor = self._executor_for_method()
+        self._executor = self._executor_for(method)
 
         self._check()
 
-    def _executor_for_method(self) -> "autode.calculations.executors.CalculationExecutor":
+    def _executor_for(self,
+                      method: "autode.wrappers.methods.Method"
+                      ) -> "autode.calculations.executors.CalculationExecutor":
         """
         Return a calculation executor depending on the calculation modes
         implemented in the wrapped method. For instance if the method does not
@@ -73,16 +75,16 @@ class Calculation:
         """
         _type = CalculationExecutor   # base type, implements all calc types
 
-        if self._is_opt and not self.method.implements(CalculationType.opt):
+        if self._is_opt and not method.implements(CalculationType.opt):
             _type = CalculationExecutorO
 
-        if self._is_grad and not self.method.implements(CalculationType.gradient):
+        if self._is_grad and not method.implements(CalculationType.gradient):
             _type = CalculationExecutorG
 
-        if self._is_hess and not self.method.implements(CalculationType.hessian):
+        if self._is_hess and not method.implements(CalculationType.hessian):
             _type = CalculationExecutorH
 
-        return _type(self.name, self.molecule, self.method, self.keywords,
+        return _type(self.name, self.molecule, method, self.keywords,
                      self.n_cores, self.point_charges)
 
     def run(self) -> None:
@@ -150,6 +152,7 @@ class Calculation:
         """
         self._executor.output.filename = filename
         self._executor.set_properties()
+        self._check_properties_exist()
         return None
 
     @property

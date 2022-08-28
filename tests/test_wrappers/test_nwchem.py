@@ -134,58 +134,28 @@ def test_opt_hf_constraints():
     assert 0.94 < h2o.distance(0, 1) < 0.96
 
 
-def test_get_keywords_max_opt_cyles():
-
-    opt_block = ('driver\n'
-                 '  gmax 0.0003\n'
-                 '  maxiter 100\n'
-                 'end')
-
-    # Defining the maximum number of optimisation cycles should override the
-    # value set in the driver
-    kwds = OptKeywords([opt_block, def2svp, pbe0, MaxOptCycles(10),
-                        'task dft optimize',
-                        'task dft property'])
-
-    calc_input = CalculationInput(keywords=kwds)
-
-    # Should only have a single instance of the maxiter declaration
-    str_keywords = get_keywords(calc_input, molecule=test_mol)
-    modified_opt_block = str_keywords[0].split('\n')
-
-    assert sum('maxiter' in line for line in modified_opt_block) == 1
-
-    # and should be 10 not 100
-    assert sum('maxiter 100' in line for line in modified_opt_block) == 0
-    assert sum('maxiter 10' in line for line in modified_opt_block) == 1
-
-    # Also if the maxiter is not defined already
-
-    kwds = OptKeywords([('driver\n  gmax 0.0003\nend'), def2svp, pbe0, MaxOptCycles(10)])
-    calc_input = CalculationInput(keywords=kwds)
-    modified_opt_block2 = get_keywords(calc_input, molecule=test_mol)[0].split('\n')
-
-    assert sum('maxiter 10' in line for line in modified_opt_block2) == 1
-
-
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_hessian_extract_ts():
 
-    atoms = [Atom('F',   0.00000, 0.00000,  2.50357),
+    ts = Molecule(name='ts', 
+       atoms=[Atom('F',   0.00000, 0.00000,  2.50357),
              Atom('Cl', -0.00000, 0.00000, -1.62454),
              Atom('C',   0.00000, 0.00000,  0.50698),
              Atom('H',   1.05017, 0.24818,  0.60979),
              Atom('H', -0.74001,  0.78538,  0.60979),
-             Atom('H', -0.31016, -1.03356,  0.60979)]
+             Atom('H', -0.31016, -1.03356,  0.60979)])
 
     calc = Calculation(name='sn2_hess',
-                       molecule=Molecule(name='ts', atoms=atoms),
+                       molecule=ts,
                        keywords=method.keywords.hess,
                        method=method)
-    calc.output.filename = 'sn2_hess_nwchem.out'
+    calc.set_output_filename('sn2_hess_nwchem.out')
 
-    hess = calc.get_hessian()
-    assert hess.shape == (3*len(atoms), 3*len(atoms))
+    assert ts.hessian is not None
+    assert ts.hessian.shape == (3*ts.n_atoms, 3*ts.n_atoms)
+
+    assert ts.gradient is not None
+    assert np.isclose(ts.gradient[-1][-1], -0.000588 / 0.529177)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
@@ -193,13 +163,15 @@ def test_hessian_extract_butane():
 
     Config.freq_scale_factor = 1.0
 
+    butane = Molecule('butane.xyz')
     calc = Calculation(name='butane',
-                       molecule=Molecule('butane.xyz'),
+                       molecule=butane,
                        keywords=method.keywords.hess,
                        method=method)
-    calc.output.filename = 'butane_hess_nwchem.out'
+    calc.set_output_filename('butane_hess_nwchem.out')
 
     hess = calc.get_hessian()
+    assert hess is not None
 
     # bottom right corner element should be positive
     assert hess[-1, -1] > 0
@@ -215,10 +187,9 @@ def test_hessian_extract_butane():
                        molecule=Molecule('butane.xyz'),
                        keywords=method.keywords.hess,
                        method=method)
-    calc.output.filename = 'broken_hessian.out'
 
     with pytest.raises(CalculationException):
-        _ = calc.get_hessian()
+        calc.set_output_filename('broken_hessian.out')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))

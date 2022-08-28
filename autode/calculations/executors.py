@@ -9,10 +9,10 @@ import base64
 import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Callable, Any
 from autode.log import logger
 from autode.config import Config
-from autode.utils import requires_output_to_exist
+from autode.utils import no_exceptions, requires_output_to_exist
 from autode.point_charges import PointCharge
 from autode.opt.optimisers.base import NullOptimiser
 from autode.calculations.input import CalculationInput
@@ -140,23 +140,23 @@ class CalculationExecutor:
 
         # All calculations must have generated an energy
         self.molecule.energy = self.method.energy_from(self)
-
-        if not isinstance(keywords, kws.SinglePointKeywords):
-            self.molecule.gradient = self.method.gradient_from(self)
-
-        if (isinstance(keywords, kws.HessianKeywords)
-                or isinstance(keywords, kws.OptKeywords)):
-            try:
-                self.molecule.hessian = self.method.hessian_from(self)
-            except (ValueError, IndexError, ex.AutodeException):
-                pass  # An exception will be raised by Calculation, if required 
-
+        self._set_gradient()
+        self._set_hessian()
+          
         try:
             self.molecule.partial_charges = self.method.partial_charges_from(self)
         except (ValueError, IndexError, ex.AutodeException):
             logger.warning("Failed to set partial charges")
 
         return None
+    
+    @no_exceptions
+    def _set_gradient(self) -> None:
+        self.molecule.gradient = self.method.gradient_from(self)
+
+    @no_exceptions
+    def _set_hessian(self) -> None:
+        self.molecule.hessian = self.method.hessian_from(self)
 
     def clean_up(self,
                  force:      bool = False,

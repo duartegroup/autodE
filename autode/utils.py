@@ -12,7 +12,8 @@ import multiprocessing.pool
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
-from autode.exceptions import (NoAtomsInMolecule,
+from autode.exceptions import (AutodeException,
+                               NoAtomsInMolecule,
                                NoCalculationOutput,
                                NoConformers,
                                NoMolecularGraph,
@@ -381,6 +382,20 @@ def requires_output_to_exist(func):
             raise CouldNotGetProperty(f'Could not get property from '
                                       f'{calc.name}. Has .run() been called?')
         return func(*args, **kwargs)
+
+    return wrapped_function
+
+
+def no_exceptions(func):
+    """Calculation method requiring the output filename to be set"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+
+        try:
+            return func(*args, **kwargs)
+        except (ValueError, IndexError, AutodeException):
+            return None
 
     return wrapped_function
 
