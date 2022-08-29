@@ -213,7 +213,7 @@ def test_new_energy():
                        keywords=Config.MOPAC.keywords.grad)
     calc.set_output_filename("H2O_mopac_new.out")
 
-    assert h2o.energy == PotentialEnergy(-55.90012, units="kcal mol-1")
+    assert h2o.energy == PotentialEnergy(-322.5968, units="eV")
 
 
 def test_termination_short():
@@ -258,7 +258,7 @@ def test_get_version_no_output():
     calc.output.filename = 'test.out'
 
     with open(calc.output.filename, 'w') as test_output:
-        print('some', 'incorrect', 'lines', sep='\n', file=test_output)
+        print('Error 1', 'Error 2', sep='\n', file=test_output)
 
     assert not calc.terminated_normally
     assert method.version_in(calc) == '???'

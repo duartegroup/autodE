@@ -276,10 +276,16 @@ class MOPAC(ExternalMethodOEG):
     def _energy_from(self,
                      calc: "CalculationExecutor"
                      ) -> PotentialEnergy:
+
+        def _energy(x):
+            return PotentialEnergy(x, units="eV").to("Ha")
+
         for line in calc.output.file_lines:
-            if 'TOTAL ENERGY' in line or "ETOT (EONE + ETWO)" in line:
-                # e.g.     TOTAL ENERGY            =       -476.93072 EV
-                return PotentialEnergy(line.split()[-2], units="eV").to("Ha")
+            if "ETOT (EONE + ETWO)" in line:
+                return _energy(line.split()[-2])
+
+            if 'TOTAL ENERGY' in line:
+                return _energy(line.split()[3])
 
         raise CouldNotGetProperty(name='energy')
 
