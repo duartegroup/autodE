@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Optional
+from typing import Union, Optional, Callable
 from autode.log import logger
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
@@ -26,8 +26,9 @@ class Optimiser(BaseOptimiser, ABC):
     """Abstract base class for an optimiser"""
 
     def __init__(self,
-                 maxiter: int,
-                 coords:  Optional['autode.opt.OptCoordinates'] = None):
+                 maxiter:  int,
+                 coords:   Optional['autode.opt.OptCoordinates'] = None,
+                 callback: Optional[Callable] = None):
         """
         Optimiser
 
@@ -38,10 +39,17 @@ class Optimiser(BaseOptimiser, ABC):
             coords: Coordinates to use in the optimisation
                     e.g. CartesianCoordinates. If None then will initialise the
                     coordinates from _species
+
+            callback: Function that will be called after every step. First
+                      called after initialisation and before the first step.
+                      Takes the current coordinates as the only argument (which
+                      have energy (e), gradient (g) and hessian (h) attributes)
         """
         if int(maxiter) <= 0:
             raise ValueError('An optimiser must be able to run at least one '
                              f'step, but tried to set maxiter = {maxiter}')
+
+        self._callback = lambda x: None if callback is None else callback
 
         self._maxiter = int(maxiter)
         self._n_cores:  int = Config.n_cores
@@ -101,6 +109,7 @@ class Optimiser(BaseOptimiser, ABC):
 
         while not self.converged:
 
+            self._callback(self._coords)
             self._step()                                # Update self._coords
             self._update_gradient_and_energy()          # Update self._coords.g
 
