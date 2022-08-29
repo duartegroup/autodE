@@ -6,7 +6,7 @@ from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.optimisers.bfgs import BFGSOptimiser
 from autode.opt.optimisers.line_search import NullLineSearch, ArmijoLineSearch, SArmijoLineSearch
 from autode.species import Molecule
-from autode.wrappers.base import Method
+from .setup import Method
 
 
 class TestBFGSOptimiser2D(BFGSOptimiser):

@@ -36,6 +36,7 @@ Functionality improvements
 - Adds a *much* more robust constrained rational function constrained optimiser in delocalised internal coordinates (DIC)
 - Adds bond angle and dihedral primitive coordinates which can form part of the DIC set
 - Improves the back transformation
+- Adds an optional callback argument to :code:`autode.opt.optimisers.base.Optimiser` for running custom functions after every optimisation step
 
 
 Bug Fixes

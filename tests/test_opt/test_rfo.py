@@ -1,11 +1,11 @@
 import numpy as np
 from autode.species.molecule import Molecule
 from autode.wrappers.XTB import XTB
-from autode.wrappers.base import Method
 from autode.utils import work_in_tmp_dir
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.coordinates import CartesianCoordinates
 from ..testutils import requires_with_working_xtb_install
+from .setup import Method
 
 
 class TestRFOOptimiser2D(RFOptimiser):

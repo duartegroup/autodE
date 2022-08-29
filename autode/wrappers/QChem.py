@@ -2,12 +2,15 @@ import numpy as np
 import autode.wrappers.keywords as kws
 from typing import List
 from autode.config import Config
+from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.log import logger
-from autode.atoms import Atom
-from autode.constants import Constants
-from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
+from autode.opt.optimisers.base import ExternalOptimiser
+from autode.hessians import Hessian
 from autode.wrappers.methods import ExternalMethodOEGH
 from autode.utils import run_external, work_in_tmp_dir
+from autode.exceptions import (CouldNotGetProperty,
+                               NotImplementedInMethod,
+                               UnsupportedCalculationInput)
 
 
 class QChem(ExternalMethodOEGH):
@@ -22,17 +25,22 @@ class QChem(ExternalMethodOEGH):
     """
 
     def __init__(self):
-        super().__init__('qchem',
-                         path=Config.QChem.path,
-                         keywords_set=Config.QChem.keywords,
-                         implicit_solvation_type=Config.QChem.implicit_solvation_type,
-                         doi_list=['10.1080/00268976.2014.952696'])
+        super().__init__(
+            executable_name='qchem',
+            path=Config.QChem.path,
+            keywords_set=Config.QChem.keywords,
+            implicit_solvation_type=Config.QChem.implicit_solvation_type,
+            doi_list=['10.1080/00268976.2014.952696']
+        )
 
     def __repr__(self):
-        return f'QChem(available = {self.available})'
+        return f'QChem(available = {self.is_available})'
 
-    def generate_input(self, calc, molecule):
+    def generate_input_for(self,
+                           calc: "CalculationExecutor"
+                           ) -> None:
         """Generate a QChem input file"""
+        molecule = calc.molecule
 
         if calc.input.filename is None:
             raise ValueError(f'Cannot generate an input for {calc}. Input '
@@ -68,13 +76,17 @@ class QChem(ExternalMethodOEGH):
 
         return None
 
-    def get_output_filename(self, calc) -> str:
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.out'
 
-    def get_input_filename(self, calc) -> str:
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.in'
 
-    def get_version(self, calc) -> str:
+    def version_in(self,
+                   calc: "CalculationExecutor"
+                   ) -> str:
         """QChem version from a completed output file"""
 
         if not calc.output.exists:
@@ -103,7 +115,9 @@ class QChem(ExternalMethodOEGH):
         execute_qchem()
         return None
 
-    def calculation_terminated_normally(self, calc) -> bool:
+    def terminated_normally_in(self,
+                               calc: "CalculationExecutor"
+                               ) -> bool:
         """Did the calculation terminate normally?"""
 
         if not calc.output.exists:
@@ -128,22 +142,21 @@ class QChem(ExternalMethodOEGH):
 
         return True if calc_started else False
 
-    def optimisation_converged(self, calc) -> bool:
-        return any('OPTIMIZATION CONVERGED' in line
-                   for line in calc.output.file_lines)
+    def optimiser_from(self,
+                       calc: "CalculationExecutor"
+                       ) -> "autode.opt.optimisers.base.BaseOptimiser":
+        return NWChemOptimiser(output_lines=calc.output.file_lines)
 
-    def optimisation_nearly_converged(self, calc) -> bool:
-        # TODO: something better here
-        return False
-
-    def get_final_atoms(self, calc) -> List[Atom]:
+    def coordinates_from(self,
+                         calc: "CalculationExecutor"
+                         ) -> Coordinates:
 
         if not isinstance(calc.input.keywords, kws.OptKeywords):
             logger.warning('Non-optimisation calculation performed - no change'
                            ' to geometry')
             return calc.molecule.atoms
 
-        atoms = []
+        coords = []
 
         for i, line in enumerate(calc.output.file_lines):
 
@@ -162,55 +175,64 @@ class QChem(ExternalMethodOEGH):
 
             start_idx = i+2
             end_idx = start_idx + calc.molecule.n_atoms
+            coords = []
+            for cline in calc.output.file_lines[start_idx:end_idx]:
+                x, y, z = cline.split()[2:5]
+                coords.append([float(x), float(y), float(z)])
 
-            atoms = [Atom(_l.split()[1], *_l.split()[2:5])
-                     for _l in calc.output.file_lines[start_idx:end_idx]]
+        return Coordinates(coords, units="Å")
 
-        return atoms
+    def partial_charges_from(self,
+                             calc: "CalculationExecutor"
+                             ) -> List[float]:
+        raise NotImplementedInMethod
 
-    def get_atomic_charges(self, calc) -> List:
-        raise NotImplementedError
-
-    def get_energy(self, calc) -> float:
+    def _energy_from(self,
+                     calc: "CalculationExecutor"
+                     ) -> PotentialEnergy:
         """Get the total electronic energy from the calculation"""
 
         for line in reversed(calc.output.file_lines):
 
             if 'Total energy' in line:
                 try:
-                    return float(line.split()[-1])
+                    return PotentialEnergy(line.split()[-1], units="Ha")
 
                 except (TypeError, ValueError, IndexError):
                     break
 
         raise CouldNotGetProperty('energy')
 
-    def get_gradients(self, calc) -> np.ndarray:
+    def gradient_from(self,
+                      calc: "CalculationExecutor"
+                      ) -> Gradient:
         """Gradient of the potential energy"""
 
         try:
-            grad = self._raw_opt_gradient(calc)
+            gradients = self._raw_opt_gradient(calc)
 
-        except CouldNotGetProperty:
-            # Failed to get gradient from optimisation
-            grad = self._raw_scf_grad(calc)
+        except CouldNotGetProperty:  # Failed to get gradient from optimisation
+            gradients = self._raw_scf_grad(calc)
 
-        # Convert from Ha a0^-1 to Ha A-1
-        return np.array(grad) / Constants.a0_to_ang
+        return Gradient(gradients, units='Ha a0^-1').to("Ha Å^-1")
 
-    def get_hessian(self, calc) -> np.ndarray:
+    def hessian_from(self,
+                     calc: "autode.calculations.executors.CalculationExecutor"
+                     ) -> Hessian:
         """Extract the mass-weighted non projected Hessian matrix
         NOTE: Required $rem vibman_print 4 $end in the input"""
 
-        hess = self._extract_mass_weighted_hessian(calc)
+        hessian = self._extract_mass_weighted_hessian(calc)
         atom_masses = self._extract_atomic_masses(calc)
 
         # Un-mass weight
         mass_arr = np.repeat(atom_masses, repeats=3, axis=np.newaxis)
-        hess *= np.sqrt(np.outer(mass_arr, mass_arr))
+        hessian *= np.sqrt(np.outer(mass_arr, mass_arr))
 
-        # and convert from atomic units (Ha/a0^2) to base units (Ha/Å^2)
-        return hess / Constants.a0_to_ang ** 2
+        return Hessian(hessian,
+                       atoms=calc.molecule.atoms,
+                       functional=calc.input.keywords.functional,
+                       units="Ha a0^-2").to("Ha Å^-2")
 
     @staticmethod
     def _raw_opt_gradient(calc) -> list:
@@ -555,3 +577,17 @@ class QChem(ExternalMethodOEGH):
                            'vibman_print 4')
 
             return None
+
+
+class NWChemOptimiser(ExternalOptimiser):
+
+    def __init__(self, output_lines: List[str]):
+        self._lines = output_lines
+
+    @property
+    def converged(self) -> bool:
+        return any('OPTIMIZATION CONVERGED' in line for line in self._lines)
+
+    @property
+    def last_energy_change(self) -> "PotentialEnergy":
+        raise NotImplementedError

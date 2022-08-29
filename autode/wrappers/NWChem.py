@@ -2,7 +2,6 @@ import numpy as np
 import autode.wrappers.keywords as kws
 from autode.wrappers.methods import ExternalMethodEGH
 from autode.utils import run_external_monitored
-from autode.atoms import Atom
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.hessians import Hessian
 from autode.geom import symm_matrix_from_ltril
@@ -53,7 +52,7 @@ def get_keywords(calc_input, molecule):
         if 'scf' in keyword.lower(): 
             if molecule.solvent is not None:
                 raise UnsupportedCalculationInput('NWChem only supports '
-                                                   'solvent for DFT calcs')
+                                                  'solvent for DFT calcs')
 
         if isinstance(keyword, kws.Functional):
             keyword = f'dft\n  maxiter 100\n  xc {keyword.nwchem}\nend'
@@ -104,15 +103,12 @@ def get_keywords(calc_input, molecule):
         else:
             new_keywords.append(keyword)
 
-
     if (any('task scf' in kw.lower() for kw in new_keywords) 
         and not any('nopen' in kw.lower() for kw in new_keywords)):
         # Need to set the spin state
-        new_keywords.insert(1, f'scf\n    nopen {molecule.mult - 1}\nend') 
-
+        new_keywords.insert(1, f'scf\n    nopen {molecule.mult - 1}\nend')
 
     return new_keywords
-
 
 
 class NWChem(ExternalMethodEGH):
@@ -140,7 +136,7 @@ class NWChem(ExternalMethodEGH):
                       f'solvent {calc.molecule.solvent.nwchem}\n'
                       f'end', file=inp_file)
 
-            print('geometry', end=' ', file=inp_file)
+            print('geometry noautosym', end=' ', file=inp_file)
             if molecule.constraints.distance or molecule.constraints.cartesian:
                 print('noautoz', file=inp_file)
             else:

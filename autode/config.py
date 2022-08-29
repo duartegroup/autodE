@@ -268,31 +268,14 @@ class _ConfigClass:
         path = None
         #
         # Note that the default NWChem level is PBE0 and PBE rather than
-        # PBE0-D3BJ and PBE-D3BJ as only D3 is available
-        loose_opt_block = ('driver\n'
-                           '  gmax 0.002\n'
-                           '  grms 0.0005\n'
-                           '  xmax 0.01\n'
-                           '  xrms 0.007\n'
-                           '  eprec 0.00003\n'
-                           'end')
-
-        opt_block = ('driver\n'
-                     '  gmax 0.0003\n'
-                     '  grms 0.0001\n'
-                     '  xmax 0.004\n'
-                     '  xrms 0.002\n'
-                     '  eprec 0.000005\n'
-                     'end')
-
+        # PBE0-D3BJ and PBE-D3BJ as only D3 is available. The optimisation
+        # keywords contain 'gradient' as the optimisation is driven by autodE
         keywords = KeywordsSet(
-            low_opt=[loose_opt_block, def2svp, pbe0, MaxOptCycles(10), 'task dft optimize'],
+            low_opt=[def2svp, pbe0, MaxOptCycles(10)],
             grad=[def2svp, pbe0, 'task dft gradient'],
             low_sp=[def2svp, pbe0, 'task dft energy'],
-            opt=[opt_block, def2svp, pbe0, MaxOptCycles(100),
-                 'task dft optimize', 'task dft property'],
-            opt_ts=[opt_block, def2svp, pbe0,
-                    'task dft saddle', 'task dft freq', 'task dft property'],
+            opt=[def2svp, pbe0, MaxOptCycles(100), 'task dft gradient'],
+            opt_ts=["TS", def2svp, pbe0, 'task dft gradient'],
             hess=[def2svp, pbe0, 'task dft freq'],
             sp=[def2tzvp, pbe0, 'task dft energy'],
             ecp=def2ecp

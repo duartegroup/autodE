@@ -1,12 +1,12 @@
 import os
 from typing import Collection
-from autode.atoms import Atom
+from autode.atoms import Atom, Atoms
 from autode.exceptions import XYZfileDidNotExist
 from autode.exceptions import XYZfileWrongFormat
 from autode.log import logger
 
 
-def xyz_file_to_atoms(filename: str):
+def xyz_file_to_atoms(filename: str) -> Atoms:
     """
     From a .xyz file get a list of autode atoms
 
@@ -15,11 +15,11 @@ def xyz_file_to_atoms(filename: str):
         filename (str): .xyz filename
 
     Returns:
-        (list(autode.atoms.Atom)): Atoms
+        (autode.atoms.Atoms): Atoms
     """
     logger.info(f'Getting atoms from {filename}')
 
-    atoms = []
+    atoms = Atoms()
 
     if not os.path.exists(filename):
         raise XYZfileDidNotExist(f'{filename} did not exist')

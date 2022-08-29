@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Optional, Callable
+from typing import Union, Optional, Callable, Any
 from autode.log import logger
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
@@ -26,9 +26,11 @@ class Optimiser(BaseOptimiser, ABC):
     """Abstract base class for an optimiser"""
 
     def __init__(self,
-                 maxiter:  int,
-                 coords:   Optional['autode.opt.OptCoordinates'] = None,
-                 callback: Optional[Callable] = None):
+                 maxiter:         int,
+                 coords:          Optional['autode.opt.OptCoordinates'] = None,
+                 callback:        Optional[Callable] = None,
+                 callback_kwargs: Optional[dict] = None
+                 ):
         """
         Optimiser
 
@@ -42,14 +44,15 @@ class Optimiser(BaseOptimiser, ABC):
 
             callback: Function that will be called after every step. First
                       called after initialisation and before the first step.
-                      Takes the current coordinates as the only argument (which
-                      have energy (e), gradient (g) and hessian (h) attributes)
+                      Takes the current coordinates (which have energy (e),
+                      gradient (g) and hessian (h) attributes) as the only
+                      positional argument
         """
         if int(maxiter) <= 0:
             raise ValueError('An optimiser must be able to run at least one '
                              f'step, but tried to set maxiter = {maxiter}')
 
-        self._callback = lambda x: None if callback is None else callback
+        self._callback = _OptimiserCallbackFunction(callback, callback_kwargs)
 
         self._maxiter = int(maxiter)
         self._n_cores:  int = Config.n_cores
@@ -183,12 +186,9 @@ class Optimiser(BaseOptimiser, ABC):
                            keywords=self._method.keywords.grad,
                            n_cores=self._n_cores)
         grad.run()
-
-        # Set the energy, gradient and remove all the calculation files
-        self._coords.e = self._species.energy = grad.get_energy()
-        self._species.gradient = grad.get_gradients()
         grad.clean_up(force=True, everything=True)
 
+        self._coords.e = self._species.energy
         self._coords.update_g_from_cart_g(arr=self._species.gradient)
         return None
 
@@ -512,10 +512,13 @@ class NDOptimiser(Optimiser, ABC):
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy """
-        logger.info(f'{self.iteration}\t'
-                    f'{self._abs_delta_e.to("kcal mol-1"):.3f}\t'
-                    f'{self._g_norm:.5f}')
+        log_string = f'{self.iteration}\t'
 
+        if len(self._history) > 1:
+            de = self._coords.e - self._history.penultimate.e
+            log_string += f'{de.to("kcal mol-1"):.3f}\t{self._g_norm:.5f}'
+
+        logger.info(log_string)
         return None
 
     def _updated_h_inv(self) -> np.ndarray:
@@ -669,3 +672,20 @@ class ExternalOptimiser(BaseOptimiser, ABC):
     @abstractmethod
     def last_energy_change(self) -> PotentialEnergy:
         """The final energy change in this optimisation"""
+
+
+class _OptimiserCallbackFunction:
+
+    def __init__(self, f: Optional[Callable], kwargs: Optional[dict]):
+        """Callback function initializer"""
+
+        self._f = f
+        self._kwargs = kwargs if kwargs is not None else dict()
+
+    def __call__(self, coordinates: OptCoordinates) -> Any:
+        """Call the function, if it exists"""
+
+        if self._f is None:
+            return None
+
+        return self._f(coordinates, **self._kwargs)

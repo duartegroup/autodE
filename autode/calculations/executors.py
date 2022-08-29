@@ -288,11 +288,18 @@ class CalculationExecutorO(CalculationExecutor):
         if self._calc_is_ts_opt:
             type_ = PRFOptimiser
 
-        self.method.optimiser = type_(init_alpha=0.05, 
-                                      maxiter=self._max_opt_cycles,
-                                      etol=2E-5,
-                                      gtol=1E-3) #TODO: A better number here
-        self.method.optimiser.run(self.molecule, self.method, n_cores=self.n_cores)
+        self.method.optimiser = type_(
+            init_alpha=0.1,
+            maxiter=self._max_opt_cycles,
+            etol=3E-5,
+            gtol=1E-3, # TODO: A better number here
+            callback=self._save_xyz_trj,
+            callback_kwargs={"molecule": self.molecule, "name": self.name}
+        )
+
+        self.method.optimiser.run(species=self.molecule,
+                                  method=self.method,
+                                  n_cores=self.n_cores)
 
     @property
     def _calc_is_ts_opt(self) -> bool:
@@ -301,12 +308,25 @@ class CalculationExecutorO(CalculationExecutor):
 
     @property
     def _max_opt_cycles(self) -> int:
-        """Get the maximium number of optimisation cycles for this calculation"""
+        """Get the maximum num of optimisation cycles for this calculation"""
         try:
             return next(int(kwd) for kwd in self.input.keywords 
                     if isinstance(kwd, kws.MaxOptCycles))
         except StopIteration:
             return 30
+
+    @staticmethod
+    def _save_xyz_trj(coords:   "OptCoordinates",
+                      molecule: "Species",
+                      name:      str
+                      ) -> None:
+        """Save the trajectory to a file"""
+
+        tmp_mol = molecule.new_species()
+        tmp_mol.print_xyz_file(title_line=f"E = {coords.e} Ha",
+                               filename=f"{name}_opt.xyz",
+                               append=True)
+        return None
 
 
 class CalculationExecutorG(CalculationExecutor):

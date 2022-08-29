@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from autode.wrappers.base import Method
 from autode.species import Molecule
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.trust_region import (CauchyTROptimiser,
                                                 DoglegTROptimiser,
                                                 CGSteihaugTROptimiser)
+from .setup import Method
 
 
 def branin_energy(x, y):
