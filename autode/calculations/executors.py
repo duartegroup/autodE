@@ -9,9 +9,10 @@ import base64
 import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List, Tuple, Callable, Any
+from typing import Optional, List, Tuple
 from autode.log import logger
 from autode.config import Config
+from autode.values import Distance
 from autode.utils import no_exceptions, requires_output_to_exist
 from autode.point_charges import PointCharge
 from autode.opt.optimisers.base import NullOptimiser
@@ -319,7 +320,21 @@ class CalculationExecutorH(CalculationExecutor):
     """Calculation executor with a numerical Hessian evaluation"""
 
     def run(self) -> None:
-        raise NotImplementedError
+        logger.warning(f'{self.method} does not implement Hessian '
+                       f'calculations. Evaluating a numerical Hessian')
+
+        from autode.hessians import NumericalHessianCalculator
+
+        nhc = NumericalHessianCalculator(
+            self,
+            method=self.method,
+            keywords=kws.GradientKeywords(self.input.keywords.tolist()),
+            do_c_diff=False,
+            shift=Distance(2E-3, units='Å'),
+            n_cores=self.n_cores
+        )
+        nhc.calculate()
+        self.molecule.hessian = nhc.hessian
 
 
 def _string_without_leading_hyphen(s: str) -> str:

@@ -53,6 +53,9 @@ def get_keywords(calc_input, molecule):
     # Add the charge and multiplicity
     keywords.append(f'CHARGE={molecule.charge}')
 
+    if "ENPART" not in keywords:
+        keywords.append("ENPART")  # Print an energy partition, and also E_tot
+
     if molecule.mult != 1:
         if molecule.mult == 2:
             keywords.append('DOUBLET')
@@ -258,36 +261,25 @@ class MOPAC(ExternalMethodOEG):
     def terminated_normally_in(self,
                                calc: "CalculationExecutor"
                                ) -> bool:
-
-        normal_termination = False
         n_errors = 0
 
-        for n_line, line in enumerate(reversed(calc.output.file_lines)):
-            if 'JOB ENDED NORMALLY' in line:
-                normal_termination = True
+        for i, line in enumerate(reversed(calc.output.file_lines)):
 
             if 'Error' in line:
                 n_errors += 1
 
-            if n_line == 50 and normal_termination and n_errors == 0:
-                return True
+            if i == 100:
+                break
 
-            if n_line > 50:
-                # Normal termination string is close to the end of the file
-                return False
-
-        if normal_termination and n_errors == 0:
-            return True
-
-        return False
+        return n_errors == 0
 
     def _energy_from(self,
                      calc: "CalculationExecutor"
                      ) -> PotentialEnergy:
         for line in calc.output.file_lines:
-            if 'TOTAL ENERGY' in line:
+            if 'TOTAL ENERGY' in line or "ETOT (EONE + ETWO)" in line:
                 # e.g.     TOTAL ENERGY            =       -476.93072 EV
-                return PotentialEnergy(line.split()[3], units="eV").to("Ha")
+                return PotentialEnergy(line.split()[-2], units="eV").to("Ha")
 
         raise CouldNotGetProperty(name='energy')
 

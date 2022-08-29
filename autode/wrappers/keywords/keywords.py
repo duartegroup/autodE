@@ -261,6 +261,9 @@ class Keywords(ABC):
         self.append(keyword)
         return None
 
+    def tolist(self) -> List:
+        return self._list
+
     @property
     def ecp(self):
         """Get the effective core potential used"""

@@ -7,6 +7,7 @@ from autode.solvent import ImplicitSolvent
 from autode.atoms import Atom
 from autode.constants import Constants
 from autode.config import Config
+from autode.values import PotentialEnergy
 from autode.point_charges import PointCharge
 from .. import testutils
 import numpy as np
@@ -200,6 +201,19 @@ def test_broken_grad():
 
     with pytest.raises(CouldNotGetProperty):
         _ = grad_calc_broken.get_gradients()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
+def test_new_energy():
+
+    h2o = Molecule(smiles="O")
+    calc = Calculation(name='H2O',
+                       molecule=h2o,
+                       method=method,
+                       keywords=Config.MOPAC.keywords.grad)
+    calc.set_output_filename("H2O_mopac_new.out")
+
+    assert h2o.energy == PotentialEnergy(-55.90012, units="kcal mol-1")
 
 
 def test_termination_short():

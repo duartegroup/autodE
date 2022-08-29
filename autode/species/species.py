@@ -10,6 +10,7 @@ from autode.exceptions import CalculationException, SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods as method_log
+from autode.calculations.types import CalculationType
 from autode.conformers.conformers import Conformers
 from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculations import Calculation
@@ -1348,12 +1349,11 @@ class Species(AtomCollection):
             coordinate_shift: Shift applied to each Cartesian coordinate (h)
                               in the calculation of the numerical Hessian
 
-
             n_cores: Number of cores to use for the calculation. If None
                      then default to Config.n_cores
         """
 
-        if not method.implements_hessian:
+        if not method.implements(CalculationType.hessian):
             logger.warning(f'{method} does not implement a Hessian - using a '
                            f'numerical Hessian and overriding the keywords')
             numerical = True
