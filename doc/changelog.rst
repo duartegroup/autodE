@@ -23,7 +23,8 @@ Usability improvements/Changes
 
 * Removes :code:`autode.calculations.Calculation.print_final_output_lines` in favour of a method on :code:`calculation.output`
 * Makes many methods in :code:`autode.calculations.Calculation` private
-* Deprecates all :code:`autode.calculations.Calculation.get_<method>` methods in favour of properties
+* Deprecates all :code:`autode.calculations.Calculation.get_<method>` methods in favour of setting properties of the input molecule
+* Returns :code:`None` rather than rasies exceptions when calling the (deprecated) calculation get methods, to be consistent with ...get_energy
 * Adds an :code:`autode.wrappers.keywords` package to improve file structure
 
 

@@ -221,6 +221,10 @@ ha_per_a0 = CompositeUnit(ha, per=[a0],
 ev_per_ang = CompositeUnit(ev, per=[ang],
                            aliases=['ha a0-1', 'ev Å^-1', 'ev/ang'])
 
+kcalmol_per_ang = CompositeUnit(kcalmol, per=[ang],
+                                aliases=['ha kcal mol-1', 'ha/kcal mol-1',
+                                         'kcal mol^-1 Å^-1'])
+
 # ----------------------------------------------------------------------
 # ------------------------- 2nd derivatives ----------------------------
 

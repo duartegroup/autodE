@@ -114,27 +114,6 @@ def test_ecp_calc():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
-def test_opt_hf_constraints():
-
-    keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
-                            '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
-                            'basis\n  *   library Def2-SVP\nend',
-                            'task scf optimize'])
-
-    h2o = Molecule(name='water', smiles='O')
-    h2o.constraints.update(distance={(0, 1): 0.95},
-                           cartesian=[0])
-
-    calc = Calculation(name='opt_water',
-                       molecule=h2o,
-                       method=method,
-                       keywords=keywords)
-    calc.run()
-    h2o.atoms = calc.get_final_atoms()
-    assert 0.94 < h2o.distance(0, 1) < 0.96
-
-
-@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_hessian_extract_ts():
 
     ts = Molecule(name='ts', 

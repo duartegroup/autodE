@@ -1,9 +1,12 @@
 import os
 import numpy as np
 import autode.wrappers.keywords as kwds
+from typing import List
+from autode.opt.optimisers.base import ExternalOptimiser
+from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.wrappers.methods import ExternalMethodOEG
 from autode.utils import run_external
-from autode.atoms import Atom
+from autode.exceptions import NotImplementedInMethod
 from autode.config import Config
 from autode.constants import Constants
 from autode.exceptions import UnsupportedCalculationInput
@@ -179,15 +182,19 @@ def _get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Ato
 class MOPAC(ExternalMethodOEG):
 
     def __init__(self):
-        super().__init__(name='mopac', path=Config.MOPAC.path,
+        super().__init__(executable_name='mopac',
+                         path=Config.MOPAC.path,
                          keywords_set=Config.MOPAC.keywords,
                          implicit_solvation_type=Config.MOPAC.implicit_solvation_type,
-                         doi='10.1007/BF00128336')
+                         doi_list=['10.1007/BF00128336'])
 
     def __repr__(self):
-        return f'MOPAC(available = {self.available})'
+        return f'MOPAC(available = {self.is_available})'
 
-    def generate_input(self, calc, molecule):
+    def generate_input_for(self,
+                           calc: "CalculationExecutor"
+                           ) -> None:
+        molecule = calc.molecule
 
         with open(calc.input.filename, 'w') as input_file:
             keywords = get_keywords(calc.input, molecule)
@@ -203,13 +210,17 @@ class MOPAC(ExternalMethodOEG):
 
         return None
 
-    def get_input_filename(self, calc):
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.mop'
 
-    def get_output_filename(self, calc):
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.out'
 
-    def get_version(self, calc):
+    def version_in(self,
+                   calc: "CalculationExecutor"
+                   ) -> str:
         """Get the version of MOPAC used to execute this calculation"""
 
         for line in calc.output.file_lines:
@@ -244,7 +255,9 @@ class MOPAC(ExternalMethodOEG):
         execute_mopac()
         return None
 
-    def calculation_terminated_normally(self, calc):
+    def terminated_normally_in(self,
+                               calc: "CalculationExecutor"
+                               ) -> bool:
 
         normal_termination = False
         n_errors = 0
@@ -268,56 +281,62 @@ class MOPAC(ExternalMethodOEG):
 
         return False
 
-    def get_energy(self, calc):
+    def _energy_from(self,
+                     calc: "CalculationExecutor"
+                     ) -> PotentialEnergy:
         for line in calc.output.file_lines:
             if 'TOTAL ENERGY' in line:
                 # e.g.     TOTAL ENERGY            =       -476.93072 EV
-                return float(line.split()[3]) * Constants.eV_to_ha
+                return PotentialEnergy(line.split()[3], units="eV").to("Ha")
 
         raise CouldNotGetProperty(name='energy')
 
-    def optimisation_converged(self, calc):
+    def optimiser_from(self,
+                       calc: "CalculationExecutor"
+                       ) -> "autode.opt.optimisers.base.BaseOptimiser":
 
-        for line in reversed(calc.output.file_lines):
-            if 'GRADIENT' in line and 'IS LESS THAN CUTOFF' in line:
-                return True
+        is_converged = any('GRADIENT' in l and 'IS LESS THAN CUTOFF' in l
+                           for l in reversed(calc.output.file_lines))
+        return MOPACOptimiser(converged=is_converged)
 
-        return False
+    def coordinates_from(self,
+                         calc: "CalculationExecutor"
+                         ) -> Coordinates:
 
-    def optimisation_nearly_converged(self, calc):
-        raise NotImplementedError
+        coords = []
+        n_atoms = calc.molecule.n_atoms
 
-    def get_final_atoms(self, calc):
+        for i, line in enumerate(calc.output.file_lines):
 
-        atoms = []
-
-        for n_line, line in enumerate(calc.output.file_lines):
-
-            if n_line == len(calc.output.file_lines) - 3:
+            if i == len(calc.output.file_lines) - 3:
                 # At the end of the file
                 break
 
-            line_length = len(calc.output.file_lines[n_line+3].split())
+            line_length = len(calc.output.file_lines[i+3].split())
 
             if 'CARTESIAN COORDINATES' in line and line_length == 5:
                 #                              CARTESIAN COORDINATES
                 #
                 #    1    C        1.255660629     0.020580974    -0.276235553
 
-                atoms = []
-                xyz_lines = calc.output.file_lines[n_line+2:n_line+2+calc.molecule.n_atoms]
+                coords = []
+                xyz_lines = calc.output.file_lines[i+2:i+2+n_atoms]
                 for xyz_line in xyz_lines:
-                    atom_label, x, y, z = xyz_line.split()[1:]
-                    atoms.append(Atom(atom_label, x=x, y=y, z=z))
+                    x, y, z = xyz_line.split()[2:]
+                    coords.append([float(x), float(y), float(z)])
 
-        return atoms
+        return Coordinates(coords, units="Å")
 
-    def get_atomic_charges(self, calc):
-        raise NotImplementedError
+    def partial_charges_from(self,
+                             calc: "CalculationExecutor"
+                             ) -> List[float]:
+        raise NotImplementedInMethod
 
-    def get_gradients(self, calc):
+    def gradient_from(self,
+                      calc: "CalculationExecutor"
+                      ) -> Gradient:
         gradients_section = False
-        gradients = []
+        raw = []
         for line in calc.output.file_lines:
 
             if 'FINAL  POINT  AND  DERIVATIVES' in line:
@@ -329,20 +348,26 @@ class MOPAC(ExternalMethodOEG):
             if gradients_section and len(line.split()) == 8:
                 _, _, _, _, _, _, value, _ = line.split()
                 try:
-                    gradients.append(float(value))
-
+                    raw.append(float(value))
                 except ValueError:
                     raise CouldNotGetProperty(name='gradients')
 
-        if len(gradients) != 3 * calc.molecule.n_atoms:
-            raise CouldNotGetProperty(name='gradients')
-
-        # Convert flat array of gradients from kcal mol-1 Å^-1 to Ha Å^-1
-        grad_array = np.array(gradients) / Constants.ha_to_kcalmol
-        grad_array = grad_array.reshape((calc.molecule.n_atoms, 3))
-
-        return grad_array
+        return Gradient(raw, units="kcal mol^-1 Å^-1").to("Ha Å^-1")
 
 
-# TODO: mopac = MOPAC()
+class MOPACOptimiser(ExternalOptimiser):
+
+    def __init__(self, converged: bool):
+        self._converged = converged
+
+    @property
+    def converged(self) -> bool:
+        return self._converged
+
+    @property
+    def last_energy_change(self) -> "PotentialEnergy":
+        raise NotImplementedError
+
+
+mopac = MOPAC()
 

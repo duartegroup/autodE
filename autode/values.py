@@ -11,7 +11,7 @@ from autode.units import (Unit,
                           wavenumber, hz,
                           amu, kg, m_e,
                           amu_ang_sq, kg_m_sq,
-                          ha_per_ang, ha_per_a0, ev_per_ang,
+                          ha_per_ang, ha_per_a0, ev_per_ang, kcalmol_per_ang,
                           byte, MB, GB, TB)
 
 
@@ -573,7 +573,7 @@ class ValueArray(ABC, np.ndarray):
 
         return arr
 
-    def to(self, units):
+    def to(self, units) -> Any:
         """
         Convert this array to a new unit, returning a copy
 
@@ -648,13 +648,13 @@ class Coordinates(ValueArray):
 
 class Gradient(ValueArray):
 
-    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
+    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang, kcalmol_per_ang]
 
     def __repr__(self):
         return f'Gradients({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls,  input_array, units=ha_per_ang):
-        return super().__new__(cls, input_array, units)
+        return super().__new__(cls, np.asarray(input_array).reshape(-1, 3), units)
 
 
 class GradientRMS(Value):

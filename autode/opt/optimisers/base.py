@@ -136,7 +136,7 @@ class Optimiser(BaseOptimiser, ABC):
              (ValueError): For incorrect types
          """
         from autode.species.species import Species
-        from autode.wrappers.base import Method
+        from autode.wrappers.methods import Method
 
         if not isinstance(species, Species):
             raise ValueError(f'{species} must be a autoode.Species instance '

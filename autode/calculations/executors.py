@@ -132,16 +132,21 @@ class CalculationExecutor:
         """Set the properties of a molecule from this calculation"""
         keywords = self.input.keywords
 
+        self.molecule.energy = self.method.energy_from(self)
+
         if isinstance(keywords, kws.OptKeywords):
-            # Only need to set the atoms if the geometry has changed in an
-            # optimisation
             self.optimiser = self.method.optimiser_from(self)
             self.molecule.coordinates = self.method.coordinates_from(self)
 
-        # All calculations must have generated an energy
-        self.molecule.energy = self.method.energy_from(self)
-        self._set_gradient()
-        self._set_hessian()
+        if isinstance(keywords, kws.GradientKeywords):
+            self.molecule.gradient = self.method.gradient_from(self)
+        else:  # Try to set the gradient anyway
+            self._no_except_set_gradient()
+
+        if isinstance(keywords, kws.HessianKeywords):
+            self.molecule.hessian = self.method.hessian_from(self)
+        else:  # Try to set hessian anyway
+            self._no_except_set_hessian()
           
         try:
             self.molecule.partial_charges = self.method.partial_charges_from(self)
@@ -151,11 +156,11 @@ class CalculationExecutor:
         return None
     
     @no_exceptions
-    def _set_gradient(self) -> None:
+    def _no_except_set_gradient(self) -> None:
         self.molecule.gradient = self.method.gradient_from(self)
 
     @no_exceptions
-    def _set_hessian(self) -> None:
+    def _no_except_set_hessian(self) -> None:
         self.molecule.hessian = self.method.hessian_from(self)
 
     def clean_up(self,
@@ -277,19 +282,30 @@ class CalculationExecutorO(CalculationExecutor):
     def run(self) -> None:
         from autode.opt.optimisers.crfo import CRFOptimiser
         from autode.opt.optimisers.prfo import PRFOptimiser
-
+        type_ = CRFOptimiser
+        
         if self._calc_is_ts_opt:
-            self.method.optimiser = PRFOptimiser(init_alpha=0.05)
+            type_ = PRFOptimiser
 
-        else:
-            self.method.optimiser = CRFOptimiser(init_alpha=0.05)
-
+        self.method.optimiser = type_(init_alpha=0.05, 
+                                      maxiter=self._max_opt_cycles,
+                                      etol=2E-5,
+                                      gtol=1E-3) #TODO: A better number here
         self.method.optimiser.run(self.molecule, self.method, n_cores=self.n_cores)
 
     @property
     def _calc_is_ts_opt(self) -> bool:
         """Does this calculation correspond to a transition state opt"""
         return any(k.lower() == "ts" for k in self.input.keywords)
+
+    @property
+    def _max_opt_cycles(self) -> int:
+        """Get the maximium number of optimisation cycles for this calculation"""
+        try:
+            return next(int(kwd) for kwd in self.input.keywords 
+                    if isinstance(kwd, kws.MaxOptCycles))
+        except StopIteration:
+            return 30
 
 
 class CalculationExecutorG(CalculationExecutor):

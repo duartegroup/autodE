@@ -8,7 +8,7 @@ from autode.atoms import Atom
 from autode.constants import Constants
 from autode.config import Config
 from autode.point_charges import PointCharge
-from . import testutils
+from .. import testutils
 import numpy as np
 import os
 import pytest
@@ -16,15 +16,20 @@ import pytest
 here = os.path.dirname(os.path.abspath(__file__))
 method = MOPAC()
 
-methylchloride = Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
-                          solvent_name='water')
+
+def mecl():
+    return Molecule(name='CH3Cl', smiles='[H]C([H])(Cl)[H]',
+                    solvent_name='water')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_mopac_opt_calculation():
 
-    calc = Calculation(name='opt', molecule=methylchloride,
-                       method=method, keywords=Config.MOPAC.keywords.opt)
+    mol = mecl()
+    calc = Calculation(name='opt',
+                       molecule=mol,
+                       method=method,
+                       keywords=Config.MOPAC.keywords.opt)
     calc.run()
 
     assert os.path.exists('opt_mopac.mop') is True
@@ -40,19 +45,14 @@ def test_mopac_opt_calculation():
     assert calc.input.filename == 'opt_mopac.mop'
     assert calc.output.filename == 'opt_mopac.out'
     assert calc.terminated_normally
-    assert calc.optimisation_converged() is True
-
-    with pytest.raises(CouldNotGetProperty):
-        _ = calc.get_gradients()
-
-    with pytest.raises(NotImplementedError):
-        _ = calc.optimisation_nearly_converged()
+    assert calc.optimiser.converged
+    assert mol.gradient is None
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
 def test_mopac_with_pc():
 
-    calc = Calculation(name='opt_pc', molecule=methylchloride,
+    calc = Calculation(name='opt_pc', molecule=mecl(),
                        method=method,
                        keywords=Config.MOPAC.keywords.opt,
                        point_charges=[PointCharge(1, x=4, y=4, z=4)])
@@ -127,13 +127,12 @@ def test_bad_geometry():
                        keywords=Config.MOPAC.keywords.opt)
 
     calc.output.filename = 'h2_overlap_opt_mopac.out'
-
     assert not calc.terminated_normally
 
-    with pytest.raises(CouldNotGetProperty):
+    with pytest.raises(Exception):
         _ = calc.get_energy()
 
-    assert not calc.optimisation_converged()
+    assert not method.optimiser_from(calc).converged
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
@@ -158,9 +157,7 @@ def test_constrained_opt():
     const.run()
 
     assert opt_energy < const.get_energy()
-
-    with pytest.raises(Exception):
-        _ = calc.get_hessian()
+    assert calc.get_hessian() is None
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
@@ -190,7 +187,11 @@ def test_grad():
     # Difference between the absolute and finite difference approximation
     assert np.abs(gradients[1, 0] - grad) < 1E-1
 
-    # Broken gradient file
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'mopac.zip'))
+def test_broken_grad():
+
+    h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=0.5)])
     grad_calc_broken = Calculation(name='h2_grad',
                                    molecule=h2,
                                    method=method,
@@ -203,7 +204,7 @@ def test_grad():
 
 def test_termination_short():
 
-    calc = Calculation(name='test', molecule=methylchloride,
+    calc = Calculation(name='test', molecule=mecl(),
                        method=method, keywords=Config.MOPAC.keywords.sp)
 
     calc.output.filename = 'test.out'
@@ -220,11 +221,11 @@ def test_mopac_keywords():
                                   added_internals=None,
                                   point_charges=None)
 
-    keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)
+    keywords = get_keywords(calc_input=calc_input, molecule=mecl())
     assert any('1scf' == kw.lower() for kw in keywords)
 
     calc_input.keywords = Config.MOPAC.keywords.grad
-    keywords = get_keywords(calc_input=calc_input, molecule=methylchloride)
+    keywords = get_keywords(calc_input=calc_input, molecule=mecl())
     assert any('grad' == kw.lower() for kw in keywords)
 
     h = Molecule(name='H', smiles='[H]')
@@ -237,7 +238,7 @@ def test_mopac_keywords():
 def test_get_version_no_output():
 
     calc = Calculation(name='test',
-                       molecule=methylchloride,
+                       molecule=mecl(),
                        method=method,
                        keywords=method.keywords.sp)
     calc.output.filename = 'test.out'
@@ -246,16 +247,14 @@ def test_get_version_no_output():
         print('some', 'incorrect', 'lines', sep='\n', file=test_output)
 
     assert not calc.terminated_normally
-
-    version = method.get_version(calc)
-    assert version == '???'
+    assert method.version_in(calc) == '???'
 
     os.remove(calc.output.filename)
 
 
 def test_mopac_solvent_no_dielectric():
 
-    mol = methylchloride.copy()
+    mol = mecl()
     mol.solvent = ImplicitSolvent('X', smiles='X', aliases=['X'], mopac='X')
 
     calc = Calculation('tmp',
