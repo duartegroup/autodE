@@ -3,6 +3,7 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
+import autode.methods as methods
 from typing import List, Tuple, Iterator, Optional, Sequence, Union
 from multiprocessing import Pool
 from autode.wrappers.keywords import Functional, GradientKeywords
@@ -10,7 +11,6 @@ from autode.log import logger
 from autode.utils import cached_property
 from autode.config import Config
 from autode.constants import Constants
-from autode import methods
 from autode.values import ValueArray, Frequency, Coordinates
 from autode.utils import work_in, hashable
 from autode.units import (Unit, wavenumber,

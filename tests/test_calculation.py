@@ -19,6 +19,7 @@ import sys
 test_mol = Molecule(smiles='O', name='test_mol')
 
 
+@work_in_tmp_dir()
 def test_calc_class():
 
     xtb = XTB()
