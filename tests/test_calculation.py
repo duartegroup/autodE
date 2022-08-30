@@ -2,7 +2,7 @@ from autode.calculations import Calculation, CalculationOutput
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
 from autode.wrappers.keywords import SinglePointKeywords
-from autode.wrappers.functionals import Functional
+from autode.wrappers.keywords.functionals import Functional
 from autode.utils import run_external
 from autode.methods import XTB, ORCA
 from autode.species import Molecule

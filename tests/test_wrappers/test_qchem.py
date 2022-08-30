@@ -6,11 +6,9 @@ from autode.wrappers.QChem import QChem
 from autode.calculations import Calculation
 from autode.atoms import Atom
 from autode.config import Config
-from autode.wrappers.implicit_solvent_types import cpcm
+from autode.wrappers.keywords import (cpcm, pbe0, def2svp)
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import SinglePointKeywords
-from autode.wrappers.basis_sets import def2svp
-from autode.wrappers.functionals import pbe0
 from autode.utils import work_in_tmp_dir
 from autode.exceptions import CalculationException
 from ..testutils import work_in_zipped_dir
@@ -143,7 +141,7 @@ def test_blank_input_generation():
     calc.input.filename = None
 
     with pytest.raises(ValueError):
-        method.generate_input(calc=calc, molecule=calc.molecule)
+        method.generate_input_for(calc=calc)
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
@@ -330,7 +328,7 @@ def test_butane_gradient_extraction():
 
     assert calc.molecule.n_atoms == 14
 
-    grad = method.get_gradients(calc)
+    grad = method.gradient_from(calc)
     assert grad.shape == (14, 3)
 
 
@@ -342,7 +340,7 @@ def test_h2o_hessian_extraction():
     calc.output.filename = 'H2O_hess_qchem.out'
     calc.molecule = Molecule(smiles='O')
 
-    hess = method.get_hessian(calc)
+    hess = method.hessian_from(calc)
     assert hess.shape == (9, 9)
 
     # Check the first element is close to that of an ORCA-derived equiv.
@@ -361,13 +359,13 @@ def test_broken_hessian_extraction():
     calc = _broken_output_calc()
 
     with pytest.raises(CalculationException):
-        _ = method.get_hessian(calc)
+        _ = method.hessian_from(calc)
 
     calc = _custom_output_calc('some', 'output', 'then',
                                'Mass-Weighted Hessian Matrix', 'X')
 
     with pytest.raises(CalculationException):
-        _ = method.get_hessian(calc)
+        _ = method.hessian_from(calc)
 
     if os.path.exists('tmp.out'):
         os.remove('tmp.out')
@@ -378,13 +376,13 @@ def test_broken_gradient_extraction():
     calc = _broken_output_calc()
 
     with pytest.raises(CalculationException):
-        _ = method.get_gradients(calc)
+        _ = method.gradient_from(calc)
 
     calc = _custom_output_calc('some', 'output', 'then',
                                'Mass-Weighted Hessian Matrix', 'X')
 
     with pytest.raises(CalculationException):
-        _ = method.get_gradients(calc)
+        _ = method.gradient_from(calc)
 
     if os.path.exists('tmp.out'):
         os.remove('tmp.out')
@@ -520,9 +518,10 @@ def test_butane_grad_extract():
 
     calc = _blank_calc()
     calc.molecule = Molecule(smiles='CCCC')
-    calc.output.filename = 'C4H10_sp_qchem.out'
+    calc.set_output_filename('C4H10_sp_qchem.out')
 
-    grad = calc.get_gradients()
+    grad = calc.molecule.gradient
+    assert grad is not None
     flat_grad = grad.to('Ha a0^-1').flatten()
 
     # Check the final element of the gradient is as expected

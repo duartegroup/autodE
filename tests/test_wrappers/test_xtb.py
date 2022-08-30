@@ -61,7 +61,7 @@ def test_xtb_calculation():
     const_opt.output.filename = 'tmp.out'
 
     # cannot get atoms from an empty file
-    with pytest.raises(AtomsNotFound):
+    with pytest.raises(CalculationException):
         const_opt._executor.set_properties()
 
 

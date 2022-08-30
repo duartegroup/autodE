@@ -4,7 +4,7 @@ from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.species import Reactant, Product
 from autode.atoms import Atom
-from autode.wrappers.implicit_solvent_types import cpcm
+from autode.wrappers.keywords import cpcm
 from . import testutils
 import shutil
 import os

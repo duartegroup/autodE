@@ -10,6 +10,7 @@ import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
 from typing import Optional, List, Tuple
+from copy import deepcopy
 from autode.log import logger
 from autode.config import Config
 from autode.values import Distance
@@ -205,6 +206,9 @@ class CalculationExecutor:
             return False
 
         return self.method.terminated_normally_in(self)
+
+    def copy(self) -> "CalculationExecutor":
+        return deepcopy(self)
 
     def __str__(self):
         """Create a unique string(/hash) of the calculation"""

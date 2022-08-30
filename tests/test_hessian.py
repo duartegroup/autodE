@@ -12,7 +12,7 @@ from autode.values import Frequency
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
-from autode.wrappers.functionals import pbe0
+from autode.wrappers.keywords import pbe0
 from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords

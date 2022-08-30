@@ -7,7 +7,7 @@ from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
-from autode.wrappers.implicit_solvent_types import cpcm
+from autode.wrappers.keywords import cpcm
 from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
