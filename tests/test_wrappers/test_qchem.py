@@ -65,8 +65,8 @@ def test_base_method():
     assert 'qchem' in repr(method).lower()
 
     # TODO: Implement, if it's useful
-    with pytest.raises(NotImplementedError):
-        _ = method.get_atomic_charges(_blank_calc())
+    with pytest.raises(Exception):
+        _ = method.partial_charges_from(_blank_calc())
 
     calc = _blank_calc()
     calc.input.point_charges = [PointCharge(0.1, x=0, y=0, z=1)]
@@ -79,17 +79,17 @@ def test_base_method():
 def test_in_out_name():
 
     calc = _blank_calc(name='test')
-    assert method.get_input_filename(calc) == 'test_qchem.in'
-    assert method.get_output_filename(calc) == 'test_qchem.out'
+    assert method.input_filename_for(calc) == 'test_qchem.in'
+    assert method.input_filename_for(calc) == 'test_qchem.out'
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_version_extract():
 
     # Version extraction from a blank calculation should not raise an error
-    assert isinstance(method.get_version(_blank_calc()), str)
+    assert isinstance(method.version_in(_blank_calc()), str)
 
-    version = method.get_version(calc=_completed_thf_calc())
+    version = method.version_in(calc=_completed_thf_calc())
 
     assert version == '5.4.1'
 
@@ -113,7 +113,7 @@ def test_terminated_abnormally():
 
     # Without any output the calculation cannot have terminated normally
     calc = _blank_calc()
-    assert not method.calculation_terminated_normally(calc)
+    assert not method.terminated_normally_in(calc)
     assert not calc.terminated_normally
 
     # A broken file containing one fewer H atom for an invalid 2S+1
@@ -180,7 +180,7 @@ def test_simple_input_generation():
 
     # Generate the required input
     calc.input.filename = 'test.in'
-    method.generate_input(calc, molecule=h_atom)
+    method.generate_input_for(calc)
 
     # Remove any blank lines from the input file for comparison, as they are
     # ignored
@@ -201,7 +201,7 @@ def test_energy_extraction():
 
     for calc in (_blank_calc(), _broken_output_calc(), _broken_output_calc2()):
         with pytest.raises(CalculationException):
-            _ = method.get_energy(calc)
+            _ = method.energy_from(calc)
 
 
 def _file_contains_one(filename, string):
