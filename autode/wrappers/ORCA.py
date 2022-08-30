@@ -1,9 +1,9 @@
 import numpy as np
 import os
 import autode.wrappers.keywords as kws
+import autode.wrappers.methods
 from typing import List
 from autode.utils import run_external
-from autode.wrappers.methods import ExternalMethodOEGH
 from autode.hessians import Hessian
 from autode.opt.optimisers.base import ExternalOptimiser
 from autode.values import PotentialEnergy, Gradient, Coordinates
@@ -125,7 +125,7 @@ def print_coordinates(inp_file, molecule):
     return
 
 
-class ORCA(ExternalMethodOEGH):
+class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
     def __init__(self):
         super().__init__(

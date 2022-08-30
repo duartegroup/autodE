@@ -1,10 +1,10 @@
 import os
 import numpy as np
 import autode.wrappers.keywords as kwds
+import autode.wrappers.methods
 from typing import List
 from autode.opt.optimisers.base import ExternalOptimiser
 from autode.values import PotentialEnergy, Gradient, Coordinates
-from autode.wrappers.methods import ExternalMethodOEG
 from autode.utils import run_external
 from autode.exceptions import NotImplementedInMethod
 from autode.config import Config
@@ -182,7 +182,7 @@ def _get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Ato
     return atoms
 
 
-class MOPAC(ExternalMethodOEG):
+class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
 
     def __init__(self):
         super().__init__(executable_name='mopac',

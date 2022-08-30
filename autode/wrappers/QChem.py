@@ -1,19 +1,19 @@
 import numpy as np
 import autode.wrappers.keywords as kws
+import autode.wrappers.methods
 from typing import List
 from autode.config import Config
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.log import logger
 from autode.opt.optimisers.base import ExternalOptimiser
 from autode.hessians import Hessian
-from autode.wrappers.methods import ExternalMethodOEGH
 from autode.utils import run_external, work_in_tmp_dir
 from autode.exceptions import (CouldNotGetProperty,
                                NotImplementedInMethod,
                                UnsupportedCalculationInput)
 
 
-class QChem(ExternalMethodOEGH):
+class QChem(autode.wrappers.methods.ExternalMethodOEGH):
     """
     QChem Electronic Structure package.
 

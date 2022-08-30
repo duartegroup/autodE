@@ -1,6 +1,6 @@
 import numpy as np
 import autode.wrappers.keywords as kws
-from autode.wrappers.methods import ExternalMethodEGH
+import autode.wrappers.methods
 from autode.utils import run_external_monitored
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.hessians import Hessian
@@ -111,7 +111,7 @@ def get_keywords(calc_input, molecule):
     return new_keywords
 
 
-class NWChem(ExternalMethodEGH):
+class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
     def __init__(self):
         super().__init__('nwchem', path=Config.NWChem.path,

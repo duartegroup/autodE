@@ -1,10 +1,10 @@
 import numpy as np
 import autode.wrappers.keywords as kws
+import autode.wrappers.methods
 
 from typing import Optional, List
 from copy import deepcopy
 from autode.constants import Constants
-from autode.wrappers.methods import ExternalMethodOEGH
 from autode.utils import run_external
 from autode.opt.optimisers.base import ExternalOptimiser
 from autode.values import PotentialEnergy, Coordinates, Gradient
@@ -357,7 +357,7 @@ def _calc_uses_external_method(calc):
     return any('external' in kwd.lower() for kwd in calc.input.keywords)
 
 
-class G09(ExternalMethodOEGH):
+class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
     def __init__(self, executable_name="g09", path=None, keywords_set=None,
                  implicit_solvation_type=None):

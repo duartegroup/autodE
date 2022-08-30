@@ -1,8 +1,8 @@
 import os
 import shutil
 import numpy as np
+import autode.wrappers.methods
 
-from autode.wrappers.methods import ExternalMethodOEG
 from autode.values import Coordinates, Gradient, PotentialEnergy
 from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
@@ -13,7 +13,7 @@ from autode.utils import work_in_tmp_dir, run_in_tmp_environment
 from autode.log import logger
 
 
-class XTB(ExternalMethodOEG):
+class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
     def __init__(self):
         super().__init__(executable_name='xtb',

@@ -386,7 +386,7 @@ def requires_output_to_exist(func):
     return wrapped_function
 
 
-def no_exceptions(func):
+def no_exceptions(func) -> Optional[Any]:
     """Calculation method requiring the output filename to be set"""
 
     @wraps(func)
@@ -394,7 +394,7 @@ def no_exceptions(func):
 
         try:
             return func(*args, **kwargs)
-        except (ValueError, IndexError, AutodeException):
+        except (ValueError, IndexError, TypeError, AutodeException):
             return None
 
     return wrapped_function
