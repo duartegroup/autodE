@@ -1,4 +1,5 @@
 from autode.calculations import Calculation, CalculationOutput
+from autode.calculations.executors import CalculationExecutor
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
 from autode.wrappers.keywords import SinglePointKeywords
@@ -28,16 +29,13 @@ def test_calc_class():
                        keywords=xtb.keywords.sp)
 
     # Should prepend a dash to appease some EST methods
-    assert not calc.name.startswith('-')
+    assert not calc._executor.name.startswith('-')
     assert calc.molecule is not None
     assert calc.method.name == 'xtb'
     assert len(calc.input.filenames) == 0
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_energy()
-
-    assert not calc.optimisation_converged()
-    assert not calc.optimisation_nearly_converged()
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_final_atoms()
@@ -47,10 +45,6 @@ def test_calc_class():
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_atomic_charges()
-
-    # Calculation that has not been run shouldn't have an opt converged
-    assert not calc.optimisation_converged()
-    assert not calc.optimisation_nearly_converged()
 
     # With a filename that doesn't exist a NoOutput exception should be raised
     calc.output.filename = '/a/path/that/does/not/exist/tmp'
@@ -64,10 +58,6 @@ def test_calc_class():
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_atomic_charges()
-
-    # or final atoms
-    with pytest.raises(ex.AtomsNotFound):
-        _ = calc.get_final_atoms()
 
     # Should default to a single core
     assert calc.n_cores == 1
@@ -191,10 +181,10 @@ def test_fix_unique():
 
     orca = ORCA()
 
-    calc = Calculation(name='tmp',
-                       molecule=test_mol,
-                       method=orca,
-                       keywords=orca.keywords.sp)
+    calc = CalculationExecutor(name='tmp',
+                               molecule=test_mol,
+                               method=orca,
+                               keywords=orca.keywords.sp)
     calc._fix_unique()
     assert calc.name == 'tmp_orca'
 
@@ -202,19 +192,19 @@ def test_fix_unique():
     assert os.path.exists('.autode_calculations')
     assert len(open('.autode_calculations', 'r').readlines()) == 1
 
-    calc = Calculation(name='tmp',
-                       molecule=test_mol,
-                       method=orca,
-                       keywords=orca.keywords.opt)
+    calc = CalculationExecutor(name='tmp',
+                               molecule=test_mol,
+                               method=orca,
+                               keywords=orca.keywords.opt)
     calc._fix_unique()
     assert calc.name != 'tmp_orca'
     assert calc.name == 'tmp_orca0'
 
     # no need to fix unique if the name is different
-    calc = Calculation(name='tmp2',
-                       molecule=test_mol,
-                       method=orca,
-                       keywords=orca.keywords.opt)
+    calc = CalculationExecutor(name='tmp2',
+                               molecule=test_mol,
+                               method=orca,
+                               keywords=orca.keywords.opt)
     calc._fix_unique()
     assert calc.name == 'tmp2_orca'
 
@@ -242,7 +232,8 @@ def test_solvent_get():
     with pytest.raises(ex.SolventUnavailable):
         _ = Calculation('test',
                         molecule=_test_mol,
-                        method=xtb, keywords=xtb.keywords.sp)
+                        method=xtb,
+                        keywords=xtb.keywords.sp)
 
 
 @work_in_tmp_dir()
@@ -282,7 +273,7 @@ def test_exec_not_avail_method():
 
     orca = ORCA()
     orca.path = '/a/non/existent/path'
-    assert not orca.available
+    assert not orca.is_available
 
     calc = Calculation(name='tmp',
                        molecule=test_mol,
@@ -291,7 +282,7 @@ def test_exec_not_avail_method():
     calc.generate_input()
 
     with pytest.raises(ex.MethodUnavailable):
-        calc.execute_calculation()
+        calc._executor.run()
 
     with pytest.raises(ex.MethodUnavailable):
         calc.run()

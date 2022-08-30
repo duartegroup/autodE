@@ -43,6 +43,7 @@ class CalculationExecutor:
                                       added_internals=_active_bonds(molecule),
                                       point_charges=point_charges)
         self.output = CalculationOutput()
+        self._check()
 
     def _check(self) -> None:
         """Check that the method has the required properties to run the calc"""
