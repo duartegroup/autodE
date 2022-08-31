@@ -1,11 +1,5 @@
 from typing import Optional
 from autode.log import logger
-from autode.wrappers.G09 import G09
-from autode.wrappers.G16 import G16
-from autode.wrappers.MOPAC import MOPAC
-from autode.wrappers.NWChem import NWChem
-from autode.wrappers.ORCA import ORCA
-from autode.wrappers.XTB import XTB
 from autode.wrappers.QChem import QChem
 from autode.config import Config
 from autode.exceptions import MethodUnavailable
@@ -66,7 +60,8 @@ def get_hmethod() -> "autode.wrappers.methods.Method":
     Returns:
         (autode.wrappers.base.ElectronicStructureMethod): High-level method
     """
-    h_methods = [ORCA(), G09(), NWChem(), G16(), QChem()]
+
+    h_methods = _methods_list(high_level=True)
 
     if Config.hcode is not None:
         return get_defined_method(name=Config.hcode, possibilities=h_methods)
@@ -80,7 +75,8 @@ def get_lmethod() -> "autode.wrappers.methods.Method":
     Returns:
         (autode.wrappers.base.ElectronicStructureMethod): Low-level method
     """
-    all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem(), QChem()]
+
+    all_methods = _methods_list(high_level=False)
 
     if Config.lcode is not None:
         return get_defined_method(name=Config.lcode, possibilities=all_methods)
@@ -142,3 +138,17 @@ def get_defined_method(name, possibilities) -> "autode.wrappers.methods.Method":
                 raise MethodUnavailable(err_str)
 
     raise MethodUnavailable('Requested code does not exist')
+
+
+def _methods_list(high_level=False):
+    from autode.wrappers.G09 import G09
+    from autode.wrappers.G16 import G16
+    from autode.wrappers.NWChem import NWChem
+    from autode.wrappers.ORCA import ORCA
+    from autode.wrappers.QChem import QChem
+    from autode.wrappers.MOPAC import MOPAC
+    from autode.wrappers.XTB import XTB
+
+    all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem(), QChem()]
+
+    return all_methods[2:] if high_level else all_methods
