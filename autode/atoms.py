@@ -591,6 +591,32 @@ class Atoms(list):
     def coordinates(self) -> Coordinates:
         return Coordinates(np.array([a.coord for a in self]))
 
+    @coordinates.setter
+    def coordinates(self,
+                    value: np.ndarray):
+        """Set the coordinates from a numpy array
+
+        -----------------------------------------------------------------------
+        Arguments:
+            value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
+                                row major vector
+        """
+
+        if value.ndim == 1:
+            assert value.shape == (3 * len(self),)
+            value = value.reshape((-1, 3))
+
+        elif value.ndim == 2:
+            assert value.shape == (len(self), 3)
+
+        else:
+            raise AssertionError('Cannot set coordinates from a array with'
+                                 f'shape: {value.shape}. Must be 1 or 2 '
+                                 f'dimensional')
+
+        for i, atom in enumerate(self):
+            atom.coord = Coordinate(*value[i])
+
     @property
     def com(self) -> Coordinate:
         r"""
@@ -884,20 +910,7 @@ class AtomCollection:
             raise ValueError('Must have atoms set to be able to set the '
                              'coordinates of them')
 
-        if value.ndim == 1:
-            assert value.shape == (3 * self.n_atoms,)
-            value = value.reshape((-1, 3))
-
-        elif value.ndim == 2:
-            assert value.shape == (self.n_atoms, 3)
-
-        else:
-            raise AssertionError('Cannot set coordinates from a array with'
-                                 f'shape: {value.shape}. Must be 1 or 2 '
-                                 f'dimensional')
-
-        for i, atom in enumerate(self.atoms):
-            atom.coord = Coordinate(*value[i])
+        self._atoms.coordinates = value
 
     @property
     def atoms(self) -> Optional[Atoms]:

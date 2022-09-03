@@ -5,6 +5,8 @@ from datetime import date
 from typing import Optional, Union, List, Sequence
 from scipy.spatial import distance_matrix
 from autode.log import logger
+from autode import methods
+from autode.values import Coordinate
 from autode.atoms import Atom, Atoms, AtomCollection
 from autode.exceptions import CalculationException, SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
@@ -17,7 +19,6 @@ from autode.calculations import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import MolecularGraph, make_graph, reorder_nodes, is_isomorphic
-from autode import methods
 from autode.hessians import Hessian, NumericalHessianCalculator
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
@@ -208,18 +209,33 @@ class Species(AtomCollection):
         if (self.n_atoms == len(value)
             and all(a.label == v.label for a, v in zip(self.atoms, value))):
 
-            rmsd = calc_rmsd(coords1=np.array([v.coord for v in value]),
-                             coords2=np.array([a.coord for a in self.atoms]))
+            self.coordinates = np.array([v.coord for v in value])
         else:
-            rmsd = None
+            self._atoms = Atoms(value)
 
-        if rmsd is None or rmsd > 1E-8:
+        return
+
+    @AtomCollection.coordinates.setter
+    def coordinates(self, value: Union[np.ndarray, list]):
+        """
+        Set the coordinates of this species. If the geometry has changed then
+        the energies, gradient and Hessian will be set to None.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            value: numpy array or nested list of coordinate values
+                  (str or float).
+        """
+
+        rmsd = calc_rmsd(coords1=np.asarray(value).reshape((-1, 3)),  # N x 3
+                         coords2=self.coordinates)
+        if rmsd > 1E-8:
             logger.info(f'Geometry changed- resetting energies of {self.name}')
             self.energies.clear()
             self.gradient = None
             self.hessian = None
 
-        self._atoms = Atoms(value)
+        self._atoms.coordinates = value
         return
 
     @property

@@ -70,3 +70,18 @@ class CalculationOutput:
             print("".join(self.file_lines[-n:]))
 
         return None
+
+
+class BlankCalculationOutput(CalculationOutput):
+
+    @property
+    def filename(self) -> str:
+        return "unknown"
+
+    @property
+    def file_lines(self) -> List[str]:
+        return []
+
+    @property
+    def exists(self) -> bool:
+        return True

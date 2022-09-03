@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Optional, Callable, Any
+from typing import Union, Optional, Callable, Any, List
 from autode.log import logger
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
@@ -47,12 +47,18 @@ class Optimiser(BaseOptimiser, ABC):
                       Takes the current coordinates (which have energy (e),
                       gradient (g) and hessian (h) attributes) as the only
                       positional argument
+
+            callback_kwargs: Keyword arguments to pass to the callback function
         """
         if int(maxiter) <= 0:
             raise ValueError('An optimiser must be able to run at least one '
                              f'step, but tried to set maxiter = {maxiter}')
 
+        print("Ca;llback function is", callback)
         self._callback = _OptimiserCallbackFunction(callback, callback_kwargs)
+
+        if callback is None:
+            exit()
 
         self._maxiter = int(maxiter)
         self._n_cores:  int = Config.n_cores
@@ -115,7 +121,6 @@ class Optimiser(BaseOptimiser, ABC):
             self._callback(self._coords)
             self._step()                                # Update self._coords
             self._update_gradient_and_energy()          # Update self._coords.g
-
             self._log_convergence()
 
             if self._exceeded_maximum_iteration:
@@ -357,7 +362,7 @@ class NDOptimiser(Optimiser, ABC):
 
             :py:meth:`Optimiser <Optimiser.__init__>`
         """
-        super().__init__(maxiter=maxiter, coords=coords)
+        super().__init__(maxiter=maxiter, coords=coords, **kwargs)
 
         self.etol = etol
         self.gtol = gtol
@@ -688,4 +693,5 @@ class _OptimiserCallbackFunction:
         if self._f is None:
             return None
 
+        logger.info("Calling callback function")
         return self._f(coordinates, **self._kwargs)

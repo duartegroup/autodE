@@ -12,7 +12,7 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
 
     ---------------------------------------------------------------------------
     Arguments:
-        filename (str): .xyz filename
+        filename: .xyz filename
 
     Returns:
         (autode.atoms.Atoms): Atoms
@@ -65,15 +65,14 @@ def atoms_to_xyz_file(atoms:      Collection[Atom],
 
     ---------------------------------------------------------------------------
     Arguments:
-        atoms (list(autode.atoms.Atom)): List of autode atoms to print
+        atoms: List of autode atoms to print
 
-        filename (str): Name of the file (with .xyz extension)
+        filename: Name of the file (with .xyz extension)
 
-    Keyword Arguments:
-        title_line (str): Second line of the xyz file, can be blank
+        title_line: Second line of the xyz file, can be blank
 
-        append (bool): Do or don't append to this file. With append=False
-                       filename will be overwritten if it already exists
+        append: Do or don't append to this file. With append=False
+                filename will be overwritten if it already exists
     """
     assert atoms is not None
     assert filename.endswith('.xyz')
