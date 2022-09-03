@@ -10,7 +10,17 @@ class CalculationOutput:
 
     def __init__(self, filename: Optional[str] = None):
 
-        self.filename = filename
+        self._filename = filename
+
+    @property
+    def filename(self) -> str:
+        return self._filename
+
+    @filename.setter
+    def filename(self, value: str):
+
+        self._filename = str(value)
+        self.clear()
 
     @cached_property
     def file_lines(self) -> List[str]:

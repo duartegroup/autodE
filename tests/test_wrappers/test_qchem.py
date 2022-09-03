@@ -8,7 +8,7 @@ from autode.atoms import Atom
 from autode.config import Config
 from autode.wrappers.keywords import (cpcm, pbe0, def2svp)
 from autode.species.molecule import Molecule
-from autode.wrappers.keywords import SinglePointKeywords
+from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
 from autode.utils import work_in_tmp_dir
 from autode.exceptions import CalculationException
 from ..testutils import work_in_zipped_dir
@@ -78,9 +78,9 @@ def test_base_method():
 
 def test_in_out_name():
 
-    calc = _blank_calc(name='test')
+    calc = _blank_calc(name='test')._executor
     assert method.input_filename_for(calc) == 'test_qchem.in'
-    assert method.input_filename_for(calc) == 'test_qchem.out'
+    assert method.output_filename_for(calc) == 'test_qchem.out'
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
@@ -98,7 +98,7 @@ def test_version_extract():
 def test_version_extract_broken_output_file():
 
     # Should not raise an exception
-    version = method.get_version(_broken_output_calc())
+    version = method.version_in(_broken_output_calc())
     assert isinstance(version, str)
 
 
@@ -290,10 +290,12 @@ def test_h2o_opt():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_gradient_extraction_h2o():
+    calc = Calculation(name='test',
+                       molecule=Molecule(smiles='O'),
+                       method=method,
+                       keywords=OptKeywords())
 
-    calc = _blank_calc()
-    calc.molecule = Molecule(smiles='O')
-    calc.output.filename = 'H2O_opt_qchem.out'
+    calc.set_output_filename('H2O_opt_qchem.out')
 
     assert calc.output.exists
 
@@ -301,11 +303,11 @@ def test_gradient_extraction_h2o():
     assert grad.shape == (3, 3)
 
     # The minimum should have a gradient close to zero
-    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-4)\
+    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1E-4)
 
     # also for this calculation the optimisation has converged
-    assert method.optimisation_converged(calc)
-    assert not method.optimisation_nearly_converged(calc)
+    assert calc.optimiser.converged
+    assert not calc.optimisation_nearly_converged()
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
@@ -493,8 +495,7 @@ def test_opt_single_atom():
     calc.name = 'tmp'
     calc.input.filename = 'tmp.in'
 
-    method.generate_input(calc=calc, molecule=calc.molecule)
-
+    method.generate_input_for(calc=calc)
     assert os.path.exists('tmp.in')
 
     # A single atom cannot be optimised so there should be no opt in the input
@@ -519,6 +520,8 @@ def test_butane_grad_extract():
     calc = _blank_calc()
     calc.molecule = Molecule(smiles='CCCC')
     calc.set_output_filename('C4H10_sp_qchem.out')
+
+    assert calc.molecule.energy is not None
 
     grad = calc.molecule.gradient
     assert grad is not None

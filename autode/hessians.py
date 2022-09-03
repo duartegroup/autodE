@@ -3,7 +3,6 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-import autode.methods as methods
 from typing import List, Tuple, Iterator, Optional, Sequence, Union
 from multiprocessing import Pool
 from autode.wrappers.keywords import Functional, GradientKeywords
@@ -563,8 +562,8 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                  species: 'autode.species.Species',
                  idxs:     Sequence[int],
                  shift:   'autode.values.Distance',
-                 lmethod:  Optional['autode.wrappers.base.Method'] = None,
-                 hmethod:  Optional['autode.wrappers.base.Method'] = None,
+                 lmethod:  Optional['autode.wrappers.methods.Method'] = None,
+                 hmethod:  Optional['autode.wrappers.methods.Method'] = None,
                  n_cores:  Optional[int] = None
                  ):
         """
@@ -587,7 +586,7 @@ class HybridHessianCalculator(NumericalHessianCalculator):
 
             n_cores: Number of cores to use, defaults to Config.n_cores
         """
-        lmethod = methods.method_or_default_lmethod(lmethod)
+        lmethod = _method_or_default_lmethod(lmethod)
 
         super().__init__(species=species,
                          method=lmethod,
@@ -602,7 +601,7 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                              'species.')
 
         self._hmethod_atom_idxs = set(idxs)
-        self._hmethod = methods.method_or_default_hmethod(hmethod)
+        self._hmethod = _method_or_default_hmethod(hmethod)
 
     def calculate(self) -> None:
         """Calculate the partial numerical Hessian"""
@@ -630,3 +629,17 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                 self._calculated_rows.remove(3*atom_idx+i)
 
         return None
+
+
+def _method_or_default_hmethod(method: 'autode.wrappers.methods.Method'
+                               ) -> 'autode.wrappers.methods.Method':
+    # Avoid cyclic imports
+    from autode.methods import method_or_default_hmethod
+    return method_or_default_hmethod(method)
+
+
+def _method_or_default_lmethod(method: 'autode.wrappers.methods.Method'
+                               ) -> 'autode.wrappers.methods.Method':
+    # Avoid cyclic imports
+    from autode.methods import method_or_default_lmethod
+    return method_or_default_lmethod(method)

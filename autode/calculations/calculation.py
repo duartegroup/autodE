@@ -24,7 +24,7 @@ class Calculation:
     def __init__(self,
                  name:          str,
                  molecule:      'autode.species.Species',
-                 method:        'autode.wrappers.base.Method',
+                 method:        'autode.wrappers.methods.Method',
                  keywords:      'autode.wrappers.keywords.Keywords',
                  n_cores:       int = 1,
                  point_charges: Optional[List[PointCharge]] = None):
@@ -51,19 +51,18 @@ class Calculation:
 
             point_charges: List of  float of point charges
         """
-        self.name = name
 
-        self.molecule = molecule
-        self.method = method
-        self.keywords = keywords
+        self.name = name
         self.n_cores = int(n_cores)
         self.point_charges = point_charges
-        self._executor = self._executor_for(method)
+        self._executor = self._executor_for(molecule, method, keywords)
 
         self._check()
 
     def _executor_for(self,
-                      method: "autode.wrappers.methods.Method"
+                      molecule: 'autode.species.Species',
+                      method: "autode.wrappers.methods.Method",
+                      keywords: 'autode.wrappers.keywords.Keywords'
                       ) -> "autode.calculations.executors.CalculationExecutor":
         """
         Return a calculation executor depending on the calculation modes
@@ -75,16 +74,16 @@ class Calculation:
         """
         _type = CalculationExecutor   # base type, implements all calc types
 
-        if self._is_opt and not method.implements(CalculationType.opt):
+        if _are_opt(keywords) and not method.implements(CalculationType.opt):
             _type = CalculationExecutorO
 
-        if self._is_grad and not method.implements(CalculationType.gradient):
+        if _are_grad(keywords) and not method.implements(CalculationType.gradient):
             _type = CalculationExecutorG
 
-        if self._is_hess and not method.implements(CalculationType.hessian):
+        if _are_hess(keywords) and not method.implements(CalculationType.hessian):
             _type = CalculationExecutorH
 
-        return _type(self.name, self.molecule, method, self.keywords,
+        return _type(self.name, molecule, method, keywords,
                      self.n_cores, self.point_charges)
 
     def run(self) -> None:
@@ -164,16 +163,20 @@ class Calculation:
         return deepcopy(self)
 
     @property
-    def _is_opt(self) -> bool:
-        return isinstance(self.keywords, kws.OptKeywords)
+    def molecule(self) -> 'autode.species.Species':
+        return self._executor.molecule
+
+    @molecule.setter
+    def molecule(self, value: 'autode.species.Species'):
+        self._executor.molecule = value
 
     @property
-    def _is_grad(self) -> bool:
-        return isinstance(self.keywords, kws.GradientKeywords)
+    def keywords(self) -> 'autode.wrappers.keywords.Keywords':
+        return self._executor.input.keywords
 
     @property
-    def _is_hess(self) -> bool:
-        return isinstance(self.keywords, kws.HessianKeywords)
+    def method(self) -> 'autode.wrappers.methods.Method':
+        return self._executor.method
 
     def _check(self) -> None:
         """
@@ -256,10 +259,10 @@ class Calculation:
         if self.molecule.energy is None:
             raise ex.CouldNotGetProperty(name='energy')
 
-        if self._is_grad and self.molecule.gradient is None:
+        if _are_grad(self.keywords) and self.molecule.gradient is None:
             raise ex.CouldNotGetProperty(name='gradient')
 
-        if self._is_hess and self.molecule.hessian is None:
+        if _are_hess(self.keywords) and self.molecule.hessian is None:
             raise ex.CouldNotGetProperty(name='Hessian')
 
         return None
@@ -302,3 +305,15 @@ class Calculation:
     def get_hessian(self) -> Hessian:
         self._executor.set_properties()
         return self.molecule.hessian
+
+
+def _are_opt(keywords) -> bool:
+    return isinstance(keywords, kws.OptKeywords)
+
+
+def _are_grad(keywords) -> bool:
+    return isinstance(keywords, kws.GradientKeywords)
+
+
+def _are_hess(keywords) -> bool:
+    return isinstance(keywords, kws.HessianKeywords)

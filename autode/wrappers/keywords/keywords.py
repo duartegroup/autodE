@@ -523,7 +523,7 @@ class Keyword(ABC):
         to be set, where method is e.g. orca
         """
 
-        excl_attrs = ('name', 'doi_list', 'freq_scale_factor')
+        excl_attrs = ('name', 'doi_list', 'doi', 'freq_scale_factor')
         for attr in self.__dict__:
             if attr in excl_attrs:
                 continue

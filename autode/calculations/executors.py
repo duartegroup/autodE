@@ -135,11 +135,11 @@ class CalculationExecutor:
         """Set the properties of a molecule from this calculation"""
         keywords = self.input.keywords
 
-        self.molecule.energy = self.method.energy_from(self)
-
         if isinstance(keywords, kws.OptKeywords):
             self.optimiser = self.method.optimiser_from(self)
             self.molecule.coordinates = self.method.coordinates_from(self)
+
+        self.molecule.energy = self.method.energy_from(self)
 
         if isinstance(keywords, kws.GradientKeywords):
             self.molecule.gradient = self.method.gradient_from(self)
