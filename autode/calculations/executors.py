@@ -315,8 +315,7 @@ class CalculationExecutorO(CalculationExecutor):
         self.method.optimiser.run(species=self.molecule,
                                   method=self.method,
                                   n_cores=self.n_cores)
-        print(self.molecule.energies)
-
+        return None
 
     @property
     def terminated_normally(self) -> bool:

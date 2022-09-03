@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Union, Optional, Callable, Any, List
+from typing import Union, Optional, Callable, Any
 from autode.log import logger
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
@@ -54,11 +54,7 @@ class Optimiser(BaseOptimiser, ABC):
             raise ValueError('An optimiser must be able to run at least one '
                              f'step, but tried to set maxiter = {maxiter}')
 
-        print("Ca;llback function is", callback)
         self._callback = _OptimiserCallbackFunction(callback, callback_kwargs)
-
-        if callback is None:
-            exit()
 
         self._maxiter = int(maxiter)
         self._n_cores:  int = Config.n_cores

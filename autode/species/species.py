@@ -6,7 +6,6 @@ from typing import Optional, Union, List, Sequence
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode import methods
-from autode.values import Coordinate
 from autode.atoms import Atom, Atoms, AtomCollection
 from autode.exceptions import CalculationException, SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
