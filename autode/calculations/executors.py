@@ -27,7 +27,7 @@ class CalculationExecutor:
     def __init__(self,
                  name:          str,
                  molecule:      'autode.species.Species',
-                 method:        'autode.wrappers.base.Method',
+                 method:        'autode.wrappers.methods.Method',
                  keywords:      'autode.wrappers.keywords.Keywords',
                  n_cores:       int = 1,
                  point_charges: Optional[List[PointCharge]] = None):
@@ -311,9 +311,11 @@ class CalculationExecutorO(CalculationExecutor):
             callback_kwargs={"atomic_symbols": self.molecule.atomic_symbols,
                              "filename": self._opt_trajectory_name}
         )
+        method = self.method.copy()
+        method.keywords.grad = self.input.keywords
 
         self.method.optimiser.run(species=self.molecule,
-                                  method=self.method,
+                                  method=method,
                                   n_cores=self.n_cores)
         return None
 
@@ -328,6 +330,13 @@ class CalculationExecutorO(CalculationExecutor):
             (bool): Normal termination of the calculation?
         """
         return self._opt_trajectory_exists
+
+    def set_properties(self) -> None:
+        """
+        Nothing needs to be set as the energy/gradient/Hessian of the
+        molecule are set within the optimiser
+        """
+        return None
 
     @property
     def _calc_is_ts_opt(self) -> bool:
@@ -364,7 +373,7 @@ class CalculationExecutorO(CalculationExecutor):
         gradient = cart_coords.g.reshape((-1, 3))
 
         n_atoms = len(atomic_symbols)
-        assert n_atoms == len(coordinates) == len(gradient)
+        assert n_atoms == len(cart_coords) == len(gradient)
 
         with open(filename, "a") as file:
             print(n_atoms, f"E = {energy} Ha", sep="\n", file=file)

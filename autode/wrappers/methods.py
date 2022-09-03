@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from shutil import which
 from typing import Optional, List
 from pathlib import Path
@@ -81,6 +82,9 @@ class Method(ABC):
             return False
 
         return self._all_equal(other, attrs=('name', 'keywords'))
+
+    def copy(self) -> "Method":
+        return deepcopy(self)
 
 
 class ExternalMethod(Method, ABC):

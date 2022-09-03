@@ -1,13 +1,12 @@
-from autode.wrappers.NWChem import NWChem, ecp_block, get_keywords
+from autode.wrappers.NWChem import NWChem, ecp_block
 from autode.point_charges import PointCharge
-from autode.calculations import Calculation, CalculationInput
+from autode.calculations import Calculation
 from autode.exceptions import CouldNotGetProperty, CalculationException
 from autode.species.molecule import Molecule
-from autode.wrappers.keywords import OptKeywords, MaxOptCycles, SinglePointKeywords
+from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.wrappers.keywords.basis_sets import def2svp
 from autode.wrappers.keywords.wf import hf
 from autode.config import Config
-from autode.wrappers.keywords.functionals import pbe0
 from autode.atoms import Atom
 from .. import testutils
 import numpy as np
@@ -18,31 +17,22 @@ here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = NWChem()
 
-opt_keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
-                            '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
-                            'basis\n  *   library Def2-SVP\nend',
+opt_keywords = OptKeywords(['basis\n  *   library Def2-SVP\nend',
                             'dft\n   xc xpbe96 cpbe96\nend',
-                            'task dft optimize'])
+                            'task dft gradient'])
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+# @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_opt_calc():
 
     calc = Calculation(name='opt', molecule=test_mol, method=method,
                        keywords=opt_keywords)
     calc.run()
 
-    assert os.path.exists('opt_nwchem.nw')
-    assert os.path.exists('opt_nwchem.out')
-
     final_atoms = calc.get_final_atoms()
     assert len(final_atoms) == 5
     assert type(final_atoms[0]) is Atom
     assert -40.4165 < calc.get_energy() < -40.4164
-    assert calc.output.exists
-    assert calc.output.file_lines is not None
-    assert calc.input.filename == 'opt_nwchem.nw'
-    assert calc.output.filename == 'opt_nwchem.out'
     assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
@@ -50,10 +40,6 @@ def test_opt_calc():
     # No Hessian is computed for an optimisation calculation
     with pytest.raises(CouldNotGetProperty):
         _ = calc.get_hessian()
-
-    charges = calc.get_atomic_charges()
-    assert len(charges) == 5
-    assert all(-1.0 < c < 1.0 for c in charges)
 
     # Optimisation should result in small gradients
     gradients = calc.get_gradients()
@@ -176,7 +162,7 @@ def test_hf_calculation():
 
 
     h2o = Molecule(smiles='O', name='H2O')
-    hf_kwds = SinglePointKeywords([def2svp, 'task scf'])
+    hf_kwds = [def2svp, 'task scf']
 
     h2o.single_point(method=method,
                      keywords=hf_kwds)
@@ -198,7 +184,7 @@ def test_hf_calculation():
     assert np.isclose(h.energy, -0.5, atol=0.001)
 
     # Should also support other arguments in the SCF block
-    hf_kwds = SinglePointKeywords([def2svp, 'scf\n    maxiter 100\nend', 'task scf'])
+    hf_kwds = [def2svp, 'scf\n    maxiter 100\nend', 'task scf']
     h.single_point(method=method, keywords=hf_kwds)
 
     assert h.energy is not None
@@ -222,3 +208,7 @@ def test_point_charge_calculation():
     # isolated atoms HF energy
     assert not np.isclose(calc.get_energy(), -0.5, atol=0.001)
 
+
+def _test_charge_extract():
+    # TODO
+    raise NotImplementedError

@@ -189,6 +189,10 @@ class Optimiser(BaseOptimiser, ABC):
         grad.run()
         grad.clean_up(force=True, everything=True)
 
+        if self._species.gradient is None:
+            raise RuntimeError("Calculation failed to calculate a gradient. "
+                               "Cannot continue!")
+
         self._coords.e = self._species.energy
         self._coords.update_g_from_cart_g(arr=self._species.gradient)
         return None
