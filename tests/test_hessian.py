@@ -295,9 +295,7 @@ def test_gaussian_hessian_extract_h2():
                        method=ade.methods.G09(),
                        keywords=ade.HessianKeywords())
 
-    calc.output.filename = 'H2_hess_g09.log'
-    h2.hessian = calc.get_hessian()
-
+    calc.set_output_filename('H2_hess_g09.log')
     assert np.isclose(h2.hessian.frequencies[-1], Frequency(4383.9811),
                       atol=1.0)
 
@@ -313,16 +311,12 @@ def test_gaussian_hessian_extract_co2():
     calc = Calculation(name='tmp',
                        molecule=co2,
                        method=ade.methods.G09(),
-                       keywords=ade.SinglePointKeywords([]))
+                       keywords=ade.HessianKeywords([]))
 
-    calc.output.filename = 'CO2_opt_hess_g09.log'
-    co2.hessian = calc.get_hessian()
-    print(co2.hessian.atoms)
+    calc.set_output_filename('CO2_opt_hess_g09.log')
 
     assert all(np.isclose(freq, Frequency(0, units='cm-1'), atol=10) for freq
                in co2.hessian.frequencies[:5])
-
-    print(co2.hessian.frequencies_proj)
 
     assert all(freq == 0.0 for freq in co2.hessian.frequencies_proj[:5])
 
@@ -332,14 +326,14 @@ def test_gaussian_hessian_extract_co2():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
 def test_nwchem_hessian_extract_h2o():
 
+    water = ade.Molecule(smiles='O')
     calc = Calculation(name='tmp',
-                       molecule=ade.Molecule(smiles='O'),
+                       molecule=water,
                        method=ade.methods.NWChem(),
                        keywords=ade.HessianKeywords())
 
-    calc.output.filename = 'H2O_hess_nwchem.out'
-
-    hessian = calc.get_hessian()
+    calc.set_output_filename('H2O_hess_nwchem.out')
+    hessian = water.hessian
 
     for freqs in (hessian.frequencies, hessian.frequencies_proj):
         assert sum(np.isclose(freq, 0.0, atol=15) for freq in freqs) == 6
@@ -355,15 +349,15 @@ def test_nwchem_hessian_extract_h2o():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
-def test_nechem_hessian_co2():
+def test_nwchem_hessian_co2():
 
+    co2 = ade.Molecule(smiles='O=C=O')
     calc = Calculation(name='tmp',
-                       molecule=ade.Molecule(smiles='O=C=O'),
+                       molecule=co2,
                        method=ade.methods.NWChem(),
                        keywords=ade.HessianKeywords())
-
-    calc.output.filename = 'CO2_hess_nwchem.out'
-    assert_correct_co2_frequencies(hessian=calc.get_hessian(),
+    calc.set_output_filename('CO2_hess_nwchem.out')
+    assert_correct_co2_frequencies(hessian=co2.hessian,
                                    expected=(659.76, 1406.83, 2495.73))
 
 
@@ -382,10 +376,8 @@ def test_imag_mode():
                        method=ORCA(),
                        keywords=ORCA().keywords.hess)
 
-    calc.output.filename = 'sn2_TS.out'
-    assert calc.output.exists
+    calc.set_output_filename('sn2_TS.out')
 
-    ts.hessian = calc.get_hessian()
     assert np.isclose(ts.imaginary_frequencies[0],
                       Frequency(-552.64, units='cm-1'), atol=1.0)
 

@@ -42,8 +42,8 @@ def _est_energy_gradient(image, est_method, n_cores):
     @work_in(image.name)
     def run():
         calc.run()
-        image.grad = calc.get_gradients().flatten()
-        image.energy = calc.get_energy()
+        image.grad = image.species.gradient.flatten()
+        image.energy = image.species.energy
         return None
 
     run()

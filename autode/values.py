@@ -40,18 +40,20 @@ def _to(value: Union['Value', 'ValueArray'],
         raise TypeError(f'No viable unit conversion from {value.units} '
                         f'-> {units}')
 
-    #                      Convert to the base unit, then to the new units
+    # Convert to the base unit, then to the new units
+    c = float(units.conversion / value.units.conversion)
+
     if isinstance(value, Value):
-        raw_value = float(value)
+        return value.__class__(float(value) * c, units=units)
+
     elif isinstance(value, ValueArray):
-        raw_value = np.array(value)
+        value[:] = np.array(value, copy=True) * c
+        value.units = units
+        return value
+
     else:
         raise ValueError(f'Cannot convert {value} to new units. Must be one of'
                          f' Value of ValueArray')
-
-    return value.__class__(raw_value * float(units.conversion
-                                             / value.units.conversion),
-                           units=units)
 
 
 def _units_init(value,
@@ -564,7 +566,7 @@ class ValueArray(ABC, np.ndarray):
             (autode.values.ValueArray):
         """
 
-        arr = np.asarray(input_array).view(cls)
+        arr = np.array(input_array, copy=True).view(cls)
 
         if isinstance(input_array, ValueArray) and units is None:
             arr.units = input_array.units

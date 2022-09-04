@@ -504,8 +504,7 @@ class NumericalHessianCalculator:
                            keywords=self._keywords,
                            n_cores=self._n_cores_pp)
         calc.run()
-
-        return calc.get_gradients().flatten()
+        return species.gradient.flatten()
 
     @property
     def _init_gradient(self) -> 'autode.values.Gradient':

@@ -194,6 +194,17 @@ class ExternalMethod(Method, ABC):
         *must* be in the same order as they were specified
         """
 
+    def atoms_from(self,
+                   calc: "CalculationExecutor"
+                   ) -> "Atoms":
+        """
+        Extract the atoms from a completed calculation
+        """
+
+        atoms = calc.molecule.atoms.copy()
+        atoms.coordinates = self.coordinates_from(calc)
+        return atoms
+
     @abstractmethod
     def partial_charges_from(self,
                              calc: "CalculationExecutor"

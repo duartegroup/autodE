@@ -151,7 +151,7 @@ class CalculationExecutor:
             self.molecule.hessian = self.method.hessian_from(self)
         else:  # Try to set hessian anyway
             self._no_except_set_hessian()
-          
+
         try:
             self.molecule.partial_charges = self.method.partial_charges_from(self)
         except (ValueError, IndexError, ex.AutodeException):

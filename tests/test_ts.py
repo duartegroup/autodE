@@ -1,8 +1,4 @@
-import numpy as np
-
-
 from typing import List
-
 from autode.atoms import Atom
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.ts_guess import TSguess
@@ -13,16 +9,19 @@ from autode.transition_states.transition_state import TransitionState
 from autode.input_output import xyz_file_to_atoms
 from autode.species.molecule import Reactant, Product
 from autode.species.complex import ReactantComplex, ProductComplex
+from autode.opt.optimisers.base import ExternalOptimiser
 from autode.config import Config
-from autode.wrappers.keywords import SinglePointKeywords, KeywordsSet
+from autode.wrappers.keywords import SinglePointKeywords, KeywordsSet, OptKeywords
 from autode.calculations import Calculation
-from autode.wrappers.methods import Method
+from autode.wrappers.methods import ExternalMethod
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.keywords.implicit_solvent_types import cpcm
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.transition_states.base import displaced_species_along_mode
 from autode.wrappers.G09 import G09
 from autode.utils import work_in_tmp_dir
+from autode.hessians import Hessian
+from autode.values import Coordinates, Gradient, PotentialEnergy
 from . import testutils
 import pytest
 import os
@@ -320,15 +319,18 @@ def test_truncated_ts():
     assert reaction.ts is not None
 
 
-class TestMethod(Method):
+class TestMethod(ExternalMethod):
 
     __test__ = False
 
     def __init__(self):
-        super().__init__(implicit_solvation_type=None,
-                         keywords_set=KeywordsSet(),
-                         name='test',
-                         path=None)
+        super().__init__(keywords_set=KeywordsSet(),
+                         executable_name='test',
+                         doi_list=[],
+                         implicit_solvation_type=None)
+
+    def implements(self, calculation_type) -> bool:
+        return True
 
     def __repr__(self):
         return ''
@@ -336,63 +338,80 @@ class TestMethod(Method):
     def generate_input(self, calc, molecule):
         pass
 
-    def get_output_filename(self, calc) -> str:
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
         with open('tmp_output', 'w') as file:
             print('tmp', file=file)
         return 'tmp_output'
 
-    def get_input_filename(self, calc) -> str:
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
         with open('tmp_input', 'w') as file:
             print('tmp', file=file)
         return 'tmp_input'
 
-    def get_version(self, calc) -> str:
+    def optimiser_from(self,
+                       calc: "CalculationExecutor") -> "autode.opt.optimisers.base.BaseOptimiser":
         pass
 
-    def execute(self, calc) -> None:
+    def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
+        return PotentialEnergy(0.0)
+
+    def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
         pass
 
-    def calculation_terminated_normally(self, calc) -> bool:
+    def hessian_from(self,
+                     calc: "autode.calculations.executors.CalculationExecutor") -> Hessian:
         pass
 
-    def optimisation_converged(self, calc) -> bool:
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
+        return calc.molecule.coordinates
+
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
         pass
 
-    def optimisation_nearly_converged(self, calc) -> bool:
-        return False
+    def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
+        return True
 
-    def get_final_atoms(self, calc) -> List:
-        return calc.molecule.atoms
-
-    def get_atomic_charges(self, calc) -> List:
+    def version_in(self, calc: "CalculationExecutor") -> str:
         pass
 
-    def get_energy(self, calc) -> float:
+    def generate_input_for(self, calc: "CalculationExecutor") -> None:
         pass
 
-    def get_gradients(self, calc) -> np.ndarray:
-        pass
 
-    def get_hessian(self, calc) -> np.ndarray:
-        pass
+class _OptimiserConverged(ExternalOptimiser):
+
+    @property
+    def last_energy_change(self) -> PotentialEnergy:
+        return PotentialEnergy(0.0)
+
+    @property
+    def converged(self) -> bool:
+        return True
 
 
 class TestMethodConvergedNotNearly(TestMethod):
 
-    def optimisation_converged(self, calc) -> bool:
-        return True
+    def optimiser_from(self, calc: "CalculationExecutor"):
+        return _OptimiserConverged()
 
-    def optimisation_nearly_converged(self, calc) -> bool:
+
+class _OptimiserNearlyConverged(ExternalOptimiser):
+
+    @property
+    def last_energy_change(self) -> PotentialEnergy:
+        return PotentialEnergy(0.001, units="kcal mol-1")
+
+    @property
+    def converged(self) -> bool:
         return False
 
 
 class TestMethodNearlyConverged(TestMethod):
 
-    def optimisation_nearly_converged(self, calc) -> bool:
-        return True
-
-    def optimisation_converged(self, calc) -> bool:
-        return False
+    def optimiser_from(self, calc: "CalculationExecutor"):
+        return _OptimiserNearlyConverged()
 
 
 class TestTSCorrectMode(TransitionState):
@@ -443,12 +462,16 @@ def test_ts_reoptimise():
 
     # but with one that has nearly converged and has the correct mode
     nearly_conv_method = TestMethodNearlyConverged()
-    assert nearly_conv_method.optimisation_nearly_converged(calc)
-    assert not nearly_conv_method.optimisation_converged(calc)
     assert _ts.has_correct_imag_mode
 
     # then the new calculation should "run"
-    calc.method = nearly_conv_method
+    calc = Calculation(name='tmp',
+                       molecule=_ts,
+                       method=nearly_conv_method,
+                       keywords=OptKeywords())
+    calc.run()
+    assert calc.optimisation_nearly_converged()
+
     new_calc = _ts._reoptimise(calc, name_ext='tmp', method=nearly_conv_method)
     assert id(calc) != id(new_calc)
 

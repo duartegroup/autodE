@@ -19,7 +19,7 @@ def test_hshift_displacement():
                        molecule=reac,
                        method=orca,
                        keywords=orca.keywords.opt_ts)
-    calc.output.filename = 'TS_hshift.out'
+    calc.set_output_filename('TS_hshift.out')
 
     assert calc.terminated_normally
     ts = Molecule(atoms=calc.get_final_atoms())

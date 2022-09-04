@@ -310,6 +310,7 @@ class Species(AtomCollection):
     def hessian(self,
                 value: Union[Hessian, np.ndarray, None]):
         """Set the Hessian matrix as a Hessian value"""
+        logger.info("Setting hessian")
 
         required_shape = (3*self.n_atoms, 3*self.n_atoms)
 

@@ -649,10 +649,8 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             raise CouldNotGetProperty('Not enough elements of the Hessian '
                                       'matrix found')
 
-        atoms = calc.molecule.atoms.copy()
-        atoms.coordinates = self.coordinates_from(calc)
         return Hessian(symm_matrix_from_ltril(hess_values),
-                       atoms=atoms,
+                       atoms=self.atoms_from(calc),
                        functional=calc.input.keywords.functional,
                        units="Ha a0^-2").to("Ha Å^-2")
 

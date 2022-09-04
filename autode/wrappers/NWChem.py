@@ -385,10 +385,8 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         mass_arr = np.repeat(atom_masses,  repeats=3, axis=np.newaxis) * 1E-3
         hess *= np.sqrt(np.outer(mass_arr, mass_arr))
 
-        atoms = calc.molecule.atoms.copy()
-        atoms.coordinates = self.coordinates_from(calc)
         return Hessian(hess,
-                       atoms=atoms,
+                       atoms=self.atoms_from(calc),
                        functional=calc.input.keywords.functional,
                        units="Ha a0^-2").to("Ha Å^-2")
 
