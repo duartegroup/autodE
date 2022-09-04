@@ -207,10 +207,12 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
                                calc: "CalculationExecutor"
                                ) -> bool:
 
-        termination_strings = ['ORCA TERMINATED NORMALLY',
+        termination_strings = ['$end',  # at the end of a .hess file
+                               'ORCA TERMINATED NORMALLY',
                                'The optimization did not converge']
 
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
+            print(line)
 
             if any(substring in line for substring in termination_strings):
                 logger.info('orca terminated normally')
@@ -226,6 +228,10 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
     def _energy_from(self,
                      calc: "CalculationExecutor"
                      ) -> PotentialEnergy:
+
+        if calc.output.filename.endswith(".hess"):
+            logger.warning("Failed to set the potential energy")
+            return PotentialEnergy(0.0)
 
         for line in reversed(calc.output.file_lines):
             if 'FINAL SINGLE POINT ENERGY' in line:

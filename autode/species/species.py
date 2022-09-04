@@ -832,10 +832,6 @@ class Species(AtomCollection):
             calc = self._default_hessian_calculation(**kwargs)
 
         calc.run()
-
-        self.energy = calc.get_energy()
-        self.hessian = calc.get_hessian()
-
         return None
 
     @requires_conformers
@@ -1161,16 +1157,9 @@ class Species(AtomCollection):
                                  f'be one of: {[m for m in LFMethod]}')
 
         if calc is not None and calc.output.exists:
-            self.atoms = calc.get_final_atoms()
-            self.hessian = calc.get_hessian()
-
-            try:
-                self.energy = calc.get_energy()
-
-            except CalculationException:
-                logger.warning(f'Failed to get the potential energy from '
-                               f'{calc.name} but not essential for thermo'
-                               f'chemical calculation')
+            self.energy = calc.molecule.energy
+            self.atoms = calc.molecule.atoms.copy()
+            self.hessian = calc.molecule.hessian
 
         elif self.hessian is None or (calc is not None and not calc.output.exists):
             logger.info('Calculation did not exist or Hessian was None - '
