@@ -135,11 +135,7 @@ def test_reaction_warnings():
     orca = ORCA()
     ts_calc = Calculation(name='TS', molecule=ts, method=orca,
                           keywords=orca.keywords.opt_ts)
-    ts_calc.is_available = 'TS.out'
-    ts.atoms = ts_calc.get_final_atoms()
-    ts.hessian = ts_calc.get_hessian()
-    ts.energy = ts_calc.get_energy()
-
+    ts_calc.set_output_filename( 'TS.out')
     reaction.ts = ts
     warnings = plotting.get_reaction_profile_warnings(reactions=[reaction])
     assert 'None' in warnings

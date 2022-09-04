@@ -68,11 +68,12 @@ def test_moi():
 def test_gradients():
 
     # Default gradient units are Ha Å^-1
-    gradients = Gradient(np.arange(2, dtype='f8'))
+    gradients = Gradient(np.arange(3, dtype='f8'))
     assert gradients.units == ha_per_ang
     assert 'grad' in repr(gradients).lower()
 
     gradients_ha_a0 = gradients.to(ha_per_a0)
 
     # Energy per bohr is smaller than per angstrom..
-    assert all(g1 - g2 <= 0 for g1, g2 in zip(gradients_ha_a0, gradients))
+    assert all(g1 - g2 <= 0 for g1, g2 in zip(gradients_ha_a0.flatten(),
+                                              gradients.flatten()))

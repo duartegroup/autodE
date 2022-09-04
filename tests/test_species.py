@@ -390,11 +390,11 @@ def test_thermal_cont_without_hess_run():
 
     # Calculating the free energy contribution without a correct Hessian
 
-    with pytest.raises(CalculationException):
+    with pytest.raises(Exception):
         mol.calc_g_cont(calc=calc)
 
     # and similarly with the enthalpic contribution
-    with pytest.raises(CalculationException):
+    with pytest.raises(Exception):
         mol.calc_h_cont(calc=calc)
 
 
