@@ -207,10 +207,11 @@ class Species(AtomCollection):
         # energies do not need to be changed
         if (self.n_atoms == len(value)
             and all(a.label == v.label for a, v in zip(self.atoms, value))):
-
             self.coordinates = np.array([v.coord for v in value])
+
         else:
             self._atoms = Atoms(value)
+            self._clear_energies_gradient_hessian()
 
         return
 
@@ -229,13 +230,17 @@ class Species(AtomCollection):
         rmsd = calc_rmsd(coords1=np.asarray(value).reshape((-1, 3)),  # N x 3
                          coords2=self.coordinates)
         if rmsd > 1E-8:
-            logger.info(f'Geometry changed- resetting energies of {self.name}')
-            self.energies.clear()
-            self.gradient = None
-            self.hessian = None
+            self._clear_energies_gradient_hessian()
 
         self._atoms.coordinates = value
         return
+
+    def _clear_energies_gradient_hessian(self) -> None:
+        logger.info(f'Geometry changed- resetting energies of {self.name}')
+        self.energies.clear()
+        self.gradient = None
+        self.hessian = None
+        return None
 
     @property
     def graph(self) -> Optional[MolecularGraph]:

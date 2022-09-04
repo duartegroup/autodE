@@ -139,7 +139,7 @@ def get_defined_method(name, possibilities) -> "autode.wrappers.methods.Method":
                 err_str = (f'Electronic structure method *{name}* is not '
                            f'available. Check that {method.name} exists in a '
                            f'directory present in $PATH, or set '
-                           f'ade.Config.{method.__name__}.path')
+                           f'ade.Config.{method.__class__.__name__}.path')
 
                 raise MethodUnavailable(err_str)
 

@@ -497,9 +497,9 @@ class NDOptimiser(Optimiser, ABC):
                       f"E = {energy} Ha" + (title_str if i == 0 else ""),
                       sep="\n", file=file)
 
-                for i, symbol in enumerate(atomic_symbols):
-                    x, y, z = cart_coords[i]
-                    dedx, dedy, dedz = gradient[i]
+                for j, symbol in enumerate(atomic_symbols):
+                    x, y, z = cart_coords[j]
+                    dedx, dedy, dedz = gradient[j]
 
                     print(f"{symbol:<3}{x:10.5f}{y:10.5f}{z:10.5f}"
                           f"{dedx:15.5f}{dedy:10.5f}{dedz:10.5f}",

@@ -520,14 +520,6 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
                          calc: "CalculationExecutor"
                          ) -> Optional[Coordinates]:
         """Get the final set of coordinates from a G09 output"""
-
-        init_atoms = calc.molecule.atoms
-
-        if isinstance(calc.input.keywords, kws.HessianKeywords):
-            logger.info('Hessian calculation performed. Expecting atoms to '
-                        'have identical positions')
-            return init_atoms
-
         coords = []
 
         for i, line in enumerate(calc.output.file_lines):
@@ -657,6 +649,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             raise CouldNotGetProperty('Not enough elements of the Hessian '
                                       'matrix found')
 
+        calc.molecule.coordinates = self.coordinates_from(calc)
         return Hessian(symm_matrix_from_ltril(hess_values),
                        atoms=calc.molecule.atoms,
                        functional=calc.input.keywords.functional,

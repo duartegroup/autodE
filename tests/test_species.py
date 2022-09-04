@@ -164,26 +164,32 @@ def test_species_xyz_file():
 
 
 def test_species_translate():
-    mol_copy = deepcopy(mol)
-    mol_copy.translate(vec=np.array([0.0, 0.0, -1.0]))
 
-    assert np.linalg.norm(mol_copy.atoms[0].coord - np.array([0.0, 0.0, -1.0])) < 1E-9
-    assert np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, 0.0])) < 1E-9
+    m = Species(name='H2', atoms=[Atom('H'), Atom('H', z=1.0)], charge=0, mult=1)
+    m.translate(vec=np.array([0.0, 0.0, -1.0]))
+
+    expected = np.array([[0., 0., -1.],
+                         [0., 0., 0.]])
+
+    assert np.allclose(m.atoms[0].coord, expected[0, :])
+    assert np.allclose(m.atoms[1].coord, expected[1, :])
+    assert np.allclose(m.coordinates, expected)
 
     # Centering should move the middle of the molecule to the origin
-    mol_copy.centre()
-    assert np.allclose(np.average(mol_copy.coordinates, axis=0),
+    m.centre()
+    assert np.allclose(np.average(m.coordinates, axis=0),
                        np.zeros(3),
                        atol=1E-4)
 
 
 def test_species_rotate():
-    mol_copy = deepcopy(mol)
-    # Rotation about the y axis 180 degrees (π radians)
-    mol_copy.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
 
-    assert np.linalg.norm(mol_copy.atoms[0].coord - np.array([0.0, 0.0, 0.0])) < 1E-9
-    assert np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, -1.0])) < 1E-9
+    m = Species(name='H2', atoms=[Atom('H'), Atom('H', z=1.0)], charge=0, mult=1)
+    # Rotation about the y axis 180 degrees (π radians)
+    m.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
+
+    assert np.linalg.norm(m.atoms[0].coord - np.array([0.0, 0.0, 0.0])) < 1E-9
+    assert np.linalg.norm(m.atoms[1].coord - np.array([0.0, 0.0, -1.0])) < 1E-9
 
 
 def test_get_coordinates():

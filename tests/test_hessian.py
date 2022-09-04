@@ -317,9 +317,12 @@ def test_gaussian_hessian_extract_co2():
 
     calc.output.filename = 'CO2_opt_hess_g09.log'
     co2.hessian = calc.get_hessian()
+    print(co2.hessian.atoms)
 
     assert all(np.isclose(freq, Frequency(0, units='cm-1'), atol=10) for freq
                in co2.hessian.frequencies[:5])
+
+    print(co2.hessian.frequencies_proj)
 
     assert all(freq == 0.0 for freq in co2.hessian.frequencies_proj[:5])
 
@@ -415,14 +418,12 @@ def test_extract_wrong_molecule_hessian():
     calc = Calculation(name='tmp',
                        molecule=ade.Molecule(smiles='[H]'),
                        method=ade.methods.G09(),
-                       keywords=ade.SinglePointKeywords([]))
-
-    calc.output.filename = 'CO2_opt_hess_g09.log'
+                       keywords=ade.HessianKeywords([]))
 
     # Should raise an exception if the Hessian extracted is not 3Nx3N for
     # N atoms (1 here)
     with pytest.raises(CalculationException):
-        _ = calc.get_hessian()
+        calc.set_output_filename('CO2_opt_hess_g09.log')
 
 
 def test_num_hess_invalid_input():
