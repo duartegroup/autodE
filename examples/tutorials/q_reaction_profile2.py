@@ -3,7 +3,7 @@ import autode as ade
 ade.Config.n_cores = 8
 ade.Config.hcode = 'orca'
 
-if not ade.methods.ORCA().available:
+if not ade.methods.ORCA().is_available:
     exit('This example requires an ORCA install')
 
 # Use a basis set with diffuse functions this reaction

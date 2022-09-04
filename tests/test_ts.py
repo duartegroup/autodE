@@ -104,7 +104,7 @@ def test_links_reacs_prods():
     Config.num_complex_random_rotations = 1
 
     method.path = here
-    assert method.available
+    assert method.is_available
 
     tsguess._run_hess_calculation(method=method)
     assert tsguess.imag_mode_links_reactant_products()

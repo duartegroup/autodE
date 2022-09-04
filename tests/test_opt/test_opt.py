@@ -205,7 +205,6 @@ def test_xtb_h2_dic_opt():
     assert np.isclose(mol.distance(0, 1), 0.77, atol=0.1)
 
 
-
 class HarmonicPotentialOptimiser(CartesianSDOptimiser):
 
     def _update_gradient_and_energy(self):
@@ -222,16 +221,16 @@ def test_callback_function():
     mol = h2()
 
     def func(coords, m=None):
-        m.print_xyz_file(filname="tmp.xyz")
-        assert os.pathe.exists("tmp.xyz")
-        
-    
-    optimiser = HarmonicPotentialOptimiser(maxiter=1,
-                     callback=func,
-                     callback_kwargs={"m": mol},
-                     gtol=GradientRMS(0.1),
-                     etol=PotentialEnergy(0.1))
+        m.print_xyz_file(filename="tmp.xyz")
+        assert os.path.exists("tmp.xyz")
 
+    optimiser = HarmonicPotentialOptimiser(
+        maxiter=1,
+        callback=func,
+        callback_kwargs={"m": mol},
+        gtol=GradientRMS(0.1),
+        etol=PotentialEnergy(0.1)
+    )
 
     optimiser.run(species=mol, method=Method())
 

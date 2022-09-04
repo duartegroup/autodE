@@ -538,7 +538,7 @@ def test_partial_num_hess_init():
 
     orca = ORCA()
     orca.path = here   # spoof ORCA install
-    assert orca.available
+    assert orca.is_available
 
     for invalid_idx in (-1, 3, 'a'):
         with pytest.raises(ValueError):
@@ -577,7 +577,7 @@ def test_partial_water_num_hess():
 
     orca = ORCA()
     orca.path = here   # spoof ORCA install
-    assert orca.available
+    assert orca.is_available
 
     water = Molecule(name='water_partial_num_hess', charge=0, mult=1,
                      atoms=[Atom('O', -0.00110,  0.36310, -0.00000),
