@@ -295,6 +295,10 @@ class Optimiser(BaseOptimiser, ABC):
 
         return PotentialEnergy(np.inf)
 
+    @property
+    def final_coordinates(self) -> Optional['autode.opt.OptCoordinates']:
+        return None if len(self._history) == 0 else self._history.final
+
     def _log_convergence(self) -> None:
         """Log the iterations in the form:
         Iteration   |∆E| / kcal mol-1    ||∇E|| / Ha Å-1
@@ -430,7 +434,6 @@ class NDOptimiser(Optimiser, ABC):
 
             method (autode.methods.Method):
 
-        Keyword Arguments
             maxiter (int): Maximum number of iteration to perform
 
             gtol (float | autode.values.GradientNorm): Tolerance on RMS(|∇E|)
@@ -470,6 +473,77 @@ class NDOptimiser(Optimiser, ABC):
             return True
 
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
+
+    def save(self, filename: str) -> None:
+        """
+        Save the entire state of the optimiser to a file
+        """
+        atomic_symbols = self._species.atomic_symbols
+        title_str = (f" etol = {self.etol.to('Ha')} Ha"
+                     f" gtol = {self.gtol.to('Ha Å^-1')} Ha Å^-1"
+                     f" maxiter = {self._maxiter}")
+
+        for i, coordinates in enumerate(self._history):
+
+            energy = coordinates.e
+            cart_coords = coordinates.to("cartesian").reshape((-1, 3))
+            gradient = cart_coords.g.reshape((-1, 3))
+
+            n_atoms = len(atomic_symbols)
+            assert n_atoms == len(cart_coords) == len(gradient)
+
+            with open(filename, "a") as file:
+                print(n_atoms,
+                      f"E = {energy} Ha" + (title_str if i == 0 else ""),
+                      sep="\n", file=file)
+
+                for i, symbol in enumerate(atomic_symbols):
+                    x, y, z = cart_coords[i]
+                    dedx, dedy, dedz = gradient[i]
+
+                    print(f"{symbol:<3}{x:10.5f}{y:10.5f}{z:10.5f}"
+                          f"{dedx:15.5f}{dedy:10.5f}{dedz:10.5f}",
+                          file=file)
+        return None
+
+    @classmethod
+    def from_file(cls, filename: str) -> "NDOptimiser":
+        """
+        Create an optimiser from a file i.e. reload a saved state
+        """
+        from autode.opt.coordinates.cartesian import CartesianCoordinates
+
+        lines = open(filename, "r").readlines()
+        n_atoms = int(lines[0].split()[0])
+
+        line = lines[1]
+        optimiser = cls(maxiter=int(cls._value_after_in("maxiter", line)),
+                        gtol=GradientRMS(cls._value_after_in("gtol", line)),
+                        etol=PotentialEnergy(cls._value_after_in("etol", line)))
+
+        for i in range(0, len(lines), n_atoms+2):
+            raw_coordinates = np.zeros(shape=(n_atoms, 3))
+            gradient = np.zeros(shape=(n_atoms, 3))
+
+            for j, line in enumerate(lines[i+2:i+n_atoms+2]):
+                _, x, y, z, dedx, dedy, dedz = line.split()
+                raw_coordinates[j, :] = [float(x), float(y), float(z)]
+                gradient[j, :] = [float(dedx), float(dedy), float(dedz)]
+
+            coords = CartesianCoordinates(raw_coordinates)
+            coords.e = cls._value_after_in("E", lines[i+1])
+            coords.g = gradient.flatten()
+
+            optimiser._history.append(coords)
+
+        return optimiser
+
+    @staticmethod
+    def _value_after_in(key: str, string: str) -> float:
+        try:
+            return float(string.split(f"{key} = ")[1].split()[0])
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Failed to extract {key} from title line") from e
 
     @property
     def _abs_delta_e(self) -> PotentialEnergy:

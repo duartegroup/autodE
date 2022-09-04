@@ -6,7 +6,6 @@ implements
 import os
 import hashlib
 import base64
-import numpy as np
 import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
@@ -20,6 +19,7 @@ from autode.point_charges import PointCharge
 from autode.opt.optimisers.base import NullOptimiser
 from autode.calculations.input import CalculationInput
 from autode.calculations.output import CalculationOutput, BlankCalculationOutput
+from autode.values import PotentialEnergy, GradientRMS
 
 
 class CalculationExecutor:
@@ -290,33 +290,34 @@ class CalculationExecutorO(CalculationExecutor):
         super().__init__(*args, **kwargs)
 
         self.output = BlankCalculationOutput()
+        self.etol = PotentialEnergy(3E-5, units="Ha")
+        self.gtol = GradientRMS(1E-3, units="Ha Å^-1")  # TODO: A better number here
 
     def run(self) -> None:
         """Run an optimisation with using default autodE optimisers"""
-
         from autode.opt.optimisers.crfo import CRFOptimiser
         from autode.opt.optimisers.prfo import PRFOptimiser
 
         if self._opt_trajectory_exists:
-            return self._set_properties_from_file()
+            self.optimiser = CRFOptimiser.from_file(self._opt_trajectory_name)
+            return self._set_properties_from_optimiser()
 
         type_ = PRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
 
-        self.method.optimiser = type_(
+        self.optimiser = type_(
             init_alpha=0.1,
             maxiter=self._max_opt_cycles,
-            etol=3E-5,
-            gtol=1E-3,  # TODO: A better number here
-            callback=self._append_to_file,
-            callback_kwargs={"atomic_symbols": self.molecule.atomic_symbols,
-                             "filename": self._opt_trajectory_name}
+            etol=self.etol,
+            gtol=self.gtol,
         )
         method = self.method.copy()
         method.keywords.grad = self.input.keywords
 
-        self.method.optimiser.run(species=self.molecule,
+        self.optimiser.run(species=self.molecule,
                                   method=method,
                                   n_cores=self.n_cores)
+
+        self.optimiser.save(self._opt_trajectory_name)
         return None
 
     @property
@@ -361,33 +362,6 @@ class CalculationExecutorO(CalculationExecutor):
         return os.path.exists(self._opt_trajectory_name)
 
     @staticmethod
-    def _append_to_file(coordinates:   "OptCoordinates",
-                        atomic_symbols: Optional[List[str]] = None,
-                        filename:       Optional[str] = None
-                        ) -> None:
-        """Append a set of positions and the accompanying gradient to a file"""
-        logger.info("Appending current optimisation coordinates to file")
-
-        energy = coordinates.e
-        cart_coords = coordinates.to("cartesian").reshape((-1, 3))
-        gradient = cart_coords.g.reshape((-1, 3))
-
-        n_atoms = len(atomic_symbols)
-        assert n_atoms == len(cart_coords) == len(gradient)
-
-        with open(filename, "a") as file:
-            print(n_atoms, f"E = {energy} Ha", sep="\n", file=file)
-
-            for i, symbol in enumerate(atomic_symbols):
-                x, y, z = cart_coords[i]
-                dedx, dedy, dedz = gradient[i]
-
-                print(f"{symbol:<3}{x:10.5f}{y:10.5f}{z:10.5f}"
-                      f"{dedx:15.5f}{dedy:10.5f}{dedz:10.5f}",
-                      file=file)
-        return None
-
-    @staticmethod
     def _energy_from_string(string: str) -> Optional[float]:
         """For a string e.g. 'E = -0.3256 Ha' then extract -0.3256"""
         try:
@@ -396,30 +370,16 @@ class CalculationExecutorO(CalculationExecutor):
             logger.warning(f"Failed to extract energy from title line")
             return None
 
-    def _set_properties_from_file(self) -> None:
+    def _set_properties_from_optimiser(self) -> None:
         """Set the properties from the trajectory file, that must exist"""
         logger.info("Setting optimised coordinates, gradient and energy from "
-                    "file")
+                    "the reloaded optimiser state")
 
-        n_atoms = self.molecule.n_atoms
-        n_extra_lines = 2   # Number of atoms line and title line
-        n = n_atoms + n_extra_lines
-        lines = open(self._opt_trajectory_name, "r").readlines()
-        start_line_n = (len(lines) // n - 1) * n
+        final_coords = self.optimiser.final_coordinates
 
-        gradient = np.zeros(shape=(n_atoms, 3))
-        coordinates = np.zeros(shape=(n_atoms, 3))
-
-        for i, line in enumerate(lines[start_line_n+2:]):
-
-            symbol, x, y, z, dedx, dedy, dedz = line.split()
-            assert symbol == self.molecule.atoms[i].label
-            coordinates[i, :] = [float(x), float(y), float(z)]
-            gradient[i, :] = [float(dedx), float(dedy), float(dedz)]
-
-        self.molecule.coordinates = coordinates
-        self.molecule.gradient = gradient
-        self.molecule.energy = self._energy_from_string(lines[start_line_n+1])
+        self.molecule.coordinates = final_coords.reshape((-1, 3))
+        self.molecule.gradient = final_coords.g.reshape((-1, 3))
+        self.molecule.energy = final_coords.e
         return None
 
 

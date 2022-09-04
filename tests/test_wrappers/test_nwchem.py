@@ -22,7 +22,7 @@ opt_keywords = OptKeywords(['basis\n  *   library Def2-SVP\nend',
                             'task dft gradient'])
 
 
-# @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_opt_calc():
 
     calc = Calculation(name='opt', molecule=test_mol, method=method,
@@ -38,8 +38,7 @@ def test_opt_calc():
     assert calc.optimisation_nearly_converged() is False
 
     # No Hessian is computed for an optimisation calculation
-    with pytest.raises(CouldNotGetProperty):
-        _ = calc.get_hessian()
+    assert calc.get_hessian() is None
 
     # Optimisation should result in small gradients
     gradients = calc.get_gradients()
