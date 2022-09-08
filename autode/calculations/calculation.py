@@ -188,11 +188,9 @@ class Calculation:
         Raises:
             (ValueError | SolventUnavailable | NoInputError):
         """
+        from autode.species.species import Species
 
-        for attr in ('n_atoms', 'atoms', 'mult', 'charge', 'solvent'):
-            if not hasattr(self.molecule, attr):
-                raise ValueError(f'Molecule {self.molecule} must have '
-                                 f'{attr} but was not present')
+        assert isinstance(self.molecule, Species)
 
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             raise ex.NoInputError('Have no atoms. Can\'t form a calculation')
@@ -202,6 +200,8 @@ class Calculation:
     def _add_to_comp_methods(self) -> None:
         """Add the methods used in this calculation to the used methods list"""
         from autode.log.methods import methods
+        if not self.output.exists:
+            return None
 
         methods.add(f'Calculations were performed using {self.method.name} v. '
                     f'{self.method.version_in(self)} '

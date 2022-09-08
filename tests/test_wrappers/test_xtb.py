@@ -1,13 +1,21 @@
+from typing import List
+
 import numpy as np
 import os
 import pytest
+
+from autode.utils import work_in_tmp_dir
 from autode.atoms import Atom
 from autode.wrappers.XTB import XTB
 from autode.calculations import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
-from autode.exceptions import AtomsNotFound, CalculationException
+from autode.exceptions import CalculationException
+from autode.wrappers.methods import ExternalMethodEGH
+from autode.wrappers.keywords import OptKeywords
 from autode.config import Config
+from autode.hessians import Hessian
+from autode.values import Coordinates, Gradient, PotentialEnergy
 from .. import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -177,3 +185,67 @@ def test_xtb_6_1_old():
 
         assert set([atom.label for atom in mol.atoms]) == {'C', 'H'}
         assert 0.9 < mol.distance(0, 1) < 1.2
+
+
+class XTBautodEOpt(ExternalMethodEGH, XTB):
+
+    __test__ = False
+
+    def __init__(self):
+        ExternalMethodEGH.__init__(
+            self,
+            executable_name="xtb",
+            doi_list=[],
+            implicit_solvation_type=None,
+            keywords_set=XTB().keywords
+        )
+
+    def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
+        return XTB._energy_from(self, calc)
+
+    def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
+        return XTB.gradient_from(self, calc)
+
+    def hessian_from(self,
+                     calc: "autode.calculations.executors.CalculationExecutor") -> Hessian:
+        pass
+
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
+        pass
+
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
+        pass
+
+    def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
+        return True
+
+    def version_in(self, calc: "CalculationExecutor") -> str:
+        pass
+
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
+        return XTB.input_filename_for(calc)
+
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
+        return XTB.output_filename_for(calc)
+
+    def generate_input_for(self, calc: "CalculationExecutor") -> None:
+        return XTB.generate_input_for(self, calc)
+
+    def __repr__(self):
+        return XTB.__repr__(self)
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_with_autode_opt_method():
+
+    mol = Molecule(smiles="C")
+    calc = Calculation(name="methane",
+                       molecule=mol,
+                       method=XTBautodEOpt(),
+                       keywords=OptKeywords())
+    calc.run()
+
+    assert calc.optimiser.converged

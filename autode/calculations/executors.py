@@ -40,7 +40,7 @@ class CalculationExecutor:
         self.optimiser = NullOptimiser()
         self.n_cores = int(n_cores)
 
-        self.input = CalculationInput(keywords=keywords.copy(),
+        self.input = CalculationInput(keywords=keywords,
                                       added_internals=_active_bonds(molecule),
                                       point_charges=point_charges)
         self.output = CalculationOutput()
@@ -314,8 +314,8 @@ class CalculationExecutorO(CalculationExecutor):
         method.keywords.grad = self.input.keywords
 
         self.optimiser.run(species=self.molecule,
-                                  method=method,
-                                  n_cores=self.n_cores)
+                           method=method,
+                           n_cores=self.n_cores)
 
         self.optimiser.save(self._opt_trajectory_name)
         return None
@@ -400,7 +400,7 @@ class CalculationExecutorH(CalculationExecutor):
         from autode.hessians import NumericalHessianCalculator
 
         nhc = NumericalHessianCalculator(
-            self,
+            species=self.molecule,
             method=self.method,
             keywords=kws.GradientKeywords(self.input.keywords.tolist()),
             do_c_diff=False,
@@ -409,6 +409,18 @@ class CalculationExecutorH(CalculationExecutor):
         )
         nhc.calculate()
         self.molecule.hessian = nhc.hessian
+
+    @property
+    def terminated_normally(self) -> bool:
+        """
+        This calculation executor terminated normally if the Hessian exists and
+        did not raise any exceptions along the way
+
+        -----------------------------------------------------------------------
+        Returns:
+            (bool):
+        """
+        return self.molecule.hessian is not None
 
 
 def _string_without_leading_hyphen(s: str) -> str:

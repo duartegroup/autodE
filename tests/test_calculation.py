@@ -2,9 +2,10 @@ from autode.calculations import Calculation, CalculationOutput
 from autode.calculations.executors import CalculationExecutor
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
-from autode.wrappers.keywords import SinglePointKeywords
+from autode.wrappers.keywords import SinglePointKeywords, HessianKeywords
 from autode.wrappers.keywords.functionals import Functional
 from autode.utils import run_external
+from autode.atoms import Atom
 from autode.methods import XTB, ORCA
 from autode.species import Molecule
 from autode.config import Config
@@ -12,9 +13,11 @@ import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
 from .testutils import requires_with_working_xtb_install
 from copy import deepcopy
+import numpy as np
 import pytest
 import os
 import sys
+
 
 test_mol = Molecule(smiles='O', name='test_mol')
 
@@ -336,3 +339,47 @@ def test_calculations_have_unique_names():
     # mol.single_point(method=xtb)  # Calculation should be rerun
     # cation_energy = mol.energy
     # assert cation_energy > neutral_energy
+
+
+@requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_numerical_hessian_evaluation():
+
+    h2 = Molecule(atoms=[Atom("H"), Atom("H", x=1.0)])
+    calc = Calculation(name="h2_hess",
+                       molecule=h2,
+                       method=XTB(),
+                       keywords=HessianKeywords())
+    calc.run()
+
+    assert h2.hessian is not None
+    assert h2.hessian.shape == (6, 6)
+    assert np.allclose(h2.hessian, h2.hessian.T)
+
+    orca_anal_hess = np.array([
+        [ 7.2267E-02, -1.6028E-11,  1.1456E-12, -7.2267E-02,  1.6078E-11, -1.0933E-12],
+        [-1.6027E-11,  4.4978E-02, -7.0964E-12,  1.6039E-11, -4.4978E-02,  7.0964E-12],
+        [ 1.6868E-12, -7.0964E-12,  4.4978E-02, -1.6754E-12,  7.0964E-12, -4.4978E-02],
+        [-7.2267E-02, -3.4360E-12,  2.9458E-11,  7.2267E-02,  3.4061E-12, -2.9411E-11],
+        [-4.9340E-12, -4.4978E-02, -1.0574E-12,  4.9333E-12,  4.4978E-02,  1.0574E-12],
+        [ 3.1763E-11, -1.0574E-12, -4.4978E-02, -3.1762E-11,  1.0575E-12,  4.4978E-02],
+    ])
+
+    def ms(x):
+        return np.mean(np.square(x))
+
+    assert (ms(orca_anal_hess - h2.hessian)
+            / (max((ms(orca_anal_hess), ms(h2.hessian))))) < 0.5
+
+
+@work_in_tmp_dir()
+def test_check_properties_exist_did_not_terminate_normally():
+
+    calc = Calculation(name="tmp",
+                       molecule=Molecule(atoms=[Atom("H")], mult=2),
+                       method=XTB(),
+                       keywords=None)
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        calc._check_properties_exist()
+

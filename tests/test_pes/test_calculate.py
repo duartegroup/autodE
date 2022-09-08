@@ -30,6 +30,7 @@ def test_calculate_1d():
 
     # All points should have a defined energy
     for i in range(10):
+        print(i, pes._species_at(point=(i,)).energy)
         assert pes._has_energy(point=(i,))
 
 
