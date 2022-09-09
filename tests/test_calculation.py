@@ -1,9 +1,14 @@
+import numpy as np
+import pytest
+import os
+import sys
+from copy import deepcopy
 from autode.calculations import Calculation, CalculationOutput
 from autode.calculations.executors import CalculationExecutor
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
-from autode.wrappers.keywords import SinglePointKeywords, HessianKeywords
 from autode.wrappers.keywords.functionals import Functional
+from autode.wrappers.methods import Method
 from autode.utils import run_external
 from autode.atoms import Atom
 from autode.methods import XTB, ORCA
@@ -12,14 +17,16 @@ from autode.config import Config
 import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
 from .testutils import requires_with_working_xtb_install
-from copy import deepcopy
-import numpy as np
-import pytest
-import os
-import sys
+from autode.wrappers.keywords import (SinglePointKeywords, HessianKeywords,
+                                      GradientKeywords, KeywordsSet)
+
 
 
 test_mol = Molecule(smiles='O', name='test_mol')
+
+
+def h_atom() -> Molecule:
+    return Molecule(atoms=[Atom("H")], mult=2)
 
 
 @work_in_tmp_dir()
@@ -376,10 +383,56 @@ def test_numerical_hessian_evaluation():
 def test_check_properties_exist_did_not_terminate_normally():
 
     calc = Calculation(name="tmp",
-                       molecule=Molecule(atoms=[Atom("H")], mult=2),
+                       molecule=h_atom(),
                        method=XTB(),
                        keywords=None)
 
     with pytest.raises(ex.CouldNotGetProperty):
         calc._check_properties_exist()
 
+
+class TestCalculator(Method):
+
+    __test__ = False
+
+    def __init__(self):
+        super().__init__(name="test", doi_list=[], keywords_set=KeywordsSet())
+
+    @property
+    def uses_external_io(self) -> bool:
+        return False
+
+    def execute(self, calc: "CalculationExecutor") -> None:
+        pass
+
+    def __repr__(self):
+        pass
+
+    def implements(self, calculation_type) -> bool:
+        return True  # this calculator 'implements' all calculations
+
+
+def _test_calc_with_keywords_type(_type, mol=h_atom()):
+    return Calculation(name="tmp",
+                       molecule=mol,
+                       method=TestCalculator(),
+                       keywords=_type())
+
+
+def test_generate_input_for_method_with_no_external_io():
+
+    calc = _test_calc_with_keywords_type(SinglePointKeywords)
+    # should be able to call generate input without any exceptions
+    calc.generate_input()
+
+
+def test_exception_raised_when_properties_dont_exist_after_run():
+
+    h = h_atom()
+
+    for _type in (SinglePointKeywords, GradientKeywords, HessianKeywords):
+
+        # Test method does not set any properties so these should fail
+        calc = _test_calc_with_keywords_type(_type, mol=h)
+        with pytest.raises(ex.CouldNotGetProperty):
+            calc.run()

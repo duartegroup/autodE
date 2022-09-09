@@ -7,7 +7,7 @@ from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode import methods
 from autode.atoms import Atom, Atoms, AtomCollection
-from autode.exceptions import CalculationException, SolventUnavailable
+from autode.exceptions import SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods as method_log

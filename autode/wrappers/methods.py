@@ -42,6 +42,12 @@ class Method(ABC):
         """
         return self._name
 
+    @abstractmethod
+    def execute(self,
+                calc: "CalculationExecutor"
+                ) -> None:
+        """Run this calculation and generate an output file"""
+
     @property
     @abstractmethod
     def uses_external_io(self) -> bool:
@@ -132,11 +138,6 @@ class ExternalMethod(Method, ABC):
 
         logger.info(f'{self.name} is not available')
         return False
-
-    def execute(self,
-                calc: "CalculationExecutor"
-                ) -> None:
-        """Run this calculation and generate an output file"""
 
     @abstractmethod
     def optimiser_from(self,
