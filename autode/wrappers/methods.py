@@ -42,11 +42,10 @@ class Method(ABC):
         """
         return self._name
 
-    @abstractmethod
     def execute(self,
                 calc: "CalculationExecutor"
                 ) -> None:
-        """Run this calculation and generate an output file"""
+        pass
 
     @property
     @abstractmethod
@@ -66,6 +65,12 @@ class Method(ABC):
                    ) -> bool:
         """Does this method implement a particular calculation type?"""
 
+    def terminated_normally_in(self,
+                               calc: "CalculationExecutor"
+                               ) -> bool:
+        """Did the calculation terminate normally?"""
+        return True
+
     @property
     def doi_str(self):
         return " ".join(self.doi_list)
@@ -77,6 +82,12 @@ class Method(ABC):
 
         return [s.name for s in solvents
                 if s.is_implicit and hasattr(s, self.name)]
+
+    def version_in(self,
+                   calc: "CalculationExecutor"
+                   ) -> str:
+        """Determine the version of the method used in this calculation"""
+        return "???"
 
     def _all_equal(self, other, attrs) -> bool:
         return all(getattr(other, a) == getattr(self, a) for a in attrs)
@@ -138,6 +149,20 @@ class ExternalMethod(Method, ABC):
 
         logger.info(f'{self.name} is not available')
         return False
+
+    @abstractmethod
+    def execute(self,
+                calc: "CalculationExecutor"
+                ) -> None:
+        """Run this calculation and generate an output file"""
+        pass
+
+    @abstractmethod
+    def terminated_normally_in(self,
+                               calc: "CalculationExecutor"
+                               ) -> bool:
+        """Did the calculation terminate normally?"""
+        return True
 
     @abstractmethod
     def optimiser_from(self,
@@ -214,12 +239,6 @@ class ExternalMethod(Method, ABC):
         Extract the partial atomic charges corresponding to the final geometry
         present in the output file
         """
-
-    @abstractmethod
-    def terminated_normally_in(self,
-                               calc: "CalculationExecutor"
-                               ) -> bool:
-        """Did the calculation terminate normally?"""
 
     @abstractmethod
     def version_in(self,

@@ -405,11 +405,27 @@ class TestCalculator(Method):
     def execute(self, calc: "CalculationExecutor") -> None:
         pass
 
+    def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
+        return True
+
     def __repr__(self):
         pass
 
     def implements(self, calculation_type) -> bool:
         return True  # this calculator 'implements' all calculations
+
+
+class TestCalculatorConstantEnergy(TestCalculator):
+
+    def execute(self, calc) -> None:
+        calc.molecule.energy = 1.0
+
+
+class TestCalculatorConstantGradient(TestCalculator):
+
+    def execute(self, calc) -> None:
+        calc.molecule.energy = 1.0
+        calc.molecule.gradient = np.zeros_like(calc.molecule.coordinates)
 
 
 def _test_calc_with_keywords_type(_type, mol=h_atom()):
@@ -436,3 +452,41 @@ def test_exception_raised_when_properties_dont_exist_after_run():
         calc = _test_calc_with_keywords_type(_type, mol=h)
         with pytest.raises(ex.CouldNotGetProperty):
             calc.run()
+
+
+def test_exception_raised_when_energy_but_no_grad_after_run():
+
+    calc = Calculation(name="tmp",
+                       molecule=h_atom(),
+                       method=TestCalculatorConstantEnergy(),
+                       keywords=GradientKeywords())
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        calc.run()
+
+
+def test_exception_raised_when_energy_grad_but_no_hess_after_run():
+
+    calc = Calculation(name="tmp",
+                       molecule=h_atom(),
+                       method=TestCalculatorConstantGradient(),
+                       keywords=HessianKeywords())
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        calc.run()
+
+
+def test_blank_calculation_output_with_no_external_io():
+
+    h = h_atom()
+    assert h.energy is None
+
+    calc = Calculation(name="tmp",
+                       molecule=h,
+                       method=TestCalculatorConstantEnergy(),
+                       keywords=SinglePointKeywords())
+    calc.run()
+    assert h.energy is not None
+
+    assert calc.output.filename is None
+    assert len(calc.output.file_lines) == 0

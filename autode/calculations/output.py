@@ -13,7 +13,7 @@ class CalculationOutput:
         self._filename = filename
 
     @property
-    def filename(self) -> str:
+    def filename(self) -> Optional[str]:
         return self._filename
 
     @filename.setter
@@ -75,8 +75,8 @@ class CalculationOutput:
 class BlankCalculationOutput(CalculationOutput):
 
     @property
-    def filename(self) -> str:
-        return "unknown"
+    def filename(self) -> Optional[str]:
+        return None
 
     @property
     def file_lines(self) -> List[str]:

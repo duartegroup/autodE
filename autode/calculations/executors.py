@@ -43,7 +43,7 @@ class CalculationExecutor:
         self.input = CalculationInput(keywords=keywords,
                                       added_internals=_active_bonds(molecule),
                                       point_charges=point_charges)
-        self.output = CalculationOutput()
+        self._external_output = CalculationOutput()
         self._check()
 
     def _check(self) -> None:
@@ -203,11 +203,30 @@ class CalculationExecutor:
         """
         logger.info(f'Checking for {self.output.filename} normal termination')
 
-        if not self.output.exists:
+        if self.method.uses_external_io and not self.output.exists:
             logger.warning('Calculation did not generate any output')
             return False
 
         return self.method.terminated_normally_in(self)
+
+    @property
+    def output(self) -> "CalculationOutput":
+        """
+        Calculation output. If the method does not use any external files
+        then a blank calculation output is returned
+        """
+
+        if self.method.uses_external_io:
+            return self._external_output
+        else:
+            return BlankCalculationOutput()
+
+    @output.setter
+    def output(self, value: CalculationOutput):
+        """Set the value of the calculation output"""
+        assert isinstance(value, CalculationOutput)
+
+        self._external_output = value
 
     def copy(self) -> "CalculationExecutor":
         return deepcopy(self)
@@ -283,13 +302,24 @@ class CalculationExecutor:
             n += 1
 
 
-class CalculationExecutorO(CalculationExecutor):
+class _IndirectCalculationExecutor(CalculationExecutor):
+    """
+    An 'indirect' executor is one that, given a calculation to perform,
+    calls the method multiple time and aggregates the results in some way.
+    Therefore, there is no direct calculation output.
+    """
+
+    @property
+    def output(self) -> "CalculationOutput":
+        return BlankCalculationOutput()
+
+
+class CalculationExecutorO(_IndirectCalculationExecutor):
     """Calculation executor that uses autodE inbuilt optimisation"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.output = BlankCalculationOutput()
         self.etol = PotentialEnergy(3E-5, units="Ha")
         self.gtol = GradientRMS(1E-3, units="Ha Å^-1")  # TODO: A better number here
 
@@ -383,14 +413,14 @@ class CalculationExecutorO(CalculationExecutor):
         return None
 
 
-class CalculationExecutorG(CalculationExecutor):
+class CalculationExecutorG(_IndirectCalculationExecutor):
     """Calculation executor with a numerical gradient evaluation"""
 
     def run(self) -> None:
         raise NotImplementedError
 
 
-class CalculationExecutorH(CalculationExecutor):
+class CalculationExecutorH(_IndirectCalculationExecutor):
     """Calculation executor with a numerical Hessian evaluation"""
 
     def run(self) -> None:

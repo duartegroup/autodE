@@ -200,8 +200,6 @@ class Calculation:
     def _add_to_comp_methods(self) -> None:
         """Add the methods used in this calculation to the used methods list"""
         from autode.log.methods import methods
-        if not self.output.exists:
-            return None
 
         methods.add(f'Calculations were performed using {self.method.name} v. '
                     f'{self.method.version_in(self)} '
