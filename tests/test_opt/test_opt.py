@@ -234,3 +234,25 @@ def test_callback_function():
 
     optimiser.run(species=mol, method=Method())
 
+
+def test_last_energy_change_with_no_steps():
+
+    mol = h2()
+    optimiser = HarmonicPotentialOptimiser(
+        maxiter=2,
+        gtol=GradientRMS(999),
+        etol=PotentialEnergy(999)
+    )
+
+    optimiser.run(mol, method=Method())
+    assert optimiser.converged
+    assert optimiser.last_energy_change < 1
+
+
+def test_value_extraction_from_string():
+
+    value = 99.9
+    s = f"E = {value}"  # " =" is implied
+    assert np.isclose(HarmonicPotentialOptimiser._value_after_in("E", s),
+                      value)
+

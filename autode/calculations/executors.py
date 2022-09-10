@@ -391,15 +391,6 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
     def _opt_trajectory_exists(self) -> bool:
         return os.path.exists(self._opt_trajectory_name)
 
-    @staticmethod
-    def _energy_from_string(string: str) -> Optional[float]:
-        """For a string e.g. 'E = -0.3256 Ha' then extract -0.3256"""
-        try:
-            return float(string.split("E = ")[1].split(" Ha")[0])
-        except (ValueError, IndexError):
-            logger.warning(f"Failed to extract energy from title line")
-            return None
-
     def _set_properties_from_optimiser(self) -> None:
         """Set the properties from the trajectory file, that must exist"""
         logger.info("Setting optimised coordinates, gradient and energy from "

@@ -1,5 +1,5 @@
 import autode.exceptions as ex
-from autode.wrappers.ORCA import ORCA
+from autode.wrappers.ORCA import ORCA, ORCAOptimiser
 from autode.atoms import Atom
 from autode.constants import Constants
 from autode.calculations import Calculation
@@ -322,3 +322,18 @@ def test_unsupported_freq_scaling():
 
     with pytest.raises(ex.UnsupportedCalculationInput):
         calc.generate_input()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
+def test_orca_optimiser_from_output_file():
+
+    optimiser = ORCAOptimiser(output_lines=[])
+    assert not optimiser.converged
+    assert not np.isfinite(optimiser.last_energy_change)
+
+    optimiser = ORCAOptimiser(
+        output_lines=open("opt_orca.out", "r").readlines()
+    )
+    assert optimiser.converged
+    assert np.isclose(optimiser.last_energy_change.to("Ha"),
+                      -499.734431042133 - -499.734431061148)

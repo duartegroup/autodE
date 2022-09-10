@@ -3,7 +3,8 @@ import pytest
 import os
 import sys
 from copy import deepcopy
-from autode.calculations import Calculation, CalculationOutput
+from autode.calculations import Calculation
+from autode.calculations.output import CalculationOutput, BlankCalculationOutput
 from autode.calculations.executors import CalculationExecutor
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
@@ -19,7 +20,6 @@ from autode.utils import work_in_tmp_dir
 from .testutils import requires_with_working_xtb_install
 from autode.wrappers.keywords import (SinglePointKeywords, HessianKeywords,
                                       GradientKeywords, KeywordsSet)
-
 
 
 test_mol = Molecule(smiles='O', name='test_mol')
@@ -490,3 +490,21 @@ def test_blank_calculation_output_with_no_external_io():
 
     assert calc.output.filename is None
     assert len(calc.output.file_lines) == 0
+
+
+@work_in_tmp_dir()
+def test_deleting_output_that_doesnt_exist():
+
+    xtb = XTB()
+    calc = Calculation(name='tmp2',
+                       molecule=h_atom(),
+                       method=xtb,
+                       keywords=xtb.keywords.sp)
+
+    calc.input.additional_filenames = ['a', 'b']
+    # no exceptions should be raised trying to delete files that don't exist
+    calc.clean_up(force=True)
+
+
+def test_blank_calculation_output_always_exists():
+    assert BlankCalculationOutput().exists
