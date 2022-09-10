@@ -329,6 +329,9 @@ class TestMethod(ExternalMethod):
                          doi_list=[],
                          implicit_solvation_type=None)
 
+    def execute(self, calc: "CalculationExecutor") -> None:
+        pass
+
     def implements(self, calculation_type) -> bool:
         return True
 
