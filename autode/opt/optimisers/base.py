@@ -480,6 +480,9 @@ class NDOptimiser(Optimiser, ABC):
         Returns:
             (bool): Converged?
         """
+        if self._species is not None and self._species.n_atoms == 1:
+            return True  # Optimisation 0 DOF is always converged
+
         if self._abs_delta_e < self.etol / 10:
             logger.warning(f'Energy change is overachieved. '
                            f'{self.etol.to("kcal")/10:.3E} kcal mol-1. '
@@ -492,6 +495,11 @@ class NDOptimiser(Optimiser, ABC):
         """
         Save the entire state of the optimiser to a file
         """
+
+        if len(self._history) == 0:
+            logger.warning("Optimiser did no steps. Not saving a trajectory")
+            return None
+
         atomic_symbols = self._species.atomic_symbols
         title_str = (f" etol = {self.etol.to('Ha')} Ha"
                      f" gtol = {self.gtol.to('Ha Å^-1')} Ha Å^-1"

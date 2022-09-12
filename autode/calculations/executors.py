@@ -297,7 +297,7 @@ class CalculationExecutor:
 
             if not exists():
                 append_register()
-                return
+                return None
 
             n += 1
 
@@ -333,9 +333,6 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
             self._set_properties_from_optimiser()
             return None
 
-        if self.molecule.n_atoms == 1:
-            return self._run_single_energy_evaluation()
-
         type_ = PRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
 
         self.optimiser = type_(
@@ -352,6 +349,9 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
                            n_cores=self.n_cores)
 
         self.optimiser.save(self._opt_trajectory_name)
+
+        if self.molecule.n_atoms == 1:
+            return self._run_single_energy_evaluation()
 
         if self._calc_is_ts_opt:
             # If this calculation is a transition state optimisation then a

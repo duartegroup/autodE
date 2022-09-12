@@ -435,6 +435,10 @@ def _test_calc_with_keywords_type(_type, mol=h_atom()):
                        keywords=_type())
 
 
+def _test_calc():
+    return _test_calc_with_keywords_type(SinglePointKeywords)
+
+
 def test_generate_input_for_method_with_no_external_io():
 
     calc = _test_calc_with_keywords_type(SinglePointKeywords)
@@ -508,3 +512,27 @@ def test_deleting_output_that_doesnt_exist():
 
 def test_blank_calculation_output_always_exists():
     assert BlankCalculationOutput().exists
+
+
+@work_in_tmp_dir()
+def test_fix_unique_with_resigter():
+
+    env_var = os.environ.get('AUTODE_FIXUNIQUE', 'False')
+
+    calc = _test_calc()._executor
+    init_name = calc.name
+    calc._fix_unique()
+    assert os.path.exists('.autode_calculations')
+
+    calc.input.keywords = ['a']
+    calc._fix_unique()
+    second_name = calc.name
+    assert second_name != init_name
+
+    calc = _test_calc()._executor
+    calc.input.keywords = ['a', 'b']
+    calc._fix_unique()
+    assert calc.name != init_name and calc.name != second_name
+
+    # Reset the environment
+    os.environ['AUTODE_FIXUNIQUE'] = env_var

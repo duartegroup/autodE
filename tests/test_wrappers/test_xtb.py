@@ -249,3 +249,18 @@ def test_xtb_with_autode_opt_method():
     calc.run()
 
     assert calc.optimiser.converged
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_with_autode_opt_method_for_a_single_atom():
+
+    mol = Molecule(atoms=[Atom("H")], mult=2)
+    calc = Calculation(name="h_atom",
+                       molecule=mol,
+                       method=XTBautodEOpt(),
+                       keywords=OptKeywords())
+    calc.run()
+
+    assert calc.optimiser.converged
+    assert mol.energy is not None

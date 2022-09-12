@@ -33,6 +33,7 @@ class Method(ABC):
 
         self._name = name
         self.keywords = keywords_set.copy()
+        self.implicit_solvation_type = None
         self.doi_list = doi_list
 
     @property
