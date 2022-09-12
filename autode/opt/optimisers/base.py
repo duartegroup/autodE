@@ -107,8 +107,6 @@ class Optimiser(BaseOptimiser, ABC):
 
         if not self._space_has_degrees_of_freedom:
             logger.info("Optimisation is in a 0D space – terminating")
-            self._update_gradient_and_energy()
-
             return None
 
         self._initialise_run()
@@ -185,7 +183,8 @@ class Optimiser(BaseOptimiser, ABC):
         # TODO: species.calc_grad() method
 
         # Calculations need to be performed in cartesian coordinates
-        self._species.coordinates = self._coords.to('cart')
+        if self._coords is not None:
+            self._species.coordinates = self._coords.to('cart')
 
         grad = Calculation(name=f'{self._species.name}_opt_{self.iteration}',
                            molecule=self._species,

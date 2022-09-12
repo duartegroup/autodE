@@ -6,7 +6,7 @@ from autode.methods import XTB
 from autode.values import GradientRMS, PotentialEnergy
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_with_working_xtb_install
-from .molecules import h2, methane_mol
+from .molecules import h2, methane_mol, h_atom
 from .setup import Method
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.steepest_descent import (CartesianSDOptimiser,
@@ -256,3 +256,46 @@ def test_value_extraction_from_string():
     assert np.isclose(HarmonicPotentialOptimiser._value_after_in("E", s),
                       value)
 
+
+@work_in_tmp_dir()
+@requires_with_working_xtb_install
+def test_optimisation_is_possible_with_single_atom():
+
+    mol = h_atom()
+    CartesianSDOptimiser.optimise(mol, method=XTB(), maxiter=2)
+    assert mol.energy is None
+
+
+class ConvergedHarmonicPotentialOptimiser(CartesianSDOptimiser):
+
+    @property
+    def converged(self) -> bool:
+        return True
+
+
+class UnconvergedHarmonicPotentialOptimiser(CartesianSDOptimiser):
+
+    @property
+    def converged(self) -> bool:
+        return False
+
+
+def test_last_energy_change_less_than_two_steps():
+
+    optimiser = ConvergedHarmonicPotentialOptimiser(
+        maxiter=2,
+        gtol=GradientRMS(999),
+        etol=PotentialEnergy(999)
+    )
+
+    coords = CartesianCoordinates(np.zeros(1))
+    coords.e = 0
+    coords.g = np.zeros_like(coords)
+    optimiser._coords = coords
+
+    assert optimiser.converged
+    assert np.isclose(optimiser.last_energy_change, 0.0)
+
+    optimiser.__class__ = UnconvergedHarmonicPotentialOptimiser
+    assert not optimiser.converged
+    assert not np.isfinite(optimiser.last_energy_change)
