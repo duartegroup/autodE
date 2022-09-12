@@ -97,8 +97,12 @@ def get_keywords(calc_input, molecule):
                 lines.insert(1, f'  nopen {molecule.mult - 1}')
                 new_keywords.append('\n'.join(lines))
 
-        elif 'driver' in keyword.lower() and isinstance(calc_input.keywords, kws.OptKeywords):
-            logger.warning(f"NWChem uses autodE implemented optimisers. Not using {keyword}")
+        elif ('driver' in keyword.lower()
+              and isinstance(calc_input.keywords, kws.OptKeywords)):
+            raise UnsupportedCalculationInput(
+                f"NWChem uses autodE implemented optimisers. {keyword} will "
+                f"be unused"
+            )
 
         else:
             new_keywords.append(keyword)

@@ -24,6 +24,9 @@ class TestRFOOptimiser2D(RFOptimiser):
         self.e_func = e_func
         self.g_func = g_func
 
+    def _space_has_degrees_of_freedom(self) -> bool:
+        return True
+
     def _log_convergence(self) -> None:
         x, y = self._coords
         print(f'{x:.4f}, {y:.4f}', f'E = {round(self._coords.e, 5)}')

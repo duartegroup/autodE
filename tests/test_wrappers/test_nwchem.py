@@ -1,11 +1,12 @@
 from autode.wrappers.NWChem import NWChem, ecp_block
 from autode.point_charges import PointCharge
 from autode.calculations import Calculation
-from autode.exceptions import CouldNotGetProperty, CalculationException
+from autode.exceptions import UnsupportedCalculationInput, CalculationException
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.wrappers.keywords.basis_sets import def2svp
 from autode.wrappers.keywords.wf import hf
+from autode.wrappers.keywords.functionals import pbe0
 from autode.config import Config
 from autode.atoms import Atom
 from .. import testutils
@@ -208,6 +209,35 @@ def test_point_charge_calculation():
     assert not np.isclose(calc.get_energy(), -0.5, atol=0.001)
 
 
-def _test_charge_extract():
-    # TODO
-    raise NotImplementedError
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_charge_extract():
+
+    h2o = Molecule(smiles="O")
+    calc = Calculation(name='tmp',
+                       molecule=h2o,
+                       keywords=method.keywords.sp,
+                       method=method)
+    calc.set_output_filename("H2O_sp_nwchem.out")
+
+    assert h2o.atomic_symbols == ["O", "H", "H"]
+    assert np.allclose(h2o.partial_charges,
+                       [-0.801244, 0.397696, 0.403548])
+
+
+def test_no_driver_in_generated_opt_input():
+
+    opt_str = ('driver\n'
+               '  gmax 0.0003\n'
+               '  grms 0.0001\n'
+               '  xmax 0.004\n'
+               '  xrms 0.002\n'
+               '  eprec 0.000005\n'
+               'end')
+
+    calc = Calculation(name='tmp',
+                       molecule=Molecule(smiles="O"),
+                       keywords=OptKeywords([pbe0, def2svp, opt_str]),
+                       method=method)
+
+    with pytest.raises(UnsupportedCalculationInput):
+        calc.generate_input()

@@ -14,4 +14,3 @@ sections are a work in progress!
 
    overview
    contributing
-   adding_est

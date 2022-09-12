@@ -17,6 +17,9 @@ class BraninCauchyTROptimiser(CauchyTROptimiser):
 
     __test__ = False
 
+    def _space_has_degrees_of_freedom(self) -> bool:
+        return True
+
     def _update_gradient_and_energy(self) -> None:
         """Update the gradient and energy for the Branin function
 
@@ -60,6 +63,9 @@ class BraninCauchyTROptimiser(CauchyTROptimiser):
 
 class BraninDoglegTROptimiser(DoglegTROptimiser):
 
+    def _space_has_degrees_of_freedom(self) -> bool:
+        return True
+
     def _update_gradient_and_energy(self) -> None:
         return BraninCauchyTROptimiser._update_gradient_and_energy(self)
 
@@ -73,6 +79,9 @@ class BraninDoglegTROptimiser(DoglegTROptimiser):
 
 class BraninCGSteihaugTROptimiser(CGSteihaugTROptimiser):
 
+    def _space_has_degrees_of_freedom(self) -> bool:
+        return True
+
     def _update_gradient_and_energy(self) -> None:
         return BraninCauchyTROptimiser._update_gradient_and_energy(self)
 
@@ -82,6 +91,7 @@ class BraninCGSteihaugTROptimiser(CGSteihaugTROptimiser):
     @property
     def converged(self) -> bool:
         return np.linalg.norm(self._coords.g) < self._gtol
+
 
 def test_trm_base_properties():
     init_coords = CartesianCoordinates([6.0, 14.0])
