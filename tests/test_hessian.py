@@ -2,7 +2,9 @@ import os
 import pytest
 import numpy as np
 import autode as ade
+from autode.utils import work_in_tmp_dir
 from . import testutils
+import multiprocessing as mp
 from autode.config import Config
 from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
@@ -608,3 +610,26 @@ def test_partial_water_num_hess():
     assert np.allclose(partial_hess[3:, :3],
                        (xtb_num_hess[3:, :3] + orca_num_hess[3:, :3]) / 2.0,
                        atol=1E-1)
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_numerical_hessian_in_daemon():
+    """
+    Ensure that no exceptions are raised when a numerical hessian is
+    calculated within a multiprocessing pool
+    """
+
+    with mp.pool.Pool(processes=1) as pool:
+
+        res = pool.apply_async(func=_calc_num_hessian_h2)
+        _ = res.get(timeout=None)
+
+
+def _calc_num_hessian_h2():
+
+    assert mp.current_process().daemon
+    h2 = Molecule(smiles="[H][H]")
+    h2.calc_hessian(method=XTB(),
+                    numerical=True,
+                    n_cores=1)
