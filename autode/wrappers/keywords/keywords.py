@@ -57,7 +57,7 @@ class KeywordsSet:
 
         self._low_opt = OptKeywords(low_opt)           # Low-level optimisation
         self._opt = OptKeywords(opt)                   # Optimisation
-        self._opt_ts = OptKeywords(opt_ts)             # TS optimisation
+        self._opt_ts = OptTSKeywords(opt_ts)           # TS optimisation
 
         self._grad = GradientKeywords(grad)            # Gradient
         self._hess = HessianKeywords(hess)             # Hessian
@@ -96,7 +96,7 @@ class KeywordsSet:
         self._opt = OptKeywords(value)
 
     @property
-    def opt_ts(self) -> 'OptKeywords':
+    def opt_ts(self) -> 'OptTSKeywords':
         return self._opt_ts
 
     @opt_ts.setter
@@ -430,6 +430,10 @@ class OptKeywords(Keywords):
 
     def __repr__(self):
         return f'OptKeywords({self.__str__()})'
+
+
+class OptTSKeywords(OptKeywords):
+    """Transition state optimisation keywords"""
 
 
 class HessianKeywords(Keywords):

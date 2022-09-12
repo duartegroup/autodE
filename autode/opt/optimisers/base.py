@@ -103,8 +103,14 @@ class Optimiser(BaseOptimiser, ABC):
                      autode.Config.n_cores
         """
         self._n_cores = n_cores if n_cores is not None else Config.n_cores
-
         self._initialise_species_and_method(species, method)
+
+        if not self._space_has_degrees_of_freedom:
+            logger.info("Optimisation is in a 0D space – terminating")
+            self._update_gradient_and_energy()
+
+            return None
+
         self._initialise_run()
 
         logger.info(f'Using {self._method} to optimise {self._species.name} '
@@ -221,6 +227,11 @@ class Optimiser(BaseOptimiser, ABC):
         self._species.hessian = species.hessian.copy()
         self._coords.update_h_from_cart_h(self._species.hessian)
         return None
+
+    @property
+    def _space_has_degrees_of_freedom(self) -> bool:
+        """Does this optimisation space have any degrees of freedom"""
+        return True
 
     @property
     def _coords(self) -> Optional[OptCoordinates]:
@@ -455,6 +466,10 @@ class NDOptimiser(Optimiser, ABC):
         optimiser.run(species, method, n_cores=n_cores)
 
         return None
+
+    @property
+    def _space_has_degrees_of_freedom(self) -> bool:
+        return True if self._species is None else self._species.n_atoms > 1
 
     @property
     def converged(self) -> bool:

@@ -271,11 +271,11 @@ class _ConfigClass:
         # PBE0-D3BJ and PBE-D3BJ as only D3 is available. The optimisation
         # keywords contain 'gradient' as the optimisation is driven by autodE
         keywords = KeywordsSet(
-            low_opt=[def2svp, pbe0, MaxOptCycles(10)],
+            low_opt=[def2svp, pbe0, MaxOptCycles(10), 'task dft gradient'],
             grad=[def2svp, pbe0, 'task dft gradient'],
             low_sp=[def2svp, pbe0, 'task dft energy'],
             opt=[def2svp, pbe0, MaxOptCycles(100), 'task dft gradient'],
-            opt_ts=["TS", def2svp, pbe0, 'task dft gradient'],
+            opt_ts=[def2svp, pbe0, 'task dft gradient'],
             hess=[def2svp, pbe0, 'task dft freq'],
             sp=[def2tzvp, pbe0, 'task dft energy'],
             ecp=def2ecp

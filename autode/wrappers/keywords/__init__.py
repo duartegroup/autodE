@@ -1,5 +1,5 @@
 from autode.wrappers.keywords.keywords import (
-    KeywordsSet, Keywords, Keyword, OptKeywords, HessianKeywords,
+    KeywordsSet, Keywords, Keyword, OptKeywords, OptTSKeywords, HessianKeywords,
     GradientKeywords, SinglePointKeywords, BasisSet, DispersionCorrection,
     Functional, ImplicitSolventType, RI, WFMethod, ECP, MaxOptCycles
 )
@@ -27,6 +27,7 @@ __all__ = ["def2svp",
            "Keywords",
            "Keyword",
            "OptKeywords",
+           "OptTSKeywords",
            "HessianKeywords",
            "GradientKeywords",
            "SinglePointKeywords",

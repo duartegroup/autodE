@@ -3,8 +3,8 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
+import multiprocessing as mp
 from typing import List, Tuple, Iterator, Optional, Sequence, Union
-from multiprocessing import Pool
 from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
 from autode.utils import cached_property
@@ -397,8 +397,11 @@ class NumericalHessianCalculator:
             logger.info('Calculating gradient at current point')
             self._init_gradient = self._gradient(species=self._species)
 
+        if mp.current_process().daemon:
+            return self._calculate_in_serial()
+
         # Although n_rows may be < n_cores there will not be > n_rows processes
-        with Pool(processes=self._n_total_cores) as pool:
+        with mp.pool.Pool(processes=self._n_total_cores) as pool:
 
             func_name = '_cdiff_row' if self._do_c_diff else '_diff_row'
 
@@ -408,6 +411,15 @@ class NumericalHessianCalculator:
 
             for row_idx, row in enumerate(res):
                 self._hessian[row_idx, :] = row.get(timeout=None)
+
+        return None
+
+    def _calculate_in_serial(self) -> None:
+        """Calculate the Hessian rows in serial"""
+
+        for row_idx, (i, k) in enumerate(self._idxs_to_calculate()):
+            row = self._cdiff_row(i, k) if self._do_c_diff else self._diff_row(i, k)
+            self._hessian[row_idx, :] = row
 
         return None
 

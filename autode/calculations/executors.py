@@ -330,7 +330,11 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
 
         if self._opt_trajectory_exists:
             self.optimiser = CRFOptimiser.from_file(self._opt_trajectory_name)
-            return self._set_properties_from_optimiser()
+            self._set_properties_from_optimiser()
+            return None
+
+        if self.molecule.n_atoms == 1:
+            return self._run_single_energy_evaluation()
 
         type_ = PRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
 
@@ -348,6 +352,24 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
                            n_cores=self.n_cores)
 
         self.optimiser.save(self._opt_trajectory_name)
+
+        if self._calc_is_ts_opt:
+            # If this calculation is a transition state optimisation then a
+            # hessian on the final structure is required
+            self.molecule.calc_hessian(method=self.method,
+                                       n_cores=self.n_cores)
+        return None
+
+    def _run_single_energy_evaluation(self) -> None:
+        """Run a single point energy evaluation, suitable for a single atom"""
+        from autode.calculations.calculation import Calculation
+
+        calc = Calculation(name=f'{self.molecule.name}_energy',
+                           molecule=self.molecule,
+                           method=self.method,
+                           keywords=kws.SinglePointKeywords(self.input.keywords),
+                           n_cores=self.n_cores)
+        calc.run()
         return None
 
     @property
@@ -360,7 +382,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         Returns:
             (bool): Normal termination of the calculation?
         """
-        return self._opt_trajectory_exists
+        return self._opt_trajectory_exists or self.molecule.n_atoms == 1
 
     def set_properties(self) -> None:
         """
@@ -372,7 +394,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
     @property
     def _calc_is_ts_opt(self) -> bool:
         """Does this calculation correspond to a transition state opt"""
-        return any(k.lower() == "ts" for k in self.input.keywords)
+        return isinstance(self.input.keywords, kws.OptTSKeywords)
 
     @property
     def _max_opt_cycles(self) -> int:
