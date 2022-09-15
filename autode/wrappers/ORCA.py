@@ -212,7 +212,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
                                'The optimization did not converge']
 
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
-            print(line)
 
             if any(substring in line for substring in termination_strings):
                 logger.info('orca terminated normally')
