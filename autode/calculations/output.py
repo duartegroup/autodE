@@ -34,7 +34,7 @@ class CalculationOutput:
             (list(str)): Lines from the output file
 
         Raises:
-            (autode.exceptions.NoCalculationOutput):
+            (autode.exceptions.NoCalculationOutput): If the file doesn't exist
         """
         logger.info('Setting output file lines')
 

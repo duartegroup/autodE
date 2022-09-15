@@ -156,14 +156,12 @@ class ExternalMethod(Method, ABC):
                 calc: "CalculationExecutor"
                 ) -> None:
         """Run this calculation and generate an output file"""
-        pass
 
     @abstractmethod
     def terminated_normally_in(self,
                                calc: "CalculationExecutor"
                                ) -> bool:
         """Did the calculation terminate normally?"""
-        return True
 
     @abstractmethod
     def optimiser_from(self,

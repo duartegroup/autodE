@@ -118,10 +118,13 @@ def get_keywords(calc_input, molecule):
 class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
     def __init__(self):
-        super().__init__('nwchem', path=Config.NWChem.path,
-                         keywords_set=Config.NWChem.keywords,
-                         implicit_solvation_type=Config.NWChem.implicit_solvation_type,
-                         doi_list=['10.1063/5.0004997'])
+        super().__init__(
+            executable_name='nwchem',
+            path=Config.NWChem.path,
+            keywords_set=Config.NWChem.keywords,
+            implicit_solvation_type=Config.NWChem.implicit_solvation_type,
+            doi_list=['10.1063/5.0004997']
+        )
 
     def __repr__(self):
         return f'NWChem(available = {self.is_available})'

@@ -145,7 +145,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
     def optimiser_from(self,
                        calc: "CalculationExecutor"
                        ) -> "autode.opt.optimisers.base.BaseOptimiser":
-        return NWChemOptimiser(output_lines=calc.output.file_lines)
+        return QChemOptimiser(output_lines=calc.output.file_lines)
 
     def coordinates_from(self,
                          calc: "CalculationExecutor"
@@ -579,7 +579,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             return None
 
 
-class NWChemOptimiser(ExternalOptimiser):
+class QChemOptimiser(ExternalOptimiser):
 
     def __init__(self, output_lines: List[str]):
         self._lines = output_lines
