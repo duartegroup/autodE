@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from autode.path import Path
 from autode.neb import NEB, CINEB
+from autode.values import Distance
 from autode.neb.ci import Images, CImages, Image
 from autode.neb.idpp import IDPP
 from autode.species.molecule import Species, Molecule
@@ -21,6 +22,7 @@ from . import testutils
 here = os.path.dirname(os.path.abspath(__file__))
 
 
+@work_in_tmp_dir()
 def test_neb_properties():
 
     # H-H  H
@@ -35,19 +37,13 @@ def test_neb_properties():
     assert neb.get_species_saddle_point() is None
     assert not neb.contains_peak()
 
-    neb.partition(n=2)
-    assert len(neb.images) == 5
-
     # Should move monotonically from 0.7 -> 1.3 Angstroms
-    for i in range(1, 5):
+    for i in range(1, len(neb.images)):
 
         prev_bb_dist = neb.images[i-1].species.distance(0, 1)
         curr_bb_dist = neb.images[i].species.distance(0, 1)
 
         assert curr_bb_dist > prev_bb_dist
-
-    if os.path.exists('neb.xyz'):
-        os.remove('neb.xyz')
 
 
 def test_image_properties():
@@ -161,7 +157,7 @@ def test_climbing_image():
 
 
 def _simple_h2_images(num, shift, increment):
-    """Simple IDPP for a 3-image NEB"""
+    """Simple set of images for a n-image NEB for H2"""
 
     images = Images(num=num, init_k=1.0)
 
@@ -263,3 +259,48 @@ def test_neb_interpolate_and_idpp_relax():
 
     for image in neb.images:
         assert are_coords_reasonable(image.species.coordinates)
+
+
+def test_max_delta_between_images():
+
+    _list = [Molecule(atoms=[Atom("H"), Atom("H", x=2.7)]),
+             Molecule(atoms=[Atom("H"), Atom("H", x=1.7)])]
+
+    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images,
+                      1.0)
+
+    _list[0].atoms[1].coord[0] = 1.7  # x coordinate of the second atom
+    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images,
+                      0.0)
+
+
+def test_max_delta_between_images_h3():
+
+    _list = [Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
+             Molecule(atoms=[Atom("H"), Atom("H", x=0.70657), Atom("H", x=2.7)])]
+
+    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images,
+                      0.00657)
+
+
+def test_partition_max_delta():
+
+    # Set of molecules that are like: [H-H...H, H--H--H, H...H-H]
+    _list = [Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
+             Molecule(atoms=[Atom("H"), Atom("H", x=1.35), Atom("H", x=2.7)]),
+             Molecule(atoms=[Atom("H"), Atom("H", x=2.0), Atom("H", x=2.7)])]
+
+    h2_h = NEB(species_list=_list)
+    max_delta = Distance(0.1, units='Å')
+
+    assert np.max(
+        np.linalg.norm(_list[0].coordinates - _list[1].coordinates, axis=1)
+    ) > max_delta
+
+    h2_h.partition(max_delta=max_delta)
+
+    for (i, j) in [(0, 1), (1, 2)]:
+        assert np.max(
+            np.linalg.norm(h2_h.images[i].species.coordinates
+                           - h2_h.images[j].species.coordinates, axis=1)
+        ) <= max_delta
