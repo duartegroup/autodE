@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class CalculationType(Enum):
-    """Enum defining a mode of a calculation"""
+    """Enum defining a mode/type of a calculation"""
 
     opt = 0
     energy = 1

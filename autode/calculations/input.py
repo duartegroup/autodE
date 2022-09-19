@@ -12,15 +12,18 @@ class CalculationInput:
                  added_internals:  Optional[list] = None,
                  point_charges:    Optional[List[PointCharge]] = None):
         """
+        Calculation input
+
+        -----------------------------------------------------------------------
         Arguments:
-            keywords (autode.wrappers.keywords.Keywords):
+            keywords: Keywords that a method will use to run the calculation
+                      e.g. ['pbe', 'def2-svp'] for an ORCA single point at
+                      PBE/def2-SVP
 
-            added_internals (list(tuple(int)) or None): Atom indexes to add to
-                                                       the internal coordinates
+            added_internals: Atom indexes to add to the internal coordinates
 
-            point_charges (list(autode.point_charges.PointCharge) or None):
-                          list of float of point charges, x, y, z coordinates
-                          for each point charge
+            point_charges: Optional list of float of point charges, x, y, z
+                           coordinates for each point charge
         """
         self.keywords = None if keywords is None else keywords.copy()
 
