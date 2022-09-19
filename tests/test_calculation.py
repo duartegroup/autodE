@@ -1,23 +1,35 @@
-from autode.calculation import Calculation, CalculationOutput
+import numpy as np
+import pytest
+import os
+import sys
+from copy import deepcopy
+from autode.calculations import Calculation
+from autode.calculations.output import CalculationOutput, BlankCalculationOutput
+from autode.calculations.executors import CalculationExecutor
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
-from autode.wrappers.keywords import SinglePointKeywords
-from autode.wrappers.functionals import Functional
+from autode.wrappers.keywords.functionals import Functional
+from autode.wrappers.methods import Method
 from autode.utils import run_external
+from autode.atoms import Atom
 from autode.methods import XTB, ORCA
 from autode.species import Molecule
 from autode.config import Config
 import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
 from .testutils import requires_with_working_xtb_install
-from copy import deepcopy
-import pytest
-import os
-import sys
+from autode.wrappers.keywords import (SinglePointKeywords, HessianKeywords,
+                                      GradientKeywords, KeywordsSet)
+
 
 test_mol = Molecule(smiles='O', name='test_mol')
 
 
+def h_atom() -> Molecule:
+    return Molecule(atoms=[Atom("H")], mult=2)
+
+
+@work_in_tmp_dir()
 def test_calc_class():
 
     xtb = XTB()
@@ -28,16 +40,13 @@ def test_calc_class():
                        keywords=xtb.keywords.sp)
 
     # Should prepend a dash to appease some EST methods
-    assert not calc.name.startswith('-')
+    assert not calc._executor.name.startswith('-')
     assert calc.molecule is not None
     assert calc.method.name == 'xtb'
     assert len(calc.input.filenames) == 0
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_energy()
-
-    assert not calc.optimisation_converged()
-    assert not calc.optimisation_nearly_converged()
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_final_atoms()
@@ -48,10 +57,6 @@ def test_calc_class():
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_atomic_charges()
 
-    # Calculation that has not been run shouldn't have an opt converged
-    assert not calc.optimisation_converged()
-    assert not calc.optimisation_nearly_converged()
-
     # With a filename that doesn't exist a NoOutput exception should be raised
     calc.output.filename = '/a/path/that/does/not/exist/tmp'
     with pytest.raises(ex.NoCalculationOutput):
@@ -59,12 +64,11 @@ def test_calc_class():
 
     # With no output should not be able to get properties
     calc.output.filename = 'tmp.out'
+    with open(calc.output.filename, 'w') as output_file:
+        print('some\ntest\noutput', file=output_file)
+
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_atomic_charges()
-
-    # or final atoms
-    with pytest.raises(ex.AtomsNotFound):
-        _ = calc.get_final_atoms()
 
     # Should default to a single core
     assert calc.n_cores == 1
@@ -188,10 +192,10 @@ def test_fix_unique():
 
     orca = ORCA()
 
-    calc = Calculation(name='tmp',
-                       molecule=test_mol,
-                       method=orca,
-                       keywords=orca.keywords.sp)
+    calc = CalculationExecutor(name='tmp',
+                               molecule=test_mol,
+                               method=orca,
+                               keywords=orca.keywords.sp)
     calc._fix_unique()
     assert calc.name == 'tmp_orca'
 
@@ -199,19 +203,19 @@ def test_fix_unique():
     assert os.path.exists('.autode_calculations')
     assert len(open('.autode_calculations', 'r').readlines()) == 1
 
-    calc = Calculation(name='tmp',
-                       molecule=test_mol,
-                       method=orca,
-                       keywords=orca.keywords.opt)
+    calc = CalculationExecutor(name='tmp',
+                               molecule=test_mol,
+                               method=orca,
+                               keywords=orca.keywords.opt)
     calc._fix_unique()
     assert calc.name != 'tmp_orca'
     assert calc.name == 'tmp_orca0'
 
     # no need to fix unique if the name is different
-    calc = Calculation(name='tmp2',
-                       molecule=test_mol,
-                       method=orca,
-                       keywords=orca.keywords.opt)
+    calc = CalculationExecutor(name='tmp2',
+                               molecule=test_mol,
+                               method=orca,
+                               keywords=orca.keywords.opt)
     calc._fix_unique()
     assert calc.name == 'tmp2_orca'
 
@@ -239,7 +243,8 @@ def test_solvent_get():
     with pytest.raises(ex.SolventUnavailable):
         _ = Calculation('test',
                         molecule=_test_mol,
-                        method=xtb, keywords=xtb.keywords.sp)
+                        method=xtb,
+                        keywords=xtb.keywords.sp)
 
 
 @work_in_tmp_dir()
@@ -279,7 +284,7 @@ def test_exec_not_avail_method():
 
     orca = ORCA()
     orca.path = '/a/non/existent/path'
-    assert not orca.available
+    assert not orca.is_available
 
     calc = Calculation(name='tmp',
                        molecule=test_mol,
@@ -288,7 +293,7 @@ def test_exec_not_avail_method():
     calc.generate_input()
 
     with pytest.raises(ex.MethodUnavailable):
-        calc.execute_calculation()
+        calc._executor.run()
 
     with pytest.raises(ex.MethodUnavailable):
         calc.run()
@@ -341,3 +346,193 @@ def test_calculations_have_unique_names():
     # mol.single_point(method=xtb)  # Calculation should be rerun
     # cation_energy = mol.energy
     # assert cation_energy > neutral_energy
+
+
+@requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_numerical_hessian_evaluation():
+
+    h2 = Molecule(atoms=[Atom("H"), Atom("H", x=1.0)])
+    calc = Calculation(name="h2_hess",
+                       molecule=h2,
+                       method=XTB(),
+                       keywords=HessianKeywords())
+    calc.run()
+
+    assert h2.hessian is not None
+    assert h2.hessian.shape == (6, 6)
+    assert np.allclose(h2.hessian, h2.hessian.T)
+
+    orca_anal_hess = np.array([
+        [ 7.2267E-02, -1.6028E-11,  1.1456E-12, -7.2267E-02,  1.6078E-11, -1.0933E-12],
+        [-1.6027E-11,  4.4978E-02, -7.0964E-12,  1.6039E-11, -4.4978E-02,  7.0964E-12],
+        [ 1.6868E-12, -7.0964E-12,  4.4978E-02, -1.6754E-12,  7.0964E-12, -4.4978E-02],
+        [-7.2267E-02, -3.4360E-12,  2.9458E-11,  7.2267E-02,  3.4061E-12, -2.9411E-11],
+        [-4.9340E-12, -4.4978E-02, -1.0574E-12,  4.9333E-12,  4.4978E-02,  1.0574E-12],
+        [ 3.1763E-11, -1.0574E-12, -4.4978E-02, -3.1762E-11,  1.0575E-12,  4.4978E-02],
+    ])
+
+    def ms(x):
+        return np.mean(np.square(x))
+
+    assert (ms(orca_anal_hess - h2.hessian)
+            / (max((ms(orca_anal_hess), ms(h2.hessian))))) < 0.5
+
+
+@work_in_tmp_dir()
+def test_check_properties_exist_did_not_terminate_normally():
+
+    calc = Calculation(name="tmp",
+                       molecule=h_atom(),
+                       method=XTB(),
+                       keywords=None)
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        calc._check_properties_exist()
+
+
+class TestCalculator(Method):
+
+    __test__ = False
+
+    def __init__(self):
+        super().__init__(name="test", doi_list=[], keywords_set=KeywordsSet())
+
+    @property
+    def uses_external_io(self) -> bool:
+        return False
+
+    def execute(self, calc: "CalculationExecutor") -> None:
+        pass
+
+    def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
+        return True
+
+    def __repr__(self):
+        pass
+
+    def implements(self, calculation_type) -> bool:
+        return True  # this calculator 'implements' all calculations
+
+
+class TestCalculatorConstantEnergy(TestCalculator):
+
+    def execute(self, calc) -> None:
+        calc.molecule.energy = 1.0
+
+
+class TestCalculatorConstantGradient(TestCalculator):
+
+    def execute(self, calc) -> None:
+        calc.molecule.energy = 1.0
+        calc.molecule.gradient = np.zeros_like(calc.molecule.coordinates)
+
+
+def _test_calc_with_keywords_type(_type, mol=h_atom()):
+    return Calculation(name="tmp",
+                       molecule=mol,
+                       method=TestCalculator(),
+                       keywords=_type())
+
+
+def _test_calc():
+    return _test_calc_with_keywords_type(SinglePointKeywords)
+
+
+def test_generate_input_for_method_with_no_external_io():
+
+    calc = _test_calc_with_keywords_type(SinglePointKeywords)
+    # should be able to call generate input without any exceptions
+    calc.generate_input()
+
+
+def test_exception_raised_when_properties_dont_exist_after_run():
+
+    h = h_atom()
+
+    for _type in (SinglePointKeywords, GradientKeywords, HessianKeywords):
+
+        # Test method does not set any properties so these should fail
+        calc = _test_calc_with_keywords_type(_type, mol=h)
+        with pytest.raises(ex.CouldNotGetProperty):
+            calc.run()
+
+
+def test_exception_raised_when_energy_but_no_grad_after_run():
+
+    calc = Calculation(name="tmp",
+                       molecule=h_atom(),
+                       method=TestCalculatorConstantEnergy(),
+                       keywords=GradientKeywords())
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        calc.run()
+
+
+def test_exception_raised_when_energy_grad_but_no_hess_after_run():
+
+    calc = Calculation(name="tmp",
+                       molecule=h_atom(),
+                       method=TestCalculatorConstantGradient(),
+                       keywords=HessianKeywords())
+
+    with pytest.raises(ex.CouldNotGetProperty):
+        calc.run()
+
+
+def test_blank_calculation_output_with_no_external_io():
+
+    h = h_atom()
+    assert h.energy is None
+
+    calc = Calculation(name="tmp",
+                       molecule=h,
+                       method=TestCalculatorConstantEnergy(),
+                       keywords=SinglePointKeywords())
+    calc.run()
+    assert h.energy is not None
+
+    assert calc.output.filename is None
+    assert len(calc.output.file_lines) == 0
+
+
+@work_in_tmp_dir()
+def test_deleting_output_that_doesnt_exist():
+
+    xtb = XTB()
+    calc = Calculation(name='tmp2',
+                       molecule=h_atom(),
+                       method=xtb,
+                       keywords=xtb.keywords.sp)
+
+    calc.input.additional_filenames = ['a', 'b']
+    # no exceptions should be raised trying to delete files that don't exist
+    calc.clean_up(force=True)
+
+
+def test_blank_calculation_output_always_exists():
+    assert BlankCalculationOutput().exists
+
+
+@work_in_tmp_dir()
+def test_fix_unique_with_resigter():
+
+    env_var = os.environ.get('AUTODE_FIXUNIQUE', 'False')
+
+    calc = _test_calc()._executor
+    init_name = calc.name
+    calc._fix_unique()
+    assert os.path.exists('.autode_calculations')
+
+    calc.input.keywords = ['a']
+    calc._fix_unique()
+    second_name = calc.name
+    assert second_name != init_name
+
+    calc = _test_calc()._executor
+    calc.input.keywords = ['a', 'b']
+    calc._fix_unique()
+    assert calc.name != init_name and calc.name != second_name
+
+    # Reset the environment
+    os.environ['AUTODE_FIXUNIQUE'] = env_var

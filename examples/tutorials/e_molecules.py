@@ -22,7 +22,7 @@ print('Rotated carbon position is:   ', methane.coordinates[0, :])
 xtb = ade.methods.XTB()
 print(f'Using {ade.Config.n_cores} cores for an XTB calculation')
 
-if xtb.available:
+if xtb.is_available:
     methane.optimise(method=xtb)
     print('XTB energy (Ha):              ', methane.energy)
 
@@ -30,7 +30,7 @@ if xtb.available:
 orca = ade.methods.ORCA()
 print(f'Using {ade.Config.n_cores} cores for an ORCA calculation')
 
-if orca.available:
+if orca.is_available:
     print(f'Calculating at the: [{orca.keywords.sp}] level of theory')
     methane.single_point(method=orca)
     print('ORCA energy (Ha):             ', methane.energy)

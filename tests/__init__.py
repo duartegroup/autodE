@@ -8,3 +8,7 @@ os.environ['AUTODE_FIXUNIQUE'] = 'False'
 
 # Run all the tests on a single core
 ade.Config.n_cores = 1
+
+
+# Frequencies are all with unity scaling
+ade.Config.freq_scale_factor = 1.0

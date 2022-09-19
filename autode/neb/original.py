@@ -4,8 +4,8 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
 from typing import Optional
 from autode.log import logger
-from autode.calculation import Calculation
-from autode.wrappers.base import ElectronicStructureMethod
+from autode.calculations import Calculation
+from autode.wrappers.methods import Method
 from autode.path import Path
 from autode.utils import work_in
 from autode.config import Config
@@ -21,7 +21,7 @@ blues = plt.get_cmap('Blues')
 def energy_gradient(image, method, n_cores):
     """Calculate energies and gradients for an image using a EST method"""
 
-    if isinstance(method, ElectronicStructureMethod):
+    if isinstance(method, Method):
         return _est_energy_gradient(image, method, n_cores)
 
     elif isinstance(method, IDPP):
@@ -42,8 +42,8 @@ def _est_energy_gradient(image, est_method, n_cores):
     @work_in(image.name)
     def run():
         calc.run()
-        image.grad = calc.get_gradients().flatten()
-        image.energy = calc.get_energy()
+        image.grad = image.species.gradient.flatten()
+        image.energy = image.species.energy
         return None
 
     run()

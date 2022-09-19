@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import warnings
 from time import time
 from typing import Any, Optional, Sequence, List, Callable
 from functools import wraps
@@ -11,11 +12,13 @@ import multiprocessing.pool
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
-from autode.exceptions import (NoAtomsInMolecule,
+from autode.exceptions import (AutodeException,
+                               NoAtomsInMolecule,
                                NoCalculationOutput,
                                NoConformers,
                                NoMolecularGraph,
-                               MethodUnavailable)
+                               MethodUnavailable,
+                               CouldNotGetProperty)
 
 try:
     mp.set_start_method("fork")
@@ -368,6 +371,35 @@ def requires_output(func: Callable):
     return wrapped_function
 
 
+def requires_output_to_exist(func):
+    """Calculation method requiring the output filename to be set"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        calc = args[0]
+
+        if not calc.output.exists:
+            raise CouldNotGetProperty(f'Could not get property from '
+                                      f'{calc.name}. Has .run() been called?')
+        return func(*args, **kwargs)
+
+    return wrapped_function
+
+
+def no_exceptions(func) -> Optional[Any]:
+    """Calculation method requiring the output filename to be set"""
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+
+        try:
+            return func(*args, **kwargs)
+        except (ValueError, IndexError, TypeError, AutodeException):
+            return None
+
+    return wrapped_function
+
+
 def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
     """
     Function decorator that times-out after a number of seconds
@@ -460,3 +492,14 @@ def run_in_tmp_environment(**kwargs):
 
         return wrapped_function
     return func_decorator
+
+
+def deprecated(func):
+
+    @wraps(func)
+    def wrapped_function(*args, **kwargs):
+        warnings.warn("This function is deprecated and will be removed "
+                      "in autodE v1.4.0", DeprecationWarning, stacklevel=2)
+        return func(*args, **kwargs)
+
+    return wrapped_function

@@ -2,7 +2,7 @@ import time
 import pytest
 import os
 from autode import utils
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species.molecule import Molecule
 from autode.conformers import Conformer
 from autode.wrappers.MOPAC import MOPAC

@@ -1,4 +1,4 @@
-from autode.wrappers.keywords import ImplicitSolventType
+from autode.wrappers.keywords.keywords import ImplicitSolventType
 
 cpcm = ImplicitSolventType('cpcm', doi='10.1021/jp9716997')
 smd = ImplicitSolventType('smd', doi='10.1021/jp810292n')

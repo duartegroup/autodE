@@ -1,6 +1,6 @@
 import autode as ade
 from autode.methods import XTB
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from scipy.optimize import minimize
 import numpy as np
 from scipy.spatial import distance_matrix

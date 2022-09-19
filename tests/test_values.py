@@ -1,7 +1,9 @@
 import numpy as np
+import pytest
+
 from autode.units import ang, ha, ha_per_ang, ha_per_a0, ev
 from autode.values import (ValueArray, Gradient, Coordinate, Coordinates,
-                           MomentOfInertia)
+                           MomentOfInertia, _to)
 
 
 class TmpValues(ValueArray):
@@ -58,6 +60,8 @@ def test_coordinates():
     coords = Coordinates(arr.flatten())
     assert coords.shape == (2, 3)
 
+    assert 'coord' in repr(coords).lower()
+
 
 def test_moi():
 
@@ -68,11 +72,32 @@ def test_moi():
 def test_gradients():
 
     # Default gradient units are Ha Å^-1
-    gradients = Gradient(np.arange(2, dtype='f8'))
+    gradients = Gradient(np.arange(3, dtype='f8'))
     assert gradients.units == ha_per_ang
     assert 'grad' in repr(gradients).lower()
 
     gradients_ha_a0 = gradients.to(ha_per_a0)
 
     # Energy per bohr is smaller than per angstrom..
-    assert all(g1 - g2 <= 0 for g1, g2 in zip(gradients_ha_a0, gradients))
+    assert all(g1 - g2 <= 0 for g1, g2 in zip(gradients_ha_a0.flatten(),
+                                              gradients.flatten()))
+
+
+class Unit:
+    conversion = 1.0
+    aliases = ["unit"]
+
+    def lower(self) -> str:
+        return "unit"
+
+
+class InvalidValue(float):
+    implemented_units = [Unit]
+    units = Unit()
+
+
+def test_to_unsupported():
+
+    with pytest.raises(ValueError):
+         _ = _to(InvalidValue(), Unit())
+

@@ -3,7 +3,7 @@ from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 from autode.input_output import atoms_to_xyz_file
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.config import Config
 from autode.values import Distance
 from autode.exceptions import CalculationException

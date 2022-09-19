@@ -1,25 +1,25 @@
 import os
 from typing import Collection
-from autode.atoms import Atom
+from autode.atoms import Atom, Atoms
 from autode.exceptions import XYZfileDidNotExist
 from autode.exceptions import XYZfileWrongFormat
 from autode.log import logger
 
 
-def xyz_file_to_atoms(filename: str):
+def xyz_file_to_atoms(filename: str) -> Atoms:
     """
     From a .xyz file get a list of autode atoms
 
     ---------------------------------------------------------------------------
     Arguments:
-        filename (str): .xyz filename
+        filename: .xyz filename
 
     Returns:
-        (list(autode.atoms.Atom)): Atoms
+        (autode.atoms.Atoms): Atoms
     """
     logger.info(f'Getting atoms from {filename}')
 
-    atoms = []
+    atoms = Atoms()
 
     if not os.path.exists(filename):
         raise XYZfileDidNotExist(f'{filename} did not exist')
@@ -65,15 +65,14 @@ def atoms_to_xyz_file(atoms:      Collection[Atom],
 
     ---------------------------------------------------------------------------
     Arguments:
-        atoms (list(autode.atoms.Atom)): List of autode atoms to print
+        atoms: List of autode atoms to print
 
-        filename (str): Name of the file (with .xyz extension)
+        filename: Name of the file (with .xyz extension)
 
-    Keyword Arguments:
-        title_line (str): Second line of the xyz file, can be blank
+        title_line: Second line of the xyz file, can be blank
 
-        append (bool): Do or don't append to this file. With append=False
-                       filename will be overwritten if it already exists
+        append: Do or don't append to this file. With append=False
+                filename will be overwritten if it already exists
     """
     assert atoms is not None
     assert filename.endswith('.xyz')

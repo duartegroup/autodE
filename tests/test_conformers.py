@@ -300,7 +300,7 @@ def test_calc_conformer():
 
     _xtb = XTB()
     _xtb.path = shutil.which('xtb')
-    assert _xtb.available
+    assert _xtb.is_available
 
     h2_conf = _calc_conformer(conformer=h2_conf,
                               calc_type='single_point',

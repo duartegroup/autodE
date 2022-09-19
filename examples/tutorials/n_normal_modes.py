@@ -1,7 +1,7 @@
 import autode as ade
 
 orca = ade.methods.ORCA()
-if not orca.available:
+if not orca.is_available:
     exit('ORCA must be available for this example')
 
 # Optimise and calculate the Hessian for a water molecule

@@ -11,7 +11,7 @@ from autode.units import (Unit,
                           wavenumber, hz,
                           amu, kg, m_e,
                           amu_ang_sq, kg_m_sq,
-                          ha_per_ang, ha_per_a0, ev_per_ang,
+                          ha_per_ang, ha_per_a0, ev_per_ang, kcalmol_per_ang,
                           byte, MB, GB, TB)
 
 
@@ -40,18 +40,20 @@ def _to(value: Union['Value', 'ValueArray'],
         raise TypeError(f'No viable unit conversion from {value.units} '
                         f'-> {units}')
 
-    #                      Convert to the base unit, then to the new units
+    # Convert to the base unit, then to the new units
+    c = float(units.conversion / value.units.conversion)
+
     if isinstance(value, Value):
-        raw_value = float(value)
+        return value.__class__(float(value) * c, units=units)
+
     elif isinstance(value, ValueArray):
-        raw_value = np.array(value)
+        value[:] = np.array(value, copy=True) * c
+        value.units = units
+        return value
+
     else:
         raise ValueError(f'Cannot convert {value} to new units. Must be one of'
                          f' Value of ValueArray')
-
-    return value.__class__(raw_value * float(units.conversion
-                                             / value.units.conversion),
-                           units=units)
 
 
 def _units_init(value,
@@ -232,28 +234,6 @@ class Energy(Value):
 
     implemented_units = [ha, kcalmol, kjmol, ev, J]
 
-    def __repr__(self):
-        return f'Energy({round(self, 5)} {self.units.name})'
-
-    def __eq__(self, other):
-        """Is an energy equal to another? Compares only the value, with
-        implicit unit conversion"""
-        tol_ha = 0.0000159    # 0.01 kcal mol-1
-
-        # A PotentialEnergy is not equal to a FreeEnergy, for example
-        if isinstance(other, Value) and not isinstance(other, self.__class__):
-            return False
-
-        if isinstance(other, Value):
-            other = other.to('Ha')
-
-        try:
-            other = float(other)   # Must be float-able
-        except TypeError:
-            return False
-
-        return abs(other - float(self.to('Ha'))) < tol_ha
-
     def __init__(self,
                  value,
                  units:     Union[Unit, str] = ha,
@@ -283,8 +263,41 @@ class Energy(Value):
         super().__init__(value, units=units)
 
         self.is_estimated = estimated
+        self.method_str = ""
+        self.set_method_str(method, keywords)
+
+    def set_method_str(self,
+                       method:   Optional['autode.wrappers.base.Method'],
+                       keywords: Optional['autode.wrappers.keywords.Keywords'],
+                       ) -> None:
+        """
+        Set the method string for a method and the keywords that were used
+        to calculate it
+        """
         self.method_str = f'{method.name} ' if method is not None else 'unknown'
         self.method_str += keywords.bstring if keywords is not None else ''
+
+    def __repr__(self):
+        return f'Energy({round(self, 5)} {self.units.name})'
+
+    def __eq__(self, other):
+        """Is an energy equal to another? Compares only the value, with
+        implicit unit conversion"""
+        tol_ha = 0.0000159    # 0.01 kcal mol-1
+
+        # A PotentialEnergy is not equal to a FreeEnergy, for example
+        if isinstance(other, Value) and not isinstance(other, self.__class__):
+            return False
+
+        if isinstance(other, Value):
+            other = other.to('Ha')
+
+        try:
+            other = float(other)   # Must be float-able
+        except TypeError:
+            return False
+
+        return abs(other - float(self.to('Ha'))) < tol_ha
 
 
 class PotentialEnergy(Energy):
@@ -358,8 +371,8 @@ class Energies(list):
 
         for item in self:
             if other == item:
-                logger.warning(f'Not appending {other} to the energies - '
-                               f'already present. Moving to the end')
+                logger.debug(f'Not appending {other} to the energies - '
+                             f'already present. Moving to the end')
                 self.append(self.pop(self.index(item)))
                 return
 
@@ -553,7 +566,7 @@ class ValueArray(ABC, np.ndarray):
             (autode.values.ValueArray):
         """
 
-        arr = np.asarray(input_array).view(cls)
+        arr = np.array(input_array, copy=True).view(cls)
 
         if isinstance(input_array, ValueArray) and units is None:
             arr.units = input_array.units
@@ -562,7 +575,7 @@ class ValueArray(ABC, np.ndarray):
 
         return arr
 
-    def to(self, units):
+    def to(self, units) -> Any:
         """
         Convert this array to a new unit, returning a copy
 
@@ -632,18 +645,18 @@ class Coordinates(ValueArray):
         return f'Coordinates({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls, input_array, units=ang):
-        return super().__new__(cls, input_array.reshape(-1, 3), units)
+        return super().__new__(cls, np.asarray(input_array).reshape(-1, 3), units)
 
 
 class Gradient(ValueArray):
 
-    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
+    implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang, kcalmol_per_ang]
 
     def __repr__(self):
         return f'Gradients({np.ndarray.__str__(self)} {self.units.name})'
 
     def __new__(cls,  input_array, units=ha_per_ang):
-        return super().__new__(cls, input_array, units)
+        return super().__new__(cls, np.asarray(input_array).reshape(-1, 3), units)
 
 
 class GradientRMS(Value):

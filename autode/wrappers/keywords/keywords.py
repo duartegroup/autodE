@@ -57,7 +57,7 @@ class KeywordsSet:
 
         self._low_opt = OptKeywords(low_opt)           # Low-level optimisation
         self._opt = OptKeywords(opt)                   # Optimisation
-        self._opt_ts = OptKeywords(opt_ts)             # TS optimisation
+        self._opt_ts = OptTSKeywords(opt_ts)           # TS optimisation
 
         self._grad = GradientKeywords(grad)            # Gradient
         self._hess = HessianKeywords(hess)             # Hessian
@@ -96,7 +96,7 @@ class KeywordsSet:
         self._opt = OptKeywords(value)
 
     @property
-    def opt_ts(self) -> 'OptKeywords':
+    def opt_ts(self) -> 'OptTSKeywords':
         return self._opt_ts
 
     @opt_ts.setter
@@ -183,7 +183,7 @@ class KeywordsSet:
 class Keywords(ABC):
 
     def __init__(self,
-                 keyword_list: Union[Sequence[str], str, None] = None):
+                 keyword_list: Union[Sequence, str, None] = None):
         """
         List of keywords used in an electronic structure calculation
 
@@ -223,7 +223,7 @@ class Keywords(ABC):
     def __repr__(self):
         """Representation of these keywords"""
 
-    def _get_keyword(self, keyword_type):
+    def _get_keyword(self, keyword_type) -> Optional["Keyword"]:
         """Get a keyword given a type"""
 
         for keyword in self._list:
@@ -260,6 +260,9 @@ class Keywords(ABC):
         # This keyword does not appear in the list, so add it
         self.append(keyword)
         return None
+
+    def tolist(self) -> List:
+        return self._list
 
     @property
     def ecp(self):
@@ -429,6 +432,10 @@ class OptKeywords(Keywords):
         return f'OptKeywords({self.__str__()})'
 
 
+class OptTSKeywords(OptKeywords):
+    """Transition state optimisation keywords"""
+
+
 class HessianKeywords(Keywords):
 
     def __repr__(self):
@@ -449,7 +456,10 @@ class SinglePointKeywords(Keywords):
 
 class Keyword(ABC):
 
-    def __init__(self, name, doi=None, doi_list=None, **kwargs):
+    def __init__(self,
+                 name: str,
+                 doi_list: Optional[List[str]] = None,
+                 **kwargs):
         """
         A keyword for an electronic structure theory method e.g. basis set or
         functional, with possibly a an associated reference or set of
@@ -472,8 +482,8 @@ class Keyword(ABC):
         self.name = name
 
         self.doi_list = []
-        if doi is not None:
-            self.doi_list.append(doi)
+        if "doi" in kwargs and kwargs["doi"] is not None:
+            self.doi_list.append(kwargs.pop("doi"))
 
         if doi_list is not None:
             self.doi_list += doi_list
@@ -481,7 +491,7 @@ class Keyword(ABC):
         # Update the attributes with any keyword arguments
         self.__dict__.update(kwargs)
 
-        # Gaussian 09 and Gaussian 16 keywords are the same(?)
+        # Gaussian 09 and Gaussian 16 keywords are the same
         if 'g09' in kwargs.keys():
             self.g16 = kwargs['g09']
 
@@ -517,7 +527,7 @@ class Keyword(ABC):
         to be set, where method is e.g. orca
         """
 
-        excl_attrs = ('name', 'doi_list', 'freq_scale_factor')
+        excl_attrs = ('name', 'doi_list', 'doi', 'freq_scale_factor')
         for attr in self.__dict__:
             if attr in excl_attrs:
                 continue
@@ -621,7 +631,7 @@ class ECP(Keyword):
             doi_list (list(str)):
             kwargs:
         """
-        super().__init__(name, doi, doi_list, **kwargs)
+        super().__init__(name, doi=doi, doi_list=doi_list, **kwargs)
 
         self.min_atomic_number = min_atomic_number
 

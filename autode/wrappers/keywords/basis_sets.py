@@ -1,4 +1,4 @@
-from autode.wrappers.keywords import BasisSet, ECP
+from autode.wrappers.keywords.keywords import BasisSet, ECP
 
 def2svp = BasisSet(name='def2-SVP', doi='10.1039/B508541A',
                    orca='def2-SVP',

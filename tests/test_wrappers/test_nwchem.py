@@ -1,14 +1,15 @@
-from autode.wrappers.NWChem import NWChem, ecp_block, get_keywords
+from autode.wrappers.NWChem import NWChem, ecp_block
 from autode.point_charges import PointCharge
-from autode.calculation import Calculation, CalculationInput
-from autode.exceptions import CouldNotGetProperty, CalculationException
+from autode.calculations import Calculation
+from autode.exceptions import UnsupportedCalculationInput, CalculationException
 from autode.species.molecule import Molecule
-from autode.wrappers.keywords import OptKeywords, MaxOptCycles, SinglePointKeywords
-from autode.wrappers.basis_sets import def2svp
-from autode.wrappers.wf import hf
-from autode.wrappers.functionals import pbe0
+from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
+from autode.wrappers.keywords.basis_sets import def2svp
+from autode.wrappers.keywords.wf import hf
+from autode.wrappers.keywords.functionals import pbe0
+from autode.config import Config
 from autode.atoms import Atom
-from . import testutils
+from .. import testutils
 import numpy as np
 import pytest
 import os
@@ -17,11 +18,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = NWChem()
 
-opt_keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
-                            '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
-                            'basis\n  *   library Def2-SVP\nend',
+opt_keywords = OptKeywords(['basis\n  *   library Def2-SVP\nend',
                             'dft\n   xc xpbe96 cpbe96\nend',
-                            'task dft optimize'])
+                            'task dft gradient'])
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
@@ -31,28 +30,16 @@ def test_opt_calc():
                        keywords=opt_keywords)
     calc.run()
 
-    assert os.path.exists('opt_nwchem.nw')
-    assert os.path.exists('opt_nwchem.out')
-
     final_atoms = calc.get_final_atoms()
     assert len(final_atoms) == 5
     assert type(final_atoms[0]) is Atom
     assert -40.4165 < calc.get_energy() < -40.4164
-    assert calc.output.exists
-    assert calc.output.file_lines is not None
-    assert calc.input.filename == 'opt_nwchem.nw'
-    assert calc.output.filename == 'opt_nwchem.out'
     assert calc.terminated_normally
     assert calc.optimisation_converged()
     assert calc.optimisation_nearly_converged() is False
 
     # No Hessian is computed for an optimisation calculation
-    with pytest.raises(CouldNotGetProperty):
-        _ = calc.get_hessian()
-
-    charges = calc.get_atomic_charges()
-    assert len(charges) == 5
-    assert all(-1.0 < c < 1.0 for c in charges)
+    assert calc.get_hessian() is None
 
     # Optimisation should result in small gradients
     gradients = calc.get_gradients()
@@ -113,90 +100,43 @@ def test_ecp_calc():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
-def test_opt_hf_constraints():
-
-    keywords = OptKeywords(['driver\n gmax 0.002\n  grms 0.0005\n'
-                            '  xmax 0.01\n   xrms 0.007\n  eprec 0.00003\nend',
-                            'basis\n  *   library Def2-SVP\nend',
-                            'task scf optimize'])
-
-    h2o = Molecule(name='water', smiles='O')
-    h2o.constraints.update(distance={(0, 1): 0.95},
-                           cartesian=[0])
-
-    calc = Calculation(name='opt_water',
-                       molecule=h2o,
-                       method=method,
-                       keywords=keywords)
-    calc.run()
-    h2o.atoms = calc.get_final_atoms()
-    assert 0.94 < h2o.distance(0, 1) < 0.96
-
-
-def test_get_keywords_max_opt_cyles():
-
-    opt_block = ('driver\n'
-                 '  gmax 0.0003\n'
-                 '  maxiter 100\n'
-                 'end')
-
-    # Defining the maximum number of optimisation cycles should override the
-    # value set in the driver
-    kwds = OptKeywords([opt_block, def2svp, pbe0, MaxOptCycles(10),
-                        'task dft optimize',
-                        'task dft property'])
-
-    calc_input = CalculationInput(keywords=kwds)
-
-    # Should only have a single instance of the maxiter declaration
-    str_keywords = get_keywords(calc_input, molecule=test_mol)
-    modified_opt_block = str_keywords[0].split('\n')
-
-    assert sum('maxiter' in line for line in modified_opt_block) == 1
-
-    # and should be 10 not 100
-    assert sum('maxiter 100' in line for line in modified_opt_block) == 0
-    assert sum('maxiter 10' in line for line in modified_opt_block) == 1
-
-    # Also if the maxiter is not defined already
-
-    kwds = OptKeywords([('driver\n  gmax 0.0003\nend'), def2svp, pbe0, MaxOptCycles(10)])
-    calc_input = CalculationInput(keywords=kwds)
-    modified_opt_block2 = get_keywords(calc_input, molecule=test_mol)[0].split('\n')
-
-    assert sum('maxiter 10' in line for line in modified_opt_block2) == 1
-
-
-@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_hessian_extract_ts():
 
-    atoms = [Atom('F',   0.00000, 0.00000,  2.50357),
+    ts = Molecule(name='ts', 
+       atoms=[Atom('F',   0.00000, 0.00000,  2.50357),
              Atom('Cl', -0.00000, 0.00000, -1.62454),
              Atom('C',   0.00000, 0.00000,  0.50698),
              Atom('H',   1.05017, 0.24818,  0.60979),
              Atom('H', -0.74001,  0.78538,  0.60979),
-             Atom('H', -0.31016, -1.03356,  0.60979)]
+             Atom('H', -0.31016, -1.03356,  0.60979)])
 
     calc = Calculation(name='sn2_hess',
-                       molecule=Molecule(name='ts', atoms=atoms),
+                       molecule=ts,
                        keywords=method.keywords.hess,
                        method=method)
-    calc.output.filename = 'sn2_hess_nwchem.out'
+    calc.set_output_filename('sn2_hess_nwchem.out')
 
-    hess = calc.get_hessian()
-    assert hess.shape == (3*len(atoms), 3*len(atoms))
+    assert ts.hessian is not None
+    assert ts.hessian.shape == (3*ts.n_atoms, 3*ts.n_atoms)
+
+    assert ts.gradient is not None
+    assert np.isclose(ts.gradient[-1][-1], -0.000588 / 0.529177)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_hessian_extract_butane():
 
+    Config.freq_scale_factor = 1.0
+
+    butane = Molecule('butane.xyz')
     calc = Calculation(name='butane',
-                       molecule=Molecule('butane.xyz'),
+                       molecule=butane,
                        keywords=method.keywords.hess,
                        method=method)
-    calc.output.filename = 'butane_hess_nwchem.out'
+    calc.set_output_filename('butane_hess_nwchem.out')
 
     hess = calc.get_hessian()
+    assert hess is not None
 
     # bottom right corner element should be positive
     assert hess[-1, -1] > 0
@@ -212,10 +152,9 @@ def test_hessian_extract_butane():
                        molecule=Molecule('butane.xyz'),
                        keywords=method.keywords.hess,
                        method=method)
-    calc.output.filename = 'broken_hessian.out'
 
     with pytest.raises(CalculationException):
-        _ = calc.get_hessian()
+        calc.set_output_filename('broken_hessian.out')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
@@ -223,7 +162,7 @@ def test_hf_calculation():
 
 
     h2o = Molecule(smiles='O', name='H2O')
-    hf_kwds = SinglePointKeywords([def2svp, 'task scf'])
+    hf_kwds = [def2svp, 'task scf']
 
     h2o.single_point(method=method,
                      keywords=hf_kwds)
@@ -245,7 +184,7 @@ def test_hf_calculation():
     assert np.isclose(h.energy, -0.5, atol=0.001)
 
     # Should also support other arguments in the SCF block
-    hf_kwds = SinglePointKeywords([def2svp, 'scf\n    maxiter 100\nend', 'task scf'])
+    hf_kwds = [def2svp, 'scf\n    maxiter 100\nend', 'task scf']
     h.single_point(method=method, keywords=hf_kwds)
 
     assert h.energy is not None
@@ -269,3 +208,36 @@ def test_point_charge_calculation():
     # isolated atoms HF energy
     assert not np.isclose(calc.get_energy(), -0.5, atol=0.001)
 
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+def test_charge_extract():
+
+    h2o = Molecule(smiles="O")
+    calc = Calculation(name='tmp',
+                       molecule=h2o,
+                       keywords=method.keywords.sp,
+                       method=method)
+    calc.set_output_filename("H2O_sp_nwchem.out")
+
+    assert h2o.atomic_symbols == ["O", "H", "H"]
+    assert np.allclose(h2o.partial_charges,
+                       [-0.801244, 0.397696, 0.403548])
+
+
+def test_no_driver_in_generated_opt_input():
+
+    opt_str = ('driver\n'
+               '  gmax 0.0003\n'
+               '  grms 0.0001\n'
+               '  xmax 0.004\n'
+               '  xrms 0.002\n'
+               '  eprec 0.000005\n'
+               'end')
+
+    calc = Calculation(name='tmp',
+                       molecule=Molecule(smiles="O"),
+                       keywords=OptKeywords([pbe0, def2svp, opt_str]),
+                       method=method)
+
+    with pytest.raises(UnsupportedCalculationInput):
+        calc.generate_input()

@@ -2,7 +2,7 @@ import autode as ade
 
 xtb, orca = ade.methods.XTB(), ade.methods.ORCA()
 
-if not (orca.available and xtb.available):
+if not (orca.is_available and xtb.is_available):
     exit('This example requires both an ORCA and XTB install')
 
 # Dinitrogen molecule

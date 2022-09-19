@@ -1,6 +1,6 @@
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.exceptions import XYZfileDidNotExist, XYZfileWrongFormat
-from autode.atoms import Atom
+from autode.atoms import Atom, Atoms
 from . import testutils
 import pytest
 import os
@@ -12,7 +12,7 @@ def test_xyz_file_to_atoms():
 
     atoms = xyz_file_to_atoms(filename='opt_orca.xyz')
     assert len(atoms) == 5
-    assert type(atoms) == list
+    assert type(atoms) == Atoms
     assert type(atoms[0]) == Atom
     assert atoms[0].coord[0] == -0.137572
 

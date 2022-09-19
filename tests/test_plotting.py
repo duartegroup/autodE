@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import CouldNotPlotSmoothProfile
 from autode.species.molecule import Reactant, Product
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.methods import ORCA
 from autode.transition_states.transition_state import TransitionState
 from autode.species.complex import ReactantComplex, ProductComplex
@@ -135,11 +135,7 @@ def test_reaction_warnings():
     orca = ORCA()
     ts_calc = Calculation(name='TS', molecule=ts, method=orca,
                           keywords=orca.keywords.opt_ts)
-    ts_calc.output.filename = 'TS.out'
-    ts.atoms = ts_calc.get_final_atoms()
-    ts.hessian = ts_calc.get_hessian()
-    ts.energy = ts_calc.get_energy()
-
+    ts_calc.set_output_filename( 'TS.out')
     reaction.ts = ts
     warnings = plotting.get_reaction_profile_warnings(reactions=[reaction])
     assert 'None' in warnings
