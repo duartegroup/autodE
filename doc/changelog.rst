@@ -41,6 +41,7 @@ Functionality improvements
 - Improves the back transformation
 - Adds an optional callback argument to :code:`autode.opt.optimisers.base.Optimiser` for running custom functions after every optimisation step
 - Adds the ability to save/reload an :code:`autode.opt.optimisers.NDOptimiser` instance to/from a file
+- Adds functionality to partition a nudged elastic band into images where the maximum atom-atom distance between images is below a threshold
 
 
 Bug Fixes

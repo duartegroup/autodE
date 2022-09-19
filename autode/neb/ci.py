@@ -83,6 +83,8 @@ class CImages(Images):
 
 class CINEB(NEB):
 
+    _images_type = CImages
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -104,9 +106,3 @@ class CINEB(NEB):
         result = super()._minimise(method, n_cores, etol, max_n)
 
         return result
-
-    def partition(self, n: int) -> None:
-        """Partition a set of CI images"""
-        super().partition(n=n)
-        self.images = CImages(self.images)
-        return None

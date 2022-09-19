@@ -11,6 +11,7 @@ from autode.utils import work_in
 from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
+from autode.values import Distance
 from multiprocessing import Pool
 from copy import deepcopy
 import numpy as np
@@ -81,7 +82,9 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
 
     # Number of cores per process is the floored total divided by n images
     # minus the two end points that will be fixed
-    n_cores_pp = max(int(n_cores//(len(images)-2)), 1)
+    n_cores_pp = 1
+    if len(images) > 2:
+        n_cores_pp = max(int(n_cores//(len(images)-2)), 1)
 
     logger.info(f'Calculating energy and forces for all images with '
                 f'{n_cores} total cores and {n_cores_pp} per process')
@@ -339,6 +342,8 @@ class Images(Path):
 
 class NEB:
 
+    _images_type = Images
+
     def __init__(self, initial_species=None, final_species=None, num=8,
                  species_list=None, k=0.1):
         """
@@ -369,7 +374,7 @@ class NEB:
 
         logger.info(f'Initialised a NEB with {len(self.images)} images')
 
-    def _minimise(self, method, n_cores, etol, max_n=30):
+    def _minimise(self, method, n_cores, etol, max_n=30) -> None:
         """Minimise th energy of every image in the NEB"""
         logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
 
@@ -384,43 +389,64 @@ class NEB:
         logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
         return result
 
-    def contains_peak(self):
+    def contains_peak(self) -> bool:
         """Does this nudged elastic band calculation contain an energy peak?"""
         return self.images.contains_peak
 
-    def partition(self, n):
+    def partition(self,
+                  max_delta: Distance
+                  ) -> None:
         """
-        Partition this NEB into n steps between each image i.e. n=2 affords
-        double the images
+        Partition this NEB such that there are no distances between images
+        exceeding max_delta. Will run IDPP relaxations on intermediate images
 
         -----------------------------------------------------------------------
         Arguments:
-            n: (int)
+            max_delta: The maximum allowed max_atoms(|x_k - x_k+1|) where
+                       x_k are the cartesian coordinates of the k-th NEB
+                       image and the maximum is over the atom-wise distance
         """
         logger.info('Interpolating')
-        species_list = [self.images[0].species]    # First unchanged
+        _list = [self.images[0].species]  # Start with the first image
+        init_k = self.images[0].k
 
-        for i, image in enumerate(self.images[1:]):
-            for j in range(1, n):
-                new_species = self.images[i].species.copy()
-                right_coords = image.species.coordinates
+        for i, next_image in enumerate(self.images):
+            sub_neb = NEB(species_list=[_list[-1], next_image.species])
 
-                for k, atom in enumerate(new_species.atoms):
-                    shift = right_coords[k] - atom.coord
-                    atom.translate(vec=shift * (j / n))
+            # sub-neb
+            # interpolate
+            # idpp relax
+            # append images
+            n = 2
 
-                species_list.append(new_species)
-            species_list.append(image.species)
+            while sub_neb.max_atom_distance_between_images > max_delta:
+                init, final = sub_neb._species_at(0), sub_neb._species_at(-1)
+                sub_neb.images = self._images_type(num=n, init_k=init_k)
+                sub_neb.images[0].species = init
+                sub_neb.images[-1].species = final
+                sub_neb.interpolate_geometries()
+                sub_neb.print_geometries(name="tmp")
+                try:
+                    sub_neb.idpp_relax()
+                except RuntimeError:
+                    logger.warning("Failed to IDPP relax the interpolated NEB")
 
-        # Reset the list of images
-        self.images = Images(num=len(species_list), init_k=self.images[0].k)
+                n += 1
+
+            for image in sub_neb.images[1:-1]:
+                _list.append(image.species)
+
+        self.images = self._images_type(num=len(_list), init_k=init_k)
 
         for i, image in enumerate(self.images):
-            image.species = species_list[i]
+            image.species = _list[i]
 
         return None
 
-    def print_geometries(self, name='neb'):
+    def _species_at(self, idx: int) -> 'autode.species.Species':
+        return self.images[idx].species
+
+    def print_geometries(self, name='neb') -> None:
         return self.images.print_geometries(name)
 
     def interpolate_geometries(self) -> None:
@@ -531,3 +557,22 @@ class NEB:
 
         self.images.set_coords(result.x)
         return None
+
+    @property
+    def max_atom_distance_between_images(self) -> Distance:
+        """
+        Calculate the maximum atom-atom distance between two consecutive images
+        """
+        overall_max_distance = -np.inf
+
+        for i in range(len(self.images) // 2):
+            k = 2 * i
+            k_plus1 = 2 * i + 1
+            x_i = self._species_at(k).coordinates
+            x_j = self._species_at(k_plus1).coordinates
+
+            max_distance = np.max(np.linalg.norm(x_i - x_j, axis=1))
+            if max_distance > overall_max_distance:
+                overall_max_distance = max_distance
+
+        return overall_max_distance
