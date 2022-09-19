@@ -68,7 +68,7 @@ def test_relaxed_with_keywords():
 
     # Spoof ORCA availability
     orca.path = here
-    assert orca.available
+    assert orca.is_available
 
     pes.calculate(method=orca,
                   keywords=OptKeywords(['PBE', 'def2-SVP', 'LooseOpt']))
@@ -89,7 +89,7 @@ def test_calculate_single_without_est():
 
     orca = ORCA()
     orca.path = '/a/path/that/does/not/exist'
-    assert not orca.available
+    assert not orca.is_available
 
     # Cannot calculate a surface without a working method
     with pytest.raises(RuntimeError):

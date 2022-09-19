@@ -3,7 +3,7 @@ import autode as ade
 ade.Config.lcode = 'xtb'
 ade.Config.hcode = 'g09'
 
-if not (ade.methods.G09().available and ade.methods.XTB().available):
+if not (ade.methods.G09().is_available and ade.methods.XTB().is_available):
     exit('This example requires a Gaussian09 and XTB install')
 
 # Full reaction profiles can be calculated by again forming a reaction

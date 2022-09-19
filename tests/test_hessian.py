@@ -2,17 +2,19 @@ import os
 import pytest
 import numpy as np
 import autode as ade
+from autode.utils import work_in_tmp_dir
 from . import testutils
+import multiprocessing as mp
 from autode.config import Config
 from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.geom import calc_rmsd
 from autode.units import wavenumber
 from autode.exceptions import CalculationException
-from autode.wrappers.functionals import pbe0
+from autode.wrappers.keywords import pbe0
 from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
@@ -295,9 +297,7 @@ def test_gaussian_hessian_extract_h2():
                        method=ade.methods.G09(),
                        keywords=ade.HessianKeywords())
 
-    calc.output.filename = 'H2_hess_g09.log'
-    h2.hessian = calc.get_hessian()
-
+    calc.set_output_filename('H2_hess_g09.log')
     assert np.isclose(h2.hessian.frequencies[-1], Frequency(4383.9811),
                       atol=1.0)
 
@@ -313,10 +313,9 @@ def test_gaussian_hessian_extract_co2():
     calc = Calculation(name='tmp',
                        molecule=co2,
                        method=ade.methods.G09(),
-                       keywords=ade.SinglePointKeywords([]))
+                       keywords=ade.HessianKeywords([]))
 
-    calc.output.filename = 'CO2_opt_hess_g09.log'
-    co2.hessian = calc.get_hessian()
+    calc.set_output_filename('CO2_opt_hess_g09.log')
 
     assert all(np.isclose(freq, Frequency(0, units='cm-1'), atol=10) for freq
                in co2.hessian.frequencies[:5])
@@ -329,14 +328,14 @@ def test_gaussian_hessian_extract_co2():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
 def test_nwchem_hessian_extract_h2o():
 
+    water = ade.Molecule(smiles='O')
     calc = Calculation(name='tmp',
-                       molecule=ade.Molecule(smiles='O'),
+                       molecule=water,
                        method=ade.methods.NWChem(),
                        keywords=ade.HessianKeywords())
 
-    calc.output.filename = 'H2O_hess_nwchem.out'
-
-    hessian = calc.get_hessian()
+    calc.set_output_filename('H2O_hess_nwchem.out')
+    hessian = water.hessian
 
     for freqs in (hessian.frequencies, hessian.frequencies_proj):
         assert sum(np.isclose(freq, 0.0, atol=15) for freq in freqs) == 6
@@ -352,15 +351,15 @@ def test_nwchem_hessian_extract_h2o():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
-def test_nechem_hessian_co2():
+def test_nwchem_hessian_co2():
 
+    co2 = ade.Molecule(smiles='O=C=O')
     calc = Calculation(name='tmp',
-                       molecule=ade.Molecule(smiles='O=C=O'),
+                       molecule=co2,
                        method=ade.methods.NWChem(),
                        keywords=ade.HessianKeywords())
-
-    calc.output.filename = 'CO2_hess_nwchem.out'
-    assert_correct_co2_frequencies(hessian=calc.get_hessian(),
+    calc.set_output_filename('CO2_hess_nwchem.out')
+    assert_correct_co2_frequencies(hessian=co2.hessian,
                                    expected=(659.76, 1406.83, 2495.73))
 
 
@@ -379,10 +378,8 @@ def test_imag_mode():
                        method=ORCA(),
                        keywords=ORCA().keywords.hess)
 
-    calc.output.filename = 'sn2_TS.out'
-    assert calc.output.exists
+    calc.set_output_filename('sn2_TS.out')
 
-    ts.hessian = calc.get_hessian()
     assert np.isclose(ts.imaginary_frequencies[0],
                       Frequency(-552.64, units='cm-1'), atol=1.0)
 
@@ -415,14 +412,12 @@ def test_extract_wrong_molecule_hessian():
     calc = Calculation(name='tmp',
                        molecule=ade.Molecule(smiles='[H]'),
                        method=ade.methods.G09(),
-                       keywords=ade.SinglePointKeywords([]))
-
-    calc.output.filename = 'CO2_opt_hess_g09.log'
+                       keywords=ade.HessianKeywords([]))
 
     # Should raise an exception if the Hessian extracted is not 3Nx3N for
     # N atoms (1 here)
     with pytest.raises(CalculationException):
-        _ = calc.get_hessian()
+        calc.set_output_filename('CO2_opt_hess_g09.log')
 
 
 def test_num_hess_invalid_input():
@@ -538,7 +533,7 @@ def test_partial_num_hess_init():
 
     orca = ORCA()
     orca.path = here   # spoof ORCA install
-    assert orca.available
+    assert orca.is_available
 
     for invalid_idx in (-1, 3, 'a'):
         with pytest.raises(ValueError):
@@ -577,7 +572,7 @@ def test_partial_water_num_hess():
 
     orca = ORCA()
     orca.path = here   # spoof ORCA install
-    assert orca.available
+    assert orca.is_available
 
     water = Molecule(name='water_partial_num_hess', charge=0, mult=1,
                      atoms=[Atom('O', -0.00110,  0.36310, -0.00000),
@@ -615,3 +610,26 @@ def test_partial_water_num_hess():
     assert np.allclose(partial_hess[3:, :3],
                        (xtb_num_hess[3:, :3] + orca_num_hess[3:, :3]) / 2.0,
                        atol=1E-1)
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_numerical_hessian_in_daemon():
+    """
+    Ensure that no exceptions are raised when a numerical hessian is
+    calculated within a multiprocessing pool
+    """
+
+    with mp.pool.Pool(processes=1) as pool:
+
+        res = pool.apply_async(func=_calc_num_hessian_h2)
+        _ = res.get(timeout=None)
+
+
+def _calc_num_hessian_h2():
+
+    assert mp.current_process().daemon
+    h2 = Molecule(smiles="[H][H]")
+    h2.calc_hessian(method=XTB(),
+                    numerical=True,
+                    n_cores=1)

@@ -1,7 +1,7 @@
 import autode as ade
 
 xtb = ade.methods.XTB()
-if not xtb.available:
+if not xtb.is_available:
     exit('This example requires an XTB install')
 
 # One dimensional potential energy surfaces without optimising other

@@ -1,13 +1,12 @@
 from typing import Optional
-from autode.log import logger
-from autode.wrappers.base import ElectronicStructureMethod
 from autode.wrappers.G09 import G09
 from autode.wrappers.G16 import G16
-from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.NWChem import NWChem
 from autode.wrappers.ORCA import ORCA
-from autode.wrappers.XTB import XTB
 from autode.wrappers.QChem import QChem
+from autode.wrappers.MOPAC import MOPAC
+from autode.wrappers.XTB import XTB
+from autode.log import logger
 from autode.config import Config
 from autode.exceptions import MethodUnavailable
 
@@ -22,7 +21,7 @@ high_level_method_names = ['orca', 'g09', 'g16', 'nwchem', 'qchem']
 low_level_method_names = ['xtb', 'mopac']
 
 
-def method_or_default_lmethod(method: Optional[ElectronicStructureMethod]):
+def method_or_default_lmethod(method: Optional["autode.wrappers.methods.Method"]):
     """
     Return a method if one is defined but default to a low-level method if
     if it is None.
@@ -41,7 +40,7 @@ def method_or_default_lmethod(method: Optional[ElectronicStructureMethod]):
     return method
 
 
-def method_or_default_hmethod(method: Optional[ElectronicStructureMethod]):
+def method_or_default_hmethod(method: Optional["autode.wrappers.methods.Method"]):
     """
     Return a method if one is defined but default to a high-level method if
     if it is None.
@@ -60,13 +59,14 @@ def method_or_default_hmethod(method: Optional[ElectronicStructureMethod]):
     return method
 
 
-def get_hmethod() -> ElectronicStructureMethod:
+def get_hmethod() -> "autode.wrappers.methods.Method":
     """Get the 'high-level' electronic structure theory method to use
 
     ---------------------------------------------------------------------------
     Returns:
         (autode.wrappers.base.ElectronicStructureMethod): High-level method
     """
+
     h_methods = [ORCA(), G09(), NWChem(), G16(), QChem()]
 
     if Config.hcode is not None:
@@ -75,12 +75,13 @@ def get_hmethod() -> ElectronicStructureMethod:
         return get_first_available_method(h_methods)
 
 
-def get_lmethod() -> ElectronicStructureMethod:
+def get_lmethod() -> "autode.wrappers.methods.Method":
     """Get the 'low-level' electronic structure theory method to use
 
     Returns:
         (autode.wrappers.base.ElectronicStructureMethod): Low-level method
     """
+
     all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem(), QChem()]
 
     if Config.lcode is not None:
@@ -89,7 +90,7 @@ def get_lmethod() -> ElectronicStructureMethod:
         return get_first_available_method(all_methods)
 
 
-def get_first_available_method(possibilities) -> ElectronicStructureMethod:
+def get_first_available_method(possibilities) -> "autode.wrappers.methods.Method":
     """
     Get the first electronic structure method that is available in a list of
     possibilities.
@@ -106,13 +107,13 @@ def get_first_available_method(possibilities) -> ElectronicStructureMethod:
     """
     for method in possibilities:
 
-        if method.available:
+        if method.is_available:
             return method
 
     raise MethodUnavailable('No electronic structure methods available')
 
 
-def get_defined_method(name, possibilities) -> ElectronicStructureMethod:
+def get_defined_method(name, possibilities) -> "autode.wrappers.methods.Method":
     """
     Get an electronic structure method defined by it's name.
 
@@ -131,14 +132,14 @@ def get_defined_method(name, possibilities) -> ElectronicStructureMethod:
     for method in possibilities:
         if method.name.lower() == name.lower():
 
-            if method.available:
+            if method.is_available:
                 return method
 
             else:
                 err_str = (f'Electronic structure method *{name}* is not '
                            f'available. Check that {method.name} exists in a '
                            f'directory present in $PATH, or set '
-                           f'ade.Config.{method.__name__}.path')
+                           f'ade.Config.{method.__class__.__name__}.path')
 
                 raise MethodUnavailable(err_str)
 

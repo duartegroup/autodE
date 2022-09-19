@@ -22,7 +22,7 @@ print('Default pruning tolerance:  ', value, value.units)
 xtb = ade.methods.XTB()
 g09 = ade.methods.G09()
 
-if not (xtb.available and g09.available):
+if not (xtb.is_available and g09.is_available):
     exit('Cannot run conformer optimisation without both an XTB '
          'and Gaussian09 install')
 

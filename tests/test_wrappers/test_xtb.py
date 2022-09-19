@@ -1,14 +1,22 @@
+from typing import List
+
 import numpy as np
 import os
 import pytest
+
+from autode.utils import work_in_tmp_dir
 from autode.atoms import Atom
 from autode.wrappers.XTB import XTB
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
-from autode.exceptions import AtomsNotFound, CalculationException
+from autode.exceptions import CalculationException
+from autode.wrappers.methods import ExternalMethodEGH
+from autode.wrappers.keywords import OptKeywords
 from autode.config import Config
-from . import testutils
+from autode.hessians import Hessian
+from autode.values import Coordinates, Gradient, PotentialEnergy
+from .. import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -26,18 +34,18 @@ def test_xtb_calculation():
 
     assert os.path.exists('opt_xtb.xyz') is True
     assert os.path.exists('opt_xtb.out') is True
-    assert len(calc.get_final_atoms()) == 22
-    assert calc.get_energy() == -36.990267613593
+    assert test_mol.n_atoms == 22
+    assert test_mol.energy == -36.990267613593
     assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.input.filename == 'opt_xtb.xyz'
     assert calc.output.filename == 'opt_xtb.out'
-    assert calc.optimisation_converged()
+    assert calc.optimiser.converged
 
     with pytest.raises(NotImplementedError):
-        calc.optimisation_nearly_converged()
+        _ = calc.optimiser.last_energy_change
 
-    charges = calc.get_atomic_charges()
+    charges = test_mol.partial_charges
     assert len(charges) == 22
     assert all(-1.0 < c < 1.0 for c in charges)
 
@@ -61,8 +69,8 @@ def test_xtb_calculation():
     const_opt.output.filename = 'tmp.out'
 
     # cannot get atoms from an empty file
-    with pytest.raises(AtomsNotFound):
-        _ = const_opt.get_final_atoms()
+    with pytest.raises(CalculationException):
+        const_opt._executor.set_properties()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -76,15 +84,12 @@ def test_energy_extract_no_energy():
     # Output where the energy is not present
     calc.output.filename = 'h2_sp_xtb_no_energy.out'
 
-    assert calc.terminated_normally
-
     with pytest.raises(CalculationException):
-        _ = calc.get_energy()
+        calc._executor.set_properties()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_point_charge():
-    os.chdir(os.path.join(here, 'data', 'xtb'))
 
     test_mol = Molecule(name='test_mol', smiles='C')
 
@@ -96,13 +101,11 @@ def test_point_charge():
                        point_charges=[PointCharge(charge=1.0, x=10, y=1, z=1)])
     calc.run()
 
-    assert -4.178 < calc.get_energy() < -4.175
-    os.chdir(here)
+    assert -4.178 < test_mol.energy < -4.175
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
 def test_gradients():
-    os.chdir(os.path.join(here, 'data', 'xtb'))
 
     h2 = Molecule(name='h2', atoms=[Atom('H'), Atom('H', x=1.0)])
     h2.single_point(method)
@@ -121,13 +124,13 @@ def test_gradients():
 
     calc.run()
 
-    diff = calc.get_gradients()[1, 0] - grad    # Ha A^-1
+    diff = h2.gradient[1, 0] - grad    # Ha A^-1
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(diff) < 1E-5
 
     # Older xtb version
-    with open('gradient', 'w') as gradient_file:
+    with open(f'methane_OLD.grad', 'w') as gradient_file:
         print('$gradient\n'
               'cycle =      1    SCF energy =    -4.17404780397   |dE/dxyz| =  0.027866\n'
               '3.63797523123375     -1.13138130908142     -0.00032759661848      C \n'
@@ -146,12 +149,10 @@ def test_gradients():
                        molecule=Molecule(name='methane', smiles='C'),
                        method=method,
                        keywords=method.keywords.grad)
-    gradients = method.get_gradients(calc)
+    gradients = method.gradient_from(calc)
 
     assert gradients.shape == (5, 3)
     assert np.abs(gradients[0, 0]) < 1E-3
-
-    os.chdir(here)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -163,9 +164,9 @@ def test_xtb_6_3_2():
                        method=method,
                        keywords=method.keywords.opt)
 
-    calc.output.filename = 'xtb_6_3_2_opt.out'
-
-    assert len(calc.get_final_atoms()) == 5
+    calc.set_output_filename('xtb_6_3_2_opt.out')
+    assert mol.n_atoms == 5 
+    assert np.isclose(mol.atoms[-2].coord[1], -0.47139030225766)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'xtb.zip'))
@@ -177,12 +178,89 @@ def test_xtb_6_1_old():
                        method=method,
                        keywords=method.keywords.opt)
 
+    # TODO: check this extracts the right numbers
     for filename in ('xtb_6_1_opt.out', 'xtb_no_version_opt.out'):
 
-        calc.output.filename = filename
-
-        assert len(calc.get_final_atoms()) == 5
-        mol.atoms = calc.get_final_atoms()
+        calc.set_output_filename(filename)
 
         assert set([atom.label for atom in mol.atoms]) == {'C', 'H'}
         assert 0.9 < mol.distance(0, 1) < 1.2
+
+
+class XTBautodEOpt(ExternalMethodEGH, XTB):
+
+    __test__ = False
+
+    def __init__(self):
+        ExternalMethodEGH.__init__(
+            self,
+            executable_name="xtb",
+            doi_list=[],
+            implicit_solvation_type=None,
+            keywords_set=XTB().keywords
+        )
+
+    def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
+        return XTB._energy_from(self, calc)
+
+    def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
+        return XTB.gradient_from(self, calc)
+
+    def hessian_from(self,
+                     calc: "autode.calculations.executors.CalculationExecutor") -> Hessian:
+        pass
+
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
+        pass
+
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
+        pass
+
+    def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
+        return True
+
+    def version_in(self, calc: "CalculationExecutor") -> str:
+        pass
+
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
+        return XTB.input_filename_for(calc)
+
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
+        return XTB.output_filename_for(calc)
+
+    def generate_input_for(self, calc: "CalculationExecutor") -> None:
+        return XTB.generate_input_for(self, calc)
+
+    def __repr__(self):
+        return XTB.__repr__(self)
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_with_autode_opt_method():
+
+    mol = Molecule(smiles="C")
+    calc = Calculation(name="methane",
+                       molecule=mol,
+                       method=XTBautodEOpt(),
+                       keywords=OptKeywords())
+    calc.run()
+
+    assert calc.optimiser.converged
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_with_autode_opt_method_for_a_single_atom():
+
+    mol = Molecule(atoms=[Atom("H")], mult=2)
+    calc = Calculation(name="h_atom",
+                       molecule=mol,
+                       method=XTBautodEOpt(),
+                       keywords=OptKeywords())
+    calc.run()
+
+    assert calc.optimiser.converged
+    assert mol.energy is not None

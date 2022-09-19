@@ -3,15 +3,13 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
+import multiprocessing as mp
 from typing import List, Tuple, Iterator, Optional, Sequence, Union
-from multiprocessing import Pool
-from autode.wrappers.keywords import Functional
-from autode.wrappers.keywords import GradientKeywords
+from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
 from autode.utils import cached_property
 from autode.config import Config
 from autode.constants import Constants
-from autode import methods
 from autode.values import ValueArray, Frequency, Coordinates
 from autode.utils import work_in, hashable
 from autode.units import (Unit, wavenumber,
@@ -399,8 +397,11 @@ class NumericalHessianCalculator:
             logger.info('Calculating gradient at current point')
             self._init_gradient = self._gradient(species=self._species)
 
+        if mp.current_process().daemon:
+            return self._calculate_in_serial()
+
         # Although n_rows may be < n_cores there will not be > n_rows processes
-        with Pool(processes=self._n_total_cores) as pool:
+        with mp.pool.Pool(processes=self._n_total_cores) as pool:
 
             func_name = '_cdiff_row' if self._do_c_diff else '_diff_row'
 
@@ -410,6 +411,15 @@ class NumericalHessianCalculator:
 
             for row_idx, row in enumerate(res):
                 self._hessian[row_idx, :] = row.get(timeout=None)
+
+        return None
+
+    def _calculate_in_serial(self) -> None:
+        """Calculate the Hessian rows in serial"""
+
+        for row_idx, (i, k) in enumerate(self._idxs_to_calculate()):
+            row = self._cdiff_row(i, k) if self._do_c_diff else self._diff_row(i, k)
+            self._hessian[row_idx, :] = row
 
         return None
 
@@ -498,7 +508,7 @@ class NumericalHessianCalculator:
 
     def _gradient(self, species) -> 'autode.values.Gradient':
         """Evaluate the flat gradient, with shape = (3 n_atoms,) """
-        from autode.calculation import Calculation
+        from autode.calculations import Calculation
 
         calc = Calculation(name=species.name,
                            molecule=species,
@@ -506,8 +516,7 @@ class NumericalHessianCalculator:
                            keywords=self._keywords,
                            n_cores=self._n_cores_pp)
         calc.run()
-
-        return calc.get_gradients().flatten()
+        return species.gradient.flatten()
 
     @property
     def _init_gradient(self) -> 'autode.values.Gradient':
@@ -564,8 +573,8 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                  species: 'autode.species.Species',
                  idxs:     Sequence[int],
                  shift:   'autode.values.Distance',
-                 lmethod:  Optional['autode.wrappers.base.Method'] = None,
-                 hmethod:  Optional['autode.wrappers.base.Method'] = None,
+                 lmethod:  Optional['autode.wrappers.methods.Method'] = None,
+                 hmethod:  Optional['autode.wrappers.methods.Method'] = None,
                  n_cores:  Optional[int] = None
                  ):
         """
@@ -588,7 +597,7 @@ class HybridHessianCalculator(NumericalHessianCalculator):
 
             n_cores: Number of cores to use, defaults to Config.n_cores
         """
-        lmethod = methods.method_or_default_lmethod(lmethod)
+        lmethod = _method_or_default_lmethod(lmethod)
 
         super().__init__(species=species,
                          method=lmethod,
@@ -603,7 +612,7 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                              'species.')
 
         self._hmethod_atom_idxs = set(idxs)
-        self._hmethod = methods.method_or_default_hmethod(hmethod)
+        self._hmethod = _method_or_default_hmethod(hmethod)
 
     def calculate(self) -> None:
         """Calculate the partial numerical Hessian"""
@@ -631,3 +640,17 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                 self._calculated_rows.remove(3*atom_idx+i)
 
         return None
+
+
+def _method_or_default_hmethod(method: 'autode.wrappers.methods.Method'
+                               ) -> 'autode.wrappers.methods.Method':
+    # Avoid cyclic imports
+    from autode.methods import method_or_default_hmethod
+    return method_or_default_hmethod(method)
+
+
+def _method_or_default_lmethod(method: 'autode.wrappers.methods.Method'
+                               ) -> 'autode.wrappers.methods.Method':
+    # Avoid cyclic imports
+    from autode.methods import method_or_default_lmethod
+    return method_or_default_lmethod(method)

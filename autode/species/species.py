@@ -5,18 +5,19 @@ from datetime import date
 from typing import Optional, Union, List, Sequence
 from scipy.spatial import distance_matrix
 from autode.log import logger
+from autode import methods
 from autode.atoms import Atom, Atoms, AtomCollection
-from autode.exceptions import CalculationException, SolventUnavailable
+from autode.exceptions import SolventUnavailable
 from autode.geom import calc_rmsd, get_rot_mat_euler
 from autode.constraints import Constraints
 from autode.log.methods import methods as method_log
+from autode.calculations.types import CalculationType
 from autode.conformers.conformers import Conformers
 from autode.solvent import get_solvent, Solvent, ExplicitSolvent
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
 from autode.mol_graphs import MolecularGraph, make_graph, reorder_nodes, is_isomorphic
-from autode import methods
 from autode.hessians import Hessian, NumericalHessianCalculator
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
@@ -206,20 +207,40 @@ class Species(AtomCollection):
         # energies do not need to be changed
         if (self.n_atoms == len(value)
             and all(a.label == v.label for a, v in zip(self.atoms, value))):
+            self.coordinates = np.array([v.coord for v in value])
 
-            rmsd = calc_rmsd(coords1=np.array([v.coord for v in value]),
-                             coords2=np.array([a.coord for a in self.atoms]))
         else:
-            rmsd = None
+            self._atoms = Atoms(value)
+            self._clear_energies_gradient_hessian()
 
-        if rmsd is None or rmsd > 1E-8:
-            logger.info(f'Geometry changed- resetting energies of {self.name}')
-            self.energies.clear()
-            self.gradient = None
-            self.hessian = None
-
-        self._atoms = Atoms(value)
         return
+
+    @AtomCollection.coordinates.setter
+    def coordinates(self, value: Union[np.ndarray, list]):
+        """
+        Set the coordinates of this species. If the geometry has changed then
+        the energies, gradient and Hessian will be set to None.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            value: numpy array or nested list of coordinate values
+                  (str or float).
+        """
+
+        rmsd = calc_rmsd(coords1=np.asarray(value).reshape((-1, 3)),  # N x 3
+                         coords2=self.coordinates)
+        if rmsd > 1E-8:
+            self._clear_energies_gradient_hessian()
+
+        self._atoms.coordinates = value
+        return
+
+    def _clear_energies_gradient_hessian(self) -> None:
+        logger.info(f'Geometry changed- resetting energies of {self.name}')
+        self.energies.clear()
+        self.gradient = None
+        self.hessian = None
+        return None
 
     @property
     def graph(self) -> Optional[MolecularGraph]:
@@ -289,6 +310,7 @@ class Species(AtomCollection):
     def hessian(self,
                 value: Union[Hessian, np.ndarray, None]):
         """Set the Hessian matrix as a Hessian value"""
+        logger.info("Setting hessian")
 
         required_shape = (3*self.n_atoms, 3*self.n_atoms)
 
@@ -438,6 +460,25 @@ class Species(AtomCollection):
             matrix[tuple(bond)] = matrix[tuple(reversed(bond))] = True
 
         return matrix
+
+    @property
+    def partial_charges(self) -> List[float]:
+        """Partial charges on all the atoms present in this species"""
+        return [atom.partial_charge for atom in self.atoms]
+
+    @partial_charges.setter
+    def partial_charges(self, value: List[float]):
+        """Partial charges on all the atoms present in this species"""
+
+        try:
+            _ = list(value)
+            assert len(value) == self.n_atoms
+        except (TypeError, ValueError, AssertionError):
+            raise ValueError(f"Failed to assign partial charges from {value} "
+                             f"must be a list with length n_atoms")
+
+        for atom, charge in zip(self.atoms, value):
+            atom.partial_charge = charge
 
     @property
     def radius(self) -> val.Distance:
@@ -792,10 +833,6 @@ class Species(AtomCollection):
             calc = self._default_hessian_calculation(**kwargs)
 
         calc.run()
-
-        self.energy = calc.get_energy()
-        self.hessian = calc.get_hessian()
-
         return None
 
     @requires_conformers
@@ -1067,8 +1104,6 @@ class Species(AtomCollection):
             calc = self._default_opt_calculation(method, keywords, n_cores)
 
         calc.run()
-        self.atoms = calc.get_final_atoms()
-        self.energy = calc.get_energy()
 
         method_name = '' if method is None else method.name
         self.print_xyz_file(filename=f'{self.name}_optimised_{method_name}.xyz')
@@ -1123,16 +1158,9 @@ class Species(AtomCollection):
                                  f'be one of: {[m for m in LFMethod]}')
 
         if calc is not None and calc.output.exists:
-            self.atoms = calc.get_final_atoms()
-            self.hessian = calc.get_hessian()
-
-            try:
-                self.energy = calc.get_energy()
-
-            except CalculationException:
-                logger.warning(f'Failed to get the potential energy from '
-                               f'{calc.name} but not essential for thermo'
-                               f'chemical calculation')
+            self.energy = calc.molecule.energy
+            self.atoms = calc.molecule.atoms.copy()
+            self.hessian = calc.molecule.hessian
 
         elif self.hessian is None or (calc is not None and not calc.output.exists):
             logger.info('Calculation did not exist or Hessian was None - '
@@ -1191,7 +1219,6 @@ class Species(AtomCollection):
                          keywords=keywords,
                          n_cores=Config.n_cores if n_cores is None else n_cores)
         sp.run()
-        self.energy = sp.get_energy()
         return None
 
     @work_in('conformers')
@@ -1332,12 +1359,11 @@ class Species(AtomCollection):
             coordinate_shift: Shift applied to each Cartesian coordinate (h)
                               in the calculation of the numerical Hessian
 
-
             n_cores: Number of cores to use for the calculation. If None
                      then default to Config.n_cores
         """
 
-        if not method.implements_hessian:
+        if not method.implements(CalculationType.hessian):
             logger.warning(f'{method} does not implement a Hessian - using a '
                            f'numerical Hessian and overriding the keywords')
             numerical = True

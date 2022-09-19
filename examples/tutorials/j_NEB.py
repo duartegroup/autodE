@@ -6,7 +6,7 @@ orca = ade.methods.ORCA()
 # Set the keywords so autodE can extract gradients at PBE/def2-SV(P)
 orca.keywords.grad = ['PBE', 'def2-SV(P)', 'EnGrad']
 
-if multiprocessing.cpu_count() < 10 or not orca.available:
+if multiprocessing.cpu_count() < 10 or not orca.is_available:
     exit('This example requires an ORCA install and 10 processing cores')
 
 # Nudged elastic band (NEB) calculations are available using all methods

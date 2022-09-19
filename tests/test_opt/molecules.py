@@ -2,6 +2,10 @@ from autode.species.molecule import Molecule
 from autode.atoms import Atom
 
 
+def h_atom():
+    return Molecule(atoms=[Atom("H")], mult=2)
+
+
 def methane_mol():
     return Molecule(atoms=[Atom('C',  0.11105, -0.21307,  0.00000),
                            Atom('H',  1.18105, -0.21307,  0.00000),

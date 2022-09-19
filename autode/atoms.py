@@ -10,11 +10,12 @@ from autode.values import (Distance, Angle, Mass, Coordinate,
 class Atom:
 
     def __init__(self,
-                 atomic_symbol: str,
-                 x:             float = 0.0,
-                 y:             float = 0.0,
-                 z:             float = 0.0,
-                 atom_class:    Optional[int] = None):
+                 atomic_symbol:  str,
+                 x:              float = 0.0,
+                 y:              float = 0.0,
+                 z:              float = 0.0,
+                 atom_class:     Optional[int] = None,
+                 partial_charge: Optional[float] = None):
         """
         Atom class. Centered at the origin by default. Can be initialised from
         positional or keyword arguments:
@@ -44,12 +45,16 @@ class Atom:
             atom_class: Fictitious additional labels to distinguish otherwise
                         identical atoms. Useful in finding bond isomorphisms
                         over identity reactions
+
+            partial_charge: Partial atomic charge in units of e, determined by
+                            the atomic envrionment. Not an observable property.
         """
         assert atomic_symbol in elements
 
         self.label = atomic_symbol
         self._coord = Coordinate(float(x), float(y), float(z))
         self.atom_class = atom_class
+        self.partial_charge = None if partial_charge is None else float(partial_charge)
 
     def __repr__(self):
         """
@@ -586,6 +591,32 @@ class Atoms(list):
     def coordinates(self) -> Coordinates:
         return Coordinates(np.array([a.coord for a in self]))
 
+    @coordinates.setter
+    def coordinates(self,
+                    value: np.ndarray):
+        """Set the coordinates from a numpy array
+
+        -----------------------------------------------------------------------
+        Arguments:
+            value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
+                                row major vector
+        """
+
+        if value.ndim == 1:
+            assert value.shape == (3 * len(self),)
+            value = value.reshape((-1, 3))
+
+        elif value.ndim == 2:
+            assert value.shape == (len(self), 3)
+
+        else:
+            raise AssertionError('Cannot set coordinates from a array with'
+                                 f'shape: {value.shape}. Must be 1 or 2 '
+                                 f'dimensional')
+
+        for i, atom in enumerate(self):
+            atom.coord = Coordinate(*value[i])
+
     @property
     def com(self) -> Coordinate:
         r"""
@@ -879,20 +910,7 @@ class AtomCollection:
             raise ValueError('Must have atoms set to be able to set the '
                              'coordinates of them')
 
-        if value.ndim == 1:
-            assert value.shape == (3 * self.n_atoms,)
-            value = value.reshape((-1, 3))
-
-        elif value.ndim == 2:
-            assert value.shape == (self.n_atoms, 3)
-
-        else:
-            raise AssertionError('Cannot set coordinates from a array with'
-                                 f'shape: {value.shape}. Must be 1 or 2 '
-                                 f'dimensional')
-
-        for i, atom in enumerate(self.atoms):
-            atom.coord = Coordinate(*value[i])
+        self._atoms.coordinates = value
 
     @property
     def atoms(self) -> Optional[Atoms]:

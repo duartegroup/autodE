@@ -1,7 +1,7 @@
 import autode as ade
 
 xtb = ade.methods.XTB()
-if not xtb.available:
+if not xtb.is_available:
     exit('This example requires an XTB install')
 
 # Constrained optimisations are possible by setting a molecule's constraints
@@ -30,7 +30,7 @@ print('Energies along the path:', energies)
 # while keeping two H atoms 2 Å apart
 
 gaussian = ade.methods.G09()
-if not gaussian.available:
+if not gaussian.is_available:
     exit('This part requires a Gaussian install')
 
 bh3 = ade.Molecule(atoms=[ade.Atom('B', y=0.1),

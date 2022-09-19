@@ -3,7 +3,7 @@ Functional instances. Frequency scale factors have been obtained from
 https://cccbdb.nist.gov/vibscalejust.asp and the basis set dependence assumed
 to be negligible at least double zetas (i.e. >6-31G)
 """
-from autode.wrappers.keywords import Functional
+from autode.wrappers.keywords.keywords import Functional
 
 pbe0 = Functional(name='pbe0',
                   doi_list=['10.1063/1.478522', '10.1103/PhysRevLett.77.3865'],

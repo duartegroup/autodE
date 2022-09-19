@@ -12,6 +12,7 @@ Optimisation features, graph assignment improvements and bugfixes.
 Usability improvements/Changes
 ******************************
 * Defines dummy atoms to have zero covalent and vdW radii
+* Renames :code:`Method().available` to :code:`Method().is_available`
 * Removes :code:`autode.bonds.get_ideal_bond_length_matrix` and :code:`autode.bonds.get_avg_bond_length`
 * Removes :code:`autode.geom.rotate_columns`
 * Modifies the names of most optimiser classes e.g. :code:`autode.opt.optimisers.PRFOOptimiser` -> :code:`PRFOptimiser`
@@ -20,6 +21,13 @@ Usability improvements/Changes
   * Requiring constraints to be attributed to a molecule
   * Removing the :code:`bond_ids_to_add` argument and using the labeled graph instead (active edges)
   * Removing the :code:`other_input_block` argument and appending to the keywords instead
+
+* Removes :code:`autode.calculations.Calculation.print_final_output_lines` in favour of a method on :code:`calculation.output`
+* Makes many methods in :code:`autode.calculations.Calculation` private
+* Deprecates all :code:`autode.calculations.Calculation.get_<method>` methods in favour of setting properties of the input molecule
+* Returns :code:`None` rather than rasies exceptions when calling the (deprecated) calculation get methods, to be consistent with ...get_energy
+* Adds an :code:`autode.wrappers.keywords` package to improve file structure
+* Removes any exceptions on calling :code:`.run()` on an optimiser instance where the system has no degrees of freedom
 
 
 Functionality improvements
@@ -30,13 +38,15 @@ Functionality improvements
 - Adds a *much* more robust constrained rational function constrained optimiser in delocalised internal coordinates (DIC)
 - Adds bond angle and dihedral primitive coordinates which can form part of the DIC set
 - Improves the back transformation
+- Adds an optional callback argument to :code:`autode.opt.optimisers.base.Optimiser` for running custom functions after every optimisation step
+- Adds the ability to save/reload an :code:`autode.opt.optimisers.NDOptimiser` instance to/from a file
 
 
 Bug Fixes
 *********
 - Fixes variable harmonic frequencies (<2 cm-1 differences) due to projection vectors becoming close to rotational axes
 - Fixes the extraction of atomic partial charges from ORCA output files
-
+- Fixes gradients and Hessians not being reset on a molecule where the coordinates change
 
 See the table below for a quick benchmark of constrained optimisations in autodE
 compared to ORCA. In all cases the structures were generated from SMILES strings (RDKit)

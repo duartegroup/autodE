@@ -5,7 +5,7 @@ from autode.log import logger
 from autode.utils import hashable
 from multiprocessing.pool import Pool
 from autode.pes.reactive import ReactivePESnD
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.exceptions import CalculationException
 
 

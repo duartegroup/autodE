@@ -5,7 +5,7 @@ from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import TStemplate
 from autode.input_output import atoms_to_xyz_file
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.config import Config
 from autode.exceptions import CalculationException
 from autode.geom import get_distance_constraints, calc_heavy_atom_rmsd

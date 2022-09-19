@@ -1,4 +1,4 @@
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.transition_states.base import TSbase
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.transition_states.base import displaced_species_along_mode
@@ -52,7 +52,7 @@ def test_graph_no_other_bonds():
                        method=orca,
                        keywords=orca.keywords.opt_ts,
                        n_cores=1)
-    calc.output.filename = 'h_shift_correct_ts_mode.out'
+    calc.set_output_filename('h_shift_correct_ts_mode.out')
 
     ts = TSbase(atoms=calc.get_final_atoms(),
                 bond_rearr=BondRearrangement(breaking_bonds=[(1, 10)],
@@ -77,10 +77,10 @@ def has_correct_mode(name, fbonds, bbonds):
                        keywords=orca.keywords.opt_ts,
                        n_cores=1)
 
-    calc.output.filename = f'{name}.out'
+    calc.set_output_filename(f'{name}.out')
 
     # Don't require all bonds to be breaking/making in a 'could be ts' function
-    ts = TSbase(atoms=calc.get_final_atoms(),
+    ts = TSbase(atoms=reac.atoms,
                 bond_rearr=BondRearrangement(breaking_bonds=bbonds,
                                              forming_bonds=fbonds))
     ts.hessian = calc.get_hessian()

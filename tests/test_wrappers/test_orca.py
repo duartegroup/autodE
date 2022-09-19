@@ -1,22 +1,17 @@
 import autode.exceptions as ex
-from autode.config import Config
-from autode.wrappers.ORCA import ORCA
+from autode.wrappers.ORCA import ORCA, ORCAOptimiser
 from autode.atoms import Atom
 from autode.constants import Constants
-from autode.calculation import Calculation, CalculationOutput
-from autode.calculation import execute_calc
+from autode.calculations import Calculation
 from autode.species.molecule import Molecule
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
-from autode.wrappers.implicit_solvent_types import cpcm
-from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
-from autode.solvent.solvents import ImplicitSolvent
+from autode.wrappers.keywords import cpcm
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
 from autode import utils
-from . import testutils
-from copy import deepcopy
+from .. import testutils
 import numpy as np
 import pytest
 
@@ -64,7 +59,8 @@ def test_orca_opt_calculation():
     # If the calculation is not run with calc.run() then there should be no
     # input and the calc should raise that there is no input
     with pytest.raises(ex.NoInputError):
-        execute_calc(calc)
+        f = utils.hashable("_execute_external", calc._executor)
+        f()
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
@@ -109,14 +105,11 @@ def test_bad_orca_output():
     calc = Calculation(name='no_output', molecule=test_mol, method=method,
                        keywords=opt_keywords)
 
-    with pytest.raises(CouldNotGetProperty):
+    with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_energy()
 
     with pytest.raises(ex.CouldNotGetProperty):
         _ = calc.get_final_atoms()
-
-    with pytest.raises(ex.NoInputError):
-        calc.execute_calculation()
 
     calc.output_file_lines = None
     assert calc.terminated_normally is False
@@ -211,7 +204,7 @@ def test_mp2_numerical_gradients():
                        molecule=Molecule(atoms=xyz_file_to_atoms('tmp_orca.xyz')),
                        method=method,
                        keywords=method.keywords.grad)
-    calc.output = CalculationOutput(filename='tmp_orca.out')
+    calc.set_output_filename(filename='tmp_orca.out')
 
     gradients = calc.get_gradients()
     assert len(gradients) == 6
@@ -219,7 +212,8 @@ def test_mp2_numerical_gradients():
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
     # Test for different printing with numerical..
-    calc.output = CalculationOutput(filename='numerical_orca.out')
+    calc.set_output_filename(filename='numerical_orca.out')
+    assert calc.output.filename == 'numerical_orca.out'
 
     gradients = calc.get_gradients()
     assert len(gradients) == 6
@@ -293,13 +287,11 @@ def test_hessian_extraction():
     # should not have any very large values
     assert np.sum(np.abs(hessian)) < 100
 
-    calc.output = CalculationOutput(filename='no_file.out')
     with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_hessian()
+        calc.set_output_filename(filename='no_file.out')
 
-    calc.output = CalculationOutput(filename='H2O_hess_broken.out')
     with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_hessian()
+        calc.set_output_filename(filename='H2O_hess_broken.out')
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
@@ -328,5 +320,20 @@ def test_unsupported_freq_scaling():
                        method=method,
                        keywords=kwds)
 
-    with pytest.raises(UnsupportedCalculationInput):
+    with pytest.raises(ex.UnsupportedCalculationInput):
         calc.generate_input()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'orca.zip'))
+def test_orca_optimiser_from_output_file():
+
+    optimiser = ORCAOptimiser(output_lines=[])
+    assert not optimiser.converged
+    assert not np.isfinite(optimiser.last_energy_change)
+
+    optimiser = ORCAOptimiser(
+        output_lines=open("opt_orca.out", "r").readlines()
+    )
+    assert optimiser.converged
+    assert np.isclose(optimiser.last_energy_change.to("Ha"),
+                      -499.734431042133 - -499.734431061148)

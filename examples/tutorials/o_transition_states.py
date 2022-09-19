@@ -4,7 +4,7 @@ import autode as ade
 ade.Config.lcode = 'xtb'
 ade.Config.hcode = 'orca'
 
-if not (ade.methods.ORCA().available and ade.methods.XTB().available):
+if not (ade.methods.ORCA().is_available and ade.methods.XTB().is_available):
     exit('This example requires an ORCA and XTB install')
 
 # Use 8 cores for the calculations

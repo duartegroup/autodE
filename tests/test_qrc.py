@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species import Reactant, Molecule
 from autode.methods import ORCA
 from autode.transition_states.base import displaced_species_along_mode
@@ -19,7 +19,7 @@ def test_hshift_displacement():
                        molecule=reac,
                        method=orca,
                        keywords=orca.keywords.opt_ts)
-    calc.output.filename = 'TS_hshift.out'
+    calc.set_output_filename('TS_hshift.out')
 
     assert calc.terminated_normally
     ts = Molecule(atoms=calc.get_final_atoms())

@@ -1,7 +1,7 @@
 import autode as ade
 
 orca = ade.methods.ORCA()
-if not orca.available:
+if not orca.is_available:
     exit('This example requires a ORCA install')
 
 # 2+ dimensional PESs can also be calculated. For example, considering the
