@@ -1149,6 +1149,7 @@ class Species(AtomCollection):
             :meth:`autode.thermochemistry.igm.calculate_thermo_cont` for
             additional kwargs
         """
+        logger.info(f"Calculating thermochemical contributions for {self.name}")
 
         if 'lfm_method' in kwargs:
             try:
@@ -1158,8 +1159,14 @@ class Species(AtomCollection):
                                  f'be one of: {[m for m in LFMethod]}')
 
         if calc is not None and calc.output.exists:
-            self.energy = calc.molecule.energy
+            logger.info("Setting the atoms, energy and Hessian from an "
+                        "existing calculation")
+            if calc.molecule.hessian is None:
+                raise ValueError(f"Failed to set the Hessian from {calc.name}."
+                                 f" Maybe run() hasn't been called?")
+
             self.atoms = calc.molecule.atoms.copy()
+            self.energy = calc.molecule.energy
             self.hessian = calc.molecule.hessian
 
         elif self.hessian is None or (calc is not None and not calc.output.exists):
