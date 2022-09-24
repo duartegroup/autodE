@@ -3,7 +3,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 from typing import Union, Optional, Callable, Any
 from autode.log import logger
-from autode.utils import StringDict
+from autode.utils import NumericStringDict
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
 from autode.opt.coordinates.base import OptCoordinates
@@ -540,7 +540,7 @@ class NDOptimiser(Optimiser, ABC):
         lines = open(filename, "r").readlines()
         n_atoms = int(lines[0].split()[0])
 
-        title_line = StringDict(lines[1])
+        title_line = NumericStringDict(lines[1])
         optimiser = cls(maxiter=int(title_line["maxiter"]),
                         gtol=GradientRMS(title_line["gtol"]),
                         etol=PotentialEnergy(title_line["etol"]))
@@ -555,7 +555,7 @@ class NDOptimiser(Optimiser, ABC):
                 gradient[j, :] = [float(dedx), float(dedy), float(dedz)]
 
             coords = CartesianCoordinates(raw_coordinates)
-            coords.e = StringDict(lines[i+1])["E"]
+            coords.e = NumericStringDict(lines[i+1])["E"]
             coords.g = gradient.flatten()
 
             optimiser._history.append(coords)
