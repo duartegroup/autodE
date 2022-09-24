@@ -1,7 +1,7 @@
 import os
 import shutil
 import numpy as np
-from . import testutils
+from .. import testutils
 import pytest
 from autode.exceptions import TemplateLoadingFailed
 from autode.config import Config
