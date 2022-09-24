@@ -14,6 +14,7 @@ data_path = os.path.join(here, 'data', 'benchmark')
 
 # Leave unchanged for comparable timings
 ade.Config.n_cores = 8
+ade.Config.freq_scale_factor = 1.0
 ade.Config.ts_template_folder_path = here
 
 # H2 addition to Vaska's complex has a very shallow barrier, so reduce the

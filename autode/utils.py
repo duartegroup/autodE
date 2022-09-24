@@ -478,3 +478,28 @@ def deprecated(func):
         return func(*args, **kwargs)
 
     return wrapped_function
+
+
+class StringDict:
+    r"""
+    Immutable dictionary stored as a single string. For example::
+        'a = b  c = d'
+    """
+
+    def __init__(self,
+                 string:     str,
+                 delim:      str = " = ",
+                 value_type: Any = float):
+
+        self._string = string
+        self._delim = delim
+        self._value_type = value_type
+
+    def __getitem__(self, item: str) -> Any:
+
+        s = self._string
+        try:
+            return self._value_type(s.split(f"{item} = ")[1].split()[0])
+
+        except (ValueError, IndexError) as e:
+            raise IndexError(f"Failed to extract {item} from {s}") from e

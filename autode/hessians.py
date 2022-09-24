@@ -362,7 +362,7 @@ class NumericalHessianCalculator:
 
     def __init__(self,
                  species:   'autode.species.Species',
-                 method:    'autode.wrappers.base.Method',
+                 method:    'autode.wrappers.methods.Method',
                  keywords:  'autode.wrappers.keywords.GradientKeywords',
                  do_c_diff:  bool,
                  shift:      'autode.values.Distance',

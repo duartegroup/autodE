@@ -1,9 +1,11 @@
 import os
-from typing import Collection
+
+from typing import Collection, List, Optional
 from autode.atoms import Atom, Atoms
 from autode.exceptions import XYZfileDidNotExist
 from autode.exceptions import XYZfileWrongFormat
 from autode.log import logger
+from autode.utils import StringDict
 
 
 def xyz_file_to_atoms(filename: str) -> Atoms:
@@ -19,13 +21,8 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
     """
     logger.info(f'Getting atoms from {filename}')
 
+    _check_xyz_file_exists(filename)
     atoms = Atoms()
-
-    if not os.path.exists(filename):
-        raise XYZfileDidNotExist(f'{filename} did not exist')
-
-    if not filename.endswith('.xyz'):
-        raise XYZfileWrongFormat('xyz file must have a .xyz file extension')
 
     with open(filename, 'r') as xyz_file:
 
@@ -85,3 +82,63 @@ def atoms_to_xyz_file(atoms:      Collection[Atom],
             print(f'{atom.label:<3}{x:10.5f}{y:10.5f}{z:10.5f}',
                   file=xyz_file)
     return None
+
+
+def xyz_file_to_molecules(filename: str) -> List["autode.Molecule"]:
+    """
+    From a .xyz file containing potentially more than a single molecule
+    return a list of molecules from it.
+
+    ---------------------------------------------------------------------------
+    Arguments:
+        filename: Filename to open
+
+    Returns:
+        (list(autode.species.molecule.Molecule)): Molecules
+    """
+    from autode.species.molecule import Molecule  # prevents circular imports
+
+    _check_xyz_file_exists(filename)
+
+    lines = open(filename, "r").readlines()
+    n_atoms = int(lines[0].split()[0])
+    molecules = []
+
+    for i in range(0, len(lines), n_atoms + 2):
+
+        atoms = []
+        title_line = StringDict(lines[i + 1])
+        for j, line in enumerate(lines[i + 2:i + n_atoms + 2]):
+            symbol, x, y, z = line.split()
+            atoms.append(Atom(atomic_symbol=symbol, x=x, y=y, z=z))
+
+        molecule = Molecule(atoms=atoms)
+        _set_attr_from_title_line(molecule, "charge", title_line)
+        _set_attr_from_title_line(molecule, "mult", title_line)
+        _set_attr_from_title_line(molecule, "energy", title_line, "E")
+
+        molecules.append(molecule)
+
+    return molecules
+
+
+def _check_xyz_file_exists(filename: str) -> None:
+
+    if not os.path.exists(filename):
+        raise XYZfileDidNotExist(f'{filename} did not exist')
+
+    if not filename.endswith('.xyz'):
+        raise XYZfileWrongFormat('xyz file must have a .xyz file extension')
+
+
+def _set_attr_from_title_line(species: "Species",
+                              attr: str,
+                              title_line: StringDict,
+                              name_in_line: Optional[str] = None) -> None:
+
+    if name_in_line is None:
+        name_in_line = attr  # Default to e.g. charge attribute is "charge = 0"
+    try:
+        setattr(species, attr, title_line[name_in_line])
+    except IndexError:
+        logger.warning(f"Failed to set the species {attr} from xyz file")

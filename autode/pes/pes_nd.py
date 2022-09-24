@@ -53,7 +53,7 @@ class PESnD(ABC):
 
         # Attributes set in calculate()
         self._coordinates: Optional[np.ndarray] = None
-        self._method:      Optional['autode.wrappers.base.Method'] = None
+        self._method:      Optional['autode.wrappers.methods.Method'] = None
         self._n_cores:     int = Config.n_cores
         self._keywords:    Optional['autode.wrappers.keywords.Keywords'] = None
 

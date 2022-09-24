@@ -10,7 +10,7 @@ from autode.utils import work_in
 
 def get_ts_adaptive_path(reactant:   'autode.species.ReactantComplex',
                          product:    'autode.species.ProductComplex',
-                         method:     'autode.wrappers.base.Method',
+                         method:     'autode.wrappers.methods.Method',
                          bond_rearr: 'autode.bond_rearrangement.BondRearrangement',
                          name:       str = 'adaptive'
                          ) -> 'autode.transition_states.TSguess ':
