@@ -21,6 +21,7 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
 
 setup(name='autode',
       version='1.3.0',
+      python_requires='>3.7',
       packages=['autode',
                 'autode.conformers',
                 'autode.calculations',
