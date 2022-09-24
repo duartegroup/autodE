@@ -599,3 +599,14 @@ def test_species_does_not_have_reasonable_coordinates():
 
     x = ch4_flat.coordinates
     assert np.min(distance_matrix(x, x)+np.eye(5)) > 0.7
+
+
+@testutils.requires_with_working_xtb_install
+def test_calc_thermo_not_run_calculation():
+
+    m = Molecule(smiles="O")
+    calc = Calculation(name="water", molecule=m, method=xtb,
+                       keywords=xtb.keywords.hess)
+    # run() has not been called
+    with pytest.raises(Exception):
+        m.calc_thermo(calc=calc)
