@@ -19,10 +19,12 @@ from autode.wrappers.keywords.implicit_solvent_types import cpcm
 from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.transition_states.base import displaced_species_along_mode
 from autode.wrappers.G09 import G09
+from autode.wrappers.XTB import XTB
 from autode.utils import work_in_tmp_dir
 from autode.hessians import Hessian
 from autode.values import Coordinates, Gradient, PotentialEnergy
-from . import testutils
+from .. import testutils
+import numpy as np
 import pytest
 import os
 import shutil
@@ -482,3 +484,5 @@ def test_ts_reoptimise():
     _ts = TestTSInCorrectMode()
     new_calc = _ts._reoptimise(calc, name_ext='tmp', method=nearly_conv_method)
     assert id(calc) == id(new_calc)
+
+

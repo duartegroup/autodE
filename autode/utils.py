@@ -485,15 +485,14 @@ class StringDict:
     Immutable dictionary stored as a single string. For example::
         'a = b  c = d'
     """
+    _value_type = str
 
     def __init__(self,
                  string:     str,
-                 delim:      str = " = ",
-                 value_type: Any = float):
+                 delim:      str = " = "):
 
         self._string = string
         self._delim = delim
-        self._value_type = value_type
 
     def __getitem__(self, item: str) -> Any:
 
@@ -503,3 +502,18 @@ class StringDict:
 
         except (ValueError, IndexError) as e:
             raise IndexError(f"Failed to extract {item} from {s}") from e
+
+    def get(self, item: str, default: Any) -> Any:
+        """Get an item or return a default"""
+
+        try:
+            return self[item]
+        except IndexError:
+            return default
+
+    def __str__(self):
+        return self._string
+
+
+class NumericStringDict(StringDict):
+    _value_type = float
