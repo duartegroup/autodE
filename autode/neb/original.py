@@ -390,6 +390,7 @@ class NEB:
 
             # TODO: test this function...
             k = 0.1 * (np.tanh((max_de.to("kcal mol-1") - 40)/20) + 1) + 0.005
+            logger.info(f"Using k = {k} Ha Å^-1 as the NEB force constant")
 
         return cls(species_list=molecules, k=k)
 
@@ -502,7 +503,7 @@ class NEB:
                   method:      'autode.wrappers.methods.Method',
                   n_cores:     int,
                   name_prefix: str = '',
-                  etol_per_image: PotentialEnergy = PotentialEnergy(0.6, units="kcal mol^-1")
+                  etol_per_image: PotentialEnergy = PotentialEnergy(0.6, units="kcal mol-1")
                   ) -> None:
         """
         Optimise the NEB using forces calculated from electronic structure
