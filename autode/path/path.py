@@ -174,7 +174,8 @@ class Path(list):
 
             title_line = (f'autodE path point {i}. E = {energy} '
                           f'charge = {image.species.charge} '
-                          f'mult = {image.species.mult}')
+                          f'mult = {image.species.mult} '
+                          f'solvent = {image.species.solvent.name}')
 
             atoms_to_xyz_file(image.species.atoms,
                               f'{name}.xyz',

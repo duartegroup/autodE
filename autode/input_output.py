@@ -113,6 +113,7 @@ def xyz_file_to_molecules(filename: str) -> List["autode.Molecule"]:
             atoms.append(Atom(atomic_symbol=symbol, x=x, y=y, z=z))
 
         molecule = Molecule(atoms=atoms)
+        _set_attr_from_title_line(molecule, "solvent")
         _set_attr_from_title_line(molecule, "charge", title_line)
         _set_attr_from_title_line(molecule, "mult", title_line)
         _set_attr_from_title_line(molecule, "energy", title_line, "E")

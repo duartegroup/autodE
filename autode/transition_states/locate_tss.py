@@ -105,7 +105,7 @@ def ts_guess_funcs_prms(name, reactant, product, bond_rearr):
                                  f'{name}_hl_ad_{bond_rearr}')
 
     yield _get_ts_neb_from_adaptive_path, (r, p, hmethod, bond_rearr,
-                                           f'{name}_hl_neb_ad_{bond_rearr}',
+                                           f'{name}_hl_ad_neb_{bond_rearr}',
                                            f'{name}_hl_ad_{bond_rearr}')
     return None
 
@@ -315,3 +315,47 @@ def _get_ts_neb_from_adaptive_path(reactant, product, method, bond_rearr,
         return ts_guess
 
     return None
+
+
+if __name__ == '__main__':
+
+    from autode import Atom, Reactant, Product, Reaction
+    from autode.methods import XTB
+    from autode.bond_rearrangement import BondRearrangement
+    from autode.transition_states.locate_tss import _get_ts_neb_from_adaptive_path
+
+    r0 = Reactant(atoms=[Atom("C", -0.1087, -0.0058, -0.0015),
+                         Atom("Cl", 1.6659, 0.0565, -0.0425),
+                         Atom("H", -0.5267, -0.6146, -0.8284),
+                         Atom("H", -0.4802, -0.4519, 0.9359),
+                         Atom("H", -0.5503, 1.0158, -0.0635)])
+
+    r1 = Reactant(atoms=[Atom("F")], charge=-1)
+    p0 = Product(atoms=[Atom("C", -0.0524, -0.0120, 0.0160),
+                        Atom("F", 1.3238, -0.1464, -0.1423),
+                        Atom("H", -0.3175, 0.0493, 1.0931),
+                        Atom("H", -0.3465, 0.9303, -0.4647),
+                        Atom("H", -0.6073, -0.8212, -0.5021)])
+    p1 = Product(atoms=[Atom("Cl")], charge=-1)
+
+    rxn = Reaction(r0, r1, p0, p1, solvent_name='water')
+
+    print(rxn.reactant.solvent)
+
+    ts_guess = _get_ts_neb_from_adaptive_path(
+        reactant=rxn.reactant,
+        product=rxn.product,
+        method=XTB(),
+        name="dOr2Us_hl_ad_neb_0-5_0-1",
+        ad_name="dOr2Us_ll_ad_0-5_0-1",
+        bond_rearr=BondRearrangement(forming_bonds=[(0, 5)],
+                                     breaking_bonds=[(0, 1)])
+    )
+
+    # sum of the H-C-H angles should be close to 360º for the correct TS
+    angles = [ts_guess.angle(2, 0, 3), ts_guess.angle(2, 0, 4), ts_guess.angle(3, 0, 4)]
+    assert np.isclose(sum([a.to("degrees") for a in angles]),
+                      360,
+                      atol=5)
+
+
