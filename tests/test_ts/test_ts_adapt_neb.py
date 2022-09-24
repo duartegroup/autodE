@@ -30,20 +30,22 @@ def test_ts_from_neb_optimised_after_adapt():
 
     rxn = Reaction(r0, r1, p0, p1, solvent_name='water')
 
-    neb = NEB.from_file(f'dOr2Us_ll_ad_0-5_0-1_path.xyz')
+    neb = NEB.from_file('dOr2Us_ll_ad_0-5_0-1_path.xyz')
     assert len(neb.images) > 0
     assert neb.images[0].species.solvent is not None
 
-    ts_guess = _get_ts_neb_from_adaptive_path(
-        reactant=rxn.reactant,
-        product=rxn.product,
-        method=XTB(),
-        name="dOr2Us_ll_ad_neb_0-5_0-1",
-        ad_name="dOr2Us_ll_ad_0-5_0-1",
-        bond_rearr=BondRearrangement(forming_bonds=[(0, 5)],
-                                     breaking_bonds=[(0, 1)])
-    )
+    def get_ts_guess():
+        return _get_ts_neb_from_adaptive_path(
+            reactant=rxn.reactant,
+            product=rxn.product,
+            method=XTB(),
+            name="dOr2Us_ll_ad_neb_0-5_0-1",
+            ad_name="dOr2Us_ll_ad_0-5_0-1",
+            bond_rearr=BondRearrangement(forming_bonds=[(0, 5)],
+                                         breaking_bonds=[(0, 1)])
+        )
 
+    ts_guess = get_ts_guess()
     assert ts_guess is not None
 
     # sum of the H-C-H angles should be close to 360º for the correct TS
@@ -52,3 +54,7 @@ def test_ts_from_neb_optimised_after_adapt():
     assert np.isclose(sum([a.to("degrees") for a in angles]),
                       360,
                       atol=5)
+
+    # if we delete the path then no NEB is possible
+    os.remove('dOr2Us_ll_ad_0-5_0-1_path.xyz')
+    assert get_ts_guess() is None
