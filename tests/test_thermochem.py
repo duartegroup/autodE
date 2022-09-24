@@ -28,6 +28,7 @@ def test_symmetry_number():
     assert Molecule('CO2.xyz').symmetry_number == 2
     assert Molecule('H2O.xyz').symmetry_number == 2
     assert Molecule('H3N.xyz').symmetry_number == 3
+    assert Molecule(smiles="C").symmetry_number == 12
 
     # Symmetry numbers aren't calculated for large molecules
     h_100 = Species('tmp', atoms=100*[Atom('H')], charge=1, mult=1)
