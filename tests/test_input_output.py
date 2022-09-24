@@ -82,7 +82,7 @@ def test_making_xyz_file():
         atoms_to_xyz_file(atoms, filename='test')
 
 
-def _print_xyz_file_two_h_molecules(title_line: str ="title line") -> None:
+def _print_xyz_file_two_h_molecules(title_line: str = "title line") -> None:
 
     xyz_file_string = (
         "1\n"
