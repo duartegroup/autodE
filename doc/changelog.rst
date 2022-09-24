@@ -28,6 +28,7 @@ Usability improvements/Changes
 * Returns :code:`None` rather than rasies exceptions when calling the (deprecated) calculation get methods, to be consistent with ...get_energy
 * Adds an :code:`autode.wrappers.keywords` package to improve file structure
 * Removes any exceptions on calling :code:`.run()` on an optimiser instance where the system has no degrees of freedom
+* Removes support for Python < v3.8
 
 
 Functionality improvements
