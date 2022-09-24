@@ -172,8 +172,12 @@ class Path(list):
             assert image.species is not None
             energy = image.energy if image.energy is not None else 'none'
 
+            title_line = (f'autodE path point {i}. E = {energy} '
+                          f'charge = {image.species.charge} '
+                          f'mult = {image.species.mult}')
+
             atoms_to_xyz_file(image.species.atoms,
                               f'{name}.xyz',
-                              title_line=f'autodE path point {i}. E = {energy}',
+                              title_line=title_line,
                               append=True)
         return None

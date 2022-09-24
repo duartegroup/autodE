@@ -1,7 +1,9 @@
 import numpy as np
+
 from abc import ABC, abstractmethod
 from typing import Union, Optional, Callable, Any
 from autode.log import logger
+from autode.utils import StringDict
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy
 from autode.opt.coordinates.base import OptCoordinates
@@ -63,13 +65,13 @@ class Optimiser(BaseOptimiser, ABC):
 
         self._coords = coords
         self._species: Optional['autode.species.Species'] = None
-        self._method:  Optional['autode.wrappers.base.Method'] = None
+        self._method:  Optional['autode.wrappers.methods.Method'] = None
 
     @classmethod
     @abstractmethod
     def optimise(cls,
                  species: 'autode.species.Species',
-                 method:  'autode.wrappers.base.Method',
+                 method:  'autode.wrappers.methods.Method',
                  n_cores: Optional[int] = None,
                  coords:  Optional[OptCoordinates] = None,
                  **kwargs):
@@ -85,7 +87,7 @@ class Optimiser(BaseOptimiser, ABC):
 
     def run(self,
             species: 'autode.species.Species',
-            method:  'autode.wrappers.base.Method',
+            method:  'autode.wrappers.methods.Method',
             n_cores: Optional[int] = None
             ) -> None:
         """
@@ -143,7 +145,7 @@ class Optimiser(BaseOptimiser, ABC):
 
     def _initialise_species_and_method(self,
                                        species: 'autode.species.Species',
-                                       method:  'autode.wrappers.base.Method'
+                                       method:  'autode.wrappers.methods.Method'
                                        ) -> None:
         """
         Initialise the internal species and method. They be the correct types
@@ -427,7 +429,7 @@ class NDOptimiser(Optimiser, ABC):
     @classmethod
     def optimise(cls,
                  species: 'autode.species.Species',
-                 method:  'autode.wrappers.base.Method',
+                 method:  'autode.wrappers.methods.Method',
                  maxiter: int = 100,
                  gtol:    Union[float, GradientRMS] = GradientRMS(1E-3, units='Ha Å-1'),
                  etol:    Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
@@ -538,10 +540,10 @@ class NDOptimiser(Optimiser, ABC):
         lines = open(filename, "r").readlines()
         n_atoms = int(lines[0].split()[0])
 
-        line = lines[1]
-        optimiser = cls(maxiter=int(cls._value_after_in("maxiter", line)),
-                        gtol=GradientRMS(cls._value_after_in("gtol", line)),
-                        etol=PotentialEnergy(cls._value_after_in("etol", line)))
+        title_line = StringDict(lines[1])
+        optimiser = cls(maxiter=int(title_line["maxiter"]),
+                        gtol=GradientRMS(title_line["gtol"]),
+                        etol=PotentialEnergy(title_line["etol"]))
 
         for i in range(0, len(lines), n_atoms+2):
             raw_coordinates = np.zeros(shape=(n_atoms, 3))
@@ -553,19 +555,12 @@ class NDOptimiser(Optimiser, ABC):
                 gradient[j, :] = [float(dedx), float(dedy), float(dedz)]
 
             coords = CartesianCoordinates(raw_coordinates)
-            coords.e = cls._value_after_in("E", lines[i+1])
+            coords.e = StringDict(lines[i+1])["E"]
             coords.g = gradient.flatten()
 
             optimiser._history.append(coords)
 
         return optimiser
-
-    @staticmethod
-    def _value_after_in(key: str, string: str) -> float:
-        try:
-            return float(string.split(f"{key} = ")[1].split()[0])
-        except (ValueError, IndexError) as e:
-            raise ValueError(f"Failed to extract {key} from title line") from e
 
     @property
     def _abs_delta_e(self) -> PotentialEnergy:

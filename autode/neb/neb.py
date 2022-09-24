@@ -8,7 +8,7 @@ from autode.utils import work_in
 
 def get_ts_guess_neb(reactant: 'autode.species.Species',
                      product:  'autode.species.Species',
-                     method:   'autode.wrappers.base.Method',
+                     method:   'autode.wrappers.methods.Method',
                      name:     str = 'neb',
                      n:        int = 10):
     """
@@ -23,7 +23,7 @@ def get_ts_guess_neb(reactant: 'autode.species.Species',
 
         product (autode.species.Species):
 
-        method (autode.wrappers.base.Method):
+        method (autode.wrappers.methods.Method):
 
         name (str):
 

@@ -186,9 +186,9 @@ class _ConfigClass:
 
         optts_block = ('\n%geom\n'
                        'Calc_Hess true\n' 
-                       'Recalc_Hess 30\n'
+                       'Recalc_Hess 20\n'
                        'Trust -0.1\n'
-                       'MaxIter 150\n'
+                       'MaxIter 100\n'
                        'end')
 
         keywords = KeywordsSet(
