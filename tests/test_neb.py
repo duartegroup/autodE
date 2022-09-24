@@ -274,8 +274,12 @@ def test_max_delta_between_images_h3():
     _list = [Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
              Molecule(atoms=[Atom("H"), Atom("H", x=0.70657), Atom("H", x=2.7)])]
 
-    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images,
+    neb = NEB(species_list=_list)
+    assert np.isclose(neb.max_atom_distance_between_images,
                       0.00657)
+
+    assert np.isclose(neb.max_atom_distance_between_images,
+                      neb._max_atom_distance_between_images([0, 1]))
 
 
 def test_partition_max_delta():
