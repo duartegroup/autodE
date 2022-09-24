@@ -47,6 +47,8 @@ Bug Fixes
 - Fixes variable harmonic frequencies (<2 cm-1 differences) due to projection vectors becoming close to rotational axes
 - Fixes the extraction of atomic partial charges from ORCA output files
 - Fixes gradients and Hessians not being reset on a molecule where the coordinates change
+- Fixes unhelpful exception when calculating thermochemistry with EST methods without implemented "get_hessian" methods
+
 
 See the table below for a quick benchmark of constrained optimisations in autodE
 compared to ORCA. In all cases the structures were generated from SMILES strings (RDKit)
