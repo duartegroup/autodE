@@ -3,6 +3,7 @@ Climbing image (CI) nudged elastic band implementation from
 https://doi.org/10.1063/1.1329672
 """
 import numpy as np
+from typing import Optional
 from autode.neb.original import NEB, Images, Image
 from autode.log import logger
 
@@ -39,7 +40,11 @@ class CImage(Image):
 
 class CImages(Images):
 
-    def __init__(self, images, num=None, wait_iterations=4):
+    def __init__(self,
+                 images:          Images,
+                 num:             int = None,
+                 wait_iterations: int = 4,
+                 init_k:          Optional[float] = None):
         """
         Initialise a set of images
 
@@ -49,9 +54,11 @@ class CImages(Images):
 
             wait_iterations (int): Number of iterations to wait before turning
                                   on the climbing image
+
+            init_k: Initial force constant
         """
         super().__init__(num=num if num is not None else len(images),
-                         init_k=images[0].k)
+                         init_k=init_k if init_k is not None else images[0].k)
 
         self.wait_iteration = wait_iterations
         for i, image in enumerate(images):

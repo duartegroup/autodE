@@ -360,38 +360,50 @@ class NEB:
             species_list (list(autode.species.Species)): Intermediate images
                          along the NEB
         """
+        self._init_k = k
 
         if species_list is not None:
-            self.images = self._images_type(num=len(species_list), init_k=k)
+            self.images = Images(num=len(species_list), init_k=k)
 
             for i, image in enumerate(self.images):
                 image.species = species_list[i]
 
         else:
-            self.images = self._images_type(num=num, init_k=k)
+            self.images = Images(num=num, init_k=k)
             self._init_from_end_points(initial_species, final_species)
 
         logger.info(f'Initialised a NEB with {len(self.images)} images')
 
+    @property
+    def init_k(self) -> float:
+        """Initial force constant used to in this NEB. Units of Ha Å^-1"""
+        return self._init_k
+
     @classmethod
-    def from_file(cls, filename: str, k: float = 0.1) -> "NEB":
+    def from_file(cls,
+                  filename:   str,
+                  k:          Optional[float] = None,
+                  ) -> "NEB":
         """
         Create a nudged elastic band from a .xyz file containing multiple
         images.
         """
 
         molecules = xyz_file_to_molecules(filename)
-        if all(m.energy is not None for m in molecules):
+        if k is None and all(m.energy is not None for m in molecules):
             logger.info("Have a set of energies from file. Can adaptively "
                         "choose a sensible force constant (k)")
 
             max_de = max(abs(molecules[i].energy - molecules[i+1].energy)
                          for i in range(len(molecules) - 1))
 
-            # TODO: test this function...
+            # TODO: test reasonableness of this function...
             k = 0.1 * (np.tanh((max_de.to("kcal mol-1") - 40)/20) + 1) + 0.005
-            logger.info(f"Using k = {k} Ha Å^-1 as the NEB force constant")
 
+        if k is None:  # choose a sensible default
+            k = 0.1
+
+        logger.info(f"Using k = {k:.6f} Ha Å^-1 as the NEB force constant")
         return cls(species_list=molecules, k=k)
 
     def _minimise(self, method, n_cores, etol, max_n=30) -> None:

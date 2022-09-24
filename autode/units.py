@@ -119,7 +119,7 @@ kjmol = KjMol = Unit(name='kJ mol-1',
 
 kcalmol = KcalMol = Unit(name='kcal mol-1',
                          conversion=Constants.ha_to_kcalmol,
-                         aliases=['kcalmol', 'kcalmol-1', 'kcal mol^-1'
+                         aliases=['kcalmol', 'kcalmol-1', 'kcal mol^-1',
                                   'kcal', 'kcal mol'],
                          plot_name='kcal mol$^{-1}$')
 

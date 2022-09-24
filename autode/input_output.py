@@ -134,11 +134,11 @@ def _check_xyz_file_exists(filename: str) -> None:
 def _set_attr_from_title_line(species: "Species",
                               attr: str,
                               title_line: StringDict,
-                              name_in_line: Optional[str] = None) -> None:
+                              key_in_line: Optional[str] = None) -> None:
 
-    if name_in_line is None:
-        name_in_line = attr  # Default to e.g. charge attribute is "charge = 0"
+    if key_in_line is None:
+        key_in_line = attr  # Default to e.g. charge attribute is "charge = 0"
     try:
-        setattr(species, attr, title_line[name_in_line])
+        setattr(species, attr, title_line[key_in_line])
     except IndexError:
         logger.warning(f"Failed to set the species {attr} from xyz file")

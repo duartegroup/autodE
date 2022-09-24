@@ -150,11 +150,6 @@ def test_climbing_image():
     assert images[0].iteration == 0
     images[0].iteration = 10
 
-    images.increment()
-    # with no peak there should be no Image -> CIImage change
-    assert images[0].iteration == 10
-    assert isinstance(images[0], Image)
-
 
 def _simple_h2_images(num, shift, increment):
     """Simple set of images for a n-image NEB for H2"""
@@ -304,3 +299,53 @@ def test_partition_max_delta():
             np.linalg.norm(h2_h.images[i].species.coordinates
                            - h2_h.images[j].species.coordinates, axis=1)
         ) <= max_delta
+
+
+def _h_xyz_string_with_energy(energy: float):
+    return f"1\nE = {energy:.6f}\nH 0.0 0.0 0.0"
+
+
+def _h_xyz_string():
+    return f"1\ntitle line\nH 0.0 0.0 0.0"
+
+
+@work_in_tmp_dir()
+def test_init_from_file_sets_force_constant():
+
+    with open("tmp.xyz", "w") as file:
+        print(_h_xyz_string_with_energy(0.1),
+              _h_xyz_string_with_energy(0.1015),
+              _h_xyz_string_with_energy(0.105),
+              sep="\n", file=file)
+
+    # Should be able to set the initial force constant
+    neb = NEB.from_file("tmp.xyz", k=0.234)
+    assert len(neb.images) == 3
+    assert np.isclose(neb.init_k, 0.234)
+
+    neb = NEB.from_file("tmp.xyz")
+    # Estimated value should be reasonable
+    k_1kcal_diffs = neb.init_k
+    assert 0.001 < neb.init_k < 0.2
+
+    with open("tmp.xyz", "w") as file:
+        print(_h_xyz_string_with_energy(0.1),
+              _h_xyz_string_with_energy(0.25),
+              _h_xyz_string_with_energy(0.4),
+              sep="\n", file=file)
+
+    # with larger energy differences we should have a larger k
+    assert NEB.from_file("tmp.xyz").init_k > k_1kcal_diffs
+
+
+@work_in_tmp_dir()
+def test_init_from_file_sets_force_constant_no_energies():
+
+    with open("tmp.xyz", "w") as file:
+        print(_h_xyz_string(),
+              _h_xyz_string(),
+              sep="\n", file=file)
+
+    neb = NEB.from_file("tmp.xyz")
+    # Estimated value should be reasonable even without energies
+    assert 0.001 < neb.init_k < 0.2
