@@ -294,15 +294,20 @@ def _get_ts_neb_from_adaptive_path(reactant, product, method, bond_rearr,
         return None
 
     neb = NEB.from_file(f'{ad_name}_path.xyz')
+
+    if not neb.contains_peak():
+        logger.info("Adaptive path had no peak – not running a NEB")
+        return None
+
     neb.partition(
-        max_delta=Distance(0.1, units='Å'),
+        max_delta=Distance(0.2, units='Å'),
         distance_idxs=bond_rearr.active_atoms
     )
     neb.calculate(
         method=method,
         n_cores=Config.n_cores,
         name_prefix=f'{name}_',
-        etol_per_image=PotentialEnergy(0.3, units="kcal mol^-1")
+        etol_per_image=PotentialEnergy(0.1, units="kcal mol^-1")
     )
 
     if neb.images.contains_peak:
