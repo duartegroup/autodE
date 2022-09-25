@@ -109,7 +109,7 @@ def xyz_file_to_molecules(filename: str) -> List["autode.Molecule"]:
         atoms = []
         title_line = StringDict(lines[i + 1])
         for j, line in enumerate(lines[i + 2:i + n_atoms + 2]):
-            symbol, x, y, z = line.split()
+            symbol, x, y, z = line.split()[:4]
             atoms.append(Atom(atomic_symbol=symbol, x=x, y=y, z=z))
 
         molecule = Molecule(atoms=atoms,
