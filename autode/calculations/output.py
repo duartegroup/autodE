@@ -2,7 +2,7 @@ import os
 import autode.exceptions as ex
 
 from typing import Optional, List
-from autode.utils import cached_property
+from functools import cached_property
 from autode.log import logger
 
 
