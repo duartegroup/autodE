@@ -1,5 +1,4 @@
 import os
-import sys
 import shutil
 import warnings
 from time import time
@@ -24,30 +23,6 @@ try:
     mp.set_start_method("fork")
 except RuntimeError:
     logger.warning('Multiprocessing context has already been defined')
-
-
-if sys.version_info.minor > 7:                                    # Python >3.7
-    from functools import cached_property # lgtm[py/unused-import]
-    # LGTM alert is suppressed as this is imported in Python >3.7
-
-if sys.version_info.minor <= 7:                                   # Python <3.7
-    # Define a cached_property equivalent decorator
-
-    class cached_property(object):
-        # Based on https://github.com/pydanny/cached-property/
-
-        def __init__(self, func):
-            self.__doc__ = func.__doc__
-            self.func = func
-
-        def cached_property_wrapper(self, obj, _cls):
-            if obj is None:
-                return self
-
-            value = obj.__dict__[self.func.__name__] = self.func(obj)
-            return value
-
-        __get__ = cached_property_wrapper
 
 
 def check_sufficient_memory(func: Callable):

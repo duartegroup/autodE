@@ -4,10 +4,11 @@ for mathematical background
 """
 import numpy as np
 import multiprocessing as mp
+
+from functools import cached_property
 from typing import List, Tuple, Iterator, Optional, Sequence, Union
 from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
-from autode.utils import cached_property
 from autode.config import Config
 from autode.constants import Constants
 from autode.values import ValueArray, Frequency, Coordinates
