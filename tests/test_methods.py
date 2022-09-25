@@ -1,6 +1,8 @@
 from autode import methods
 from autode import Config
 from autode.exceptions import MethodUnavailable
+from autode.wrappers.XTB import XTB
+from autode.wrappers.ORCA import ORCA
 import pytest
 import os
 
@@ -54,7 +56,7 @@ def test_get_lmethod():
     Config.lcode = None
 
 
-def test_method_unavalible():
+def test_method_unavailable():
 
     Config.hcode = None
 
@@ -95,3 +97,23 @@ def test_method_equality():
     # Single point keywords are different, so the methods are different
     assert orca.keywords.sp != default_orca.keywords.sp
     assert orca != methods.ORCA()
+
+
+def test_get_method_or_default_lmethod():
+
+    Config.lcode = None
+    Config.XTB.path = here  # spoof an XTB install
+
+    assert methods.method_or_default_lmethod(None) is not None
+    assert isinstance(methods.method_or_default_lmethod(XTB()),
+                      XTB)
+
+
+def test_get_method_or_default_hmethod():
+
+    Config.hcode = None
+    Config.ORCA.path = here  # spoof an XTB install
+
+    assert methods.method_or_default_hmethod(None) is not None
+    assert isinstance(methods.method_or_default_lmethod(ORCA()),
+                      ORCA)
