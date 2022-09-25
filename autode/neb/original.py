@@ -365,8 +365,9 @@ class NEB:
         if species_list is not None:
             self.images = Images(num=len(species_list), init_k=k)
 
-            for i, image in enumerate(self.images):
-                image.species = species_list[i]
+            for image, species in zip(self.images, species_list):
+                image.species = species
+                image.energy = species.energy
 
         else:
             self.images = Images(num=num, init_k=k)
