@@ -441,27 +441,31 @@ class NEB:
 
             distance_idxs: Indexes of atoms used to calculate the max_delta.
                            If none then all distances are used. For example if
-                           only distance_idxs = [0] then |x_k,0 - x_k+1, 0|
-                           will be calculated, where 0 is the atom index
+                           only distance_idxs = [0] then |x_k,0 - x_k+1,0|
+                           will be calculated, where 0 is the atom index and
+                           k is the image index
         """
         logger.info('Interpolating')
-        _list = [self.images[0].species]  # Start with the first image
+
+        assert len(self.images) > 1
         init_k = self.images[0].k
+        _list = []
 
-        for i, next_image in enumerate(self.images):
+        for i, left_image in enumerate(self.images[:-1]):
+            right_image = self.images[i+1]
 
-            sub_neb = NEB(species_list=[_list[-1], next_image.species])
+            left_species, right_species = left_image.species, right_image.species
+            sub_neb = NEB(species_list=[left_species, right_species])
+
             n = 2
 
             while (sub_neb._max_atom_distance_between_images(distance_idxs)
                    > max_delta):
 
-                init, final = sub_neb._species_at(0), sub_neb._species_at(-1)
                 sub_neb.images = self._images_type(num=n, init_k=init_k)
-                sub_neb.images[0].species = init
-                sub_neb.images[-1].species = final
+                sub_neb.images[0].species = left_species
+                sub_neb.images[-1].species = right_species
                 sub_neb.interpolate_geometries()
-                sub_neb.print_geometries(name="tmp")
 
                 try:
                     sub_neb.idpp_relax()
@@ -470,9 +474,10 @@ class NEB:
 
                 n += 1
 
-            for image in sub_neb.images[1:-1]:
+            for image in sub_neb.images[:-1]:  # add all apart from the last
                 _list.append(image.species)
 
+        _list.append(self._species_at(-1))  # end with the last
         self.images = self._images_type(num=len(_list), init_k=init_k)
 
         for i, image in enumerate(self.images):

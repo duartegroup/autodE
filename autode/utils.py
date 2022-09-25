@@ -488,20 +488,21 @@ class StringDict:
     _value_type = str
 
     def __init__(self,
-                 string:     str,
-                 delim:      str = " = "):
+                 string: str,
+                 delim:  str = " = "):
 
         self._string = string
         self._delim = delim
 
     def __getitem__(self, item: str) -> Any:
 
-        s = self._string
+        split_string = self._string.split(f"{item}{self._delim}")
         try:
-            return self._value_type(s.split(f"{item} = ")[1].split()[0])
+            return self._value_type(split_string[1].split()[0])
 
         except (ValueError, IndexError) as e:
-            raise IndexError(f"Failed to extract {item} from {s}") from e
+            raise IndexError(f"Failed to extract {item} from {self._string} "
+                             f"using delimiter *{self._delim}*") from e
 
     def get(self, item: str, default: Any) -> Any:
         """Get an item or return a default"""
