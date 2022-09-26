@@ -41,10 +41,10 @@ class TransitionState(TSbase):
         if bond_rearr is not None:
             self.bond_rearrangement = bond_rearr
 
+        self.solvent = ts_guess.solvent
         self._update_graph()
 
-        #: str for any warnings that may arise
-        self.warnings = ''
+        self.warnings = ''  #: str for any warnings that may arise
 
     def __repr__(self):
         return self._repr(prefix='TransitionState')

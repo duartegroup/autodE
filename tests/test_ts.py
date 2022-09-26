@@ -482,3 +482,29 @@ def test_ts_reoptimise():
     _ts = TestTSInCorrectMode()
     new_calc = _ts._reoptimise(calc, name_ext='tmp', method=nearly_conv_method)
     assert id(calc) == id(new_calc)
+
+
+def test_ts_guess_reactant_product_different_solvent():
+
+    r = Reactant(smiles="C", solvent_name="water")
+    p = Product(smiles="C")  # no solvent
+
+    with pytest.raises(Exception):
+        _ = TSguess(atoms=r.atoms, reactant=r, product=p)
+
+
+def test_ts_guess_reactant_solvent():
+    r = Reactant(smiles="C", solvent_name="water")
+    p = r.to_product()
+
+    ts_guess = TSguess(atoms=r.atoms, reactant=r, product=p)
+    assert ts_guess.solvent.name.lower() == "water"
+
+
+def test_ts_guess_reactant_different_solvent():
+
+    r = Reactant(smiles="C", solvent_name="water")
+
+    with pytest.raises(Exception):
+        _ = TSguess(atoms=r.atoms, reactant=r, solvent_name="dcm")
+
