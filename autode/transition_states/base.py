@@ -28,35 +28,42 @@ class TSbase(Species, ABC):
                  name:       str = 'ts_guess',
                  charge:     int = 0,
                  mult:       int = 1,
-                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None):
+                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None,
+                 solvent_name: Optional[str] = None):
         """
         Parent transition state class
 
         -----------------------------------------------------------------------
         Arguments:
-            atoms (list(autode.atoms.Atom)):
+            atoms: Atoms with positions and symbols
 
-        Keyword Arguments:
-            reactant (autode.species.Species): If None then mode checking will
-                                               not be available
-            product (autode.species.Species): If None then mode checking will
-                                             not be available
-            name (str):
-            charge (int):
-            mult (int):
+            reactant: If None then mode checking will not be available
+
+            product: If None then mode checking will not be available
+
+            name: Name of this TS guess
+
+            charge: Total charge on this TS guess, in units of e
+
+            mult: Spin multiplicity (2S+1) for S unpaired electrons
+
+            bond_rearr: Bond rearrangement associated with the transformation
+                        reactant -> product
+
+            solvent_name: Name of the solvent
         """
         super().__init__(name=name,
                          atoms=atoms,
                          charge=charge if reactant is None else reactant.charge,
-                         mult=mult if reactant is None else reactant.mult)
+                         mult=mult if reactant is None else reactant.mult,
+                         solvent_name=solvent_name)
 
         self.reactant = reactant
         self.product = product
-
         self.bond_rearrangement = bond_rearr
 
-        self.solvent = None if reactant is None else reactant.solvent
         self._init_graph()
+        self._init_solvent()
 
     def __eq__(self, other):
         """Equality of this TS base to another"""
@@ -69,6 +76,29 @@ class TSbase(Species, ABC):
         if self.reactant is not None:
             logger.warning(f'Setting the graph of {self.name} from reactants')
             self._graph = self.reactant.graph.copy()
+
+        return None
+
+    def _init_solvent(self) -> None:
+        """Initialise the solvent on this TS guesss"""
+
+        if ((self.reactant is not None and self.product is not None)
+                and self.reactant.solvent != self.product.solvent):
+            raise ValueError("Cannot initialise a TS guess with reactants "
+                             "and products immersed in different solvents")
+
+        if self.reactant is not None:
+
+            if (self.solvent is not None
+                    and self.reactant.solvent != self.solvent):
+                raise ValueError("Reactant does not have the same solvent as "
+                                 "the TS guess")
+
+            if (self.solvent is None  # No solvent has been given explicitly
+                    and self.reactant.solvent is not None):
+                logger.info("Setting TS guess solvent from reactant state to "
+                            f"{self.reactant.solvent}")
+                self.solvent = self.reactant.solvent
 
         return None
 
