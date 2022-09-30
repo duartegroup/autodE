@@ -113,13 +113,13 @@ ev = Unit(name='eV',
 # Upper case name to maintain backwards compatibility
 kjmol = KjMol = Unit(name='kJ mol-1',
                      conversion=Constants.ha_to_kJmol,
-                     aliases=['kjmol', 'kjmol-1', 'kj', 'kj mol'],
+                     aliases=['kjmol', 'kjmol-1', 'kj mol^-1', 'kj', 'kj mol'],
                      plot_name='kJ mol$^{-1}$')
 
 
 kcalmol = KcalMol = Unit(name='kcal mol-1',
                          conversion=Constants.ha_to_kcalmol,
-                         aliases=['kcalmol', 'kcalmol-1',
+                         aliases=['kcalmol', 'kcalmol-1', 'kcal mol^-1',
                                   'kcal', 'kcal mol'],
                          plot_name='kcal mol$^{-1}$')
 

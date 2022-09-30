@@ -71,7 +71,7 @@ class Dimer(Optimiser):
     @classmethod
     def optimise(cls,
                  species: 'autode.species.Species',
-                 method:  'autode.wrappers.base.Method',
+                 method:  'autode.wrappers.methods.Method',
                  n_cores:  Optional[int] = None,
                  coords:   DimerCoordinates = None,
                  **kwargs) -> None:

@@ -29,6 +29,7 @@ Usability improvements/Changes
 * Adds an :code:`autode.wrappers.keywords` package to improve file structure
 * Removes any exceptions on calling :code:`.run()` on an optimiser instance where the system has no degrees of freedom
 * Removes support for Python < v3.8
+* Tweaks the default ORCA TS optimisation keywords to be more conservative, i.e. slower and more accurate
 
 
 Functionality improvements
@@ -42,6 +43,8 @@ Functionality improvements
 - Adds an optional callback argument to :code:`autode.opt.optimisers.base.Optimiser` for running custom functions after every optimisation step
 - Adds the ability to save/reload an :code:`autode.opt.optimisers.NDOptimiser` instance to/from a file
 - Adds a solvent attribute to a :code:`autode.transition_states.transition_state.TransitionState` constructor
+- Adds functionality to partition a nudged elastic band into images where the maximum atom-atom distance between images is below a threshold
+- Adds a sequential adapt+NEB TS finding method where a pure adapt. path fails to generate a geometry close enough to the TS for a successful TS optimisation
 
 
 Bug Fixes

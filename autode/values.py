@@ -237,7 +237,7 @@ class Energy(Value):
     def __init__(self,
                  value,
                  units:     Union[Unit, str] = ha,
-                 method:    Optional['autode.wrappers.base.Method'] = None,
+                 method:    Optional['autode.wrappers.methods.Method'] = None,
                  keywords:  Optional['autode.wrappers.keywords.Keywords'] = None,
                  estimated: bool = False):
         """
@@ -252,7 +252,7 @@ class Energy(Value):
 
             units (autode.units.Unit): Unit type, allowing conversion
 
-            method (autode.wrappers.base.Method):
+            method (autode.wrappers.methods.Method):
 
             keywords (autode.wrappers.keywords.Keywords | None): Set of
                      keywords which this energy has been calculated at
@@ -267,7 +267,7 @@ class Energy(Value):
         self.set_method_str(method, keywords)
 
     def set_method_str(self,
-                       method:   Optional['autode.wrappers.base.Method'],
+                       method:   Optional['autode.wrappers.methods.Method'],
                        keywords: Optional['autode.wrappers.keywords.Keywords'],
                        ) -> None:
         """

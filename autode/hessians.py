@@ -11,7 +11,7 @@ from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
 from autode.config import Config
 from autode.constants import Constants
-from autode.values import ValueArray, Frequency, Coordinates
+from autode.values import ValueArray, Frequency, Coordinates, Distance
 from autode.utils import work_in, hashable
 from autode.units import (Unit, wavenumber,
                           ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
@@ -362,10 +362,10 @@ class NumericalHessianCalculator:
 
     def __init__(self,
                  species:   'autode.species.Species',
-                 method:    'autode.wrappers.base.Method',
+                 method:    'autode.wrappers.methods.Method',
                  keywords:  'autode.wrappers.keywords.GradientKeywords',
                  do_c_diff:  bool,
-                 shift:      'autode.values.Distance',
+                 shift:      Distance,
                  n_cores:    Optional[int] = None
                  ):
 

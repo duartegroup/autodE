@@ -6,7 +6,7 @@ from autode.species.molecule import Reactant
 from autode.input_output import xyz_file_to_atoms
 from autode.bond_rearrangement import BondRearrangement
 from autode.methods import ORCA
-from . import testutils
+from .. import testutils
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))

@@ -14,6 +14,7 @@ data_path = os.path.join(here, 'data', 'benchmark')
 
 # Leave unchanged for comparable timings
 ade.Config.n_cores = 8
+ade.Config.freq_scale_factor = 1.0
 ade.Config.ts_template_folder_path = here
 
 # H2 addition to Vaska's complex has a very shallow barrier, so reduce the
@@ -116,6 +117,33 @@ if __name__ == '__main__':
 
 
 """
+===============================================================================
+1.3.0
+
+hydroform1     -418.6         32.6           ✓
+MnInsert       -281.7         87.7           ✓
+grubbs         -103.8         147.3          ✓
+vaskas         -89.6          93.2           ✓
+
+SN2            -481.7         1.7            ✓
+cope           -532.8         9.7            ✓
+DA             -469.2         22.1           ✓
+Hshift         -1825.4        3.4            ✓
+C2N2O          -472.9         2.4            ✓
+cycbut         -711.0         11.9           ✓
+DAcpd          -446.4         8.7            ✓
+ethCF2         -361.3         14.0           ✓
+ene            -933.9         65.4           ✓
+HFloss         -1729.6        37.7           ✓
+oxir           -541.2         8.2            ✓
+Ocope          -502.0         6.7            ✓
+SO2loss        -309.0         129.3          ✓
+aldol          -233.0         24.2           ✓
+dipolar        -426.3         13.4           ✓
+
+WARNING: Above timings are *not* comparable to the below
+
+===============================================================================
 1.2.0
 
 Name      v_imag / cm-1    Time / min     Success
@@ -247,9 +275,7 @@ grubbs         -119.3         90.0           ✓
 vaskas         -95.5          63.7           ✓
 
 ===============================================================================
-
 1.0.0a1
-
 
    sn2           -495.9           0.1           ✓         
 cope_rearr       -583.3          11.3           ✓         
