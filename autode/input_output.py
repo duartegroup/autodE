@@ -132,6 +132,8 @@ def _check_xyz_file_exists(filename: str) -> None:
     if not filename.endswith('.xyz'):
         raise XYZfileWrongFormat('xyz file must have a .xyz file extension')
 
+    return None
+
 
 def _set_attr_from_title_line(species: "Species",
                               attr: str,
@@ -144,3 +146,5 @@ def _set_attr_from_title_line(species: "Species",
         setattr(species, attr, title_line[key_in_line])
     except IndexError:
         logger.warning(f"Failed to set the species {attr} from xyz file")
+
+    return None

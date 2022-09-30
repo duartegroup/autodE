@@ -99,7 +99,7 @@ def test_method_equality():
     assert orca != methods.ORCA()
 
 
-def test_get_method_or_default_lmethod():
+def test_get_method_or_default_lmethod():  # l <=> lower
 
     Config.lcode = None
     Config.XTB.path = here  # spoof an XTB install
@@ -109,7 +109,7 @@ def test_get_method_or_default_lmethod():
                       XTB)
 
 
-def test_get_method_or_default_hmethod():
+def test_get_method_or_default_hmethod(): # h <=> higher
 
     Config.hcode = None
     Config.ORCA.path = here  # spoof an XTB install

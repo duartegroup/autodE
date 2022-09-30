@@ -399,6 +399,7 @@ class NEB:
                          for i in range(len(molecules) - 1))
 
             # TODO: test reasonableness of this function...
+            # use a shifted tanh to interpolate in [0.005, 0.2005]
             k = 0.1 * (np.tanh((max_de.to("kcal mol-1") - 40)/20) + 1) + 0.005
 
         if k is None:  # choose a sensible default
@@ -408,7 +409,7 @@ class NEB:
         return cls(species_list=molecules, k=k)
 
     def _minimise(self, method, n_cores, etol, max_n=30) -> None:
-        """Minimise th energy of every image in the NEB"""
+        """Minimise the energy of every image in the NEB"""
         logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
 
         result = minimize(total_energy,
@@ -432,7 +433,8 @@ class NEB:
                   ) -> None:
         """
         Partition this NEB such that there are no distances between images
-        exceeding max_delta. Will run IDPP relaxations on intermediate images
+        exceeding max_delta. Will run IDPP (image dependent pair potential)
+        relaxations on intermediate images.
 
         -----------------------------------------------------------------------
         Arguments:
@@ -489,6 +491,7 @@ class NEB:
         return None
 
     def _species_at(self, idx: int) -> 'autode.species.Species':
+        """Return the species associated with a particular image index"""
         return self.images[idx].species
 
     def print_geometries(self, name='neb') -> None:
@@ -630,9 +633,8 @@ class NEB:
 
         for i in range(len(self.images) // 2):
             k = 2 * i
-            k_plus1 = 2 * i + 1
             x_i = self._species_at(k).coordinates
-            x_j = self._species_at(k_plus1).coordinates
+            x_j = self._species_at(k + 1).coordinates
 
             max_distance = np.max(np.linalg.norm(x_i - x_j, axis=1)[idxs])
             if max_distance > overall_max_distance:
