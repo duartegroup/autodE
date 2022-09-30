@@ -633,3 +633,28 @@ def _calc_num_hessian_h2():
     h2.calc_hessian(method=XTB(),
                     numerical=True,
                     n_cores=1)
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_serial_calculation_matches_parallel():
+
+    h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.77)])
+    xtb = XTB()
+
+    nhc = NumericalHessianCalculator(
+        species=h2,
+        method=xtb,
+        keywords=xtb.keywords.grad,
+        do_c_diff=False,
+        shift=Distance(0.01, units="Å")
+    )
+    nhc.calculate()
+    parallel_result = nhc.hessian.copy()
+    nhc._calculated_rows.clear()
+
+    nhc._calculate_in_serial()
+    serial_result = nhc.hessian
+
+    assert np.allclose(parallel_result,
+                       serial_result)

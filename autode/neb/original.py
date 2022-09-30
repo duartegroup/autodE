@@ -2,15 +2,17 @@
 The theory behind this original NEB implementation is taken from
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
-from typing import Optional
+from typing import Optional, Sequence
 from autode.log import logger
 from autode.calculations import Calculation
 from autode.wrappers.methods import Method
+from autode.input_output import xyz_file_to_molecules
 from autode.path import Path
 from autode.utils import work_in
 from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
+from autode.values import Distance, PotentialEnergy
 from multiprocessing import Pool
 from copy import deepcopy
 import numpy as np
@@ -81,7 +83,9 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
 
     # Number of cores per process is the floored total divided by n images
     # minus the two end points that will be fixed
-    n_cores_pp = max(int(n_cores//(len(images)-2)), 1)
+    n_cores_pp = 1
+    if len(images) > 2:
+        n_cores_pp = max(int(n_cores//(len(images)-2)), 1)
 
     logger.info(f'Calculating energy and forces for all images with '
                 f'{n_cores} total cores and {n_cores_pp} per process')
@@ -268,11 +272,6 @@ class Images(Path):
         """Advance all the iteration numbers on the images to name correctly
         also update force constants"""
 
-        if self.peak_idx is None:
-            logger.warning('Lost peak in NEB: not incrementing so calculations'
-                           ' will be skipped')
-            return
-
         for image in self:
             image.iteration += 1
 
@@ -287,8 +286,8 @@ class Images(Path):
             e_max = max(energies)
 
             if e_ref == e_max:
-                logger.error('Cannot adjust k, the reference energy was the '
-                             'maximum')
+                logger.warning('Cannot adjust k, the reference energy was the '
+                               'maximum')
                 # Return otherwise we'll divide by zero here
                 return
 
@@ -339,8 +338,14 @@ class Images(Path):
 
 class NEB:
 
-    def __init__(self, initial_species=None, final_species=None, num=8,
-                 species_list=None, k=0.1):
+    _images_type = Images
+
+    def __init__(self,
+                 initial_species: Optional["autode.Species"] = None,
+                 final_species:   Optional["autode.Species"]=None,
+                 num:             int = 8,
+                 species_list:    Optional[list] = None,
+                 k:               float = 0.1):
         """
         Nudged elastic band
 
@@ -355,22 +360,56 @@ class NEB:
             species_list (list(autode.species.Species)): Intermediate images
                          along the NEB
         """
-        self.images = Images(num=num, init_k=k)
+        self._init_k = k
 
         if species_list is not None:
-            # Initialise from a list of species rather than just end points
             self.images = Images(num=len(species_list), init_k=k)
 
-            for i, image in enumerate(self.images):
-                image.species = species_list[i]
+            for image, species in zip(self.images, species_list):
+                image.species = species
+                image.energy = species.energy
 
         else:
+            self.images = Images(num=num, init_k=k)
             self._init_from_end_points(initial_species, final_species)
 
         logger.info(f'Initialised a NEB with {len(self.images)} images')
 
-    def _minimise(self, method, n_cores, etol, max_n=30):
-        """Minimise th energy of every image in the NEB"""
+    @property
+    def init_k(self) -> float:
+        """Initial force constant used to in this NEB. Units of Ha Å^-1"""
+        return self._init_k
+
+    @classmethod
+    def from_file(cls,
+                  filename:   str,
+                  k:          Optional[float] = None,
+                  ) -> "NEB":
+        """
+        Create a nudged elastic band from a .xyz file containing multiple
+        images.
+        """
+
+        molecules = xyz_file_to_molecules(filename)
+        if k is None and all(m.energy is not None for m in molecules):
+            logger.info("Have a set of energies from file. Can adaptively "
+                        "choose a sensible force constant (k)")
+
+            max_de = max(abs(molecules[i].energy - molecules[i+1].energy)
+                         for i in range(len(molecules) - 1))
+
+            # TODO: test reasonableness of this function...
+            # use a shifted tanh to interpolate in [0.005, 0.2005]
+            k = 0.1 * (np.tanh((max_de.to("kcal mol-1") - 40)/20) + 1) + 0.005
+
+        if k is None:  # choose a sensible default
+            k = 0.1
+
+        logger.info(f"Using k = {k:.6f} Ha Å^-1 as the NEB force constant")
+        return cls(species_list=molecules, k=k)
+
+    def _minimise(self, method, n_cores, etol, max_n=30) -> None:
+        """Minimise the energy of every image in the NEB"""
         logger.info(f'Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates')
 
         result = minimize(total_energy,
@@ -384,43 +423,78 @@ class NEB:
         logger.info(f'NEB path energy = {result.fun:.5f} Ha, {result.message}')
         return result
 
-    def contains_peak(self):
+    def contains_peak(self) -> bool:
         """Does this nudged elastic band calculation contain an energy peak?"""
         return self.images.contains_peak
 
-    def partition(self, n):
+    def partition(self,
+                  max_delta:     Distance,
+                  distance_idxs: Optional[Sequence[int]] = None
+                  ) -> None:
         """
-        Partition this NEB into n steps between each image i.e. n=2 affords
-        double the images
+        Partition this NEB such that there are no distances between images
+        exceeding max_delta. Will run IDPP (image dependent pair potential)
+        relaxations on intermediate images.
 
         -----------------------------------------------------------------------
         Arguments:
-            n: (int)
+            max_delta: The maximum allowed max_atoms(|x_k - x_k+1|) where
+                       x_k are the cartesian coordinates of the k-th NEB
+                       image and the maximum is over the atom-wise distance
+
+            distance_idxs: Indexes of atoms used to calculate the max_delta.
+                           If none then all distances are used. For example if
+                           only distance_idxs = [0] then |x_k,0 - x_k+1,0|
+                           will be calculated, where 0 is the atom index and
+                           k is the image index
         """
         logger.info('Interpolating')
-        species_list = [self.images[0].species]    # First unchanged
 
-        for i, image in enumerate(self.images[1:]):
-            for j in range(1, n):
-                new_species = self.images[i].species.copy()
-                right_coords = image.species.coordinates
+        assert len(self.images) > 1
+        init_k = self.images[0].k
+        _list = []
 
-                for k, atom in enumerate(new_species.atoms):
-                    shift = right_coords[k] - atom.coord
-                    atom.translate(vec=shift * (j / n))
+        for i, left_image in enumerate(self.images[:-1]):
+            right_image = self.images[i+1]
 
-                species_list.append(new_species)
-            species_list.append(image.species)
+            left_species, right_species = left_image.species, right_image.species
+            sub_neb = NEB(species_list=[left_species, right_species])
 
-        # Reset the list of images
-        self.images = Images(num=len(species_list), init_k=self.images[0].k)
+            n = 2
+
+            while (sub_neb._max_atom_distance_between_images(distance_idxs)
+                   > max_delta):
+
+                sub_neb.images = self._images_type(num=n, init_k=init_k)
+                sub_neb.images[0].species = left_species
+                sub_neb.images[-1].species = right_species
+                sub_neb.interpolate_geometries()
+
+                try:
+                    sub_neb.idpp_relax()
+                except RuntimeError:
+                    logger.warning("Failed to IDPP relax the interpolated NEB")
+
+                n += 1
+
+            for image in sub_neb.images[:-1]:  # add all apart from the last
+                _list.append(image.species)
+
+        _list.append(self._species_at(-1))  # end with the last
+        self.images = self._images_type(num=len(_list), init_k=init_k)
 
         for i, image in enumerate(self.images):
-            image.species = species_list[i]
+            image.species = _list[i]
 
+        logger.info(f"Partition successful – now have {len(self.images)} "
+                    f"images")
         return None
 
-    def print_geometries(self, name='neb'):
+    def _species_at(self, idx: int) -> 'autode.species.Species':
+        """Return the species associated with a particular image index"""
+        return self.images[idx].species
+
+    def print_geometries(self, name='neb') -> None:
         return self.images.print_geometries(name)
 
     def interpolate_geometries(self) -> None:
@@ -445,20 +519,30 @@ class NEB:
 
         return None
 
+    @work_in('neb')
     def calculate(self,
-                  method:  'autode.wrappers.base.Method',
-                  n_cores: int
+                  method:      'autode.wrappers.methods.Method',
+                  n_cores:     int,
+                  name_prefix: str = '',
+                  etol_per_image: PotentialEnergy = PotentialEnergy(0.6, units="kcal mol-1")
                   ) -> None:
         """
         Optimise the NEB using forces calculated from electronic structure
 
         -----------------------------------------------------------------------
         Arguments:
-            method (autode.wrappers.base.Method):
+            method: Method used to calculate the energy and gradient. Will
+                    use method.keywords.grad keywords
 
-            n_cores (int):
+            n_cores: Number of cores to use for the calculation
+
+            name_prefix: Prefix for the naming of the geometry and plot
+                         generated by this function
+
+            etol_per_image: Energy tolerance per image to use in the L-BFGS-B
+                            minimisation
         """
-        self.print_geometries(name='neb_init')
+        self.print_geometries(name=f'{name_prefix}neb_init')
 
         # Calculate energy on the first and final points
         for idx in [0, -1]:
@@ -466,16 +550,18 @@ class NEB:
             # Zero the forces so the end points don't move
             self.images[idx].grad = np.zeros(shape=self.images[idx].grad.shape)
 
-        # Energy tolerance is ~2 kcal mol-1 per image
+        if isinstance(etol_per_image, PotentialEnergy):
+            etol_per_image = float(etol_per_image.to("Ha"))  # use float for scipy
+
         result = self._minimise(method, n_cores,
-                                etol=0.003 * len(self.images))
+                                etol=etol_per_image * len(self.images))
 
         # Set the optimised coordinates for all the images
         self.images.set_coords(result.x)
-        self.print_geometries(name='neb_optimised')
+        self.print_geometries(name=f'{name_prefix}neb_optimised')
 
         # and save the plot
-        plt.savefig('neb_optimised.pdf')
+        plt.savefig(f'{name_prefix}neb_optimised.pdf')
         plt.close()
         return None
 
@@ -531,3 +617,31 @@ class NEB:
 
         self.images.set_coords(result.x)
         return None
+
+    def _max_atom_distance_between_images(self,
+                                          idxs: Optional[Sequence[int]] = None
+                                          ) -> Distance:
+        """
+        Calculate the maximum atom-atom distance between two consecutive images
+        """
+        if idxs is None:  # Use all pairwise distances
+            idxs = np.arange(self.images[0].species.n_atoms)
+        else:
+            idxs = np.array(idxs)
+
+        overall_max_distance = -np.inf
+
+        for i in range(len(self.images) // 2):
+            k = 2 * i
+            x_i = self._species_at(k).coordinates
+            x_j = self._species_at(k + 1).coordinates
+
+            max_distance = np.max(np.linalg.norm(x_i - x_j, axis=1)[idxs])
+            if max_distance > overall_max_distance:
+                overall_max_distance = max_distance
+
+        return overall_max_distance
+
+    @property
+    def max_atom_distance_between_images(self) -> Distance:
+        return self._max_atom_distance_between_images(idxs=None)

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from scipy.optimize import minimize
 from autode.exceptions import NoMapping
@@ -9,6 +10,7 @@ from autode.transition_states.ts_guess import get_template_ts_guess
 from autode.bond_rearrangement import get_bond_rearrangs
 from autode.config import Config
 from autode.log import logger
+from autode.values import Distance, PotentialEnergy
 from autode.methods import get_hmethod
 from autode.methods import get_lmethod
 from autode.utils import work_in
@@ -102,6 +104,9 @@ def ts_guess_funcs_prms(name, reactant, product, bond_rearr):
     yield get_ts_adaptive_path, (r, p, hmethod, bond_rearr,
                                  f'{name}_hl_ad_{bond_rearr}')
 
+    yield _get_ts_neb_from_adaptive_path, (r, p, hmethod, bond_rearr,
+                                           f'{name}_hl_ad_neb_{bond_rearr}',
+                                           f'{name}_hl_ad_{bond_rearr}')
     return None
 
 
@@ -275,5 +280,43 @@ def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
 
         logger.info(f'Found a transition state with {func.__name__}')
         return ts
+
+    return None
+
+
+def _get_ts_neb_from_adaptive_path(reactant, product, method, bond_rearr,
+                                   name, ad_name):
+    from autode.neb import NEB
+    from autode.transition_states.ts_guess import TSguess
+
+    if not os.path.exists(f'{ad_name}_path.xyz'):
+        logger.warning("Found no adaptive path to generate the NEB from")
+        return None
+
+    neb = NEB.from_file(f'{ad_name}_path.xyz')
+
+    if not neb.contains_peak():
+        logger.info("Adaptive path had no peak – not running a NEB")
+        return None
+
+    neb.partition(
+        max_delta=Distance(0.2, units='Å'),
+        distance_idxs=bond_rearr.active_atoms
+    )
+    neb.calculate(
+        method=method,
+        n_cores=Config.n_cores,
+        name_prefix=f'{name}_',
+        etol_per_image=PotentialEnergy(0.1, units="kcal mol^-1")
+    )
+
+    if neb.images.contains_peak:
+        peak_idx = neb.images.peak_idx
+        ts_guess = TSguess(atoms=neb.images[peak_idx].species.atoms,
+                           reactant=reactant,
+                           product=product,
+                           bond_rearr=bond_rearr,
+                           name=name)
+        return ts_guess
 
     return None

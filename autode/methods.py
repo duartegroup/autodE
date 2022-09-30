@@ -64,7 +64,7 @@ def get_hmethod() -> "autode.wrappers.methods.Method":
 
     ---------------------------------------------------------------------------
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): High-level method
+        (autode.wrappers.methods.Method): High-level method
     """
 
     h_methods = [ORCA(), G09(), NWChem(), G16(), QChem()]
@@ -79,7 +79,7 @@ def get_lmethod() -> "autode.wrappers.methods.Method":
     """Get the 'low-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): Low-level method
+        (autode.wrappers.methods.Method): Low-level method
     """
 
     all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem(), QChem()]
@@ -100,7 +100,7 @@ def get_first_available_method(possibilities) -> "autode.wrappers.methods.Method
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): Method
+        (autode.wrappers.methods.Method): Method
 
     Raises:
         (autode.exceptions.MethodUnavailable):
@@ -123,7 +123,7 @@ def get_defined_method(name, possibilities) -> "autode.wrappers.methods.Method":
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.base.ElectronicStructureMethod): Method
+        (autode.wrappers.methods.Method): Method
 
     Raises:
         (autode.exceptions.MethodUnavailable):

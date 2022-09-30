@@ -58,7 +58,7 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
     @classmethod
     def optimise(cls,
                  species:     'autode.species.Species',
-                 method:      'autode.wrappers.base.Method',
+                 method:      'autode.wrappers.methods.Method',
                  n_cores:      Optional[int] = None,
                  coords:       Optional['autode.opt.OptCoordinates'] = None,
                  gtol:         Union[float, GradientRMS] = GradientRMS(1E-3, 'Ha Å-1'),

@@ -2,7 +2,7 @@ import numpy as np
 import autode.values as val
 from copy import deepcopy
 from datetime import date
-from typing import Optional, Union, List, Sequence
+from typing import Optional, Union, List, Sequence, Any
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode import methods
@@ -140,7 +140,7 @@ class Species(AtomCollection):
         return self._charge
 
     @charge.setter
-    def charge(self, value) -> None:
+    def charge(self, value: Any) -> None:
         self._charge = int(value)
 
     @property
@@ -149,7 +149,7 @@ class Species(AtomCollection):
         return self._mult
 
     @mult.setter
-    def mult(self, value) -> None:
+    def mult(self, value: Any) -> None:
         self._mult = int(value)
 
     @property
@@ -588,7 +588,7 @@ class Species(AtomCollection):
         return self.energies.last(val.PotentialEnergy)
 
     @energy.setter
-    def energy(self, value: Union[val.Energy, float, None]):
+    def energy(self, value: Union[val.Energy, str, float, None]):
         """
         Add an energy to the list of energies at this geometry
 
@@ -606,7 +606,7 @@ class Species(AtomCollection):
 
         else:
             # Attempt to cast the value to Potential energy
-            self.energies.append(val.PotentialEnergy(value))
+            self.energies.append(val.PotentialEnergy(float(value)))
 
     @property
     def h_cont(self) -> Optional[val.EnthalpyCont]:
