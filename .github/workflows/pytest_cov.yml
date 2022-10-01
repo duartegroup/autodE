@@ -40,8 +40,8 @@ jobs:
 
     - name: Test
       run: |
-        pytest --cov=autode --cov-report=xml
-        
+        pytest --cov=./ --cov-report=xml
+
     - uses: codecov/codecov-action@v3
       with:
         flags: unittests
