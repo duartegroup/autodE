@@ -40,9 +40,9 @@ jobs:
 
     - name: Test
       run: |
-        py.test --cov-report xml --cov autode tests/
-        
-    - uses: codecov/codecov-action@v2
+        pytest --cov=./ --cov-report=xml
+
+    - uses: codecov/codecov-action@v3
       with:
         flags: unittests
         fail_ci_if_error: true

@@ -8,6 +8,7 @@ from autode.calculations import Calculation, CalculationInput
 from autode.constraints import Constraints
 from autode.species.molecule import Molecule
 from autode.wrappers import keywords as kwds
+from autode.values import PotentialEnergy
 from autode.wrappers.keywords.basis_sets import def2tzecp, def2tzvp
 from autode.wrappers.keywords.functionals import pbe0
 from autode.wrappers.keywords.keywords import OptKeywords, SinglePointKeywords
@@ -141,6 +142,10 @@ def test_gauss_opt_calc():
     # Should be no large forces for an optimised molecule
     assert sum(gradients[0]) < 0.1
 
+    # Should have a small non-zero last energy change
+    print(calc.optimiser.last_energy_change)
+    assert calc.optimiser.last_energy_change == PotentialEnergy(1.127E-5, "Ha")
+
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))
 def test_gauss_optts_calc():
@@ -191,7 +196,6 @@ def test_bad_gauss_output():
 
     with pytest.raises(CalculationException):
         calc.get_final_atoms()
-
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'g09.zip'))

@@ -12,7 +12,7 @@ from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
 from autode.exceptions import CalculationException
 from autode.wrappers.methods import ExternalMethodEGH
-from autode.wrappers.keywords import OptKeywords
+from autode.wrappers.keywords import OptKeywords, SinglePointKeywords
 from autode.config import Config
 from autode.hessians import Hessian
 from autode.values import Coordinates, Gradient, PotentialEnergy
@@ -264,3 +264,54 @@ def test_xtb_with_autode_opt_method_for_a_single_atom():
 
     assert calc.optimiser.converged
     assert mol.energy is not None
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_opt_non_contiguous_range_cart_constraints():
+
+    mol = Molecule(smiles="CC", mult=2)
+    mol.constraints.cartesian = [0, 1, 2, 5] 
+
+    calc = Calculation(name="ethane",
+                       molecule=mol,
+                       method=XTB(),
+                       keywords=OptKeywords())
+    calc.run()
+
+    assert calc.optimiser.converged
+    assert mol.energy is not None
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_errors_with_infinite_nuclear_repulsion():
+
+    # H2 with a zero H-H distance
+    mol = Molecule(atoms=[Atom("H"), Atom("H")])
+    calc = Calculation(name="h_atom",
+                       molecule=mol,
+                       method=XTB(),
+                       keywords=SinglePointKeywords())
+    
+    with pytest.raises(CalculationException):
+        calc.run()
+
+
+@work_in_tmp_dir()
+def test_xtb_did_not_terminate_normally_with_blank_output():
+
+    mol = Molecule(atoms=[Atom("H")])
+    calc = Calculation(name="h_atom",
+                   molecule=mol,
+                   method=XTB(),
+                   keywords=SinglePointKeywords())
+ 
+    with open("tmp.out", "w") as file:
+        print('\n', file=file)
+
+    calc._executor.output.filename = "tmp.out"
+    assert not calc.method.terminated_normally_in(calc)
+
+
+

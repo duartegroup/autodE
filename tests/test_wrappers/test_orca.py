@@ -1,15 +1,19 @@
 import autode.exceptions as ex
-from autode.wrappers.ORCA import ORCA, ORCAOptimiser
+from autode.calculations import CalculationInput
 from autode.atoms import Atom
 from autode.constants import Constants
 from autode.calculations import Calculation
 from autode.species.molecule import Molecule
+from autode.point_charges import PointCharge
 from autode.input_output import xyz_file_to_atoms
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKeywords
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
 from autode.wrappers.keywords import cpcm
 from autode.transition_states.transition_state import TransitionState
 from autode.transition_states.ts_guess import TSguess
+from autode.wrappers.ORCA import (ORCA, ORCAOptimiser,
+                                  print_cartesian_constraints,
+                                  print_point_charges)
 from autode import utils
 from .. import testutils
 import numpy as np
@@ -337,3 +341,53 @@ def test_orca_optimiser_from_output_file():
     assert optimiser.converged
     assert np.isclose(optimiser.last_energy_change.to("Ha"),
                       -499.734431042133 - -499.734431061148)
+
+
+@utils.work_in_tmp_dir()
+def test_cartesian_constraints_are_printed():
+
+    idxs = [0, 1]
+    with open("tmp.inp", "w") as inp_file:
+        mol = Molecule(smiles="O")
+        mol.constraints.cartesian = idxs
+        print_cartesian_constraints(inp_file, mol)
+    
+    lines = "".join(open("tmp.inp", "r").readlines())
+    for i in idxs:
+        assert "{ C "+str(i)+" C }" in lines
+    
+
+@utils.work_in_tmp_dir()
+def test_point_charges_are_printed():
+
+    calc_input = CalculationInput(
+        keywords=SinglePointKeywords(),
+        point_charges=[PointCharge(0.1)]
+    )
+    calc_input.filename = "tmp.inp"
+
+    with open(calc_input.filename, "w") as inp_file:
+        print_point_charges(inp_file=inp_file, calc_input=calc_input)
+
+    # should print a separate point charge file
+    assert os.path.exists("tmp.pc")
+
+
+@utils.work_in_tmp_dir()
+def test_getting_version_from_blank_output():
+
+    calc = Calculation(name='tmp',
+                       molecule=Molecule(smiles="O"),
+                       method=method,
+                       keywords=method.keywords.sp)
+
+    filename = "tmp_orca.out"
+    with open(filename, "w") as out_file:
+        print("some\ninvalid\noutput", file=out_file)
+
+    calc._executor.output.filename = filename
+    assert calc.method.version_in(calc) is not None
+
+    # also ensure that this doesn't correspond to a normal termination
+    assert not calc.terminated_normally
+    assert not calc.method.terminated_normally_in(calc)
