@@ -6,7 +6,7 @@ from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.optimisers.bfgs import BFGSOptimiser
 from autode.opt.optimisers.line_search import NullLineSearch, ArmijoLineSearch, SArmijoLineSearch
 from autode.species import Molecule
-from autode.wrappers.base import Method
+from .setup import Method
 
 
 class TestBFGSOptimiser2D(BFGSOptimiser):
@@ -26,6 +26,9 @@ class TestBFGSOptimiser2D(BFGSOptimiser):
 
         self.e_func = e_func
         self.g_func = g_func
+
+    def _space_has_degrees_of_freedom(self) -> bool:
+        return True
 
     def _log_convergence(self) -> None:
         x, y = self._coords

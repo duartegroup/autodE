@@ -1,13 +1,3 @@
-from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
-                                      HessianKeywords, SinglePointKeywords,
-                                      Keywords, GradientKeywords)
-from autode.reactions.reaction import Reaction
-from autode.reactions.multistep import MultiStepReaction
-from autode.atoms import Atom
-from autode.species.molecule import (Reactant,  Product, Molecule, Species)
-from autode.species.complex import NCIComplex
-from autode.config import Config
-from autode.calculation import Calculation
 from autode import methods
 from autode import geom
 from autode import pes
@@ -15,9 +5,18 @@ from autode import utils
 from autode import neb
 from autode import mol_graphs
 from autode import hessians
-
+from autode.reactions.reaction import Reaction
+from autode.reactions.multistep import MultiStepReaction
+from autode.atoms import Atom
+from autode.species.molecule import (Reactant,  Product, Molecule, Species)
+from autode.species.complex import NCIComplex
+from autode.config import Config
+from autode.calculations import Calculation
+from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
+                                      HessianKeywords, SinglePointKeywords,
+                                      Keywords, GradientKeywords)
 """
-So, you want to bump the version.. make sure the following steps are followed
+Bumping the version number requires following the release proceedure:
 
 - Update changelog (doc/changelog.rst)
 
@@ -33,7 +32,7 @@ So, you want to bump the version.. make sure the following steps are followed
   - Merge when tests pass
 """
 
-__version__ = '1.2.3'
+__version__ = '1.3.0'
 
 
 __all__ = [

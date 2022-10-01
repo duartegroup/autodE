@@ -3,17 +3,17 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-from typing import List, Tuple, Iterator, Optional, Sequence
-from multiprocessing import Pool
-from autode.wrappers.keywords import GradientKeywords
+import multiprocessing as mp
+
+from functools import cached_property
+from typing import List, Tuple, Iterator, Optional, Sequence, Union
+from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
-from autode.utils import cached_property
 from autode.config import Config
 from autode.constants import Constants
-from autode import methods
-from autode.values import ValueArray, Frequency, Coordinates
+from autode.values import ValueArray, Frequency, Coordinates, Distance
 from autode.utils import work_in, hashable
-from autode.units import (wavenumber,
+from autode.units import (Unit, wavenumber,
                           ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
                           J_per_ang_sq_kg)
 
@@ -31,23 +31,23 @@ class Hessian(ValueArray):
         return hash(str(self))
 
     def __new__(cls,
-                input_array,
-                units=ha_per_ang_sq,
-                atoms=None):
+                input_array: np.ndarray,
+                units:       Union[Unit, str] = ha_per_ang_sq,
+                atoms:       Optional['autode.atoms.Atoms'] = None,
+                functional:  Optional[Functional] = None):
         """
         Hessian matrix
 
         -----------------------------------------------------------------------
         Arguments:
-            input_array (np.ndarray | autode.values.ValueArray):
-            units (autode.units.Unit | str):
-            atoms (list(autode.atoms.Atom) | None):
-
-        Returns:
-            (autode.thermo.hessians.Hessian):
+            input_array: Hessian matrix
+            units: Units of the Hessian
+            atoms: Atoms on which the Hessian has been calculated
+            functional: Density functional used to derive the frequency scaling
+                        factor
 
         Raises:
-            (ValueError):
+            (ValueError): If the atoms are not the correct shape
         """
         arr = super().__new__(cls, input_array, units=units)
 
@@ -55,7 +55,9 @@ class Hessian(ValueArray):
             raise ValueError(f'Shape mismatch. Expecting '
                              f'{input_array.shape[0]//3} atoms from the Hessian'
                              f' shape, but had {len(atoms)}')
+
         arr.atoms = atoms
+        arr.functional = functional
 
         return arr
 
@@ -110,8 +112,16 @@ class Hessian(ValueArray):
         """
         n_atoms = len(self.atoms)
 
-        # Get a random orthonormal basis in 3D
-        (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
+        if n_atoms > 2:
+            # Get an orthonormal basis shifted from the principal rotation axis
+            _rot_M = np.array([[1., 0.,                   0.],
+                               [0., 0.09983341664682815, -0.9950041652780258],
+                               [0., 0.9950041652780258,   0.09983341664682815]])
+
+            _, (e_x, e_y, e_z) = np.linalg.eigh(_rot_M.dot(self.atoms.moi))
+        else:
+            # Get a random orthonormal basis in 3D
+            (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
 
         t1 = np.tile(e_x, reps=n_atoms)
         t2 = np.tile(e_y, reps=n_atoms)
@@ -265,11 +275,23 @@ class Hessian(ValueArray):
 
         return modes
 
-    @staticmethod
-    def _eigenvalues_to_freqs(lambdas) -> List[Frequency]:
+    @property
+    def _freq_scale_factor(self) -> float:
+        """Determine the correct frequency scale factor"""
+
+        if Config.freq_scale_factor is not None:
+            return Config.freq_scale_factor
+
+        if self.functional is not None:
+            return self.functional.freq_scale_factor
+
+        return 1.0
+
+    def _eigenvalues_to_freqs(self, lambdas) -> List[Frequency]:
         """
         Convert eigenvalues of the Hessian matrix (SI units) to
-        frequencies in wavenumber units
+        frequencies in wavenumber units. Will use ade.Config.freq_scale_factor
+        to scale the frequencies.
 
         -----------------------------------------------------------------------
         Arguments:
@@ -281,10 +303,12 @@ class Hessian(ValueArray):
 
         nus = (np.sqrt(np.complex_(lambdas))
                / (2.0 * np.pi * Constants.ang_to_m * Constants.c_in_cm))
+        nus *= self._freq_scale_factor
 
         # Cast the purely complex eigenvalues to negative real numbers, as is
         # usual in quantum chemistry codes
-        nus[np.iscomplex(nus)] = -np.abs(nus[np.iscomplex(nus)])
+        idx_to_alter = np.iscomplex(nus)
+        nus[idx_to_alter] = -np.abs(nus[idx_to_alter])
 
         return [Frequency(np.real(nu), units=wavenumber) for nu in nus]
 
@@ -338,10 +362,10 @@ class NumericalHessianCalculator:
 
     def __init__(self,
                  species:   'autode.species.Species',
-                 method:    'autode.wrappers.base.Method',
+                 method:    'autode.wrappers.methods.Method',
                  keywords:  'autode.wrappers.keywords.GradientKeywords',
                  do_c_diff:  bool,
-                 shift:      'autode.values.Distance',
+                 shift:      Distance,
                  n_cores:    Optional[int] = None
                  ):
 
@@ -374,8 +398,11 @@ class NumericalHessianCalculator:
             logger.info('Calculating gradient at current point')
             self._init_gradient = self._gradient(species=self._species)
 
+        if mp.current_process().daemon:
+            return self._calculate_in_serial()
+
         # Although n_rows may be < n_cores there will not be > n_rows processes
-        with Pool(processes=self._n_total_cores) as pool:
+        with mp.pool.Pool(processes=self._n_total_cores) as pool:
 
             func_name = '_cdiff_row' if self._do_c_diff else '_diff_row'
 
@@ -385,6 +412,15 @@ class NumericalHessianCalculator:
 
             for row_idx, row in enumerate(res):
                 self._hessian[row_idx, :] = row.get(timeout=None)
+
+        return None
+
+    def _calculate_in_serial(self) -> None:
+        """Calculate the Hessian rows in serial"""
+
+        for row_idx, (i, k) in enumerate(self._idxs_to_calculate()):
+            row = self._cdiff_row(i, k) if self._do_c_diff else self._diff_row(i, k)
+            self._hessian[row_idx, :] = row
 
         return None
 
@@ -473,7 +509,7 @@ class NumericalHessianCalculator:
 
     def _gradient(self, species) -> 'autode.values.Gradient':
         """Evaluate the flat gradient, with shape = (3 n_atoms,) """
-        from autode.calculation import Calculation
+        from autode.calculations import Calculation
 
         calc = Calculation(name=species.name,
                            molecule=species,
@@ -481,8 +517,7 @@ class NumericalHessianCalculator:
                            keywords=self._keywords,
                            n_cores=self._n_cores_pp)
         calc.run()
-
-        return calc.get_gradients().flatten()
+        return species.gradient.flatten()
 
     @property
     def _init_gradient(self) -> 'autode.values.Gradient':
@@ -539,8 +574,8 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                  species: 'autode.species.Species',
                  idxs:     Sequence[int],
                  shift:   'autode.values.Distance',
-                 lmethod:  Optional['autode.wrappers.base.Method'] = None,
-                 hmethod:  Optional['autode.wrappers.base.Method'] = None,
+                 lmethod:  Optional['autode.wrappers.methods.Method'] = None,
+                 hmethod:  Optional['autode.wrappers.methods.Method'] = None,
                  n_cores:  Optional[int] = None
                  ):
         """
@@ -563,7 +598,7 @@ class HybridHessianCalculator(NumericalHessianCalculator):
 
             n_cores: Number of cores to use, defaults to Config.n_cores
         """
-        lmethod = methods.method_or_default_lmethod(lmethod)
+        lmethod = _method_or_default_lmethod(lmethod)
 
         super().__init__(species=species,
                          method=lmethod,
@@ -578,7 +613,7 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                              'species.')
 
         self._hmethod_atom_idxs = set(idxs)
-        self._hmethod = methods.method_or_default_hmethod(hmethod)
+        self._hmethod = _method_or_default_hmethod(hmethod)
 
     def calculate(self) -> None:
         """Calculate the partial numerical Hessian"""
@@ -606,3 +641,17 @@ class HybridHessianCalculator(NumericalHessianCalculator):
                 self._calculated_rows.remove(3*atom_idx+i)
 
         return None
+
+
+def _method_or_default_hmethod(method: 'autode.wrappers.methods.Method'
+                               ) -> 'autode.wrappers.methods.Method':
+    # Avoid cyclic imports
+    from autode.methods import method_or_default_hmethod
+    return method_or_default_hmethod(method)
+
+
+def _method_or_default_lmethod(method: 'autode.wrappers.methods.Method'
+                               ) -> 'autode.wrappers.methods.Method':
+    # Avoid cyclic imports
+    from autode.methods import method_or_default_lmethod
+    return method_or_default_lmethod(method)

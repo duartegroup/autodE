@@ -3,7 +3,7 @@ from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 from autode.input_output import atoms_to_xyz_file
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.config import Config
 from autode.values import Distance
 from autode.exceptions import CalculationException
@@ -176,12 +176,13 @@ class TSguess(TSbase):
                 delta_dist = final_constraints[atom_idx_pair] - c_dist   # ∆r
                 constraints[atom_idx_pair] = c_dist + i * delta_dist / n_steps
 
+            self.constraints.distance = constraints
+
             opt = Calculation(name=f'{self.name}_const_opt_ll_{i}',
                               molecule=self,
                               method=l_method,
                               keywords=l_method.keywords.low_opt,
-                              n_cores=Config.n_cores,
-                              distance_constraints=constraints)
+                              n_cores=Config.n_cores)
 
             self.optimise(calc=opt)           # Can raise CalculationException
 

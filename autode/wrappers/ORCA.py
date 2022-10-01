@@ -1,10 +1,12 @@
 import numpy as np
 import os
 import autode.wrappers.keywords as kws
-from autode.constants import Constants
+import autode.wrappers.methods
+from typing import List
 from autode.utils import run_external
-from autode.wrappers.base import ElectronicStructureMethod
-from autode.atoms import Atom
+from autode.hessians import Hessian
+from autode.opt.optimisers.base import ExternalOptimiser
+from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.input_output import xyz_file_to_atoms
 from autode.config import Config
 from autode.utils import work_in_tmp_dir
@@ -76,10 +78,6 @@ def print_num_optimisation_steps(inp_file, molecule, calc_input):
     if molecule.n_atoms > 33:
         return  # Use default behaviour
 
-    block = calc_input.other_block
-    if block is None or 'maxit' not in block.lower():
-        print('%geom MaxIter 100 end', file=inp_file)
-
     return
 
 
@@ -127,19 +125,24 @@ def print_coordinates(inp_file, molecule):
     return
 
 
-class ORCA(ElectronicStructureMethod):
+class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
     def __init__(self):
-        super().__init__('orca',
-                         path=Config.ORCA.path,
-                         keywords_set=Config.ORCA.keywords,
-                         implicit_solvation_type=Config.ORCA.implicit_solvation_type,
-                         doi_list=['10.1002/wcms.81', '10.1002/wcms.1327'])
+        super().__init__(
+            executable_name='orca',
+            path=Config.ORCA.path,
+            keywords_set=Config.ORCA.keywords,
+            implicit_solvation_type=Config.ORCA.implicit_solvation_type,
+            doi_list=['10.1002/wcms.81', '10.1002/wcms.1327']
+        )
 
     def __repr__(self):
-        return f'ORCA(available = {self.available})'
+        return f'ORCA(available = {self.is_available})'
 
-    def generate_input(self, calc, molecule):
+    def generate_input_for(self,
+                           calc: "CalculationExecutor"
+                           ) -> None:
+        molecule = calc.molecule
 
         keywords = self.get_keywords(calc.input, molecule)
 
@@ -153,11 +156,6 @@ class ORCA(ElectronicStructureMethod):
             print_num_optimisation_steps(inp_file, molecule, calc.input)
             print_point_charges(inp_file, calc.input)
             print_default_params(inp_file)
-            if Config.ORCA.other_input_block is not None:
-                print(Config.ORCA.other_input_block, file=inp_file)
-
-            if calc.input.other_block is not None:
-                print(calc.input.other_block, file=inp_file)
 
             if calc.n_cores > 1:
                 print(f'%pal nprocs {calc.n_cores}\nend', file=inp_file)
@@ -166,13 +164,17 @@ class ORCA(ElectronicStructureMethod):
 
         return None
 
-    def get_input_filename(self, calc):
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.inp'
 
-    def get_output_filename(self, calc):
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
         return f'{calc.name}.out'
 
-    def get_version(self, calc):
+    def version_in(self,
+                   calc: "CalculationExecutor"
+                   ) -> str:
         """Get the version of ORCA used to execute this calculation"""
 
         if not calc.output.exists:
@@ -196,9 +198,17 @@ class ORCA(ElectronicStructureMethod):
         execute_orca()
         return None
 
-    def calculation_terminated_normally(self, calc):
+    def optimiser_from(self,
+                       calc: "CalculationExecutor"
+                       ) -> "autode.opt.optimisers.base.BaseOptimiser":
+        return ORCAOptimiser(output_lines=calc.output.file_lines)
 
-        termination_strings = ['ORCA TERMINATED NORMALLY',
+    def terminated_normally_in(self,
+                               calc: "CalculationExecutor"
+                               ) -> bool:
+
+        termination_strings = ['$end',  # at the end of a .hess file
+                               'ORCA TERMINATED NORMALLY',
                                'The optimization did not converge']
 
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
@@ -214,50 +224,23 @@ class ORCA(ElectronicStructureMethod):
 
         return False
 
-    def get_energy(self, calc):
+    def _energy_from(self,
+                     calc: "CalculationExecutor"
+                     ) -> PotentialEnergy:
+
+        if calc.output.filename.endswith(".hess"):
+            logger.warning("Failed to set the potential energy")
+            return PotentialEnergy(0.0)
 
         for line in reversed(calc.output.file_lines):
             if 'FINAL SINGLE POINT ENERGY' in line:
-                return float(line.split()[4])
+                return PotentialEnergy(line.split()[4], units="Ha")
 
         raise CouldNotGetProperty(name='energy')
 
-    def optimisation_converged(self, calc):
-
-        for line in reversed(calc.output.file_lines):
-            if 'THE OPTIMIZATION HAS CONVERGED' in line:
-                return True
-
-        return False
-
-    def optimisation_nearly_converged(self, calc):
-        geom_conv_block = False
-
-        for line in reversed(calc.output.file_lines):
-            if geom_conv_block and 'Geometry convergence' in line:
-                geom_conv_block = False
-            if 'The optimization has not yet converged' in line:
-                geom_conv_block = True
-            if geom_conv_block and len(line.split()) == 5:
-                if line.split()[-1] == 'YES':
-                    return True
-
-        return False
-
-    def get_final_atoms(self, calc):
-        """
-        Get the final set of atoms from an ORCA output file
-
-        Arguments:
-            calc (autode.calculation.Calculation):
-
-        Returns:
-            (list(autode.atoms.Atom)):
-
-        Raises:
-            (autode.exceptions.NoCalculationOutput
-            | autode.exceptions.AtomsNotFound)
-        """
+    def coordinates_from(self,
+                         calc: "CalculationExecutor"
+                         ) -> Coordinates:
 
         fn_ext = '.hess' if calc.output.filename.endswith('.hess') else '.out'
 
@@ -266,7 +249,7 @@ class ORCA(ElectronicStructureMethod):
         if os.path.exists(xyz_file_name):
 
             try:
-                return xyz_file_to_atoms(xyz_file_name)
+                return xyz_file_to_atoms(xyz_file_name).coordinates
 
             except XYZfileWrongFormat:
                 raise AtomsNotFound(f'Failed to parse {xyz_file_name}')
@@ -276,40 +259,38 @@ class ORCA(ElectronicStructureMethod):
         if os.path.exists(hess_file_name):
             hess_file_lines = open(hess_file_name, 'r').readlines()
 
-            atoms = []
+            coords = []
             for i, line in enumerate(hess_file_lines):
                 if '$atoms' not in line:
                     continue
 
                 for aline in hess_file_lines[i+2:i+2+calc.molecule.n_atoms]:
-                    label, _, x, y, z = aline.split()
-                    atom = Atom(label, x, y, z)
-                    # Coordinates in the Hessian file are all atomic units
-                    atom.coord *= Constants.a0_to_ang
+                    _, _, x, y, z = aline.split()
+                    coords.append([float(x), float(y), float(z)])
 
-                    atoms.append(atom)
-
-                return atoms
+                return Coordinates(coords, units="a0").to("Å")
 
         # and finally the potentially long .out file
         if os.path.exists(calc.output.filename) and fn_ext == '.out':
-            atoms = []
+            coords = []
 
             # There could be many sets in the file, so take the last
             for i, line in enumerate(calc.output.file_lines):
                 if 'CARTESIAN COORDINATES (ANGSTROEM)' not in line:
                     continue
 
-                atoms, n_atoms = [], calc.molecule.n_atoms
+                coords, n_atoms = [], calc.molecule.n_atoms
                 for oline in calc.output.file_lines[i+2:i+2+n_atoms]:
-                    label, x, y, z = oline.split()
-                    atoms.append(Atom(label, x, y, z))
+                    _, x, y, z = oline.split()
+                    coords.append([float(x), float(y), float(z)])
 
-            return atoms
+            return Coordinates(coords, units='Å')
 
         raise NoCalculationOutput('Failed to find any ORCA output files')
 
-    def get_atomic_charges(self, calc):
+    def partial_charges_from(self,
+                             calc: "CalculationExecutor"
+                             ) -> List[float]:
         """
         e.g.
 
@@ -330,11 +311,13 @@ class ORCA(ElectronicStructureMethod):
                 charges = []
                 first, last = i+7, i+7+calc.molecule.n_atoms
                 for charge_line in calc.output.file_lines[first:last]:
-                    charges.append(float(charge_line.split()[-1]))
+                    charges.append(float(charge_line.split()[-2]))
 
         return charges
 
-    def get_gradients(self, calc):
+    def gradient_from(self,
+                      calc: "CalculationExecutor"
+                      ) -> Gradient:
         """
         e.g.
 
@@ -364,8 +347,7 @@ class ORCA(ElectronicStructureMethod):
                     dadx, dady, dadz = grad_line.split()[-3:]
                     gradients.append([float(dadx), float(dady), float(dadz)])
 
-        # Convert from Ha a0^-1 to Ha A-1
-        return np.array(gradients) / Constants.a0_to_ang
+        return Gradient(gradients, units='Ha a0^-1').to("Ha Å^-1")
 
     @staticmethod
     def _start_line_hessian(calc, file_lines):
@@ -396,7 +378,9 @@ class ORCA(ElectronicStructureMethod):
 
         raise CouldNotGetProperty(f'No Hessian found in the Hessian file')
 
-    def get_hessian(self, calc):
+    def hessian_from(self,
+                     calc: "autode.calculations.executors.CalculationExecutor"
+                     ) -> Hessian:
         """Grab the Hessian from the output .hess file
 
         e.g.::
@@ -442,8 +426,10 @@ class ORCA(ElectronicStructureMethod):
         for i, block in enumerate(hessian_blocks[3*n_atoms:]):
             hessian[i % (3 * n_atoms)] += block
 
-        # Hessians printed in Ha/a0^2, so convert to base Ha/Å^2
-        return np.array(hessian, dtype='f8') / Constants.a0_to_ang**2
+        return Hessian(np.array(hessian),
+                       atoms=calc.molecule.atoms,
+                       functional=calc.input.keywords.functional,
+                       units="Ha a0^-2").to("Ha Å^-2")
 
     @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
     def _get_version_no_output(self) -> str:
@@ -452,7 +438,9 @@ class ORCA(ElectronicStructureMethod):
         """
 
         try:
-            run_external(params=[self.path, '-h'], output_filename='tmp')
+            run_external(params=[self.path, '-h'],
+                         output_filename='tmp',
+                         stderr_to_log=False)
             line = next(l for l in open('tmp', 'r') if 'Program Version' in l)
             return line.split()[2]
 
@@ -467,6 +455,13 @@ class ORCA(ElectronicStructureMethod):
         new_keywords = kwds_cls()
 
         for keyword in calc_input.keywords:
+
+            if 'scalfreq' in keyword.lower():
+                raise UnsupportedCalculationInput(
+                    "Frequency scaling within ORCA will not alter the "
+                    "calculated frequencies. Use ade.Config.freq_scale_factor"
+                )
+
             if 'opt' in keyword.lower() and molecule.n_atoms == 1:
                 logger.warning('Can\'t optimise a single atom')
                 continue
@@ -554,6 +549,36 @@ class ORCA(ElectronicStructureMethod):
     def is_v5(self):
         """Is this ORCA version at least 5.0.0?"""
         return self._get_version_no_output()[0] == '5'
+
+
+class ORCAOptimiser(ExternalOptimiser):
+
+    def __init__(self, output_lines: List[str]):
+        self._lines = output_lines
+
+    @property
+    def converged(self) -> bool:
+        """Has the optimisation converged?"""
+
+        for line in reversed(self._lines):
+            if 'THE OPTIMIZATION HAS CONVERGED' in line:
+                return True
+
+        return False
+
+    @property
+    def last_energy_change(self) -> "PotentialEnergy":
+        """Find the last energy change in the file"""
+
+        energies = []
+        for line in self._lines:
+            if 'FINAL SINGLE POINT ENERGY' in line:
+                energies.append(PotentialEnergy(line.split()[4], units="Ha"))
+
+        if len(energies) < 2:
+            return PotentialEnergy(np.inf)
+
+        return energies[-1] - energies[-2]
 
 
 orca = ORCA()

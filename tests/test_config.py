@@ -46,6 +46,13 @@ def test_maxcore_setter():
     assert int(_config.max_core.to('MB')) == 1000
 
 
+@pytest.mark.parametrize("factor", (-0.1, 1.1, "a string"))
+def test_invalid_freq_scale_factor(factor):
+
+    with pytest.raises(Exception):
+        Config.freq_scale_factor = factor
+
+
 def test_unknown_attr():
 
     # Attributes not already present should raise an exception e.g. for

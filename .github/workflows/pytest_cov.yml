@@ -1,6 +1,10 @@
 name: pytest_codecov
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   test:
@@ -11,8 +15,8 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest"]
-        python-version: ["3.7", "3.9"]   
-        
+        python-version: ["3.10"]
+
     defaults:
       run:
         shell: bash -l {0}
@@ -36,9 +40,9 @@ jobs:
 
     - name: Test
       run: |
-        py.test --cov-report xml --cov autode tests/
-        
-    - uses: codecov/codecov-action@v2
+        pytest --cov=./ --cov-report=xml
+
+    - uses: codecov/codecov-action@v3
       with:
         flags: unittests
         fail_ci_if_error: true

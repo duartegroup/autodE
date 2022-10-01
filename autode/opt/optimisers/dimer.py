@@ -13,7 +13,7 @@ g : gradient in cartesian coordinates
 import numpy as np
 from typing import Optional
 from enum import Enum
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.log import logger
 from autode.values import GradientRMS, Angle, MWDistance
 from autode.opt.optimisers.base import Optimiser
@@ -71,7 +71,7 @@ class Dimer(Optimiser):
     @classmethod
     def optimise(cls,
                  species: 'autode.species.Species',
-                 method:  'autode.wrappers.base.Method',
+                 method:  'autode.wrappers.methods.Method',
                  n_cores:  Optional[int] = None,
                  coords:   DimerCoordinates = None,
                  **kwargs) -> None:

@@ -32,7 +32,7 @@ def strip_identical_and_inv_axes(axes, sim_axis_tol):
     return unique_possible_axes
 
 
-def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.05):
+def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.1):
     r"""
     Possible rotation axes in a molecule. Currently limited to average vectors
     and cross products i.e.::
@@ -215,7 +215,7 @@ def create_pcoords(species):
 def symmetry_number(species, max_n_fold_rot_searched=6,  dist_tol=0.25):
     """
     Calculate the symmetry number of a molecule. See:
-    Theor Chem Account (2007) 118:813–826
+    Theor Chem Account (2007) 118:813–826. 10.1007/s00214-007-0328-0
 
     ---------------------------------------------------------------------------
     Arguments:

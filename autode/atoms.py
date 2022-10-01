@@ -10,11 +10,12 @@ from autode.values import (Distance, Angle, Mass, Coordinate,
 class Atom:
 
     def __init__(self,
-                 atomic_symbol: str,
-                 x:             float = 0.0,
-                 y:             float = 0.0,
-                 z:             float = 0.0,
-                 atom_class:    Optional[int] = None):
+                 atomic_symbol:  str,
+                 x:              float = 0.0,
+                 y:              float = 0.0,
+                 z:              float = 0.0,
+                 atom_class:     Optional[int] = None,
+                 partial_charge: Optional[float] = None):
         """
         Atom class. Centered at the origin by default. Can be initialised from
         positional or keyword arguments:
@@ -44,12 +45,16 @@ class Atom:
             atom_class: Fictitious additional labels to distinguish otherwise
                         identical atoms. Useful in finding bond isomorphisms
                         over identity reactions
+
+            partial_charge: Partial atomic charge in units of e, determined by
+                            the atomic envrionment. Not an observable property.
         """
         assert atomic_symbol in elements
 
         self.label = atomic_symbol
         self._coord = Coordinate(float(x), float(y), float(z))
         self.atom_class = atom_class
+        self.partial_charge = None if partial_charge is None else float(partial_charge)
 
     def __repr__(self):
         """
@@ -296,16 +301,16 @@ class Atom:
         Returns:
             (int): Maximal valance
         """
-        max_valances = {'H': 1, 'B': 4, 'C': 4, 'N': 4, 'O': 3, 'F': 1,
-                        'Si': 4, 'P': 6, 'S': 6, 'Cl': 4, 'Br': 4, 'I': 6}
 
-        if self.label in max_valances:
-            return max_valances[self.label]
-
-        else:
-            logger.warning(f'Could not find a valid valance for {self}. '
-                           f'Guessing at 6')
+        if self.is_metal:
             return 6
+
+        if self.label in _max_valances:
+            return _max_valances[self.label]
+
+        logger.warning(f'Could not find a valid valance for {self}. '
+                       f'Guessing at 6')
+        return 6
 
     @property
     def vdw_radius(self) -> Distance:
@@ -331,6 +336,24 @@ class Atom:
             radius = 2.3
 
         return Distance(radius, 'Å')
+
+    @property
+    def covalent_radius(self) -> Distance:
+        """
+        Covalent radius for this atom. Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> ade.Atom('H').covalent_radius
+            Distance(0.31 Å)
+
+        -----------------------------------------------------------------------
+        Returns:
+            (autode.values.Distance): Van der Waals radius
+        """
+        radius = Distance(_covalent_radii_pm[self.atomic_number-1], units='pm')
+        return radius.to('Å')
 
     def is_pi(self, valency: int) -> bool:
         """
@@ -518,6 +541,16 @@ class DummyAtom(Atom):
         """Dummy atoms do not have any weight/mass"""
         return Mass(0.0)
 
+    @property
+    def vdw_radius(self) -> Distance:
+        """Dummy atoms have no radius"""
+        return Distance(0., units='Å')
+
+    @property
+    def covalent_radius(self) -> Distance:
+        """Dummy atoms have no radius"""
+        return Distance(0., units='Å')
+
 
 class Atoms(list):
 
@@ -557,6 +590,32 @@ class Atoms(list):
     @property
     def coordinates(self) -> Coordinates:
         return Coordinates(np.array([a.coord for a in self]))
+
+    @coordinates.setter
+    def coordinates(self,
+                    value: np.ndarray):
+        """Set the coordinates from a numpy array
+
+        -----------------------------------------------------------------------
+        Arguments:
+            value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
+                                row major vector
+        """
+
+        if value.ndim == 1:
+            assert value.shape == (3 * len(self),)
+            value = value.reshape((-1, 3))
+
+        elif value.ndim == 2:
+            assert value.shape == (len(self), 3)
+
+        else:
+            raise AssertionError('Cannot set coordinates from a array with'
+                                 f'shape: {value.shape}. Must be 1 or 2 '
+                                 f'dimensional')
+
+        for i, atom in enumerate(self):
+            atom.coord = Coordinate(*value[i])
 
     @property
     def com(self) -> Coordinate:
@@ -625,6 +684,78 @@ class Atoms(list):
             (bool):
         """
         return any(atom.label in metals for atom in self)
+
+    def idxs_are_present(self, *args: int) -> bool:
+        """Are all these indexes present in this set of atoms"""
+        return set(args).issubset(set(range(len(self))))
+
+    def eqm_bond_distance(self,
+                          i: int,
+                          j: int) -> Distance:
+        """
+        Equilibrium distance between two atoms. If known then use the
+        experimental dimer distance, otherwise estimate if from the
+        covalent radii of the two atoms. Example
+
+        Example:
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> mol = ade.Molecule(atoms=[ade.Atom('H'), ade.Atom('H')])
+            >>> mol.distance(0, 1)
+            Distance(0.0 Å)
+            >>> mol.eqm_bond_distance(0, 1)
+            Distance(0.741 Å)
+
+        -----------------------------------------------------------------------
+        Returns:
+            (autode.values.Distance): Equlirbium distance
+        """
+        if not self.idxs_are_present(i, j):
+            raise ValueError(f'Cannot calculate the equilibrium distance '
+                             f'between {i}-{j}. At least one atom not present')
+
+        if i == j:
+            return Distance(0.0, units='Å')
+
+        symbols = f"{self[i].atomic_symbol}{self[j].atomic_symbol}"
+
+        if symbols in _bond_lengths:
+            return Distance(_bond_lengths[symbols], units='Å')
+
+        # TODO: Something more accurate here
+        return self[i].covalent_radius + self[j].covalent_radius
+
+    def distance(self,
+                 i: int,
+                 j: int) -> Distance:
+        """
+        Distance between two atoms (Å), indexed from 0.
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> mol = ade.Molecule(atoms=[ade.Atom('H'), ade.Atom('H', x=1.0)])
+            >>> mol.distance(0, 1)
+            Distance(1.0 Å)
+
+        -----------------------------------------------------------------------
+        Arguments:
+            i (int): Atom index of the first atom
+            j (int): Atom index of the second atom
+
+        Returns:
+            (autode.values.Distance): Distance
+
+        Raises:
+            (ValueError):
+        """
+        if not self.idxs_are_present(i, j):
+            raise ValueError(f'Cannot calculate the distance between {i}-{j}. '
+                             f'At least one atom not present')
+
+        return Distance(np.linalg.norm(self[i].coord - self[j].coord))
 
     def vector(self,
                i: int,
@@ -779,20 +910,7 @@ class AtomCollection:
             raise ValueError('Must have atoms set to be able to set the '
                              'coordinates of them')
 
-        if value.ndim == 1:
-            assert value.shape == (3 * self.n_atoms,)
-            value = value.reshape((-1, 3))
-
-        elif value.ndim == 2:
-            assert value.shape == (self.n_atoms, 3)
-
-        else:
-            raise AssertionError('Cannot set coordinates from a array with'
-                                 f'shape: {value.shape}. Must be 1 or 2 '
-                                 f'dimensional')
-
-        for i, atom in enumerate(self.atoms):
-            atom.coord = Coordinate(*value[i])
+        self._atoms.coordinates = value
 
     @property
     def atoms(self) -> Optional[Atoms]:
@@ -843,43 +961,11 @@ class AtomCollection:
 
         return sum(atom.mass for atom in self.atoms)
 
-    def _idxs_are_present(self, *args):
-        """
-        Are a set of indexes present in the collection of atoms?
+    def distance(self, i: int, j: int) -> Distance:
+        return self.atoms.distance(i, j)
 
-        -----------------------------------------------------------------------
-        Arguments:
-            args (int):
-
-        Returns:
-            (bool):
-        """
-        return set(args).issubset(set(range(self.n_atoms)))
-
-    def distance(self,
-                 i: int,
-                 j: int) -> Distance:
-        """
-        Distance between two atoms (Å), indexed from 0.
-
-        -----------------------------------------------------------------------
-        Arguments:
-            i (int): Atom index of the first atom
-            j (int): Atom index of the second atom
-
-        Returns:
-            (autode.values.Distance): Distance
-
-        Raises:
-            (ValueError):
-        """
-        if not self._idxs_are_present(i, j):
-            raise ValueError(f'Cannot calculate the distance between {i}-{j}. '
-                             f'At least one atom not present')
-
-        value = np.linalg.norm(self.atoms[i].coord - self.atoms[j].coord)
-
-        return Distance(value)
+    def eqm_bond_distance(self, i: int, j: int) -> Distance:
+        return self.atoms.eqm_bond_distance(i, j)
 
     def angle(self,
               i: int,
@@ -916,7 +1002,7 @@ class AtomCollection:
         Raises:
             (ValueError): If any of the atom indexes are not present
         """
-        if not self._idxs_are_present(i, j, k):
+        if not self.atoms.idxs_are_present(i, j, k):
             raise ValueError(f'Cannot calculate the angle between {i}-{j}-{k}.'
                              f' At least one atom not present')
 
@@ -973,7 +1059,7 @@ class AtomCollection:
             (ValueError): If any of the atom indexes are not present in the
                           molecule
         """
-        if not self._idxs_are_present(w, x, y, z):
+        if not self.atoms.idxs_are_present(w, x, y, z):
             raise ValueError(f'Cannot calculate the dihedral angle involving '
                              f'atoms {z}-{w}-{x}-{y}. At least one atom not '
                              f'present')
@@ -1147,7 +1233,6 @@ valid_valances = {'H': [0, 1],
                   'Rh': [0, 1, 2, 3, 4, 5, 6]
                   }
 
-
 #  Atomic weights in amu from:
 #  IUPAC-CIAWW's Atomic weights of the elements: Review 2000
 atomic_weights = {"H": 1.00794, "He": 4.002602, "Li": 6.941, "Be": 9.012182,
@@ -1185,7 +1270,6 @@ atomic_weights = {"H": 1.00794, "He": 4.002602, "Li": 6.941, "Be": 9.012182,
                   'Ts': 294.0, 'Og': 294.0
                   }
 
-
 # van der Walls radii from https://books.google.no/books?id=bNDMBQAAQBAJ
 vdw_radii = {'H': 1.1, 'He': 1.4, 'Li': 1.82, 'Be': 1.53, 'B': 1.92, 'C': 1.7, 'N': 1.55, 'O': 1.52, 'F': 1.47, 'Ne': 1.54, 'Na': 2.27, 'Mg': 1.73, 'Al': 1.84,
              'Si': 2.1, 'P': 1.8, 'S': 1.8, 'Cl': 1.75, 'Ar': 1.88, 'K': 2.75, 'Ca': 2.31, 'Sc': 2.15, 'Ti': 2.11, 'V': 2.07, 'Cr': 2.06, 'Mn': 2.05, 'Fe': 2.04,
@@ -1218,3 +1302,42 @@ metals = ['Li', 'Be', 'Na', 'Mg', 'Al', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 
           'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm',
           'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl',
           'Mc', 'Lv']
+
+# Covalent radii in picometers from https://en.wikipedia.org/wiki/Covalent_radius
+_covalent_radii_pm = [
+    31.,                                                                                                   28.,
+    128., 96.,                                                               84.,  76.,  71.,  66.,  57.,  58.,
+    166., 141.,                                                             121., 111., 107., 105., 102., 106.,
+    102., 203., 176., 170., 160., 153., 139., 161., 152., 150., 124., 132., 122., 122., 120., 119., 120., 116.,
+    220., 195., 190., 175., 164., 154., 147., 146., 142., 139., 145., 144., 142., 139., 139., 138., 139., 140.,
+    244., 215.,
+207., 204., 203., 201., 199., 198., 198., 196., 194., 192., 192., 189., 190., 187.,
+                175., 187., 170., 162., 151., 144., 141., 136., 136., 132., 145., 146., 148., 140., 150., 150.
+]
+
+# Experimental bond lengths from https://cccbdb.nist.gov/diatomicexpbondx.asp
+_bond_lengths = {
+    "HH": 0.741,
+    "FF": 1.412,
+    "ClCl": 1.988,
+    "II": 	2.665
+}
+
+
+_max_valances = {'H': 1,
+                 'He': 0,
+                 'B': 4,
+                 'C': 4,
+                 'N': 4,
+                 'O': 3,
+                 'F': 1,
+                 'Si': 4,
+                 'P': 6,
+                 'S': 6,
+                 'Cl': 4,
+                 'Br': 4,
+                 'I': 6,
+                 'Xe': 6,
+                 'Al': 4,
+                 }
+

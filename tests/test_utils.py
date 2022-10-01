@@ -2,7 +2,7 @@ import time
 import pytest
 import os
 from autode import utils
-from autode.calculation import Calculation
+from autode.calculations import Calculation
 from autode.species.molecule import Molecule
 from autode.conformers import Conformer
 from autode.wrappers.MOPAC import MOPAC
@@ -247,3 +247,11 @@ def test_tmp_env():
     assert 'tmp_key_int' not in os.environ
     assert 'tmp_key_str' not in os.environ
     assert os.environ['OMP_NUM_THREADS'] == '1'
+
+
+def test_string_dict():
+
+    d = utils.StringDict("a = b solvent = water")
+    assert "a" in str(d)
+    assert "solvent" in str(d)
+    assert d["a"] == "b"

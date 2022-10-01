@@ -42,7 +42,6 @@ def test_subst_centre():
 
     # The attacking atom to substitution centre atom ideal bond length
     # should be ~ 3 Å
-    assert type(sc.r0_ac) is float
     assert 2.0 < sc.r0_ac < 5.0
 
 

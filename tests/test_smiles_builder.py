@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from autode import Molecule
 from autode.atoms import Atom
+from autode.smiles.smiles import init_smiles
 from autode.smiles.atom_types import TetrahedralAtom
 from autode.geom import are_coords_reasonable, calc_heavy_atom_rmsd
 from autode.smiles.parser import Parser, SMILESBonds, RingBond, SMILESAtom
@@ -540,8 +541,6 @@ def test_close_flat_ring():
         # All C-C distances should be ~1.5 Å in a benzene ring
         assert np.isclose(mol.distance(atom_i, atom_i+1), 1.5, atol=0.2)
 
-    # mol.print_xyz_file(filename='tmp.xyz')
-
 
 def test_close_non_flat_ring():
 
@@ -658,7 +657,11 @@ def test_cis_dihedral_force():
                                                              phi0=0.0))
 
     # Distance between the end carbons needs to be smaller than the trans
-    assert 2.0 < builder.distance(0, 3) < 3.1
+    assert 2.0 < builder.distance(0, 3) < 3.5
+
+    mol = Molecule()
+    init_smiles(mol, smiles=r'C/C=C\C')
+    assert -20 < mol.dihedral(0, 1, 2, 3).to('deg') < 20
 
 
 def test_many_ring_double_bonds():

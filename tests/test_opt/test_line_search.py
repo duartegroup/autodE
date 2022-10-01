@@ -3,11 +3,11 @@ import numpy as np
 from autode.atoms import Atom
 from autode.species import Molecule
 from autode.utils import work_in_tmp_dir
-from autode.wrappers.base import Method
 from autode.methods import XTB
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.optimisers.line_search import ArmijoLineSearch, NullLineSearch, LineSearchOptimiser
 from ..testutils import requires_with_working_xtb_install
+from .setup import Method
 
 
 def quadratic(x, y):

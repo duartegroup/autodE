@@ -4,7 +4,6 @@ from autode.smiles import atom_types
 from autode.log import logger
 from autode.utils import log_time
 from autode.atoms import Atom, AtomCollection
-from autode.bonds import get_avg_bond_length
 from autode.mol_graphs import MolecularGraph
 from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
 from autode.smiles.angles import SDihedral, SDihedrals, SAngle, SAngles
@@ -949,8 +948,7 @@ class Builder(AtomCollection):
             idx_i, idx_j = bond
             self.graph.add_edge(idx_i, idx_j, order=bond.order)
 
-            bond.r0 = get_avg_bond_length(self.atoms[idx_i].label,
-                                          self.atoms[idx_j].label)
+            bond.r0 = self.atoms.eqm_bond_distance(idx_i, idx_j)
 
         self._set_atom_types()
 

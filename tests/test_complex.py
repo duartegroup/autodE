@@ -226,7 +226,7 @@ def test_allow_connectivity_change():
 
     xtb = XTB()
     xtb.path = shutil.which('xtb')
-    assert xtb.available
+    assert xtb.is_available
 
     na_h2o = NCIComplex(Molecule(smiles='[Na+]'), Molecule(smiles='O'))
 

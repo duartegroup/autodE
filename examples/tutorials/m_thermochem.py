@@ -2,7 +2,7 @@ import autode as ade
 
 g09 = ade.methods.G09()
 
-if not g09.available:
+if not g09.is_available:
     exit('This example requires a Gaussian09 install')
 
 # Create and optimise an ammonia molecule

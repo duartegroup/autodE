@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 from typing import Sequence, Union
 from scipy import interpolate
 from autode.values import Energy
@@ -45,6 +44,7 @@ def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
 
         enthalpy (bool): Plot the enthalpic profile (H)
     """
+    import matplotlib.pyplot as plt
     logger.info('Plotting reaction profile')
 
     if free_energy and enthalpy:

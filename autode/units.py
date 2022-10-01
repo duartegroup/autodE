@@ -113,13 +113,13 @@ ev = Unit(name='eV',
 # Upper case name to maintain backwards compatibility
 kjmol = KjMol = Unit(name='kJ mol-1',
                      conversion=Constants.ha_to_kJmol,
-                     aliases=['kjmol', 'kjmol-1', 'kj', 'kj mol'],
+                     aliases=['kjmol', 'kjmol-1', 'kj mol^-1', 'kj', 'kj mol'],
                      plot_name='kJ mol$^{-1}$')
 
 
 kcalmol = KcalMol = Unit(name='kcal mol-1',
                          conversion=Constants.ha_to_kcalmol,
-                         aliases=['kcalmol', 'kcalmol-1',
+                         aliases=['kcalmol', 'kcalmol-1', 'kcal mol^-1',
                                   'kcal', 'kcal mol'],
                          plot_name='kcal mol$^{-1}$')
 
@@ -218,9 +218,12 @@ ha_per_ang = CompositeUnit(ha, per=[ang],
 ha_per_a0 = CompositeUnit(ha, per=[a0],
                           aliases=['ha a0-1', 'ha a0^-1', 'ha/bohr'])
 
-
 ev_per_ang = CompositeUnit(ev, per=[ang],
                            aliases=['ha a0-1', 'ev Å^-1', 'ev/ang'])
+
+kcalmol_per_ang = CompositeUnit(kcalmol, per=[ang],
+                                aliases=['ha kcal mol-1', 'ha/kcal mol-1',
+                                         'kcal mol^-1 Å^-1'])
 
 # ----------------------------------------------------------------------
 # ------------------------- 2nd derivatives ----------------------------
@@ -228,13 +231,12 @@ ev_per_ang = CompositeUnit(ev, per=[ang],
 ha_per_ang_sq = CompositeUnit(ha, per=[ang, ang],
                               name='Ha Å^-2',
                               aliases=['Ha / Å^2', 'ha/ang^2', 'ha/ang2',
-                                       'ha ang^2'])
-
+                                       'ha ang^-2'])
 
 ha_per_a0_sq = CompositeUnit(ha, per=[a0, a0],
                              name='Ha a0^-2',
-                             aliases=['ha/bohr^2', 'ha/bohr2', 'ha bohr^2',
-                                      'ha/a0^2', 'ha/a02', 'ha a0^2'])
+                             aliases=['ha/bohr^2', 'ha/bohr2', 'ha bohr^-2',
+                                      'ha/a0^2', 'ha/a02', 'ha a0^-2'])
 
 J_per_ang_sq = CompositeUnit(J, per=[ang, ang],
                              name='J ang^-2',

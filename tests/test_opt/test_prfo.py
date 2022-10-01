@@ -2,7 +2,7 @@ import numpy as np
 from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
-from autode.opt.optimisers import PRFOOptimiser
+from autode.opt.optimisers import PRFOptimiser
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_with_working_xtb_install
 
@@ -23,7 +23,7 @@ def test_sn2_opt():
 
     assert mol.is_implicitly_solvated
 
-    PRFOOptimiser.optimise(mol, method=xtb, maxiter=10, init_alpha=0.02)
+    PRFOptimiser.optimise(mol, method=xtb, maxiter=10, init_alpha=0.02)
     mol.calc_hessian(method=xtb)
 
     assert len(mol.imaginary_frequencies) == 1

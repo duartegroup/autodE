@@ -10,7 +10,7 @@ from autode.utils import work_in
 
 def get_ts_adaptive_path(reactant:   'autode.species.ReactantComplex',
                          product:    'autode.species.ProductComplex',
-                         method:     'autode.wrappers.base.Method',
+                         method:     'autode.wrappers.methods.Method',
                          bond_rearr: 'autode.bond_rearrangement.BondRearrangement',
                          name:       str = 'adaptive'
                          ) -> 'autode.transition_states.TSguess ':
@@ -133,16 +133,19 @@ class PathPoint:
                         a tuple with distances (floats) as values
         """
         self.species = species
-
-        assert type(constraints) is dict
-        self.constraints = constraints
+        self.species.constraints.distance = constraints
 
         self.energy = None    # Ha
         self.grad = None      # Ha Å^-1
 
+    @property
+    def constraints(self) -> dict:
+        return self.species.constraints.distance
+
     def copy(self):
         """Return a copy of this point"""
-        return PathPoint(self.species.new_species(), deepcopy(self.constraints))
+        return PathPoint(species=self.species.new_species(),
+                         constraints=deepcopy(self.species.constraints.distance))
 
 
 class AdaptivePath(Path):
@@ -208,8 +211,7 @@ class AdaptivePath(Path):
                                molecule=self[idx].species,
                                method=self.method,
                                keywords=keywords,
-                               n_cores=ade.Config.n_cores,
-                               distance_constraints=self[idx].constraints)
+                               n_cores=ade.Config.n_cores)
         calc.run()
 
         # Set the required properties from the calculation
@@ -223,7 +225,7 @@ class AdaptivePath(Path):
             # so rerun a gradient calculation, which should be very fast
             # while MOPAC doesn't print gradients for a constrained opt
             calc = ade.Calculation(name=f'path_grad{idx}',
-                                   molecule=self[idx].species,
+                                   molecule=self[idx].species.new_species(),
                                    method=self.method,
                                    keywords=self.method.keywords.grad,
                                    n_cores=ade.Config.n_cores)

@@ -28,6 +28,7 @@ def test_symmetry_number():
     assert Molecule('CO2.xyz').symmetry_number == 2
     assert Molecule('H2O.xyz').symmetry_number == 2
     assert Molecule('H3N.xyz').symmetry_number == 3
+    assert Molecule(smiles="C").symmetry_number == 12
 
     # Symmetry numbers aren't calculated for large molecules
     h_100 = Species('tmp', atoms=100*[Atom('H')], charge=1, mult=1)
@@ -43,7 +44,7 @@ def test_h2o():
                        molecule=h2o,
                        method=orca,
                        keywords=orca.keywords.hess)
-    calc.output.filename = 'H2O_hess_orca.out'
+    calc.set_output_filename('H2O_hess_orca.out')
     assert calc.output.exists
 
     # Check that we cannot calculate the thermochemistry with an undefined
@@ -148,7 +149,7 @@ def test_freq_shift():
                        molecule=alkane,
                        method=g09,
                        keywords=g09.keywords.hess)
-    calc.output.filename = 'C7H16_hess_g09.log'
+    calc.set_output_filename('C7H16_hess_g09.log')
     assert calc.output.exists
 
     alkane.calc_thermo(calc=calc, ss='1atm', sn=1, lfm_method='igm')
@@ -171,7 +172,7 @@ def test_acetylene():
                        molecule=mol,
                        method=g09,
                        keywords=g09.keywords.hess)
-    calc.output.filename = 'C2H2_hess_g09.log'
+    calc.set_output_filename('C2H2_hess_g09.log')
 
     # Calculate the thermochemical contributions in the same way as G09
     mol.calc_thermo(calc=calc,
@@ -202,7 +203,7 @@ def test_sn2_ts():
                        molecule=ts,
                        method=g09,
                        keywords=g09.keywords.hess)
-    calc.output.filename = 'TS_sn2.log'
+    calc.set_output_filename('TS_sn2.log')
 
     ts.calc_thermo(calc=calc, temp=298.15, ss='1atm', sn=1, lfm_method='igm')
 
@@ -226,7 +227,7 @@ def test_long_alkane():
                        keywords=orca.keywords.hess)
 
     # Should be able to extract from just a .hess file
-    calc.output.filename = 'alkane_hess_orca.hess'
+    calc.set_output_filename('alkane_hess_orca.hess')
 
     mol.calc_thermo(calc=calc,
                     temp=298.150,

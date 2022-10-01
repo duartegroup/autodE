@@ -3,22 +3,22 @@ from autode import Molecule
 from autode.atoms import Atom
 from ade_rb_opt import opt_rb_coords
 from autode.geom import are_coords_reasonable
-from autode.bonds import get_ideal_bond_length_matrix
 
 
 def rb_minimised_is_reasonable(molecule):
 
-    r0 = get_ideal_bond_length_matrix(molecule.atoms, molecule.graph.edges())
-
     n_atoms = molecule.n_atoms
-    coords = opt_rb_coords(py_coords=molecule.coordinates,
-                           py_bonded_matrix=molecule.bond_matrix,
-                           py_r0_matrix=np.asarray(r0, dtype='f8'),
-                           py_k_matrix=1 * np.ones((n_atoms, n_atoms),
-                                                   dtype='f8'),
-                           py_c_matrix=0.01 * np.ones((n_atoms, n_atoms),
-                                                      dtype='f8'),
-                           py_exponent=8)
+    coords = opt_rb_coords(
+        py_coords=molecule.coordinates,
+        py_bonded_matrix=molecule.bond_matrix,
+        py_r0_matrix=np.asarray(molecule.graph.eqm_bond_distance_matrix,
+                                dtype='f8'),
+        py_k_matrix=1 * np.ones((n_atoms, n_atoms),
+                                dtype='f8'),
+        py_c_matrix=0.01 * np.ones((n_atoms, n_atoms),
+                                   dtype='f8'),
+        py_exponent=8
+    )
 
     molecule.coordinates = coords
     molecule.print_xyz_file(filename='tmp.xyz')
@@ -27,7 +27,7 @@ def rb_minimised_is_reasonable(molecule):
 
 
 def test_h2():
-    """Simple 1D optimisation of H2, slightly displaced from it's minimum"""
+    """Simple 1D optimisation of H2, slightly displaced from its minimum"""
 
     h2 = Molecule(atoms=[Atom('H'), Atom('H', x=1.1)])
 

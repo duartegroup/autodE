@@ -2,7 +2,7 @@ import autode as ade
 
 orca = ade.methods.ORCA()
 
-if not orca.available:
+if not orca.is_available:
     exit('This example requires an ORCA install')
 
 # By default, all ab-initio calculations with high-level electronic structure
@@ -27,7 +27,7 @@ print('E(B3LYP/def2-TZVP) =    ', h2.energy)
 ade.Config.G09.keywords.opt = ['PBEPBE', 'Def2SVP', 'integral=ultrafinegrid']
 
 g09 = ade.methods.G09()
-if not g09.available:
+if not g09.is_available:
     exit('This part requires a Gassian09 install')
 
 print(f'Optimising using {g09.name} at: {g09.keywords.opt}')

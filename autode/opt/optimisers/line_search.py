@@ -45,7 +45,7 @@ class LineSearchOptimiser(Optimiser, ABC):
     @classmethod
     def optimise(cls,
                  species:   'autode.species.Species',
-                 method:    'autode.wrappers.base.Method',
+                 method:    'autode.wrappers.methods.Method',
                  coords:     Optional['autode.opt.OptCoordinates'] = None,
                  direction:  Optional[np.ndarray] = None,
                  maxiter:    int = 5,

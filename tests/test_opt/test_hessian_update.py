@@ -1,9 +1,14 @@
+import os
 import pytest
 import numpy as np
+from ..testutils import work_in_zipped_dir
 from autode.opt.optimisers.hessian_update import (BFGSUpdate,
+                                                  BFGSPDUpdate,
                                                   SR1Update,
                                                   NullUpdate,
                                                   BofillUpdate)
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def update_improves_hessian(updater, guess, true):
@@ -79,12 +84,12 @@ def test_polynomial_hessian_update():
 
 
 def test_null_update():
-    
+
     updater = NullUpdate(h=10.*np.eye(4))
-    
+
     # Null update has no conditions on update
     assert updater.conditions_met
-    
+
     # and just returns the hessian back
     assert np.allclose(updater.updated_h,
                        10.*np.eye(4))
@@ -137,3 +142,82 @@ def test_bofill_update():
     assert np.allclose(updater.updated_h,
                        G_bofill,
                        atol=1E-10)
+
+
+def test_repr_and_strings():
+    """
+    Test that the hessian update types have defined representation
+    and strings
+    """
+
+    for update_type in (BFGSUpdate, BFGSPDUpdate, SR1Update,
+                        NullUpdate, BofillUpdate):
+
+        assert update_type().__repr__() is not None
+        assert str(update_type()) is not None
+
+
+class BFGSPDUpdateNoUpdate(BFGSPDUpdate):
+
+    @property
+    def _updated_h(self) -> np.ndarray:
+        return self.h
+
+    @property
+    def _updated_h_inv(self) -> np.ndarray:
+        return self.h_inv
+
+
+@pytest.mark.parametrize(('eigval', 'expected'),
+                         ([-1., False], [1., True]))
+def test_bfgs_pd_update(eigval, expected):
+
+    h = np.array([[1.0, 0.0],
+                  [0.0, eigval]])
+
+    updater = BFGSPDUpdateNoUpdate(min_eigenvalue=0.1,
+                           h=h,
+                           s=np.array([0.1, 0.1]),
+                           y=np.array([0.1, 0.1]))
+
+    # Needs to satisfy the secant equation
+    assert updater.y.dot(updater.s) > 0
+    assert updater.conditions_met == expected
+
+
+@work_in_zipped_dir(os.path.join(here, 'data', 'hessians.zip'))
+def test_bfgs_update_water():
+
+    h = np.loadtxt("water_cart_hessian0.txt")
+
+    x0 = [-0.0011, 0.3631, -0.0, -0.825, -0.1819, -0.0, 0.8261, -0.1812, 0.0]
+    g0 = [-0.0026315238924962724, 0.02788091552485463, 3.5360899212838047e-16,
+          -0.0498982397982622, -0.013121966502035046, -3.3717488622744373e-16,
+          0.05252976369075942, -0.014758949022819396, -1.6434105900929746e-17]
+
+    x1 = [-8.629582978216805e-05, 0.37325030920738983, 0.0,
+          -0.7760070560089669, -0.1873002044203907, 0.0,
+          0.7760933518387491, -0.1859501047869992, 0.0]
+    g1 = [0.0008070291147249597, -0.007905970009730014, -1.5862959782497162e-16,
+          0.0004597293468636392, 0.003663285355006926, 1.8209233374357918e-16,
+          -0.001266758461588599, 0.004242684654723089, -2.3462735918607574e-17]
+
+    updater = BFGSUpdate(h=h,
+                         s=np.array(x1) - np.array(x0),
+                         y=np.array(g1) - np.array(g0))
+
+    new_bfgs_h = updater.updated_h
+    new_true_h = np.loadtxt("water_cart_hessian1.txt")
+
+    assert np.sum(np.abs(new_bfgs_h - new_true_h)) < np.sum(np.abs(h - new_true_h))
+
+
+def test_hessian_requires_at_least_one_index():
+
+    h = np.eye(3)
+    s = y = np.zeros(3)
+    with pytest.raises(ValueError):
+        updater = BFGSUpdate(h=h, s=s, y=y, subspace_idxs=[])
+
+
+
