@@ -40,7 +40,7 @@ jobs:
 
     - name: Test
       run: |
-        py.test --cov-report xml --cov autode tests/
+        pytest --cov=./ --cov-report=xml
         
     - uses: codecov/codecov-action@v3
       with:
