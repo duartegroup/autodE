@@ -74,8 +74,7 @@ Energies and derivatives thereof are obtained but running calculations using
 external QM packages (e.g. Gaussian, etc.) through a :code:`Calculation` instance.
 A :code:`Calculation` is initialised with a :code:`Species`, using a
 :code:`Method` and :code:`Keywords` describing the type of calculation to
-perform. See :ref:`here <adding_est>` for more details on methods and
-how to add new ones.
+perform. Please reach out via `email <mailto:autodE-gh@outlook.com?subject=autodE%20EST%20method>`_ or slack to add a a new method.
 
 
 calculate_reaction_profile

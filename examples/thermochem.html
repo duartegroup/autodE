@@ -20,7 +20,7 @@
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -633,11 +633,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -798,6 +793,11 @@ title="Print to PDF"
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#frequency-scaling">
+   Frequency scaling
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#references">
    References
   </a>
@@ -834,6 +834,11 @@ title="Print to PDF"
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#gaussian">
    Gaussian
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#frequency-scaling">
+   Frequency scaling
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -969,6 +974,19 @@ low frequency vibrational modes and a calculated symmetry number, which in this 
 <p class="admonition-title">Note</p>
 <p>Gaussian 09 has very tight tolerances on symmetry and uses a pure
 harmonic oscillator treatment of low frequency modes.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="frequency-scaling">
+<h2>Frequency scaling<a class="headerlink" href="#frequency-scaling" title="Permalink to this headline">#</a></h2>
+<p>Default methods use frequency scaling automatically to generate the most accurate
+thermochemistry possible. Unscaled frequencies can be obtained by setting</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">freq_scale_factor</span> <span class="o">=</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The above examples were generated using unscaled frequencies.</p>
 </div>
 </div>
 <div class="section" id="references">

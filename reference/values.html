@@ -20,7 +20,7 @@
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Hessians" href="hessians.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -995,7 +990,7 @@ of energies</p>
 defaults to Hartrees</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.values.Energy.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="units.html#autode.units.Unit" title="autode.units.Unit"><span class="pre">autode.units.Unit</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Unit(Ha)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><span class="pre">autode.wrappers.base.Method</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><span class="pre">autode.wrappers.keywords.Keywords</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.values.Energy.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="units.html#autode.units.Unit" title="autode.units.Unit"><span class="pre">autode.units.Unit</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Unit(Ha)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.wrappers.methods.Method</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><span class="pre">autode.wrappers.keywords.Keywords</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.values.Energy.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Energy as a value. Has a method_str attribute which is set using a
 method used to calculate the energy along with any keywords e.g.
 PBE0/def2-SVP used to calculate it</p>
@@ -1004,7 +999,7 @@ PBE0/def2-SVP used to calculate it</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>value</strong> – Float-able number</p></li>
 <li><p><strong>units</strong> (<a class="reference internal" href="units.html#autode.units.Unit" title="autode.units.Unit"><em>autode.units.Unit</em></a>) – Unit type, allowing conversion</p></li>
-<li><p><strong>method</strong> (<a class="reference internal" href="wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><em>autode.wrappers.base.Method</em></a>) – </p></li>
+<li><p><strong>method</strong> (<em>autode.wrappers.methods.Method</em>) – </p></li>
 <li><p><strong>keywords</strong> (<a class="reference internal" href="wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><em>autode.wrappers.keywords.Keywords</em></a><em> | </em><em>None</em>) – Set of
 keywords which this energy has been calculated at</p></li>
 <li><p><strong>estimated</strong> (<em>bool</em>) – Has this energy been estimated rather than
@@ -1018,6 +1013,13 @@ calculated</p></li>
 <dt class="sig sig-object py" id="autode.values.Energy.implemented_units">
 <span class="sig-name descname"><span class="pre">implemented_units</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[Unit(Ha),</span> <span class="pre">Unit(kcal</span> <span class="pre">mol-1),</span> <span class="pre">Unit(kJ</span> <span class="pre">mol-1),</span> <span class="pre">Unit(eV),</span> <span class="pre">Unit(J)]</span></em><a class="headerlink" href="#autode.values.Energy.implemented_units" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.values.Energy.set_method_str">
+<span class="sig-name descname"><span class="pre">set_method_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.wrappers.methods.Method</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><span class="pre">autode.wrappers.keywords.Keywords</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.values.Energy.set_method_str" title="Permalink to this definition">#</a></dt>
+<dd><p>Set the method string for a method and the keywords that were used
+to calculate it</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1100,7 +1102,7 @@ calculated</p></li>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.values.</span></span><span class="sig-name descname"><span class="pre">Gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Unit(Ha(Å)</span> <span class="pre">^</span> <span class="pre">-</span> <span class="pre">1)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.values.Gradient" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py attribute">
 <dt class="sig sig-object py" id="autode.values.Gradient.implemented_units">
-<span class="sig-name descname"><span class="pre">implemented_units</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[Unit(Ha(Å)^-1),</span> <span class="pre">Unit(Ha(bohr)^-1),</span> <span class="pre">Unit(eV(Å)^-1)]</span></em><a class="headerlink" href="#autode.values.Gradient.implemented_units" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">implemented_units</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[Unit(Ha(Å)^-1),</span> <span class="pre">Unit(Ha(bohr)^-1),</span> <span class="pre">Unit(eV(Å)^-1),</span> <span class="pre">Unit(kcal</span> <span class="pre">mol-1(Å)^-1)]</span></em><a class="headerlink" href="#autode.values.Gradient.implemented_units" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1255,7 +1257,7 @@ perhaps other attributes and methods</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.values.ValueArray.to">
-<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.values.ValueArray.to" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#autode.values.ValueArray.to" title="Permalink to this definition">#</a></dt>
 <dd><p>Convert this array to a new unit, returning a copy</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

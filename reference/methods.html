@@ -20,7 +20,7 @@
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Molecular Graphs" href="mol_graphs.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -787,20 +782,20 @@ title="Print to PDF"
 <span id="methods"></span><h1>Methods<a class="headerlink" href="#module-autode.methods" title="Permalink to this headline">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.methods.get_defined_method">
-<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_defined_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possibilities</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a></span></span><a class="headerlink" href="#autode.methods.get_defined_method" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_defined_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possibilities</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.wrappers.methods.Method</span></span></span><a class="headerlink" href="#autode.methods.get_defined_method" title="Permalink to this definition">#</a></dt>
 <dd><p>Get an electronic structure method defined by it’s name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – </p></li>
-<li><p><strong>possibilities</strong> (<em>list</em><em>(</em><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a><em>)</em>) – </p></li>
+<li><p><strong>possibilities</strong> (<em>list</em><em>(</em><em>autode.wrappers.base.ElectronicStructureMethod</em><em>)</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Method</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(<a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod">autode.wrappers.base.ElectronicStructureMethod</a>)</p>
+<dd class="field-odd"><p>(autode.wrappers.methods.Method)</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>(</strong><a class="reference internal" href="exceptions.html#autode.exceptions.MethodUnavailable" title="autode.exceptions.MethodUnavailable"><strong>autode.exceptions.MethodUnavailable</strong></a><strong>)</strong> – </p>
@@ -810,18 +805,18 @@ title="Print to PDF"
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.methods.get_first_available_method">
-<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_first_available_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">possibilities</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a></span></span><a class="headerlink" href="#autode.methods.get_first_available_method" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_first_available_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">possibilities</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.wrappers.methods.Method</span></span></span><a class="headerlink" href="#autode.methods.get_first_available_method" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the first electronic structure method that is available in a list of
 possibilities.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>possibilities</strong> (<em>list</em><em>(</em><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><em>autode.wrappers.base.ElectronicStructureMethod</em></a><em>)</em>) – </p>
+<dd class="field-odd"><p><strong>possibilities</strong> (<em>list</em><em>(</em><em>autode.wrappers.base.ElectronicStructureMethod</em><em>)</em>) – </p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Method</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(<a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod">autode.wrappers.base.ElectronicStructureMethod</a>)</p>
+<dd class="field-odd"><p>(autode.wrappers.methods.Method)</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>(</strong><a class="reference internal" href="exceptions.html#autode.exceptions.MethodUnavailable" title="autode.exceptions.MethodUnavailable"><strong>autode.exceptions.MethodUnavailable</strong></a><strong>)</strong> – </p>
@@ -831,35 +826,35 @@ possibilities.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.methods.get_hmethod">
-<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_hmethod</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a></span></span><a class="headerlink" href="#autode.methods.get_hmethod" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_hmethod</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.wrappers.methods.Method</span></span></span><a class="headerlink" href="#autode.methods.get_hmethod" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the ‘high-level’ electronic structure theory method to use</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>High-level method</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(<a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod">autode.wrappers.base.ElectronicStructureMethod</a>)</p>
+<dd class="field-even"><p>(autode.wrappers.methods.Method)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.methods.get_lmethod">
-<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_lmethod</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a></span></span><a class="headerlink" href="#autode.methods.get_lmethod" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">get_lmethod</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.wrappers.methods.Method</span></span></span><a class="headerlink" href="#autode.methods.get_lmethod" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the ‘low-level’ electronic structure theory method to use</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Low-level method</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(<a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod">autode.wrappers.base.ElectronicStructureMethod</a>)</p>
+<dd class="field-even"><p>(autode.wrappers.methods.Method)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.methods.method_or_default_hmethod">
-<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">method_or_default_hmethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.methods.method_or_default_hmethod" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">method_or_default_hmethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.wrappers.methods.Method</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.methods.method_or_default_hmethod" title="Permalink to this definition">#</a></dt>
 <dd><p>Return a method if one is defined but default to a high-level method if
 if it is None.</p>
 <dl class="field-list simple">
@@ -870,14 +865,14 @@ if it is None.</p>
 <dd class="field-even"><p>Method</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(<a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod">autode.wrappers.base.ElectronicStructureMethod</a>)</p>
+<dd class="field-odd"><p>(autode.wrappers.base.ElectronicStructureMethod)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.methods.method_or_default_lmethod">
-<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">method_or_default_lmethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod"><span class="pre">autode.wrappers.base.ElectronicStructureMethod</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.methods.method_or_default_lmethod" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.methods.</span></span><span class="sig-name descname"><span class="pre">method_or_default_lmethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.wrappers.methods.Method</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.methods.method_or_default_lmethod" title="Permalink to this definition">#</a></dt>
 <dd><p>Return a method if one is defined but default to a low-level method if
 if it is None.</p>
 <dl class="field-list simple">
@@ -888,7 +883,7 @@ if it is None.</p>
 <dd class="field-even"><p>Method</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(<a class="reference internal" href="wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod" title="autode.wrappers.base.ElectronicStructureMethod">autode.wrappers.base.ElectronicStructureMethod</a>)</p>
+<dd class="field-odd"><p>(autode.wrappers.base.ElectronicStructureMethod)</p>
 </dd>
 </dl>
 </dd></dl>

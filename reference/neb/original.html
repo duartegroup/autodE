@@ -20,7 +20,7 @@
     href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Climbing image NEB" href="ci.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -878,10 +873,10 @@ also update force constants</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.neb.original.NEB">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.neb.original.</span></span><span class="sig-name descname"><span class="pre">NEB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.neb.original.</span></span><span class="sig-name descname"><span class="pre">NEB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.Species</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.Species</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.Species</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.Species</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Nudged elastic band</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -898,13 +893,18 @@ along the NEB</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.calculate">
-<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><span class="pre">autode.wrappers.base.Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.calculate" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">autode.wrappers.methods.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_prefix:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">etol_per_image:</span> <span class="pre">autode.values.PotentialEnergy</span> <span class="pre">=</span> <span class="pre">Energy(0.6</span> <span class="pre">kcal</span> <span class="pre">mol-1)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.calculate" title="Permalink to this definition">#</a></dt>
 <dd><p>Optimise the NEB using forces calculated from electronic structure</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><em>autode.wrappers.base.Method</em></a>) – </p></li>
-<li><p><strong>n_cores</strong> (<em>int</em>) – </p></li>
+<li><p><strong>method</strong> – Method used to calculate the energy and gradient. Will
+use method.keywords.grad keywords</p></li>
+<li><p><strong>n_cores</strong> – Number of cores to use for the calculation</p></li>
+<li><p><strong>name_prefix</strong> – Prefix for the naming of the geometry and plot
+generated by this function</p></li>
+<li><p><strong>etol_per_image</strong> – Energy tolerance per image to use in the L-BFGS-B
+minimisation</p></li>
 </ul>
 </dd>
 </dl>
@@ -912,8 +912,15 @@ along the NEB</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.contains_peak">
-<span class="sig-name descname"><span class="pre">contains_peak</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.contains_peak" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">contains_peak</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.contains_peak" title="Permalink to this definition">#</a></dt>
 <dd><p>Does this nudged elastic band calculation contain an energy peak?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.neb.original.NEB.from_file">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.neb.original.NEB" title="autode.neb.original.NEB"><span class="pre">autode.neb.original.NEB</span></a></span></span><a class="headerlink" href="#autode.neb.original.NEB.from_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Create a nudged elastic band from a .xyz file containing multiple
+images.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -932,6 +939,12 @@ along the NEB</p></li>
 </div>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.neb.original.NEB.init_k">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">init_k</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#autode.neb.original.NEB.init_k" title="Permalink to this definition">#</a></dt>
+<dd><p>Initial force constant used to in this NEB. Units of Ha Å^-1</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.interpolate_geometries">
 <span class="sig-name descname"><span class="pre">interpolate_geometries</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.interpolate_geometries" title="Permalink to this definition">#</a></dt>
@@ -939,21 +952,36 @@ along the NEB</p></li>
 in Cartesian coordinates</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.neb.original.NEB.max_atom_distance_between_images">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max_atom_distance_between_images</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><span class="pre">autode.values.Distance</span></a></em><a class="headerlink" href="#autode.neb.original.NEB.max_atom_distance_between_images" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.partition">
-<span class="sig-name descname"><span class="pre">partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.partition" title="Permalink to this definition">#</a></dt>
-<dd><p>Partition this NEB into n steps between each image i.e. n=2 affords
-double the images</p>
+<span class="sig-name descname"><span class="pre">partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><span class="pre">autode.values.Distance</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.partition" title="Permalink to this definition">#</a></dt>
+<dd><p>Partition this NEB such that there are no distances between images
+exceeding max_delta. Will run IDPP (image dependent pair potential)
+relaxations on intermediate images.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>n</strong> – (int)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_delta</strong> – The maximum allowed max_atoms(<a href="#id1"><span class="problematic" id="id2">|x_k - x_k+1|</span></a>) where
+x_k are the cartesian coordinates of the k-th NEB
+image and the maximum is over the atom-wise distance</p></li>
+<li><p><strong>distance_idxs</strong> – Indexes of atoms used to calculate the max_delta.
+If none then all distances are used. For example if
+only distance_idxs = [0] then <a href="#id3"><span class="problematic" id="id4">|x_k,0 - x_k+1,0|</span></a>
+will be calculated, where 0 is the atom index and
+k is the image index</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.neb.original.NEB.print_geometries">
-<span class="sig-name descname"><span class="pre">print_geometries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'neb'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.neb.original.NEB.print_geometries" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">print_geometries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'neb'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.neb.original.NEB.print_geometries" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

@@ -20,7 +20,7 @@
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Calculation" href="calculation.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -847,55 +842,6 @@ title="Print to PDF"
 <dd><p>Change in distance for this bond (∆r / Å)</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.bonds.get_avg_bond_length">
-<span class="sig-prename descclassname"><span class="pre">autode.bonds.</span></span><span class="sig-name descname"><span class="pre">get_avg_bond_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_i_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_j_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.get_avg_bond_length" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the average bond length between two atoms with their labels (atomic
-symbols) e.g.</p>
-<p>(atom_i_label=’C’, atom_j_label =’H’) -&gt; 1.1 Å
-(atom_i_label=’H’, atom_j_label =’C’) -&gt; 1.1 Å</p>
-<p>ordering invariant.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Keyword Arguments</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>atom_i_label</strong> (<em>str</em>) – atom label e.g ‘C’</p></li>
-<li><p><strong>atom_j_label</strong> (<em>str</em>) – atom label e.g ‘C’</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Average bond length of the bond (Å)</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(float)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.bonds.get_ideal_bond_length_matrix">
-<span class="sig-prename descclassname"><span class="pre">autode.bonds.</span></span><span class="sig-name descname"><span class="pre">get_ideal_bond_length_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bonds.get_ideal_bond_length_matrix" title="Permalink to this definition">#</a></dt>
-<dd><p>Populate a n_atoms x n_atoms matrix of ideal bond lengths. All
-non-bonded atoms will have zero ideal bond lengths</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – List of atoms</p></li>
-<li><p><strong>bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – List of bonds defined by tuples of atom ids</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>Matrix of average (ideal) bond lengths (Å).</dt><dd><p>shape = (n_atoms, n_atoms)</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(np.array)</p>
-</dd>
-</dl>
 </dd></dl>
 
 </div>

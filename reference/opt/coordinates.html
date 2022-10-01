@@ -20,7 +20,7 @@
     href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -633,11 +633,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -959,6 +954,12 @@ and will not pass sub-classes through by default.</p>
 <span class="sig-name descname"><span class="pre">implemented_units</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[Unit(Å),</span> <span class="pre">Unit(nm),</span> <span class="pre">Unit(pm),</span> <span class="pre">Unit(m)]</span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.implemented_units" title="Permalink to this definition">#</a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.indexes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">indexes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.indexes" title="Permalink to this definition">#</a></dt>
+<dd><p>Indexes of the coordinates in this set</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.make_hessian_positive_definite">
 <span class="sig-name descname"><span class="pre">make_hessian_positive_definite</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.make_hessian_positive_definite" title="Permalink to this definition">#</a></dt>
@@ -979,14 +980,14 @@ and will not pass sub-classes through by default.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g">
-<span class="sig-name descname"><span class="pre">update_g_from_cart_g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Gradient" title="autode.values.Gradient"><span class="pre">autode.values.Gradient</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_atom_idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">update_g_from_cart_g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Gradient" title="autode.values.Gradient"><span class="pre">autode.values.Gradient</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g" title="Permalink to this definition">#</a></dt>
 <dd><p>Update the gradient from a Cartesian gradient, zeroing those atoms
 that are constrained</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h">
-<span class="sig-name descname"><span class="pre">update_h_from_cart_h</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.values.Hessian</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fixed_atom_idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">update_h_from_cart_h</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.values.Hessian</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h" title="Permalink to this definition">#</a></dt>
 <dd><p>Update the Hessian from a cartesian Hessian with shape 3N x 3N for
 N atoms, zeroing the second derivatives if required</p>
 </dd></dl>
@@ -1049,7 +1050,7 @@ summarised below:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.dic.</span></span><span class="sig-name descname"><span class="pre">DIC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC" title="Permalink to this definition">#</a></dt>
-<dd><p>Delocalised internal coordinates</p>
+<dd><p>Delocalised internal coordinates (DIC)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC.from_cartesian">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.coordinates.internals.PIC</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.dic.DIC" title="autode.opt.coordinates.dic.DIC"><span class="pre">autode.opt.coordinates.dic.DIC</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC.from_cartesian" title="Permalink to this definition">#</a></dt>
@@ -1082,9 +1083,8 @@ all pairwise inverse distances</p></li>
 <p>for an iteration k.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments</dt>
-<dd class="field-odd"><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>np.ndarray</em>) – Difference between the current
-and new DICs. Must be
-broadcastable into self.shape.</p>
+<dd class="field-odd"><p><strong>value</strong> – Difference between the current and new DICs. Must be
+the same shape as self into self.shape.</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>(</strong><strong>RuntimeError</strong><strong>)</strong> – If the transformation diverges</p>
@@ -1111,44 +1111,207 @@ broadcastable into self.shape.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DICWithConstraints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.dic.</span></span><span class="sig-name descname"><span class="pre">DICWithConstraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dic.DICWithConstraints" title="Permalink to this definition">#</a></dt>
+<dd><p>Delocalised internal coordinates (DIC) with constraints. Uses Lagrangian
+multipliers to enforce the constraints with:</p>
+<p>..math:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">λ</span><span class="p">)</span> <span class="o">=</span> <span class="n">E</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> \<span class="n">sum_</span><span class="p">{</span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">}</span><span class="o">^</span><span class="n">m</span> \<span class="n">lambda_i</span> <span class="n">C_i</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where s are internal coordinates, and C the constraint functions. The
+optimisation space then is the n non-constrained internal coordinates and
+the m Lagrangian multipliers (lambda_i).</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DICWithConstraints.active_indexes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">active_indexes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.dic.DICWithConstraints.active_indexes" title="Permalink to this definition">#</a></dt>
+<dd><p>Generate a list of indexes for the active modes in this coordinate
+set</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DICWithConstraints.h_or_h_inv_has_correct_shape">
+<span class="sig-name descname"><span class="pre">h_or_h_inv_has_correct_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dic.DICWithConstraints.h_or_h_inv_has_correct_shape" title="Permalink to this definition">#</a></dt>
+<dd><p>Does a Hessian or its inverse have the correct shape?</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DICWithConstraints.inactive_indexes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">inactive_indexes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.dic.DICWithConstraints.inactive_indexes" title="Permalink to this definition">#</a></dt>
+<dd><p>Generate a list of mode indexes that are inactive in the optimisation
+space. This <em>requires</em> the m constrained modes being at the end of the
+coordinate set. It also includes the lagrange multipliers</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DICWithConstraints.raw">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">raw</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.coordinates.dic.DICWithConstraints.raw" title="Permalink to this definition">#</a></dt>
+<dd><p>Raw numpy array of these coordinates including the multipliers</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DICWithConstraints.update_lagrange_multipliers">
+<span class="sig-name descname"><span class="pre">update_lagrange_multipliers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.dic.DICWithConstraints.update_lagrange_multipliers" title="Permalink to this definition">#</a></dt>
+<dd><p>Update the lagrange multipliers by adding a set of values</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DICWithConstraints.zero_lagrangian_multipliers">
+<span class="sig-name descname"><span class="pre">zero_lagrangian_multipliers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.coordinates.dic.DICWithConstraints.zero_lagrangian_multipliers" title="Permalink to this definition">#</a></dt>
+<dd><p>Zero all lambda_i</p>
+</dd></dl>
+
+</dd></dl>
+
 <div class="line-block">
 <div class="line"><br /></div>
 </div>
 <span class="target" id="module-autode.opt.coordinates.primitives"></span><dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.BondAngle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">BondAngle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.BondAngle" title="Permalink to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.BondAngle.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.BondAngle.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Bond angle m-o-n</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.BondAngle.derivative">
+<span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianComponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.BondAngle.derivative" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate the derivative with respect to a cartesian coordinate</p>
+<div class="math notranslate nohighlight">
+\[\frac{dq}
+      {d\boldsymbol{X}_{i, k}} {\Bigg\rvert}_{X=X0}\]</div>
+<p>where <span class="math notranslate nohighlight">\(q\)</span> is the primitive coordinate and <span class="math notranslate nohighlight">\(\boldsymbol{X}\)</span>
+are the cartesian coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> – Cartesian index to take the derivative with respect to. [0-N),
+for N atoms</p></li>
+<li><p><strong>component</strong> – Cartesian component (x, y, z) to take the derivative
+with respect to</p></li>
+<li><p><strong>x</strong> – Cartesian coordinates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Derivative</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedBondAngle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">ConstrainedBondAngle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedBondAngle" title="Permalink to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedBondAngle.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedBondAngle.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Angle (m-o-n) constrained to a value (in radians)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>o</strong> – Atom index</p></li>
+<li><p><strong>m</strong> – Atom index</p></li>
+<li><p><strong>n</strong> – Atom index</p></li>
+<li><p><strong>value</strong> – Required value of the constrained angle</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">ConstrainedDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">ConstrainedDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Distance constrained to a value</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>idx_i</strong> – Atom index of the first atom</p></li>
-<li><p><strong>idx_j</strong> – Atom index of the second atom</p></li>
+<li><p><strong>i</strong> – Atom index of the first atom</p></li>
+<li><p><strong>j</strong> – Atom index of the second atom</p></li>
 <li><p><strong>value</strong> – Required value of the constrained distance</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedPrimitive">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">ConstrainedPrimitive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">atom_indexes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedPrimitive" title="Permalink to this definition">#</a></dt>
+<dd><p>A primitive internal coordinate constrained to a value</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance.delta">
-<span class="sig-name descname"><span class="pre">delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance.delta" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedPrimitive.delta">
+<span class="sig-name descname"><span class="pre">delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedPrimitive.delta" title="Permalink to this definition">#</a></dt>
 <dd><p>Difference between the observed and required value</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedPrimitive.is_constrained">
+<span class="sig-name descname"><span class="pre">is_constrained</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedPrimitive.is_constrained" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedDistance.is_satisfied">
-<span class="sig-name descname"><span class="pre">is_satisfied</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedDistance.is_satisfied" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.ConstrainedPrimitive.is_satisfied">
+<span class="sig-name descname"><span class="pre">is_satisfied</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.ConstrainedPrimitive.is_satisfied" title="Permalink to this definition">#</a></dt>
 <dd><p>Is this constraint satisfied to within an absolute tolerance</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.DihedralAngle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">DihedralAngle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.DihedralAngle" title="Permalink to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.DihedralAngle.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.DihedralAngle.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Dihedral angle: m-o-p-n</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.DihedralAngle.derivative">
+<span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianComponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.DihedralAngle.derivative" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate the derivative with respect to a cartesian coordinate</p>
+<div class="math notranslate nohighlight">
+\[\frac{dq}
+      {d\boldsymbol{X}_{i, k}} {\Bigg\rvert}_{X=X0}\]</div>
+<p>where <span class="math notranslate nohighlight">\(q\)</span> is the primitive coordinate and <span class="math notranslate nohighlight">\(\boldsymbol{X}\)</span>
+are the cartesian coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> – Cartesian index to take the derivative with respect to. [0-N),
+for N atoms</p></li>
+<li><p><strong>component</strong> – Cartesian component (x, y, z) to take the derivative
+with respect to</p></li>
+<li><p><strong>x</strong> – Cartesian coordinates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Derivative</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Distance">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">Distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.Distance" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">Distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.Distance" title="Permalink to this definition">#</a></dt>
 <dd><p>Distance between two atoms:</p>
 <div class="math notranslate nohighlight">
 \[q = |oldsymbol{X}_i - oldsymbol{X}_j|\]</div>
@@ -1166,7 +1329,7 @@ broadcastable into self.shape.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.coordinates.primitives.InverseDistance">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">InverseDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.InverseDistance" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">InverseDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.InverseDistance" title="Permalink to this definition">#</a></dt>
 <dd><blockquote>
 <div><p>Inverse distance between to atoms:</p>
 <div class="math notranslate nohighlight">
@@ -1190,8 +1353,14 @@ broadcastable into self.shape.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Primitive">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">Primitive</span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.Primitive" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.primitives.</span></span><span class="sig-name descname"><span class="pre">Primitive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">atom_indexes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.Primitive" title="Permalink to this definition">#</a></dt>
 <dd><p>Primitive internal coordinate</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Primitive.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">atom_indexes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.primitives.Primitive.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>A primitive internal coordinate that involves a number of atoms</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Primitive.derivative">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">derivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">component</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianComponent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.opt.coordinates.primitives.Primitive.derivative" title="Permalink to this definition">#</a></dt>
@@ -1219,6 +1388,11 @@ with respect to</p></li>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="autode.opt.coordinates.primitives.Primitive.is_constrained">
+<span class="sig-name descname"><span class="pre">is_constrained</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#autode.opt.coordinates.primitives.Primitive.is_constrained" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

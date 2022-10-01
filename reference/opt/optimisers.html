@@ -20,7 +20,7 @@
     href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -633,11 +633,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -787,6 +782,41 @@ title="Print to PDF"
   <div class="section" id="module-autode.opt.optimisers.base">
 <span id="optimisers"></span><h1>Optimisers<a class="headerlink" href="#module-autode.opt.optimisers.base" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.BaseOptimiser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.base.</span></span><span class="sig-name descname"><span class="pre">BaseOptimiser</span></span><a class="headerlink" href="#autode.opt.optimisers.base.BaseOptimiser" title="Permalink to this definition">#</a></dt>
+<dd><p>Base abstract class for an optimiser</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.BaseOptimiser.converged">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">converged</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.opt.optimisers.base.BaseOptimiser.converged" title="Permalink to this definition">#</a></dt>
+<dd><p>Has this optimisation converged</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.BaseOptimiser.last_energy_change">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">last_energy_change</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a></em><a class="headerlink" href="#autode.opt.optimisers.base.BaseOptimiser.last_energy_change" title="Permalink to this definition">#</a></dt>
+<dd><p>The energy change on between the final two optimisation cycles</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.ExternalOptimiser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.base.</span></span><span class="sig-name descname"><span class="pre">ExternalOptimiser</span></span><a class="headerlink" href="#autode.opt.optimisers.base.ExternalOptimiser" title="Permalink to this definition">#</a></dt>
+<dd><dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.ExternalOptimiser.converged">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">converged</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.opt.optimisers.base.ExternalOptimiser.converged" title="Permalink to this definition">#</a></dt>
+<dd><p>Has this optimisation has converged</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.ExternalOptimiser.last_energy_change">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">last_energy_change</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a></em><a class="headerlink" href="#autode.opt.optimisers.base.ExternalOptimiser.last_energy_change" title="Permalink to this definition">#</a></dt>
+<dd><p>The final energy change in this optimisation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.NDOptimiser">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.base.</span></span><span class="sig-name descname"><span class="pre">NDOptimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../values.html#autode.values.GradientRMS" title="autode.values.GradientRMS"><span class="pre">autode.values.GradientRMS</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">etol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="coordinates.html#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.base.NDOptimiser" title="Permalink to this definition">#</a></dt>
 <dd><p>Abstract base class for an optimiser in N-dimensions</p>
@@ -840,6 +870,12 @@ and gradient tolerance.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.NDOptimiser.from_file">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.optimisers.base.NDOptimiser" title="autode.opt.optimisers.base.NDOptimiser"><span class="pre">autode.opt.optimisers.base.NDOptimiser</span></a></span></span><a class="headerlink" href="#autode.opt.optimisers.base.NDOptimiser.from_file" title="Permalink to this definition">#</a></dt>
+<dd><p>Create an optimiser from a file i.e. reload a saved state</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.NDOptimiser.gtol">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gtol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.GradientRMS" title="autode.values.GradientRMS"><span class="pre">autode.values.GradientRMS</span></a></em><a class="headerlink" href="#autode.opt.optimisers.base.NDOptimiser.gtol" title="Permalink to this definition">#</a></dt>
@@ -853,45 +889,62 @@ and gradient tolerance.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.NDOptimiser.optimise">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species:</span> <span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">autode.wrappers.base.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.GradientRMS]</span> <span class="pre">=</span> <span class="pre">RMS(∇E)(0.001</span> <span class="pre">Ha(Å)^-1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">etol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.PotentialEnergy]</span> <span class="pre">=</span> <span class="pre">Energy(0.0001</span> <span class="pre">Ha)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords:</span> <span class="pre">typing.Optional[autode.opt.coordinates.base.OptCoordinates]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores:</span> <span class="pre">typing.Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.base.NDOptimiser.optimise" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species:</span> <span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">autode.wrappers.methods.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.GradientRMS]</span> <span class="pre">=</span> <span class="pre">RMS(∇E)(0.001</span> <span class="pre">Ha(Å)^-1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">etol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.PotentialEnergy]</span> <span class="pre">=</span> <span class="pre">Energy(0.0001</span> <span class="pre">Ha)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords:</span> <span class="pre">typing.Optional[autode.opt.coordinates.base.OptCoordinates]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores:</span> <span class="pre">typing.Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.base.NDOptimiser.optimise" title="Permalink to this definition">#</a></dt>
 <dd><p>Convenience function for constructing and running an optimiser</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
 <li><p><strong>method</strong> (<em>autode.methods.Method</em>) – </p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>) – Maximum number of iteration to perform</p></li>
+<li><p><strong>gtol</strong> (<em>float</em><em> | </em><em>autode.values.GradientNorm</em>) – Tolerance on RMS(<a href="#id7"><span class="problematic" id="id8">|∇E|</span></a>)
+i.e. the root mean square of the gradient components. If
+a float then assume units of Ha Å^-1</p></li>
+<li><p><strong>etol</strong> (<em>float</em><em> | </em><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><em>autode.values.PotentialEnergy</em></a>) – Tolerance on <a href="#id9"><span class="problematic" id="id10">|∆E|</span></a>
+between two consecutive iterations of the optimiser</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – Additional keyword arguments to pass to the
+constructor</p></li>
 </ul>
 </dd>
-</dl>
-<dl>
-<dt>Keyword Arguments</dt><dd><p>maxiter (int): Maximum number of iteration to perform</p>
-<dl class="simple">
-<dt>gtol (float | autode.values.GradientNorm): Tolerance on RMS(<a href="#id7"><span class="problematic" id="id8">|∇E|</span></a>)</dt><dd><p>i.e. the root mean square of the gradient components. If
-a float then assume units of Ha Å^-1</p>
-</dd>
-<dt>etol (float | autode.values.PotentialEnergy): Tolerance on <a href="#id9"><span class="problematic" id="id10">|∆E|</span></a></dt><dd><p>between two consecutive iterations of the optimiser</p>
-</dd>
-<dt>kwargs (Any): Additional keyword arguments to pass to the</dt><dd><p>constructor</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>(</strong><strong>ValueError</strong><strong> | </strong><strong>RuntimeError</strong><strong>)</strong> – </p>
 </dd>
 </dl>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>(</strong><strong>ValueError</strong><strong> | </strong><strong>RuntimeError</strong><strong>)</strong> – </p>
-</dd>
-</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.NDOptimiser.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.base.NDOptimiser.save" title="Permalink to this definition">#</a></dt>
+<dd><p>Save the entire state of the optimiser to a file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.NullOptimiser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.base.</span></span><span class="sig-name descname"><span class="pre">NullOptimiser</span></span><a class="headerlink" href="#autode.opt.optimisers.base.NullOptimiser" title="Permalink to this definition">#</a></dt>
+<dd><p>An optimiser that does nothing</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.NullOptimiser.converged">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">converged</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.opt.optimisers.base.NullOptimiser.converged" title="Permalink to this definition">#</a></dt>
+<dd><p>Has this optimisation converged</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.NullOptimiser.last_energy_change">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">last_energy_change</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a></em><a class="headerlink" href="#autode.opt.optimisers.base.NullOptimiser.last_energy_change" title="Permalink to this definition">#</a></dt>
+<dd><p>The energy change on between the final two optimisation cycles</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.Optimiser">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.base.</span></span><span class="sig-name descname"><span class="pre">Optimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.OptCoordinates</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.base.</span></span><span class="sig-name descname"><span class="pre">Optimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.OptCoordinates</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser" title="Permalink to this definition">#</a></dt>
 <dd><p>Abstract base class for an optimiser</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.Optimiser.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.OptCoordinates</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.OptCoordinates</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Optimiser</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -900,6 +953,12 @@ a float then assume units of Ha Å^-1</p>
 <li><p><strong>coords</strong> – Coordinates to use in the optimisation
 e.g. CartesianCoordinates. If None then will initialise the
 coordinates from _species</p></li>
+<li><p><strong>callback</strong> – Function that will be called after every step. First
+called after initialisation and before the first step.
+Takes the current coordinates (which have energy (e),
+gradient (g) and hessian (h) attributes) as the only
+positional argument</p></li>
+<li><p><strong>callback_kwargs</strong> – Keyword arguments to pass to the callback function</p></li>
 </ul>
 </dd>
 </dl>
@@ -919,6 +978,11 @@ using the gradient (self._coords.g) and hessians (self._coords.h)</p>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.Optimiser.final_coordinates">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">final_coordinates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.OptCoordinates</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.final_coordinates" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.Optimiser.iteration">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iteration</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.iteration" title="Permalink to this definition">#</a></dt>
 <dd><p>Iteration of the optimiser, which is equal to the length of the history
@@ -933,9 +997,15 @@ minus one, for zero indexing.</p>
 </dl>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.base.Optimiser.last_energy_change">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">last_energy_change</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a></em><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.last_energy_change" title="Permalink to this definition">#</a></dt>
+<dd><p>Last ∆E found in this</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.Optimiser.optimise">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><span class="pre">autode.wrappers.base.Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="coordinates.html#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.optimise" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.wrappers.methods.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="coordinates.html#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.optimise" title="Permalink to this definition">#</a></dt>
 <dd><p>Optimise a species using a method</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">mol</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
@@ -946,7 +1016,7 @@ minus one, for zero indexing.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.optimisers.base.Optimiser.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><span class="pre">autode.wrappers.base.Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.run" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.wrappers.methods.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.base.Optimiser.run" title="Permalink to this definition">#</a></dt>
 <dd><p>Run the optimiser. Updates species.atoms and species.energy</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -972,12 +1042,12 @@ autode.Config.n_cores</p></li>
 <div class="line"><br /></div>
 </div>
 <span class="target" id="module-autode.opt.optimisers.rfo"></span><dl class="py class">
-<dt class="sig sig-object py" id="autode.opt.optimisers.rfo.RFOOptimiser">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.rfo.</span></span><span class="sig-name descname"><span class="pre">RFOOptimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.rfo.RFOOptimiser" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.optimisers.rfo.RFOptimiser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.rfo.</span></span><span class="sig-name descname"><span class="pre">RFOptimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.rfo.RFOptimiser" title="Permalink to this definition">#</a></dt>
 <dd><p>Rational function optimisation in delocalised internal coordinates</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.opt.optimisers.rfo.RFOOptimiser.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.rfo.RFOOptimiser.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.optimisers.rfo.RFOptimiser.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.rfo.RFOptimiser.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Rational function optimiser (RFO) using a maximum step size of alpha</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -996,8 +1066,8 @@ of the step</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.opt.optimisers.rfo.RFOOptimiser._step">
-<span class="sig-name descname"><span class="pre">_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.rfo.RFOOptimiser._step" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.optimisers.rfo.RFOptimiser._step">
+<span class="sig-name descname"><span class="pre">_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.rfo.RFOptimiser._step" title="Permalink to this definition">#</a></dt>
 <dd><p>RFO step</p>
 </dd></dl>
 
@@ -1012,18 +1082,18 @@ of the step</p></li>
 </div>
 <span class="target" id="module-autode.opt.optimisers.prfo"></span><p>Partitioned rational function optimisation</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="autode.opt.optimisers.prfo.PRFOOptimiser">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.prfo.</span></span><span class="sig-name descname"><span class="pre">PRFOOptimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imag_mode_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.prfo.PRFOOptimiser" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.optimisers.prfo.PRFOptimiser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.prfo.</span></span><span class="sig-name descname"><span class="pre">PRFOptimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imag_mode_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.prfo.PRFOptimiser" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py method">
-<dt class="sig sig-object py" id="autode.opt.optimisers.prfo.PRFOOptimiser.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imag_mode_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.prfo.PRFOOptimiser.__init__" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.optimisers.prfo.PRFOptimiser.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imag_mode_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.prfo.PRFOptimiser.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Partitioned rational function optimiser (PRFO) using a maximum step
 size of alpha trying to maximise along a mode while minimising along
 all others to locate a transition state (TS)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>init_alpha</strong> – Initial step size</p></li>
+<li><p><strong>init_alpha</strong> – Maximum step size</p></li>
 <li><p><strong>imag_mode_idx</strong> – Index of the imaginary mode to follow. Default = 0,
 the most imaginary mode (i.e. most negative
 eigenvalue)</p></li>
@@ -1037,8 +1107,8 @@ eigenvalue)</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.opt.optimisers.prfo.PRFOOptimiser._step">
-<span class="sig-name descname"><span class="pre">_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.prfo.PRFOOptimiser._step" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.opt.optimisers.prfo.PRFOptimiser._step">
+<span class="sig-name descname"><span class="pre">_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.prfo.PRFOptimiser._step" title="Permalink to this definition">#</a></dt>
 <dd><p>Partitioned rational function step</p>
 </dd></dl>
 
@@ -1201,7 +1271,7 @@ species at runtime</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.optimisers.line_search.LineSearchOptimiser.optimise">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><span class="pre">autode.wrappers.base.Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.OptCoordinates</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.line_search.LineSearchOptimiser.optimise" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.wrappers.methods.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.OptCoordinates</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.line_search.LineSearchOptimiser.optimise" title="Permalink to this definition">#</a></dt>
 <dd><p>Optimise a species along a single direction. If the direction is
 unspecified then guess the direction as just the steepest decent
 direction.</p>
@@ -1393,7 +1463,7 @@ cauchy point calculation</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.optimisers.trust_region.TrustRegionOptimiser.optimise">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species:</span> <span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">autode.wrappers.base.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores:</span> <span class="pre">typing.Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords:</span> <span class="pre">typing.Optional[autode.opt.OptCoordinates]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.GradientRMS]</span> <span class="pre">=</span> <span class="pre">RMS(∇E)(0.001</span> <span class="pre">Ha(Å)^-1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">etol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.PotentialEnergy]</span> <span class="pre">=</span> <span class="pre">Energy(0.0001</span> <span class="pre">Ha)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trust_radius:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.trust_region.TrustRegionOptimiser.optimise" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species:</span> <span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">autode.wrappers.methods.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores:</span> <span class="pre">typing.Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords:</span> <span class="pre">typing.Optional[autode.opt.OptCoordinates]</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gtol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.GradientRMS]</span> <span class="pre">=</span> <span class="pre">RMS(∇E)(0.001</span> <span class="pre">Ha(Å)^-1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">etol:</span> <span class="pre">typing.Union[float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autode.values.PotentialEnergy]</span> <span class="pre">=</span> <span class="pre">Energy(0.0001</span> <span class="pre">Ha)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trust_radius:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.trust_region.TrustRegionOptimiser.optimise" title="Permalink to this definition">#</a></dt>
 <dd><p>Construct and optimiser using a trust region optimiser</p>
 </dd></dl>
 
@@ -1422,6 +1492,59 @@ previous step</p>
 <div class="line"><br /></div>
 </div>
 <span class="target" id="module-autode.opt.optimisers.hessian_update"></span><dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.optimisers.hessian_update.BFGSDampedUpdate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.hessian_update.</span></span><span class="sig-name descname"><span class="pre">BFGSDampedUpdate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_eigenvalue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.hessian_update.BFGSDampedUpdate" title="Permalink to this definition">#</a></dt>
+<dd><p>Powell damped BFGS update that ensures reasonable conditioning with the
+‘positive definite’ conditions still imposed</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.hessian_update.BFGSDampedUpdate._updated_h">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_updated_h</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.opt.optimisers.hessian_update.BFGSDampedUpdate._updated_h" title="Permalink to this definition">#</a></dt>
+<dd><p>435–459
+(10.1007/s12532-016-0101-2)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Powell damped BFGS from</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>Math. Prog. Comp. (2016) 8</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.opt.optimisers.hessian_update.BFGSPDUpdate">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.hessian_update.</span></span><span class="sig-name descname"><span class="pre">BFGSPDUpdate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_eigenvalue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.hessian_update.BFGSPDUpdate" title="Permalink to this definition">#</a></dt>
+<dd><p>BFGS update while ensuring positive definiteness</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.opt.optimisers.hessian_update.BFGSPDUpdate.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_eigenvalue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.hessian_update.BFGSPDUpdate.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Hessian updater</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>h</strong> (<em>np.ndarray</em>) – Hessian (<span class="math notranslate nohighlight">\(H\)</span>), shape = (N, N)</p></li>
+<li><p><strong>h_inv</strong> (<em>np.ndarray</em>) – Inverse Hessian (<span class="math notranslate nohighlight">\(H^{-1}\)</span>), shape = (N, N)</p></li>
+<li><p><strong>s</strong> (<em>np.ndarray</em>) – Coordinate shift. <span class="math notranslate nohighlight">\(s = R_{i+1} - R_i\)</span></p></li>
+<li><p><strong>y</strong> (<em>np.ndarray</em>) – Gradient shift.
+<span class="math notranslate nohighlight">\(y = \nabla E_{i+1} - \nabla E_i\)</span></p></li>
+<li><p><strong>subspace_idxs</strong> (<em>list</em><em>(</em><em>int</em><em>)</em>) – Indexes of the components of the
+hessian to update</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.optimisers.hessian_update.BFGSPDUpdate.conditions_met">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">conditions_met</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.opt.optimisers.hessian_update.BFGSPDUpdate.conditions_met" title="Permalink to this definition">#</a></dt>
+<dd><p>Are all the conditions met to update the Hessian</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="autode.opt.optimisers.hessian_update.BFGSUpdate">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.optimisers.hessian_update.</span></span><span class="sig-name descname"><span class="pre">BFGSUpdate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.optimisers.hessian_update.BFGSUpdate" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py property">
@@ -1496,7 +1619,8 @@ strategies. Follows ref. [1] where the notation is</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.opt.optimisers.hessian_update.BofillUpdate.conditions_met">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">conditions_met</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.opt.optimisers.hessian_update.BofillUpdate.conditions_met" title="Permalink to this definition">#</a></dt>
-<dd><p>No conditions are need to be satisfied to perform a Bofill update</p>
+<dd><p>No conditions are need to be satisfied to perform a Bofill update,
+apart from that on the shapes of the vectors</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1522,6 +1646,8 @@ strategies. Follows ref. [1] where the notation is</p>
 <li><p><strong>s</strong> (<em>np.ndarray</em>) – Coordinate shift. <span class="math notranslate nohighlight">\(s = R_{i+1} - R_i\)</span></p></li>
 <li><p><strong>y</strong> (<em>np.ndarray</em>) – Gradient shift.
 <span class="math notranslate nohighlight">\(y = \nabla E_{i+1} - \nabla E_i\)</span></p></li>
+<li><p><strong>subspace_idxs</strong> (<em>list</em><em>(</em><em>int</em><em>)</em>) – Indexes of the components of the
+hessian to update</p></li>
 </ul>
 </dd>
 </dl>
@@ -1695,7 +1821,7 @@ translation steps.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.optimisers.dimer.Dimer.optimise">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../wrappers/base.html#autode.wrappers.base.Method" title="autode.wrappers.base.Method"><span class="pre">autode.wrappers.base.Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates" title="autode.opt.coordinates.dimer.DimerCoordinates"><span class="pre">autode.opt.coordinates.dimer.DimerCoordinates</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.dimer.Dimer.optimise" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">optimise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.species.Species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.wrappers.methods.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates" title="autode.opt.coordinates.dimer.DimerCoordinates"><span class="pre">autode.opt.coordinates.dimer.DimerCoordinates</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.opt.optimisers.dimer.Dimer.optimise" title="Permalink to this definition">#</a></dt>
 <dd><p>Optimise a dimer pair of coordinates such that the species coordinates
 are close to a transition state</p>
 <dl class="field-list simple">

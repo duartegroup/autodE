@@ -20,7 +20,7 @@
     href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="XTB" href="xtb.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -791,16 +786,22 @@ title="Print to PDF"
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.__init__" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>An autodE wrapped method that calls an executable to generate an output
+file</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – wrapper name. ALSO the name of the executable</p></li>
-<li><p><strong>path</strong> (<em>str</em>) – absolute path to the executable</p></li>
-<li><p><strong>keywords_set</strong> (<a class="reference internal" href="keywords.html#autode.wrappers.keywords.KeywordsSet" title="autode.wrappers.keywords.KeywordsSet"><em>autode.wrappers.keywords.KeywordsSet</em></a>) – </p></li>
-<li><p><strong>(</strong><strong>autode.wrappers.</strong> (<em>implicit_solvation_type</em>) – keywords.ImplicitSolventType):</p></li>
+<li><p><strong>executable_name</strong> – Name of the executable to call e.g. orca</p></li>
+<li><p><strong>implicit_solvation_type</strong> – Type of implicit solvent</p></li>
+<li><p><strong>path</strong> – Full file path to the executable. Overrides the path found
+when calling</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-meth docutils literal notranslate"><span class="pre">Method</span></code></p>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -810,47 +811,85 @@ title="Print to PDF"
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.calculation_terminated_normally">
-<span class="sig-name descname"><span class="pre">calculation_terminated_normally</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.calculation_terminated_normally" title="Permalink to this definition">#</a></dt>
-<dd><p>Did the calculation terminate correctly?</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(bool)</p>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.coordinates_from">
+<span class="sig-name descname"><span class="pre">coordinates_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../values.html#autode.values.Coordinates" title="autode.values.Coordinates"><span class="pre">autode.values.Coordinates</span></a></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.coordinates_from" title="Permalink to this definition">#</a></dt>
+<dd><p>Extract the final set of atomic coordinates from the output file. They
+<em>must</em> be in the same order as they were specified</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.execute">
 <span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.execute" title="Permalink to this definition">#</a></dt>
-<dd><p>Execute the calculation</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-</dl>
+<dd><p>Run this calculation and generate an output file</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.generate_input">
-<span class="sig-name descname"><span class="pre">generate_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.generate_input" title="Permalink to this definition">#</a></dt>
-<dd><p>Generate any input files required</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p></li>
-<li><p><strong>molecule</strong> (<em>autode.species.Species</em>) – </p></li>
-</ul>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.generate_input_for">
+<span class="sig-name descname"><span class="pre">generate_input_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.generate_input_for" title="Permalink to this definition">#</a></dt>
+<dd><p>Generate the input required for a calculation</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_atomic_charges">
-<span class="sig-name descname"><span class="pre">get_atomic_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_atomic_charges" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_keywords">
+<span class="sig-name descname"><span class="pre">get_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_keywords" title="Permalink to this definition">#</a></dt>
+<dd><p>Modify the keywords for this calculation with the solvent + fix for
+single atom optimisation calls</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.gradient_from">
+<span class="sig-name descname"><span class="pre">gradient_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../values.html#autode.values.Gradient" title="autode.values.Gradient"><span class="pre">autode.values.Gradient</span></a></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.gradient_from" title="Permalink to this definition">#</a></dt>
+<dd><p>e.g.</p>
+<p>#——————
+CARTESIAN GRADIENT                                            &lt;- i
+#——————</p>
+<blockquote>
+<div><p>1   C   :   -0.011390275   -0.000447412    0.000552736    &lt;- j</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.hessian_from">
+<span class="sig-name descname"><span class="pre">hessian_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.calculations.executors.CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../hessians.html#autode.hessians.Hessian" title="autode.hessians.Hessian"><span class="pre">autode.hessians.Hessian</span></a></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.hessian_from" title="Permalink to this definition">#</a></dt>
+<dd><p>Grab the Hessian from the output .hess file</p>
+<p>e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$hessian
+9
+            0         1
+                   2          3            4
+0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
+.         .          .           .           .           .
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.input_filename_for">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">input_filename_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.input_filename_for" title="Permalink to this definition">#</a></dt>
+<dd><p>Determine the input filename for a calculation</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.is_v5">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_v5</span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.is_v5" title="Permalink to this definition">#</a></dt>
+<dd><p>Is this ORCA version at least 5.0.0?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.optimiser_from">
+<span class="sig-name descname"><span class="pre">optimiser_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser" title="autode.opt.optimisers.base.BaseOptimiser"><span class="pre">autode.opt.optimisers.base.BaseOptimiser</span></a></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.optimiser_from" title="Permalink to this definition">#</a></dt>
+<dd><p>Optimiser that this method used. Set from the calculation output</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.output_filename_for">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_filename_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.output_filename_for" title="Permalink to this definition">#</a></dt>
+<dd><p>Determine the output filename for a calculation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.partial_charges_from">
+<span class="sig-name descname"><span class="pre">partial_charges_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.partial_charges_from" title="Permalink to this definition">#</a></dt>
 <dd><blockquote>
 <div><p>e.g.</p>
 </div></blockquote>
@@ -869,154 +908,15 @@ Total integrated beta density  =     12.997461186</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_energy">
-<span class="sig-name descname"><span class="pre">get_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_energy" title="Permalink to this definition">#</a></dt>
-<dd><p>Return the potential energy in electronic Hartrees</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(float)</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.CouldNotGetProperty" title="autode.exceptions.CouldNotGetProperty"><strong>autode.exceptions.CouldNotGetProperty</strong></a><strong>)</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_final_atoms">
-<span class="sig-name descname"><span class="pre">get_final_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_final_atoms" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the final set of atoms from an ORCA output file</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(list(<a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>(</strong><a class="reference internal" href="../exceptions.html#autode.exceptions.NoCalculationOutput" title="autode.exceptions.NoCalculationOutput"><strong>autode.exceptions.NoCalculationOutput</strong></a> – </p></li>
-<li><p><strong>| </strong><a class="reference internal" href="../exceptions.html#autode.exceptions.AtomsNotFound" title="autode.exceptions.AtomsNotFound"><strong>autode.exceptions.AtomsNotFound</strong></a><strong>)</strong> – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_gradients">
-<span class="sig-name descname"><span class="pre">get_gradients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_gradients" title="Permalink to this definition">#</a></dt>
-<dd><p>e.g.</p>
-<p>#——————
-CARTESIAN GRADIENT                                            &lt;- i
-#——————</p>
-<blockquote>
-<div><p>1   C   :   -0.011390275   -0.000447412    0.000552736    &lt;- j</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_hessian">
-<span class="sig-name descname"><span class="pre">get_hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_hessian" title="Permalink to this definition">#</a></dt>
-<dd><p>Grab the Hessian from the output .hess file</p>
-<p>e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$hessian
-9
-            0         1
-                   2          3            4
-0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
-.         .          .           .           .           .
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_input_filename">
-<span class="sig-name descname"><span class="pre">get_input_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_input_filename" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the input filename from the calculation name e.g. filename.inp</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Name of the input file</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(str)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_keywords">
-<span class="sig-name descname"><span class="pre">get_keywords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_keywords" title="Permalink to this definition">#</a></dt>
-<dd><p>Modify the keywords for this calculation with the solvent + fix for
-single atom optimisation calls</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_output_filename">
-<span class="sig-name descname"><span class="pre">get_output_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_output_filename" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the output filename from the calculation name e.g. filename.out</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Name of the output file</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(str)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.get_version">
-<span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.get_version" title="Permalink to this definition">#</a></dt>
-<dd><p>Get the version of ORCA used to execute this calculation</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.is_v5">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_v5</span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.is_v5" title="Permalink to this definition">#</a></dt>
-<dd><p>Is this ORCA version at least 5.0.0?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.optimisation_converged">
-<span class="sig-name descname"><span class="pre">optimisation_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.optimisation_converged" title="Permalink to this definition">#</a></dt>
-<dd><p>Function implemented in individual child classes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(bool)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.optimisation_nearly_converged">
-<span class="sig-name descname"><span class="pre">optimisation_nearly_converged</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.optimisation_nearly_converged" title="Permalink to this definition">#</a></dt>
-<dd><p>Function implemented in individual child classes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>calc</strong> (<a class="reference internal" href="../calculation.html#autode.calculation.Calculation" title="autode.calculation.Calculation"><em>autode.calculation.Calculation</em></a>) – </p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(bool)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.print_solvent">
 <span class="sig-name descname"><span class="pre">print_solvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">molecule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.print_solvent" title="Permalink to this definition">#</a></dt>
 <dd><p>Add the solvent block to the input file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.terminated_normally_in">
+<span class="sig-name descname"><span class="pre">terminated_normally_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.terminated_normally_in" title="Permalink to this definition">#</a></dt>
+<dd><p>Did the calculation terminate normally?</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1032,6 +932,34 @@ generally affords better convergence for optimiations in implicit solvent</p>
 <dd class="field-even"><p>(bool)</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCA.version_in">
+<span class="sig-name descname"><span class="pre">version_in</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CalculationExecutor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#autode.wrappers.ORCA.ORCA.version_in" title="Permalink to this definition">#</a></dt>
+<dd><p>Get the version of ORCA used to execute this calculation</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCAOptimiser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.wrappers.ORCA.</span></span><span class="sig-name descname"><span class="pre">ORCAOptimiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCAOptimiser" title="Permalink to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCAOptimiser.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.wrappers.ORCA.ORCAOptimiser.__init__" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCAOptimiser.converged">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">converged</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.wrappers.ORCA.ORCAOptimiser.converged" title="Permalink to this definition">#</a></dt>
+<dd><p>Has the optimisation converged?</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.wrappers.ORCA.ORCAOptimiser.last_energy_change">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">last_energy_change</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">autode.values.PotentialEnergy</span></a></em><a class="headerlink" href="#autode.wrappers.ORCA.ORCAOptimiser.last_energy_change" title="Permalink to this definition">#</a></dt>
+<dd><p>Find the last energy change in the file</p>
 </dd></dl>
 
 </dd></dl>

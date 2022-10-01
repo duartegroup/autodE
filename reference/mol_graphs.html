@@ -20,7 +20,7 @@
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Plotting" href="plotting.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -789,6 +784,35 @@ title="Print to PDF"
 <dt class="sig sig-object py" id="autode.mol_graphs.MolecularGraph">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">MolecularGraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">incoming_graph_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">attr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.MolecularGraph" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py property">
+<dt class="sig sig-object py" id="autode.mol_graphs.MolecularGraph.active_bonds">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">active_bonds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.mol_graphs.MolecularGraph.active_bonds" title="Permalink to this definition">#</a></dt>
+<dd><p>Extract the active bonds from the graph into a flat list of pairs
+of atom indices</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.mol_graphs.MolecularGraph.add_active_edge">
+<span class="sig-name descname"><span class="pre">add_active_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.mol_graphs.MolecularGraph.add_active_edge" title="Permalink to this definition">#</a></dt>
+<dd><p>Add an ‘active’ edge between two atoms, where an active edge is one
+that is made or broken in a reaction</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.mol_graphs.MolecularGraph.eqm_bond_distance_matrix">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">eqm_bond_distance_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#autode.mol_graphs.MolecularGraph.eqm_bond_distance_matrix" title="Permalink to this definition">#</a></dt>
+<dd><p>An n_atoms x n_atoms matrix of ideal bond lengths. All non-bonded atoms
+will have zero ideal bond lengths</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Matrix of bond lengths (Å)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="autode.mol_graphs.MolecularGraph.expected_planar_geometry">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_planar_geometry</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.mol_graphs.MolecularGraph.expected_planar_geometry" title="Permalink to this definition">#</a></dt>
 <dd><p>Is the 3D structure of the molecule corresponding to this graph
@@ -945,7 +969,7 @@ graphs</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.mol_graphs.get_mapping_ts_template">
-<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">get_mapping_ts_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">larger_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smaller_graph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_mapping_ts_template" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">get_mapping_ts_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">larger_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.mol_graphs.MolecularGraph" title="autode.mol_graphs.MolecularGraph"><span class="pre">autode.mol_graphs.MolecularGraph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">smaller_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.mol_graphs.MolecularGraph" title="autode.mol_graphs.MolecularGraph"><span class="pre">autode.mol_graphs.MolecularGraph</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.get_mapping_ts_template" title="Permalink to this definition">#</a></dt>
 <dd><p>Find the mapping for a graph onto a TS template (smaller). Can raise
 StopIteration with no match!</p>
 <dl class="field-list simple">
@@ -1020,22 +1044,8 @@ types and active bonds</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="autode.mol_graphs.is_chiral_atom">
-<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">is_chiral_atom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.is_chiral_atom" title="Permalink to this definition">#</a></dt>
-<dd><p>Determine if an atom is chiral, by seeing if any of the bonded groups
-are the same</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.mol_graphs.is_chiral_pi_bond">
-<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">is_chiral_pi_bond</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bond</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.is_chiral_pi_bond" title="Permalink to this definition">#</a></dt>
-<dd><p>Determine if a pi bond is chiral, by seeing if either atom has the same
-group bonded to it twice</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="autode.mol_graphs.is_subgraph_isomorphic">
-<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">is_subgraph_isomorphic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">larger_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smaller_graph</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.is_subgraph_isomorphic" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">is_subgraph_isomorphic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">larger_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.mol_graphs.MolecularGraph" title="autode.mol_graphs.MolecularGraph"><span class="pre">autode.mol_graphs.MolecularGraph</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">smaller_graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#autode.mol_graphs.MolecularGraph" title="autode.mol_graphs.MolecularGraph"><span class="pre">autode.mol_graphs.MolecularGraph</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.is_subgraph_isomorphic" title="Permalink to this definition">#</a></dt>
 <dd><p>Is the smaller graph subgraph isomorphic to the larger graph?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1071,7 +1081,9 @@ or a SMILES parser object. All attributes default to false:</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>species</strong> – </p></li>
-<li><p><strong>rel_tolerance</strong> – </p></li>
+<li><p><strong>rel_tolerance</strong> – Relative tolerance on what is considered a bond. E.g
+0.3 means anything 1.3 x r0(i, j) is not ‘bonded’.
+Subject to the other restrictions on valency</p></li>
 <li><p><strong>bond_list</strong> – Explicit bonds between atoms, overriding any attempt to
 evaluate bonds</p></li>
 <li><p><strong>allow_invalid_valancies</strong> – Should invalid atomic valencies be allowed?
@@ -1137,33 +1149,6 @@ mapping so the dict is swapped before the nodes are relabeled</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>(nx.Graph)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.mol_graphs.set_active_mol_graph">
-<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">set_active_mol_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.set_active_mol_graph" title="Permalink to this definition">#</a></dt>
-<dd><p>Get a molecular graph that includes ‘active edges’ i.e. bonds that are
-either made or broken in the reaction</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>species</strong> (<em>autode.species.Species</em>) – </p></li>
-<li><p><strong>active_bonds</strong> – (list(tuple(int)))</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.mol_graphs.set_graph_attributes">
-<span class="sig-prename descclassname"><span class="pre">autode.mol_graphs.</span></span><span class="sig-name descname"><span class="pre">set_graph_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.mol_graphs.set_graph_attributes" title="Permalink to this definition">#</a></dt>
-<dd><p>For a molecular species set the π bonds and stereocentres in the molecular
-graph.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>species</strong> (<em>autode.species.Species</em>) – </p>
 </dd>
 </dl>
 </dd></dl>

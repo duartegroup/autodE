@@ -20,7 +20,7 @@
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Logging" href="log.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -792,14 +787,10 @@ title="Print to PDF"
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – List of autode atoms to print</p></li>
-<li><p><strong>filename</strong> (<em>str</em>) – Name of the file (with .xyz extension)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>title_line</strong> (<em>str</em>) – Second line of the xyz file, can be blank</p></li>
-<li><p><strong>append</strong> (<em>bool</em>) – Do or don’t append to this file. With append=False
+<li><p><strong>atoms</strong> – List of autode atoms to print</p></li>
+<li><p><strong>filename</strong> – Name of the file (with .xyz extension)</p></li>
+<li><p><strong>title_line</strong> – Second line of the xyz file, can be blank</p></li>
+<li><p><strong>append</strong> – Do or don’t append to this file. With append=False
 filename will be overwritten if it already exists</p></li>
 </ul>
 </dd>
@@ -808,17 +799,35 @@ filename will be overwritten if it already exists</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.input_output.xyz_file_to_atoms">
-<span class="sig-prename descclassname"><span class="pre">autode.input_output.</span></span><span class="sig-name descname"><span class="pre">xyz_file_to_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.input_output.xyz_file_to_atoms" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.input_output.</span></span><span class="sig-name descname"><span class="pre">xyz_file_to_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">autode.atoms.Atoms</span></a></span></span><a class="headerlink" href="#autode.input_output.xyz_file_to_atoms" title="Permalink to this definition">#</a></dt>
 <dd><p>From a .xyz file get a list of autode atoms</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – .xyz filename</p>
+<dd class="field-odd"><p><strong>filename</strong> – .xyz filename</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Atoms</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(<a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
+<dd class="field-odd"><p>(<a class="reference internal" href="atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms">autode.atoms.Atoms</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="autode.input_output.xyz_file_to_molecules">
+<span class="sig-prename descclassname"><span class="pre">autode.input_output.</span></span><span class="sig-name descname"><span class="pre">xyz_file_to_molecules</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.Molecule</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.input_output.xyz_file_to_molecules" title="Permalink to this definition">#</a></dt>
+<dd><p>From a .xyz file containing potentially more than a single molecule
+return a list of molecules from it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> – Filename to open</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Molecules</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(list(<a class="reference internal" href="species/molecule.html#autode.species.molecule.Molecule" title="autode.species.molecule.Molecule">autode.species.molecule.Molecule</a>))</p>
 </dd>
 </dl>
 </dd></dl>

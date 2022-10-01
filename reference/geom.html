@@ -20,7 +20,7 @@
     href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Input Output" href="input_output.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -787,7 +782,7 @@ title="Print to PDF"
 <span id="geometry"></span><h1>Geometry<a class="headerlink" href="#module-autode.geom" title="Permalink to this headline">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.are_coords_reasonable">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">are_coords_reasonable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.are_coords_reasonable" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">are_coords_reasonable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.geom.are_coords_reasonable" title="Permalink to this definition">#</a></dt>
 <dd><p>Determine if a set of coords are reasonable. No distances can be &lt; 0.7 Å
 and if there are more than 4 atoms ensure they do not all lie in the same
 plane. The latter possibility arises from RDKit’s conformer generation
@@ -804,7 +799,7 @@ algorithm breaking</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.calc_heavy_atom_rmsd">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">calc_heavy_atom_rmsd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.calc_heavy_atom_rmsd" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">calc_heavy_atom_rmsd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">autode.atoms.Atoms</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">autode.atoms.Atoms</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.geom.calc_heavy_atom_rmsd" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate the RMSD between two sets of atoms considering only the ‘heavy’
 atoms, i.e. the non-hydrogen atoms</p>
 <dl class="field-list simple">
@@ -825,7 +820,7 @@ atoms, i.e. the non-hydrogen atoms</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.calc_rmsd">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">calc_rmsd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.calc_rmsd" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">calc_rmsd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#autode.geom.calc_rmsd" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate the RMSD between two sets of coordinates using the Kabsch
 algorithm</p>
 <dl class="field-list simple">
@@ -845,32 +840,8 @@ algorithm</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="autode.geom.get_atoms_linear_interp">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_atoms_linear_interp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_distances</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_atoms_linear_interp" title="Permalink to this definition">#</a></dt>
-<dd><p>For a geometry defined by a set of xyzs, set the constrained bonds to
-the correct lengths</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>atoms</strong> (<em>list</em><em>(</em><a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><em>autode.atoms.Atom</em></a><em>)</em>) – list of atoms</p></li>
-<li><p><strong>bonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – List of bond ids on for which the final_distances
-apply</p></li>
-<li><p><strong>final_distances</strong> (<em>list</em><em>(</em><em>float</em><em>)</em>) – List of final bond distances for the
-bonds</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Shifted atoms</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(list(<a class="reference internal" href="atoms.html#autode.atoms.Atom" title="autode.atoms.Atom">autode.atoms.Atom</a>))</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.get_distance_constraints">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_distance_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_distance_constraints" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_distance_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#autode.geom.get_distance_constraints" title="Permalink to this definition">#</a></dt>
 <dd><p>Set all the distance constraints required in an optimisation as the
 active bonds</p>
 <dl class="field-list simple">
@@ -892,7 +863,7 @@ active bonds</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.get_neighbour_list">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_neighbour_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_set</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_neighbour_list" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_neighbour_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">autode.species.species.Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.geom.get_neighbour_list" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate a neighbour list from atom i as a list of atom labels</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -914,7 +885,7 @@ atom_i, if None then all atoms are ok</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.get_points_on_sphere">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_points_on_sphere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_points_on_sphere" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_points_on_sphere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.geom.get_points_on_sphere" title="Permalink to this definition">#</a></dt>
 <dd><p>Find n evenly spaced points on a sphere using the “How to generate
 equidistributed points on the surface of a sphere” by Markus Deserno, 2004.</p>
 <dl class="field-list simple">
@@ -932,7 +903,7 @@ equidistributed points on the surface of a sphere” by Markus Deserno, 2004.</p
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.get_rot_mat_euler">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_rot_mat_euler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_rot_mat_euler" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_rot_mat_euler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.geom.get_rot_mat_euler" title="Permalink to this definition">#</a></dt>
 <dd><p>Compute the 3D rotation matrix using the Euler Rodrigues formula
 <a class="reference external" href="https://en.wikipedia.org/wiki/Euler">https://en.wikipedia.org/wiki/Euler</a>–Rodrigues_formula
 for an anticlockwise rotation of theta radians about a given axis</p>
@@ -954,13 +925,13 @@ for an anticlockwise rotation of theta radians about a given axis</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.get_rot_mat_euler_from_terms">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_rot_mat_euler_from_terms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_rot_mat_euler_from_terms" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_rot_mat_euler_from_terms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.geom.get_rot_mat_euler_from_terms" title="Permalink to this definition">#</a></dt>
 <dd><p>3D rotation matrix from terms unique terms in the matrix</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.get_rot_mat_kabsch">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_rot_mat_kabsch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_matrix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.get_rot_mat_kabsch" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">get_rot_mat_kabsch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.geom.get_rot_mat_kabsch" title="Permalink to this definition">#</a></dt>
 <dd><p>Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
 <a class="reference external" href="https://en.wikipedia.org/wiki/Kabsch_algorithm">https://en.wikipedia.org/wiki/Kabsch_algorithm</a></p>
 <dl class="field-list simple">
@@ -981,7 +952,7 @@ for an anticlockwise rotation of theta radians about a given axis</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.proj">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">proj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.proj" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">proj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.geom.proj" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate the projection of v onto the direction of u. Useful for
 <a class="reference external" href="https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process">https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process</a></p>
 <dl class="field-list simple">
@@ -1001,31 +972,8 @@ for an anticlockwise rotation of theta radians about a given axis</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="autode.geom.rotate_columns">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">rotate_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">idxs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.geom.rotate_columns" title="Permalink to this definition">#</a></dt>
-<dd><p>Rotate an orthogonal matrix such that some of the columns are unit vectors
-with unit components in the index. Uses a Schmidt orthrogonalisation
-(<a class="reference external" href="https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process">https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process</a>)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>arr</strong> – Input matrix</p></li>
-<li><p><strong>*idxs</strong> – Indexes of the rows which need to have unit components in each
-column</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Matrix</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(np.ndarray)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="autode.geom.symm_matrix_from_ltril">
-<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">symm_matrix_from_ltril</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.geom.symm_matrix_from_ltril" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.geom.</span></span><span class="sig-name descname"><span class="pre">symm_matrix_from_ltril</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#autode.geom.symm_matrix_from_ltril" title="Permalink to this definition">#</a></dt>
 <dd><p>Construct a symmetric matrix from the lower triangular elements e.g.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-&gt;</span>  <span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
                              <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])</span>

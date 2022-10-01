@@ -20,7 +20,7 @@
     href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Wrappers" href="../wrappers/index.html" />
@@ -632,11 +632,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -821,7 +816,7 @@ and the third the number of dimensions in the coordinate space (3)</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.thermochemistry.symmetry.get_possible_axes">
-<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">get_possible_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_triple_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_axis_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.get_possible_axes" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">get_possible_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_triple_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_axis_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.get_possible_axes" title="Permalink to this definition">#</a></dt>
 <dd><p>Possible rotation axes in a molecule. Currently limited to average vectors
 and cross products i.e.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">Y</span>          <span class="n">Y</span> <span class="o">---&gt;</span>
@@ -891,7 +886,7 @@ tolerance, or are inverses to within that tolerance</p>
 <dt class="sig sig-object py" id="autode.thermochemistry.symmetry.symmetry_number">
 <span class="sig-prename descclassname"><span class="pre">autode.thermochemistry.symmetry.</span></span><span class="sig-name descname"><span class="pre">symmetry_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_fold_rot_searched</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dist_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.thermochemistry.symmetry.symmetry_number" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate the symmetry number of a molecule. See:
-Theor Chem Account (2007) 118:813–826</p>
+Theor Chem Account (2007) 118:813–826. 10.1007/s00214-007-0328-0</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>species</strong> (<em>autode.atoms.Species</em>) – </p>

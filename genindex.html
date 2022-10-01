@@ -20,7 +20,7 @@
     href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
@@ -29,7 +29,7 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -630,11 +630,6 @@
      Contributing to autodE
     </a>
    </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="dev/adding_est.html">
-     Adding QM Wrappers
-    </a>
-   </li>
   </ul>
  </li>
  <li class="toctree-l1">
@@ -795,12 +790,6 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/bonds.html#autode.bonds.ScannedBond.__init__">(autode.bonds.ScannedBond method)</a>
 </li>
-        <li><a href="reference/calculation.html#autode.calculation.Calculation.__init__">(autode.calculation.Calculation method)</a>
-</li>
-        <li><a href="reference/calculation.html#autode.calculation.CalculationInput.__init__">(autode.calculation.CalculationInput method)</a>
-</li>
-        <li><a href="reference/calculation.html#autode.calculation.CalculationOutput.__init__">(autode.calculation.CalculationOutput method)</a>
-</li>
         <li><a href="reference/conformers/conformer.html#autode.conformers.conformer.Conformer.__init__">(autode.conformers.conformer.Conformer method)</a>
 </li>
         <li><a href="reference/exceptions.html#autode.exceptions.CouldNotGetProperty.__init__">(autode.exceptions.CouldNotGetProperty method)</a>
@@ -825,7 +814,15 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/neb/original.html#autode.neb.original.NEB.__init__">(autode.neb.original.NEB method)</a>
 </li>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.BondAngle.__init__">(autode.opt.coordinates.primitives.BondAngle method)</a>
+</li>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedBondAngle.__init__">(autode.opt.coordinates.primitives.ConstrainedBondAngle method)</a>
+</li>
         <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedDistance.__init__">(autode.opt.coordinates.primitives.ConstrainedDistance method)</a>
+</li>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.DihedralAngle.__init__">(autode.opt.coordinates.primitives.DihedralAngle method)</a>
+</li>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive.__init__">(autode.opt.coordinates.primitives.Primitive method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.__init__">(autode.opt.optimisers.base.NDOptimiser method)</a>
 </li>
@@ -835,15 +832,17 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.dimer.Dimer.__init__">(autode.opt.optimisers.dimer.Dimer method)</a>
 </li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSPDUpdate.__init__">(autode.opt.optimisers.hessian_update.BFGSPDUpdate method)</a>
+</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater.__init__">(autode.opt.optimisers.hessian_update.HessianUpdater method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.ArmijoLineSearch.__init__">(autode.opt.optimisers.line_search.ArmijoLineSearch method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.LineSearchOptimiser.__init__">(autode.opt.optimisers.line_search.LineSearchOptimiser method)</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOOptimiser.__init__">(autode.opt.optimisers.prfo.PRFOOptimiser method)</a>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOptimiser.__init__">(autode.opt.optimisers.prfo.PRFOptimiser method)</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOOptimiser.__init__">(autode.opt.optimisers.rfo.RFOOptimiser method)</a>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOptimiser.__init__">(autode.opt.optimisers.rfo.RFOptimiser method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CGSteihaugTROptimiser.__init__">(autode.opt.optimisers.trust_region.CGSteihaugTROptimiser method)</a>
 </li>
@@ -929,6 +928,8 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/units.html#autode.units.Unit.__init__">(autode.units.Unit method)</a>
 </li>
+        <li><a href="reference/utils.html#autode.utils.StringDict.__init__">(autode.utils.StringDict method)</a>
+</li>
         <li><a href="reference/values.html#autode.values.Allocation.__init__">(autode.values.Allocation method)</a>
 </li>
         <li><a href="reference/values.html#autode.values.Angle.__init__">(autode.values.Angle method)</a>
@@ -949,11 +950,13 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/values.html#autode.values.Value.__init__">(autode.values.Value method)</a>
 </li>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.__init__">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
         <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.__init__">(autode.wrappers.G09.G09 method)</a>
 </li>
+        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09Optimiser.__init__">(autode.wrappers.G09.G09Optimiser method)</a>
+</li>
         <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.ECP.__init__">(autode.wrappers.keywords.ECP method)</a>
+</li>
+        <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Functional.__init__">(autode.wrappers.keywords.Functional method)</a>
 </li>
         <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keyword.__init__">(autode.wrappers.keywords.Keyword method)</a>
 </li>
@@ -965,11 +968,17 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.__init__">(autode.wrappers.MOPAC.MOPAC method)</a>
 </li>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPACOptimiser.__init__">(autode.wrappers.MOPAC.MOPACOptimiser method)</a>
+</li>
         <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.__init__">(autode.wrappers.NWChem.NWChem method)</a>
 </li>
         <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.__init__">(autode.wrappers.ORCA.ORCA method)</a>
 </li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCAOptimiser.__init__">(autode.wrappers.ORCA.ORCAOptimiser method)</a>
+</li>
         <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.__init__">(autode.wrappers.XTB.XTB method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTBOptimiser.__init__">(autode.wrappers.XTB.XTBOptimiser method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1007,14 +1016,16 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.SArmijoLineSearch._step">(autode.opt.optimisers.line_search.SArmijoLineSearch method)</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOOptimiser._step">(autode.opt.optimisers.prfo.PRFOOptimiser method)</a>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOptimiser._step">(autode.opt.optimisers.prfo.PRFOptimiser method)</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOOptimiser._step">(autode.opt.optimisers.rfo.RFOOptimiser method)</a>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOptimiser._step">(autode.opt.optimisers.rfo.RFOptimiser method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate._updated_h">_updated_h (autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSDampedUpdate._updated_h">_updated_h (autode.opt.optimisers.hessian_update.BFGSDampedUpdate property)</a>
 
       <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate._updated_h">(autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
+</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate._updated_h">(autode.opt.optimisers.hessian_update.BofillUpdate property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater._updated_h">(autode.opt.optimisers.hessian_update.HessianUpdater property)</a>
@@ -1056,6 +1067,12 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement.active_atoms">active_atoms (autode.bond_rearrangement.BondRearrangement property)</a>
 </li>
+      <li><a href="reference/mol_graphs.html#autode.mol_graphs.MolecularGraph.active_bonds">active_bonds (autode.mol_graphs.MolecularGraph property)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.active_indexes">active_indexes (autode.opt.coordinates.dic.DICWithConstraints property)</a>
+</li>
+      <li><a href="reference/mol_graphs.html#autode.mol_graphs.MolecularGraph.add_active_edge">add_active_edge() (autode.mol_graphs.MolecularGraph method)</a>
+</li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.add_bond_rearrangment">add_bond_rearrangment() (in module autode.bond_rearrangement)</a>
 </li>
       <li><a href="reference/transition_states/truncation.html#autode.transition_states.truncation.add_capping_atom">add_capping_atom() (in module autode.transition_states.truncation)</a>
@@ -1065,8 +1082,6 @@ title="Fullscreen mode"
       <li><a href="reference/transition_states/truncation.html#autode.transition_states.truncation.add_core_pi_bonds">add_core_pi_bonds() (in module autode.transition_states.truncation)</a>
 </li>
       <li><a href="reference/substitution.html#autode.substitution.add_dummy_atom">add_dummy_atom() (in module autode.substitution)</a>
-</li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.add_opt_option">add_opt_option() (in module autode.wrappers.G09)</a>
 </li>
       <li><a href="reference/transition_states/truncation.html#autode.transition_states.truncation.add_remaining_atoms">add_remaining_atoms() (in module autode.transition_states.truncation)</a>
 </li>
@@ -1198,13 +1213,6 @@ title="Fullscreen mode"
 </li>
       </ul></li>
       <li>
-    autode.calculation
-
-      <ul>
-        <li><a href="reference/calculation.html#module-autode.calculation">module</a>
-</li>
-      </ul></li>
-      <li>
     autode.config
 
       <ul>
@@ -1323,6 +1331,8 @@ title="Fullscreen mode"
         <li><a href="reference/opt/coordinates.html#module-autode.opt.coordinates.base">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autode.opt.coordinates.cartesian
 
@@ -1330,8 +1340,6 @@ title="Fullscreen mode"
         <li><a href="reference/opt/coordinates.html#module-autode.opt.coordinates.cartesian">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autode.opt.coordinates.dic
 
@@ -1641,13 +1649,6 @@ title="Fullscreen mode"
 </li>
       </ul></li>
       <li>
-    autode.wrappers.base
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#module-autode.wrappers.base">module</a>
-</li>
-      </ul></li>
-      <li>
     autode.wrappers.G09
 
       <ul>
@@ -1691,10 +1692,6 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/exceptions.html#autode.exceptions.AutodeException">AutodeException</a>
 </li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.available">available (autode.wrappers.base.ElectronicStructureMethod property)</a>
-</li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.available_implicit_solvents">available_implicit_solvents (autode.wrappers.base.ElectronicStructureMethod property)</a>
-</li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SAngles.axes">axes (autode.smiles.angles.SAngles property)</a>
 
       <ul>
@@ -1707,6 +1704,8 @@ title="Fullscreen mode"
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser">BaseOptimiser (class in autode.opt.optimisers.base)</a>
+</li>
       <li><a href="reference/units.html#autode.units.BaseUnit">BaseUnit (class in autode.units)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keywords.basis_set">basis_set (autode.wrappers.keywords.Keywords property)</a>
@@ -1717,15 +1716,21 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.BentAtom">BentAtom (class in autode.smiles.atom_types)</a>
 </li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSDampedUpdate">BFGSDampedUpdate (class in autode.opt.optimisers.hessian_update)</a>
+</li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.bfgs.BFGSOptimiser">BFGSOptimiser (class in autode.opt.optimisers.bfgs)</a>
+</li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSPDUpdate">BFGSPDUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate">BFGSUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate">BofillUpdate (class in autode.opt.optimisers.hessian_update)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate">BofillUpdate (class in autode.opt.optimisers.hessian_update)</a>
+</li>
       <li><a href="reference/species/species.html#autode.species.species.Species.bond_matrix">bond_matrix (autode.species.species.Species property)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.BondAngle">BondAngle (class in autode.opt.coordinates.primitives)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement">BondRearrangement (class in autode.bond_rearrangement)</a>
 </li>
@@ -1769,8 +1774,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.calc_thermo">calc_thermo() (autode.species.species.Species method)</a>
 </li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.calc_uses_external_method">calc_uses_external_method() (in module autode.wrappers.G09)</a>
-</li>
       <li><a href="reference/hessians.html#autode.hessians.HybridHessianCalculator.calculate">calculate() (autode.hessians.HybridHessianCalculator method)</a>
 
       <ul>
@@ -1797,27 +1800,7 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.calculate_thermochemical_cont">calculate_thermochemical_cont() (autode.reactions.reaction.Reaction method)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation">Calculation (class in autode.calculation)</a>
-</li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.calculation_terminated_normally">calculation_terminated_normally() (autode.wrappers.base.ElectronicStructureMethod method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.calculation_terminated_normally">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.calculation_terminated_normally">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.calculation_terminated_normally">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.calculation_terminated_normally">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.calculation_terminated_normally">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/exceptions.html#autode.exceptions.CalculationException">CalculationException</a>
-</li>
-      <li><a href="reference/calculation.html#autode.calculation.CalculationInput">CalculationInput (class in autode.calculation)</a>
-</li>
-      <li><a href="reference/calculation.html#autode.calculation.CalculationOutput">CalculationOutput (class in autode.calculation)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.CannotSplitAcrossBond">CannotSplitAcrossBond</a>
 </li>
@@ -1853,16 +1836,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/reactions/reaction_types.html#autode.reactions.reaction_types.classify">classify() (in module autode.reactions.reaction_types)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.clean_up">clean_up() (autode.calculation.Calculation method)</a>
+      <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.clear">clear() (autode.pes.pes_nd.PESnD method)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.CalculationOutput.clear">clear() (autode.calculation.CalculationOutput method)</a>
-
-      <ul>
-        <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.clear">(autode.pes.pes_nd.PESnD method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.clear_tensors">clear_tensors() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.RingBond.close">close() (autode.smiles.base.RingBond method)</a>
@@ -1877,9 +1852,11 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/species/complex.html#autode.species.complex.Complex">Complex (class in autode.species.complex)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate.conditions_met">conditions_met (autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSPDUpdate.conditions_met">conditions_met (autode.opt.optimisers.hessian_update.BFGSPDUpdate property)</a>
 
       <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate.conditions_met">(autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
+</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate.conditions_met">(autode.opt.optimisers.hessian_update.BofillUpdate property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater.conditions_met">(autode.opt.optimisers.hessian_update.HessianUpdater property)</a>
@@ -1895,11 +1872,17 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/conformers/conformers.html#autode.conformers.conformers.Conformers">Conformers (class in autode.conformers.conformers)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.connected_components">connected_components() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/constants.html#autode.constants.Constants">Constants (class in autode.constants)</a>
 </li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedBondAngle">ConstrainedBondAngle (class in autode.opt.coordinates.primitives)</a>
+</li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedDistance">ConstrainedDistance (class in autode.opt.coordinates.primitives)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitive">ConstrainedPrimitive (class in autode.opt.coordinates.primitives)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keywords.contain_any_of">contain_any_of() (autode.wrappers.keywords.Keywords method)</a>
 </li>
@@ -1907,9 +1890,15 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.contains_peak">contains_peak() (autode.neb.original.NEB method)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.converged">converged (autode.opt.optimisers.base.NDOptimiser property)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.converged">converged (autode.opt.optimisers.base.BaseOptimiser property)</a>
 
       <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.ExternalOptimiser.converged">(autode.opt.optimisers.base.ExternalOptimiser property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.converged">(autode.opt.optimisers.base.NDOptimiser property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser.converged">(autode.opt.optimisers.base.NullOptimiser property)</a>
+</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.converged">(autode.opt.optimisers.base.Optimiser property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.dimer.Dimer.converged">(autode.opt.optimisers.dimer.Dimer property)</a>
@@ -1920,7 +1909,17 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.SArmijoLineSearch.converged">(autode.opt.optimisers.line_search.SArmijoLineSearch property)</a>
 </li>
+        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09Optimiser.converged">(autode.wrappers.G09.G09Optimiser property)</a>
+</li>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPACOptimiser.converged">(autode.wrappers.MOPAC.MOPACOptimiser property)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCAOptimiser.converged">(autode.wrappers.ORCA.ORCAOptimiser property)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTBOptimiser.converged">(autode.wrappers.XTB.XTBOptimiser property)</a>
+</li>
       </ul></li>
+      <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.converged_line_in_output">converged_line_in_output() (autode.wrappers.XTB.XTB static method)</a>
+</li>
       <li><a href="reference/atoms.html#autode.atoms.Atom.coord">coord (autode.atoms.Atom property)</a>
 </li>
       <li><a href="reference/values.html#autode.values.Coordinate">Coordinate (class in autode.values)</a>
@@ -1934,17 +1933,29 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/conformers/conformer.html#autode.conformers.conformer.Conformer.coordinates">(autode.conformers.conformer.Conformer property)</a>
 </li>
+        <li><a href="reference/species/species.html#autode.species.species.Species.coordinates">(autode.species.species.Species property)</a>
+</li>
       </ul></li>
       <li><a href="reference/values.html#autode.values.Coordinates">Coordinates (class in autode.values)</a>
 </li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.coordinates_from">coordinates_from() (autode.wrappers.G09.G09 method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.coordinates_from">(autode.wrappers.MOPAC.MOPAC method)</a>
+</li>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.coordinates_from">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.coordinates_from">(autode.wrappers.ORCA.ORCA method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.coordinates_from">(autode.wrappers.XTB.XTB method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/neb/original.html#autode.neb.original.Images.coords">coords() (autode.neb.original.Images method)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atom.copy">copy() (autode.atoms.Atom method)</a>
 
       <ul>
         <li><a href="reference/atoms.html#autode.atoms.Atoms.copy">(autode.atoms.Atoms method)</a>
-</li>
-        <li><a href="reference/calculation.html#autode.calculation.Calculation.copy">(autode.calculation.Calculation method)</a>
 </li>
         <li><a href="reference/conformers/conformers.html#autode.conformers.conformers.Conformers.copy">(autode.conformers.conformers.Conformers method)</a>
 </li>
@@ -1973,6 +1984,12 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.CouldNotPlotSmoothProfile">CouldNotPlotSmoothProfile</a>
 </li>
+      <li><a href="reference/atoms.html#autode.atoms.Atom.covalent_radius">covalent_radius (autode.atoms.Atom property)</a>
+
+      <ul>
+        <li><a href="reference/atoms.html#autode.atoms.DummyAtom.covalent_radius">(autode.atoms.DummyAtom property)</a>
+</li>
+      </ul></li>
       <li><a href="reference/thermochemistry/symmetry.html#autode.thermochemistry.symmetry.create_pcoords">create_pcoords() (in module autode.thermochemistry.symmetry)</a>
 </li>
   </ul></td>
@@ -1985,15 +2002,21 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.delta">delta (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedDistance.delta">delta() (autode.opt.coordinates.primitives.ConstrainedDistance method)</a>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitive.delta">delta() (autode.opt.coordinates.primitives.ConstrainedPrimitive method)</a>
 
       <ul>
         <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.delta">(autode.reactions.reaction.Reaction method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Distance.derivative">derivative() (autode.opt.coordinates.primitives.Distance method)</a>
+      <li><a href="reference/utils.html#autode.utils.deprecated">deprecated() (in module autode.utils)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.BondAngle.derivative">derivative() (autode.opt.coordinates.primitives.BondAngle method)</a>
 
       <ul>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.DihedralAngle.derivative">(autode.opt.coordinates.primitives.DihedralAngle method)</a>
+</li>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Distance.derivative">(autode.opt.coordinates.primitives.Distance method)</a>
+</li>
         <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.InverseDistance.derivative">(autode.opt.coordinates.primitives.InverseDistance method)</a>
 </li>
         <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive.derivative">(autode.opt.coordinates.primitives.Primitive method)</a>
@@ -2003,6 +2026,8 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DIC">DIC (class in autode.opt.coordinates.dic)</a>
 </li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints">DICWithConstraints (class in autode.opt.coordinates.dic)</a>
+</li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.did_rotation">did_rotation (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.did_translation">did_translation (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
@@ -2011,14 +2036,16 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/atoms.html#autode.atoms.AtomCollection.dihedral">dihedral() (autode.atoms.AtomCollection method)</a>
 </li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.DihedralAngle">DihedralAngle (class in autode.opt.coordinates.primitives)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.dimer.Dimer">Dimer (class in autode.opt.optimisers.dimer)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates">DimerCoordinates (class in autode.opt.coordinates.dimer)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerPoint">DimerPoint (class in autode.opt.coordinates.dimer)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keywords.dispersion">dispersion (autode.wrappers.keywords.Keywords property)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.DispersionCorrection">DispersionCorrection (class in autode.wrappers.keywords)</a>
@@ -2036,6 +2063,8 @@ title="Fullscreen mode"
       <li><a href="reference/atoms.html#autode.atoms.AtomCollection.distance">distance() (autode.atoms.AtomCollection method)</a>
 
       <ul>
+        <li><a href="reference/atoms.html#autode.atoms.Atoms.distance">(autode.atoms.Atoms method)</a>
+</li>
         <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESBond.distance">(autode.smiles.base.SMILESBond method)</a>
 </li>
       </ul></li>
@@ -2043,12 +2072,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.DoglegTROptimiser">DoglegTROptimiser (class in autode.opt.optimisers.trust_region)</a>
 </li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.doi_str">doi_str (autode.wrappers.base.ElectronicStructureMethod property)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keyword.doi_str">(autode.wrappers.keywords.Keyword property)</a>
+      <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keyword.doi_str">doi_str (autode.wrappers.keywords.Keyword property)</a>
 </li>
-      </ul></li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SDihedral.dphi">dphi() (autode.smiles.angles.SDihedral method)</a>
 </li>
       <li><a href="reference/bonds.html#autode.bonds.ScannedBond.dr">dr (autode.bonds.ScannedBond property)</a>
@@ -2070,8 +2095,6 @@ title="Fullscreen mode"
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.ECP">ECP (class in autode.wrappers.keywords)</a>
 </li>
       <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.ecp_block">ecp_block() (in module autode.wrappers.NWChem)</a>
-</li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod">ElectronicStructureMethod (class in autode.wrappers.base)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.PeriodicTable.element">element() (autode.atoms.PeriodicTable class method)</a>
 </li>
@@ -2107,6 +2130,14 @@ title="Fullscreen mode"
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/values.html#autode.values.EnthalpyCont">EnthalpyCont (class in autode.values)</a>
 </li>
+      <li><a href="reference/atoms.html#autode.atoms.AtomCollection.eqm_bond_distance">eqm_bond_distance() (autode.atoms.AtomCollection method)</a>
+
+      <ul>
+        <li><a href="reference/atoms.html#autode.atoms.Atoms.eqm_bond_distance">(autode.atoms.Atoms method)</a>
+</li>
+      </ul></li>
+      <li><a href="reference/mol_graphs.html#autode.mol_graphs.MolecularGraph.eqm_bond_distance_matrix">eqm_bond_distance_matrix (autode.mol_graphs.MolecularGraph property)</a>
+</li>
       <li><a href="reference/plotting.html#autode.plotting.error_on_stationary_points">error_on_stationary_points() (in module autode.plotting)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.etol">etol (autode.opt.optimisers.base.NDOptimiser property)</a>
@@ -2119,11 +2150,9 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/constants.html#autode.constants.Constants.eV_to_ha">eV_to_ha (autode.constants.Constants attribute)</a>
 </li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.execute">execute() (autode.wrappers.base.ElectronicStructureMethod method)</a>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.execute">execute() (autode.wrappers.G09.G09 method)</a>
 
       <ul>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.execute">(autode.wrappers.G09.G09 method)</a>
-</li>
         <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.execute">(autode.wrappers.MOPAC.MOPAC method)</a>
 </li>
         <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.execute">(autode.wrappers.NWChem.NWChem method)</a>
@@ -2133,21 +2162,13 @@ title="Fullscreen mode"
         <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.execute">(autode.wrappers.XTB.XTB method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/calculation.html#autode.calculation.execute_calc">execute_calc() (in module autode.calculation)</a>
-</li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.execute_calculation">execute_calculation() (autode.calculation.Calculation method)</a>
-</li>
-      <li><a href="reference/calculation.html#autode.calculation.CalculationInput.exists">exists (autode.calculation.CalculationInput property)</a>
-
-      <ul>
-        <li><a href="reference/calculation.html#autode.calculation.CalculationOutput.exists">(autode.calculation.CalculationOutput property)</a>
-</li>
-      </ul></li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.MolecularGraph.expected_planar_geometry">expected_planar_geometry (autode.mol_graphs.MolecularGraph property)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.explicitly_solvate">explicitly_solvate() (autode.species.species.Species method)</a>
 </li>
       <li><a href="reference/solvent/explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent">ExplicitSolvent (class in autode.solvent.explicit_solvent)</a>
+</li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.ExternalOptimiser">ExternalOptimiser (class in autode.opt.optimisers.base)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2167,11 +2188,9 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement.fatoms">fatoms (autode.bond_rearrangement.BondRearrangement property)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.CalculationOutput.file_lines">file_lines (autode.calculation.CalculationOutput property)</a>
-</li>
       <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.TStemplate.filename">filename (autode.transition_states.templates.TStemplate property)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.CalculationInput.filenames">filenames (autode.calculation.CalculationInput property)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.final_coordinates">final_coordinates (autode.opt.optimisers.base.Optimiser property)</a>
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.find_cycles">find_cycles() (in module autode.mol_graphs)</a>
 </li>
@@ -2195,10 +2214,10 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/values.html#autode.values.Energies.first">first() (autode.values.Energies method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESBonds.first_involving">first_involving() (autode.smiles.base.SMILESBonds method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/values.html#autode.values.Energies.first_potential">first_potential (autode.values.Energies property)</a>
 </li>
       <li><a href="reference/bonds.html#autode.bonds.FormingBond">FormingBond (class in autode.bonds)</a>
@@ -2210,8 +2229,6 @@ title="Fullscreen mode"
       <li><a href="reference/values.html#autode.values.FreeEnergy">FreeEnergy (class in autode.values)</a>
 </li>
       <li><a href="reference/values.html#autode.values.FreeEnergyCont">FreeEnergyCont (class in autode.values)</a>
-</li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.freq_in_keywords">freq_in_keywords() (in module autode.wrappers.G09)</a>
 </li>
       <li><a href="reference/hessians.html#autode.hessians.Hessian.frequencies">frequencies (autode.hessians.Hessian property)</a>
 
@@ -2225,8 +2242,14 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DIC.from_cartesian">from_cartesian() (autode.opt.coordinates.dic.DIC class method)</a>
 </li>
-      <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.from_file">from_file() (autode.pes.pes_nd.PESnD class method)</a>
+      <li><a href="reference/neb/original.html#autode.neb.original.NEB.from_file">from_file() (autode.neb.original.NEB class method)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.from_file">(autode.opt.optimisers.base.NDOptimiser class method)</a>
 </li>
+        <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.from_file">(autode.pes.pes_nd.PESnD class method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.from_species">from_species() (autode.opt.coordinates.dimer.DimerCoordinates class method)</a>
 
       <ul>
@@ -2249,6 +2272,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09">G09 (class in autode.wrappers.G09)</a>
 </li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09Optimiser">G09Optimiser (class in autode.wrappers.G09)</a>
+</li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.g1">g1 (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.g2">g2 (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
@@ -2259,49 +2284,27 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/units.html#autode.units.GB">GB (in module autode.units)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.generate_input">generate_input() (autode.calculation.Calculation method)</a>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.generate_input_for">generate_input_for() (autode.wrappers.G09.G09 method)</a>
 
       <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.generate_input">(autode.wrappers.base.ElectronicStructureMethod method)</a>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.generate_input_for">(autode.wrappers.MOPAC.MOPAC method)</a>
 </li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.generate_input">(autode.wrappers.G09.G09 method)</a>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.generate_input_for">(autode.wrappers.NWChem.NWChem method)</a>
 </li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.generate_input">(autode.wrappers.MOPAC.MOPAC method)</a>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.generate_input_for">(autode.wrappers.ORCA.ORCA method)</a>
 </li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.generate_input">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.generate_input">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.generate_input">(autode.wrappers.XTB.XTB method)</a>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.generate_input_for">(autode.wrappers.XTB.XTB method)</a>
 </li>
       </ul></li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.generate_rearranged_graph">generate_rearranged_graph() (in module autode.bond_rearrangement)</a>
+</li>
+      <li><a href="reference/utils.html#autode.utils.StringDict.get">get() (autode.utils.StringDict method)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists">get_active_atom_neighbour_lists() (autode.bond_rearrangement.BondRearrangement method)</a>
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_atom_ids_sorted_type">get_atom_ids_sorted_type() (in module autode.mol_graphs)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.get_atomic_charges">get_atomic_charges() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_atomic_charges">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_atomic_charges">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.get_atomic_charges">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_atomic_charges">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_atomic_charges">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.get_atomic_charges">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.get_atoms_and_fixed_atom_indexes">get_atoms_and_fixed_atom_indexes() (in module autode.wrappers.MOPAC)</a>
-</li>
-      <li><a href="reference/geom.html#autode.geom.get_atoms_linear_interp">get_atoms_linear_interp() (in module autode.geom)</a>
-</li>
-      <li><a href="reference/bonds.html#autode.bonds.get_avg_bond_length">get_avg_bond_length() (in module autode.bonds)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_bond_rearrangs">get_bond_rearrangs() (in module autode.bond_rearrangement)</a>
 </li>
@@ -2317,22 +2320,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/geom.html#autode.geom.get_distance_constraints">get_distance_constraints() (in module autode.geom)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.get_energy">get_energy() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_energy">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_energy">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.get_energy">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_energy">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_energy">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.get_energy">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_fbonds">get_fbonds() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_fbonds_bbonds_1b">get_fbonds_bbonds_1b() (in module autode.bond_rearrangement)</a>
@@ -2345,22 +2332,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_fbonds_bbonds_2b2f">get_fbonds_bbonds_2b2f() (in module autode.bond_rearrangement)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.get_final_atoms">get_final_atoms() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_final_atoms">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_final_atoms">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.get_final_atoms">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_final_atoms">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_final_atoms">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.get_final_atoms">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/methods.html#autode.methods.get_first_available_method">get_first_available_method() (in module autode.methods)</a>
 </li>
       <li><a href="reference/neb/ci.html#autode.neb.ci.CImage.get_force">get_force() (autode.neb.ci.CImage method)</a>
@@ -2369,63 +2340,15 @@ title="Fullscreen mode"
         <li><a href="reference/neb/original.html#autode.neb.original.Image.get_force">(autode.neb.original.Image method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.get_gradients">get_gradients() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_gradients">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_gradients">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.get_gradients">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_gradients">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_gradients">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.get_gradients">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_graph_no_active_edges">get_graph_no_active_edges() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_graphs_ignoring_active_edges">get_graphs_ignoring_active_edges() (in module autode.mol_graphs)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.get_hessian">get_hessian() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_hessian">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_hessian">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_hessian">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_hessian">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/methods.html#autode.methods.get_hmethod">get_hmethod() (in module autode.methods)</a>
 </li>
-      <li><a href="reference/bonds.html#autode.bonds.get_ideal_bond_length_matrix">get_ideal_bond_length_matrix() (in module autode.bonds)</a>
-</li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_input_filename">get_input_filename() (autode.wrappers.base.ElectronicStructureMethod method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_input_filename">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.get_input_filename">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_input_filename">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_input_filename">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.get_input_filename">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_keywords">get_keywords() (autode.wrappers.ORCA.ORCA method)</a>
 
       <ul>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.get_keywords">(in module autode.wrappers.G09)</a>
-</li>
         <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.get_keywords">(in module autode.wrappers.MOPAC)</a>
 </li>
         <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.get_keywords">(in module autode.wrappers.NWChem)</a>
@@ -2435,24 +2358,12 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_mapping">get_mapping() (in module autode.mol_graphs)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_mapping_ts_template">get_mapping_ts_template() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/geom.html#autode.geom.get_neighbour_list">get_neighbour_list() (in module autode.geom)</a>
 </li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_output_filename">get_output_filename() (autode.wrappers.base.ElectronicStructureMethod method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_output_filename">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.get_output_filename">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_output_filename">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_output_filename">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.get_output_filename">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/geom.html#autode.geom.get_points_on_sphere">get_points_on_sphere() (in module autode.geom)</a>
 </li>
       <li><a href="reference/thermochemistry/symmetry.html#autode.thermochemistry.symmetry.get_possible_axes">get_possible_axes() (in module autode.thermochemistry.symmetry)</a>
@@ -2499,20 +2410,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.get_values_dict_from_file">get_values_dict_from_file() (in module autode.transition_states.templates)</a>
 </li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.get_version">get_version() (autode.wrappers.base.ElectronicStructureMethod method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.get_version">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.get_version">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.get_version">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.get_version">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.get_version">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.gm_is_isomorphic">gm_is_isomorphic() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.KeywordsSet.grad">grad (autode.wrappers.keywords.KeywordsSet property)</a>
@@ -2523,6 +2420,18 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/values.html#autode.values.Gradient">Gradient (class in autode.values)</a>
 </li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.gradient_from">gradient_from() (autode.wrappers.G09.G09 method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.gradient_from">(autode.wrappers.MOPAC.MOPAC method)</a>
+</li>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.gradient_from">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.gradient_from">(autode.wrappers.ORCA.ORCA method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.gradient_from">(autode.wrappers.XTB.XTB method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.GradientKeywords">GradientKeywords (class in autode.wrappers.keywords)</a>
 </li>
       <li><a href="reference/values.html#autode.values.GradientRMS">GradientRMS (class in autode.values)</a>
@@ -2558,7 +2467,11 @@ title="Fullscreen mode"
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.h_inv">h_inv (autode.opt.coordinates.base.OptCoordinates property)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.h_or_h_inv_has_correct_shape">h_or_h_inv_has_correct_shape() (autode.opt.coordinates.base.OptCoordinates method)</a>
+
+      <ul>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.h_or_h_inv_has_correct_shape">(autode.opt.coordinates.dic.DICWithConstraints method)</a>
 </li>
+      </ul></li>
       <li><a href="reference/units.html#autode.units.ha">ha (in module autode.units)</a>
 </li>
       <li><a href="reference/constants.html#autode.constants.Constants.ha2eV">ha2eV (autode.constants.Constants attribute)</a>
@@ -2583,14 +2496,14 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/transition_states/base.html#autode.transition_states.base.TSbase.has_correct_imag_mode">has_correct_imag_mode (autode.transition_states.base.TSbase property)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.has_identical_composition_as">has_identical_composition_as() (autode.reactions.reaction.Reaction method)</a>
 
       <ul>
         <li><a href="reference/species/species.html#autode.species.species.Species.has_identical_composition_as">(autode.species.species.Species method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/transition_states/base.html#autode.transition_states.base.TSbase.has_imaginary_frequencies">has_imaginary_frequencies (autode.transition_states.base.TSbase property)</a>
 </li>
       <li><a href="reference/transition_states/ts_guess.html#autode.transition_states.ts_guess.has_matching_ts_templates">has_matching_ts_templates() (in module autode.transition_states.ts_guess)</a>
@@ -2615,6 +2528,14 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/hessians.html#autode.hessians.Hessian">Hessian (class in autode.hessians)</a>
 </li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.hessian_from">hessian_from() (autode.wrappers.G09.G09 method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.hessian_from">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.hessian_from">(autode.wrappers.ORCA.ORCA method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.HessianKeywords">HessianKeywords (class in autode.wrappers.keywords)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater">HessianUpdater (class in autode.opt.optimisers.hessian_update)</a>
@@ -2644,6 +2565,8 @@ title="Fullscreen mode"
       <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP">IDPP (class in autode.neb.idpp)</a>
 </li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.idpp_relax">idpp_relax() (autode.neb.original.NEB method)</a>
+</li>
+      <li><a href="reference/atoms.html#autode.atoms.Atoms.idxs_are_present">idxs_are_present() (autode.atoms.Atoms method)</a>
 </li>
       <li><a href="reference/thermochemistry/igm.html#autode.thermochemistry.igm.LFMethod.igm">igm (autode.thermochemistry.igm.LFMethod attribute)</a>
 </li>
@@ -2697,8 +2620,6 @@ title="Fullscreen mode"
         <li><a href="reference/values.html#autode.values.ValueArray.implemented_units">(autode.values.ValueArray attribute)</a>
 </li>
       </ul></li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.implements_hessian">implements_hessian (autode.wrappers.base.ElectronicStructureMethod property)</a>
-</li>
       <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.ImplicitSolvent">ImplicitSolvent (class in autode.solvent.solvents)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.ImplicitSolventType">ImplicitSolventType (class in autode.wrappers.keywords)</a>
@@ -2709,18 +2630,36 @@ title="Fullscreen mode"
         <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESBond.in_ring">(autode.smiles.base.SMILESBond method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.inactive_indexes">inactive_indexes (autode.opt.coordinates.dic.DICWithConstraints property)</a>
+</li>
       <li><a href="reference/neb/ci.html#autode.neb.ci.CImages.increment">increment() (autode.neb.ci.CImages method)</a>
 
       <ul>
         <li><a href="reference/neb/original.html#autode.neb.original.Images.increment">(autode.neb.original.Images method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.indexes">indexes (autode.opt.coordinates.base.OptCoordinates property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/neb/original.html#autode.neb.original.NEB.init_k">init_k (autode.neb.original.NEB property)</a>
+</li>
       <li><a href="reference/smiles/smiles.html#autode.smiles.smiles.init_organic_smiles">init_organic_smiles() (in module autode.smiles.smiles)</a>
 </li>
       <li><a href="reference/smiles/smiles.html#autode.smiles.smiles.init_smiles">init_smiles() (in module autode.smiles.smiles)</a>
 </li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.input_filename_for">input_filename_for() (autode.wrappers.G09.G09 static method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.input_filename_for">(autode.wrappers.MOPAC.MOPAC static method)</a>
+</li>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.input_filename_for">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.input_filename_for">(autode.wrappers.ORCA.ORCA static method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.input_filename_for">(autode.wrappers.XTB.XTB static method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESBonds.insert">insert() (autode.smiles.base.SMILESBonds method)</a>
 </li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.interpolate_geometries">interpolate_geometries() (autode.neb.original.NEB method)</a>
@@ -2739,12 +2678,14 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.is_barrierless">is_barrierless (autode.reactions.reaction.Reaction property)</a>
 </li>
-      <li><a href="reference/mol_graphs.html#autode.mol_graphs.is_chiral_atom">is_chiral_atom() (in module autode.mol_graphs)</a>
-</li>
-      <li><a href="reference/mol_graphs.html#autode.mol_graphs.is_chiral_pi_bond">is_chiral_pi_bond() (in module autode.mol_graphs)</a>
-</li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESBond.is_cis">is_cis() (autode.smiles.base.SMILESBond method)</a>
 </li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitive.is_constrained">is_constrained (autode.opt.coordinates.primitives.ConstrainedPrimitive attribute)</a>
+
+      <ul>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive.is_constrained">(autode.opt.coordinates.primitives.Primitive attribute)</a>
+</li>
+      </ul></li>
       <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.Solvent.is_explicit">is_explicit (autode.solvent.solvents.Solvent property)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.is_explicitly_solvated">is_explicitly_solvated (autode.species.species.Species property)</a>
@@ -2773,9 +2714,11 @@ title="Fullscreen mode"
         <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESAtom.is_pi">(autode.smiles.base.SMILESAtom method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/species/species.html#autode.species.species.Species.is_planar">is_planar() (autode.species.species.Species method)</a>
+</li>
       <li><a href="reference/thermochemistry/symmetry.html#autode.thermochemistry.symmetry.is_same_under_n_fold">is_same_under_n_fold() (in module autode.thermochemistry.symmetry)</a>
 </li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedDistance.is_satisfied">is_satisfied() (autode.opt.coordinates.primitives.ConstrainedDistance method)</a>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitive.is_satisfied">is_satisfied() (autode.opt.coordinates.primitives.ConstrainedPrimitive method)</a>
 </li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESAtom.is_shifted">is_shifted (autode.smiles.base.SMILESAtom property)</a>
 </li>
@@ -2847,8 +2790,28 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/values.html#autode.values.Energies.last">last() (autode.values.Energies method)</a>
 </li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.last_energy_change">last_energy_change (autode.opt.optimisers.base.BaseOptimiser property)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.ExternalOptimiser.last_energy_change">(autode.opt.optimisers.base.ExternalOptimiser property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser.last_energy_change">(autode.opt.optimisers.base.NullOptimiser property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.last_energy_change">(autode.opt.optimisers.base.Optimiser property)</a>
+</li>
+        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09Optimiser.last_energy_change">(autode.wrappers.G09.G09Optimiser property)</a>
+</li>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPACOptimiser.last_energy_change">(autode.wrappers.MOPAC.MOPACOptimiser property)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCAOptimiser.last_energy_change">(autode.wrappers.ORCA.ORCAOptimiser property)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTBOptimiser.last_energy_change">(autode.wrappers.XTB.XTBOptimiser property)</a>
+</li>
+      </ul></li>
       <li><a href="reference/values.html#autode.values.Energies.last_potential">last_potential (autode.values.Energies property)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerPoint.left">left (autode.opt.coordinates.dimer.DimerPoint attribute)</a>
 </li>
       <li><a href="reference/thermochemistry/igm.html#autode.thermochemistry.igm.LFMethod">LFMethod (class in autode.thermochemistry.igm)</a>
@@ -2857,8 +2820,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.LineSearchOptimiser">LineSearchOptimiser (class in autode.opt.optimisers.line_search)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.load">load() (autode.pes.pes_nd.PESnD method)</a>
 
       <ul>
@@ -2905,6 +2866,8 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/values.html#autode.values.Mass">Mass (class in autode.values)</a>
 </li>
+      <li><a href="reference/neb/original.html#autode.neb.original.NEB.max_atom_distance_between_images">max_atom_distance_between_images (autode.neb.original.NEB property)</a>
+</li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.OptKeywords.max_opt_cycles">max_opt_cycles (autode.wrappers.keywords.OptKeywords property)</a>
 </li>
       <li><a href="reference/smiles/builder.html#autode.smiles.builder.Builder.max_ring_n">max_ring_n (autode.smiles.builder.Builder property)</a>
@@ -2914,8 +2877,6 @@ title="Fullscreen mode"
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.MaxOptCycles">MaxOptCycles (class in autode.wrappers.keywords)</a>
 </li>
       <li><a href="reference/units.html#autode.units.MB">MB (in module autode.units)</a>
-</li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.Method">Method (class in autode.wrappers.base)</a>
 </li>
       <li><a href="reference/methods.html#autode.methods.method_or_default_hmethod">method_or_default_hmethod() (in module autode.methods)</a>
 </li>
@@ -2935,8 +2896,6 @@ title="Fullscreen mode"
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.NullLineSearch.minimum_e_coords">(autode.opt.optimisers.line_search.NullLineSearch property)</a>
 </li>
       </ul></li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.modify_keywords_for_point_charges">modify_keywords_for_point_charges() (in module autode.wrappers.G09)</a>
-</li>
       <li>
     module
 
@@ -2946,8 +2905,6 @@ title="Fullscreen mode"
         <li><a href="reference/bond_rearrangement.html#module-autode.bond_rearrangement">autode.bond_rearrangement</a>
 </li>
         <li><a href="reference/bonds.html#module-autode.bonds">autode.bonds</a>
-</li>
-        <li><a href="reference/calculation.html#module-autode.calculation">autode.calculation</a>
 </li>
         <li><a href="reference/config.html#module-autode.config">autode.config</a>
 </li>
@@ -3073,8 +3030,6 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/values.html#module-autode.values">autode.values</a>
 </li>
-        <li><a href="reference/wrappers/base.html#module-autode.wrappers.base">autode.wrappers.base</a>
-</li>
         <li><a href="reference/wrappers/g09.html#module-autode.wrappers.G09">autode.wrappers.G09</a>
 </li>
         <li><a href="reference/wrappers/keywords.html#module-autode.wrappers.keywords">autode.wrappers.keywords</a>
@@ -3103,6 +3058,8 @@ title="Fullscreen mode"
       <li><a href="reference/values.html#autode.values.MomentOfInertia">MomentOfInertia (class in autode.values)</a>
 </li>
       <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC">MOPAC (class in autode.wrappers.MOPAC)</a>
+</li>
+      <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPACOptimiser">MOPACOptimiser (class in autode.wrappers.MOPAC)</a>
 </li>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.Parser.mult">mult (autode.smiles.parser.Parser property)</a>
 
@@ -3136,8 +3093,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.n_conformers">n_conformers (autode.species.species.Species property)</a>
 </li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.n_ecp_elements">n_ecp_elements() (in module autode.wrappers.G09)</a>
-</li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.AtomType.n_empty_sites">n_empty_sites (autode.smiles.atom_types.AtomType property)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement.n_fbonds">n_fbonds (autode.bond_rearrangement.BondRearrangement property)</a>
@@ -3156,25 +3111,25 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/hessians.html#autode.hessians.Hessian.n_v">n_v (autode.hessians.Hessian property)</a>
 </li>
-      <li><a href="reference/wrappers/base.html#autode.wrappers.base.Method.name">name (autode.wrappers.base.Method attribute)</a>
-</li>
       <li><a href="reference/species/complex.html#autode.species.complex.NCIComplex">NCIComplex (class in autode.species.complex)</a>
 </li>
       <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.ndim">ndim (autode.pes.pes_nd.PESnD property)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser">NDOptimiser (class in autode.opt.optimisers.base)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB">NEB (class in autode.neb.original)</a>
 </li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SDihedral.needs_forcing">needs_forcing() (autode.smiles.angles.SDihedral method)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.new_species">new_species() (autode.species.species.Species method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.next_char">next_char() (in module autode.smiles.parser)</a>
 </li>
       <li><a href="reference/units.html#autode.units.nm">nm (in module autode.units)</a>
+</li>
+      <li><a href="reference/utils.html#autode.utils.no_exceptions">no_exceptions() (in module autode.utils)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.NoAtomsInMolecule">NoAtomsInMolecule</a>
 </li>
@@ -3200,11 +3155,17 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/hessians.html#autode.hessians.Hessian.normal_modes_proj">normal_modes_proj (autode.hessians.Hessian property)</a>
 </li>
+      <li><a href="reference/exceptions.html#autode.exceptions.NotImplementedInMethod">NotImplementedInMethod</a>
+</li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.NullLineSearch">NullLineSearch (class in autode.opt.optimisers.line_search)</a>
+</li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser">NullOptimiser (class in autode.opt.optimisers.base)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.NullUpdate">NullUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
       <li><a href="reference/hessians.html#autode.hessians.NumericalHessianCalculator">NumericalHessianCalculator (class in autode.hessians)</a>
+</li>
+      <li><a href="reference/utils.html#autode.utils.NumericStringDict">NumericStringDict (class in autode.utils)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atoms.nvector">nvector() (autode.atoms.Atoms method)</a>
 </li>
@@ -3224,40 +3185,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates">OptCoordinates (class in autode.opt.coordinates.base)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.optimisation_converged">optimisation_converged() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.optimisation_converged">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.optimisation_converged">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.optimisation_converged">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.optimisation_converged">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.optimisation_converged">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.optimisation_converged">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.optimisation_nearly_converged">optimisation_nearly_converged() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/base.html#autode.wrappers.base.ElectronicStructureMethod.optimisation_nearly_converged">(autode.wrappers.base.ElectronicStructureMethod method)</a>
-</li>
-        <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.optimisation_nearly_converged">(autode.wrappers.G09.G09 method)</a>
-</li>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.optimisation_nearly_converged">(autode.wrappers.MOPAC.MOPAC method)</a>
-</li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.optimisation_nearly_converged">(autode.wrappers.NWChem.NWChem method)</a>
-</li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.optimisation_nearly_converged">(autode.wrappers.ORCA.ORCA method)</a>
-</li>
-        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.optimisation_nearly_converged">(autode.wrappers.XTB.XTB method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/conformers/conformer.html#autode.conformers.conformer.Conformer.optimise">optimise() (autode.conformers.conformer.Conformer method)</a>
 
       <ul>
@@ -3282,9 +3209,25 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser">Optimiser (class in autode.opt.optimisers.base)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.optimiser_from">optimiser_from() (autode.wrappers.G09.G09 method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.optimiser_from">(autode.wrappers.MOPAC.MOPAC method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.optimiser_from">(autode.wrappers.ORCA.ORCA method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.optimiser_from">(autode.wrappers.XTB.XTB method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.OptKeywords">OptKeywords (class in autode.wrappers.keywords)</a>
 </li>
+      <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.OptTSKeywords">OptTSKeywords (class in autode.wrappers.keywords)</a>
+</li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA">ORCA (class in autode.wrappers.ORCA)</a>
+</li>
+      <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCAOptimiser">ORCAOptimiser (class in autode.wrappers.ORCA)</a>
 </li>
       <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.origin">origin (autode.pes.pes_nd.PESnD property)</a>
 </li>
@@ -3292,6 +3235,18 @@ title="Fullscreen mode"
 
       <ul>
         <li><a href="reference/smiles/angles.html#autode.smiles.angles.SDihedrals.origins">(autode.smiles.angles.SDihedrals property)</a>
+</li>
+      </ul></li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.output_filename_for">output_filename_for() (autode.wrappers.G09.G09 static method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.output_filename_for">(autode.wrappers.MOPAC.MOPAC static method)</a>
+</li>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.output_filename_for">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.output_filename_for">(autode.wrappers.ORCA.ORCA static method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.output_filename_for">(autode.wrappers.XTB.XTB static method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -3306,12 +3261,22 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.Parser">Parser (class in autode.smiles.parser)</a>
 </li>
-      <li><a href="reference/neb/ci.html#autode.neb.ci.CINEB.partition">partition() (autode.neb.ci.CINEB method)</a>
+      <li><a href="reference/species/species.html#autode.species.species.Species.partial_charges">partial_charges (autode.species.species.Species property)</a>
+</li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.partial_charges_from">partial_charges_from() (autode.wrappers.G09.G09 method)</a>
 
       <ul>
-        <li><a href="reference/neb/original.html#autode.neb.original.NEB.partition">(autode.neb.original.NEB method)</a>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.partial_charges_from">(autode.wrappers.MOPAC.MOPAC method)</a>
+</li>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.partial_charges_from">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.partial_charges_from">(autode.wrappers.ORCA.ORCA method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.partial_charges_from">(autode.wrappers.XTB.XTB method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/neb/original.html#autode.neb.original.NEB.partition">partition() (autode.neb.original.NEB method)</a>
+</li>
       <li><a href="reference/pes/mep.html#autode.pes.mep.peak_point">peak_point() (in module autode.pes.mep)</a>
 </li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.PentagonalBipyramidalAtom">PentagonalBipyramidalAtom (class in autode.smiles.atom_types)</a>
@@ -3356,22 +3321,16 @@ title="Fullscreen mode"
         <li><a href="reference/species/species.html#autode.species.species.Species.populate_conformers">(autode.species.species.Species method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/values.html#autode.values.PotentialEnergy">PotentialEnergy (class in autode.values)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOOptimiser">PRFOOptimiser (class in autode.opt.optimisers.prfo)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOptimiser">PRFOptimiser (class in autode.opt.optimisers.prfo)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive">Primitive (class in autode.opt.coordinates.primitives)</a>
 </li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.print_added_internals">print_added_internals() (in module autode.wrappers.G09)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.print_added_internals">(in module autode.wrappers.NWChem)</a>
+      <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_added_internals">print_added_internals() (in module autode.wrappers.ORCA)</a>
 </li>
-        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_added_internals">(in module autode.wrappers.ORCA)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.print_atoms">print_atoms() (in module autode.wrappers.MOPAC)</a>
 </li>
       <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.print_cartesian_constraints">print_cartesian_constraints() (autode.wrappers.XTB.XTB method)</a>
@@ -3380,15 +3339,7 @@ title="Fullscreen mode"
         <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_cartesian_constraints">(in module autode.wrappers.ORCA)</a>
 </li>
       </ul></li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.print_constraints">print_constraints() (in module autode.wrappers.G09)</a>
-
-      <ul>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.print_constraints">(in module autode.wrappers.NWChem)</a>
-</li>
-      </ul></li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_coordinates">print_coordinates() (in module autode.wrappers.ORCA)</a>
-</li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.print_custom_basis">print_custom_basis() (in module autode.wrappers.G09)</a>
 </li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_default_params">print_default_params() (in module autode.wrappers.ORCA)</a>
 </li>
@@ -3398,8 +3349,6 @@ title="Fullscreen mode"
         <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_distance_constraints">(in module autode.wrappers.ORCA)</a>
 </li>
       </ul></li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.print_final_output_lines">print_final_output_lines() (autode.calculation.Calculation method)</a>
-</li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.print_geometries">print_geometries() (autode.neb.original.NEB method)</a>
 </li>
       <li><a href="reference/transition_states/transition_state.html#autode.transition_states.transition_state.TransitionState.print_imag_vector">print_imag_vector() (autode.transition_states.transition_state.TransitionState method)</a>
@@ -3410,11 +3359,9 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.print_point_charge_file">print_point_charge_file() (autode.wrappers.XTB.XTB static method)</a>
 </li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.print_point_charges">print_point_charges() (in module autode.wrappers.G09)</a>
+      <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.print_point_charges">print_point_charges() (in module autode.wrappers.MOPAC)</a>
 
       <ul>
-        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.print_point_charges">(in module autode.wrappers.MOPAC)</a>
-</li>
         <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_point_charges">(in module autode.wrappers.ORCA)</a>
 </li>
       </ul></li>
@@ -3457,7 +3404,11 @@ title="Fullscreen mode"
       <li><a href="reference/solvent/explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent.randomise_around">randomise_around() (autode.solvent.explicit_solvent.ExplicitSolvent method)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.raw">raw (autode.opt.coordinates.base.OptCoordinates property)</a>
+
+      <ul>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.raw">(autode.opt.coordinates.dic.DICWithConstraints property)</a>
 </li>
+      </ul></li>
       <li><a href="reference/exceptions.html#autode.exceptions.RDKitFailed">RDKitFailed</a>
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.reac_graph_to_prod_graph">reac_graph_to_prod_graph() (in module autode.mol_graphs)</a>
@@ -3496,25 +3447,25 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.reorder_nodes">reorder_nodes() (in module autode.mol_graphs)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/utils.html#autode.utils.requires_atoms">requires_atoms() (in module autode.utils)</a>
 </li>
       <li><a href="reference/utils.html#autode.utils.requires_conformers">requires_conformers() (in module autode.utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/utils.html#autode.utils.requires_graph">requires_graph() (in module autode.utils)</a>
 </li>
       <li><a href="reference/utils.html#autode.utils.requires_hl_level_methods">requires_hl_level_methods() (in module autode.utils)</a>
 </li>
       <li><a href="reference/utils.html#autode.utils.requires_output">requires_output() (in module autode.utils)</a>
 </li>
-      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.rerun_angle_failure">rerun_angle_failure() (in module autode.wrappers.G09)</a>
+      <li><a href="reference/utils.html#autode.utils.requires_output_to_exist">requires_output_to_exist() (in module autode.utils)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.reset_graph">reset_graph() (autode.species.species.Species method)</a>
 </li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.AtomType.reset_onto">reset_onto() (autode.smiles.atom_types.AtomType method)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOOptimiser">RFOOptimiser (class in autode.opt.optimisers.rfo)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOptimiser">RFOptimiser (class in autode.opt.optimisers.rfo)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.TrustRegionOptimiser.rho">rho (autode.opt.optimisers.trust_region.TrustRegionOptimiser property)</a>
 </li>
@@ -3532,8 +3483,6 @@ title="Fullscreen mode"
         <li><a href="reference/species/species.html#autode.species.species.Species.rotate">(autode.species.species.Species method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/geom.html#autode.geom.rotate_columns">rotate_columns() (in module autode.geom)</a>
-</li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.AtomType.rotate_empty_onto">rotate_empty_onto() (autode.smiles.atom_types.AtomType method)</a>
 </li>
       <li><a href="reference/species/complex.html#autode.species.complex.Complex.rotate_mol">rotate_mol() (autode.species.complex.Complex method)</a>
@@ -3542,12 +3491,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.AtomType.rotate_randomly">rotate_randomly() (autode.smiles.atom_types.AtomType method)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.run">run() (autode.calculation.Calculation method)</a>
-
-      <ul>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.run">(autode.opt.optimisers.base.Optimiser method)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.run">run() (autode.opt.optimisers.base.Optimiser method)</a>
 </li>
-      </ul></li>
       <li><a href="reference/transition_states/ts_guess.html#autode.transition_states.ts_guess.TSguess.run_constrained_opt">run_constrained_opt() (autode.transition_states.ts_guess.TSguess method)</a>
 </li>
       <li><a href="reference/utils.html#autode.utils.run_external">run_external() (in module autode.utils)</a>
@@ -3568,9 +3513,11 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.SArmijoLineSearch">SArmijoLineSearch (class in autode.opt.optimisers.line_search)</a>
 </li>
-      <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.save">save() (autode.pes.pes_nd.PESnD method)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.save">save() (autode.opt.optimisers.base.NDOptimiser method)</a>
 
       <ul>
+        <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.save">(autode.pes.pes_nd.PESnD method)</a>
+</li>
         <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.TStemplate.save">(autode.transition_states.templates.TStemplate method)</a>
 </li>
       </ul></li>
@@ -3586,8 +3533,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SDihedrals">SDihedrals (class in autode.smiles.angles)</a>
 </li>
-      <li><a href="reference/mol_graphs.html#autode.mol_graphs.set_active_mol_graph">set_active_mol_graph() (in module autode.mol_graphs)</a>
-</li>
       <li><a href="reference/smiles/builder.html#autode.smiles.builder.Builder.set_atoms_bonds">set_atoms_bonds() (autode.smiles.builder.Builder method)</a>
 </li>
       <li><a href="reference/substitution.html#autode.substitution.SubstitutionCentre.set_attack_r0">set_attack_r0() (autode.substitution.SubstitutionCentre method)</a>
@@ -3602,7 +3547,7 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.set_g_at">set_g_at() (autode.opt.coordinates.dimer.DimerCoordinates method)</a>
 </li>
-      <li><a href="reference/mol_graphs.html#autode.mol_graphs.set_graph_attributes">set_graph_attributes() (in module autode.mol_graphs)</a>
+      <li><a href="reference/values.html#autode.values.Energy.set_method_str">set_method_str() (autode.values.Energy method)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.KeywordsSet.set_opt_basis_set">set_opt_basis_set() (autode.wrappers.keywords.KeywordsSet method)</a>
 </li>
@@ -3622,10 +3567,10 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.SinglePointKeywords">SinglePointKeywords (class in autode.wrappers.keywords)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.Parser.smiles">smiles (autode.smiles.parser.Parser property)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESAtom">SMILESAtom (class in autode.smiles.base)</a>
 </li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESBond">SMILESBond (class in autode.smiles.base)</a>
@@ -3665,6 +3610,8 @@ title="Fullscreen mode"
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.SquarePlanarAtom">SquarePlanarAtom (class in autode.smiles.atom_types)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.SR1Update">SR1Update (class in autode.opt.optimisers.hessian_update)</a>
+</li>
+      <li><a href="reference/utils.html#autode.utils.StringDict">StringDict (class in autode.utils)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.strip_equiv_bond_rearrs">strip_equiv_bond_rearrs() (in module autode.bond_rearrangement)</a>
 </li>
@@ -3706,8 +3653,18 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.TerminalAtom">TerminalAtom (class in autode.smiles.atom_types)</a>
 </li>
-      <li><a href="reference/calculation.html#autode.calculation.Calculation.terminated_normally">terminated_normally (autode.calculation.Calculation property)</a>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.terminated_normally_in">terminated_normally_in() (autode.wrappers.G09.G09 method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.terminated_normally_in">(autode.wrappers.MOPAC.MOPAC method)</a>
 </li>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.terminated_normally_in">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.terminated_normally_in">(autode.wrappers.ORCA.ORCA method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.terminated_normally_in">(autode.wrappers.XTB.XTB method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESStereoChem.TET_INVERTED">TET_INVERTED (autode.smiles.base.SMILESStereoChem attribute)</a>
 </li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESStereoChem.TET_NORMAL">TET_NORMAL (autode.smiles.base.SMILESStereoChem attribute)</a>
@@ -3747,6 +3704,8 @@ title="Fullscreen mode"
       <li><a href="reference/species/molecule.html#autode.species.molecule.Molecule.to_reactant">to_reactant() (autode.species.molecule.Molecule method)</a>
 </li>
       <li><a href="reference/species/complex.html#autode.species.complex.ProductComplex.to_reactant_complex">to_reactant_complex() (autode.species.complex.ProductComplex method)</a>
+</li>
+      <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keywords.tolist">tolist() (autode.wrappers.keywords.Keywords method)</a>
 </li>
       <li><a href="reference/neb/original.html#autode.neb.original.total_energy">total_energy() (in module autode.neb.original)</a>
 </li>
@@ -3802,11 +3761,13 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.UnsupportedCalculationInput">UnsupportedCalculationInput</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g">update_g_from_cart_g() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h">update_h_from_cart_h() (autode.opt.coordinates.base.OptCoordinates method)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.update_lagrange_multipliers">update_lagrange_multipliers() (autode.opt.coordinates.dic.DICWithConstraints method)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater.updated_h">updated_h (autode.opt.optimisers.hessian_update.HessianUpdater property)</a>
 </li>
@@ -3834,14 +3795,30 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SAngles.values">values() (autode.smiles.angles.SAngles method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/atoms.html#autode.atoms.vdw_radii">vdw_radii (in module autode.atoms)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atom.vdw_radius">vdw_radius (autode.atoms.Atom property)</a>
+
+      <ul>
+        <li><a href="reference/atoms.html#autode.atoms.DummyAtom.vdw_radius">(autode.atoms.DummyAtom property)</a>
 </li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/atoms.html#autode.atoms.Atoms.vector">vector() (autode.atoms.Atoms method)</a>
 </li>
+      <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.version_in">version_in() (autode.wrappers.G09.G09 method)</a>
+
+      <ul>
+        <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.version_in">(autode.wrappers.MOPAC.MOPAC method)</a>
+</li>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.version_in">(autode.wrappers.NWChem.NWChem method)</a>
+</li>
+        <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.version_in">(autode.wrappers.ORCA.ORCA method)</a>
+</li>
+        <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.version_in">(autode.wrappers.XTB.XTB method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/species/species.html#autode.species.species.Species.vib_frequencies">vib_frequencies (autode.species.species.Species property)</a>
 
       <ul>
@@ -3894,13 +3871,17 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.x2">x2 (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.x_at">x_at() (autode.opt.coordinates.dimer.DimerCoordinates method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB">XTB (class in autode.wrappers.XTB)</a>
 </li>
+      <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTBOptimiser">XTBOptimiser (class in autode.wrappers.XTB)</a>
+</li>
       <li><a href="reference/input_output.html#autode.input_output.xyz_file_to_atoms">xyz_file_to_atoms() (in module autode.input_output)</a>
+</li>
+      <li><a href="reference/input_output.html#autode.input_output.xyz_file_to_molecules">xyz_file_to_molecules() (in module autode.input_output)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.XYZfileDidNotExist">XYZfileDidNotExist</a>
 </li>
@@ -3932,6 +3913,8 @@ title="Fullscreen mode"
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.zero_lagrangian_multipliers">zero_lagrangian_multipliers() (autode.opt.coordinates.dic.DICWithConstraints method)</a>
+</li>
       <li><a href="reference/species/species.html#autode.species.species.Species.zpe">zpe (autode.species.species.Species property)</a>
 </li>
   </ul></td>
