@@ -143,13 +143,15 @@ def work_in(dir_ext: str):
                 os.mkdir(dir_path)
 
             os.chdir(dir_path)
-            result = func(*args, **kwargs)
-            os.chdir(here)
+            try:
+                result = func(*args, **kwargs)
+            finally:
+                os.chdir(here)
 
-            if len(os.listdir(dir_path)) == 0:
-                logger.warning(f'Worked in {dir_path} but made no files '
-                               f'- deleting')
-                os.rmdir(dir_path)
+                if len(os.listdir(dir_path)) == 0:
+                    logger.warning(f'Worked in {dir_path} but made no files '
+                                   f'- deleting')
+                    os.rmdir(dir_path)
 
             return result
 
@@ -204,20 +206,23 @@ def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
             # Move directories and execute
             os.chdir(tmpdir_path)
 
-            logger.info('Function   ...running')
-            result = func(*args, **kwargs)
-            logger.info('           ...done')
+            try:
+                logger.info('Function   ...running')
+                result = func(*args, **kwargs)
+                logger.info('           ...done')
 
-            for filename in os.listdir(tmpdir_path):
+                for filename in os.listdir(tmpdir_path):
 
-                if any([filename.endswith(ext) for ext in kept_file_exts]):
-                    logger.info(f'Copying back {filename}')
-                    shutil.copy(filename, here)
+                    if any([filename.endswith(ext) for ext in kept_file_exts]):
+                        logger.info(f'Copying back {filename}')
+                        shutil.copy(filename, here)
 
-            os.chdir(here)
+            finally:
+                os.chdir(here)
 
-            logger.info('Removing temporary directory')
-            shutil.rmtree(tmpdir_path)
+                logger.info('Removing temporary directory')
+                shutil.rmtree(tmpdir_path)
+
             return result
 
         return wrapped_function
