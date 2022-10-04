@@ -231,7 +231,9 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
         return XTB.output_filename_for(calc)
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
-        return XTB.generate_input_for(self, calc)
+
+        calc.molecule.print_xyz_file(filename=calc.input.filename)
+        return None
 
     def __repr__(self):
         return XTB.__repr__(self)
@@ -314,4 +316,23 @@ def test_xtb_did_not_terminate_normally_with_blank_output():
     assert not calc.method.terminated_normally_in(calc)
 
 
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_ade_opt_rerun_with_different_input_skip_saved_opt():
 
+    def run_calc(_mol):
+        calc = Calculation(name="water",
+                           molecule=_mol,
+                           method=XTBautodEOpt(),
+                           keywords=OptKeywords())
+        calc.run()
+
+    mol = Molecule(smiles="O")
+    run_calc(mol)
+
+    unconstrained_energy = mol.energy.copy()
+
+    mol.constraints.distance = {(0, 1): 0.9}
+    run_calc(mol)
+
+    assert mol.energy != unconstrained_energy

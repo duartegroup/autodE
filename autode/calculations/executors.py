@@ -325,6 +325,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
 
         self.etol = PotentialEnergy(3E-5, units="Ha")
         self.gtol = GradientRMS(1E-3, units="Ha Å^-1")  # TODO: A better number here
+        self._fix_unique()
 
     def run(self) -> None:
         """Run an optimisation with using default autodE optimisers"""
@@ -339,7 +340,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         type_ = PRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
 
         self.optimiser = type_(
-            init_alpha=0.1,
+            init_alpha=0.1,  # Å
             maxiter=self._max_opt_cycles,
             etol=self.etol,
             gtol=self.gtol,
@@ -404,7 +405,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         """Get the maximum num of optimisation cycles for this calculation"""
         try:
             return next(int(kwd) for kwd in self.input.keywords 
-                    if isinstance(kwd, kws.MaxOptCycles))
+                        if isinstance(kwd, kws.MaxOptCycles))
         except StopIteration:
             return 30
 
