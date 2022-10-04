@@ -536,3 +536,10 @@ def test_fix_unique_with_resigter():
 
     # Reset the environment
     os.environ['AUTODE_FIXUNIQUE'] = env_var
+
+
+def test_non_external_io_method_can_force_cleanup():
+
+    calc = _test_calc()
+    # No exceptions should be raised
+    calc.clean_up(force=True, everything=True)
