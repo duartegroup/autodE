@@ -92,3 +92,4 @@ If **autodE** is used in a publication please consider citing the [paper](https:
 - Kjell Jorner ([@kjelljorner](https://github.com/kjelljorner))
 - Thibault Lestang ([@tlestang](https://github.com/tlestang))
 - Domen Pregeljc ([@dpregeljc](https://github.com/dpregeljc))
+- Jonathon Vandezande ([@jevandezande](https://github.com/jevandezande))
