@@ -172,6 +172,9 @@ class CalculationExecutor:
                  everything: bool = False
                  ) -> None:
 
+        if not self.method.uses_external_io:  # Then there are no i/o files
+            return None
+
         if Config.keep_input_files and not force:
             logger.info('Keeping input files')
             return None
