@@ -3,7 +3,7 @@ import autode as ade
 import pytest
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def autouse_fixture():
     """Fixture to execute before and after a test is run"""
 

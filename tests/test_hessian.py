@@ -189,6 +189,8 @@ def test_hessian_scaled_freqs():
 
 def test_hessian_scale_factor():
 
+    Config.freq_scale_factor = None  # Unset.. 
+
     h2o = Molecule(smiles='O')
     hessian = Hessian(h2o_hessian_arr, atoms=h2o.atoms, functional=pbe0)
 
