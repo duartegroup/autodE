@@ -29,6 +29,20 @@ def test_clear_files():
     os.rmdir('test')
 
 
+def test_reset_dir_on_error():
+    @utils.work_in("tmp_path")
+    def raise_error():
+        assert 0
+
+    here = os.getcwd()
+    try:
+        raise_error()
+    except AssertionError:
+        pass
+
+    assert here == os.getcwd()
+
+
 def test_monitored_external():
 
     echo = ['echo', 'test']
@@ -75,6 +89,20 @@ def test_work_in_temp_dir():
 
     os.remove('echo_test.py')
     os.remove('test.txt')
+
+
+def test_reset_tmp_dir_on_error():
+    @utils.work_in_tmp_dir()
+    def raise_error():
+        assert 0
+
+    here = os.getcwd()
+    try:
+        raise_error()
+    except AssertionError:
+        pass
+
+    assert here == os.getcwd()
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])

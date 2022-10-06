@@ -1,3 +1,4 @@
+from autode import utils
 from autode.wrappers.NWChem import NWChem, ecp_block
 from autode.point_charges import PointCharge
 from autode.calculations import Calculation
@@ -17,6 +18,7 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 test_mol = Molecule(name='methane', smiles='C')
 method = NWChem()
+method.path = here  # spoof install
 
 opt_keywords = OptKeywords(['basis\n  *   library Def2-SVP\nend',
                             'dft\n   xc xpbe96 cpbe96\nend',
@@ -24,9 +26,10 @@ opt_keywords = OptKeywords(['basis\n  *   library Def2-SVP\nend',
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
+# @utils.work_in("tmp")
 def test_opt_calc():
 
-    calc = Calculation(name='opt', molecule=test_mol, method=method,
+    calc = Calculation(name='opt', molecule=test_mol, method=NWChem(),
                        keywords=opt_keywords)
     calc.run()
 
@@ -160,7 +163,6 @@ def test_hessian_extract_butane():
 @testutils.work_in_zipped_dir(os.path.join(here, 'data', 'nwchem.zip'))
 def test_hf_calculation():
 
-
     h2o = Molecule(smiles='O', name='H2O')
     hf_kwds = [def2svp, 'task scf']
 
@@ -169,7 +171,7 @@ def test_hf_calculation():
 
     assert h2o.energy is not None
 
-    # Solvation is unavalible with HF in v <7.0.2
+    #  Solvation is unavalible with HF in v <7.0.2
     h2o_in_water = Molecule(smiles='O', name='H2O_solv', solvent_name='water')
    
     with pytest.raises(CalculationException): 
