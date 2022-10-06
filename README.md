@@ -11,7 +11,7 @@ Python wrappers for a range of electronic structure theory codes, SMILES parsing
 
 
 ### Dependencies
-* [Python](https://www.python.org/) > v. 3.6
+* [Python](https://www.python.org/) > v. 3.7
 * One of:
    * [ORCA](https://sites.google.com/site/orcainputlibrary/home/) > v. 4.0
    * [Gaussian09](https://gaussian.com/glossary/g09/)
