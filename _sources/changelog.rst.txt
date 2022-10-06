@@ -2,6 +2,20 @@ Changelog
 =========
 
 
+1.3.1
+--------
+----------
+
+Bugfix release.
+
+
+Bug Fixes
+*********
+- Fixes behaviour of :code:`autode.utils.work_in_tmp_dir` and :code:`autode.utils.work_in` decorators
+- Fixes an exception being raised when :code:`autode.Calculation.clean_up` is called with a method that doesn't implement external I/O
+- Fixes autodE driven optimisations skipping execution when the input but not name changes
+
+
 1.3.0
 --------
 ----------
