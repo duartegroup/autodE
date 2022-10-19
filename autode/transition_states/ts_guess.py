@@ -136,10 +136,13 @@ class TSguess(TSbase):
             (autode.transition_states.ts_guess.TSguess): TS guess
         """
 
-        ts_guess = cls(atoms=species.atoms,
-                       charge=species.charge,
-                       mult=species.mult,
-                       name=f'ts_guess_{species.name}')
+        ts_guess = cls(
+            atoms=species.atoms,
+            charge=species.charge,
+            mult=species.mult,
+            name=f'ts_guess_{species.name}',
+            solvent_name=None if species.solvent is None else species.solvent.name
+        )
 
         return ts_guess
 
