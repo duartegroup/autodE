@@ -1,6 +1,17 @@
 Changelog
 =========
 
+1.3.2
+--------
+----------
+
+Bugfix release.
+
+
+Bug Fixes
+*********
+- :code:`autode.transition_states.ts_guess.TSguess.from_species` now inherits solvent from the species
+
 
 1.3.1
 --------
