@@ -20,7 +20,7 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
                         extra_link_args=["-std=c++11"])]
 
 setup(name='autode',
-      version='1.3.1',
+      version='1.3.2',
       python_requires='>3.7',
       packages=['autode',
                 'autode.conformers',
