@@ -375,7 +375,7 @@ def test_hessian_scaled_freqs():
     Config.freq_scale_factor = 0.9
     h2o.hessian = h2o_hessian_arr
 
-    assert np.isclose(0.9 * nu_no_scaling, h2o.hessian.frequencies_proj[-1])
+    assert np.isclose(0.9 * nu_no_scaling, h2o.hessian.frequencies_proj[-1], atol=0.1)
 
     Config.freq_scale_factor = None
 
