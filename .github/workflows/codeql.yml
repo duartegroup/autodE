@@ -19,6 +19,9 @@ jobs:
         with:
           languages: python, cpp
 
+      - name: Install build requirements
+        run: pip install cython
+
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2
 
