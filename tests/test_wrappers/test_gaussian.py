@@ -31,7 +31,8 @@ optts_keywords = OptKeywords(
     [
         "PBE1PBE/Def2SVP",
         "Freq",
-        "Opt=(TS, CalcFC, NoEigenTest, " "MaxCycles=100, MaxStep=10, NoTrustUpdate)",
+        "Opt=(TS, CalcFC, NoEigenTest, "
+        "MaxCycles=100, MaxStep=10, NoTrustUpdate)",
     ]
 )
 
@@ -49,14 +50,21 @@ def test_printing_ecp():
     # Light elements should not default to ECPs
     assert _n_ecp_elements(keywords, molecule=Molecule(smiles="O")) == 0
     # no ECP keywords -> no elements needing an ECP
-    assert _n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol) == 0
+    assert (
+        _n_ecp_elements(kwds.OptKeywords(keyword_list=[]), molecule=tmp_mol)
+        == 0
+    )
 
-    calc_input = CalculationInput(keywords, added_internals=None, point_charges=None)
+    calc_input = CalculationInput(
+        keywords, added_internals=None, point_charges=None
+    )
 
     with pytest.raises(RuntimeError):
         _print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
 
-    calc_input.keywords = kwds.OptKeywords(keyword_list=[pbe0, def2tzvp, def2tzecp])
+    calc_input.keywords = kwds.OptKeywords(
+        keyword_list=[pbe0, def2tzvp, def2tzecp]
+    )
     _print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
     assert os.path.exists("basis.gbs")
 
@@ -109,7 +117,10 @@ def test_get_gradients():
     )
 
     calc = Calculation(
-        name="ester", molecule=ester, method=method, keywords=method.keywords.opt
+        name="ester",
+        molecule=ester,
+        method=method,
+        keywords=method.keywords.opt,
     )
     calc.set_output_filename("ester_opt_g09.log")
 
@@ -125,7 +136,10 @@ def test_gauss_opt_calc():
         name="CH3Cl", smiles="[H]C([H])(Cl)[H]", solvent_name="water"
     )
     calc = Calculation(
-        name="opt", molecule=methylchloride, method=method, keywords=opt_keywords
+        name="opt",
+        molecule=methylchloride,
+        method=method,
+        keywords=opt_keywords,
     )
     calc.run()
 
@@ -203,7 +217,10 @@ def test_gauss_optts_calc():
 def test_bad_gauss_output():
 
     calc = Calculation(
-        name="no_output", molecule=test_mol, method=method, keywords=opt_keywords
+        name="no_output",
+        molecule=test_mol,
+        method=method,
+        keywords=opt_keywords,
     )
     calc.output_file_lines = []
     calc.rev_output_file_lines = []
@@ -245,7 +262,9 @@ def test_constraints():
     calc.run()
     opt_atoms = calc.get_final_atoms()
 
-    assert 1.199 < np.linalg.norm(opt_atoms[0].coord - opt_atoms[1].coord) < 1.201
+    assert (
+        1.199 < np.linalg.norm(opt_atoms[0].coord - opt_atoms[1].coord) < 1.201
+    )
 
     b = test_mol.copy()
     b.constraints.cartesian = [0]
@@ -396,7 +415,10 @@ def test_xtb_optts():
     )
 
     calc = Calculation(
-        name="tmp", molecule=orca_ts, method=g09, keywords=OptKeywords(kwd_list)
+        name="tmp",
+        molecule=orca_ts,
+        method=g09,
+        keywords=OptKeywords(kwd_list),
     )
     calc.run()
 

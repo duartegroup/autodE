@@ -36,7 +36,9 @@ def test_plot_reaction_profile():
     reaction = Reaction(r, p)
     reaction.ts = ts
 
-    plotting.plot_reaction_profile(reactions=[reaction], units=KjMol, name="test")
+    plotting.plot_reaction_profile(
+        reactions=[reaction], units=KjMol, name="test"
+    )
 
     assert os.path.exists("test_reaction_profile.pdf")
     os.remove("test_reaction_profile.pdf")
@@ -169,7 +171,9 @@ def test_edge_case_plot():
 
     # But should be able to just plot the points connected by lines
     fig, ax = plt.subplots()
-    plotting.plot_points(zi_s=np.array([0, 1, 2, 3, 4]), energies=energies, ax=ax)
+    plotting.plot_points(
+        zi_s=np.array([0, 1, 2, 3, 4]), energies=energies, ax=ax
+    )
     plt.close()
 
 
@@ -193,7 +197,9 @@ def test_stat_point_minimisation():
 
         assert result.success
 
-        spline = interpolate.CubicSpline([0, 1, 2, 3, 4], result.x, bc_type="clamped")
+        spline = interpolate.CubicSpline(
+            [0, 1, 2, 3, 4], result.x, bc_type="clamped"
+        )
         fine_zi_s = np.linspace(-0.2, 5.2, num=500)
         stationary_points = plotting.get_stationary_points(
             xs=fine_zi_s, dydx=spline.derivative()

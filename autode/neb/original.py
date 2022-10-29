@@ -58,7 +58,9 @@ def _est_energy_gradient(image, est_method, n_cores):
 
 
 def _idpp_energy_gradient(
-    image: "autode.neb.original.Image", idpp: "autode.neb.idpp.IDPP", n_cores: int
+    image: "autode.neb.original.Image",
+    idpp: "autode.neb.idpp.IDPP",
+    n_cores: int,
 ) -> "autode.neb.original.Image":
     """
     Evaluate the energy and gradient of an image using an image dependent
@@ -99,7 +101,9 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
     # Run an energy + gradient evaluation in parallel across all images
     with Pool(processes=n_cores) as pool:
         results = [
-            pool.apply_async(func=energy_gradient, args=(images[i], method, n_cores_pp))
+            pool.apply_async(
+                func=energy_gradient, args=(images[i], method, n_cores_pp)
+            )
             for i in range(1, len(images) - 1)
         ]
 
@@ -162,7 +166,9 @@ class Image:
         self.grad: Optional[np.ndarray] = None
 
     def _tau_xl_x_xr(
-        self, im_l: "autode.neb.original.Image", im_r: "autode.neb.original.Image"
+        self,
+        im_l: "autode.neb.original.Image",
+        im_r: "autode.neb.original.Image",
     ) -> tuple:
         """
         Calculate the normalised τ vector, along with the coordinates of the
@@ -179,12 +185,14 @@ class Image:
 
         # ΔV_i^max
         dv_max = max(
-            np.abs(im_r.energy - self.energy), np.abs(im_l.energy - self.energy)
+            np.abs(im_r.energy - self.energy),
+            np.abs(im_l.energy - self.energy),
         )
 
         # ΔV_i^min
         dv_min = min(
-            np.abs(im_r.energy - self.energy), np.abs(im_l.energy - self.energy)
+            np.abs(im_r.energy - self.energy),
+            np.abs(im_l.energy - self.energy),
         )
 
         # x_i-1,   x_i,   x_i+1
@@ -215,7 +223,9 @@ class Image:
         return tau / np.linalg.norm(tau), x_l, x, x_r
 
     def get_force(
-        self, im_l: "autode.neb.original.Image", im_r: "autode.neb.original.Image"
+        self,
+        im_l: "autode.neb.original.Image",
+        im_r: "autode.neb.original.Image",
     ) -> np.ndarray:
         """
         Compute F_i. Notation from:
@@ -312,7 +322,11 @@ class Images(Path):
         self, save=False, name="None", color=None, xlabel="NEB coordinate"
     ):
         """Plot the NEB surface"""
-        color = blues((self[0].iteration + 1) / 20) if color is None else str(color)
+        color = (
+            blues((self[0].iteration + 1) / 20)
+            if color is None
+            else str(color)
+        )
         super().plot_energies(save, name, color, xlabel)
 
     def coords(self):
@@ -415,7 +429,10 @@ class NEB:
 
             # TODO: test reasonableness of this function...
             # use a shifted tanh to interpolate in [0.005, 0.2005]
-            k = 0.1 * (np.tanh((max_de.to("kcal mol-1") - 40) / 20) + 1) + 0.005
+            k = (
+                0.1 * (np.tanh((max_de.to("kcal mol-1") - 40) / 20) + 1)
+                + 0.005
+            )
 
         if k is None:  # choose a sensible default
             k = 0.1
@@ -445,7 +462,9 @@ class NEB:
         return self.images.contains_peak
 
     def partition(
-        self, max_delta: Distance, distance_idxs: Optional[Sequence[int]] = None
+        self,
+        max_delta: Distance,
+        distance_idxs: Optional[Sequence[int]] = None,
     ) -> None:
         """
         Partition this NEB such that there are no distances between images
@@ -473,12 +492,18 @@ class NEB:
         for i, left_image in enumerate(self.images[:-1]):
             right_image = self.images[i + 1]
 
-            left_species, right_species = left_image.species, right_image.species
+            left_species, right_species = (
+                left_image.species,
+                right_image.species,
+            )
             sub_neb = NEB(species_list=[left_species, right_species])
 
             n = 2
 
-            while sub_neb._max_atom_distance_between_images(distance_idxs) > max_delta:
+            while (
+                sub_neb._max_atom_distance_between_images(distance_idxs)
+                > max_delta
+            ):
 
                 sub_neb.images = self._images_type(num=n, init_k=init_k)
                 sub_neb.images[0].species = left_species
@@ -501,7 +526,9 @@ class NEB:
         for i, image in enumerate(self.images):
             image.species = _list[i]
 
-        logger.info(f"Partition successful – now have {len(self.images)} " f"images")
+        logger.info(
+            f"Partition successful – now have {len(self.images)} " f"images"
+        )
         return None
 
     def _species_at(self, idx: int) -> "autode.species.Species":
@@ -539,7 +566,9 @@ class NEB:
         method: "autode.wrappers.methods.Method",
         n_cores: int,
         name_prefix: str = "",
-        etol_per_image: PotentialEnergy = PotentialEnergy(0.6, units="kcal mol-1"),
+        etol_per_image: PotentialEnergy = PotentialEnergy(
+            0.6, units="kcal mol-1"
+        ),
     ) -> None:
         """
         Optimise the NEB using forces calculated from electronic structure
@@ -566,9 +595,13 @@ class NEB:
             self.images[idx].grad = np.zeros(shape=self.images[idx].grad.shape)
 
         if isinstance(etol_per_image, PotentialEnergy):
-            etol_per_image = float(etol_per_image.to("Ha"))  # use float for scipy
+            etol_per_image = float(
+                etol_per_image.to("Ha")
+            )  # use float for scipy
 
-        result = self._minimise(method, n_cores, etol=etol_per_image * len(self.images))
+        result = self._minimise(
+            method, n_cores, etol=etol_per_image * len(self.images)
+        )
 
         # Set the optimised coordinates for all the images
         self.images.set_coords(result.x)

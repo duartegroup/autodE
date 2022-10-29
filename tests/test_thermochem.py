@@ -173,7 +173,9 @@ def test_acetylene():
     mol = Molecule("C2H2.xyz")
     assert np.isclose(mol.weight.to("amu"), 26.01565, atol=0.03)
 
-    calc = Calculation(name="tmp", molecule=mol, method=g09, keywords=g09.keywords.hess)
+    calc = Calculation(
+        name="tmp", molecule=mol, method=g09, keywords=g09.keywords.hess
+    )
     calc.set_output_filename("C2H2_hess_g09.log")
 
     # Calculate the thermochemical contributions in the same way as G09
@@ -201,9 +203,13 @@ def test_acetylene():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_sn2_ts():
 
-    ts = TransitionState(TSguess(atoms=xyz_file_to_atoms("TS_sn2.xyz"), charge=-1))
+    ts = TransitionState(
+        TSguess(atoms=xyz_file_to_atoms("TS_sn2.xyz"), charge=-1)
+    )
 
-    calc = Calculation(name="tmp", molecule=ts, method=g09, keywords=g09.keywords.hess)
+    calc = Calculation(
+        name="tmp", molecule=ts, method=g09, keywords=g09.keywords.hess
+    )
     calc.set_output_filename("TS_sn2.log")
 
     ts.calc_thermo(calc=calc, temp=298.15, ss="1atm", sn=1, lfm_method="igm")
@@ -229,7 +235,9 @@ def test_long_alkane():
     # Should be able to extract from just a .hess file
     calc.set_output_filename("alkane_hess_orca.hess")
 
-    mol.calc_thermo(calc=calc, temp=298.150, ss="1atm", lfm_method="grimme", sn=1)
+    mol.calc_thermo(
+        calc=calc, temp=298.150, ss="1atm", lfm_method="grimme", sn=1
+    )
 
     # Should be close to a previously computed value
     assert np.isclose(mol.g_cont.to("Ha"), 0.2113890180337356, atol=5.2e-4)

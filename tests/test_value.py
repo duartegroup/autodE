@@ -104,8 +104,12 @@ def test_energy():
     assert (e_kcal + e_ha) > 600
 
     # Comparisons are viable in different units
-    assert Energy(1 * Constants.ha_to_kcalmol, units=kcalmol) < Energy(2, units=ha)
-    assert Energy(1 * Constants.ha_to_kcalmol, units=kcalmol) > Energy(0.5, units=ha)
+    assert Energy(1 * Constants.ha_to_kcalmol, units=kcalmol) < Energy(
+        2, units=ha
+    )
+    assert Energy(1 * Constants.ha_to_kcalmol, units=kcalmol) > Energy(
+        0.5, units=ha
+    )
 
     # Math operations should not be in-place
     e1 = Energy(0.1)
@@ -117,13 +121,19 @@ def test_energy():
     assert Energy(1.0) == Energy(1.0)
     assert Energy(1.0) != Energy(1.1)
 
-    assert Energy(1.0, units=ha) == Energy(1.0 * Constants.ha_to_kcalmol, units=kcalmol)
-
-    assert np.isclose(
-        Energy(1.0, units=kcalmol), Energy(4.0, units=kjmol).to("kcal"), atol=0.5
+    assert Energy(1.0, units=ha) == Energy(
+        1.0 * Constants.ha_to_kcalmol, units=kcalmol
     )
 
-    assert np.isclose(Energy(27, units=ev), Energy(1, units=ha).to(ev), atol=0.5)
+    assert np.isclose(
+        Energy(1.0, units=kcalmol),
+        Energy(4.0, units=kjmol).to("kcal"),
+        atol=0.5,
+    )
+
+    assert np.isclose(
+        Energy(27, units=ev), Energy(1, units=ha).to(ev), atol=0.5
+    )
 
     assert (Energy(1.0) * 10.0) == 10
     assert (10.0 * Energy(1.0)) == 10

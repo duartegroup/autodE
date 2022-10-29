@@ -29,7 +29,9 @@ class TSbase(Species, ABC):
         name: str = "ts_guess",
         charge: int = 0,
         mult: int = 1,
-        bond_rearr: Optional["autode.bond_rearrangement.BondRearrangement"] = None,
+        bond_rearr: Optional[
+            "autode.bond_rearrangement.BondRearrangement"
+        ] = None,
         solvent_name: Optional[str] = None,
     ):
         """
@@ -96,9 +98,13 @@ class TSbase(Species, ABC):
 
         if self.reactant is not None:
 
-            if self.solvent is not None and self.reactant.solvent != self.solvent:
+            if (
+                self.solvent is not None
+                and self.reactant.solvent != self.solvent
+            ):
                 raise ValueError(
-                    "Reactant does not have the same solvent as " "the TS guess"
+                    "Reactant does not have the same solvent as "
+                    "the TS guess"
                 )
 
             if (
@@ -141,7 +147,8 @@ class TSbase(Species, ABC):
         """
         if self.bond_rearrangement is None:
             raise ValueError(
-                "Do not have a bond rearrangment - cannot " "check the imaginary mode"
+                "Do not have a bond rearrangment - cannot "
+                "check the imaginary mode"
             )
 
         if self.hessian is None:
@@ -152,7 +159,8 @@ class TSbase(Species, ABC):
 
         if imag_freqs is None:
             logger.warning(
-                "Hessian had no imaginary modes. Do not have the " "correct mode"
+                "Hessian had no imaginary modes. Do not have the "
+                "correct mode"
             )
             return False
 
@@ -208,7 +216,10 @@ class TSbase(Species, ABC):
         return False
 
     def imag_mode_has_correct_displacement(
-        self, disp_mag: float = 1.0, delta_threshold: float = 0.3, req_all: bool = True
+        self,
+        disp_mag: float = 1.0,
+        delta_threshold: float = 0.3,
+        req_all: bool = True,
     ) -> bool:
         """
         Check whether the imaginary mode in a calculation with a hessian forms
@@ -226,7 +237,8 @@ class TSbase(Species, ABC):
             (bool):
         """
         logger.info(
-            "Checking displacement on imaginary mode forms the correct" " bonds"
+            "Checking displacement on imaginary mode forms the correct"
+            " bonds"
         )
 
         f_species = displaced_species_along_mode(
@@ -238,8 +250,12 @@ class TSbase(Species, ABC):
         )
 
         # Be conservative with metal complexes - what even is a bond..
-        if imag_mode_generates_other_bonds(self, f_species, b_species, allow_mx=True):
-            logger.warning("Imaginary mode generates bonds that are not active")
+        if imag_mode_generates_other_bonds(
+            self, f_species, b_species, allow_mx=True
+        ):
+            logger.warning(
+                "Imaginary mode generates bonds that are not active"
+            )
             return False
 
         # Product could be either the forward displaced molecule or the
@@ -360,7 +376,9 @@ class TSbase(Species, ABC):
                     )
                     return False
 
-            if f_b_isomorphic_to_r_p(f_mol, b_mol, self.reactant, self.product):
+            if f_b_isomorphic_to_r_p(
+                f_mol, b_mol, self.reactant, self.product
+            ):
                 return True
 
         logger.info(f"Forwards displaced edges {f_mol.graph.edges}")
@@ -401,7 +419,8 @@ def displaced_species_along_mode(
     mode_disp_coords = species.normal_mode(mode_number)
     if mode_disp_coords is None:
         logger.error(
-            "Could not get a displaced species. No normal mode " "could be found"
+            "Could not get a displaced species. No normal mode "
+            "could be found"
         )
         return None
 
@@ -413,7 +432,10 @@ def displaced_species_along_mode(
     # for disp_factor = 1.0 Å
     for _ in range(20):
 
-        if np.max(np.linalg.norm(coords - disp_coords, axis=1)) < max_atom_disp:
+        if (
+            np.max(np.linalg.norm(coords - disp_coords, axis=1))
+            < max_atom_disp
+        ):
             break
 
         disp_coords -= (disp_factor / 20) * mode_disp_coords
@@ -459,7 +481,11 @@ def imag_mode_generates_other_bonds(
     for product in (f_species, b_species):
 
         new_bonds_in_product = set(
-            [bond for bond in product.graph.edges if bond not in _ts.graph.edges]
+            [
+                bond
+                for bond in product.graph.edges
+                if bond not in _ts.graph.edges
+            ]
         )
 
         if allow_mx:
@@ -477,7 +503,9 @@ def imag_mode_generates_other_bonds(
             set(br.active_atoms)
         ):
             logger.warning(f"New bonds in product: {new_bonds_in_product}")
-            logger.warning(f"Active bonds: {br.all}. Active atoms {br.active_atoms}")
+            logger.warning(
+                f"Active bonds: {br.all}. Active atoms {br.active_atoms}"
+            )
             return True
 
     logger.info("Imaginary mode does not generate any other unwanted bonds")
@@ -509,20 +537,25 @@ def f_b_isomorphic_to_r_p(
     """
 
     if any(mol.atoms is None for mol in (forwards, backwards)):
-        logger.warning("Atoms not set in the output. " "Cannot calculate isomorphisms")
+        logger.warning(
+            "Atoms not set in the output. " "Cannot calculate isomorphisms"
+        )
         return False
 
     if species_are_isomorphic(backwards, reactant) and species_are_isomorphic(
         forwards, product
     ):
-        logger.info("Forwards displacement lead to products " "and backwards reactants")
+        logger.info(
+            "Forwards displacement lead to products " "and backwards reactants"
+        )
         return True
 
     if species_are_isomorphic(forwards, reactant) and species_are_isomorphic(
         backwards, product
     ):
         logger.info(
-            "Backwards displacement lead to products " "and forwards to reactants"
+            "Backwards displacement lead to products "
+            "and forwards to reactants"
         )
         return True
 

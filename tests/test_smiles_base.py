@@ -1,6 +1,11 @@
 import pytest
 import autode.exceptions as ex
-from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem, RingBond
+from autode.smiles.base import (
+    SMILESAtom,
+    SMILESBond,
+    SMILESStereoChem,
+    RingBond,
+)
 
 
 def test_smiles_atom():

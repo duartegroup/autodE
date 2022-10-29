@@ -18,7 +18,11 @@ from autode.wrappers.keywords import pbe0
 from autode.transition_states.base import displaced_species_along_mode
 from autode.values import Distance
 from autode.wrappers.keywords import HessianKeywords, GradientKeywords
-from autode.hessians import Hessian, NumericalHessianCalculator, HybridHessianCalculator
+from autode.hessians import (
+    Hessian,
+    NumericalHessianCalculator,
+    HybridHessianCalculator,
+)
 
 here = os.path.dirname(os.path.abspath(__file__))
 Config.freq_scale_factor = 1.0
@@ -375,7 +379,9 @@ def test_hessian_scaled_freqs():
     Config.freq_scale_factor = 0.9
     h2o.hessian = h2o_hessian_arr
 
-    assert np.isclose(0.9 * nu_no_scaling, h2o.hessian.frequencies_proj[-1], atol=0.1)
+    assert np.isclose(
+        0.9 * nu_no_scaling, h2o.hessian.frequencies_proj[-1], atol=0.1
+    )
 
     Config.freq_scale_factor = None
 
@@ -471,9 +477,13 @@ def test_proj_modes():
 
     for mode_n, coords in zip((6, 7, 8), (bend_orca, symm_orca, asym_orca)):
 
-        bend_f = displaced_species_along_mode(h2o, mode_number=mode_n, disp_factor=0.5)
+        bend_f = displaced_species_along_mode(
+            h2o, mode_number=mode_n, disp_factor=0.5
+        )
 
-        bend_b = displaced_species_along_mode(h2o, mode_number=mode_n, disp_factor=-0.5)
+        bend_b = displaced_species_along_mode(
+            h2o, mode_number=mode_n, disp_factor=-0.5
+        )
 
         # Correct displacement could be either forwards or backwards
         assert (
@@ -495,7 +505,9 @@ def test_hessian_linear_freqs():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_gaussian_hessian_extract_h2():
 
-    h2 = ade.Molecule(atoms=[ade.Atom("H", x=0.3804), ade.Atom("H", x=-0.3804)])
+    h2 = ade.Molecule(
+        atoms=[ade.Atom("H", x=0.3804), ade.Atom("H", x=-0.3804)]
+    )
 
     calc = Calculation(
         name="tmp",
@@ -505,9 +517,13 @@ def test_gaussian_hessian_extract_h2():
     )
 
     calc.set_output_filename("H2_hess_g09.log")
-    assert np.isclose(h2.hessian.frequencies[-1], Frequency(4383.9811), atol=1.0)
+    assert np.isclose(
+        h2.hessian.frequencies[-1], Frequency(4383.9811), atol=1.0
+    )
 
-    assert np.isclose(h2.hessian.frequencies_proj[-1], Frequency(4383.9811), atol=1.0)
+    assert np.isclose(
+        h2.hessian.frequencies_proj[-1], Frequency(4383.9811), atol=1.0
+    )
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
@@ -551,11 +567,20 @@ def test_nwchem_hessian_extract_h2o():
     for freqs in (hessian.frequencies, hessian.frequencies_proj):
         assert sum(np.isclose(freq, 0.0, atol=15) for freq in freqs) == 6
 
-        assert sum(np.isclose(freq, Frequency(1642.78), atol=4) for freq in freqs) == 1
+        assert (
+            sum(np.isclose(freq, Frequency(1642.78), atol=4) for freq in freqs)
+            == 1
+        )
 
-        assert sum(np.isclose(freq, Frequency(3860.38), atol=4) for freq in freqs) == 1
+        assert (
+            sum(np.isclose(freq, Frequency(3860.38), atol=4) for freq in freqs)
+            == 1
+        )
 
-        assert sum(np.isclose(freq, Frequency(3959.20), atol=4) for freq in freqs) == 1
+        assert (
+            sum(np.isclose(freq, Frequency(3959.20), atol=4) for freq in freqs)
+            == 1
+        )
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
@@ -697,7 +722,9 @@ def test_h2_c_diff_hessian():
     analytic_hessian = h2.hessian.copy()
 
     h2.hessian = None  # Clear the analytic Hessian and calculate a numerical
-    h2.calc_hessian(method=ORCA(), numerical=True, use_central_differences=True)
+    h2.calc_hessian(
+        method=ORCA(), numerical=True, use_central_differences=True
+    )
 
     # Central differences should afford a very good Hessian cf. analytic
     assert np.allclose(analytic_hessian, h2.hessian, atol=1e-3)
@@ -818,7 +845,11 @@ def test_partial_water_num_hess():
     )
 
     calculator = HybridHessianCalculator(
-        water, idxs=(0,), shift=Distance(0.001, units="Å"), hmethod=orca, lmethod=XTB()
+        water,
+        idxs=(0,),
+        shift=Distance(0.001, units="Å"),
+        hmethod=orca,
+        lmethod=XTB(),
     )
     calculator.calculate()
     partial_hess = calculator.hessian

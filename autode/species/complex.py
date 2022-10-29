@@ -47,7 +47,9 @@ def get_complex_conformer_atoms(molecules, rotations, points):
         centroid = np.average(np.array([atom.coord for atom in atoms]), axis=0)
 
         # Shift to the origin and rotate randomly, by the same amount
-        theta, axis = np.random.uniform(-np.pi, np.pi), np.random.uniform(-1, 1, size=3)
+        theta, axis = np.random.uniform(-np.pi, np.pi), np.random.uniform(
+            -1, 1, size=3
+        )
         for atom in atoms:
             atom.translate(vec=-centroid)
             atom.rotate(axis, theta)
@@ -116,7 +118,8 @@ class Complex(Species):
         super().__init__(
             name=name,
             atoms=sum(
-                (deepcopy(mol.atoms) if copy else mol.atoms for mol in args), None
+                (deepcopy(mol.atoms) if copy else mol.atoms for mol in args),
+                None,
             ),
             charge=sum(mol.charge for mol in args),
             mult=sum(m.mult for m in args) - (len(args) - 1),
@@ -179,7 +182,9 @@ class Complex(Species):
             )
 
         first_index = sum([mol.n_atoms for mol in self._molecules[:mol_index]])
-        last_index = sum([mol.n_atoms for mol in self._molecules[: mol_index + 1]])
+        last_index = sum(
+            [mol.n_atoms for mol in self._molecules[: mol_index + 1]]
+        )
 
         return list(range(first_index, last_index))
 
@@ -221,14 +226,20 @@ class Complex(Species):
             n_points=Config.num_complex_sphere_points
         )
 
-        for _ in iterprod(range(Config.num_complex_random_rotations), repeat=n - 1):
+        for _ in iterprod(
+            range(Config.num_complex_random_rotations), repeat=n - 1
+        ):
             # Generate the rotation thetas and axes
-            rotations = [np.random.uniform(-np.pi, np.pi, size=4) for _ in range(n - 1)]
+            rotations = [
+                np.random.uniform(-np.pi, np.pi, size=4) for _ in range(n - 1)
+            ]
 
             for points in iterprod(points_on_sphere, repeat=n - 1):
 
                 conf = Conformer(
-                    name=f"{self.name}_conf{m}", charge=self.charge, mult=self.mult
+                    name=f"{self.name}_conf{m}",
+                    charge=self.charge,
+                    mult=self.mult,
                 )
                 conf.solvent = self.solvent
                 conf.atoms = get_complex_conformer_atoms(
@@ -239,7 +250,8 @@ class Complex(Species):
 
                 if m == Config.max_num_complex_conformers:
                     logger.warning(
-                        f"Generated the maximum number of complex " f"conformers ({m})"
+                        f"Generated the maximum number of complex "
+                        f"conformers ({m})"
                     )
                     return None
 
@@ -293,7 +305,9 @@ class Complex(Species):
                              translate molecule 1 in the complex
                              they are indexed from 0
         """
-        logger.info(f"Translating molecule {mol_index} by {vec} in {self.name}")
+        logger.info(
+            f"Translating molecule {mol_index} by {vec} in {self.name}"
+        )
 
         if mol_index not in set(range(self.n_molecules)):
             raise ValueError(
@@ -330,12 +344,14 @@ class Complex(Species):
                              they are indexed from 0
         """
         logger.info(
-            f"Rotating molecule {mol_index} by {theta:.4f} radians " f"in {self.name}"
+            f"Rotating molecule {mol_index} by {theta:.4f} radians "
+            f"in {self.name}"
         )
 
         if mol_index not in set(range(self.n_molecules)):
             raise ValueError(
-                f"Could not rotate molecule {mol_index} " "not present in this complex"
+                f"Could not rotate molecule {mol_index} "
+                "not present in this complex"
             )
 
         for atom_idx in self.atom_indexes(mol_index):
@@ -352,7 +368,9 @@ class Complex(Species):
 
         mol_indexes = self.atom_indexes(mol_index)
         mol_coords = [coords[i] for i in mol_indexes]
-        other_coords = [coords[i] for i in range(self.n_atoms) if i not in mol_indexes]
+        other_coords = [
+            coords[i] for i in range(self.n_atoms) if i not in mol_indexes
+        ]
 
         # Repulsion is the sum over all pairs 1/r^4
         distance_mat = distance_matrix(mol_coords, other_coords)
@@ -387,7 +405,8 @@ class Complex(Species):
             solvent = self._molecules[0].solvent
             if any(solvent != mol.solvent for mol in self._molecules):
                 raise AssertionError(
-                    "Cannot form a complex with molecules in " "different solvents"
+                    "Cannot form a complex with molecules in "
+                    "different solvents"
                 )
 
             return solvent

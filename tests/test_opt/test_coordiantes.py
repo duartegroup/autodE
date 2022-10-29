@@ -32,7 +32,8 @@ def test_inv_dist_primitives():
         inv_dist.derivative(0, CartesianComponent.x, x=x), 2 * inv_dist(x) ** 3
     )
     assert np.isclose(
-        inv_dist.derivative(1, CartesianComponent.x, x=x), -2 * inv_dist(x) ** 3
+        inv_dist.derivative(1, CartesianComponent.x, x=x),
+        -2 * inv_dist(x) ** 3,
     )
 
     # Derivatives with respect to zero components
@@ -50,9 +51,13 @@ def test_dist_primitives():
     inv_dist = Distance(0, 1)
     assert np.isclose(inv_dist(x), 2.0)
 
-    assert np.isclose(inv_dist.derivative(0, CartesianComponent.x, x=x), -2 / 2)
+    assert np.isclose(
+        inv_dist.derivative(0, CartesianComponent.x, x=x), -2 / 2
+    )
 
-    assert np.isclose(inv_dist.derivative(1, CartesianComponent.x, x=x), +2 / 2)
+    assert np.isclose(
+        inv_dist.derivative(1, CartesianComponent.x, x=x), +2 / 2
+    )
 
     for component in (CartesianComponent.y, CartesianComponent.z):
         assert np.isclose(inv_dist.derivative(1, component, x=x), 0)
@@ -301,7 +306,10 @@ def test_grad_transform_linear():
         diff = _x[0, 0] - _x[1, 0]
         r = np.linalg.norm(_x[0] - _x[1])
         return np.array(
-            [[k * (r - r0) * diff / r, 0.0, 0.0], [-k * (r - r0) * diff / r, 0.0, 0.0]]
+            [
+                [k * (r - r0) * diff / r, 0.0, 0.0],
+                [-k * (r - r0) * diff / r, 0.0, 0.0],
+            ]
         )
 
     def num_grad(_x, h=1e-8):
@@ -422,7 +430,11 @@ def test_hess_positive_definite_h2o():
     #                       Atom('H', 0.8, 0.1)])
 
     coords_arr = np.array(
-        [[0.0, -0.01118983, 0.0], [-0.8, 0.08881017, 0.0], [0.8, 0.08881017, 0.0]]
+        [
+            [0.0, -0.01118983, 0.0],
+            [-0.8, 0.08881017, 0.0],
+            [0.8, 0.08881017, 0.0],
+        ]
     ).flatten()
 
     coords = CartesianCoordinates(coords_arr)
@@ -437,14 +449,64 @@ def test_hess_positive_definite_h2o():
 
     coords.h = np.array(
         [
-            [11.2889, -0.0, -0.0, -5.6443, 0.8169, -0.0, -5.6443, -0.8169, 0.0],
+            [
+                11.2889,
+                -0.0,
+                -0.0,
+                -5.6443,
+                0.8169,
+                -0.0,
+                -5.6443,
+                -0.8169,
+                0.0,
+            ],
             [-0.0, -1.528, -0.0, 0.7692, 0.764, 0.0, -0.7692, 0.764, 0.0],
             [-0.0, -0.0, -1.783, -0.0, 0.0, 0.8915, 0.0, 0.0, 0.8915],
-            [-5.6435, 0.7689, -0.0, 5.5606, -0.7928, 0.0, 0.0828, 0.0238, -0.0],
-            [0.8167, 0.7641, 0.0, -0.7928, -0.6295, -0.0, -0.0238, -0.1346, -0.0],
+            [
+                -5.6435,
+                0.7689,
+                -0.0,
+                5.5606,
+                -0.7928,
+                0.0,
+                0.0828,
+                0.0238,
+                -0.0,
+            ],
+            [
+                0.8167,
+                0.7641,
+                0.0,
+                -0.7928,
+                -0.6295,
+                -0.0,
+                -0.0238,
+                -0.1346,
+                -0.0,
+            ],
             [-0.0, 0.0, 0.8915, 0.0, -0.0, -0.7441, 0.0, -0.0, -0.1474],
-            [-5.6435, -0.7689, 0.0, 0.0828, -0.0238, 0.0, 5.5606, 0.7928, -0.0],
-            [-0.8167, 0.7641, 0.0, 0.0238, -0.1346, -0.0, 0.7928, -0.6295, -0.0],
+            [
+                -5.6435,
+                -0.7689,
+                0.0,
+                0.0828,
+                -0.0238,
+                0.0,
+                5.5606,
+                0.7928,
+                -0.0,
+            ],
+            [
+                -0.8167,
+                0.7641,
+                0.0,
+                0.0238,
+                -0.1346,
+                -0.0,
+                0.7928,
+                -0.6295,
+                -0.0,
+            ],
             [0.0, 0.0, 0.8915, -0.0, -0.0, -0.1474, -0.0, -0.0, -0.7441],
         ]
     )
@@ -534,7 +596,9 @@ def test_angle_primitive_derivative():
             )
 
     # Derivative should be zero for an atom not present the bond angle
-    assert np.isclose(angle.derivative(3, CartesianComponent.x, init_coords), 0.0)
+    assert np.isclose(
+        angle.derivative(3, CartesianComponent.x, init_coords), 0.0
+    )
 
 
 def test_angle_primitive_equality():
@@ -575,7 +639,9 @@ def test_dihedral_primitive_derivative():
 
             assert np.isclose(analytic, numerical, atol=1e-6)
 
-    assert np.isclose(dihedral.derivative(5, CartesianComponent.x, init_coords), 0.0)
+    assert np.isclose(
+        dihedral.derivative(5, CartesianComponent.x, init_coords), 0.0
+    )
 
 
 def test_dihedral_equality():
@@ -586,7 +652,10 @@ def test_dihedral_equality():
 
 @pytest.mark.parametrize(
     "h_coord",
-    [np.array([1.08517, 1.07993, 0.05600]), np.array([1.28230, -0.63391, -0.54779])],
+    [
+        np.array([1.08517, 1.07993, 0.05600]),
+        np.array([1.28230, -0.63391, -0.54779]),
+    ],
 )
 def test_dihedral_primitive_derivative_over_zero(h_coord):
     def numerical_derivative(a, b, h=1e-6):

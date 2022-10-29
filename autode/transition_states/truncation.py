@@ -46,7 +46,9 @@ def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
             ]
             truncated_graph.add_nodes_from(nodes)
 
-            truncated_graph.add_edges_from([(*bond, molecule.graph.edges[bond])])
+            truncated_graph.add_edges_from(
+                [(*bond, molecule.graph.edges[bond])]
+            )
 
         if truncated_graph.number_of_nodes() == len(curr_nodes):
             break
@@ -92,10 +94,12 @@ def add_capping_atom(atom_index, n_atom_index, graph, s_molecule):
     # Shift the added capping hydrogen to the 'ideal' E-H bond length
     curr_dist = s_molecule.distance(atom_index, n_atom_index)
     ideal_dist = (
-        s_molecule.atoms[atom_index].covalent_radius + Atom("H").covalent_radius
+        s_molecule.atoms[atom_index].covalent_radius
+        + Atom("H").covalent_radius
     )
     shift_vec = (
-        s_molecule.atoms[n_atom_index].coord - s_molecule.atoms[atom_index].coord
+        s_molecule.atoms[n_atom_index].coord
+        - s_molecule.atoms[atom_index].coord
     )
     shift_vec *= (ideal_dist - curr_dist) / curr_dist
 
@@ -133,18 +137,29 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
 
             for n_atom_index in s_molecule.graph.neighbors(i):
 
-                if n_atom_index in curr_nodes or n_atom_index in truncated_nodes:
+                if (
+                    n_atom_index in curr_nodes
+                    or n_atom_index in truncated_nodes
+                ):
                     continue
 
-                n_neighbours = len(list(s_molecule.graph.neighbors(n_atom_index)))
+                n_neighbours = len(
+                    list(s_molecule.graph.neighbors(n_atom_index))
+                )
 
                 # Three conditions that must be met for the n_atom_index -> H
-                if s_molecule.atoms[n_atom_index].label == "C" and n_neighbours == 4:
+                if (
+                    s_molecule.atoms[n_atom_index].label == "C"
+                    and n_neighbours == 4
+                ):
 
                     truncated_nodes.append(n_atom_index)
 
                     add_capping_atom(
-                        i, n_atom_index, graph=truncated_graph, s_molecule=s_molecule
+                        i,
+                        n_atom_index,
+                        graph=truncated_graph,
+                        s_molecule=s_molecule,
                     )
 
                 else:
@@ -153,7 +168,13 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
                     )
 
                 truncated_graph.add_edges_from(
-                    [(i, n_atom_index, molecule.graph.edges[(i, n_atom_index)])]
+                    [
+                        (
+                            i,
+                            n_atom_index,
+                            molecule.graph.edges[(i, n_atom_index)],
+                        )
+                    ]
                 )
 
         if truncated_graph.number_of_nodes() == len(curr_nodes):
@@ -184,7 +205,8 @@ def add_remaining_bonds(truncated_graph, full_graph):
 
         # Don't alter bonding if the atom has changed e.g. C -> H
         if any(
-            truncated_graph.nodes[k]["atom_label"] != full_graph.nodes[k]["atom_label"]
+            truncated_graph.nodes[k]["atom_label"]
+            != full_graph.nodes[k]["atom_label"]
             for k in (i, j)
         ):
             continue
@@ -209,7 +231,10 @@ def add_remaining_atoms(truncated_graph, full_graph, s_molecule):
             continue
 
         # Only consider non-swapped atoms e.g. not where C -> H
-        if truncated_graph.nodes[i]["atom_label"] != full_graph.nodes[i]["atom_label"]:
+        if (
+            truncated_graph.nodes[i]["atom_label"]
+            != full_graph.nodes[i]["atom_label"]
+        ):
             continue
 
         logger.warning(f"Atom {i} changed valency in truncation")
@@ -239,7 +264,9 @@ def add_remaining_atoms(truncated_graph, full_graph, s_molecule):
                 i, len(s_molecule.atoms) - 1, pi=False, active=False
             )
 
-        logger.info(f"New valency is {len(list(truncated_graph.neighbors(i)))}")
+        logger.info(
+            f"New valency is {len(list(truncated_graph.neighbors(i)))}"
+        )
 
     return None
 
@@ -277,7 +304,10 @@ def get_truncated_species(species, bond_rearrangement):
             [(j, species.graph.nodes[j]) for j in species.graph.neighbors(i)]
         )
         t_graph.add_edges_from(
-            [(i, j, species.graph.edges[(i, j)]) for j in species.graph.neighbors(i)]
+            [
+                (i, j, species.graph.edges[(i, j)])
+                for j in species.graph.neighbors(i)
+            ]
         )
 
     # Add all the π bonds that are associated with the core atoms, then close
@@ -291,16 +321,22 @@ def get_truncated_species(species, bond_rearrangement):
     )
 
     add_remaining_bonds(t_graph, full_graph=species.graph)
-    add_remaining_atoms(t_graph, full_graph=species.graph, s_molecule=t_species)
+    add_remaining_atoms(
+        t_graph, full_graph=species.graph, s_molecule=t_species
+    )
 
     # Delete all atoms not in the truncated graph and reset the graph
     t_species.graph = t_graph
     t_species.atoms = [
-        atom for i, atom in enumerate(t_species.atoms) if i in sorted(t_graph.nodes)
+        atom
+        for i, atom in enumerate(t_species.atoms)
+        if i in sorted(t_graph.nodes)
     ]
 
     # Relabel the nodes so they correspond to the new set of atoms
-    mapping = {node_label: i for i, node_label in enumerate(sorted(t_graph.nodes))}
+    mapping = {
+        node_label: i for i, node_label in enumerate(sorted(t_graph.nodes))
+    }
 
     t_species.graph = nx.relabel_nodes(t_species.graph, mapping=mapping)
 
@@ -319,10 +355,14 @@ def is_worth_truncating(reactant_complex, bond_rearrangement):
         bond_rearrangement (autode.bond_rearrangement.BondRearrangement):
     """
     if has_matching_ts_templates(reactant_complex, bond_rearrangement):
-        logger.info("Not truncating a reactant (complex) that has a saved " "template")
+        logger.info(
+            "Not truncating a reactant (complex) that has a saved " "template"
+        )
         return False
 
-    truncated_complex = get_truncated_species(reactant_complex, bond_rearrangement)
+    truncated_complex = get_truncated_species(
+        reactant_complex, bond_rearrangement
+    )
 
     n_removed_atoms = reactant_complex.n_atoms - truncated_complex.n_atoms
 

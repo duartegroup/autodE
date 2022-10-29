@@ -37,7 +37,9 @@ def get_ts_guess_neb(
     assert n is not None
     logger.info("Generating a TS guess using a nudged elastic band")
 
-    neb = CINEB(initial_species=reactant.copy(), final_species=product.copy(), num=n)
+    neb = CINEB(
+        initial_species=reactant.copy(), final_species=product.copy(), num=n
+    )
 
     # Calculate and generate the TS guess, in a unique directory
     try:

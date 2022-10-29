@@ -50,5 +50,7 @@ class DIC_SD_Optimiser(SteepestDescent):
 
     def _initialise_run(self) -> None:
         """Initialise the delocalised internal coordinates"""
-        self._coords = CartesianCoordinates(self._species.coordinates).to("dic")
+        self._coords = CartesianCoordinates(self._species.coordinates).to(
+            "dic"
+        )
         self._update_gradient_and_energy()

@@ -2,7 +2,12 @@ import os
 from autode.values import Frequency, Distance, Allocation
 from autode.wrappers.keywords import implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
-from autode.wrappers.keywords.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
+from autode.wrappers.keywords.basis_sets import (
+    def2svp,
+    def2tzvp,
+    def2ecp,
+    def2tzecp,
+)
 from autode.wrappers.keywords.functionals import pbe0
 from autode.wrappers.keywords.dispersion import d3bj
 from autode.wrappers.keywords.ri import rijcosx
@@ -239,7 +244,8 @@ class _ConfigClass:
         #
         grid = "integral=ultrafinegrid"
         optts_block = (
-            "Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, " "MaxStep=10, NoTrustUpdate)"
+            "Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, "
+            "MaxStep=10, NoTrustUpdate)"
         )
 
         keywords = KeywordsSet(
@@ -383,7 +389,8 @@ class _ConfigClass:
             if value is not None:
                 if not (0.0 < value <= 1.0):
                     raise ValueError(
-                        "Cannot set the frequency scale factor " "outside of (0, 1]"
+                        "Cannot set the frequency scale factor "
+                        "outside of (0, 1]"
                     )
 
                 value = float(value)

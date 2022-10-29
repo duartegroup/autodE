@@ -60,7 +60,9 @@ class BaseUnit(Unit):
         plot_name: Union[str, None] = None,
     ):
 
-        super().__init__(name, conversion=1.0, aliases=aliases, plot_name=plot_name)
+        super().__init__(
+            name, conversion=1.0, aliases=aliases, plot_name=plot_name
+        )
 
 
 class CompositeUnit(Unit):
@@ -157,7 +159,9 @@ def energy_unit_from_name(name: str) -> "autode.units.Unit":
 rad = BaseUnit(name="rad", aliases=["radians", "rads", "radian"])
 
 
-deg = Unit(name="°", conversion=Constants.rad_to_deg, aliases=["deg", "degrees", "º"])
+deg = Unit(
+    name="°", conversion=Constants.rad_to_deg, aliases=["deg", "degrees", "º"]
+)
 
 # ----------------------------------------------------------------------
 # ---------------------------- Distances -------------------------------
@@ -168,11 +172,15 @@ ang = BaseUnit(name="Å", aliases=["ang", "angstrom"])
 a0 = Unit(name="bohr", conversion=Constants.ang_to_a0, aliases=["a0"])
 
 nm = Unit(
-    name="nm", conversion=Constants.ang_to_nm, aliases=["nanometer", "nano meter"]
+    name="nm",
+    conversion=Constants.ang_to_nm,
+    aliases=["nanometer", "nano meter"],
 )
 
 pm = Unit(
-    name="pm", conversion=Constants.ang_to_pm, aliases=["picometer", "pico meter"]
+    name="pm",
+    conversion=Constants.ang_to_pm,
+    aliases=["picometer", "pico meter"],
 )
 
 m = Unit(name="m", conversion=Constants.ang_to_m, aliases=["meter"])
@@ -202,14 +210,22 @@ kg_m_sq = CompositeUnit(kg, m, m, name="kg m^2")
 # ----------------------------- Gradients ------------------------------
 
 
-ha_per_ang = CompositeUnit(ha, per=[ang], aliases=["ha Å-1", "ha Å^-1", "ha/ang"])
+ha_per_ang = CompositeUnit(
+    ha, per=[ang], aliases=["ha Å-1", "ha Å^-1", "ha/ang"]
+)
 
-ha_per_a0 = CompositeUnit(ha, per=[a0], aliases=["ha a0-1", "ha a0^-1", "ha/bohr"])
+ha_per_a0 = CompositeUnit(
+    ha, per=[a0], aliases=["ha a0-1", "ha a0^-1", "ha/bohr"]
+)
 
-ev_per_ang = CompositeUnit(ev, per=[ang], aliases=["ha a0-1", "ev Å^-1", "ev/ang"])
+ev_per_ang = CompositeUnit(
+    ev, per=[ang], aliases=["ha a0-1", "ev Å^-1", "ev/ang"]
+)
 
 kcalmol_per_ang = CompositeUnit(
-    kcalmol, per=[ang], aliases=["ha kcal mol-1", "ha/kcal mol-1", "kcal mol^-1 Å^-1"]
+    kcalmol,
+    per=[ang],
+    aliases=["ha kcal mol-1", "ha/kcal mol-1", "kcal mol^-1 Å^-1"],
 )
 
 # ----------------------------------------------------------------------
@@ -226,7 +242,14 @@ ha_per_a0_sq = CompositeUnit(
     ha,
     per=[a0, a0],
     name="Ha a0^-2",
-    aliases=["ha/bohr^2", "ha/bohr2", "ha bohr^-2", "ha/a0^2", "ha/a02", "ha a0^-2"],
+    aliases=[
+        "ha/bohr^2",
+        "ha/bohr2",
+        "ha bohr^-2",
+        "ha/a0^2",
+        "ha/a02",
+        "ha a0^-2",
+    ],
 )
 
 J_per_ang_sq = CompositeUnit(
@@ -245,14 +268,18 @@ J_per_ang_sq_kg = CompositeUnit(J, per=[ang, ang, kg], name="J m^-2 kg^-1")
 
 wavenumber = BaseUnit(name="cm^-1", aliases=["cm-1", "per cm", "/cm"])
 
-hz = Unit(name="s^-1", conversion=Constants.per_cm_to_hz, aliases=["hz", "s-1", "/s"])
+hz = Unit(
+    name="s^-1", conversion=Constants.per_cm_to_hz, aliases=["hz", "s-1", "/s"]
+)
 
 
 # ----------------------------------------------------------------------
 # ------------------- Digital storage allocation -----------------------
 
 
-byte = Unit(name="byte", conversion=1e6, aliases=["bytes"])  # 1,000,000 bytes = 1 MB
+byte = Unit(
+    name="byte", conversion=1e6, aliases=["bytes"]
+)  # 1,000,000 bytes = 1 MB
 
 MB = BaseUnit(name="mb", aliases=["megabyte"])
 

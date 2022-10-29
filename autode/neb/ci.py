@@ -109,7 +109,9 @@ class CINEB(NEB):
         logger.info(f"Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates")
         result = super()._minimise(method, n_cores, etol, max_n)
 
-        if any(im.iteration > self.images.wait_iteration for im in self.images):
+        if any(
+            im.iteration > self.images.wait_iteration for im in self.images
+        ):
             return result
 
         logger.info(

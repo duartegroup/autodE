@@ -3,7 +3,12 @@ import os
 from autode.geom import get_neighbour_list
 from autode.log import logger
 from autode.config import Config
-from autode.mol_graphs import get_bond_type_list, get_fbonds, is_isomorphic, find_cycles
+from autode.mol_graphs import (
+    get_bond_type_list,
+    get_fbonds,
+    is_isomorphic,
+    find_cycles,
+)
 
 
 def get_bond_rearrangs(reactant, product, name, save=True):
@@ -81,7 +86,9 @@ def get_bond_rearrangs(reactant, product, name, save=True):
 
     # The change in the number of bonds is > 0 as in the reaction
     # initialisation reacs/prods are swapped if this is < 0
-    delta_n_bonds = reactant.graph.number_of_edges() - product.graph.number_of_edges()
+    delta_n_bonds = (
+        reactant.graph.number_of_edges() - product.graph.number_of_edges()
+    )
 
     if delta_n_bonds == 0:
         funcs = [get_fbonds_bbonds_1b1f, get_fbonds_bbonds_2b2f]
@@ -91,7 +98,8 @@ def get_bond_rearrangs(reactant, product, name, save=True):
         funcs = [get_fbonds_bbonds_2b]
     else:
         logger.error(
-            f"Cannot treat a change in bonds " f"reactant <- product of {delta_n_bonds}"
+            f"Cannot treat a change in bonds "
+            f"reactant <- product of {delta_n_bonds}"
         )
         return None
 
@@ -125,7 +133,9 @@ def get_bond_rearrangs(reactant, product, name, save=True):
                 prune_small_ring_rearrs(possible_brs, reactant)
 
             if save:
-                save_bond_rearrangs_to_file(possible_brs, filename=f"{name}_BRs.txt")
+                save_bond_rearrangs_to_file(
+                    possible_brs, filename=f"{name}_BRs.txt"
+                )
 
             logger.info(
                 f"Found *{len(possible_brs)}* bond "
@@ -200,7 +210,9 @@ def get_bond_rearrangs_from_file(filename="bond_rearrangs.txt"):
 
             if "end" in line:
                 bond_rearrangs.append(
-                    BondRearrangement(forming_bonds=fbonds, breaking_bonds=bbonds)
+                    BondRearrangement(
+                        forming_bonds=fbonds, breaking_bonds=bbonds
+                    )
                 )
                 fbonds = []
                 bbonds = []
@@ -236,7 +248,8 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
         for idx in fbond:
 
             if (
-                reactant.graph.degree(idx) == reactant.atoms[idx].maximal_valance
+                reactant.graph.degree(idx)
+                == reactant.atoms[idx].maximal_valance
                 and idx not in bbond_atoms
             ):
                 # If we are here then there is at least one atom that will
@@ -333,7 +346,9 @@ def get_fbonds_bbonds_2b(
 
     if len(all_possible_bbonds) == 1:
         # Break two bonds of the same type
-        for bbond1, bbond2 in itertools.combinations(all_possible_bbonds[0], 2):
+        for bbond1, bbond2 in itertools.combinations(
+            all_possible_bbonds[0], 2
+        ):
             possible_brs = add_bond_rearrangment(
                 possible_brs, reac, prod, fbonds=[], bbonds=[bbond1, bbond2]
             )
@@ -361,7 +376,9 @@ def get_fbonds_bbonds_1b1f(
     bbond_atom_type_fbonds,
     fbond_atom_type_bbonds,
 ):
-    logger.info("Getting possible 1 breaking and 1 forming bond " "rearrangements")
+    logger.info(
+        "Getting possible 1 breaking and 1 forming bond " "rearrangements"
+    )
 
     if len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 1:
         # Make and break a bond of different types
@@ -393,47 +410,73 @@ def get_fbonds_bbonds_2b1f(
     bbond_atom_type_fbonds,
     fbond_atom_type_bbonds,
 ):
-    logger.info("Getting possible 2 breaking and 1 forming bond rearrangements")
+    logger.info(
+        "Getting possible 2 breaking and 1 forming bond rearrangements"
+    )
 
     if len(all_possible_bbonds) == 2 and len(all_possible_fbonds) == 1:
         # Make a bond and break two bonds, all of different types
         possibles = itertools.product(
-            all_possible_fbonds[0], all_possible_bbonds[0], all_possible_bbonds[1]
+            all_possible_fbonds[0],
+            all_possible_bbonds[0],
+            all_possible_bbonds[1],
         )
 
         for fbond, bbond1, bbond2 in possibles:
             possible_brs = add_bond_rearrangment(
-                possible_brs, reac, prod, fbonds=[fbond], bbonds=[bbond1, bbond2]
+                possible_brs,
+                reac,
+                prod,
+                fbonds=[fbond],
+                bbonds=[bbond1, bbond2],
             )
 
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 1:
         # Make a bond of one type, break two bonds of another type
         two_same_possibles = itertools.combinations(all_possible_bbonds[0], 2)
-        possibles = itertools.product(all_possible_fbonds[0], two_same_possibles)
+        possibles = itertools.product(
+            all_possible_fbonds[0], two_same_possibles
+        )
 
         for fbond, (bbond1, bbond2) in possibles:
             possible_brs = add_bond_rearrangment(
-                possible_brs, reac, prod, fbonds=[fbond], bbonds=[bbond1, bbond2]
+                possible_brs,
+                reac,
+                prod,
+                fbonds=[fbond],
+                bbonds=[bbond1, bbond2],
             )
 
     elif len(all_possible_bbonds) == 1 and len(all_possible_fbonds) == 0:
         for bbonds, fbonds in possible_bbond_and_fbonds:
             # Make and break a bond of one type, break a bond of a different
             # type
-            possibles = itertools.product(fbonds, all_possible_bbonds[0], bbonds)
+            possibles = itertools.product(
+                fbonds, all_possible_bbonds[0], bbonds
+            )
 
             for fbond, bbond1, bbond2 in possibles:
                 possible_brs = add_bond_rearrangment(
-                    possible_brs, reac, prod, fbonds=[fbond], bbonds=[bbond1, bbond2]
+                    possible_brs,
+                    reac,
+                    prod,
+                    fbonds=[fbond],
+                    bbonds=[bbond1, bbond2],
                 )
 
         # Make and break two bonds, all of the same type
         two_same_possibles = itertools.combinations(all_possible_bbonds[0], 2)
-        possibles = itertools.product(bbond_atom_type_fbonds, two_same_possibles)
+        possibles = itertools.product(
+            bbond_atom_type_fbonds, two_same_possibles
+        )
 
         for fbond, (bbond1, bbond2) in possibles:
             possible_brs = add_bond_rearrangment(
-                possible_brs, reac, prod, fbonds=[fbond], bbonds=[bbond1, bbond2]
+                possible_brs,
+                reac,
+                prod,
+                fbonds=[fbond],
+                bbonds=[bbond1, bbond2],
             )
 
     return possible_brs
@@ -449,7 +492,9 @@ def get_fbonds_bbonds_2b2f(
     bbond_atom_type_fbonds,
     fbond_atom_type_bbonds,
 ):
-    logger.info("Getting possible 2 breaking and 2 forming bond rearrangements")
+    logger.info(
+        "Getting possible 2 breaking and 2 forming bond rearrangements"
+    )
 
     if len(all_possible_bbonds) == 2 and len(all_possible_fbonds) == 2:
         # Make two bonds and break two bonds, all of different types
@@ -583,7 +628,8 @@ def get_fbonds_bbonds_2b2f(
         for bbonds, fbonds in possible_bbond_and_fbonds:
             # Make two and break two bonds, all of the same type
             possibles = itertools.product(
-                itertools.combinations(fbonds, 2), itertools.combinations(bbonds, 2)
+                itertools.combinations(fbonds, 2),
+                itertools.combinations(bbonds, 2),
             )
 
             for (fbond1, fbond2), (bbond1, bbond2) in possibles:
@@ -636,7 +682,8 @@ def strip_equiv_bond_rearrs(possible_brs, mol, depth=6):
             unique_brs.append(br)
 
     logger.info(
-        f"Stripped {len(possible_brs) - len(unique_brs)} " "bond rearrangements"
+        f"Stripped {len(possible_brs) - len(unique_brs)} "
+        "bond rearrangements"
     )
     return unique_brs
 
@@ -663,7 +710,11 @@ def prune_small_ring_rearrs(possible_brs, mol):
 
     # Unique elements involved in each bond rearrangement
     elems = [
-        set(mol.atoms[i].label for i in range(mol.n_atoms) if i in br.active_atoms)
+        set(
+            mol.atoms[i].label
+            for i in range(mol.n_atoms)
+            if i in br.active_atoms
+        )
         for br in possible_brs
     ]
 
@@ -700,7 +751,8 @@ def prune_small_ring_rearrs(possible_brs, mol):
                 break
 
     logger.info(
-        f"Excluding {len(excluded_idxs)} bond rearrangements based on " f"small rings"
+        f"Excluding {len(excluded_idxs)} bond rearrangements based on "
+        f"small rings"
     )
 
     # Delete the excluded bond rearrangements (sorted high ->  low, so the
@@ -745,7 +797,9 @@ class BondRearrangement:
             except (StopIteration, AttributeError):
                 logger.warning("Active atom index not found in any molecules")
 
-            nl_labels = get_neighbour_list(species, atom_i=idx, index_set=mol_idxs)
+            nl_labels = get_neighbour_list(
+                species, atom_i=idx, index_set=mol_idxs
+            )
             return nl_labels[:depth]
 
         return [nl(idx) for idx in self.active_atoms]

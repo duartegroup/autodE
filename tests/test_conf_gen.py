@@ -131,7 +131,9 @@ def test_conf_gen_dist_const(tmpdir):
     assert len(hydrogen.graph.edges) == 1
 
     # H2 at r = 2 Å is definitely not bonded
-    atoms = conf_gen.get_simanl_atoms(species=hydrogen, dist_consts={(0, 1): 2})
+    atoms = conf_gen.get_simanl_atoms(
+        species=hydrogen, dist_consts={(0, 1): 2}
+    )
 
     long_hydrogen = Molecule(name="H2", atoms=atoms, charge=0, mult=1)
     assert long_hydrogen.n_atoms == 2
@@ -184,7 +186,9 @@ def test_chiral_rotation(tmpdir):
 
         # RMSD on the 5 atoms should be < 0.5 Å
         assert (
-            calc_rmsd(coords1=coords[centre_idxs], coords2=regen_coords[centre_idxs])
+            calc_rmsd(
+                coords1=coords[centre_idxs], coords2=regen_coords[centre_idxs]
+            )
             < 0.5
         )
 
@@ -329,5 +333,7 @@ def test_potential():
         coords, bonds=[(0, 1)], k=0.7, c=0.3, d0=d0, fixed_bonds=[], exponent=8
     )
 
-    expected_v = 0.7 * (bond_length - eq_bond_length) ** 2 + 0.3 / bond_length**8
+    expected_v = (
+        0.7 * (bond_length - eq_bond_length) ** 2 + 0.3 / bond_length**8
+    )
     assert np.abs(v - expected_v) < 1e-6

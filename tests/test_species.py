@@ -68,7 +68,10 @@ def test_species_class():
 
     # A not very sensible water geometry!
     water = Species(
-        name="H2O", charge=0, mult=1, atoms=[Atom("O"), Atom("H", z=-1), Atom("H", z=1)]
+        name="H2O",
+        charge=0,
+        mult=1,
+        atoms=[Atom("O"), Atom("H", z=-1), Atom("H", z=1)],
     )
 
     assert water.formula == "H2O" or water.formula == "OH2"
@@ -174,7 +177,9 @@ def test_species_xyz_file():
 
 def test_species_translate():
 
-    m = Species(name="H2", atoms=[Atom("H"), Atom("H", z=1.0)], charge=0, mult=1)
+    m = Species(
+        name="H2", atoms=[Atom("H"), Atom("H", z=1.0)], charge=0, mult=1
+    )
     m.translate(vec=np.array([0.0, 0.0, -1.0]))
 
     expected = np.array([[0.0, 0.0, -1.0], [0.0, 0.0, 0.0]])
@@ -185,12 +190,16 @@ def test_species_translate():
 
     # Centering should move the middle of the molecule to the origin
     m.centre()
-    assert np.allclose(np.average(m.coordinates, axis=0), np.zeros(3), atol=1e-4)
+    assert np.allclose(
+        np.average(m.coordinates, axis=0), np.zeros(3), atol=1e-4
+    )
 
 
 def test_species_rotate():
 
-    m = Species(name="H2", atoms=[Atom("H"), Atom("H", z=1.0)], charge=0, mult=1)
+    m = Species(
+        name="H2", atoms=[Atom("H"), Atom("H", z=1.0)], charge=0, mult=1
+    )
     # Rotation about the y axis 180 degrees (π radians)
     m.rotate(axis=np.array([1.0, 0.0, 0.0]), theta=np.pi)
 
@@ -220,8 +229,14 @@ def test_set_coords():
 
     mol_copy.coordinates = new_coords
 
-    assert np.linalg.norm(mol_copy.atoms[0].coord - np.array([0.0, 0.0, 1.0])) < 1e-9
-    assert np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, 0.0])) < 1e-9
+    assert (
+        np.linalg.norm(mol_copy.atoms[0].coord - np.array([0.0, 0.0, 1.0]))
+        < 1e-9
+    )
+    assert (
+        np.linalg.norm(mol_copy.atoms[1].coord - np.array([0.0, 0.0, 0.0]))
+        < 1e-9
+    )
 
 
 def test_set_gradients():
@@ -236,7 +251,9 @@ def test_set_gradients():
         test_mol.gradient = np.zeros(shape=(test_mol.n_atoms, 2))
 
     # but can set them with a Gradients array
-    test_mol.gradient = Gradient(np.zeros(shape=(test_mol.n_atoms, 3)), units="Ha Å^-1")
+    test_mol.gradient = Gradient(
+        np.zeros(shape=(test_mol.n_atoms, 3)), units="Ha Å^-1"
+    )
     assert test_mol.gradient.units == ha_per_ang
 
     # setting from a numpy array defaults to Ha/Å units
@@ -261,7 +278,9 @@ def test_species_solvent():
 
 
 def test_reorder():
-    hf = Species(name="HF", charge=0, mult=1, atoms=[Atom("H"), Atom("F", x=1)])
+    hf = Species(
+        name="HF", charge=0, mult=1, atoms=[Atom("H"), Atom("F", x=1)]
+    )
 
     assert hf.atoms[0].label == "H" and hf.atoms[1].label == "F"
 
@@ -292,7 +311,9 @@ def test_species_optimise():
     orca.path = here
     assert orca.is_available
 
-    dihydrogen = Species(name="H2", atoms=[Atom("H"), Atom("H", x=1)], charge=0, mult=1)
+    dihydrogen = Species(
+        name="H2", atoms=[Atom("H"), Atom("H", x=1)], charge=0, mult=1
+    )
 
     dihydrogen.optimise(method=orca)
     assert dihydrogen.atoms is not None
@@ -404,7 +425,9 @@ def test_is_linear():
     h_atom = Species(name="h", atoms=[Atom("H")], charge=0, mult=1)
     assert not h_atom.is_linear()
 
-    dihydrogen = Species(name="h2", atoms=[Atom("H"), Atom("H", x=1)], charge=0, mult=1)
+    dihydrogen = Species(
+        name="h2", atoms=[Atom("H"), Atom("H", x=1)], charge=0, mult=1
+    )
     assert dihydrogen.is_linear()
 
     water = Species(
@@ -642,7 +665,9 @@ def test_species_does_not_have_reasonable_coordinates():
 def test_calc_thermo_not_run_calculation():
 
     m = Molecule(smiles="O")
-    calc = Calculation(name="water", molecule=m, method=xtb, keywords=xtb.keywords.hess)
+    calc = Calculation(
+        name="water", molecule=m, method=xtb, keywords=xtb.keywords.hess
+    )
     # run() has not been called
     with pytest.raises(Exception):
         m.calc_thermo(calc=calc)

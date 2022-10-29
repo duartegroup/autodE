@@ -14,7 +14,9 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
 
     def __new__(cls, input_array, units="Å") -> "CartesianCoordinates":
         """New instance of these coordinates"""
-        return super().__new__(cls, np.array(input_array).flatten(), units=units)
+        return super().__new__(
+            cls, np.array(input_array).flatten(), units=units
+        )
 
     def __array_finalize__(self, obj) -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
@@ -24,7 +26,9 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         """Is a string a valid unit for these coordinates e.g. nm"""
         return any(string in unit.aliases for unit in self.implemented_units)
 
-    def _update_g_from_cart_g(self, arr: Optional["autode.values.Gradient"]) -> None:
+    def _update_g_from_cart_g(
+        self, arr: Optional["autode.values.Gradient"]
+    ) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient, which for
         Cartesian coordinates there is nothing to be done for.
@@ -35,7 +39,9 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         """
         self.g = None if arr is None else np.array(arr).flatten()
 
-    def _update_h_from_cart_h(self, arr: Optional["autode.values.Hessian"]) -> None:
+    def _update_h_from_cart_h(
+        self, arr: Optional["autode.values.Hessian"]
+    ) -> None:
         """
         Update the Hessian from a Cartesian Hessian matrix with shape
         3N x 3N for a species with N atoms.
@@ -76,6 +82,10 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         # ---------- Implement other internal transformations here -----------
 
         elif self._str_is_valid_unit(value):
-            return CartesianCoordinates(ValueArray.to(self, units=value), units=value)
+            return CartesianCoordinates(
+                ValueArray.to(self, units=value), units=value
+            )
         else:
-            raise ValueError(f"Cannot convert Cartesian coordinates to {value}")
+            raise ValueError(
+                f"Cannot convert Cartesian coordinates to {value}"
+            )

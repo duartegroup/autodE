@@ -117,7 +117,10 @@ def template_matches(reactant, truncated_graph, ts_template):
         (bool): Template matches
     """
 
-    if reactant.charge != ts_template.charge or reactant.mult != ts_template.mult:
+    if (
+        reactant.charge != ts_template.charge
+        or reactant.mult != ts_template.mult
+    ):
         return False
 
     if reactant.solvent != ts_template.solvent:

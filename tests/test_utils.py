@@ -74,7 +74,9 @@ def test_work_in_temp_dir():
         )
 
     # Working in a temp directory running an external command
-    @utils.work_in_tmp_dir(filenames_to_copy=["echo_test.py"], kept_file_exts=[".txt"])
+    @utils.work_in_tmp_dir(
+        filenames_to_copy=["echo_test.py"], kept_file_exts=[".txt"]
+    )
     def test():
         params = ["python", "echo_test.py"]
         utils.run_external(params=params, output_filename="test.txt")

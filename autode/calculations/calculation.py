@@ -17,7 +17,17 @@ from autode.calculations.executors import (
     CalculationExecutorH,
 )
 
-output_exts = (".out", ".hess", ".xyz", ".inp", ".com", ".log", ".nw", ".pc", ".grad")
+output_exts = (
+    ".out",
+    ".hess",
+    ".xyz",
+    ".inp",
+    ".com",
+    ".log",
+    ".nw",
+    ".pc",
+    ".grad",
+)
 
 
 class Calculation:
@@ -80,14 +90,23 @@ class Calculation:
         if _are_opt(keywords) and not method.implements(CalculationType.opt):
             _type = CalculationExecutorO
 
-        if _are_grad(keywords) and not method.implements(CalculationType.gradient):
+        if _are_grad(keywords) and not method.implements(
+            CalculationType.gradient
+        ):
             _type = CalculationExecutorG
 
-        if _are_hess(keywords) and not method.implements(CalculationType.hessian):
+        if _are_hess(keywords) and not method.implements(
+            CalculationType.hessian
+        ):
             _type = CalculationExecutorH
 
         return _type(
-            self.name, molecule, method, keywords, self.n_cores, self.point_charges
+            self.name,
+            molecule,
+            method,
+            keywords,
+            self.n_cores,
+            self.point_charges,
         )
 
     def run(self) -> None:
@@ -234,7 +253,8 @@ class Calculation:
         basis = self.input.keywords.basis_set
         if basis is not None:
             string += (
-                f" in combination with the {str(basis)} " f"({basis.doi_str}) basis set"
+                f" in combination with the {str(basis)} "
+                f"({basis.doi_str}) basis set"
             )
 
         if self.molecule.solvent is not None:
@@ -263,7 +283,8 @@ class Calculation:
 
         if not self.terminated_normally:
             logger.error(
-                f"Calculation of {self.molecule} did not terminate " f"normally"
+                f"Calculation of {self.molecule} did not terminate "
+                f"normally"
             )
             raise ex.CouldNotGetProperty()
 
@@ -294,7 +315,10 @@ class Calculation:
     def optimisation_nearly_converged(self) -> bool:
         self._executor.set_properties()
         tol = PotentialEnergy(0.1, units="kcal mol-1")
-        return not self.optimiser.converged and self.optimiser.last_energy_change < tol
+        return (
+            not self.optimiser.converged
+            and self.optimiser.last_energy_change < tol
+        )
 
     @deprecated
     def get_final_atoms(self) -> Atoms:

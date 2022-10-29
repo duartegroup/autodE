@@ -72,7 +72,9 @@ class Conformer(Species):
 
     def optimise(
         self,
-        method: Optional["autode.wrappers.base.ElectronicStructureMethod"] = None,
+        method: Optional[
+            "autode.wrappers.base.ElectronicStructureMethod"
+        ] = None,
         reset_graph: bool = False,
         calc: Optional["autode.calculation.Calculation"] = None,
         keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
@@ -98,7 +100,9 @@ class Conformer(Species):
             if keywords is None and method is not None:
                 keywords = method.keywords.low_opt
 
-            super().optimise(method, keywords=keywords, calc=calc, n_cores=n_cores)
+            super().optimise(
+                method, keywords=keywords, calc=calc, n_cores=n_cores
+            )
 
         except AtomsNotFound:
             logger.error(f"Atoms not found for {self.name} but not critical")

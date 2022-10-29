@@ -82,5 +82,6 @@ class BreakingBond(ScannedBond):
             # Take the smallest possible final distance, thus the shortest
             # path to traverse
             self.final_dist = min(
-                final_species.distance(*self.atom_indexes), 2.0 * self.curr_dist
+                final_species.distance(*self.atom_indexes),
+                2.0 * self.curr_dist,
             )

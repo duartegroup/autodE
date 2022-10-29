@@ -161,7 +161,8 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
             for atom in molecule.atoms:
                 x, y, z = atom.coord
                 print(
-                    f"{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}", file=inp_file
+                    f"{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}",
+                    file=inp_file,
                 )
 
             print("end", file=inp_file)
@@ -208,7 +209,8 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
     def execute(self, calc):
         @work_in_tmp_dir(
-            filenames_to_copy=calc.input.filenames, kept_file_exts=(".nw", ".out")
+            filenames_to_copy=calc.input.filenames,
+            kept_file_exts=(".nw", ".out"),
         )
         def execute_nwchem():
             params = [
@@ -260,7 +262,8 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         for line in reversed(calc.output.file_lines):
             if any(
-                string in line for string in ["Total DFT energy", "Total SCF energy"]
+                string in line
+                for string in ["Total DFT energy", "Total SCF energy"]
             ):
                 return PotentialEnergy(line.split()[4], units="Ha")
 
@@ -371,7 +374,9 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         # Replace double notation for standard 'E' and float all the final
         # entries, which should be the masses in amu
-        return [float(line.split()[-1].replace("D", "E")) for line in atom_lines]
+        return [
+            float(line.split()[-1].replace("D", "E")) for line in atom_lines
+        ]
 
     def hessian_from(self, calc):
         """
@@ -423,7 +428,9 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
                         "Unexpected hessian formating: " f"{hess_line}"
                     )
 
-                values = [float(x) for x in hess_line.replace("D", "E").split()[1:]]
+                values = [
+                    float(x) for x in hess_line.replace("D", "E").split()[1:]
+                ]
                 hess_lines[int(idx) - 1] += values
 
         atom_masses = self._atom_masses_from_hessian(calc)

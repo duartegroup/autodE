@@ -14,7 +14,15 @@ class TestRFOOptimiser2D(RFOptimiser):
     __test__ = False
 
     def __init__(
-        self, e_func, g_func, init_x, init_y, maxiter=30, etol=1e-4, gtol=1e-3, **kwargs
+        self,
+        e_func,
+        g_func,
+        init_x,
+        init_y,
+        maxiter=30,
+        etol=1e-4,
+        gtol=1e-3,
+        **kwargs,
     ):
         super().__init__(maxiter=maxiter, etol=etol, gtol=gtol, **kwargs)
 
@@ -91,6 +99,8 @@ def test_molecular_opt():
 
     # Check optimised distances are similar to running the optimiser in XTB
     for oh_atom_idx_pair in [(0, 1), (0, 2)]:
-        assert np.isclose(mol.distance(*oh_atom_idx_pair).to("Å"), 0.9595, atol=1e-2)
+        assert np.isclose(
+            mol.distance(*oh_atom_idx_pair).to("Å"), 0.9595, atol=1e-2
+        )
 
     assert np.isclose(mol.distance(1, 2), 1.5438, atol=1e-2)

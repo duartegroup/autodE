@@ -33,7 +33,9 @@ class ReactivePESnD(PESnD, ABC):
         """
         PESnD.__init__(self, species, rs, allow_rounding)
 
-        self._gradients = np.full(shape=(*self.shape, self.ndim), fill_value=np.nan)
+        self._gradients = np.full(
+            shape=(*self.shape, self.ndim), fill_value=np.nan
+        )
         self._hessians = np.full(
             shape=(*self.shape, self.ndim, self.ndim), fill_value=np.nan
         )
@@ -72,7 +74,9 @@ class ReactivePESnD(PESnD, ABC):
                 yield next(self._mep_ts_guess(product=product))
 
             except StopIteration:
-                logger.warning("Found no TS guesses from the minimum energy " "path")
+                logger.warning(
+                    "Found no TS guesses from the minimum energy " "path"
+                )
 
             return StopIteration
 
@@ -80,7 +84,9 @@ class ReactivePESnD(PESnD, ABC):
 
         for idx, point in enumerate(self._sorted_saddle_points()):
 
-            if any(self._distance(p, point) < min_separation for p in yielded_p):
+            if any(
+                self._distance(p, point) < min_separation for p in yielded_p
+            ):
                 continue
 
             species = self._species.new_species(name=f"ts_guess{idx}")
@@ -251,11 +257,13 @@ class ReactivePESnD(PESnD, ABC):
             for j in range(i, self.ndim):
 
                 # Point plus 1 (pp) and point minus 1 (pm) in this dimension
-                pp, pm = self._neighbour(point, j, +1), self._neighbour(point, j, -1)
-
-                hessian[i, j] = (self._gradients[pp][i] - self._gradients[pm][i]) / (
-                    self._r(pp, j) - self._r(pm, j)
+                pp, pm = self._neighbour(point, j, +1), self._neighbour(
+                    point, j, -1
                 )
+
+                hessian[i, j] = (
+                    self._gradients[pp][i] - self._gradients[pm][i]
+                ) / (self._r(pp, j) - self._r(pm, j))
 
                 # Hessians are symmetric
                 hessian[j, i] = hessian[i, j]
@@ -300,7 +308,8 @@ class ReactivePESnD(PESnD, ABC):
 
                 if pm == pp:
                     logger.warning(
-                        "Cannot determine gradient. Neither " "neighbour had an energy"
+                        "Cannot determine gradient. Neither "
+                        "neighbour had an energy"
                     )
                     grad[n] = np.nan
                     continue
@@ -327,7 +336,9 @@ class ReactivePESnD(PESnD, ABC):
         norm_grad = np.linalg.norm(self._gradients[point])
 
         for n in range(self.ndim):
-            pm, pp = self._neighbour(point, n, +1), self._neighbour(point, n, -1)
+            pm, pp = self._neighbour(point, n, +1), self._neighbour(
+                point, n, -1
+            )
 
             if not (self._is_contained(pm) and self._is_contained(pp)):
                 return False

@@ -81,8 +81,12 @@ def test_reaction_class():
     assert hh_reac.delta("E") == PotentialEnergy(-4.0)
 
     h1 = reaction.Reactant(name="h1", atoms=[Atom("H")])
-    hh_reactant = reaction.Reactant(name="hh", atoms=[Atom("H"), Atom("H", x=1.0)])
-    hh_product = reaction.Product(name="hh", atoms=[Atom("H"), Atom("H", x=1.0)])
+    hh_reactant = reaction.Reactant(
+        name="hh", atoms=[Atom("H"), Atom("H", x=1.0)]
+    )
+    hh_product = reaction.Product(
+        name="hh", atoms=[Atom("H"), Atom("H", x=1.0)]
+    )
 
     # h + mol > mol + h
     h_sub = reaction.Reaction(
@@ -112,7 +116,9 @@ def test_reactant_product_complexes():
     assert rxn.product.n_molecules == 1
 
     # If the reactant complex is set then the whole reactant should be that
-    rxn.reactant = ReactantComplex(h1, h1, copy=True, do_init_translation=False)
+    rxn.reactant = ReactantComplex(
+        h1, h1, copy=True, do_init_translation=False
+    )
     assert -1e-4 < rxn.reactant.distance(0, 1) < 1e-4
 
     # but cannot be just a reactant
@@ -139,7 +145,9 @@ def test_invalid_with_complexes():
 
     # Currently free energies with association complexes is not supported
     with pytest.raises(NotImplementedError):
-        h3_reaction.calculate_reaction_profile(with_complexes=True, free_energy=True)
+        h3_reaction.calculate_reaction_profile(
+            with_complexes=True, free_energy=True
+        )
 
     # Cannot plot a reaction profile with complexes without them existing
     with pytest.raises(ValueError):
@@ -179,8 +187,12 @@ def test_reaction_identical_reac_prods():
     Config.hcode = "ORCA"
     Config.ORCA.path = here
 
-    hh_reactant = reaction.Reactant(name="hh", atoms=[Atom("H"), Atom("H", x=1.0)])
-    hh_product = reaction.Product(name="hh", atoms=[Atom("H"), Atom("H", x=1.0)])
+    hh_reactant = reaction.Reactant(
+        name="hh", atoms=[Atom("H"), Atom("H", x=1.0)]
+    )
+    hh_product = reaction.Product(
+        name="hh", atoms=[Atom("H"), Atom("H", x=1.0)]
+    )
 
     h2_reaction = reaction.Reaction(hh_reactant, hh_product)
 
@@ -204,7 +216,9 @@ def test_swap_reacs_prods():
 
 def test_bad_balance():
 
-    hh_product = reaction.Product(name="hh", atoms=[Atom("H"), Atom("H", x=1.0)])
+    hh_product = reaction.Product(
+        name="hh", atoms=[Atom("H"), Atom("H", x=1.0)]
+    )
 
     with pytest.raises(UnbalancedReaction):
         reaction.Reaction(h1, hh_product)
@@ -213,7 +227,9 @@ def test_bad_balance():
     with pytest.raises(UnbalancedReaction):
         reaction.Reaction(h1, h_minus, hh_product)
 
-    h1_water = reaction.Reactant(name="h1", atoms=[Atom("H")], solvent_name="water")
+    h1_water = reaction.Reactant(
+        name="h1", atoms=[Atom("H")], solvent_name="water"
+    )
     h2_water = reaction.Reactant(
         name="h2", atoms=[Atom("H", x=1.0)], solvent_name="water"
     )
@@ -395,11 +411,15 @@ def test_doc_example():
     butadiene.energy = -11.552702027244
     cyclohexene.energy = -17.93143795711
 
-    assert np.isclose(float(rxn.delta("E").to("kcal mol-1")), -67.441, atol=0.01)
+    assert np.isclose(
+        float(rxn.delta("E").to("kcal mol-1")), -67.441, atol=0.01
+    )
 
     # Should allow for aliases of the kind of ∆ difference
     assert rxn.delta("E") == rxn.delta("energy")
-    assert rxn.delta("G") == rxn.delta("free energy") == rxn.delta("free_energy")
+    assert (
+        rxn.delta("G") == rxn.delta("free energy") == rxn.delta("free_energy")
+    )
     assert rxn.delta("H") == rxn.delta("enthalpy") != rxn.delta("energy")
 
     assert np.isclose(float(rxn.delta("E‡").to("kcal mol-1")), 4.35491, atol=1)
@@ -439,10 +459,14 @@ def test_doc_example():
 def test_barrierless_h_g():
 
     a = Reactant(atoms=[Atom("H"), Atom("H", x=-1.0), Atom("H", x=1.0)])
-    a.energies.extend([PotentialEnergy(-1), EnthalpyCont(0.1), FreeEnergyCont(0.3)])
+    a.energies.extend(
+        [PotentialEnergy(-1), EnthalpyCont(0.1), FreeEnergyCont(0.3)]
+    )
 
     b = Product(atoms=[Atom("H"), Atom("H", x=0.7, y=0.7), Atom("H", x=1.0)])
-    b.energies.extend([PotentialEnergy(-2), EnthalpyCont(0.2), FreeEnergyCont(0.6)])
+    b.energies.extend(
+        [PotentialEnergy(-2), EnthalpyCont(0.2), FreeEnergyCont(0.6)]
+    )
 
     rxn = reaction.Reaction(a, b)
     assert rxn.delta("E‡") == 0.0

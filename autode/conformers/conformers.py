@@ -12,7 +12,9 @@ from autode.log import logger
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
     """Top-level hashable function to call in parallel"""
-    getattr(conformer, calc_type)(method=method, keywords=keywords, n_cores=n_cores)
+    getattr(conformer, calc_type)(
+        method=method, keywords=keywords, n_cores=n_cores
+    )
     return conformer
 
 
@@ -69,7 +71,9 @@ class Conformers(list):
         return None
 
     def prune_on_energy(
-        self, e_tol: Union[Energy, float] = Energy(1.0, "kJ mol-1"), n_sigma: float = 5
+        self,
+        e_tol: Union[Energy, float] = Energy(1.0, "kJ mol-1"),
+        n_sigma: float = 5,
     ) -> None:
         """
         Prune the conformers based on an energy threshold, discarding those
@@ -92,7 +96,8 @@ class Conformers(list):
 
         if len(idxs_with_energy) < 2:
             logger.info(
-                f"Only have {len(self)} conformers with an energy. No " f"need to prune"
+                f"Only have {len(self)} conformers with an energy. No "
+                f"need to prune"
             )
             return None
 
@@ -110,7 +115,9 @@ class Conformers(list):
         if isinstance(e_tol, Energy):
             e_tol = float(e_tol.to("Ha"))
         else:
-            logger.warning(f"Assuming energy tolerance {e_tol:.6f} has units " f"of Ha")
+            logger.warning(
+                f"Assuming energy tolerance {e_tol:.6f} has units " f"of Ha"
+            )
 
         # Delete from the end of the list to preserve the order when deleting
         for i, idx in enumerate(reversed(idxs_with_energy)):
@@ -146,7 +153,9 @@ class Conformers(list):
         )
         return None
 
-    def prune_on_rmsd(self, rmsd_tol: Union[Distance, float, None] = None) -> None:
+    def prune_on_rmsd(
+        self, rmsd_tol: Union[Distance, float, None] = None
+    ) -> None:
         """
         Given a list of conformers add those that are unique based on an RMSD
         tolerance. If rmsd=None then use autode.Config.rmsd_threshold
@@ -157,14 +166,17 @@ class Conformers(list):
         """
         if len(self) < 2:
             logger.info(
-                f"Only have {len(self)} conformers. No need to prune " f"on RMSD"
+                f"Only have {len(self)} conformers. No need to prune "
+                f"on RMSD"
             )
             return None
 
         rmsd_tol = Config.rmsd_threshold if rmsd_tol is None else rmsd_tol
 
         if isinstance(rmsd_tol, float):
-            logger.warning(f"Assuming RMSD tolerance {rmsd_tol:.2f} has units" f" of Å")
+            logger.warning(
+                f"Assuming RMSD tolerance {rmsd_tol:.2f} has units" f" of Å"
+            )
             rmsd_tol = Distance(rmsd_tol, "Å")
 
         logger.info(
@@ -194,7 +206,9 @@ class Conformers(list):
         logger.info(f"Pruned to {len(self)} unique conformer(s) on RMSD")
         return None
 
-    def prune_diff_graph(self, graph: "autode.mol_graphs.MolecularGraph") -> None:
+    def prune_diff_graph(
+        self, graph: "autode.mol_graphs.MolecularGraph"
+    ) -> None:
         """
         Remove conformers with a different molecular graph to a defined
         reference. Although all conformers should have the same molecular
@@ -211,7 +225,9 @@ class Conformers(list):
             conformer = self[idx]
             make_graph(conformer)
 
-            if not is_isomorphic(conformer.graph, graph, ignore_active_bonds=True):
+            if not is_isomorphic(
+                conformer.graph, graph, ignore_active_bonds=True
+            ):
                 logger.warning("Conformer had a different graph. Ignoring")
                 del self[idx]
 
@@ -303,7 +319,9 @@ def atoms_from_rdkit_mol(rdkit_mol_obj: Chem.Mol, conf_id: int = 0) -> Atoms:
         (list(autode.atoms.Atom)): Atoms
     """
 
-    mol_block_lines = Chem.MolToMolBlock(rdkit_mol_obj, confId=conf_id).split("\n")
+    mol_block_lines = Chem.MolToMolBlock(rdkit_mol_obj, confId=conf_id).split(
+        "\n"
+    )
     mol_file_atoms = Atoms()
 
     # Extract atoms from the mol block

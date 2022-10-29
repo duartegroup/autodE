@@ -266,7 +266,9 @@ def test_atom_h():
 
     # Perform a rotation about a different origin e.g. (1, 0, -1)
     h.rotate(
-        axis=np.array([0.0, 0.0, 1.0]), theta=np.pi, origin=np.array([1.0, 0.0, -1.0])
+        axis=np.array([0.0, 0.0, 1.0]),
+        theta=np.pi,
+        origin=np.array([1.0, 0.0, -1.0]),
     )
     assert np.linalg.norm(h.coord - np.array([2.0, 0.0, -1.0])) < 1e-6
 
@@ -390,13 +392,17 @@ def test_atom_doc_examples():
 
     atom = Atom("H", x=1.0)
     atom.rotate(axis=[0.0, 0.0, 1.0], theta=3.14)
-    assert np.allclose(atom.coord, Coordinate(-1, 0.0, 0.0, units="Å"), atol=1e-2)
+    assert np.allclose(
+        atom.coord, Coordinate(-1, 0.0, 0.0, units="Å"), atol=1e-2
+    )
 
     from autode.values import Angle
 
     atom = Atom("H", x=1.0)
     atom.rotate(axis=[0.0, 0.0, 1.0], theta=Angle(180, units="deg"))
-    assert np.allclose(atom.coord, Coordinate(-1, 0.0, 0.0, units="Å"), atol=1e-5)
+    assert np.allclose(
+        atom.coord, Coordinate(-1, 0.0, 0.0, units="Å"), atol=1e-5
+    )
 
 
 def test_atoms_collection_doc_examples():

@@ -62,7 +62,11 @@ def test_ts_from_neb_optimised_after_adapt():
     assert ts_guess is not None
 
     # sum of the H-C-H angles should be close to 360º for the correct TS
-    angles = [ts_guess.angle(2, 0, 3), ts_guess.angle(2, 0, 4), ts_guess.angle(3, 0, 4)]
+    angles = [
+        ts_guess.angle(2, 0, 3),
+        ts_guess.angle(2, 0, 4),
+        ts_guess.angle(3, 0, 4),
+    ]
     assert np.isclose(sum([a.to("degrees") for a in angles]), 360, atol=5)
 
     # if we delete the path then no NEB is possible

@@ -64,7 +64,10 @@ class Hessian(ValueArray):
         """
         arr = super().__new__(cls, input_array, units=units)
 
-        if atoms is not None and (3 * len(atoms), 3 * len(atoms)) != input_array.shape:
+        if (
+            atoms is not None
+            and (3 * len(atoms), 3 * len(atoms)) != input_array.shape
+        ):
             raise ValueError(
                 f"Shape mismatch. Expecting "
                 f"{input_array.shape[0]//3} atoms from the Hessian"
@@ -110,14 +113,17 @@ class Hessian(ValueArray):
         """
         if self.atoms is None:
             raise ValueError(
-                "Could not determine the number of vibrations." " Atoms must be set"
+                "Could not determine the number of vibrations."
+                " Atoms must be set"
             )
 
         return 3 * len(self.atoms) - self.n_tr
 
     def _tr_vecs(
         self,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> Tuple[
+        np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray
+    ]:
         """
         Orthonormal translation and rotation (tr) vectors for Hessian
         projection.
@@ -223,7 +229,9 @@ class Hessian(ValueArray):
 
         H = self.to("J ang^-2")
         mass_array = np.repeat(
-            [atom.mass.to("kg") for atom in self.atoms], repeats=3, axis=np.newaxis
+            [atom.mass.to("kg") for atom in self.atoms],
+            repeats=3,
+            axis=np.newaxis,
         )
 
         return Hessian(
@@ -276,7 +284,8 @@ class Hessian(ValueArray):
         """
         if self.atoms is None:
             raise ValueError(
-                "Could not calculate projected normal modes, must" " have atoms set"
+                "Could not calculate projected normal modes, must"
+                " have atoms set"
             )
 
         n_tr = self.n_tr  # Number of translational+rotational modes
@@ -375,7 +384,8 @@ class Hessian(ValueArray):
         """
         if self.atoms is None:
             raise ValueError(
-                "Could not calculate projected frequencies, must " "have atoms set"
+                "Could not calculate projected frequencies, must "
+                "have atoms set"
             )
 
         n_tr = self.n_tr  # Number of translational+rotational modes
@@ -387,7 +397,9 @@ class Hessian(ValueArray):
         return trans_rot_freqs + vib_freqs
 
     def copy(self) -> "Hessian":
-        return self.__class__(np.copy(self), units=self.units, atoms=self.atoms)
+        return self.__class__(
+            np.copy(self), units=self.units, atoms=self.atoms
+        )
 
 
 class NumericalHessianCalculator:
@@ -456,7 +468,11 @@ class NumericalHessianCalculator:
         """Calculate the Hessian rows in serial"""
 
         for row_idx, (i, k) in enumerate(self._idxs_to_calculate()):
-            row = self._cdiff_row(i, k) if self._do_c_diff else self._diff_row(i, k)
+            row = (
+                self._cdiff_row(i, k)
+                if self._do_c_diff
+                else self._diff_row(i, k)
+            )
             self._hessian[row_idx, :] = row
 
         return None
@@ -528,7 +544,8 @@ class NumericalHessianCalculator:
 
         if not isinstance(keywords, GradientKeywords):
             raise ValueError(
-                "Numerical Hessian require the keywords to be " "GradientKeywords"
+                "Numerical Hessian require the keywords to be "
+                "GradientKeywords"
             )
 
         if keywords.contain_any_of("hess", "freq", "hessian", "frequency"):
@@ -578,7 +595,9 @@ class NumericalHessianCalculator:
         s_plus = self._new_species(atom_idx, component, direction="+")
         s_minus = self._new_species(atom_idx, component, direction="-")
 
-        row = (self._gradient(s_plus) - self._gradient(s_minus)) / (2 * self._shift)
+        row = (self._gradient(s_plus) - self._gradient(s_minus)) / (
+            2 * self._shift
+        )
 
         return row
 

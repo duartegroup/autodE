@@ -198,7 +198,11 @@ def test_branin_cg_minimisation():
     # Should also be able to optimise directly
     coords = CartesianCoordinates([6.0, 14.0])
     BraninCGSteihaugTROptimiser.optimise(
-        Molecule(name="blank"), method=Method(), gtol=0.01, etol=10, coords=coords
+        Molecule(name="blank"),
+        method=Method(),
+        gtol=0.01,
+        etol=10,
+        coords=coords,
     )
 
     assert optimiser.converged

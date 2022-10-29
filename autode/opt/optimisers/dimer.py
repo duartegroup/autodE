@@ -144,7 +144,9 @@ class Dimer(Optimiser):
 
         b1 = 0.5 * dc_dphi0  # eqn. 8 from ref. [1]
 
-        a1 = (c_phi0 - self._c + b1 * np.sin(2 * phi_1)) / (  # eqn. 9 from ref. [1]
+        a1 = (
+            c_phi0 - self._c + b1 * np.sin(2 * phi_1)
+        ) / (  # eqn. 9 from ref. [1]
             1 - 2.0 * np.cos(2.0 * phi_1)
         )
 
@@ -152,11 +154,14 @@ class Dimer(Optimiser):
         phi_min = Angle(0.5 * np.arctan(b1 / a1), units="radians")
         logger.info(f'ϕ_min = {phi_min.to("degrees"):.4f}º')
 
-        c_min = 0.5 * a0 + a1 * np.cos(2.0 * phi_min) + b1 * np.sin(2.0 * phi_min)
+        c_min = (
+            0.5 * a0 + a1 * np.cos(2.0 * phi_min) + b1 * np.sin(2.0 * phi_min)
+        )
 
         if c_min > c_phi0:
             logger.info(
-                "Optimised curvature was larger than the initial, " "adding π/2"
+                "Optimised curvature was larger than the initial, "
+                "adding π/2"
             )
             phi_min += np.pi / 2.0
 
@@ -239,7 +244,8 @@ class Dimer(Optimiser):
 
         if self._converged_translation:
             logger.info(
-                "Converged purely based on translation of the " "dimer midpoint"
+                "Converged purely based on translation of the "
+                "dimer midpoint"
             )
             return True
 
@@ -254,7 +260,9 @@ class Dimer(Optimiser):
         """Update the gradient at one of the points in the dimer"""
         i = int(point)
 
-        self._species.coordinates = self._coords.x_at(point, mass_weighted=False)
+        self._species.coordinates = self._coords.x_at(
+            point, mass_weighted=False
+        )
 
         calc = Calculation(
             name=f"{self._species.name}_{i}_{self.iteration}",
@@ -375,7 +383,8 @@ class Dimer(Optimiser):
                 break
 
             logger.info(
-                f"Micro iteration: {i}." f' ϕ={self._coords.phi.to("degrees"):.2f}º'
+                f"Micro iteration: {i}."
+                f' ϕ={self._coords.phi.to("degrees"):.2f}º'
             )
 
         return None

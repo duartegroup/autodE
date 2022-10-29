@@ -14,7 +14,9 @@ class Primitive(ABC):
         self._atom_indexes = atom_indexes
 
     @abstractmethod
-    def __call__(self, x: "autode.opt.coordinates.CartesianCoordinates") -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
         """Return the value of this PIC given a set of cartesian coordinates"""
 
     @abstractmethod
@@ -70,7 +72,9 @@ class ConstrainedPrimitive(Primitive, ABC):
         """Value of the constraint that must be satisfied e.g. r0"""
 
     def is_satisfied(
-        self, x: "autode.opt.coordinates.CartesianCoordinates", tol: float = 1e-4
+        self,
+        x: "autode.opt.coordinates.CartesianCoordinates",
+        tol: float = 1e-4,
     ) -> bool:
         """Is this constraint satisfied to within an absolute tolerance"""
         return abs(self.delta(x)) < tol
@@ -151,7 +155,9 @@ class InverseDistance(_DistanceFunction):
         else:  # i == self.idx_j:
             return (_x[self.i, k] - _x[self.j, k]) * self(x) ** 3
 
-    def __call__(self, x: "autode.opt.coordinates.CartesianCoordinates") -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
         """1 / |x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return 1.0 / np.linalg.norm(_x[self.i] - _x[self.j])
@@ -189,7 +195,9 @@ class Distance(_DistanceFunction):
 
         return val if i == self.i else -val
 
-    def __call__(self, x: "autode.opt.coordinates.CartesianCoordinates") -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
         """|x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return np.linalg.norm(_x[self.i] - _x[self.j])
@@ -242,7 +250,9 @@ class BondAngle(Primitive):
             and other._ordered_idxs == self._ordered_idxs
         )
 
-    def __call__(self, x: "autode.opt.coordinates.CartesianCoordinates") -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
 
         _x = x.reshape((-1, 3))
         u = _x[self.m, :] - _x[self.o, :]
@@ -276,9 +286,9 @@ class BondAngle(Primitive):
 
         if not np.isclose(np.abs(np.arccos(u.dot(v))), 1.0):
             w = np.cross(u, v)
-        elif not np.isclose(np.abs(np.arccos(u.dot(t0))), 1.0) and not np.isclose(
-            np.abs(np.arccos(v.dot(t0))), 1.0
-        ):
+        elif not np.isclose(
+            np.abs(np.arccos(u.dot(t0))), 1.0
+        ) and not np.isclose(np.abs(np.arccos(v.dot(t0))), 1.0):
             w = np.cross(u, t0)
         else:
             w = np.cross(u, t1)
@@ -329,7 +339,9 @@ class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
         return f"ConstrainedCAngle({self.m}-{self.o}-{self.n})"
 
     def __eq__(self, other):
-        return super().__eq__(other) and np.isclose(self._theta0, other._theta0)
+        return super().__eq__(other) and np.isclose(
+            self._theta0, other._theta0
+        )
 
 
 class DihedralAngle(Primitive):
@@ -342,7 +354,9 @@ class DihedralAngle(Primitive):
         self.p = p
         self.n = n
 
-    def __call__(self, x: "autode.opt.coordinates.CartesianCoordinates") -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
         """Value of the dihedral"""
         return self._value(x, return_derivative=False)
 
@@ -395,16 +409,23 @@ class DihedralAngle(Primitive):
 
         if i in (self.m, self.o):
             sign = 1 if i == self.m else -1
-            dqdx += sign * (np.cross(u, w)[k] / (lambda_u * np.sin(phi_u) ** 2))
+            dqdx += sign * (
+                np.cross(u, w)[k] / (lambda_u * np.sin(phi_u) ** 2)
+            )
 
         if i in (self.p, self.n):
             sign = 1 if i == self.p else -1
-            dqdx += sign * (np.cross(v, w)[k] / (lambda_v * np.sin(phi_v) ** 2))
+            dqdx += sign * (
+                np.cross(v, w)[k] / (lambda_v * np.sin(phi_v) ** 2)
+            )
 
         if i in (self.o, self.p):
             sign = 1 if i == self.o else -1
             dqdx += sign * (
-                ((np.cross(u, w)[k] * np.cos(phi_u)) / (lambda_w * np.sin(phi_u) ** 2))
+                (
+                    (np.cross(u, w)[k] * np.cos(phi_u))
+                    / (lambda_w * np.sin(phi_u) ** 2)
+                )
                 - (
                     (np.cross(v, w)[k] * np.cos(phi_v))
                     / (lambda_w * np.sin(phi_v) ** 2)

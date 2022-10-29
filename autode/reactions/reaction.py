@@ -202,7 +202,9 @@ class Reaction:
             # Are solvents defined for all molecules?
             elif all([mol.solvent is not None for mol in molecules]):
 
-                if not all([mol.solvent == first_solvent for mol in molecules]):
+                if not all(
+                    [mol.solvent == first_solvent for mol in molecules]
+                ):
                     raise SolventsDontMatch(
                         "Solvents in reactants and " "products do not match"
                     )
@@ -212,7 +214,8 @@ class Reaction:
 
             else:
                 raise SolventsDontMatch(
-                    "Some species solvated and some not. " "Ill-determined solvation."
+                    "Some species solvated and some not. "
+                    "Ill-determined solvation."
                 )
 
         if self.solvent is not None:
@@ -224,7 +227,8 @@ class Reaction:
                 mol.solvent = self.solvent
 
         logger.info(
-            f"Set the solvent of all species in the reaction to " f"{self.solvent.name}"
+            f"Set the solvent of all species in the reaction to "
+            f"{self.solvent.name}"
         )
         return None
 
@@ -239,7 +243,8 @@ class Reaction:
             return
 
         logger.warning(
-            "Names in reactants and products are not unique. " "Adding prefixes"
+            "Names in reactants and products are not unique. "
+            "Adding prefixes"
         )
 
         for i, reac in enumerate(self.reacs):
@@ -336,7 +341,8 @@ class Reaction:
 
         if self.delta(e_type) is None:
             logger.error(
-                f"Could not estimate barrierless {e_type}," f" an energy was None"
+                f"Could not estimate barrierless {e_type},"
+                f" an energy was None"
             )
             return None
 
@@ -408,7 +414,9 @@ class Reaction:
         # and the type of energy to calculate
         if delta_type_matches("h", "enthalpy"):
             e_type = "enthalpy"
-        elif delta_type_matches("e", "energy") and not delta_type_matches("free"):
+        elif delta_type_matches("e", "energy") and not delta_type_matches(
+            "free"
+        ):
             e_type = "energy"
         elif delta_type_matches("g", "free energy", "free_energy"):
             e_type = "free_energy"
@@ -425,7 +433,9 @@ class Reaction:
         # If the electronic structure has failed to calculate the energy then
         # the difference between the left and right cannot be calculated
         if any(getattr(mol, e_type) is None for mol in lhs + rhs):
-            logger.warning(f"Could not calculate ∆{delta_type}, an energy was " f"None")
+            logger.warning(
+                f"Could not calculate ∆{delta_type}, an energy was " f"None"
+            )
             return None
 
         return sum(getattr(mol, e_type).to("Ha") for mol in rhs) - sum(

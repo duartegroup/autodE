@@ -81,7 +81,8 @@ class UnRelaxedPES1D(ReactivePESnD):
 
         if self.ndim != 1:
             raise NotImplementedError(
-                "Cannot calculate an unrelaxed surface " "for >1 dimension surfaces"
+                "Cannot calculate an unrelaxed surface "
+                "for >1 dimension surfaces"
             )
 
         atom_idxs = self._rs[0].atom_idxs
@@ -109,7 +110,9 @@ class UnRelaxedPES1D(ReactivePESnD):
         """
         return method.keywords.sp
 
-    def _single_energy(self, species: "autode.species.Species", n_cores: int) -> float:
+    def _single_energy(
+        self, species: "autode.species.Species", n_cores: int
+    ) -> float:
         """
         Evaluate the energy using a single point calculation
 

@@ -6,7 +6,11 @@ from autode.calculations import Calculation
 from autode.species.molecule import Molecule
 from autode.point_charges import PointCharge
 from autode.input_output import xyz_file_to_atoms
-from autode.wrappers.keywords import SinglePointKeywords, OptKeywords, HessianKeywords
+from autode.wrappers.keywords import (
+    SinglePointKeywords,
+    OptKeywords,
+    HessianKeywords,
+)
 from autode.wrappers.keywords import Functional, WFMethod, BasisSet
 from autode.wrappers.keywords import cpcm
 from autode.transition_states.transition_state import TransitionState
@@ -40,7 +44,10 @@ def test_orca_opt_calculation():
     )
 
     calc = Calculation(
-        name="opt", molecule=methylchloride, method=method, keywords=opt_keywords
+        name="opt",
+        molecule=methylchloride,
+        method=method,
+        keywords=opt_keywords,
     )
     calc.run()
 
@@ -63,7 +70,10 @@ def test_orca_opt_calculation():
     assert charges == [-0.006954, -0.147352, 0.052983, 0.052943, 0.053457]
 
     calc = Calculation(
-        name="opt", molecule=methylchloride, method=method, keywords=opt_keywords
+        name="opt",
+        molecule=methylchloride,
+        method=method,
+        keywords=opt_keywords,
     )
 
     # If the calculation is not run with calc.run() then there should be no
@@ -76,7 +86,9 @@ def test_orca_opt_calculation():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_orca_optts_calculation():
 
-    ts_guess = TSguess(Molecule("test_ts_reopt_optts_orca.xyz", charge=-1).atoms)
+    ts_guess = TSguess(
+        Molecule("test_ts_reopt_optts_orca.xyz", charge=-1).atoms
+    )
     ts = TransitionState(ts_guess)
     ts.graph.add_active_edge(0, 1)
 
@@ -117,7 +129,10 @@ def test_orca_optts_calculation():
 def test_bad_orca_output():
 
     calc = Calculation(
-        name="no_output", molecule=test_mol, method=method, keywords=opt_keywords
+        name="no_output",
+        molecule=test_mol,
+        method=method,
+        keywords=opt_keywords,
     )
 
     with pytest.raises(ex.CouldNotGetProperty):
@@ -132,7 +147,9 @@ def test_bad_orca_output():
 
 def test_solvation():
 
-    methane = Molecule(name="solvated_methane", smiles="C", solvent_name="water")
+    methane = Molecule(
+        name="solvated_methane", smiles="C", solvent_name="water"
+    )
 
     with pytest.raises(ex.UnsupportedCalculationInput):
 
@@ -148,20 +165,30 @@ def test_solvation():
 
     method.implicit_solvation_type = "CPCM"
     calc = Calculation(
-        name="methane_cpcm", molecule=methane, method=method, keywords=sp_keywords
+        name="methane_cpcm",
+        molecule=methane,
+        method=method,
+        keywords=sp_keywords,
     )
     calc.generate_input()
 
-    assert any("cpcm" in line.lower() for line in open("methane_cpcm_orca.inp", "r"))
+    assert any(
+        "cpcm" in line.lower() for line in open("methane_cpcm_orca.inp", "r")
+    )
     os.remove("methane_cpcm_orca.inp")
 
     method.implicit_solvation_type = "SMD"
     calc = Calculation(
-        name="methane_smd", molecule=methane, method=method, keywords=sp_keywords
+        name="methane_smd",
+        molecule=methane,
+        method=method,
+        keywords=sp_keywords,
     )
     calc.generate_input()
 
-    assert any("smd" in line.lower() for line in open("methane_smd_orca.inp", "r"))
+    assert any(
+        "smd" in line.lower() for line in open("methane_smd_orca.inp", "r")
+    )
     os.remove("methane_smd_orca.inp")
 
 
@@ -171,7 +198,9 @@ def test_vdw_solvent_not_present():
     orca = ORCA()
     orca.implicit_solvation_type = cpcm
 
-    calc = Calculation(name="tmp", molecule=mol, method=orca, keywords=sp_keywords)
+    calc = Calculation(
+        name="tmp", molecule=mol, method=orca, keywords=sp_keywords
+    )
 
     # Cannot use gaussian charges for 2-butanol
     with pytest.raises(ex.CalculationException):
@@ -183,7 +212,10 @@ def test_gradients():
 
     h2 = Molecule(name="h2", atoms=[Atom("H"), Atom("H", x=1.0)])
     calc = Calculation(
-        name="h2_grad", molecule=h2, method=method, keywords=method.keywords.grad
+        name="h2_grad",
+        molecule=h2,
+        method=method,
+        keywords=method.keywords.grad,
     )
     calc.run()
     h2.energy = calc.get_energy()
@@ -191,9 +223,14 @@ def test_gradients():
     delta_r = 1e-8
 
     # Energy of a finite difference approximation
-    h2_disp = Molecule(name="h2_disp", atoms=[Atom("H"), Atom("H", x=1.0 + delta_r)])
+    h2_disp = Molecule(
+        name="h2_disp", atoms=[Atom("H"), Atom("H", x=1.0 + delta_r)]
+    )
     calc = Calculation(
-        name="h2_disp", molecule=h2_disp, method=method, keywords=method.keywords.grad
+        name="h2_disp",
+        molecule=h2_disp,
+        method=method,
+        keywords=method.keywords.grad,
     )
     calc.run()
     h2_disp.energy = calc.get_energy()
@@ -202,7 +239,10 @@ def test_gradients():
     grad = delta_energy / delta_r  # Ha A^-1
 
     calc = Calculation(
-        name="h2_grad", molecule=h2, method=method, keywords=method.keywords.grad
+        name="h2_grad",
+        molecule=h2,
+        method=method,
+        keywords=method.keywords.grad,
     )
 
     calc.run()
@@ -226,7 +266,9 @@ def test_mp2_numerical_gradients():
 
     gradients = calc.get_gradients()
     assert len(gradients) == 6
-    expected = np.array([-0.00971201, -0.00773534, -0.02473580]) / Constants.a0_to_ang
+    expected = (
+        np.array([-0.00971201, -0.00773534, -0.02473580]) / Constants.a0_to_ang
+    )
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
     # Test for different printing with numerical..
@@ -235,7 +277,10 @@ def test_mp2_numerical_gradients():
 
     gradients = calc.get_gradients()
     assert len(gradients) == 6
-    expected = np.array([0.012397372, 0.071726232, -0.070942743]) / Constants.a0_to_ang
+    expected = (
+        np.array([0.012397372, 0.071726232, -0.070942743])
+        / Constants.a0_to_ang
+    )
     assert np.linalg.norm(expected - gradients[0]) < 1e-6
 
 
@@ -249,7 +294,9 @@ def test_keyword_setting():
     # Setter should generate a Functional from the keyword string
     assert isinstance(kwds.functional, Functional)
 
-    calc = Calculation(name="tmp", molecule=test_mol.copy(), method=orca, keywords=kwds)
+    calc = Calculation(
+        name="tmp", molecule=test_mol.copy(), method=orca, keywords=kwds
+    )
     calc.generate_input()
     assert calc.input.exists
 
@@ -261,7 +308,10 @@ def test_keyword_setting():
     with pytest.raises(ex.UnsupportedCalculationInput):
         orca.keywords.sp.functional = Functional(name="B3LYP", g09="B3LYP")
         calc = Calculation(
-            name="tmp", molecule=test_mol.copy(), method=orca, keywords=orca.keywords.sp
+            name="tmp",
+            molecule=test_mol.copy(),
+            method=orca,
+            keywords=orca.keywords.sp,
         )
         calc.generate_input()
 
@@ -271,7 +321,9 @@ def test_keyword_setting():
         orca.keywords.sp.wf_method = "HF"
 
     # but if we have a WF method in the keywords we should be able to set it
-    orca.keywords.sp = SinglePointKeywords([WFMethod("MP2"), BasisSet("def2-TZVP")])
+    orca.keywords.sp = SinglePointKeywords(
+        [WFMethod("MP2"), BasisSet("def2-TZVP")]
+    )
 
     orca.keywords.sp.wf_method = "HF"
     assert orca.keywords.sp.wf_method == "HF"
@@ -316,7 +368,10 @@ def test_charges_from_v5_output_file():
 
     water = Molecule(smiles="O")
     calc = Calculation(
-        name="h2_grad", molecule=water, method=method, keywords=method.keywords.sp
+        name="h2_grad",
+        molecule=water,
+        method=method,
+        keywords=method.keywords.sp,
     )
     calc.output.filename = "h2o_orca_v5_charges.out"
 
@@ -328,9 +383,13 @@ def test_charges_from_v5_output_file():
 
 def test_unsupported_freq_scaling():
 
-    kwds = HessianKeywords(["Freq", "PBE0", "def2-SVP", "%freq\nscalfreq 0.95\nend"])
+    kwds = HessianKeywords(
+        ["Freq", "PBE0", "def2-SVP", "%freq\nscalfreq 0.95\nend"]
+    )
 
-    calc = Calculation(name="opt", molecule=test_mol, method=method, keywords=kwds)
+    calc = Calculation(
+        name="opt", molecule=test_mol, method=method, keywords=kwds
+    )
 
     with pytest.raises(ex.UnsupportedCalculationInput):
         calc.generate_input()
@@ -343,10 +402,13 @@ def test_orca_optimiser_from_output_file():
     assert not optimiser.converged
     assert not np.isfinite(optimiser.last_energy_change)
 
-    optimiser = ORCAOptimiser(output_lines=open("opt_orca.out", "r").readlines())
+    optimiser = ORCAOptimiser(
+        output_lines=open("opt_orca.out", "r").readlines()
+    )
     assert optimiser.converged
     assert np.isclose(
-        optimiser.last_energy_change.to("Ha"), -499.734431042133 - -499.734431061148
+        optimiser.last_energy_change.to("Ha"),
+        -499.734431042133 - -499.734431061148,
     )
 
 

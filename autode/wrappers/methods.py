@@ -12,7 +12,9 @@ from autode.calculations.types import CalculationType as ct
 
 
 class Method(ABC):
-    def __init__(self, name: str, keywords_set: KeywordsSet, doi_list: List[str]):
+    def __init__(
+        self, name: str, keywords_set: KeywordsSet, doi_list: List[str]
+    ):
         """
         A base autodE method wrapper, capable of setting energies/gradients/
         Hessians of a molecule
@@ -73,7 +75,9 @@ class Method(ABC):
         """Available implicit solvent models for this EST method"""
         from autode.solvent.solvents import solvents
 
-        return [s.name for s in solvents if s.is_implicit and hasattr(s, self.name)]
+        return [
+            s.name for s in solvents if s.is_implicit and hasattr(s, self.name)
+        ]
 
     def version_in(self, calc: "CalculationExecutor") -> str:
         """Determine the version of the method used in this calculation"""
@@ -236,7 +240,9 @@ class ExternalMethod(Method, ABC):
 
     def __eq__(self, other) -> bool:
         attrs = ("name", "keywords", "path", "implicit_solvation_type")
-        return isinstance(other, self.__class__) and self._all_equal(other, attrs)
+        return isinstance(other, self.__class__) and self._all_equal(
+            other, attrs
+        )
 
 
 class ExternalMethodOEG(ExternalMethod, ABC):

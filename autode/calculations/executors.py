@@ -18,7 +18,10 @@ from autode.utils import no_exceptions, requires_output_to_exist
 from autode.point_charges import PointCharge
 from autode.opt.optimisers.base import NullOptimiser
 from autode.calculations.input import CalculationInput
-from autode.calculations.output import CalculationOutput, BlankCalculationOutput
+from autode.calculations.output import (
+    CalculationOutput,
+    BlankCalculationOutput,
+)
 from autode.values import PotentialEnergy, GradientRMS
 
 
@@ -162,7 +165,9 @@ class CalculationExecutor:
             self._no_except_set_hessian()
 
         try:
-            self.molecule.partial_charges = self.method.partial_charges_from(self)
+            self.molecule.partial_charges = self.method.partial_charges_from(
+                self
+            )
         except (ValueError, IndexError, ex.AutodeException):
             logger.warning("Failed to set partial charges")
 
@@ -188,7 +193,9 @@ class CalculationExecutor:
         filenames = self.input.filenames
         if everything:
             filenames.append(self.output.filename)
-            filenames += [fn for fn in os.listdir() if fn.startswith(self.name)]
+            filenames += [
+                fn for fn in os.listdir() if fn.startswith(self.name)
+            ]
 
         logger.info(f"Deleting: {set(filenames)}")
 
@@ -298,7 +305,8 @@ class CalculationExecutor:
         # either the calculation has been run before and is the same or it's
         # not been run
         logger.info(
-            "Calculation with this name has been run before but " "with different input"
+            "Calculation with this name has been run before but "
+            "with different input"
         )
         name, n = self.name, 0
         while True:
@@ -334,7 +342,9 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         super().__init__(*args, **kwargs)
 
         self.etol = PotentialEnergy(3e-5, units="Ha")
-        self.gtol = GradientRMS(1e-3, units="Ha Å^-1")  # TODO: A better number here
+        self.gtol = GradientRMS(
+            1e-3, units="Ha Å^-1"
+        )  # TODO: A better number here
         self._fix_unique()
 
     def run(self) -> None:
@@ -358,7 +368,9 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         method = self.method.copy()
         method.keywords.grad = self.input.keywords
 
-        self.optimiser.run(species=self.molecule, method=method, n_cores=self.n_cores)
+        self.optimiser.run(
+            species=self.molecule, method=method, n_cores=self.n_cores
+        )
 
         self.optimiser.save(self._opt_trajectory_name)
 
@@ -368,7 +380,9 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         if self._calc_is_ts_opt:
             # If this calculation is a transition state optimisation then a
             # hessian on the final structure is required
-            self.molecule.calc_hessian(method=self.method, n_cores=self.n_cores)
+            self.molecule.calc_hessian(
+                method=self.method, n_cores=self.n_cores
+            )
         return None
 
     def _run_single_energy_evaluation(self) -> None:

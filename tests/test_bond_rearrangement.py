@@ -20,13 +20,22 @@ def test_prune_small_rings3():
 
     # Square H4 "molecule"
     h4 = Molecule(
-        atoms=[Atom("H"), Atom("H", x=0.5), Atom("H", y=0.5), Atom("H", x=0.5, y=0.5)]
+        atoms=[
+            Atom("H"),
+            Atom("H", x=0.5),
+            Atom("H", y=0.5),
+            Atom("H", x=0.5, y=0.5),
+        ]
     )
     make_graph(h4, allow_invalid_valancies=True)
 
     # Some unphysical bond rearrangements
-    three_mem = BondRearrangement(forming_bonds=[(0, 3)], breaking_bonds=[(1, 2)])
-    four_mem = BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(1, 2)])
+    three_mem = BondRearrangement(
+        forming_bonds=[(0, 3)], breaking_bonds=[(1, 2)]
+    )
+    four_mem = BondRearrangement(
+        forming_bonds=[(0, 1)], breaking_bonds=[(1, 2)]
+    )
     bond_rearrs = [three_mem, four_mem]
 
     ade.Config.skip_small_ring_tss = True
@@ -41,7 +50,10 @@ def test_prune_small_rings2():
 
     ade.Config.skip_small_ring_tss = False
     bond_rearrs = br.get_bond_rearrangs(
-        reactant=reaction.reactant, product=reaction.product, name="tmp", save=False
+        reactant=reaction.reactant,
+        product=reaction.product,
+        name="tmp",
+        save=False,
     )
     assert len(bond_rearrs) > 2
 
@@ -51,9 +63,9 @@ def test_prune_small_rings2():
     assert len(bond_rearrs) == 2
 
     # Should find the 6-membered TS
-    assert bond_rearrs[0].n_membered_rings(reaction.reactant) == [6] or bond_rearrs[
-        1
-    ].n_membered_rings(reaction.reactant) == [6]
+    assert bond_rearrs[0].n_membered_rings(reaction.reactant) == [
+        6
+    ] or bond_rearrs[1].n_membered_rings(reaction.reactant) == [6]
 
 
 def test_n_membered_rings():
@@ -68,7 +80,9 @@ def test_n_membered_rings():
     assert bond_rearr.n_membered_rings(h2o) == []
 
     # Breaking an O-H and forming a H-H should not make any rings
-    bond_rearr = BondRearrangement(breaking_bonds=[(0, 2)], forming_bonds=[(1, 2)])
+    bond_rearr = BondRearrangement(
+        breaking_bonds=[(0, 2)], forming_bonds=[(1, 2)]
+    )
     assert bond_rearr.n_membered_rings(h2o) == [3]
 
 
@@ -96,10 +110,14 @@ def test_prune_small_rings():
         ]
     )
 
-    six_mem = BondRearrangement(forming_bonds=[(5, 9)], breaking_bonds=[(1, 0)])
+    six_mem = BondRearrangement(
+        forming_bonds=[(5, 9)], breaking_bonds=[(1, 0)]
+    )
     assert six_mem.n_membered_rings(mol=cope_r) == [6]
 
-    four_mem = BondRearrangement(forming_bonds=[(0, 9)], breaking_bonds=[(1, 0)])
+    four_mem = BondRearrangement(
+        forming_bonds=[(0, 9)], breaking_bonds=[(1, 0)]
+    )
     assert four_mem.n_membered_rings(cope_r) == [4]
 
     ade.Config.skip_small_ring_tss = False
@@ -145,13 +163,17 @@ def test_multiple_possibles2():
 
 def test_bondrearr_class():
     # Reaction H + H2 -> H2 + H
-    rearrang = br.BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(1, 2)])
+    rearrang = br.BondRearrangement(
+        forming_bonds=[(0, 1)], breaking_bonds=[(1, 2)]
+    )
 
     assert rearrang.n_fbonds == 1
     assert rearrang.n_bbonds == 1
     assert str(rearrang) == "0-1_1-2"
 
-    rearrag2 = br.BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(1, 2)])
+    rearrag2 = br.BondRearrangement(
+        forming_bonds=[(0, 1)], breaking_bonds=[(1, 2)]
+    )
     assert rearrag2 == rearrang
 
     mol = Molecule(
@@ -217,7 +239,10 @@ def test_get_bond_rearrangs():
 
     assert (
         br.get_bond_rearrangs(
-            ReactantComplex(prod), ProductComplex(reac), name="test2", save=False
+            ReactantComplex(prod),
+            ProductComplex(reac),
+            name="test2",
+            save=False,
         )
         is None
     )
@@ -226,7 +251,10 @@ def test_get_bond_rearrangs():
     # undetermined
     assert (
         br.get_bond_rearrangs(
-            ReactantComplex(reac), ProductComplex(reac), name="test3", save=False
+            ReactantComplex(reac),
+            ProductComplex(reac),
+            name="test3",
+            save=False,
         )
         is None
     )
@@ -234,7 +262,9 @@ def test_get_bond_rearrangs():
 
 def test_two_possibles():
 
-    ch2ch3f = Molecule(name="radical", charge=0, mult=2, smiles="FC[C]([H])[H]")
+    ch2ch3f = Molecule(
+        name="radical", charge=0, mult=2, smiles="FC[C]([H])[H]"
+    )
 
     ch3ch2f = Molecule(name="radical", charge=0, mult=2, smiles="C[C]([H])F")
 
@@ -268,7 +298,8 @@ def test_generate_rearranged_graph():
     for edge in final_edges:
         final_graph.add_edge(*edge)
     assert is_isomorphic(
-        br.generate_rearranged_graph(init_graph, [(3, 4)], [(1, 2)]), final_graph
+        br.generate_rearranged_graph(init_graph, [(3, 4)], [(1, 2)]),
+        final_graph,
     )
 
 
@@ -285,7 +316,10 @@ def test_2b():
     assert (
         len(
             br.get_bond_rearrangs(
-                ReactantComplex(reac), ProductComplex(prod), name="2b_test", save=False
+                ReactantComplex(reac),
+                ProductComplex(prod),
+                name="2b_test",
+                save=False,
             )
         )
         == 1
@@ -318,7 +352,10 @@ def test_3b():
     # Reactants to products must break three bonds but this is not yet supported in any form
     assert (
         br.get_bond_rearrangs(
-            ReactantComplex(reac), ProductComplex(prod), name="3b_test", save=False
+            ReactantComplex(reac),
+            ProductComplex(prod),
+            name="3b_test",
+            save=False,
         )
         is None
     )
@@ -333,7 +370,9 @@ def test_1b1f():
     )
     assert br.get_fbonds_bbonds_1b1f(
         reac, prod, [], [[(0, 1)]], [[(1, 2)]], [], [], []
-    ) == [br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])]
+    ) == [
+        br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])
+    ]
 
     reac = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("H", 0.6, 0, 0), Atom("H", 10, 0, 0)]
@@ -343,7 +382,9 @@ def test_1b1f():
     )
     assert br.get_fbonds_bbonds_1b1f(
         reac, prod, [], [], [], [[[(0, 1)], [(1, 2)]]], [], []
-    ) == [br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])]
+    ) == [
+        br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])
+    ]
 
 
 def test_2b1f():
@@ -356,7 +397,11 @@ def test_2b1f():
     )
     assert br.get_fbonds_bbonds_2b1f(
         reac, prod, [], [[(0, 1)], [(1, 2)]], [[(0, 2)]], [], [], []
-    ) == [br.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
+    ) == [
+        br.BondRearrangement(
+            forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
+        )
+    ]
 
     reac = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("C", 0.6, 0, 0), Atom("H", 1.2, 0, 0)]
@@ -367,7 +412,11 @@ def test_2b1f():
     )
     assert br.get_fbonds_bbonds_2b1f(
         reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 2)]], [], [], []
-    ) == [br.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
+    ) == [
+        br.BondRearrangement(
+            forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
+        )
+    ]
 
     reac = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("H", 0.6, 0, 0), Atom("H", 1.2, 0, 0)]
@@ -378,7 +427,11 @@ def test_2b1f():
     )
     assert br.get_fbonds_bbonds_2b1f(
         reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []
-    ) == [br.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)])]
+    ) == [
+        br.BondRearrangement(
+            forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
+        )
+    ]
 
 
 def test_2b2f():
@@ -451,7 +504,14 @@ def test_2b2f():
         ]
     )
     assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 3), (2, 3)], [(1, 3)]], [], [], []
+        reac,
+        prod,
+        [],
+        [[(0, 1), (1, 2)]],
+        [[(0, 3), (2, 3)], [(1, 3)]],
+        [],
+        [],
+        [],
     ) == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (1, 3)], breaking_bonds=[(0, 1), (1, 2)]
@@ -502,7 +562,14 @@ def test_2b2f():
         ]
     )
     assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [], [], [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]], [], []
+        reac,
+        prod,
+        [],
+        [],
+        [],
+        [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]],
+        [],
+        [],
     ) == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)]
@@ -526,7 +593,10 @@ def test_br_from_file():
     assert saved_br.n_bbonds == 0
 
     with open("tmp.txt", "w") as br_file:
-        print("fbonds\n" "1 12\n" "bbonds\n" "6 12\n" "7 8\n" "endn\n", file=br_file)
+        print(
+            "fbonds\n" "1 12\n" "bbonds\n" "6 12\n" "7 8\n" "endn\n",
+            file=br_file,
+        )
 
     saved_brs = br.get_bond_rearrangs_from_file(filename="tmp.txt")
     assert len(saved_brs) == 1

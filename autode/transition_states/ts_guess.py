@@ -10,7 +10,10 @@ from autode.exceptions import CalculationException
 from autode.log import logger
 from autode.utils import work_in
 from autode.methods import get_lmethod, get_hmethod
-from autode.mol_graphs import get_mapping_ts_template, get_truncated_active_mol_graph
+from autode.mol_graphs import (
+    get_mapping_ts_template,
+    get_truncated_active_mol_graph,
+)
 
 
 def has_matching_ts_templates(
@@ -38,7 +41,9 @@ def has_matching_ts_templates(
     for ts_template in ts_guess_templates:
 
         if template_matches(
-            reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph
+            reactant=reactant,
+            ts_template=ts_template,
+            truncated_graph=mol_graph,
         ):
             return True
 
@@ -82,7 +87,9 @@ def get_template_ts_guess(
     for ts_template in get_ts_templates():
 
         if not template_matches(
-            reactant=reactant, ts_template=ts_template, truncated_graph=mol_graph
+            reactant=reactant,
+            ts_template=ts_template,
+            truncated_graph=mol_graph,
         ):
             continue
 
@@ -96,7 +103,9 @@ def get_template_ts_guess(
             logger.info(f"Mapping active bond {i}-{j}")
 
             try:
-                dist = ts_template.graph.edges[mapping[i], mapping[j]]["distance"]
+                dist = ts_template.graph.edges[mapping[i], mapping[j]][
+                    "distance"
+                ]
                 active_bonds_and_dists_ts[active_bond] = dist
 
             except KeyError:
@@ -154,7 +163,9 @@ class TSguess(TSbase):
             charge=species.charge,
             mult=species.mult,
             name=f"ts_guess_{species.name}",
-            solvent_name=None if species.solvent is None else species.solvent.name,
+            solvent_name=None
+            if species.solvent is None
+            else species.solvent.name,
         )
 
         return ts_guess
@@ -217,7 +228,9 @@ class TSguess(TSbase):
         self,
         name: str,
         distance_consts: Optional[dict] = None,
-        method: Optional["autode.wrappers.base.ElectronicStructureMethod"] = None,
+        method: Optional[
+            "autode.wrappers.base.ElectronicStructureMethod"
+        ] = None,
         keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
     ):
         """Get a TS guess from a constrained optimisation with the active atoms

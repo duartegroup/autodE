@@ -107,6 +107,8 @@ class PRFOptimiser(RFOptimiser):
         Initialise running a partitioned rational function optimisation by
         setting the coordinates and Hessian
         """
-        self._coords = CartesianCoordinates(self._species.coordinates).to("dic")
+        self._coords = CartesianCoordinates(self._species.coordinates).to(
+            "dic"
+        )
         self._update_hessian_gradient_and_energy()
         return None

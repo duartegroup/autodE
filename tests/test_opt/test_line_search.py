@@ -24,10 +24,17 @@ class TestSDLineSearch(LineSearchOptimiser):
     __test__ = False
 
     def __init__(
-        self, init_alpha=1.0, energy_grad_func=quadratic, direction=None, coords=None
+        self,
+        init_alpha=1.0,
+        energy_grad_func=quadratic,
+        direction=None,
+        coords=None,
     ):
         super().__init__(
-            maxiter=10, direction=direction, init_alpha=init_alpha, coords=coords
+            maxiter=10,
+            direction=direction,
+            init_alpha=init_alpha,
+            coords=coords,
         )
 
         self.energy_grad_func = energy_grad_func
@@ -36,7 +43,9 @@ class TestSDLineSearch(LineSearchOptimiser):
     def converged(self) -> bool:
         """Simple convergence criteria"""
         return (
-            self.iteration > 0 and self._coords.e is not None and self._coords.e < 0.01
+            self.iteration > 0
+            and self._coords.e is not None
+            and self._coords.e < 0.01
         )
 
     def _log_convergence(self) -> None:
@@ -124,11 +133,15 @@ def test_armijo_line_search_diff_step_sizes():
 def test_armijo_line_search_complex_func():
     def energy_grad(x, y):
         energy = 10 * (y - x**2) ** 2 + (x - 1) ** 2
-        gradient = np.array([2 * (20 * x**3 - 20 * x * y + x - 1), 20 * (y - x**2)])
+        gradient = np.array(
+            [2 * (20 * x**3 - 20 * x * y + x - 1), 20 * (y - x**2)]
+        )
 
         return energy, gradient
 
-    optimiser = TestArmijoLineSearch(energy_grad_func=energy_grad, init_step_size=0.1)
+    optimiser = TestArmijoLineSearch(
+        energy_grad_func=energy_grad, init_step_size=0.1
+    )
     optimiser.run(Molecule(name="blank"), method=Method())
 
     assert optimiser.converged

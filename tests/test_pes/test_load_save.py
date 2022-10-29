@@ -47,7 +47,11 @@ def test_save_1d():
 def save_3d_as_text_file():
 
     pes = TestPES(
-        rs={(0, 1): (0.1, 0.2, 3), (1, 2): (0.1, 0.2, 3), (2, 3): (0.1, 0.2, 3)}
+        rs={
+            (0, 1): (0.1, 0.2, 3),
+            (1, 2): (0.1, 0.2, 3),
+            (2, 3): (0.1, 0.2, 3),
+        }
     )
     pes._energies = Energies(np.ones(shape=(3, 3)))
     pes.save(filename="tmp.txt")

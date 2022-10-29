@@ -26,7 +26,9 @@ def are_coords_reasonable(coords: np.ndarray) -> bool:
     dist_mat = distance_matrix(coords, coords) + np.identity(n_atoms)
 
     if np.min(dist_mat) < 0.7:
-        logger.warning("There is a distance < 0.7 Å. Structure is *not* " "sensible")
+        logger.warning(
+            "There is a distance < 0.7 Å. Structure is *not* " "sensible"
+        )
         return False
 
     return True
@@ -49,7 +51,9 @@ def proj(u: np.ndarray, v: np.ndarray) -> np.ndarray:
     return (np.dot(u, v) / np.dot(u, u)) * u
 
 
-def get_rot_mat_kabsch(p_matrix: np.ndarray, q_matrix: np.ndarray) -> np.ndarray:
+def get_rot_mat_kabsch(
+    p_matrix: np.ndarray, q_matrix: np.ndarray
+) -> np.ndarray:
     """
     Get the optimal rotation matrix with the Kabsch algorithm. Notation is from
     https://en.wikipedia.org/wiki/Kabsch_algorithm
@@ -74,7 +78,9 @@ def get_rot_mat_kabsch(p_matrix: np.ndarray, q_matrix: np.ndarray) -> np.ndarray
     return rot_matrix
 
 
-def get_rot_mat_euler_from_terms(a: float, b: float, c: float, d: float) -> np.ndarray:
+def get_rot_mat_euler_from_terms(
+    a: float, b: float, c: float, d: float
+) -> np.ndarray:
     """3D rotation matrix from terms unique terms in the matrix"""
 
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
@@ -118,7 +124,9 @@ def get_rot_mat_euler(axis: np.ndarray, theta: float) -> np.ndarray:
 
 
 def get_neighbour_list(
-    species: "autode.species.species.Species", atom_i: int, index_set: Sequence[int]
+    species: "autode.species.species.Species",
+    atom_i: int,
+    index_set: Sequence[int],
 ) -> Sequence[int]:
     """Calculate a neighbour list from atom i as a list of atom labels
 
@@ -159,7 +167,9 @@ def get_neighbour_list(
     return atom_label_neighbour_list
 
 
-def get_distance_constraints(species: "autode.species.species.Species") -> dict:
+def get_distance_constraints(
+    species: "autode.species.species.Species",
+) -> dict:
     """
     Set all the distance constraints required in an optimisation as the
     active bonds
@@ -176,7 +186,8 @@ def get_distance_constraints(species: "autode.species.species.Species") -> dict:
 
     if species.graph is None:
         logger.warning(
-            "Molecular graph was not set cannot find any distance " "constraints"
+            "Molecular graph was not set cannot find any distance "
+            "constraints"
         )
         return None
 

@@ -31,7 +31,9 @@ def test_multistep_reaction():
     Config.num_complex_random_rotations = 1
 
     # SN2 forwards then backwards example
-    forwards = Reaction("CCl.[F-]>>CF.[Cl-]", name="sn2_forwards", solvent_name="water")
+    forwards = Reaction(
+        "CCl.[F-]>>CF.[Cl-]", name="sn2_forwards", solvent_name="water"
+    )
 
     backwards = Reaction(
         "CF.[Cl-]>>CCl.[F-]", name="sn2_backwards", solvent_name="water"

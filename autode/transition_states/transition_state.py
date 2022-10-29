@@ -19,7 +19,9 @@ class TransitionState(TSbase):
     def __init__(
         self,
         ts_guess: TSbase,
-        bond_rearr: Optional["autode.bond_rearrangement.BondRearrangement"] = None,
+        bond_rearr: Optional[
+            "autode.bond_rearrangement.BondRearrangement"
+        ] = None,
     ):
         """
         Transition State
@@ -109,7 +111,8 @@ class TransitionState(TSbase):
         logger.info("Optimisation nearly converged")
         if self.could_have_correct_imag_mode:
             logger.info(
-                "Still have correct imaginary mode, trying " "more  optimisation steps"
+                "Still have correct imaginary mode, trying "
+                "more  optimisation steps"
             )
 
             self.atoms = calc.get_final_atoms()
@@ -137,7 +140,9 @@ class TransitionState(TSbase):
 
         with Pool(processes=Config.n_cores) as pool:
             results = [
-                pool.apply_async(get_simanl_conformer, args=(self, distance_consts, i))
+                pool.apply_async(
+                    get_simanl_conformer, args=(self, distance_consts, i)
+                )
                 for i in range(n_confs)
             ]
 
@@ -178,7 +183,9 @@ class TransitionState(TSbase):
             disp_ts = displaced_species_along_mode(
                 self, mode_number=int(mode_number), disp_factor=disp
             )
-            atoms_to_xyz_file(atoms=disp_ts.atoms, filename=f"{name}.xyz", append=True)
+            atoms_to_xyz_file(
+                atoms=disp_ts.atoms, filename=f"{name}.xyz", append=True
+            )
 
             # Add displacement so the final set of atoms are +0.5 Å displaced
             # along the mode, then displaced back again
@@ -189,7 +196,12 @@ class TransitionState(TSbase):
 
     @requires_atoms
     def optimise(
-        self, name_ext="optts", method=None, reset_graph=False, calc=None, keywords=None
+        self,
+        name_ext="optts",
+        method=None,
+        reset_graph=False,
+        calc=None,
+        keywords=None,
     ):
         """Optimise this TS to a true TS"""
         logger.info(f"Optimising {self.name} to a transition state")
@@ -211,23 +223,31 @@ class TransitionState(TSbase):
 
         if all([freq > -50 for freq in self.imaginary_frequencies[1:]]):
             logger.warning(
-                "Had small imaginary modes - not displacing along " "other modes"
+                "Had small imaginary modes - not displacing along "
+                "other modes"
             )
             return
 
         # There is more than one imaginary frequency. Will assume that the most
         # negative is the correct mode..
         for disp_magnitude, ext in zip([1, -1], ["_dis", "_dis2"]):
-            logger.info("Displacing along second imaginary mode to try and " "remove")
+            logger.info(
+                "Displacing along second imaginary mode to try and " "remove"
+            )
 
             disp_ts = self.copy()
             disp_ts.atoms = displaced_species_along_mode(
                 self, mode_number=7, disp_factor=disp_magnitude
             ).atoms
 
-            disp_ts._run_opt_ts_calc(method=get_hmethod(), name_ext=name_ext + ext)
+            disp_ts._run_opt_ts_calc(
+                method=get_hmethod(), name_ext=name_ext + ext
+            )
 
-            if self.has_imaginary_frequencies and len(self.imaginary_frequencies) == 1:
+            if (
+                self.has_imaginary_frequencies
+                and len(self.imaginary_frequencies) == 1
+            ):
                 logger.info(
                     "Displacement along second imaginary mode "
                     "successful. Now have 1 imaginary mode"
@@ -255,7 +275,9 @@ class TransitionState(TSbase):
 
         # Remove similar TS conformer that are similar to this TS based on root
         # mean squared differences in their structures being above a threshold
-        t_h = Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
+        t_h = (
+            Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
+        )
         _ts.conformers = [
             conf
             for conf in _ts.conformers

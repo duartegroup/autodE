@@ -171,7 +171,9 @@ def _q_trans_igm(species, ss, temp):
         effective_volume = SIConstants.k_b * temp / Constants.atm_to_pa
 
     elif ss.lower() == "1m":
-        effective_volume = 1.0 / (Constants.n_a * (1.0 / Constants.dm_to_m) ** 3)
+        effective_volume = 1.0 / (
+            Constants.n_a * (1.0 / Constants.dm_to_m) ** 3
+        )
 
     else:
         raise ValueError(
@@ -295,7 +297,9 @@ def _igm_s_vib(species, temp):
 
     for freq in species.vib_frequencies:
         x = freq.real.to("hz") * SIConstants.h / (SIConstants.k_b * temp)
-        s += SIConstants.k_b * ((x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x)))
+        s += SIConstants.k_b * (
+            (x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x))
+        )
 
     return float(s)
 
@@ -326,7 +330,8 @@ def _truhlar_s_vib(species, temp, shift_freq):
 
         x = freq * Constants.c_in_cm * SIConstants.h / SIConstants.k_b
         s += SIConstants.k_b * (
-            ((x / temp) / (np.exp(x / temp) - 1.0)) - np.log(1.0 - np.exp(-x / temp))
+            ((x / temp) / (np.exp(x / temp) - 1.0))
+            - np.log(1.0 - np.exp(-x / temp))
         )
 
     return float(s)
@@ -361,7 +366,9 @@ def _grimme_s_vib(species, temp, omega_0, alpha):
         mu_prime = (mu * b_avg) / (mu + b_avg)
 
         x = omega * SIConstants.h / (SIConstants.k_b * temp)
-        s_v = SIConstants.k_b * ((x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x)))
+        s_v = SIConstants.k_b * (
+            (x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x))
+        )
 
         factor = (
             8.0 * np.pi**3 * mu_prime * SIConstants.k_b * temp

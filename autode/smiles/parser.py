@@ -55,11 +55,14 @@ class Parser:
         """Approximate spin multiplicity (2S+1). For multiple unpaired
         electrons will default to a singlet"""
 
-        n_electrons = sum([at.atomic_number for at in self.atoms]) - self.charge
+        n_electrons = (
+            sum([at.atomic_number for at in self.atoms]) - self.charge
+        )
 
         # Atoms have implicit hydrogens, so add them
         n_electrons += sum(
-            at.n_hydrogens if at.n_hydrogens is not None else 0 for at in self.atoms
+            at.n_hydrogens if at.n_hydrogens is not None else 0
+            for at in self.atoms
         )
 
         return (n_electrons % 2) + 1
@@ -71,11 +74,14 @@ class Parser:
 
     def _check_smiles(self):
         """Check the SMILES string for unsupported characters"""
-        present_invalid_chars = [char for char in (".", "*") if char in self._string]
+        present_invalid_chars = [
+            char for char in (".", "*") if char in self._string
+        ]
 
         if len(present_invalid_chars) > 0:
             raise InvalidSmilesString(
-                f"{self._string} had invalid characters:" f"{present_invalid_chars}"
+                f"{self._string} had invalid characters:"
+                f"{present_invalid_chars}"
             )
 
         return None
@@ -216,7 +222,8 @@ class Parser:
                 raise InvalidSmilesString("Integer >9 not found following %")
 
         raise InvalidSmilesString(
-            f"Could not get the ring index {curr_char} " f"was neither a number or a %"
+            f"Could not get the ring index {curr_char} "
+            f"was neither a number or a %"
         )
 
     def _add_bond(self, symbol, idx, prev_atom_idx=None):
@@ -239,7 +246,9 @@ class Parser:
         if prev_atom_idx is None:
             prev_atom_idx = self.n_atoms - 2
 
-        self.bonds.append(SMILESBond(prev_atom_idx, self.n_atoms - 1, symbol=symbol))
+        self.bonds.append(
+            SMILESBond(prev_atom_idx, self.n_atoms - 1, symbol=symbol)
+        )
 
         if symbol == "=":
             self._set_double_bond_stereochem(idx)
@@ -277,7 +286,9 @@ class Parser:
                 break
 
             if char == "\\":
-                self.atoms[atom_idx_i].stereochem = SMILESStereoChem.ALKENE_DOWN
+                self.atoms[
+                    atom_idx_i
+                ].stereochem = SMILESStereoChem.ALKENE_DOWN
                 break
 
         # Parse backwards from the final atom to assign the stereochemistry of
@@ -391,7 +402,10 @@ class Parser:
                 bond_symbol = "-"  # single bonds implicit
 
             # Skip any parsed atoms, bond order chars and cis/trans definitions
-            if i in self.parsed_idxs or char in bond_order_symbols + ["/", "\\"]:
+            if i in self.parsed_idxs or char in bond_order_symbols + [
+                "/",
+                "\\",
+            ]:
                 continue
 
             # Integer for a dangling bond e.g. C1, C=1, N3 etc.
@@ -410,7 +424,9 @@ class Parser:
                     continue
 
                 unclosed_bonds[ring_idx] = RingBond(
-                    idx_i=prev_idx, symbol=bond_symbol, bond_idx=len(self.bonds)
+                    idx_i=prev_idx,
+                    symbol=bond_symbol,
+                    bond_idx=len(self.bonds),
                 )
 
             # Any square bracketed atom with hydrogens defined e.g. [OH], [Fe]

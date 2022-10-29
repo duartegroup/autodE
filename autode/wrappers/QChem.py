@@ -44,7 +44,8 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
         if calc.input.filename is None:
             raise ValueError(
-                f"Cannot generate an input for {calc}. Input " "filename was undefined"
+                f"Cannot generate an input for {calc}. Input "
+                "filename was undefined"
             )
 
         if molecule.is_implicitly_solvated and not self._keywords_contain(
@@ -54,7 +55,8 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
         if calc.input.point_charges is not None:
             raise NotImplementedError(
-                "Point charges within QChem " "calculations are not yet supported"
+                "Point charges within QChem "
+                "calculations are not yet supported"
             )
 
         with self._InputFileWriter(filename=calc.input.filename) as inp_file:
@@ -108,7 +110,8 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
         """Execute a qchem calculation"""
 
         @work_in_tmp_dir(
-            filenames_to_copy=calc.input.filenames, kept_file_exts=(".in", ".out")
+            filenames_to_copy=calc.input.filenames,
+            kept_file_exts=(".in", ".out"),
         )
         def execute_qchem():
             params = [self.path, "-nt", str(calc.n_cores), calc.input.filename]
@@ -152,7 +155,8 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
         if not isinstance(calc.input.keywords, kws.OptKeywords):
             logger.warning(
-                "Non-optimisation calculation performed - no change" " to geometry"
+                "Non-optimisation calculation performed - no change"
+                " to geometry"
             )
             return calc.molecule.atoms
 
@@ -348,7 +352,8 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             end_idx = start_idx + 3 * n_atoms
 
             hess = [
-                [float(val) for val in _l.split()] for _l in lines[start_idx:end_idx]
+                [float(val) for val in _l.split()]
+                for _l in lines[start_idx:end_idx]
             ]
 
             while not correct_shape(hess):
@@ -468,7 +473,9 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
                 # calculation is in the gas phase
                 return None
 
-            self.write("$smx\n" f"solvent {calc.molecule.solvent.qchem}\n" f"$end\n")
+            self.write(
+                "$smx\n" f"solvent {calc.molecule.solvent.qchem}\n" f"$end\n"
+            )
 
             return None
 

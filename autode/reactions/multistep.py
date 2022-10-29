@@ -8,7 +8,9 @@ from autode.utils import work_in
 
 
 class MultiStepReaction:
-    def __init__(self, *args: "autode.reactions.Reaction", name: str = "reaction"):
+    def __init__(
+        self, *args: "autode.reactions.Reaction", name: str = "reaction"
+    ):
         """
         Reaction with multiple steps.
 
@@ -88,14 +90,20 @@ class MultiStepReaction:
         for i in range(self.n_steps - 1):
             j = i + 1  # Index of the next step in the sequence of reactions
 
-            if self.reactions[j].has_identical_composition_as(self.reactions[i]):
+            if self.reactions[j].has_identical_composition_as(
+                self.reactions[i]
+            ):
                 continue
 
             if self._adds_molecule(i, j):
-                self._add_mol_to_reacs_prods(mol=self._added_molecule(i, j), to_idx=j)
+                self._add_mol_to_reacs_prods(
+                    mol=self._added_molecule(i, j), to_idx=j
+                )
 
             elif self._adds_molecule(j, i):
-                self._add_mol_to_reacs_prods(mol=self._added_molecule(j, i), from_idx=j)
+                self._add_mol_to_reacs_prods(
+                    mol=self._added_molecule(j, i), from_idx=j
+                )
 
             else:
                 raise RuntimeError(

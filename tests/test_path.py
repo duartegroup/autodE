@@ -112,9 +112,11 @@ def test_pruning_bonds():
     assert len(new_bonds) == 2
     # Should prune to one breaking and one forming bond
     assert (
-        isinstance(new_bonds[0], FormingBond) and isinstance(new_bonds[1], BreakingBond)
+        isinstance(new_bonds[0], FormingBond)
+        and isinstance(new_bonds[1], BreakingBond)
     ) or (
-        isinstance(new_bonds[1], FormingBond) and isinstance(new_bonds[0], BreakingBond)
+        isinstance(new_bonds[1], FormingBond)
+        and isinstance(new_bonds[0], BreakingBond)
     )
 
     # Test the correct assigment of the final bond distance
@@ -142,18 +144,26 @@ def test_pruning_bonds():
         ],
     )
 
-    bbond = BreakingBond(atom_indexes=[0, 2], species=ru_reac, final_species=ru_prod)
+    bbond = BreakingBond(
+        atom_indexes=[0, 2], species=ru_reac, final_species=ru_prod
+    )
 
     assert np.isclose(bbond.final_dist, ru_prod.distance(0, 2))
 
 
 def test_pruning_bonds2():
 
-    h2 = Species(name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=1)])
+    h2 = Species(
+        name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=1)]
+    )
 
-    h2_close = Species(name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=0.5)])
+    h2_close = Species(
+        name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=0.5)]
+    )
 
-    bbond = BreakingBond(atom_indexes=[0, 1], species=h2, final_species=h2_close)
+    bbond = BreakingBond(
+        atom_indexes=[0, 1], species=h2, final_species=h2_close
+    )
 
     # A breaking bond with a final distance shorter than the current
     # (which is possible) should be pruned

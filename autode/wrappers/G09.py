@@ -27,7 +27,9 @@ def _add_opt_option(keywords, new_option):
         if "=(" in keyword:
             # get the individual options
             unformated_options = keyword[5:-1].split(",")
-            opt_options = [option.lower().strip() for option in unformated_options]
+            opt_options = [
+                option.lower().strip() for option in unformated_options
+            ]
 
         elif "=" in keyword:
             opt_options = [keyword[4:]]
@@ -291,11 +293,14 @@ def _rerun_angle_failure(calc):
             if "=(" in keyword:
                 # get the individual options
                 options = [
-                    option.lower().strip() for option in keyword[5:-1].split(",")
+                    option.lower().strip()
+                    for option in keyword[5:-1].split(",")
                 ]
 
                 for option in options:
-                    if option.startswith("maxcycles") or option.startswith("maxstep"):
+                    if option.startswith("maxcycles") or option.startswith(
+                        "maxstep"
+                    ):
                         options.remove(option)
 
             elif "=" in keyword:
@@ -346,7 +351,9 @@ def _run_hessian(calc):
     hess_calc = deepcopy(calc)  # Uses a copy so the current calc. is unchanged
 
     # Remove any optimisation keywords
-    for keyword in filter(lambda kwd: "opt" in kwd.lower(), hess_calc.input.keywords):
+    for keyword in filter(
+        lambda kwd: "opt" in kwd.lower(), hess_calc.input.keywords
+    ):
         hess_calc.input.keywords.remove(keyword)
 
     # Add Geom(Redundant) to be compatible with External
@@ -416,7 +423,9 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             print("#", *keywords, file=inp_file, end=" ")
 
             if molecule.solvent is not None:
-                print(f"scrf=(smd,solvent={molecule.solvent.g09})", file=inp_file)
+                print(
+                    f"scrf=(smd,solvent={molecule.solvent.g09})", file=inp_file
+                )
             else:
                 print("", file=inp_file)
 
@@ -426,7 +435,8 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             for atom in molecule.atoms:
                 x, y, z = atom.coord
                 print(
-                    f"{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}", file=inp_file
+                    f"{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}",
+                    file=inp_file,
                 )
 
             _print_point_charges(inp_file, calc.input)
@@ -517,7 +527,9 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         return False
 
-    def _energy_from(self, calc: "CalculationExecutor") -> Optional[PotentialEnergy]:
+    def _energy_from(
+        self, calc: "CalculationExecutor"
+    ) -> Optional[PotentialEnergy]:
 
         for line in reversed(calc.output.file_lines):
             if "SCF Done" in line or "E(CIS)" in line:
@@ -539,7 +551,9 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
     ) -> "autode.opt.optimisers.base.BaseOptimiser":
         return G09Optimiser(output_lines=calc.output.file_lines)
 
-    def coordinates_from(self, calc: "CalculationExecutor") -> Optional[Coordinates]:
+    def coordinates_from(
+        self, calc: "CalculationExecutor"
+    ) -> Optional[Coordinates]:
         """Get the final set of coordinates from a G09 output"""
         coords = []
 

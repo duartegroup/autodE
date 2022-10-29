@@ -209,7 +209,9 @@ class Keywords(ABC):
 
     def __eq__(self, other) -> bool:
         """Equality of these keywords to another kind"""
-        return isinstance(other, self.__class__) and set(self._list) == set(other._list)
+        return isinstance(other, self.__class__) and set(self._list) == set(
+            other._list
+        )
 
     def __add__(self, other):
         """Add some keywords to these"""
@@ -256,8 +258,12 @@ class Keywords(ABC):
 
             # Cannot have both wavefunction and DFT methoda
             if (
-                isinstance(keyword_in_list, WFMethod) and keyword_type == Functional
-            ) or (isinstance(keyword_in_list, Functional) and keyword_type == WFMethod):
+                isinstance(keyword_in_list, WFMethod)
+                and keyword_type == Functional
+            ) or (
+                isinstance(keyword_in_list, Functional)
+                and keyword_type == WFMethod
+            ):
 
                 raise ValueError(
                     "Could not set a functional with a "
@@ -458,7 +464,9 @@ class SinglePointKeywords(Keywords):
 
 
 class Keyword(ABC):
-    def __init__(self, name: str, doi_list: Optional[List[str]] = None, **kwargs):
+    def __init__(
+        self, name: str, doi_list: Optional[List[str]] = None, **kwargs
+    ):
         """
         A keyword for an electronic structure theory method e.g. basis set or
         functional, with possibly a an associated reference or set of
@@ -553,7 +561,12 @@ class Functional(Keyword):
     """Functional for a DFT method"""
 
     def __init__(
-        self, name, doi=None, doi_list=None, freq_scale_factor: float = 1.0, **kwargs
+        self,
+        name,
+        doi=None,
+        doi_list=None,
+        freq_scale_factor: float = 1.0,
+        **kwargs,
     ):
         super().__init__(name, doi=doi, doi_list=doi_list, **kwargs)
 

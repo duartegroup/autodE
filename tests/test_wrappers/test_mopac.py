@@ -19,7 +19,9 @@ method = MOPAC()
 
 
 def mecl():
-    return Molecule(name="CH3Cl", smiles="[H]C([H])(Cl)[H]", solvent_name="water")
+    return Molecule(
+        name="CH3Cl", smiles="[H]C([H])(Cl)[H]", solvent_name="water"
+    )
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
@@ -27,7 +29,10 @@ def test_mopac_opt_calculation():
 
     mol = mecl()
     calc = Calculation(
-        name="opt", molecule=mol, method=method, keywords=Config.MOPAC.keywords.opt
+        name="opt",
+        molecule=mol,
+        method=method,
+        keywords=Config.MOPAC.keywords.opt,
     )
     calc.run()
 
@@ -102,7 +107,10 @@ def test_other_spin_states():
     h_doublet.name = "molecule"
 
     calc = Calculation(
-        name="h", molecule=h_doublet, method=method, keywords=Config.MOPAC.keywords.sp
+        name="h",
+        molecule=h_doublet,
+        method=method,
+        keywords=Config.MOPAC.keywords.sp,
     )
     calc.run()
 
@@ -114,7 +122,10 @@ def test_other_spin_states():
 
     with pytest.raises(UnsupportedCalculationInput):
         calc = Calculation(
-            name="h", molecule=h_quin, method=method, keywords=Config.MOPAC.keywords.sp
+            name="h",
+            molecule=h_quin,
+            method=method,
+            keywords=Config.MOPAC.keywords.sp,
         )
         calc.run()
 
@@ -176,7 +187,10 @@ def test_grad():
     h2 = Molecule(name="h2", atoms=[Atom("H"), Atom("H", x=0.5)])
 
     grad_calc = Calculation(
-        name="h2_grad", molecule=h2, method=method, keywords=Config.MOPAC.keywords.grad
+        name="h2_grad",
+        molecule=h2,
+        method=method,
+        keywords=Config.MOPAC.keywords.grad,
     )
     grad_calc.run()
     energy = grad_calc.get_energy()
@@ -186,7 +200,9 @@ def test_grad():
     assert gradients.shape == (2, 3)
 
     delta_r = 1e-5
-    h2_disp = Molecule(name="h2_disp", atoms=[Atom("H"), Atom("H", x=0.5 + delta_r)])
+    h2_disp = Molecule(
+        name="h2_disp", atoms=[Atom("H"), Atom("H", x=0.5 + delta_r)]
+    )
     h2_disp.single_point(method)
 
     delta_energy = h2_disp.energy - energy  # Ha]
@@ -201,7 +217,10 @@ def test_broken_grad():
 
     h2 = Molecule(name="h2", atoms=[Atom("H"), Atom("H", x=0.5)])
     grad_calc_broken = Calculation(
-        name="h2_grad", molecule=h2, method=method, keywords=Config.MOPAC.keywords.grad
+        name="h2_grad",
+        molecule=h2,
+        method=method,
+        keywords=Config.MOPAC.keywords.grad,
     )
     grad_calc_broken.output.filename = "h2_grad_broken.out"
 
@@ -214,7 +233,10 @@ def test_new_energy():
 
     h2o = Molecule(smiles="O")
     calc = Calculation(
-        name="H2O", molecule=h2o, method=method, keywords=Config.MOPAC.keywords.grad
+        name="H2O",
+        molecule=h2o,
+        method=method,
+        keywords=Config.MOPAC.keywords.grad,
     )
     calc.set_output_filename("H2O_mopac_new.out")
 
@@ -224,7 +246,10 @@ def test_new_energy():
 def test_termination_short():
 
     calc = Calculation(
-        name="test", molecule=mecl(), method=method, keywords=Config.MOPAC.keywords.sp
+        name="test",
+        molecule=mecl(),
+        method=method,
+        keywords=Config.MOPAC.keywords.sp,
     )
 
     calc.output.filename = "test.out"
@@ -238,7 +263,9 @@ def test_termination_short():
 def test_mopac_keywords():
 
     calc_input = CalculationInput(
-        keywords=Config.MOPAC.keywords.sp, added_internals=None, point_charges=None
+        keywords=Config.MOPAC.keywords.sp,
+        added_internals=None,
+        point_charges=None,
     )
 
     keywords = get_keywords(calc_input=calc_input, molecule=mecl())
@@ -258,7 +285,10 @@ def test_mopac_keywords():
 def test_get_version_no_output():
 
     calc = Calculation(
-        name="test", molecule=mecl(), method=method, keywords=method.keywords.sp
+        name="test",
+        molecule=mecl(),
+        method=method,
+        keywords=method.keywords.sp,
     )
     calc.output.filename = "test.out"
 
@@ -276,7 +306,9 @@ def test_mopac_solvent_no_dielectric():
     mol = mecl()
     mol.solvent = ImplicitSolvent("X", smiles="X", aliases=["X"], mopac="X")
 
-    calc = Calculation("tmp", molecule=mol, method=method, keywords=method.keywords.sp)
+    calc = Calculation(
+        "tmp", molecule=mol, method=method, keywords=method.keywords.sp
+    )
 
     # Cannot generate an input if the solvent does not have a defined
     # dielectric constant in the dictionary
@@ -291,9 +323,15 @@ def test_shifted_atoms():
 
     atoms = [Atom("H", 0.0, 0.0, 0.0), Atom("H", 0.0, 0.0, 2.0)]
 
-    new_atoms = _get_atoms_linear_interp(atoms, bonds=[(0, 1)], final_distances=[1.0])
+    new_atoms = _get_atoms_linear_interp(
+        atoms, bonds=[(0, 1)], final_distances=[1.0]
+    )
 
     # Linear interpolation of the coordinates should move the atom either
     # end of the bond half way
-    assert np.linalg.norm(new_atoms[0].coord - np.array([0.0, 0.0, 0.5])) < 1e-6
-    assert np.linalg.norm(new_atoms[1].coord - np.array([0.0, 0.0, 1.5])) < 1e-6
+    assert (
+        np.linalg.norm(new_atoms[0].coord - np.array([0.0, 0.0, 0.5])) < 1e-6
+    )
+    assert (
+        np.linalg.norm(new_atoms[1].coord - np.array([0.0, 0.0, 1.5])) < 1e-6
+    )

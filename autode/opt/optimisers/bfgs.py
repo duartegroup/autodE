@@ -4,7 +4,10 @@ from typing import Type
 from autode.log import logger
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
-from autode.opt.optimisers.line_search import LineSearchOptimiser, ArmijoLineSearch
+from autode.opt.optimisers.line_search import (
+    LineSearchOptimiser,
+    ArmijoLineSearch,
+)
 
 
 class BFGSOptimiser(NDOptimiser, ABC):
@@ -15,7 +18,7 @@ class BFGSOptimiser(NDOptimiser, ABC):
         etol: "autode.values.PotentialEnergy",
         init_alpha: float = 1.0,
         line_search_type: Type[LineSearchOptimiser] = ArmijoLineSearch,
-        **kwargs
+        **kwargs,
     ):
         """
         Broyden–Fletcher–Goldfarb–Shanno optimiser. Implementation taken

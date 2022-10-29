@@ -12,6 +12,8 @@ n2 = ade.Molecule(smiles="N#N")
 for method in (xtb, orca):
 
     n2.optimise(method=method)
-    n2.calc_hessian(method=method, numerical=True, use_central_differences=True)
+    n2.calc_hessian(
+        method=method, numerical=True, use_central_differences=True
+    )
 
     print(f"Numerical frequency at {method.name}:", n2.vib_frequencies)

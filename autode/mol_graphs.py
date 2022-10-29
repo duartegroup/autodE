@@ -154,7 +154,9 @@ def make_graph(
     """
 
     if species.n_atoms == 0:
-        raise ex.NoAtomsInMolecule("Could not build a molecular graph with no " "atoms")
+        raise ex.NoAtomsInMolecule(
+            "Could not build a molecular graph with no " "atoms"
+        )
 
     logger.info("Generating molecular graph with NetworkX")
 
@@ -248,7 +250,9 @@ def remove_bonds_invalid_valancies(species):
         logger.warning(f"Atom {i} exceeds its maximal valence removing edges")
 
         # Get the atom indexes sorted by the closest to atom i
-        closest_atoms = sorted(neighbours, key=lambda k: species.distance(i, k))
+        closest_atoms = sorted(
+            neighbours, key=lambda k: species.distance(i, k)
+        )
 
         # Delete all the bonds to atom(s) j that are above the maximal valance
         for j in closest_atoms[max_valance:]:
@@ -265,7 +269,9 @@ def _set_graph_attributes(graph):
     logger.info("Setting graph attributes, inc. the π bonds")
 
     def is_idx_pi_atom(i):
-        return Atom(graph.nodes[i]["atom_label"]).is_pi(valency=graph.degree[i])
+        return Atom(graph.nodes[i]["atom_label"]).is_pi(
+            valency=graph.degree[i]
+        )
 
     for bond in graph.edges:
         atom_i, atom_j = bond
@@ -318,7 +324,9 @@ def species_are_isomorphic(species1, species2):
     Returns:
         (bool):
     """
-    logger.info(f"Checking if {species1.name} and {species2.name} are " f"isomorphic")
+    logger.info(
+        f"Checking if {species1.name} and {species2.name} are " f"isomorphic"
+    )
 
     if species1.graph is None or species2.graph is None:
         raise ex.NoMolecularGraph
@@ -385,7 +393,9 @@ def graph_matcher(graph1: MolecularGraph, graph2: MolecularGraph):
     return gm
 
 
-def is_subgraph_isomorphic(larger_graph: MolecularGraph, smaller_graph: MolecularGraph):
+def is_subgraph_isomorphic(
+    larger_graph: MolecularGraph, smaller_graph: MolecularGraph
+):
     """
     Is the smaller graph subgraph isomorphic to the larger graph?
 
@@ -488,7 +498,9 @@ def get_graph_no_active_edges(graph):
     """
 
     graph_no_ae = graph.copy()
-    active_edges = [edge for edge in graph.edges if graph.edges[edge]["active"] is True]
+    active_edges = [
+        edge for edge in graph.edges if graph.edges[edge]["active"] is True
+    ]
 
     for (i, j) in active_edges:
         graph_no_ae.remove_edge(i, j)
@@ -531,7 +543,9 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
 
 @timeout(seconds=5, return_value=False)
 def is_isomorphic(
-    graph1: MolecularGraph, graph2: MolecularGraph, ignore_active_bonds: bool = False
+    graph1: MolecularGraph,
+    graph2: MolecularGraph,
+    ignore_active_bonds: bool = False,
 ) -> bool:
     """Check whether two NX graphs are isomorphic. Contains a timeout because
     the gm.is_isomorphic() method occasionally gets stuck
@@ -740,7 +754,9 @@ def get_truncated_active_mol_graph(graph, active_bonds=None):
 
     if active_bonds is None:
         # Molecular graph may already define the active edges
-        active_bonds = [pair for pair in graph.edges if graph.edges[pair]["active"]]
+        active_bonds = [
+            pair for pair in graph.edges if graph.edges[pair]["active"]
+        ]
 
     if len(active_bonds) == 0:
         raise ValueError(

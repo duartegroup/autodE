@@ -113,9 +113,9 @@ def test_inv_hessian_update():
 
     h_inv_true = np.array([[0.5, 0.0], [0.0, 0.5]])
 
-    assert np.linalg.norm(optimiser._updated_h_inv() - h_inv_true) < np.linalg.norm(
-        np.linalg.inv(init_h) - h_inv_true
-    )
+    assert np.linalg.norm(
+        optimiser._updated_h_inv() - h_inv_true
+    ) < np.linalg.norm(np.linalg.inv(init_h) - h_inv_true)
 
     optimiser.run(Molecule(name="blank"), method=Method())
     assert optimiser.converged
@@ -183,7 +183,9 @@ def check_gaussian_well_opt(init_x, init_y):
     )
 
     # Hessian should be close-ish to the true
-    assert np.allclose(optimiser._coords.h, hessian(*optimiser._coords), atol=1)
+    assert np.allclose(
+        optimiser._coords.h, hessian(*optimiser._coords), atol=1
+    )
 
 
 def test_gaussian_well_opt():
@@ -197,14 +199,23 @@ def test_complex_2d_opt():
         return 10 * (y - x**2) ** 2 + (x - 1) ** 2
 
     def grad(x, y):
-        return np.array([2 * (20 * x**3 - 20 * x * y + x - 1), 20 * (y - x**2)])
+        return np.array(
+            [2 * (20 * x**3 - 20 * x * y + x - 1), 20 * (y - x**2)]
+        )
 
     optimiser = TestBFGSOptimiser2D(
-        e_func=energy, g_func=grad, init_x=-1.0, init_y=1.0, init_alpha=0.1, maxiter=100
+        e_func=energy,
+        g_func=grad,
+        init_x=-1.0,
+        init_y=1.0,
+        init_alpha=0.1,
+        maxiter=100,
     )
     optimiser.run(Molecule(name="blank"), method=Method())
 
     assert optimiser.converged
     assert np.allclose(
-        optimiser._coords, np.array([1.0, 1.0]), atol=0.1  # Minimum is at (1, 1)
+        optimiser._coords,
+        np.array([1.0, 1.0]),
+        atol=0.1,  # Minimum is at (1, 1)
     )

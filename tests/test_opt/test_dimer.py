@@ -57,11 +57,17 @@ def test_dimer_coord_init_polyatomic():
     assert coords.shape == (3, 6)
 
     # Coordinates are mass weighted, so not precisely the below values
-    assert np.allclose(coords.x0, np.array([0.05, 0.0, 0.0, 1.05, 0.0, 0.0]), atol=0.1)
+    assert np.allclose(
+        coords.x0, np.array([0.05, 0.0, 0.0, 1.05, 0.0, 0.0]), atol=0.1
+    )
 
-    assert np.allclose(coords.x1, np.array([0.0, 0.0, 0.0, 1.0, 0.0, 0.0]), atol=0.1)
+    assert np.allclose(
+        coords.x1, np.array([0.0, 0.0, 0.0, 1.0, 0.0, 0.0]), atol=0.1
+    )
 
-    assert np.allclose(coords.x2, np.array([0.1, 0.0, 0.0, 1.1, 0.0, 0.0]), atol=0.1)
+    assert np.allclose(
+        coords.x2, np.array([0.1, 0.0, 0.0, 1.1, 0.0, 0.0]), atol=0.1
+    )
 
     # Gradient has not been evaluated
     with pytest.raises(Exception):
@@ -99,7 +105,9 @@ def test_mass_weighting_no_masses():
         _ = coords.x_at(DimerPoint.midpoint, mass_weighted=False)
 
     with pytest.raises(Exception):
-        _ = coords.set_g_at(DimerPoint.midpoint, np.zeros(3), mass_weighted=False)
+        _ = coords.set_g_at(
+            DimerPoint.midpoint, np.zeros(3), mass_weighted=False
+        )
 
 
 def test_dimer_init_zero_distance():
@@ -165,7 +173,11 @@ class Dimer2D(Dimer):
 
 def test_dimer_2d():
     arr = np.array(
-        [[np.nan, np.nan], [-0.5, -0.5], [0.0, 0.5]]  # x0  (midpoint)  # x1  (left)
+        [
+            [np.nan, np.nan],
+            [-0.5, -0.5],
+            [0.0, 0.5],
+        ]  # x0  (midpoint)  # x1  (left)
     )  # x2  (right)
 
     dimer = Dimer2D(
@@ -201,7 +213,9 @@ def test_dimer_2d():
         dimer._translate()
 
     # TS is located at (0, 0) in the (x, y) plane
-    assert np.allclose(np.linalg.norm(dimer._coords.x0), np.zeros(2), atol=1e-3)
+    assert np.allclose(
+        np.linalg.norm(dimer._coords.x0), np.zeros(2), atol=1e-3
+    )
 
 
 @requires_with_working_xtb_install
@@ -243,7 +257,9 @@ def test_dimer_sn2():
     ts = left_point.new_species("ts")
     dimer.run(species=ts, method=XTB(), n_cores=1)
 
-    ts.coordinates = dimer._history.final.x_at(DimerPoint.midpoint, mass_weighted=False)
+    ts.coordinates = dimer._history.final.x_at(
+        DimerPoint.midpoint, mass_weighted=False
+    )
     ts.print_xyz_file(filename="tmp.xyz")
 
     assert dimer.iteration > 1

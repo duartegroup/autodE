@@ -31,7 +31,8 @@ def calc_multiplicity(molecule, n_radical_electrons):
 
     if molecule.mult == 1 and n_radical_electrons > 1:
         logger.warning(
-            "Diradicals by default singlets. Set mol.mult if it's " "any different"
+            "Diradicals by default singlets. Set mol.mult if it's "
+            "any different"
         )
         return 1
 
@@ -79,7 +80,8 @@ def init_organic_smiles(molecule, smiles):
     molecule.mult = calc_multiplicity(molecule, NumRadicalElectrons(rdkit_mol))
 
     bonds = [
-        (bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()) for bond in rdkit_mol.GetBonds()
+        (bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
+        for bond in rdkit_mol.GetBonds()
     ]
 
     # Generate a single 3D structure using RDKit's ETKDG conformer generation

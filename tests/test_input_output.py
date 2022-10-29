@@ -56,7 +56,13 @@ def test_xyz_file_incorrect_n_atoms():
 @work_in_tmp_dir()
 def test_xyz_file_incorrect_first_line():
     with open("test.xyz", "w") as xyz_file:
-        print("XXX", "wrong first line", "H   0.0   0.0   0.0", sep="\n", file=xyz_file)
+        print(
+            "XXX",
+            "wrong first line",
+            "H   0.0   0.0   0.0",
+            sep="\n",
+            file=xyz_file,
+        )
 
     with pytest.raises(XYZfileWrongFormat):
         _ = xyz_file_to_atoms("test.xyz")

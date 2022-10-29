@@ -89,7 +89,9 @@ def test_subgraph_isomorphism():
     mol_graphs.make_graph(h4)
 
     assert (
-        mol_graphs.is_subgraph_isomorphic(larger_graph=h4.graph, smaller_graph=h2.graph)
+        mol_graphs.is_subgraph_isomorphic(
+            larger_graph=h4.graph, smaller_graph=h2.graph
+        )
         is True
     )
 
@@ -98,7 +100,9 @@ def test_subgraph_isomorphism():
     h3 = Species(name="H_H", charge=0, mult=1, atoms=[h_a, h_b, h_e])
     mol_graphs.make_graph(h3, allow_invalid_valancies=True)
     assert (
-        mol_graphs.is_subgraph_isomorphic(larger_graph=h4.graph, smaller_graph=h3.graph)
+        mol_graphs.is_subgraph_isomorphic(
+            larger_graph=h4.graph, smaller_graph=h3.graph
+        )
         is False
     )
 
@@ -107,7 +111,9 @@ def test_ts_template():
 
     h_c = Atom(atomic_symbol="H", x=0.0, y=0.0, z=1.4)
 
-    ts_template = Species(name="template", charge=0, mult=1, atoms=[h_a, h_b, h_c])
+    ts_template = Species(
+        name="template", charge=0, mult=1, atoms=[h_a, h_b, h_c]
+    )
     mol_graphs.make_graph(species=ts_template, allow_invalid_valancies=True)
     ts_template.graph.edges[0, 1]["active"] = True
 
@@ -191,7 +197,10 @@ def test_reac_to_prods():
 
 
 def test_split_graph():
-    assert mol_graphs.split_mol_across_bond(g, bond=(0, 3)) == [[0, 1, 2], [3, 4]]
+    assert mol_graphs.split_mol_across_bond(g, bond=(0, 3)) == [
+        [0, 1, 2],
+        [3, 4],
+    ]
 
 
 def test_set_pi_bonds():
@@ -245,8 +254,12 @@ def test_species_isomorphism():
 
     # Generating a pair of conformers that are isomporhpic should return that
     # the species are again isomorphic
-    h2.conformers = [Conformer(name="h2_conf", atoms=[h_a, h_b], charge=0, mult=1)]
-    h2_copy.conformers = [Conformer(name="h2_conf", atoms=[h_a, h_b], charge=0, mult=1)]
+    h2.conformers = [
+        Conformer(name="h2_conf", atoms=[h_a, h_b], charge=0, mult=1)
+    ]
+    h2_copy.conformers = [
+        Conformer(name="h2_conf", atoms=[h_a, h_b], charge=0, mult=1)
+    ]
 
     assert mol_graphs.species_are_isomorphic(h2, h2_copy)
 
@@ -255,7 +268,10 @@ def test_species_isomorphism():
 def test_isomorphic_no_active():
 
     ts_syn = Conformer(
-        name="syn_ts", charge=-1, mult=0, atoms=xyz_file_to_atoms("E2_ts_syn.xyz")
+        name="syn_ts",
+        charge=-1,
+        mult=0,
+        atoms=xyz_file_to_atoms("E2_ts_syn.xyz"),
     )
     mol_graphs.make_graph(ts_syn)
     for pair in [(8, 5), (0, 5), (1, 2)]:
@@ -306,7 +322,9 @@ def test_species_conformers_isomorphic():
         mol_graphs.get_mapping(h2_a.graph, h2_b.graph)
 
     h2_a.conformers = None
-    h2_b.conformers = [Conformer(name="H2", atoms=[Atom("H"), Atom("H", x=0.7)])]
+    h2_b.conformers = [
+        Conformer(name="H2", atoms=[Atom("H"), Atom("H", x=0.7)])
+    ]
 
     assert mol_graphs.species_are_isomorphic(h2_a, h2_b)
 
@@ -324,7 +342,9 @@ def test_graph_without_active_edges():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "complex_geoms.zip"))
 def test_not_isomorphic_metal_complexes():
 
-    ene = Species(name="ene", charge=0, mult=1, atoms=xyz_file_to_atoms("co_ene.xyz"))
+    ene = Species(
+        name="ene", charge=0, mult=1, atoms=xyz_file_to_atoms("co_ene.xyz")
+    )
     mol_graphs.make_graph(ene)
 
     alkyl = Species(

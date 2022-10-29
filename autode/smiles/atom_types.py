@@ -86,7 +86,9 @@ class AtomType:
             logger.info("No reset needed - sites were all occupied")
             return
 
-        logger.info(f"Rotating {len(site_coords)} sites onto" f" {len(points)} points")
+        logger.info(
+            f"Rotating {len(site_coords)} sites onto" f" {len(points)} points"
+        )
 
         # Rotate all the sites such that n sites are optimally orientated onto
         # the (fixed) points
@@ -120,7 +122,9 @@ class AtomType:
         point = np.copy(self._site_coords[0])
         point += np.random.uniform(0.01, 0.02, size=3)
 
-        self.rotate_onto(point=point, coord=np.zeros(3), site=self._site_coords[0])
+        self.rotate_onto(
+            point=point, coord=np.zeros(3), site=self._site_coords[0]
+        )
         return
 
     def rotate_onto(self, point, coord, site):
@@ -161,7 +165,9 @@ class AtomType:
 
         # Rotate all the sites (no need to translate as they're already
         # positioned around the origin)
-        self._site_coords = [np.matmul(rot_matrix, site) for site in self._site_coords]
+        self._site_coords = [
+            np.matmul(rot_matrix, site) for site in self._site_coords
+        ]
         return None
 
 

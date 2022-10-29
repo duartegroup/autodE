@@ -137,7 +137,9 @@ def print_point_charges(calc, atoms):
 
         # Distance in Å need to be converted to a0 and then the energy
         # Ha e^-1 to kcal mol-1 e^-1
-        potentials.append(Constants.ha_to_kcalmol * Constants.a0_to_ang * potential)
+        potentials.append(
+            Constants.ha_to_kcalmol * Constants.a0_to_ang * potential
+        )
 
     with open(f"{calc.name}_mol.in", "w") as pc_file:
         print(f"\n{len(atoms)} 0", file=pc_file)
@@ -149,7 +151,9 @@ def print_point_charges(calc, atoms):
     return
 
 
-def _get_atoms_linear_interp(atoms, bonds, final_distances) -> "autode.atoms.Atoms":
+def _get_atoms_linear_interp(
+    atoms, bonds, final_distances
+) -> "autode.atoms.Atoms":
     """For a geometry defined by a set of xyzs, set the constrained bonds to
     the correct lengths
 

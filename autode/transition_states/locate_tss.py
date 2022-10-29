@@ -41,7 +41,8 @@ def find_tss(reaction):
 
     if species_are_isomorphic(reactant, product):
         raise ValueError(
-            "Reactant and product complexes are isomorphic. " "Cannot find a TS"
+            "Reactant and product complexes are isomorphic. "
+            "Cannot find a TS"
         )
 
     bond_rearrs = get_bond_rearrangs(reactant, product, name=str(reaction))
@@ -53,7 +54,8 @@ def find_tss(reaction):
     tss = TransitionStates()
     for bond_rearrangement in bond_rearrs:
         logger.info(
-            f"Locating transition state using active bonds " f"{bond_rearrangement.all}"
+            f"Locating transition state using active bonds "
+            f"{bond_rearrangement.all}"
         )
 
         ts = get_ts(str(reaction), reactant, product, bond_rearrangement)
@@ -61,7 +63,9 @@ def find_tss(reaction):
         if ts is not None:
             tss.append(ts)
 
-    logger.info(f"Found *{len(tss)}* transition state(s) that lead to products")
+    logger.info(
+        f"Found *{len(tss)}* transition state(s) that lead to products"
+    )
     return tss
 
 
@@ -132,7 +136,9 @@ def ts_guess_funcs_prms(name, reactant, product, bond_rearr):
     return None
 
 
-def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iters=10):
+def translate_rotate_reactant(
+    reactant, bond_rearrangement, shift_factor, n_iters=10
+):
     """
     Shift a molecule in the reactant complex so that the attacking atoms
     (a_atoms) are pointing towards the attacked atoms (l_atoms). Applied in
@@ -155,7 +161,9 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
         return
 
     if reactant.n_molecules < 2:
-        logger.info("Reactant molecule does not need to be translated or " "rotated")
+        logger.info(
+            "Reactant molecule does not need to be translated or " "rotated"
+        )
         return
 
     logger.info("Rotating/translating into a reactive conformation... running")
@@ -166,7 +174,9 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
         reactant, bond_rearrangement, shift_factor=shift_factor
     )
 
-    if all(sc.a_atom in reactant.atom_indexes(mol_index=0) for sc in subst_centres):
+    if all(
+        sc.a_atom in reactant.atom_indexes(mol_index=0) for sc in subst_centres
+    ):
         attacking_mol = 0
     else:
         attacking_mol = 1
@@ -195,9 +205,13 @@ def translate_rotate_reactant(reactant, bond_rearrangement, shift_factor, n_iter
     logger.info(f"Minimum cost for translating/rotating is {min_cost:.3f}")
 
     # Translate/rotation the attacking molecule optimally
-    reactant.rotate_mol(axis=opt_x[:3], theta=opt_x[3], mol_index=attacking_mol)
+    reactant.rotate_mol(
+        axis=opt_x[:3], theta=opt_x[3], mol_index=attacking_mol
+    )
     reactant.translate_mol(vec=opt_x[4:7], mol_index=attacking_mol)
-    reactant.rotate_mol(axis=opt_x[7:10], theta=opt_x[10], mol_index=attacking_mol)
+    reactant.rotate_mol(
+        axis=opt_x[7:10], theta=opt_x[10], mol_index=attacking_mol
+    )
 
     logger.info("                                                 ... done")
 
@@ -223,7 +237,9 @@ def get_truncated_ts(name, reactant, product, bond_rearr):
 
     # Find all the possible TSs
     for bond_rearr in bond_rearrangs:
-        get_ts(name, trnc_reactant, trnc_product, bond_rearr, is_truncated=True)
+        get_ts(
+            name, trnc_reactant, trnc_product, bond_rearr, is_truncated=True
+        )
 
     logger.info("Done with truncation")
     return
@@ -252,7 +268,8 @@ def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
 
     if bond_rearr.n_fbonds > bond_rearr.n_bbonds:
         raise NotImplementedError(
-            "Cannot treat more forming than breaking " "bonds, reverse the reaction(?)"
+            "Cannot treat more forming than breaking "
+            "bonds, reverse the reaction(?)"
         )
 
     # If the reaction is a substitution or elimination then the reactants must
@@ -282,7 +299,9 @@ def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
 
     # There are multiple methods of finding a transition state. Iterate through
     # from the cheapest -> most expensive
-    for func, params in ts_guess_funcs_prms(name, reactant, product, bond_rearr):
+    for func, params in ts_guess_funcs_prms(
+        name, reactant, product, bond_rearr
+    ):
         logger.info(f"Trying to find a TS guess with {func.__name__}")
         ts_guess = func(*params)
 
@@ -326,7 +345,8 @@ def _get_ts_neb_from_adaptive_path(
         return None
 
     neb.partition(
-        max_delta=Distance(0.2, units="Å"), distance_idxs=bond_rearr.active_atoms
+        max_delta=Distance(0.2, units="Å"),
+        distance_idxs=bond_rearr.active_atoms,
     )
     neb.calculate(
         method=method,

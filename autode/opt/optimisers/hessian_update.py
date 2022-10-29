@@ -64,7 +64,9 @@ class HessianUpdater(ABC):
 
         return None
 
-    def _matrix_in_full_space(self, m: np.ndarray, m_sub: np.ndarray) -> np.ndarray:
+    def _matrix_in_full_space(
+        self, m: np.ndarray, m_sub: np.ndarray
+    ) -> np.ndarray:
         """
         Create a Hessian in the full initial space i.e. having only updated
         the components present in self.subspace_idxs. Also ensures that the
@@ -98,7 +100,9 @@ class HessianUpdater(ABC):
         if self._h_inv_init is None:
             return self._updated_h_inv
 
-        return self._matrix_in_full_space(self._h_inv_init, self._updated_h_inv)
+        return self._matrix_in_full_space(
+            self._h_inv_init, self._updated_h_inv
+        )
 
     @property
     def updated_h(self) -> np.ndarray:
@@ -165,7 +169,10 @@ class BFGSUpdate(HessianUpdater):
         h_new = (
             self.h
             + np.outer(self.y, self.y) / np.dot(self.y, self.s)
-            - (np.outer(h_s, np.matmul(self.s.T, self.h)) / np.dot(self.s, h_s))
+            - (
+                np.outer(h_s, np.matmul(self.s.T, self.h))
+                / np.dot(self.s, h_s)
+            )
         )
 
         return h_new
@@ -422,7 +429,8 @@ class BofillUpdate(HessianUpdater):
 
         # ϕ from eqn. 46 from ref [1]
         phi_bofill = 1.0 - (
-            np.dot(self.s, dE_i) ** 2 / (np.dot(self.s, self.s) * np.dot(dE_i, dE_i))
+            np.dot(self.s, dE_i) ** 2
+            / (np.dot(self.s, self.s) * np.dot(dE_i, dE_i))
         )
 
         logger.info(f"ϕ_Bofill = {phi_bofill:.6f}")

@@ -194,7 +194,10 @@ def test_xtb_h2_dic_opt():
 
     # In DICs we can use a much larger step size
     optimiser = DIC_SD_Optimiser(
-        step_size=2.5, maxiter=10, gtol=GradientRMS(0.01), etol=PotentialEnergy(0.0001)
+        step_size=2.5,
+        maxiter=10,
+        gtol=GradientRMS(0.01),
+        etol=PotentialEnergy(0.0001),
     )
 
     mol = h2()

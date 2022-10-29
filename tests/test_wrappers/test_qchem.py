@@ -152,7 +152,9 @@ def test_unsupported_keywords():
         name="test",
         molecule=Molecule(atoms=[Atom("H")], mult=2),
         method=method,
-        keywords=SinglePointKeywords("$rem\n" "method b3lyp\n" "basis 6-31G*\n" "$end"),
+        keywords=SinglePointKeywords(
+            "$rem\n" "method b3lyp\n" "basis 6-31G*\n" "$end"
+        ),
     )
 
     # Having $blocks in the keywords is not supported
@@ -189,7 +191,9 @@ def test_simple_input_generation():
     # Remove any blank lines from the input file for comparison, as they are
     # ignored
     inp_lines = [
-        line for line in open(calc.input.filename, "r").readlines() if line != "\n"
+        line
+        for line in open(calc.input.filename, "r").readlines()
+        if line != "\n"
     ]
     assert "".join(inp_lines) == expected_inp
 
@@ -353,7 +357,9 @@ def test_h2o_hessian_extraction():
 
     # Final atoms are available, as the same ones input
     assert np.allclose(
-        calc.molecule.coordinates, calc.get_final_atoms().coordinates, atol=1e-8
+        calc.molecule.coordinates,
+        calc.get_final_atoms().coordinates,
+        atol=1e-8,
     )
 
 

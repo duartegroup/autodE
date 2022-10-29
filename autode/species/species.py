@@ -17,7 +17,12 @@ from autode.solvent import get_solvent, Solvent, ExplicitSolvent
 from autode.calculations import Calculation
 from autode.config import Config
 from autode.input_output import atoms_to_xyz_file
-from autode.mol_graphs import MolecularGraph, make_graph, reorder_nodes, is_isomorphic
+from autode.mol_graphs import (
+    MolecularGraph,
+    make_graph,
+    reorder_nodes,
+    is_isomorphic,
+)
 from autode.hessians import Hessian, NumericalHessianCalculator
 from autode.units import ha_per_ang_sq, ha_per_ang
 from autode.thermochemistry.symmetry import symmetry_number
@@ -170,7 +175,9 @@ class Species(AtomCollection):
         return self._solvent
 
     @solvent.setter
-    def solvent(self, value: Union["autode.solvent.solvents.Solvent", str, None]):
+    def solvent(
+        self, value: Union["autode.solvent.solvents.Solvent", str, None]
+    ):
         """
         Set the solvent for this species. For a species in the gas phase
         set mol.solvent = None
@@ -337,7 +344,8 @@ class Species(AtomCollection):
 
         elif isinstance(value, np.ndarray):
             logger.warning(
-                "Setting the Hessian from a numpy array - assuming " "units of Ha Å^-2"
+                "Setting the Hessian from a numpy array - assuming "
+                "units of Ha Å^-2"
             )
             self._hess = Hessian(value, atoms=self.atoms, units=ha_per_ang_sq)
 
@@ -376,7 +384,8 @@ class Species(AtomCollection):
 
         elif isinstance(value, np.ndarray):
             logger.warning(
-                "Setting the gradients from a numpy array - " "assuming Ha / Å units"
+                "Setting the gradients from a numpy array - "
+                "assuming Ha / Å units"
             )
             self._grad = val.Gradient(value, units=ha_per_ang)
 
@@ -785,7 +794,9 @@ class Species(AtomCollection):
     def conformers(
         self,
         value: Union[
-            List["autode.conformers.Conformer"], "autode.conformers.Conformers", None
+            List["autode.conformers.Conformer"],
+            "autode.conformers.Conformers",
+            None,
         ],
     ) -> None:
         """
@@ -803,10 +814,13 @@ class Species(AtomCollection):
 
     def _generate_conformers(self, *args, **kwargs):
         raise NotImplementedError(
-            "Could not generate conformers. " "generate_conformers() not implemented"
+            "Could not generate conformers. "
+            "generate_conformers() not implemented"
         )
 
-    def _default_hessian_calculation(self, method=None, keywords=None, n_cores=None):
+    def _default_hessian_calculation(
+        self, method=None, keywords=None, n_cores=None
+    ):
         """Construct a default Hessian calculation"""
 
         method = methods.method_or_default_hmethod(method)
@@ -822,7 +836,9 @@ class Species(AtomCollection):
 
         return calc
 
-    def _default_opt_calculation(self, method=None, keywords=None, n_cores=None):
+    def _default_opt_calculation(
+        self, method=None, keywords=None, n_cores=None
+    ):
         """Construct a default optimisation calculation"""
 
         method = methods.method_or_default_hmethod(method)
@@ -918,7 +934,9 @@ class Species(AtomCollection):
         ):
             raise ValueError("Invalid mapping. Must be 1-1 for all atoms")
 
-        self._atoms = Atoms([self.atoms[i] for i in sorted(mapping, key=mapping.get)])
+        self._atoms = Atoms(
+            [self.atoms[i] for i in sorted(mapping, key=mapping.get)]
+        )
 
         if self.graph is None:
             return  # No need to re-order a graph that is not set
@@ -953,7 +971,9 @@ class Species(AtomCollection):
         return self.atoms.are_linear(angle_tol=angle_tol)
 
     @requires_atoms
-    def is_planar(self, tol: Union[float, val.Distance] = val.Distance(1e-4)) -> bool:
+    def is_planar(
+        self, tol: Union[float, val.Distance] = val.Distance(1e-4)
+    ) -> bool:
         """
         Determine if a species is planar i.e all atoms are coplanar
 
@@ -1051,7 +1071,9 @@ class Species(AtomCollection):
             return True  # 1 or 0 atom molecules have the same connectivity
 
         if self.graph is None or other.graph is None:
-            raise ValueError("Cannot check connectivity, a graph was undefined")
+            raise ValueError(
+                "Cannot check connectivity, a graph was undefined"
+            )
 
         return is_isomorphic(self.graph, other.graph)
 
@@ -1096,11 +1118,18 @@ class Species(AtomCollection):
 
         atoms = self.atoms
         # Add the explicit solvent molecules if present and requested
-        if self.solvent is not None and self.solvent.is_explicit and with_solvent:
+        if (
+            self.solvent is not None
+            and self.solvent.is_explicit
+            and with_solvent
+        ):
             atoms += self.solvent.atoms
 
         atoms_to_xyz_file(
-            atoms=atoms, filename=filename, title_line=title_line, append=append
+            atoms=atoms,
+            filename=filename,
+            title_line=title_line,
+            append=append,
         )
         return None
 
@@ -1149,7 +1178,9 @@ class Species(AtomCollection):
         calc.run()
 
         method_name = "" if method is None else method.name
-        self.print_xyz_file(filename=f"{self.name}_optimised_{method_name}.xyz")
+        self.print_xyz_file(
+            filename=f"{self.name}_optimised_{method_name}.xyz"
+        )
 
         if reset_graph:
             self.reset_graph()
@@ -1194,7 +1225,9 @@ class Species(AtomCollection):
             :meth:`autode.thermochemistry.igm.calculate_thermo_cont` for
             additional kwargs
         """
-        logger.info(f"Calculating thermochemical contributions for {self.name}")
+        logger.info(
+            f"Calculating thermochemical contributions for {self.name}"
+        )
 
         if "lfm_method" in kwargs:
             try:
@@ -1207,7 +1240,8 @@ class Species(AtomCollection):
 
         if calc is not None and calc.output.exists:
             logger.info(
-                "Setting the atoms, energy and Hessian from an " "existing calculation"
+                "Setting the atoms, energy and Hessian from an "
+                "existing calculation"
             )
             if calc.molecule.hessian is None:
                 raise ValueError(
@@ -1219,12 +1253,16 @@ class Species(AtomCollection):
             self.energy = calc.molecule.energy
             self.hessian = calc.molecule.hessian
 
-        elif self.hessian is None or (calc is not None and not calc.output.exists):
+        elif self.hessian is None or (
+            calc is not None and not calc.output.exists
+        ):
             logger.info(
                 "Calculation did not exist or Hessian was None - "
                 "calculating the Hessian"
             )
-            self._run_hess_calculation(method=method, calc=calc, keywords=keywords)
+            self._run_hess_calculation(
+                method=method, calc=calc, keywords=keywords
+            )
 
         calculate_thermo_cont(self, temp=temp, **kwargs)
         return None
@@ -1404,7 +1442,9 @@ class Species(AtomCollection):
         keywords: Union[Sequence[str], str, None] = None,
         numerical: bool = False,
         use_central_differences: bool = False,
-        coordinate_shift: Union[float, val.Distance] = val.Distance(2e-3, units="Å"),
+        coordinate_shift: Union[float, val.Distance] = val.Distance(
+            2e-3, units="Å"
+        ),
         n_cores: Optional[int] = None,
     ) -> None:
         """
@@ -1456,7 +1496,8 @@ class Species(AtomCollection):
 
             if keywords is None:
                 logger.info(
-                    "Using default gradient keywords to evaluate " "numerical Hessian"
+                    "Using default gradient keywords to evaluate "
+                    "numerical Hessian"
                 )
                 keywords = method.keywords.grad
 

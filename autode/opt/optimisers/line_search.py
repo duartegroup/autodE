@@ -96,7 +96,9 @@ class LineSearchOptimiser(Optimiser, ABC):
         return None if len(self._history) == 0 else self._history.minimum
 
     @property
-    def _init_coords(self) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
+    def _init_coords(
+        self,
+    ) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
         """
         Initial coordinates from which this line search was initialised from
 

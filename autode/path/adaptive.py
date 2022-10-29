@@ -250,7 +250,9 @@ class AdaptivePath(Path):
 
         return None
 
-    def plot_energies(self, save=True, name="init_path", color="k", xlabel="ζ") -> None:
+    def plot_energies(
+        self, save=True, name="init_path", color="k", xlabel="ζ"
+    ) -> None:
         return super().plot_energies(save, name, color, xlabel)
 
     def contains_suitable_peak(self) -> bool:
@@ -266,7 +268,8 @@ class AdaptivePath(Path):
         # Products aren't made by isomorphism but we may still have a suitable
         # peak..
         if any(
-            self[-1].constraints[b.atom_indexes] == b.final_dist for b in self.bonds
+            self[-1].constraints[b.atom_indexes] == b.final_dist
+            for b in self.bonds
         ):
             logger.warning(
                 "Have a peak, products not made on isomorphism, but"
@@ -322,7 +325,9 @@ class AdaptivePath(Path):
             # otherwise use a scaled value, depending on the gradient
             # large values will have small step sizes, down to min_step Å
             else:
-                dr = (max_step - min_step) * np.exp(-((grad / 0.05) ** 2)) + min_step
+                dr = (max_step - min_step) * np.exp(
+                    -((grad / 0.05) ** 2)
+                ) + min_step
                 dr *= np.sign(bond.dr)
 
             new_dist = point.species.distance(*bond.atom_indexes) + dr
@@ -371,7 +376,8 @@ class AdaptivePath(Path):
         def reached_final_point():
             """Are there any more points to add?"""
             return all(
-                point.constraints[b.atom_indexes] == b.final_dist for b in self.bonds
+                point.constraints[b.atom_indexes] == b.final_dist
+                for b in self.bonds
             )
 
         logger.info("Adaptively adding points to the path")

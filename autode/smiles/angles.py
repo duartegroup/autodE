@@ -40,7 +40,9 @@ class SAngle:
             np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
         )
 
-    def _find_rot_idxs_from_pair(self, graph, atoms, pair, max_bond_distance=4.0):
+    def _find_rot_idxs_from_pair(
+        self, graph, atoms, pair, max_bond_distance=4.0
+    ):
         """
         Split the graph across a pair of indexes and set the atom indexes
         to be rotated
@@ -87,7 +89,9 @@ class SAngle:
                 if not nx.is_connected(graph):
                     graph.add_edge(idx_i, idx_j)
 
-        components = [graph.subgraph(c) for c in nx.connected_components(graph)]
+        components = [
+            graph.subgraph(c) for c in nx.connected_components(graph)
+        ]
 
         if len(components) != 2:
             raise FailedToSetRotationIdxs(
@@ -98,7 +102,8 @@ class SAngle:
         cpnt_idx = 0 if pair[0] in components[0].nodes else 1
 
         self.rot_idxs = [
-            1 if i in components[cpnt_idx].nodes else 0 for i in range(len(atoms))
+            1 if i in components[cpnt_idx].nodes else 0
+            for i in range(len(atoms))
         ]
         return None
 
@@ -165,7 +170,9 @@ class SAngles(list):
 
     def dvalues(self, atoms):
         """Difference between the current and ideal angles"""
-        return np.array([angle.phi0 - angle.value(atoms) for angle in self], dtype="f8")
+        return np.array(
+            [angle.phi0 - angle.value(atoms) for angle in self], dtype="f8"
+        )
 
 
 class SDihedrals(SAngles):
@@ -244,7 +251,8 @@ class SDihedral(SAngle):
         stereochemistry that is not respected"""
 
         return (
-            atoms[self.mid_idxs[0]].has_stereochem and abs(self.dphi(atoms)) > np.pi / 3
+            atoms[self.mid_idxs[0]].has_stereochem
+            and abs(self.dphi(atoms)) > np.pi / 3
         )
 
     def dphi(self, atoms):
@@ -284,5 +292,8 @@ class SDihedral(SAngle):
             atoms (list(autode.atoms.Atom)):
         """
         return self._find_rot_idxs_from_pair(
-            graph, atoms, pair=self.mid_idxs, max_bond_distance=1.5 * self.mid_dist
+            graph,
+            atoms,
+            pair=self.mid_idxs,
+            max_bond_distance=1.5 * self.mid_dist,
         )

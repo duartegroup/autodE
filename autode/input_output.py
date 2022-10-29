@@ -57,7 +57,10 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
 
 
 def atoms_to_xyz_file(
-    atoms: Collection[Atom], filename: str, title_line: str = "", append: bool = False
+    atoms: Collection[Atom],
+    filename: str,
+    title_line: str = "",
+    append: bool = False,
 ):
     """
     Print a standard .xyz file from a list of atoms
@@ -113,7 +116,9 @@ def xyz_file_to_molecules(filename: str) -> List["autode.Molecule"]:
             symbol, x, y, z = line.split()[:4]
             atoms.append(Atom(atomic_symbol=symbol, x=x, y=y, z=z))
 
-        molecule = Molecule(atoms=atoms, solvent_name=title_line.get("solvent", None))
+        molecule = Molecule(
+            atoms=atoms, solvent_name=title_line.get("solvent", None)
+        )
 
         _set_attr_from_title_line(molecule, "charge", title_line)
         _set_attr_from_title_line(molecule, "mult", title_line)

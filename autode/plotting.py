@@ -82,7 +82,8 @@ def plot_reaction_profile(
     energy_values = [energy for energy in energies]
     max_delta = max(energy_values) - min(energy_values)
     plt.ylim(
-        min(energy_values) - 0.09 * max_delta, max(energy_values) + 0.09 * max_delta
+        min(energy_values) - 0.09 * max_delta,
+        max(energy_values) + 0.09 * max_delta,
     )
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
@@ -127,7 +128,9 @@ def plot_smooth_profile(zi_s, energies, ax):
 
     # Use the optimised values to construct a spline function that will be
     # plotted
-    optimised_spline = interpolate.CubicSpline(zi_s, result.x, bc_type="clamped")
+    optimised_spline = interpolate.CubicSpline(
+        zi_s, result.x, bc_type="clamped"
+    )
 
     # Create more zi values from slightly before the minimum to slightly after
     # the maximum
@@ -156,7 +159,10 @@ def plot_smooth_profile(zi_s, energies, ax):
         shift = -0.07 * max_delta if i % 2 == 0 else 0.03 * max_delta
 
         ax.annotate(
-            f"{energy:.1f}", (zi_s[i], energy + shift), fontsize=12, ha="center"
+            f"{energy:.1f}",
+            (zi_s[i], energy + shift),
+            fontsize=12,
+            ha="center",
         )
 
     return None
@@ -210,7 +216,10 @@ def get_reaction_profile_warnings(reactions):
     for reaction in reactions:
 
         if reaction.delta("E") is None:
-            warnings += f"∆Er not calculated for {reaction.name}, " f"∆Er = 0 assumed. "
+            warnings += (
+                f"∆Er not calculated for {reaction.name}, "
+                f"∆Er = 0 assumed. "
+            )
 
         de_ts = reaction.delta("E‡")
         if de_ts is None or (de_ts is not None and de_ts.is_estimated):
@@ -351,7 +360,9 @@ def error_on_stationary_points(x, energies):
     # a fine-ish spacing that extrapolates
     # slightly
     fine_zi_s = np.linspace(min(zi_s) - 0.2, max(zi_s) + 0.2, num=500)
-    stationary_points = get_stationary_points(xs=fine_zi_s, dydx=spline.derivative())
+    stationary_points = get_stationary_points(
+        xs=fine_zi_s, dydx=spline.derivative()
+    )
 
     if len(stationary_points) != len(energies):
         # TODO make this smooth somehow

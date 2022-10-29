@@ -31,7 +31,9 @@ class Constraints:
             string += str(self.cartesian)
 
         if self.distance is not None:
-            string += str({key: round(val, 3) for key, val in self.distance.items()})
+            string += str(
+                {key: round(val, 3) for key, val in self.distance.items()}
+            )
 
         return f"Constraints({string})"
 
@@ -67,7 +69,9 @@ class Constraints:
     @property
     def cartesian(self) -> Optional[list]:
         """Cartesian constraints"""
-        return None if len(self._cartesian) == 0 else list(set(self._cartesian))
+        return (
+            None if len(self._cartesian) == 0 else list(set(self._cartesian))
+        )
 
     @cartesian.setter
     def cartesian(self, value: Optional[List[int]]):
@@ -95,7 +99,9 @@ class Constraints:
         return self.distance is not None or self.cartesian is not None
 
     def update(
-        self, distance: Optional[dict] = None, cartesian: Optional[List[int]] = None
+        self,
+        distance: Optional[dict] = None,
+        cartesian: Optional[List[int]] = None,
     ) -> None:
         """
         Update the current set of constraints with a new distance and or

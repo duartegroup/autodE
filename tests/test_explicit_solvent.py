@@ -115,7 +115,9 @@ def test_too_close_to_solvent():
     second_solv_idxs = solv.solvent_atom_idxs(1)
     assert second_solv_idxs.tolist() == [3, 4, 5]
 
-    assert solv._too_close_to_solvent(coords, solvent_idxs=second_solv_idxs, max_idx=1)
+    assert solv._too_close_to_solvent(
+        coords, solvent_idxs=second_solv_idxs, max_idx=1
+    )
 
 
 def test_equality():

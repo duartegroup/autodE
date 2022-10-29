@@ -7,7 +7,11 @@ h2o = ade.Species(
     name="water",
     charge=0,
     mult=1,
-    atoms=[ade.Atom("O"), ade.Atom("H", x=-1.0), ade.Atom("H", x=0.21, y=-0.97)],
+    atoms=[
+        ade.Atom("O"),
+        ade.Atom("H", x=-1.0),
+        ade.Atom("H", x=0.21, y=-0.97),
+    ],
 )
 
 # they have a number of properties, such as mass

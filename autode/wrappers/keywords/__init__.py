@@ -16,10 +16,20 @@ from autode.wrappers.keywords.keywords import (
     ECP,
     MaxOptCycles,
 )
-from autode.wrappers.keywords.basis_sets import def2svp, def2tzvp, def2ecp, def2tzecp
+from autode.wrappers.keywords.basis_sets import (
+    def2svp,
+    def2tzvp,
+    def2ecp,
+    def2tzecp,
+)
 from autode.wrappers.keywords.dispersion import d3bj
 from autode.wrappers.keywords.functionals import pbe0, pbe
-from autode.wrappers.keywords.implicit_solvent_types import smd, cpcm, cosmo, gbsa
+from autode.wrappers.keywords.implicit_solvent_types import (
+    smd,
+    cpcm,
+    cosmo,
+    gbsa,
+)
 from autode.wrappers.keywords.ri import rijcosx
 from autode.wrappers.keywords.wf import hf
 

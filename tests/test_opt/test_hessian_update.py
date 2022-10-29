@@ -23,7 +23,8 @@ def update_improves_hessian(updater, guess, true):
 def update_improves_inv_hessian(updater, guess, true):
 
     return updater.conditions_met and (
-        np.linalg.norm(updater.updated_h_inv - true) < np.linalg.norm(guess - true)
+        np.linalg.norm(updater.updated_h_inv - true)
+        < np.linalg.norm(guess - true)
     )
 
 
@@ -43,11 +44,16 @@ def check_hessian_update(update_type, grad, h_true):
 
             x_new = x - increment
             updater = update_type(
-                s=x_new - x, y=grad(*x_new) - grad(*x), h=h_guess, h_inv=h_inv_guess
+                s=x_new - x,
+                y=grad(*x_new) - grad(*x),
+                h=h_guess,
+                h_inv=h_inv_guess,
             )
 
             assert update_improves_hessian(updater, guess=h_guess, true=h)
-            assert update_improves_inv_hessian(updater, guess=h_inv_guess, true=h_inv)
+            assert update_improves_inv_hessian(
+                updater, guess=h_inv_guess, true=h_inv
+            )
 
 
 def test_quadratic_hessian_update():
@@ -78,7 +84,9 @@ def test_polynomial_hessian_update():
     # Hessian for more complex 2D surface fails to improve with an SR1 update
     check_hessian_update(
         BFGSUpdate,
-        grad=lambda x, y: np.array([5 * x**4 + y**2 / 2, 3 * y**2 + x * y]),
+        grad=lambda x, y: np.array(
+            [5 * x**4 + y**2 / 2, 3 * y**2 + x * y]
+        ),
         h_true=lambda x, y: np.array([[20 * x**3, y], [y, 6 * y + x]]),
     )
 
@@ -130,7 +138,9 @@ def test_bofill_update():
         )
     )
 
-    phi = 1.0 - (np.dot(dx, dg_Gdx) ** 2 / (np.dot(dx, dx) * np.dot(dg_Gdx, dg_Gdx)))
+    phi = 1.0 - (
+        np.dot(dx, dg_Gdx) ** 2 / (np.dot(dx, dx) * np.dot(dg_Gdx, dg_Gdx))
+    )
 
     G_bofill = (1.0 - phi) * G_MS + phi * G_PSB
 
@@ -143,7 +153,13 @@ def test_repr_and_strings():
     and strings
     """
 
-    for update_type in (BFGSUpdate, BFGSPDUpdate, SR1Update, NullUpdate, BofillUpdate):
+    for update_type in (
+        BFGSUpdate,
+        BFGSPDUpdate,
+        SR1Update,
+        NullUpdate,
+        BofillUpdate,
+    ):
 
         assert update_type().__repr__() is not None
         assert str(update_type()) is not None
@@ -221,7 +237,9 @@ def test_bfgs_update_water():
     new_bfgs_h = updater.updated_h
     new_true_h = np.loadtxt("water_cart_hessian1.txt")
 
-    assert np.sum(np.abs(new_bfgs_h - new_true_h)) < np.sum(np.abs(h - new_true_h))
+    assert np.sum(np.abs(new_bfgs_h - new_true_h)) < np.sum(
+        np.abs(h - new_true_h)
+    )
 
 
 def test_hessian_requires_at_least_one_index():

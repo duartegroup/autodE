@@ -149,7 +149,8 @@ class OptCoordinates(ValueArray, ABC):
 
         if self._h_inv is None and self._h is not None:
             logger.info(
-                "Have Hessian but no inverse, so calculating " "explicit inverse"
+                "Have Hessian but no inverse, so calculating "
+                "explicit inverse"
             )
             self._h_inv = np.linalg.inv(self._h)
 
@@ -174,7 +175,9 @@ class OptCoordinates(ValueArray, ABC):
         return arr.ndim == 2 and arr.shape[0] == arr.shape[1] == len(self)
 
     @abstractmethod
-    def _update_g_from_cart_g(self, arr: Optional["autode.values.Gradient"]) -> None:
+    def _update_g_from_cart_g(
+        self, arr: Optional["autode.values.Gradient"]
+    ) -> None:
         """Update the gradient dE/dR of from a Cartesian (cart) gradient"""
 
     def update_g_from_cart_g(
@@ -183,12 +186,16 @@ class OptCoordinates(ValueArray, ABC):
     ) -> None:
         """Update the gradient from a Cartesian gradient, zeroing those atoms
         that are constrained"""
-        assert arr is None or len(arr.flatten()) % 3 == 0  # Needs an Nx3 matrix
+        assert (
+            arr is None or len(arr.flatten()) % 3 == 0
+        )  # Needs an Nx3 matrix
 
         return self._update_g_from_cart_g(arr)
 
     @abstractmethod
-    def _update_h_from_cart_h(self, arr: Optional["autode.values.Hessian"]) -> None:
+    def _update_h_from_cart_h(
+        self, arr: Optional["autode.values.Hessian"]
+    ) -> None:
         """Update the Hessian from a cartesian Hessian"""
 
     def update_h_from_cart_h(
@@ -296,7 +303,9 @@ def _ensure_positive_definite(
     """
 
     if matrix is None:
-        raise RuntimeError("Cannot make a positive definite matrix - " "had no matrix")
+        raise RuntimeError(
+            "Cannot make a positive definite matrix - " "had no matrix"
+        )
 
     lmd, v = np.linalg.eig(matrix)  # Eigenvalues and eigenvectors
 

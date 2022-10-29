@@ -43,7 +43,9 @@ class _RandomPointGenerator:
 
         if len(self._points) == 0:
             # Surface area of the sphere scales r^2, so square solvent shell
-            self._points = get_points_on_sphere(n_points=self._sphere_n**2 * 10)
+            self._points = get_points_on_sphere(
+                n_points=self._sphere_n**2 * 10
+            )
             self._sphere_n += 1
 
         idx = self.random_state.randint(0, len(self._points))
@@ -83,13 +85,17 @@ class ExplicitSolvent(AtomCollection, Solvent):
         """
         if num <= 0:
             raise ValueError(
-                "Must solvate with at least a single solvent " f"molecule. Had {num}"
+                "Must solvate with at least a single solvent "
+                f"molecule. Had {num}"
             )
 
         solvent_atoms = sum((solvent.atoms.copy() for _ in range(num)), None)
         AtomCollection.__init__(self, atoms=solvent_atoms)
         Solvent.__init__(
-            self, name=solvent.name, smiles=None, aliases=kwargs.get("aliases", None)
+            self,
+            name=solvent.name,
+            smiles=None,
+            aliases=kwargs.get("aliases", None),
         )
 
         self.solvent_n_atoms = solvent.n_atoms
@@ -102,9 +108,13 @@ class ExplicitSolvent(AtomCollection, Solvent):
     def __eq__(self, other) -> bool:
         """Equality between two explicit solvent environments"""
 
-        if isinstance(other, ExplicitSolvent) and self.n_atoms == other.n_atoms:
+        if (
+            isinstance(other, ExplicitSolvent)
+            and self.n_atoms == other.n_atoms
+        ):
             return all(
-                o_at.label == at.label for o_at, at in zip(other.atoms, self.atoms)
+                o_at.label == at.label
+                for o_at, at in zip(other.atoms, self.atoms)
             )
 
         return False
@@ -148,7 +158,9 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
     @staticmethod
     def _too_close_to_solute(
-        solvent_coords: np.ndarray, solute_coords: np.ndarray, solute_radius: float
+        solvent_coords: np.ndarray,
+        solute_coords: np.ndarray,
+        solute_radius: float,
     ) -> bool:
         """
         Are a set of solvent coordinates too close to the solute? (for a
@@ -192,7 +204,9 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
         return min_dist < self.solvent_radius
 
-    def randomise_around(self, solute: "autode.species.species.Species") -> None:
+    def randomise_around(
+        self, solute: "autode.species.species.Species"
+    ) -> None:
         r"""
         Randomise the positions of the solvent molecules around the solute,
         for example using a methane solute and water solvent::
@@ -236,7 +250,8 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
             # Apply a random rotation to the solvent molecule
             rand_rot_mat = get_rot_mat_euler(
-                axis=rand.uniform(-1.0, 1.0, size=3), theta=rand.uniform(-np.pi, np.pi)
+                axis=rand.uniform(-1.0, 1.0, size=3),
+                theta=rand.uniform(-np.pi, np.pi),
             )
 
             coords[idxs] = np.dot(coords[idxs], rand_rot_mat.T)

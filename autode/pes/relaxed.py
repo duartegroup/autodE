@@ -40,9 +40,10 @@ class RelaxedPESnD(ReactivePESnD):
                     results.append(res)
 
                 for i, point in enumerate(points):
-                    (self._energies[point], self._coordinates[point]) = results[i].get(
-                        timeout=None
-                    )
+                    (
+                        self._energies[point],
+                        self._coordinates[point],
+                    ) = results[i].get(timeout=None)
 
         return None
 

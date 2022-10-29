@@ -57,7 +57,9 @@ def reactions_in_args():
             for line in rxn_file:
                 solvent = None if len(line.split()) < 3 else line.split()[2]
                 rxn = ade.Reaction(
-                    smiles=line.split()[1], name=line.split()[0], solvent_name=solvent
+                    smiles=line.split()[1],
+                    name=line.split()[0],
+                    solvent_name=solvent,
                 )
                 reactions.append(rxn)
 

@@ -156,7 +156,9 @@ def test_core_strip():
 def test_reactant_complex_truncation():
 
     # Non-sensical bond rearrangement
-    bond_rearr = BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(0, 5)])
+    bond_rearr = BondRearrangement(
+        forming_bonds=[(0, 1)], breaking_bonds=[(0, 5)]
+    )
 
     methane_dimer = ReactantComplex(methane, methane)
 
@@ -168,7 +170,9 @@ def test_reactant_complex_truncation():
 def test_product_complex_truncation():
 
     # H atom transfer from methane to ethene
-    bond_rearr = BondRearrangement(breaking_bonds=[(0, 1)], forming_bonds=[(1, 5)])
+    bond_rearr = BondRearrangement(
+        breaking_bonds=[(0, 1)], forming_bonds=[(1, 5)]
+    )
 
     methane_ethene = ReactantComplex(methane, ethene, name="product_complex")
 
@@ -182,7 +186,9 @@ def test_enone_truncation():
     enone = Reactant(name="enone", smiles="CC(O)=CC(=O)OC")
     reactant = ReactantComplex(enone)
 
-    bond_rearr = BondRearrangement(breaking_bonds=[(2, 11)], forming_bonds=[(11, 5)])
+    bond_rearr = BondRearrangement(
+        breaking_bonds=[(2, 11)], forming_bonds=[(11, 5)]
+    )
     truncated = get_truncated_species(reactant, bond_rearr)
     assert truncated.n_atoms == 10
     assert truncated.graph.number_of_edges() == 9
@@ -199,7 +205,9 @@ def test_large_truncation():
 
     assert mol.n_atoms == 50
 
-    truncated = get_truncated_species(species=mol, bond_rearrangement=bond_rearr)
+    truncated = get_truncated_species(
+        species=mol, bond_rearrangement=bond_rearr
+    )
 
     assert truncated.n_atoms == 27
     assert truncated.graph.number_of_edges() == 28
@@ -212,9 +220,13 @@ def test_two_component_truncation():
     chloride = Reactant(name="Cl", smiles="[Cl-]")
 
     mol = ReactantComplex(chloride, propylbromide)
-    bond_rearr = BondRearrangement(forming_bonds=[(0, 3)], breaking_bonds=[(3, 4)])
+    bond_rearr = BondRearrangement(
+        forming_bonds=[(0, 3)], breaking_bonds=[(3, 4)]
+    )
 
-    truncated = get_truncated_species(species=mol, bond_rearrangement=bond_rearr)
+    truncated = get_truncated_species(
+        species=mol, bond_rearrangement=bond_rearr
+    )
 
     # Should truncate to ethylbromide + Cl-
     assert truncated.n_atoms == 9

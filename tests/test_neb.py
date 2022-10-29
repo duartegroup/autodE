@@ -69,7 +69,9 @@ def test_contains_peak():
 
     species_list = Path()
     for i in range(5):
-        h2 = Species(name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=0)])
+        h2 = Species(
+            name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=0)]
+        )
 
         h2.energy = i
         species_list.append(h2)
@@ -290,10 +292,14 @@ def test_max_delta_between_images():
         Molecule(atoms=[Atom("H"), Atom("H", x=1.7)]),
     ]
 
-    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images, 1.0)
+    assert np.isclose(
+        NEB(species_list=_list).max_atom_distance_between_images, 1.0
+    )
 
     _list[0].atoms[1].coord[0] = 1.7  # x coordinate of the second atom
-    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images, 0.0)
+    assert np.isclose(
+        NEB(species_list=_list).max_atom_distance_between_images, 0.0
+    )
 
 
 def test_max_delta_between_images_h3():
@@ -325,7 +331,9 @@ def test_partition_max_delta():
     max_delta = Distance(0.1, units="Å")
 
     assert (
-        np.max(np.linalg.norm(_list[0].coordinates - _list[1].coordinates, axis=1))
+        np.max(
+            np.linalg.norm(_list[0].coordinates - _list[1].coordinates, axis=1)
+        )
         > max_delta
     )
 

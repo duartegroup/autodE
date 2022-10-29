@@ -36,7 +36,14 @@ def test_point_list_non_square():
     assert pes.ndim == 2 and pes.shape == (2, 3)
 
     points = pes._points()
-    assert points == [(0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (1, 2)] or points == [
+    assert points == [
+        (0, 0),
+        (0, 1),
+        (1, 0),
+        (0, 2),
+        (1, 1),
+        (1, 2),
+    ] or points == [
         (0, 0),
         (0, 1),
         (1, 0),
@@ -75,7 +82,9 @@ def test_distance():
 
     assert np.isclose(pes._distance(point1=(0,), point2=(1,)), 1.0, atol=1e-10)
 
-    pes = TestPES(rs={(0, 1): np.array([1.0, 2.0]), (1, 2): np.array([1.0, 2.0])})
+    pes = TestPES(
+        rs={(0, 1): np.array([1.0, 2.0]), (1, 2): np.array([1.0, 2.0])}
+    )
 
     assert np.isclose(
         pes._distance(point1=(0, 0), point2=(1, 1)), np.sqrt(2), atol=1e-10

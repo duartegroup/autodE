@@ -66,7 +66,9 @@ class DimerCoordinates(OptCoordinates):
 
     @classmethod
     def from_species(
-        cls, species1: "autode.species.Species", species2: "autode.species.Species"
+        cls,
+        species1: "autode.species.Species",
+        species2: "autode.species.Species",
     ) -> "DimerCoordinates":
         """
         Initialise a set of DimerCoordinates from two species, i.e. those
@@ -91,36 +93,48 @@ class DimerCoordinates(OptCoordinates):
 
         # Mass weight the coordinates by m^1/2 for each atom
         coords.masses = np.repeat(
-            np.array(species1.atomic_masses, dtype=float), repeats=3, axis=np.newaxis
+            np.array(species1.atomic_masses, dtype=float),
+            repeats=3,
+            axis=np.newaxis,
         )
 
         coords *= np.sqrt(coords.masses)
 
         return coords
 
-    def _update_g_from_cart_g(self, arr: Optional["autode.values.Gradient"]) -> None:
+    def _update_g_from_cart_g(
+        self, arr: Optional["autode.values.Gradient"]
+    ) -> None:
         raise NotImplementedError(
             "Cannot update the gradient - indeterminate " "point in the dimer"
         )
 
-    def _update_h_from_cart_h(self, arr: Optional["autode.values.Hessian"]) -> None:
+    def _update_h_from_cart_h(
+        self, arr: Optional["autode.values.Hessian"]
+    ) -> None:
         logger.warning("Dimer does not require Hessians - skipping")
         return None
 
     def __repr__(self) -> str:
-        return f"Dimer Coordinates({np.ndarray.__str__(self)} {self.units.name})"
+        return (
+            f"Dimer Coordinates({np.ndarray.__str__(self)} {self.units.name})"
+        )
 
     def __eq__(self, other):
         """Coordinates can never be identical..."""
         return False
 
     def to(self, *args, **kwargs) -> "OptCoordinates":
-        raise NotImplementedError("Cannot convert dimer coordinates to other " "types")
+        raise NotImplementedError(
+            "Cannot convert dimer coordinates to other " "types"
+        )
 
     def iadd(self, value: np.ndarray) -> "OptCoordinates":
         return np.ndarray.__iadd__(self, value)
 
-    def x_at(self, point: DimerPoint, mass_weighted: bool = True) -> np.ndarray:
+    def x_at(
+        self, point: DimerPoint, mass_weighted: bool = True
+    ) -> np.ndarray:
         """Coordinates at a point in the dimer"""
 
         if mass_weighted is False and self.masses is None:
@@ -166,7 +180,9 @@ class DimerCoordinates(OptCoordinates):
 
         return self._g[int(point), :]
 
-    def set_g_at(self, point: DimerPoint, arr: np.ndarray, mass_weighted: bool = True):
+    def set_g_at(
+        self, point: DimerPoint, arr: np.ndarray, mass_weighted: bool = True
+    ):
         """Set the gradient vector at a particular point"""
 
         if self._g is None:
@@ -230,7 +246,9 @@ class DimerCoordinates(OptCoordinates):
     @property
     def delta(self) -> float:
         """Distance between the dimer point, Δ"""
-        return MWDistance(np.linalg.norm(self.x1 - self.x2) / 2.0, units=self.units)
+        return MWDistance(
+            np.linalg.norm(self.x1 - self.x2) / 2.0, units=self.units
+        )
 
     @property
     def phi(self) -> Angle:

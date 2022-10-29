@@ -21,7 +21,9 @@ high_level_method_names = ["orca", "g09", "g16", "nwchem", "qchem"]
 low_level_method_names = ["xtb", "mopac"]
 
 
-def method_or_default_lmethod(method: Optional["autode.wrappers.methods.Method"]):
+def method_or_default_lmethod(
+    method: Optional["autode.wrappers.methods.Method"],
+):
     """
     Return a method if one is defined but default to a low-level method if
     if it is None.
@@ -40,7 +42,9 @@ def method_or_default_lmethod(method: Optional["autode.wrappers.methods.Method"]
     return method
 
 
-def method_or_default_hmethod(method: Optional["autode.wrappers.methods.Method"]):
+def method_or_default_hmethod(
+    method: Optional["autode.wrappers.methods.Method"],
+):
     """
     Return a method if one is defined but default to a high-level method if
     if it is None.
@@ -90,7 +94,9 @@ def get_lmethod() -> "autode.wrappers.methods.Method":
         return get_first_available_method(all_methods)
 
 
-def get_first_available_method(possibilities) -> "autode.wrappers.methods.Method":
+def get_first_available_method(
+    possibilities,
+) -> "autode.wrappers.methods.Method":
     """
     Get the first electronic structure method that is available in a list of
     possibilities.
@@ -113,7 +119,9 @@ def get_first_available_method(possibilities) -> "autode.wrappers.methods.Method
     raise MethodUnavailable("No electronic structure methods available")
 
 
-def get_defined_method(name, possibilities) -> "autode.wrappers.methods.Method":
+def get_defined_method(
+    name, possibilities
+) -> "autode.wrappers.methods.Method":
     """
     Get an electronic structure method defined by it's name.
 

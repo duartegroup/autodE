@@ -58,7 +58,9 @@ def test_opt_calc():
 def test_opt_single_atom():
 
     h = Molecule(name="H", smiles="[H]")
-    calc = Calculation(name="opt_h", molecule=h, method=method, keywords=opt_keywords)
+    calc = Calculation(
+        name="opt_h", molecule=h, method=method, keywords=opt_keywords
+    )
     calc.generate_input()
 
     # Can't do an optimisation of a hydrogen atom..
@@ -89,7 +91,9 @@ def test_exception_wf_solvent_calculation():
 def test_ecp_calc():
 
     # Should have no ECP block for molecule with only light elements
-    water_ecp_block = ecp_block(Molecule(smiles="O"), keywords=method.keywords.sp)
+    water_ecp_block = ecp_block(
+        Molecule(smiles="O"), keywords=method.keywords.sp
+    )
     assert water_ecp_block == ""
 
     # Should have no ECP block if the keywords do not define an ECP
@@ -122,7 +126,10 @@ def test_hessian_extract_ts():
     )
 
     calc = Calculation(
-        name="sn2_hess", molecule=ts, keywords=method.keywords.hess, method=method
+        name="sn2_hess",
+        molecule=ts,
+        keywords=method.keywords.hess,
+        method=method,
     )
     calc.set_output_filename("sn2_hess_nwchem.out")
 
@@ -140,7 +147,10 @@ def test_hessian_extract_butane():
 
     butane = Molecule("butane.xyz")
     calc = Calculation(
-        name="butane", molecule=butane, keywords=method.keywords.hess, method=method
+        name="butane",
+        molecule=butane,
+        keywords=method.keywords.hess,
+        method=method,
     )
     calc.set_output_filename("butane_hess_nwchem.out")
 

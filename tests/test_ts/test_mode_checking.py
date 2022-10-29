@@ -16,9 +16,13 @@ orca = ORCA()
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mode_checking.zip"))
 def test_imag_modes():
 
-    assert not has_correct_mode("incorrect_ts_mode", bbonds=[(1, 6)], fbonds=[(2, 6)])
+    assert not has_correct_mode(
+        "incorrect_ts_mode", bbonds=[(1, 6)], fbonds=[(2, 6)]
+    )
 
-    assert has_correct_mode("correct_ts_mode", bbonds=[(0, 1), (1, 2)], fbonds=[(0, 2)])
+    assert has_correct_mode(
+        "correct_ts_mode", bbonds=[(0, 1), (1, 2)], fbonds=[(0, 2)]
+    )
 
     assert not has_correct_mode(
         "incorrect_ts_mode_2", bbonds=[(3, 8), (3, 2)], fbonds=[(2, 8)]
@@ -28,15 +32,21 @@ def test_imag_modes():
         "h_shift_correct_ts_mode", bbonds=[(1, 10)], fbonds=[(5, 10)]
     )
 
-    assert has_correct_mode("ene_hess", bbonds=[(0, 5), (2, 1)], fbonds=[(4, 5)])
+    assert has_correct_mode(
+        "ene_hess", bbonds=[(0, 5), (2, 1)], fbonds=[(4, 5)]
+    )
 
-    assert has_correct_mode("curtius", bbonds=[(0, 1), (2, 3)], fbonds=[(0, 2)])
+    assert has_correct_mode(
+        "curtius", bbonds=[(0, 1), (2, 3)], fbonds=[(0, 2)]
+    )
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mode_checking.zip"))
 def test_graph_no_other_bonds():
 
-    reac = Reactant(name="r", atoms=xyz_file_to_atoms("h_shift_correct_ts_mode.xyz"))
+    reac = Reactant(
+        name="r", atoms=xyz_file_to_atoms("h_shift_correct_ts_mode.xyz")
+    )
 
     calc = Calculation(
         name="h_shift",
@@ -49,14 +59,18 @@ def test_graph_no_other_bonds():
 
     ts = TSbase(
         atoms=calc.get_final_atoms(),
-        bond_rearr=BondRearrangement(breaking_bonds=[(1, 10)], forming_bonds=[(5, 10)]),
+        bond_rearr=BondRearrangement(
+            breaking_bonds=[(1, 10)], forming_bonds=[(5, 10)]
+        ),
     )
     ts.hessian = calc.get_hessian()
 
     f_ts = displaced_species_along_mode(ts, mode_number=6, disp_factor=1.0)
     b_ts = displaced_species_along_mode(ts, mode_number=6, disp_factor=-1.0)
 
-    assert not imag_mode_generates_other_bonds(ts=ts, f_species=f_ts, b_species=b_ts)
+    assert not imag_mode_generates_other_bonds(
+        ts=ts, f_species=f_ts, b_species=b_ts
+    )
 
 
 def has_correct_mode(name, fbonds, bbonds):
@@ -64,7 +78,11 @@ def has_correct_mode(name, fbonds, bbonds):
     reac = Reactant(name="r", atoms=xyz_file_to_atoms(f"{name}.xyz"))
 
     calc = Calculation(
-        name=name, molecule=reac, method=orca, keywords=orca.keywords.opt_ts, n_cores=1
+        name=name,
+        molecule=reac,
+        method=orca,
+        keywords=orca.keywords.opt_ts,
+        n_cores=1,
     )
 
     calc.set_output_filename(f"{name}.out")
@@ -72,7 +90,9 @@ def has_correct_mode(name, fbonds, bbonds):
     # Don't require all bonds to be breaking/making in a 'could be ts' function
     ts = TSbase(
         atoms=reac.atoms,
-        bond_rearr=BondRearrangement(breaking_bonds=bbonds, forming_bonds=fbonds),
+        bond_rearr=BondRearrangement(
+            breaking_bonds=bbonds, forming_bonds=fbonds
+        ),
     )
     ts.hessian = calc.get_hessian()
 

@@ -112,7 +112,9 @@ class CRFOptimiser(RFOptimiser):
         delocalized internals"""
 
         if self._species is None:
-            raise RuntimeError("Cannot set initial coordinates. No species set")
+            raise RuntimeError(
+                "Cannot set initial coordinates. No species set"
+            )
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
         self._coords = DICWithConstraints.from_cartesian(

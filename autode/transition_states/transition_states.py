@@ -5,7 +5,9 @@ from typing import Optional
 
 class TransitionStates(list):
     @property
-    def lowest_energy(self) -> Optional["autode.transition_states.TransitionState"]:
+    def lowest_energy(
+        self,
+    ) -> Optional["autode.transition_states.TransitionState"]:
         """
         Return the lowest energy transition state from this set
 

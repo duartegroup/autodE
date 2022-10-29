@@ -76,7 +76,13 @@ def test_complex_class_set():
         h2_complex.atoms = [Atom("H"), Atom("H"), Atom("H")]
 
     with pytest.raises(ValueError):
-        h2_complex.atoms = [Atom("H"), Atom("H"), Atom("H"), Atom("H"), Atom("H")]
+        h2_complex.atoms = [
+            Atom("H"),
+            Atom("H"),
+            Atom("H"),
+            Atom("H"),
+            Atom("H"),
+        ]
 
     # but can with 4 atoms
     h2_complex.atoms = [Atom("H"), Atom("H"), Atom("H"), Atom("H", x=10.0)]
@@ -96,18 +102,26 @@ def test_translation():
     monomer_copy.translate_mol(vec=np.array([1.0, 0.0, 0.0]), mol_index=0)
 
     assert (
-        np.linalg.norm(monomer_copy.atoms[0].coord - np.array([1.0, 0.0, 0.0])) < 1e-9
+        np.linalg.norm(monomer_copy.atoms[0].coord - np.array([1.0, 0.0, 0.0]))
+        < 1e-9
     )
     assert (
-        np.linalg.norm(monomer_copy.atoms[1].coord - np.array([1.0, 0.0, 1.0])) < 1e-9
+        np.linalg.norm(monomer_copy.atoms[1].coord - np.array([1.0, 0.0, 1.0]))
+        < 1e-9
     )
 
     # Dimer translation
     dimer_copy = deepcopy(dimer)
     dimer_copy.translate_mol(vec=np.array([1.0, 0.0, 0.0]), mol_index=0)
 
-    assert np.linalg.norm(dimer_copy.atoms[0].coord - np.array([1.0, 0.0, 0.0])) < 1e-9
-    assert np.linalg.norm(dimer_copy.atoms[1].coord - np.array([1.0, 0.0, 1.0])) < 1e-9
+    assert (
+        np.linalg.norm(dimer_copy.atoms[0].coord - np.array([1.0, 0.0, 0.0]))
+        < 1e-9
+    )
+    assert (
+        np.linalg.norm(dimer_copy.atoms[1].coord - np.array([1.0, 0.0, 1.0]))
+        < 1e-9
+    )
 
     # Cannot translate molecule index 2 in a complex with only 2 molecules
     with pytest.raises(Exception):
@@ -188,7 +202,9 @@ def test_conformer_generation2():
 
 def test_complex_init():
 
-    h2o = Molecule(name="water", atoms=[Atom("O"), Atom("H", x=-1), Atom("H", x=1)])
+    h2o = Molecule(
+        name="water", atoms=[Atom("O"), Atom("H", x=-1), Atom("H", x=1)]
+    )
 
     h2o_dimer = Complex(h2o, h2o, do_init_translation=False, copy=False)
     h2o.translate([1.0, 0.0, 0.0])
@@ -201,7 +217,9 @@ def test_complex_init():
     assert np.linalg.norm(h2o_dimer.atoms[0].coord) > 0.9
 
     # but not if the molecules are copied
-    h2o = Molecule(name="water", atoms=[Atom("O"), Atom("H", x=-1), Atom("H", x=1)])
+    h2o = Molecule(
+        name="water", atoms=[Atom("O"), Atom("H", x=-1), Atom("H", x=1)]
+    )
     h2o_dimer = Complex(h2o, h2o, do_init_translation=False, copy=True)
 
     h2o_dimer.translate_mol([1.0, 0.0, 0.0], mol_index=1)

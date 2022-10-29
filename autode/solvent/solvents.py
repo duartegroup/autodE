@@ -48,11 +48,15 @@ def get_solvent(
             continue
 
         if solvent.is_implicit:
-            return solvent if kind == "implicit" else solvent.to_explicit(num=num)
+            return (
+                solvent if kind == "implicit" else solvent.to_explicit(num=num)
+            )
 
         # Allow for solvent.is_explicit in solvents?
 
-    raise SolventNotFound("No matching solvent in the library for " f"{solvent_name}")
+    raise SolventNotFound(
+        "No matching solvent in the library for " f"{solvent_name}"
+    )
 
 
 class Solvent(ABC):
@@ -129,7 +133,9 @@ class Solvent(ABC):
             if alias in _solvents_and_dielectrics:
                 return _solvents_and_dielectrics[alias]
 
-        logger.warning(f"Could not find a dielectric for: {self}. " f"Returning None")
+        logger.warning(
+            f"Could not find a dielectric for: {self}. " f"Returning None"
+        )
         return None
 
     @property
@@ -250,7 +256,12 @@ solvents = [
     ImplicitSolvent(
         name="trichloromethane",
         smiles="ClC(Cl)Cl",
-        aliases=["chloroform", "trichloromethane", "chcl3", "methyl trichloride"],
+        aliases=[
+            "chloroform",
+            "trichloromethane",
+            "chcl3",
+            "methyl trichloride",
+        ],
         orca="chloroform",
         g09="Chloroform",
         nwchem="chcl3",
@@ -483,7 +494,12 @@ solvents = [
     ImplicitSolvent(
         name="1-bromooctane",
         smiles="CCCCCCCCBr",
-        aliases=["1-bromooctane", "bromooctane", "octyl bromide", "1-octyl bromide"],
+        aliases=[
+            "1-bromooctane",
+            "bromooctane",
+            "octyl bromide",
+            "1-octyl bromide",
+        ],
         orca="1-bromooctane",
         g09="1-BromoOctane",
         nwchem="broctane",
@@ -559,7 +575,11 @@ solvents = [
     ImplicitSolvent(
         name="1,2-dichlorobenzene",
         smiles="ClC1=CC=CC=C1Cl",
-        aliases=["1,2-dichlorobenzene", "o-dichlorobenzene", "ortho-dichlorobenzene"],
+        aliases=[
+            "1,2-dichlorobenzene",
+            "o-dichlorobenzene",
+            "ortho-dichlorobenzene",
+        ],
         orca="o-dichlorobenzene",
         g09="o-DiChloroBenzene",
         nwchem="odiclbnz",
@@ -718,7 +738,12 @@ solvents = [
     ImplicitSolvent(
         name="1,2-dichloroethane",
         smiles="ClCCCl",
-        aliases=["1,2-dichloroethane", "ethylene dichloride", "dce", "dichloroethane"],
+        aliases=[
+            "1,2-dichloroethane",
+            "ethylene dichloride",
+            "dce",
+            "dichloroethane",
+        ],
         orca="1,2-dichloroethane",
         g09="DiChloroEthane",
         nwchem="edc12",
@@ -1647,7 +1672,12 @@ solvents = [
     ImplicitSolvent(
         name="propanenitrile",
         smiles="CCC#N",
-        aliases=["propanenitrile", "cyanoethane", "ethyl cyanide", "propanonitrile"],
+        aliases=[
+            "propanenitrile",
+            "cyanoethane",
+            "ethyl cyanide",
+            "propanonitrile",
+        ],
         orca="propanonitrile",
         g09="PropanoNitrile",
         nwchem="propntrl",
@@ -1696,7 +1726,11 @@ solvents = [
     ImplicitSolvent(
         name="tetralin",
         smiles="C12=C(CCCC2)C=CC=C1",
-        aliases=["tetralin", "1,2,3,4-tetrahydronaphthalene", "tetrahydronaphthalene"],
+        aliases=[
+            "tetralin",
+            "1,2,3,4-tetrahydronaphthalene",
+            "tetrahydronaphthalene",
+        ],
         orca="tetralin",
         g09="Tetralin",
         nwchem="tetralin",
@@ -1811,7 +1845,12 @@ solvents = [
     ImplicitSolvent(
         name="2-propanol",
         smiles="CC(O)C",
-        aliases=["2-propanol", "propan-2-ol", "isopropanol", "isopropyl alcohol"],
+        aliases=[
+            "2-propanol",
+            "propan-2-ol",
+            "isopropanol",
+            "isopropyl alcohol",
+        ],
         orca="2-propanol",
         g09="2-Propanol",
         nwchem="propnol2",
@@ -2031,7 +2070,11 @@ solvents = [
         mopac="quinoline",
     ),
     ImplicitSolvent(
-        name="argon", smiles="[Ar]", aliases=["argon"], g09="Argon", mopac="argon"
+        name="argon",
+        smiles="[Ar]",
+        aliases=["argon"],
+        g09="Argon",
+        mopac="argon",
     ),
     ImplicitSolvent(
         name="krypton",
@@ -2041,7 +2084,11 @@ solvents = [
         mopac="krypton",
     ),
     ImplicitSolvent(
-        name="xenon", smiles="[Xe]", aliases=["xenon"], g09="Xenon", mopac="xenon"
+        name="xenon",
+        smiles="[Xe]",
+        aliases=["xenon"],
+        g09="Xenon",
+        mopac="xenon",
     ),
 ]
 

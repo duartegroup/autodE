@@ -14,7 +14,9 @@ pes = ade.pes.RelaxedPESnD(
     rs={(0, 1): (3.0, 8), (5, 1): (1.1, 8)},  # Current->3.0 Å in 8 steps
 )  # Current->1.1 Å in 8 steps
 pes.calculate(
-    method=orca, keywords=["LooseOpt", "PBE", "def2-SV(P)"], n_cores=10  # Fast DFT
+    method=orca,
+    keywords=["LooseOpt", "PBE", "def2-SV(P)"],
+    n_cores=10,  # Fast DFT
 )  # Using 10 processing cores
 
 # and plot the 2D surface

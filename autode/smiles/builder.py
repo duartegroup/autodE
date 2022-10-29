@@ -67,7 +67,9 @@ class Builder(AtomCollection):
         atoms = []
         for atom in self.atoms:
             x, y, z = atom.coord
-            atoms.append(Atom(atom.label, x=x, y=y, z=z, atom_class=atom.atom_class))
+            atoms.append(
+                Atom(atom.label, x=x, y=y, z=z, atom_class=atom.atom_class)
+            )
 
         return atoms
 
@@ -167,7 +169,8 @@ class Builder(AtomCollection):
 
             if not hasattr(atom, "n_hydrogens") or atom.n_hydrogens is None:
                 logger.warning(
-                    f"{atom} did not have a defined number of " "hydrogens. Assuming 0"
+                    f"{atom} did not have a defined number of "
+                    "hydrogens. Assuming 0"
                 )
                 atom.n_hydrogens = 0
 
@@ -285,7 +288,9 @@ class Builder(AtomCollection):
         """
         try:
             return next(
-                idxs for idxs in self.rings_idxs if all(idx in idxs for idx in inc_idxs)
+                idxs
+                for idxs in self.rings_idxs
+                if all(idx in idxs for idx in inc_idxs)
             )
 
         except StopIteration:
@@ -361,7 +366,9 @@ class Builder(AtomCollection):
 
             # Optimum distance between the two middle atoms, used for
             # determining if a bond exists thus a dihedral can be rotated
-            dihedral.mid_dist = self.bonds.first_involving(*dihedral.mid_idxs).r0
+            dihedral.mid_dist = self.bonds.first_involving(
+                *dihedral.mid_idxs
+            ).r0
 
             # If both atoms either side of this one are 'pi' atoms e.g. in a
             # benzene ring, then the ideal angle must be 0 to close the ring
@@ -383,7 +390,8 @@ class Builder(AtomCollection):
             other_idxs (list | set | None): Other indexes that need to be reset
         """
         for idx_i in set(
-            self.queued_atoms + list(other_idxs if other_idxs is not None else [])
+            self.queued_atoms
+            + list(other_idxs if other_idxs is not None else [])
         ):
 
             logger.info(f"Resetting sites on atom {idx_i}")
@@ -452,7 +460,9 @@ class Builder(AtomCollection):
             graph = self.graph.copy()
             graph.remove_edge(ring_bond[0], ring_bond[1])
 
-            angle = SAngle(idxs=angle_idxs, phi0=(np.pi - (2.0 * np.pi / ring_n)))
+            angle = SAngle(
+                idxs=angle_idxs, phi0=(np.pi - (2.0 * np.pi / ring_n))
+            )
 
             try:
                 angle.find_rot_idxs(graph=graph, atoms=self.atoms)
@@ -478,7 +488,8 @@ class Builder(AtomCollection):
             idx_x, idx_y, idx_z = angle.idxs
 
             axis = np.cross(
-                coords[idx_x, :] - coords[idx_y, :], coords[idx_z, :] - coords[idx_y, :]
+                coords[idx_x, :] - coords[idx_y, :],
+                coords[idx_z, :] - coords[idx_y, :],
             )
 
             # Alternate between forward and reverse rotations
@@ -657,14 +668,18 @@ class Builder(AtomCollection):
         else:
             self._adjust_ring_dihedrals(ring_bond, dihedrals=dihedrals)
 
-        if not np.isclose(ring_bond.distance(self.atoms), ring_bond.r0, atol=0.2):
+        if not np.isclose(
+            ring_bond.distance(self.atoms), ring_bond.r0, atol=0.2
+        ):
             logger.info(f"A ring was poorly closed - adjusting angles")
 
             try:
                 self._adjust_ring_angles(ring_bond)
 
             except FailedToAdjustAngles:
-                logger.warning("Failed to close a ring, minimising on " "all atoms")
+                logger.warning(
+                    "Failed to close a ring, minimising on " "all atoms"
+                )
                 self._ff_minimise()
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
@@ -847,13 +862,19 @@ class Builder(AtomCollection):
         idx_z = nbrs_y[np.abs(np.array(nbrs_y) - idx_y).argmin()]
 
         # Is this bond cis or trans?
-        stro_x, stro_y = self.atoms[idx_x].stereochem, self.atoms[idx_y].stereochem
+        stro_x, stro_y = (
+            self.atoms[idx_x].stereochem,
+            self.atoms[idx_y].stereochem,
+        )
 
         phi = np.pi  # Default to a trans double bond
 
         if (
             (
-                all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
+                all(
+                    self.atoms[idx].in_ring
+                    for idx in (idx_w, idx_x, idx_y, idx_z)
+                )
                 and not self.atoms[idx_x].has_stereochem
             )
             or stro_x == stro_y == SMILESStereoChem.ALKENE_UP
@@ -876,7 +897,9 @@ class Builder(AtomCollection):
 
         for i, dihedral in enumerate(self.queued_dihedrals):
             try:
-                dihedral.find_rot_idxs(graph=self.graph.copy(), atoms=self.atoms)
+                dihedral.find_rot_idxs(
+                    graph=self.graph.copy(), atoms=self.atoms
+                )
 
             except FailedToSetRotationIdxs:
                 logger.warning(f"Could not apply rotation {dihedral}")
@@ -960,7 +983,9 @@ class Builder(AtomCollection):
             bonded_atom.translate(coord)
 
             # Atoms that are not terminal need to be added to the queue
-            if not isinstance(self.atoms[bonded_idx].type, atom_types.TerminalAtom):
+            if not isinstance(
+                self.atoms[bonded_idx].type, atom_types.TerminalAtom
+            ):
                 # and the atom type rotated so an empty site is coincident
                 # with this atom
                 bonded_atom.type.rotate_empty_onto(

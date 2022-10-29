@@ -30,7 +30,10 @@ def test_xtb_calculation():
         name="test_mol", smiles="O=C(C=C1)[C@@](C2NC3C=C2)([H])[C@@]3([H])C1=O"
     )
     calc = Calculation(
-        name="opt", molecule=test_mol, method=method, keywords=Config.XTB.keywords.opt
+        name="opt",
+        molecule=test_mol,
+        method=method,
+        keywords=Config.XTB.keywords.opt,
     )
     calc.run()
 
@@ -118,14 +121,19 @@ def test_gradients():
     h2.single_point(method)
 
     delta_r = 1e-5
-    h2_disp = Molecule(name="h2_disp", atoms=[Atom("H"), Atom("H", x=1.0 + delta_r)])
+    h2_disp = Molecule(
+        name="h2_disp", atoms=[Atom("H"), Atom("H", x=1.0 + delta_r)]
+    )
     h2_disp.single_point(method)
 
     delta_energy = h2_disp.energy - h2.energy  # Ha
     grad = delta_energy / delta_r  # Ha A^-1
 
     calc = Calculation(
-        name="h2_grad", molecule=h2, method=method, keywords=method.keywords.grad
+        name="h2_grad",
+        molecule=h2,
+        method=method,
+        keywords=method.keywords.grad,
     )
 
     calc.run()
@@ -255,7 +263,10 @@ def test_xtb_with_autode_opt_method():
 
     mol = Molecule(smiles="C")
     calc = Calculation(
-        name="methane", molecule=mol, method=XTBautodEOpt(), keywords=OptKeywords()
+        name="methane",
+        molecule=mol,
+        method=XTBautodEOpt(),
+        keywords=OptKeywords(),
     )
     calc.run()
 
@@ -268,7 +279,10 @@ def test_xtb_with_autode_opt_method_for_a_single_atom():
 
     mol = Molecule(atoms=[Atom("H")], mult=2)
     calc = Calculation(
-        name="h_atom", molecule=mol, method=XTBautodEOpt(), keywords=OptKeywords()
+        name="h_atom",
+        molecule=mol,
+        method=XTBautodEOpt(),
+        keywords=OptKeywords(),
     )
     calc.run()
 
@@ -299,7 +313,10 @@ def test_xtb_errors_with_infinite_nuclear_repulsion():
     # H2 with a zero H-H distance
     mol = Molecule(atoms=[Atom("H"), Atom("H")])
     calc = Calculation(
-        name="h_atom", molecule=mol, method=XTB(), keywords=SinglePointKeywords()
+        name="h_atom",
+        molecule=mol,
+        method=XTB(),
+        keywords=SinglePointKeywords(),
     )
 
     with pytest.raises(CalculationException):
@@ -311,7 +328,10 @@ def test_xtb_did_not_terminate_normally_with_blank_output():
 
     mol = Molecule(atoms=[Atom("H")])
     calc = Calculation(
-        name="h_atom", molecule=mol, method=XTB(), keywords=SinglePointKeywords()
+        name="h_atom",
+        molecule=mol,
+        method=XTB(),
+        keywords=SinglePointKeywords(),
     )
 
     with open("tmp.out", "w") as file:
@@ -326,7 +346,10 @@ def test_xtb_did_not_terminate_normally_with_blank_output():
 def test_ade_opt_rerun_with_different_input_skip_saved_opt():
     def run_calc(_mol):
         calc = Calculation(
-            name="water", molecule=_mol, method=XTBautodEOpt(), keywords=OptKeywords()
+            name="water",
+            molecule=_mol,
+            method=XTBautodEOpt(),
+            keywords=OptKeywords(),
         )
         calc.run()
 

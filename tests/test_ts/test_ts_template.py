@@ -102,7 +102,9 @@ def test_ts_template():
 
     Config.ts_template_folder_path = os.path.join(here, "data", "ts_guess")
 
-    bond_rearr = BondRearrangement(breaking_bonds=[(2, 1)], forming_bonds=[(0, 2)])
+    bond_rearr = BondRearrangement(
+        breaking_bonds=[(2, 1)], forming_bonds=[(0, 2)]
+    )
 
     reac_shift = reac_complex.copy()
 
@@ -190,7 +192,10 @@ def test_truncated_mol_graph_atom_types():
 
     graph = get_truncated_active_mol_graph(ir_ts.graph)
     # Should only be a single Ir atom in the template
-    assert sum(node[1]["atom_label"] == "Ir" for node in graph.nodes(data=True)) == 1
+    assert (
+        sum(node[1]["atom_label"] == "Ir" for node in graph.nodes(data=True))
+        == 1
+    )
 
 
 def test_ts_template_parse():

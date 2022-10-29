@@ -188,6 +188,9 @@ class Path(list):
                 title_line += f"solvent = {image.species.solvent.name} "
 
             atoms_to_xyz_file(
-                image.species.atoms, f"{name}.xyz", title_line=title_line, append=True
+                image.species.atoms,
+                f"{name}.xyz",
+                title_line=title_line,
+                append=True,
             )
         return None

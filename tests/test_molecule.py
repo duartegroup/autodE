@@ -184,7 +184,9 @@ def test_rdkit_possible_fail():
 
     # Trying to parse with RDKit should revert to RR structure
     rh_complex_rdkit_attempt = Molecule()
-    init_organic_smiles(rh_complex_rdkit_attempt, smiles="O=[Rh]([H])([H])([H])=O")
+    init_organic_smiles(
+        rh_complex_rdkit_attempt, smiles="O=[Rh]([H])([H])([H])=O"
+    )
     assert are_coords_reasonable(coords=rh_complex.coordinates)
 
     # RDKit also may not parse CH5+

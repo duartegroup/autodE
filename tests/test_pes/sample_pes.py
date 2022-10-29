@@ -24,7 +24,10 @@ class TestPES(ReactivePESnD):
 def harmonic_2d_pes():
     # Symmetric PES in x and y (atom indexes are dummy)
     pes = TestPES(
-        rs={(0, 1): np.linspace(-1, 1, num=21), (1, 2): np.linspace(-1, 1, num=21)}
+        rs={
+            (0, 1): np.linspace(-1, 1, num=21),
+            (1, 2): np.linspace(-1, 1, num=21),
+        }
     )
 
     def energy(x, y):

@@ -19,7 +19,11 @@ from time import time
 from typing import Optional, List
 from autode.geom import proj
 from autode.log import logger
-from autode.opt.coordinates.internals import PIC, InverseDistances, InternalCoordinates
+from autode.opt.coordinates.internals import (
+    PIC,
+    InverseDistances,
+    InternalCoordinates,
+)
 
 _max_back_transform_iterations = 20
 
@@ -116,7 +120,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         logger.info(f"Transformed in      ...{time() - start_time:.4f} s")
         return dic
 
-    def _update_g_from_cart_g(self, arr: Optional["autode.values.Gradient"]) -> None:
+    def _update_g_from_cart_g(
+        self, arr: Optional["autode.values.Gradient"]
+    ) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient
 
@@ -133,7 +139,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         return None
 
-    def _update_h_from_cart_h(self, arr: Optional["autode.values.Hessian"]) -> None:
+    def _update_h_from_cart_h(
+        self, arr: Optional["autode.values.Hessian"]
+    ) -> None:
         """
         Update the DIC Hessian matrix from a Cartesian one
 
@@ -170,7 +178,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         raise ValueError(f"Unknown conversion to {value}")
 
-    def iadd(self, value: np.ndarray) -> "autode.opt.coordidnates.base.OptCoordinates":
+    def iadd(
+        self, value: np.ndarray
+    ) -> "autode.opt.coordidnates.base.OptCoordinates":
 
         """
         Set some new internal coordinates and update the Cartesian coordinates
@@ -218,7 +228,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
             if i == _max_back_transform_iterations:
                 logger.warning(
-                    f"Failed to transform in {i} cycles. " f"Final RMS(s) = {rms_s:.8f}"
+                    f"Failed to transform in {i} cycles. "
+                    f"Final RMS(s) = {rms_s:.8f}"
                 )
                 x_k = x_1
                 if self._allow_unconverged_back_transform:
@@ -283,10 +294,14 @@ class DICWithConstraints(DIC):
 
         u = DIC._calc_U(primitives, x)
         const_prim_idxs = [
-            i for i, primitive in enumerate(primitives) if primitive.is_constrained
+            i
+            for i, primitive in enumerate(primitives)
+            if primitive.is_constrained
         ]
 
-        logger.info(f"Projecting {len(const_prim_idxs)} constrained primitives")
+        logger.info(
+            f"Projecting {len(const_prim_idxs)} constrained primitives"
+        )
         return _schmidt_orthogonalise(u, *const_prim_idxs)
 
     @property
@@ -300,7 +315,9 @@ class DICWithConstraints(DIC):
         n, m = len(self), self.n_constraints
         x = self.to("cartesian")
         idxs = [
-            i for i, p in enumerate(self.constrained_primitives) if p.is_satisfied(x)
+            i
+            for i, p in enumerate(self.constrained_primitives)
+            if p.is_satisfied(x)
         ]
 
         return [n - m + i for i in idxs] + [n + i for i in idxs]
@@ -313,7 +330,9 @@ class DICWithConstraints(DIC):
 
         return [i for i in range(n + m) if i not in self.inactive_indexes]
 
-    def _update_g_from_cart_g(self, arr: Optional["autode.values.Gradient"]) -> None:
+    def _update_g_from_cart_g(
+        self, arr: Optional["autode.values.Gradient"]
+    ) -> None:
         r"""
         Updates the gradient from a calculated Cartesian gradient, where
         the gradient is that of the Lagrangian. Includes dL/d_λi terms where
@@ -346,7 +365,9 @@ class DICWithConstraints(DIC):
 
         return None
 
-    def _update_h_from_cart_h(self, arr: Optional["autode.values.Hessian"]) -> None:
+    def _update_h_from_cart_h(
+        self, arr: Optional["autode.values.Hessian"]
+    ) -> None:
         """
         Update the DIC Hessian matrix from a Cartesian one
 
@@ -367,7 +388,9 @@ class DICWithConstraints(DIC):
 
             # Fill in the upper left corner with d^2L/ds_i ds_j
             # where the second derivative of the constraint is zero
-            self.h[:n, :n] = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+            self.h[:n, :n] = np.linalg.multi_dot(
+                (self.B_T_inv.T, arr, self.B_T_inv)
+            )
 
             # and the d^2L/ds_i dλ_i = -dC_i/ds_i = -1
             #         d^2L/dλ_i dλ_j = 0
@@ -386,13 +409,18 @@ class DICWithConstraints(DIC):
             return True  # None is always valid
 
         n_rows, n_cols = arr.shape
-        return arr.ndim == 2 and n_rows == n_cols == len(self) + self.n_constraints
+        return (
+            arr.ndim == 2
+            and n_rows == n_cols == len(self) + self.n_constraints
+        )
 
     def update_lagrange_multipliers(self, arr: np.ndarray) -> None:
         """Update the lagrange multipliers by adding a set of values"""
 
         if arr.shape != self._lambda.shape:
-            raise ValueError("Cannot set lagrange multipliers. Incorrect shape")
+            raise ValueError(
+                "Cannot set lagrange multipliers. Incorrect shape"
+            )
 
         self._lambda[:] = np.asarray(self._lambda) + np.asarray(arr)
         return None
@@ -405,7 +433,9 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
     are defined by indexes. This generates a transform matrix U which will
     provide pure primitive coordinates, which can then be constrained simply
     """
-    logger.info(f"Schmidt-orthogonalizing. Using {indexes} as " f"orthonormal vectors")
+    logger.info(
+        f"Schmidt-orthogonalizing. Using {indexes} as " f"orthonormal vectors"
+    )
 
     u = np.zeros_like(arr)
     _, n = arr.shape

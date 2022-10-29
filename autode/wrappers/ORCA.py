@@ -48,7 +48,11 @@ def print_added_internals(inp_file, calc_input):
 
     for (i, j) in calc_input.added_internals:
         print(
-            "%geom\n" "modify_internal\n" "{ B", i, j, "A } end\n" "end", file=inp_file
+            "%geom\n" "modify_internal\n" "{ B",
+            i,
+            j,
+            "A } end\n" "end",
+            file=inp_file,
         )
     return
 
@@ -110,7 +114,10 @@ def print_point_charges(inp_file, calc_input):
         print(len(calc_input.point_charges), file=pc_file)
         for pc in calc_input.point_charges:
             x, y, z = pc.coord
-            print(f"{pc.charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}", file=pc_file)
+            print(
+                f"{pc.charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}",
+                file=pc_file,
+            )
 
     calc_input.additional_filenames.append(filename)
 
@@ -139,7 +146,9 @@ def print_coordinates(inp_file, molecule):
     print("*xyz", molecule.charge, molecule.mult, file=inp_file)
     for atom in molecule.atoms:
         x, y, z = atom.coord
-        print(f"{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}", file=inp_file)
+        print(
+            f"{atom.label:<3} {x:^12.8f} {y:^12.8f} {z:^12.8f}", file=inp_file
+        )
     print("*", file=inp_file)
 
     return
@@ -278,7 +287,9 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
                 if "$atoms" not in line:
                     continue
 
-                for aline in hess_file_lines[i + 2 : i + 2 + calc.molecule.n_atoms]:
+                for aline in hess_file_lines[
+                    i + 2 : i + 2 + calc.molecule.n_atoms
+                ]:
                     _, _, x, y, z = aline.split()
                     coords.append([float(x), float(y), float(z)])
 
@@ -340,7 +351,10 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         gradients = []
 
         for i, line in enumerate(calc.output.file_lines):
-            if "CARTESIAN GRADIENT" in line or "The final MP2 gradient" in line:
+            if (
+                "CARTESIAN GRADIENT" in line
+                or "The final MP2 gradient" in line
+            ):
                 gradients = []
                 if "CARTESIAN GRADIENT" in line:
                     first, last = i + 3, i + 3 + calc.molecule.n_atoms
@@ -424,7 +438,9 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
             # Skip blank lines in the file, marked by one or more fewer items
             # than the previous
-            if len(h_line.split()) < len(file_lines[start_line + j - 1].split()):
+            if len(h_line.split()) < len(
+                file_lines[start_line + j - 1].split()
+            ):
                 continue
 
             # First item is the coordinate number, thus append all others
@@ -451,7 +467,9 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
         try:
             run_external(
-                params=[self.path, "-h"], output_filename="tmp", stderr_to_log=False
+                params=[self.path, "-h"],
+                output_filename="tmp",
+                stderr_to_log=False,
             )
             line = next(l for l in open("tmp", "r") if "Program Version" in l)
             return line.split()[2]
@@ -496,7 +514,9 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
         # Sort the keywords with all the items with newlines at the end, so
         # the first keyword line is a single contiguous line
-        return kwds_cls(sorted(new_keywords, key=lambda kw: 1 if "\n" in kw else 0))
+        return kwds_cls(
+            sorted(new_keywords, key=lambda kw: 1 if "\n" in kw else 0)
+        )
 
     def use_vdw_gaussian_solvent(self, keywords) -> bool:
         """

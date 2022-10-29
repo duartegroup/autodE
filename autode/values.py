@@ -61,7 +61,9 @@ def _to(value: Union["Value", "ValueArray"], units: Union[Unit, str]):
         )
 
     except StopIteration:
-        raise TypeError(f"No viable unit conversion from {value.units} " f"-> {units}")
+        raise TypeError(
+            f"No viable unit conversion from {value.units} " f"-> {units}"
+        )
 
     # Convert to the base unit, then to the new units
     c = float(units.conversion / value.units.conversion)
@@ -95,7 +97,9 @@ def _units_init(value, units: Union[Unit, str, None]):
 
     try:
         return next(
-            unit for unit in value.implemented_units if units.lower() in unit.aliases
+            unit
+            for unit in value.implemented_units
+            if units.lower() in unit.aliases
         )
 
     except StopIteration:
@@ -235,7 +239,8 @@ class Value(ABC, float):
 
     def __truediv__(self, other) -> "Value":
         return self.__class__(
-            float(self) / float(self._other_same_units(other)), units=self.units
+            float(self) / float(self._other_same_units(other)),
+            units=self.units,
         )
 
     def __abs__(self) -> "Value":
@@ -307,7 +312,9 @@ class Energy(Value):
         Set the method string for a method and the keywords that were used
         to calculate it
         """
-        self.method_str = f"{method.name} " if method is not None else "unknown"
+        self.method_str = (
+            f"{method.name} " if method is not None else "unknown"
+        )
         self.method_str += keywords.bstring if keywords is not None else ""
 
     def __repr__(self):
@@ -383,7 +390,9 @@ class Allocation(Value):
             units (autode.units.Unit | str | None):
         """
         if float(x) <= 0:
-            raise ValueError("Memory allocations must be non-negative. " f"Had: {x}")
+            raise ValueError(
+                "Memory allocations must be non-negative. " f"Had: {x}"
+            )
 
         super().__init__(x=x, units=units)
 
@@ -416,7 +425,9 @@ class Energies(list):
         """Next type of energy in a list of energies"""
         try:
             return next(
-                energy for energy in energies if isinstance(energy, energy_type)
+                energy
+                for energy in energies
+                if isinstance(energy, energy_type)
             )
 
         except StopIteration:
@@ -650,7 +661,11 @@ class Coordinate(ValueArray):
         if len(args) == 3:
             return super().__new__(cls, np.asarray(args), units)
 
-        elif len(args) == 1 and isinstance(args[0], Iterable) and len(args[0]) == 3:
+        elif (
+            len(args) == 1
+            and isinstance(args[0], Iterable)
+            and len(args[0]) == 3
+        ):
             # e.g. a numpy array or list of three elements
             return super().__new__(cls, np.asarray(args[0]), units)
 
@@ -684,7 +699,9 @@ class Coordinates(ValueArray):
         return f"Coordinates({np.ndarray.__str__(self)} {self.units.name})"
 
     def __new__(cls, input_array, units=ang):
-        return super().__new__(cls, np.asarray(input_array).reshape(-1, 3), units)
+        return super().__new__(
+            cls, np.asarray(input_array).reshape(-1, 3), units
+        )
 
 
 class Gradient(ValueArray):
@@ -695,7 +712,9 @@ class Gradient(ValueArray):
         return f"Gradients({np.ndarray.__str__(self)} {self.units.name})"
 
     def __new__(cls, input_array, units=ha_per_ang):
-        return super().__new__(cls, np.asarray(input_array).reshape(-1, 3), units)
+        return super().__new__(
+            cls, np.asarray(input_array).reshape(-1, 3), units
+        )
 
 
 class GradientRMS(Value):

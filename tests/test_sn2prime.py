@@ -44,7 +44,9 @@ def test_subst():
     reactant = Reactant(name="sn2_r", atoms=xyz_file_to_atoms("reactant.xyz"))
 
     # SN2' bond rearrangement
-    bond_rearr = BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(3, 4)])
+    bond_rearr = BondRearrangement(
+        forming_bonds=[(0, 1)], breaking_bonds=[(3, 4)]
+    )
 
     subst_centers = get_substc_and_add_dummy_atoms(
         reactant, bond_rearr, shift_factor=1.0
@@ -71,7 +73,9 @@ def test_translate_rotate():
     assert reactant.distance(0, 2) < 1.0
 
     # SN2' bond rearrangement
-    bond_rearr = BondRearrangement(forming_bonds=[(0, 1)], breaking_bonds=[(3, 4)])
+    bond_rearr = BondRearrangement(
+        forming_bonds=[(0, 1)], breaking_bonds=[(3, 4)]
+    )
 
     translate_rotate_reactant(reactant, bond_rearr, shift_factor=1.5)
     assert len(reactant.atoms) == 10

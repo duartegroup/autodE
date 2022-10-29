@@ -76,7 +76,10 @@ def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.1):
 
                 vec1 = coords[j] - coords[i]
                 vec2 = coords[k] - coords[i]
-                if all(np.linalg.norm(vec) < max_triple_dist for vec in (vec1, vec2)):
+                if all(
+                    np.linalg.norm(vec) < max_triple_dist
+                    for vec in (vec1, vec2)
+                ):
 
                     avg_vec = (vec1 + vec2) / 2.0
                     possible_axes.append(avg_vec / np.linalg.norm(avg_vec))
@@ -84,12 +87,16 @@ def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.1):
                     perp_vec = np.cross(vec1, vec2)
                     possible_axes.append(perp_vec / np.linalg.norm(perp_vec))
 
-    unique_possible_axes = strip_identical_and_inv_axes(possible_axes, sim_axis_tol)
+    unique_possible_axes = strip_identical_and_inv_axes(
+        possible_axes, sim_axis_tol
+    )
 
     return unique_possible_axes
 
 
-def is_same_under_n_fold(pcoords, axis, n, m=1, tol=0.25, excluded_pcoords=None):
+def is_same_under_n_fold(
+    pcoords, axis, n, m=1, tol=0.25, excluded_pcoords=None
+):
     """
     Does applying an n-fold rotation about an axis generate the same structure
     back again?

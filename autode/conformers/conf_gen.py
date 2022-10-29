@@ -152,7 +152,9 @@ def _get_atoms_rotated_stereocentres(species, atoms, rand):
             continue
 
         try:
-            left_idxs, right_idxs = split_mol_across_bond(species.graph, bond=(i, j))
+            left_idxs, right_idxs = split_mol_across_bond(
+                species.graph, bond=(i, j)
+            )
 
         except ex.CannotSplitAcrossBond:
             logger.warning(
@@ -294,7 +296,8 @@ def _get_atoms_from_generated_file(species, xyz_filename):
         return None
 
     all_atoms_match = all(
-        atoms[i].label == species.atoms[i].label for i in range(species.n_atoms)
+        atoms[i].label == species.atoms[i].label
+        for i in range(species.n_atoms)
     )
 
     if all_atoms_match:
@@ -435,7 +438,9 @@ def get_simanl_atoms(
 
     # Shift by a factor defined in the config file if the coordinates are
     # reasonable but otherwise init in a 10 A cube
-    reasonable_init_coords = ade.geom.are_coords_reasonable(species.coordinates)
+    reasonable_init_coords = ade.geom.are_coords_reasonable(
+        species.coordinates
+    )
 
     if reasonable_init_coords:
         factor = ade.Config.max_atom_displacement / np.sqrt(3)
@@ -510,7 +515,9 @@ def get_simanl_conformer(
     """
 
     conformer = Conformer(
-        species=species, name=f"{species.name}_conf{conf_n}", dist_consts=dist_consts
+        species=species,
+        name=f"{species.name}_conf{conf_n}",
+        dist_consts=dist_consts,
     )
 
     atoms, energy = get_simanl_atoms(

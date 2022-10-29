@@ -282,7 +282,9 @@ def test_simple_ring():
     assert built_molecule_is_reasonable(smiles="C1CCCC1")  # cyclopentane
     assert built_molecule_is_reasonable(smiles="C1CCCCC1")  # cyclohexane
     assert built_molecule_is_reasonable(smiles="C1CCCCCC1")  # cycloheptane
-    assert built_molecule_is_usually_reasonable(smiles="C1CCCCCCC1")  # cycloctane
+    assert built_molecule_is_usually_reasonable(
+        smiles="C1CCCCCCC1"
+    )  # cycloctane
 
 
 def test_double_bonds():
@@ -297,7 +299,9 @@ def test_double_bonds():
     dihedral = SDihedral(idxs=[0, 1, 2, 3])
     value = np.abs(dihedral.value(builder.atoms))
 
-    assert np.isclose(value, -np.pi, atol=1e-4) or np.isclose(value, np.pi, atol=1e-4)
+    assert np.isclose(value, -np.pi, atol=1e-4) or np.isclose(
+        value, np.pi, atol=1e-4
+    )
 
     # Cis double bond
     for cis_smiles in (r"C/C=C\C", r"C\C=C/C"):
@@ -408,7 +412,9 @@ def test_sq_planar_xe():
 def test_macrocycle():
 
     # Large linear structure with stereochemistry
-    lin_smiles = "C/C=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C" "/CC/C=C/C(OC)=O"
+    lin_smiles = (
+        "C/C=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C" "/CC/C=C/C(OC)=O"
+    )
     assert built_molecule_is_reasonable(smiles=lin_smiles)
 
     # Large macrocyclic ring with stereochemistry
@@ -510,7 +516,9 @@ def test_trans_small_rings():
     # but should be close to π if defined as trans
     parser.parse(smiles="C1CCC/C=C/CC1")
     builder.build(parser.atoms, parser.bonds)
-    assert np.isclose(np.abs(dihedral.value(builder.atoms)), np.pi, atol=np.pi / 2.0)
+    assert np.isclose(
+        np.abs(dihedral.value(builder.atoms)), np.pi, atol=np.pi / 2.0
+    )
 
 
 def test_dihedral_force():
@@ -642,7 +650,9 @@ def test_difficult_reset_onto():
     atom = TetrahedralAtom()
     atom.reset_onto(points=points, coord=coord)
 
-    mol = Molecule(atoms=[Atom("C"), Atom("O"), Atom("C"), Atom("H"), Atom("C")])
+    mol = Molecule(
+        atoms=[Atom("C"), Atom("O"), Atom("C"), Atom("H"), Atom("C")]
+    )
     mol.coordinates = np.array(
         points.tolist() + [atom.empty_site() + coord] + [coord.tolist()]
     )
@@ -652,7 +662,9 @@ def test_difficult_reset_onto():
 
 def test_max_ring_size():
 
-    parser.parse(smiles="O=C1C2=C(O[Si](C)(C)C)C[C@H](CCCC3)C3=C4C2CC[C@@H]4O1")
+    parser.parse(
+        smiles="O=C1C2=C(O[Si](C)(C)C)C[C@H](CCCC3)C3=C4C2CC[C@@H]4O1"
+    )
     builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
     assert builder.max_ring_n == 7
 
@@ -681,7 +693,9 @@ def test_cis_dihedral_force():
     for atom, new_coord in zip(builder.atoms, coords):
         atom.coord = new_coord
 
-    builder._force_double_bond_stereochem(dihedral=SDihedral([0, 1, 2, 3], phi0=0.0))
+    builder._force_double_bond_stereochem(
+        dihedral=SDihedral([0, 1, 2, 3], phi0=0.0)
+    )
 
     # Distance between the end carbons needs to be smaller than the trans
     assert 2.0 < builder.distance(0, 3) < 3.5

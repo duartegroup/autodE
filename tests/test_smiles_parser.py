@@ -347,8 +347,12 @@ def test_implicit_hydrogens():
     assert all(atom.n_hydrogens == 1 for atom in parser.atoms)
 
     parser.parse(smiles="c1occc1")
-    assert all(atom.n_hydrogens == 0 for atom in parser.atoms if atom.label == "O")
-    assert all(atom.n_hydrogens == 1 for atom in parser.atoms if atom.label == "C")
+    assert all(
+        atom.n_hydrogens == 0 for atom in parser.atoms if atom.label == "O"
+    )
+    assert all(
+        atom.n_hydrogens == 1 for atom in parser.atoms if atom.label == "C"
+    )
 
 
 def test_multiplicity():
@@ -372,7 +376,9 @@ def test_double_bond_stereo_branch():
     parser = Parser()
     parser.parse(smiles=r"C/C([H])=C([H])/C")
 
-    assert next(bond for bond in parser.bonds if bond.order == 2).is_trans(parser.atoms)
+    assert next(bond for bond in parser.bonds if bond.order == 2).is_trans(
+        parser.atoms
+    )
 
 
 def test_alt_ring_branch():
@@ -399,7 +405,9 @@ def test_ring_connectivity():
         {parser.atoms[i].label, parser.atoms[j].label} for i, j in parser.bonds
     ]
 
-    n_c_s_bonds = len([pair for pair in atom_symbols_in_bonds if pair == {"C", "S"}])
+    n_c_s_bonds = len(
+        [pair for pair in atom_symbols_in_bonds if pair == {"C", "S"}]
+    )
 
     # and has two carbon-sulfur bonds
     assert n_c_s_bonds == 2
@@ -429,7 +437,9 @@ def test_aromatic_heteroatoms():
 def test_metal_in_smiles():
     def metal_in_smiles(smiles):
         at_strings = re.findall(r"\[.*?]", smiles)
-        return any(metal in string for metal in metals for string in at_strings)
+        return any(
+            metal in string for metal in metals for string in at_strings
+        )
 
     assert not metal_in_smiles(smiles="CnnC")
     assert metal_in_smiles(smiles="CC[W]")

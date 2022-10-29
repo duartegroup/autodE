@@ -214,7 +214,8 @@ class Optimiser(BaseOptimiser, ABC):
 
         if self._species.gradient is None:
             raise RuntimeError(
-                "Calculation failed to calculate a gradient. " "Cannot continue!"
+                "Calculation failed to calculate a gradient. "
+                "Cannot continue!"
             )
 
         self._coords.e = self._species.energy
@@ -285,7 +286,9 @@ class Optimiser(BaseOptimiser, ABC):
             self._history.append(value.copy())
 
         else:
-            raise ValueError("Cannot set the optimiser coordinates with " f"{value}")
+            raise ValueError(
+                "Cannot set the optimiser coordinates with " f"{value}"
+            )
 
     @abstractmethod
     def _step(self) -> None:
@@ -462,7 +465,9 @@ class NDOptimiser(Optimiser, ABC):
         method: "autode.wrappers.methods.Method",
         maxiter: int = 100,
         gtol: Union[float, GradientRMS] = GradientRMS(1e-3, units="Ha Å-1"),
-        etol: Union[float, PotentialEnergy] = PotentialEnergy(1e-4, units="Ha"),
+        etol: Union[float, PotentialEnergy] = PotentialEnergy(
+            1e-4, units="Ha"
+        ),
         coords: Optional[OptCoordinates] = None,
         n_cores: Optional[int] = None,
         **kwargs,
@@ -492,7 +497,9 @@ class NDOptimiser(Optimiser, ABC):
             (ValueError | RuntimeError):
         """
 
-        optimiser = cls(maxiter=maxiter, gtol=gtol, etol=etol, coords=coords, **kwargs)
+        optimiser = cls(
+            maxiter=maxiter, gtol=gtol, etol=etol, coords=coords, **kwargs
+        )
         optimiser.run(species, method, n_cores=n_cores)
 
         return None
@@ -726,7 +733,8 @@ class NDOptimiser(Optimiser, ABC):
             return updater
 
         raise RuntimeError(
-            "Could not update the inverse Hessian - no " "suitable update strategies"
+            "Could not update the inverse Hessian - no "
+            "suitable update strategies"
         )
 
 
@@ -761,7 +769,8 @@ class _OptimiserHistory(list):
         """
         if len(self) < 1:
             raise IndexError(
-                "Cannot obtain the final set of coordinates from " "an empty history"
+                "Cannot obtain the final set of coordinates from "
+                "an empty history"
             )
 
         return self[-1]

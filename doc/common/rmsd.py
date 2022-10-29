@@ -17,11 +17,18 @@ def get_args():
     )
 
     parser.add_argument(
-        "-t", action="store", default=1.0, type=float, help="RMSD threshold (Å)"
+        "-t",
+        action="store",
+        default=1.0,
+        type=float,
+        help="RMSD threshold (Å)",
     )
 
     parser.add_argument(
-        "-oh", action="store_true", default=False, help="Only compare heavy atoms"
+        "-oh",
+        action="store_true",
+        default=False,
+        help="Only compare heavy atoms",
     )
 
     return parser.parse_args()
@@ -45,7 +52,12 @@ def get_and_copy_unique_confs(xyz_filenames, only_heavy_atoms, threshold_rmsd):
     unique based on an RMSD threshold"""
 
     molecules = [
-        Species(name=fn.rstrip(".xyz"), atoms=xyz_file_to_atoms(fn), charge=0, mult=1)
+        Species(
+            name=fn.rstrip(".xyz"),
+            atoms=xyz_file_to_atoms(fn),
+            charge=0,
+            mult=1,
+        )
         for fn in xyz_filenames
     ]
 
@@ -88,5 +100,7 @@ if __name__ == "__main__":
     assert all(fn.endswith(".xyz") for fn in args.filenames)
 
     get_and_copy_unique_confs(
-        xyz_filenames=args.filenames, only_heavy_atoms=args.oh, threshold_rmsd=args.t
+        xyz_filenames=args.filenames,
+        only_heavy_atoms=args.oh,
+        threshold_rmsd=args.t,
     )

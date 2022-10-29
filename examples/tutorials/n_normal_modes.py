@@ -12,7 +12,8 @@ h2o.calc_hessian(method=orca, keywords="Freq BP86 def2-SV(P)")
 print("Number of total frequencies is:      ", 3 * h2o.n_atoms)
 print("Number of vibrational frequencies is:", len(h2o.vib_frequencies))
 print(
-    "Frequencies in wave-numbers:         ", [float(nu) for nu in h2o.vib_frequencies]
+    "Frequencies in wave-numbers:         ",
+    [float(nu) for nu in h2o.vib_frequencies],
 )
 
 # Now, generate a set of normal mode-displaced h2o molecules displaced along

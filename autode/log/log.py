@@ -71,7 +71,8 @@ if log_to_log_file():
 
 else:
     logging.basicConfig(
-        level=get_log_level(), format="%(name)-12s: %(levelname)-8s %(message)s"
+        level=get_log_level(),
+        format="%(name)-12s: %(levelname)-8s %(message)s",
     )
 logger = logging.getLogger(__name__)
 

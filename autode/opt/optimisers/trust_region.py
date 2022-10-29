@@ -40,11 +40,15 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         **kwargs,
     ):
         """Trust radius optimiser"""
-        super().__init__(maxiter=maxiter, etol=etol, gtol=gtol, coords=coords, **kwargs)
+        super().__init__(
+            maxiter=maxiter, etol=etol, gtol=gtol, coords=coords, **kwargs
+        )
 
         self.alpha = trust_radius
         self.alpha_max = (
-            max_trust_radius if max_trust_radius is not None else 10 * trust_radius
+            max_trust_radius
+            if max_trust_radius is not None
+            else 10 * trust_radius
         )
 
         # Parameters for the TR optimiser
@@ -354,7 +358,9 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         step_length = np.linalg.norm(p)
 
         if step_length > self.alpha:
-            logger.warning(f"Step size {step_length} was too large, " f"scaling down")
+            logger.warning(
+                f"Step size {step_length} was too large, " f"scaling down"
+            )
             p *= self.alpha / step_length
 
         return p

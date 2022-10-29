@@ -86,10 +86,14 @@ def get_substc_and_add_dummy_atoms(reactant, bond_rearrangement, shift_factor):
             c_atom = list(set(fbond).intersection(bbond))[0]
 
             # The leaving group atom is the other atom in the breaking bond
-            x_atom = [atom_index for atom_index in bbond if atom_index != c_atom][0]
+            x_atom = [
+                atom_index for atom_index in bbond if atom_index != c_atom
+            ][0]
 
             # The attacked atom is the other atom in the forming bond
-            a_atom = [atom_index for atom_index in fbond if atom_index != c_atom][0]
+            a_atom = [
+                atom_index for atom_index in fbond if atom_index != c_atom
+            ][0]
 
             subst_center = SubstitutionCentre(
                 a_atom_idx=a_atom,
@@ -97,14 +101,19 @@ def get_substc_and_add_dummy_atoms(reactant, bond_rearrangement, shift_factor):
                 x_atom_idx=x_atom,
                 a_atom_nn_idxs=[nn for nn in reactant.graph.neighbors(a_atom)],
             )
-            subst_center.set_attack_r0(species=reactant, shift_factor=shift_factor)
+            subst_center.set_attack_r0(
+                species=reactant, shift_factor=shift_factor
+            )
 
             subst_centers.append(subst_center)
 
     if len(subst_centers) == 0:
         logger.info("No standard A - C - X substitution centres found")
 
-        if len(bond_rearrangement.bbonds) != 1 or len(bond_rearrangement.fbonds) != 1:
+        if (
+            len(bond_rearrangement.bbonds) != 1
+            or len(bond_rearrangement.fbonds) != 1
+        ):
             raise NotImplementedError
 
         # Add dummy atoms to the reactant to find e.g. SN2' reactions
@@ -119,7 +128,9 @@ def get_substc_and_add_dummy_atoms(reactant, bond_rearrangement, shift_factor):
     if any(atom.label == "D" for atom in reactant.atoms):
         logger.info("Removing dummy X atom from bond rearrangement")
 
-        d_atom_idxs = [i for i, atom in enumerate(reactant.atoms) if atom.label == "D"]
+        d_atom_idxs = [
+            i for i, atom in enumerate(reactant.atoms) if atom.label == "D"
+        ]
 
         # Reset the breaking bond list with only those not containing the
         # dummy atom indexes
@@ -176,7 +187,9 @@ def add_dummy_atom(reactant, bond_rearrangement):
     coords = reactant.coordinates
 
     # Calculate the normal from the vectors to two of the neighbours
-    position = np.cross(coords[cn1] - coords[c_atom], coords[cn2] - coords[c_atom])
+    position = np.cross(
+        coords[cn1] - coords[c_atom], coords[cn2] - coords[c_atom]
+    )
     position /= length(position)
 
     # Add the dummy atom to a position on the top/bottom face
@@ -235,8 +248,10 @@ def attack_cost(
             # Attacking atom is planar. Compute the perpendicular from two
             # nearest neighbours
             v_ann = np.cross(
-                coords[subst_centre.a_atom] - coords[subst_centre.a_atom_nn[0]],
-                coords[subst_centre.a_atom] - coords[subst_centre.a_atom_nn[1]],
+                coords[subst_centre.a_atom]
+                - coords[subst_centre.a_atom_nn[0]],
+                coords[subst_centre.a_atom]
+                - coords[subst_centre.a_atom_nn[1]],
             )
 
         v_cx = coords[subst_centre.x_atom] - coords[subst_centre.c_atom]
@@ -275,10 +290,14 @@ def get_cost_rotate_translate(x, reactant, subst_centres, attacking_mol_idx):
     """
 
     moved_reactant = deepcopy(reactant)
-    moved_reactant.rotate_mol(axis=x[:3], theta=x[3], mol_index=attacking_mol_idx)
+    moved_reactant.rotate_mol(
+        axis=x[:3], theta=x[3], mol_index=attacking_mol_idx
+    )
 
     moved_reactant.translate_mol(vec=x[4:7], mol_index=attacking_mol_idx)
 
-    moved_reactant.rotate_mol(axis=x[7:10], theta=x[10], mol_index=attacking_mol_idx)
+    moved_reactant.rotate_mol(
+        axis=x[7:10], theta=x[10], mol_index=attacking_mol_idx
+    )
 
     return attack_cost(moved_reactant, subst_centres, attacking_mol_idx)

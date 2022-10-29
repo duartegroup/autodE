@@ -4,7 +4,10 @@ import os
 import sys
 from copy import deepcopy
 from autode.calculations import Calculation
-from autode.calculations.output import CalculationOutput, BlankCalculationOutput
+from autode.calculations.output import (
+    CalculationOutput,
+    BlankCalculationOutput,
+)
 from autode.calculations.executors import CalculationExecutor
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
@@ -92,7 +95,10 @@ def test_calc_class():
     mol_no_atoms = Molecule()
     with pytest.raises(ex.NoInputError):
         _ = Calculation(
-            name="tmp2", molecule=mol_no_atoms, method=xtb, keywords=xtb.keywords.sp
+            name="tmp2",
+            molecule=mol_no_atoms,
+            method=xtb,
+            keywords=xtb.keywords.sp,
         )
 
 
@@ -142,7 +148,11 @@ def test_distance_const_check():
     assert Constraints(distance={(0, 0): 0.0}, cartesian=None).distance is None
 
     assert (
-        len(Constraints(distance={(0, 0): 0.0, (1, 0): 1.0}, cartesian=None).distance)
+        len(
+            Constraints(
+                distance={(0, 0): 0.0, (1, 0): 1.0}, cartesian=None
+            ).distance
+        )
         == 1
     )
 
@@ -152,7 +162,9 @@ def test_calc_string():
     xtb = XTB()
 
     a = test_mol.copy()
-    no_const = Calculation(name="tmp", molecule=a, method=xtb, keywords=xtb.keywords.sp)
+    no_const = Calculation(
+        name="tmp", molecule=a, method=xtb, keywords=xtb.keywords.sp
+    )
 
     b = test_mol.copy()
     b.constraints.cartesian = [0]
@@ -354,12 +366,54 @@ def test_numerical_hessian_evaluation():
 
     orca_anal_hess = np.array(
         [
-            [7.2267e-02, -1.6028e-11, 1.1456e-12, -7.2267e-02, 1.6078e-11, -1.0933e-12],
-            [-1.6027e-11, 4.4978e-02, -7.0964e-12, 1.6039e-11, -4.4978e-02, 7.0964e-12],
-            [1.6868e-12, -7.0964e-12, 4.4978e-02, -1.6754e-12, 7.0964e-12, -4.4978e-02],
-            [-7.2267e-02, -3.4360e-12, 2.9458e-11, 7.2267e-02, 3.4061e-12, -2.9411e-11],
-            [-4.9340e-12, -4.4978e-02, -1.0574e-12, 4.9333e-12, 4.4978e-02, 1.0574e-12],
-            [3.1763e-11, -1.0574e-12, -4.4978e-02, -3.1762e-11, 1.0575e-12, 4.4978e-02],
+            [
+                7.2267e-02,
+                -1.6028e-11,
+                1.1456e-12,
+                -7.2267e-02,
+                1.6078e-11,
+                -1.0933e-12,
+            ],
+            [
+                -1.6027e-11,
+                4.4978e-02,
+                -7.0964e-12,
+                1.6039e-11,
+                -4.4978e-02,
+                7.0964e-12,
+            ],
+            [
+                1.6868e-12,
+                -7.0964e-12,
+                4.4978e-02,
+                -1.6754e-12,
+                7.0964e-12,
+                -4.4978e-02,
+            ],
+            [
+                -7.2267e-02,
+                -3.4360e-12,
+                2.9458e-11,
+                7.2267e-02,
+                3.4061e-12,
+                -2.9411e-11,
+            ],
+            [
+                -4.9340e-12,
+                -4.4978e-02,
+                -1.0574e-12,
+                4.9333e-12,
+                4.4978e-02,
+                1.0574e-12,
+            ],
+            [
+                3.1763e-11,
+                -1.0574e-12,
+                -4.4978e-02,
+                -3.1762e-11,
+                1.0575e-12,
+                4.4978e-02,
+            ],
         ]
     )
 
@@ -367,14 +421,17 @@ def test_numerical_hessian_evaluation():
         return np.mean(np.square(x))
 
     assert (
-        ms(orca_anal_hess - h2.hessian) / (max((ms(orca_anal_hess), ms(h2.hessian))))
+        ms(orca_anal_hess - h2.hessian)
+        / (max((ms(orca_anal_hess), ms(h2.hessian))))
     ) < 0.5
 
 
 @work_in_tmp_dir()
 def test_check_properties_exist_did_not_terminate_normally():
 
-    calc = Calculation(name="tmp", molecule=h_atom(), method=XTB(), keywords=None)
+    calc = Calculation(
+        name="tmp", molecule=h_atom(), method=XTB(), keywords=None
+    )
 
     with pytest.raises(ex.CouldNotGetProperty):
         calc._check_properties_exist()

@@ -38,7 +38,8 @@ def check_sufficient_memory(func: Callable):
 
         try:
             physical_mem = Allocation(
-                os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"), units="bytes"
+                os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"),
+                units="bytes",
             )
         except (ValueError, OSError):
             logger.warning("Cannot check physical memory")
@@ -56,7 +57,9 @@ def check_sufficient_memory(func: Callable):
 
 
 @check_sufficient_memory
-def run_external(params: List[str], output_filename: str, stderr_to_log: bool = True):
+def run_external(
+    params: List[str], output_filename: str, stderr_to_log: bool = True
+):
     """
     Standard method to run a EST calculation with subprocess writing the
     output to the calculation output filename
@@ -154,7 +157,8 @@ def work_in(dir_ext: str):
 
                 if len(os.listdir(dir_path)) == 0:
                     logger.warning(
-                        f"Worked in {dir_path} but made no files " f"- deleting"
+                        f"Worked in {dir_path} but made no files "
+                        f"- deleting"
                     )
                     os.rmdir(dir_path)
 
@@ -258,7 +262,8 @@ def log_time(prefix: str = "Executed in: ", units: str = "ms"):
             result = func(*args, **kwargs)
 
             logger.info(
-                f"{prefix} " f"{(time() - start_time) * s_to_units:.2f} {units}"
+                f"{prefix} "
+                f"{(time() - start_time) * s_to_units:.2f} {units}"
             )
 
             return result
@@ -372,7 +377,8 @@ def requires_output_to_exist(func):
 
         if not calc.output.exists:
             raise CouldNotGetProperty(
-                f"Could not get property from " f"{calc.name}. Has .run() been called?"
+                f"Could not get property from "
+                f"{calc.name}. Has .run() been called?"
             )
         return func(*args, **kwargs)
 
@@ -413,7 +419,9 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
     def decorator(func):
         def wraps(*args, **kwargs):
             q = multiprocessing.Queue()
-            p = multiprocessing.Process(target=handler, args=(q, func, args, kwargs))
+            p = multiprocessing.Process(
+                target=handler, args=(q, func, args, kwargs)
+            )
 
             if mp.current_process().daemon:
                 # Cannot run a subprocess in a daemon process - timeout is not
@@ -490,7 +498,8 @@ def deprecated(func):
     @wraps(func)
     def wrapped_function(*args, **kwargs):
         warnings.warn(
-            "This function is deprecated and will be removed " "in autodE v1.4.0",
+            "This function is deprecated and will be removed "
+            "in autodE v1.4.0",
             DeprecationWarning,
             stacklevel=2,
         )

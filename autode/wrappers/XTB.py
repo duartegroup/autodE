@@ -88,7 +88,10 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             for point_charge in calc.input.point_charges:
                 x, y, z = point_charge.coord
                 charge = point_charge.charge
-                print(f"{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}", file=pc_file)
+                print(
+                    f"{charge:^12.8f} {x:^12.8f} {y:^12.8f} {z:^12.8f}",
+                    file=pc_file,
+                )
 
         calc.input.additional_filenames.append(f"{calc.name}_xtb.pc")
         return None
@@ -189,7 +192,9 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             kept_file_exts=(".xyz", ".out", ".pc", ".grad"),
             use_ll_tmp=True,
         )
-        @run_in_tmp_environment(OMP_NUM_THREADS=calc.n_cores, GFORTRAN_UNBUFFERED_ALL=1)
+        @run_in_tmp_environment(
+            OMP_NUM_THREADS=calc.n_cores, GFORTRAN_UNBUFFERED_ALL=1
+        )
         def execute_xtb():
 
             logger.info(f'Running XTB with: {" ".join(flags)}')
@@ -263,7 +268,9 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             if "final structure" in line:
                 n_atoms = int(calc.output.file_lines[i + 2].split()[0])
 
-                for xyz_line in calc.output.file_lines[i + 4 : i + 4 + n_atoms]:
+                for xyz_line in calc.output.file_lines[
+                    i + 4 : i + 4 + n_atoms
+                ]:
                     _, x, y, z = xyz_line.split()
                     matrix.append([float(x), float(y), float(z)])
                 break
@@ -304,7 +311,11 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         for i, line in enumerate(calc.output.file_lines):
 
             # XTB 6.2.x have a slightly different way of printing the atoms
-            if "xtb version" in line or "Version" in line and len(line.split()) >= 4:
+            if (
+                "xtb version" in line
+                or "Version" in line
+                and len(line.split()) >= 4
+            ):
 
                 if line.split()[3] == "6.2.2" or "6.1" in line.split()[2]:
                     return self._get_final_coords_old(calc)
@@ -317,7 +328,9 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             if i > 50:
                 return self._get_final_coords_old(calc)
 
-        raise AtomsNotFound("Failed to find any coordinates in XTB " "output file")
+        raise AtomsNotFound(
+            "Failed to find any coordinates in XTB " "output file"
+        )
 
     def partial_charges_from(self, calc):
         charges_sect = False

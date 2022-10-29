@@ -161,7 +161,9 @@ class Molecule(Species):
             method.numThreads = Config.n_cores
             method.useSmallRingTorsion = True
 
-            logger.info("Running conformation generation with RDKit... running")
+            logger.info(
+                "Running conformation generation with RDKit... running"
+            )
             conf_ids = list(
                 AllChem.EmbedMultipleConfs(
                     self.rdkit_mol_obj, numConfs=n_confs, params=method
@@ -170,7 +172,9 @@ class Molecule(Species):
             logger.info("                                          ... done")
 
             for conf_id in conf_ids:
-                conf = Conformer(species=self, name=f"{self.name}_conf{conf_id}")
+                conf = Conformer(
+                    species=self, name=f"{self.name}_conf{conf_id}"
+                )
                 conf.atoms = atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
                 self.conformers.append(conf)
 

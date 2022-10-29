@@ -186,7 +186,9 @@ def test_confs_no_energy_pruning():
 
 def test_confs_rmsd_pruning1():
 
-    confs = Conformers([Conformer(atoms=[Atom("H")]), Conformer(atoms=[Atom("H")])])
+    confs = Conformers(
+        [Conformer(atoms=[Atom("H")]), Conformer(atoms=[Atom("H")])]
+    )
 
     # Same two structures -> one when pruned
     confs.prune_on_rmsd()

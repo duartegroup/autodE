@@ -69,7 +69,9 @@ def test_attack_cost():
     ]
 
     cost = attack_cost(reac_complex, subst_centers, attacking_mol_idx=0)
-    ideal_attack_cost = attack_cost(ideal_complex, subst_centers, attacking_mol_idx=0)
+    ideal_attack_cost = attack_cost(
+        ideal_complex, subst_centers, attacking_mol_idx=0
+    )
 
     # The cost function should be larger for the randomly located reaction
     # complex compared to the ideal

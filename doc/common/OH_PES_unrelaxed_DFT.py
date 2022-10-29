@@ -12,7 +12,10 @@ for functional in ("PBE", "PBE0", "B3LYP"):
     pes.calculate(method=ade.methods.ORCA(), keywords=[functional, "def2-SVP"])
 
     plt.plot(
-        pes.r1, pes.relative_energies.to("kcal mol-1"), marker="o", label=functional
+        pes.r1,
+        pes.relative_energies.to("kcal mol-1"),
+        marker="o",
+        label=functional,
     )
 
 # Add labels to the plot and save the figure

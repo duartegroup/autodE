@@ -42,7 +42,11 @@ def test_points_gen_idxs_2d():
 
 def test_points_gen_idxs_3d():
     pes3d = RelaxedPESnD(
-        rs={(0, 1): (1.0, 2.0, 2), (1, 2): (1.0, 2.0, 2), (2, 3): (1.0, 2.0, 2)}
+        rs={
+            (0, 1): (1.0, 2.0, 2),
+            (1, 2): (1.0, 2.0, 2),
+            (2, 3): (1.0, 2.0, 2),
+        }
     )
 
     assert pes3d.shape == (2, 2, 2)
@@ -72,7 +76,9 @@ def test_relaxed_with_keywords():
     orca.path = here
     assert orca.is_available
 
-    pes.calculate(method=orca, keywords=OptKeywords(["PBE", "def2-SVP", "LooseOpt"]))
+    pes.calculate(
+        method=orca, keywords=OptKeywords(["PBE", "def2-SVP", "LooseOpt"])
+    )
 
     # Ensure the PES has been populated, using the saved output files
     assert all(e < -1 for e in pes._energies)
@@ -127,7 +133,9 @@ def test_sn2_ts_guesses():
 
     # Construct the 2D PES from the current C-F and C-Cl distances to the
     # ones at the product, hopefully over the TS
-    pes = RelaxedPESnD(species=reac, rs={(0, 2): (1.45, 10), (2, 1): (2.5, 10)})
+    pes = RelaxedPESnD(
+        species=reac, rs={(0, 2): (1.45, 10), (2, 1): (2.5, 10)}
+    )
 
     pes.load("sn2_pes.npz")
 
@@ -137,7 +145,9 @@ def test_sn2_ts_guesses():
     ts_guess = ts_guesses[0]
     assert np.isclose(ts_guess.distance(0, 2).to("Å"), 1.891, atol=1e-3)  # C-F
 
-    assert np.isclose(ts_guess.distance(2, 1).to("Å"), 2.179, atol=1e-3)  # C-Cl
+    assert np.isclose(
+        ts_guess.distance(2, 1).to("Å"), 2.179, atol=1e-3
+    )  # C-Cl
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
@@ -165,7 +175,8 @@ def test_da_ts_guesses():
     )
 
     pes = RelaxedPESnD(
-        species=cyclohexene, rs={(0, 5): (1.45, 3.0, 10), (3, 4): (1.45, 3.0, 10)}
+        species=cyclohexene,
+        rs={(0, 5): (1.45, 3.0, 10), (3, 4): (1.45, 3.0, 10)},
     )
 
     pes.load("da_pes.npz")

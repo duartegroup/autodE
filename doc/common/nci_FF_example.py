@@ -29,7 +29,9 @@ def rot_matrix(axis, theta):
     )
 
 
-def rotation_translation(x, atoms, fixed_idxs_, shift_idxs_, return_energy=True):
+def rotation_translation(
+    x, atoms, fixed_idxs_, shift_idxs_, return_energy=True
+):
     """Apply a rotation and translation"""
 
     f_coords = np.array([atoms[i].coord for i in fixed_idxs_], copy=True)
@@ -84,7 +86,10 @@ def rotation_translation(x, atoms, fixed_idxs_, shift_idxs_, return_energy=True)
 def set_charges_vdw(species):
     """Calculate the partial atomic charges to atoms with XTB"""
     calc = Calculation(
-        name="tmp", molecule=species, method=XTB(), keywords=ade.SinglePointKeywords([])
+        name="tmp",
+        molecule=species,
+        method=XTB(),
+        keywords=ade.SinglePointKeywords([]),
     )
     calc.run()
     charges = calc.get_atomic_charges()

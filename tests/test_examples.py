@@ -33,7 +33,9 @@ def test_species():
 
     assert h2.solvent is None
 
-    f = Species(name="F-", charge=-1, mult=1, atoms=[Atom("F")], solvent_name="DCM")
+    f = Species(
+        name="F-", charge=-1, mult=1, atoms=[Atom("F")], solvent_name="DCM"
+    )
     assert f.solvent.g09 == "Dichloromethane"
     assert f.solvent.xtb == "CH2Cl2"
 
@@ -60,7 +62,9 @@ def test_manipulation():
     assert methane.n_atoms == 5
     ch3_nodes, h_nodes = split_mol_across_bond(methane.graph, bond=(0, 1))
 
-    ch3 = Molecule(name="CH3", mult=2, atoms=[methane.atoms[i] for i in ch3_nodes])
+    ch3 = Molecule(
+        name="CH3", mult=2, atoms=[methane.atoms[i] for i in ch3_nodes]
+    )
     assert ch3.n_atoms == 4
 
     h = Molecule(name="H", mult=2, atoms=[methane.atoms[i] for i in h_nodes])

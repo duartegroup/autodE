@@ -47,7 +47,9 @@ class PESnD(ABC):
         self._species = species
 
         self._rs = _ListDistances1D(
-            species, rs_dict=rs if rs is not None else {}, allow_rounding=allow_rounding
+            species,
+            rs_dict=rs if rs is not None else {},
+            allow_rounding=allow_rounding,
         )
 
         self._energies = EnergyArray(np.empty(self.shape), units="Ha")
@@ -132,7 +134,8 @@ class PESnD(ABC):
         if keywords is None:
             keywords = self._default_keywords(method)
             logger.info(
-                "PES calculation keywords not specified, using:\n" f"{keywords}"
+                "PES calculation keywords not specified, using:\n"
+                f"{keywords}"
             )
         else:
             keywords = self._default_keyword_type(keywords)
@@ -149,7 +152,8 @@ class PESnD(ABC):
 
         if not self._has_energy(self.origin):
             raise RuntimeError(
-                "PES calculation failed. Not even the first " "point had an energy"
+                "PES calculation failed. Not even the first "
+                "point had an energy"
             )
 
         return None
@@ -177,7 +181,8 @@ class PESnD(ABC):
 
         if interp_factor < 0:
             raise ValueError(
-                f"Unsupported interpolation factor: " f"{interp_factor}, must be >= 0"
+                f"Unsupported interpolation factor: "
+                f"{interp_factor}, must be >= 0"
             )
 
         logger.info(f"Plotting the {self.ndim}D-PES")
@@ -259,7 +264,9 @@ class PESnD(ABC):
             idx_i, idx_j = tuple(int(idx) for idx in data[f"a{i+1}"])
 
             self._rs.append(
-                _Distances1D(input_array=data[f"r{i + 1}"], atom_idxs=(idx_i, idx_j))
+                _Distances1D(
+                    input_array=data[f"r{i + 1}"], atom_idxs=(idx_i, idx_j)
+                )
             )
 
         self._mesh()
@@ -411,7 +418,9 @@ class PESnD(ABC):
         Returns:
             (bool):
         """
-        return self._is_contained(point) and not np.isnan(self._energies[point])
+        return self._is_contained(point) and not np.isnan(
+            self._energies[point]
+        )
 
     @staticmethod
     def _neighbour(point: Tuple, dim: int, delta: int) -> Tuple:
@@ -439,7 +448,9 @@ class PESnD(ABC):
             (ValueError, IndexError):
         """
         if delta == 0:
-            raise ValueError("Cannot find a neighbour using ∆=0 in dimension " f"{dim}")
+            raise ValueError(
+                "Cannot find a neighbour using ∆=0 in dimension " f"{dim}"
+            )
 
         new_point = list(point)
         new_point[dim] += delta
@@ -514,7 +525,10 @@ class PESnD(ABC):
         )
 
         np.savez(
-            filename, R=self._coordinates, E=np.array(self._energies.to("Ha")), **kwds
+            filename,
+            R=self._coordinates,
+            E=np.array(self._energies.to("Ha")),
+            **kwds,
         )
 
         return None
@@ -673,7 +687,9 @@ class PESnD(ABC):
             return RectBivariateSpline(r_x, r_y[::-1], self._energies[:, ::-1])
 
         # Reverse both the x and y arrays
-        return RectBivariateSpline(r_x[::-1], r_y[::-1], self._energies[::-1, ::-1])
+        return RectBivariateSpline(
+            r_x[::-1], r_y[::-1], self._energies[::-1, ::-1]
+        )
 
     def __getitem__(self, indices: Union[Tuple, int]):
         """
@@ -740,7 +756,8 @@ class _ListDistances1D(list):
         self,
         atom_idxs: Tuple[int, int],
         value: Union[
-            Tuple[float, Union[float, int]], Tuple[float, float, Union[float, int]]
+            Tuple[float, Union[float, int]],
+            Tuple[float, float, Union[float, int]],
         ],
     ):
         """
@@ -760,7 +777,8 @@ class _ListDistances1D(list):
 
             if self._species is None:
                 raise ValueError(
-                    "Cannot determine initial point without " "a defined species"
+                    "Cannot determine initial point without "
+                    "a defined species"
                 )
 
             # Have a pair, the final distance and either the number of steps
@@ -794,7 +812,9 @@ class _ListDistances1D(list):
         if num <= 1:
             raise ValueError(f"Unsupported number of steps: {num}")
 
-        return _Distances1D(np.linspace(r_init, r_final, num=num), atom_idxs=atom_idxs)
+        return _Distances1D(
+            np.linspace(r_init, r_final, num=num), atom_idxs=atom_idxs
+        )
 
     def __eq__(self, other):
         """Equality of two _ListDistances1D instances"""
@@ -806,7 +826,9 @@ class _Distances1D(ValueArray):
     implemented_units = [ang]
 
     def __new__(
-        cls, input_array: Union[np.ndarray, Sequence], atom_idxs: Tuple[int, int]
+        cls,
+        input_array: Union[np.ndarray, Sequence],
+        atom_idxs: Tuple[int, int],
     ):
         """
         Create an array of distances in a single dimension, with associated

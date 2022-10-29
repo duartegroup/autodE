@@ -26,11 +26,16 @@ def flat_h2_pes():
 def test_simple_peak():
 
     pes = TestPES(
-        rs={(0, 1): np.linspace(-1, 1, num=11), (1, 2): np.linspace(-1, 1, num=11)}
+        rs={
+            (0, 1): np.linspace(-1, 1, num=11),
+            (1, 2): np.linspace(-1, 1, num=11),
+        }
     )
 
     p = peak_point(
-        energies=0.01 * (pes.r1**2 - pes.r2**2), point1=(5, 0), point2=(5, 10)
+        energies=0.01 * (pes.r1**2 - pes.r2**2),
+        point1=(5, 0),
+        point2=(5, 10),
     )
 
     assert p == (5, 5)
