@@ -1,5 +1,6 @@
 from setuptools import setup
 from setuptools.extension import Extension
+from Cython.Build import cythonize
 
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
               Extension('ade_dihedrals',
@@ -39,12 +40,7 @@ setup(name='autode',
       include_package_data=True,
       package_data={'autode.transition_states': ['lib/*.txt'],
                     'autode.solvent': ['lib/*.xyz']},
-      setup_requires=[
-          'setuptools>=18.0',
-          'cython',
-      ],
-      ext_modules=extensions,
-      install_requires=["Cython"],
+      ext_modules=cythonize(extensions, language_level="3"),
       url='https://github.com/duartegroup/autodE',
       license='MIT',
       author='autodE contributors',
