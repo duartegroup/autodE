@@ -1,5 +1,4 @@
 from setuptools import setup
-from Cython.Build import cythonize
 from setuptools.extension import Extension
 
 extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
@@ -7,16 +6,13 @@ extensions = [Extension('cconf_gen', ['autode/conformers/cconf_gen.pyx']),
                         sources=['autode/ext/ade_dihedrals.pyx'],
                         include_dirs=['autode/ext/include'],
                         language='c++',
-                        extra_compile_args=["-std=c++11",
-                                            "-Wno-missing-braces", "-O3"],
+                        extra_compile_args=["-std=c++11", "-Wno-missing-braces", "-O3"],
                         extra_link_args=["-std=c++11"]),
-
               Extension('ade_rb_opt',
                         sources=['autode/ext/ade_rb_opt.pyx'],
                         include_dirs=['autode/ext/include'],
                         language='c++',
-                        extra_compile_args=["-std=c++11",
-                                            "-Wno-missing-braces", "-O3"],
+                        extra_compile_args=["-std=c++11", "-Wno-missing-braces", "-O3"],
                         extra_link_args=["-std=c++11"])]
 
 setup(name='autode',
@@ -43,7 +39,12 @@ setup(name='autode',
       include_package_data=True,
       package_data={'autode.transition_states': ['lib/*.txt'],
                     'autode.solvent': ['lib/*.xyz']},
-      ext_modules=cythonize(extensions, language_level="3"),
+      setup_requires=[
+          'setuptools>=18.0',
+          'cython',
+      ],
+      ext_modules=extensions,
+      install_requires=["Cython"],
       url='https://github.com/duartegroup/autodE',
       license='MIT',
       author='autodE contributors',
