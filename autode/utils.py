@@ -11,18 +11,20 @@ import multiprocessing.pool
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
-from autode.exceptions import (AutodeException,
-                               NoAtomsInMolecule,
-                               NoCalculationOutput,
-                               NoConformers,
-                               NoMolecularGraph,
-                               MethodUnavailable,
-                               CouldNotGetProperty)
+from autode.exceptions import (
+    AutodeException,
+    NoAtomsInMolecule,
+    NoCalculationOutput,
+    NoConformers,
+    NoMolecularGraph,
+    MethodUnavailable,
+    CouldNotGetProperty,
+)
 
 try:
     mp.set_start_method("fork")
 except RuntimeError:
-    logger.warning('Multiprocessing context has already been defined')
+    logger.warning("Multiprocessing context has already been defined")
 
 
 def check_sufficient_memory(func: Callable):
@@ -35,15 +37,18 @@ def check_sufficient_memory(func: Callable):
         required_mem = int(Config.n_cores) * Config.max_core
 
         try:
-            physical_mem = Allocation(os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'),
-                                      units='bytes')
+            physical_mem = Allocation(
+                os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"), units="bytes"
+            )
         except (ValueError, OSError):
-            logger.warning('Cannot check physical memory')
+            logger.warning("Cannot check physical memory")
 
         if physical_mem is not None and physical_mem < required_mem:
-            raise RuntimeError('Cannot run function - insufficient memory. Had'
-                               f' {physical_mem.to("GB")} GB but required '
-                               f'{required_mem.to("GB")} GB')
+            raise RuntimeError(
+                "Cannot run function - insufficient memory. Had"
+                f' {physical_mem.to("GB")} GB but required '
+                f'{required_mem.to("GB")} GB'
+            )
 
         return func(*args, **kwargs)
 
@@ -51,9 +56,7 @@ def check_sufficient_memory(func: Callable):
 
 
 @check_sufficient_memory
-def run_external(params:          List[str],
-                 output_filename: str,
-                 stderr_to_log:   bool = True):
+def run_external(params: List[str], output_filename: str, stderr_to_log: bool = True):
     """
     Standard method to run a EST calculation with subprocess writing the
     output to the calculation output filename
@@ -67,14 +70,14 @@ def run_external(params:          List[str],
         stderr_to_log: Should the stderr be added to the logged warnings?
     """
 
-    with open(output_filename, 'w') as output_file:
+    with open(output_filename, "w") as output_file:
         # /path/to/method input_filename > output_filename
         process = Popen(params, stdout=output_file, stderr=PIPE)
 
         with process.stderr:
-            for line in iter(process.stderr.readline, b''):
+            for line in iter(process.stderr.readline, b""):
                 if stderr_to_log:
-                    logger.warning('STDERR: %r', line.decode())
+                    logger.warning("STDERR: %r", line.decode())
 
         process.wait()
 
@@ -82,10 +85,12 @@ def run_external(params:          List[str],
 
 
 @check_sufficient_memory
-def run_external_monitored(params:          Sequence[str],
-                           output_filename: str,
-                           break_word:      str = 'MPI_ABORT',
-                           break_words:     Optional[List[str]] = None):
+def run_external_monitored(
+    params: Sequence[str],
+    output_filename: str,
+    break_word: str = "MPI_ABORT",
+    break_words: Optional[List[str]] = None,
+):
     """
     Run an external process monitoring the standard output and error for a
     word that will terminate the process
@@ -105,14 +110,14 @@ def run_external_monitored(params:          Sequence[str],
 
     def output_reader(process, out_file):
         for line in process.stdout:
-            if any(word in line.decode('utf-8') for word in break_words):
+            if any(word in line.decode("utf-8") for word in break_words):
                 raise ChildProcessError
 
-            print(line.decode('utf-8'), end='', file=out_file)
+            print(line.decode("utf-8"), end="", file=out_file)
 
         return None
 
-    with open(output_filename, 'w') as output_file:
+    with open(output_filename, "w") as output_file:
 
         proc = Popen(params, stdout=PIPE, stderr=STDOUT)
 
@@ -120,7 +125,7 @@ def run_external_monitored(params:          Sequence[str],
             output_reader(proc, output_file)
 
         except ChildProcessError:
-            logger.warning('External terminated')
+            logger.warning("External terminated")
             proc.terminate()
             return None
 
@@ -131,7 +136,6 @@ def work_in(dir_ext: str):
     """Execute a function in a different directory"""
 
     def func_decorator(func):
-
         @wraps(func)
         def wrapped_function(*args, **kwargs):
 
@@ -139,7 +143,7 @@ def work_in(dir_ext: str):
             dir_path = os.path.join(here, dir_ext)
 
             if not os.path.isdir(dir_path):
-                logger.info(f'Creating directory to store files: {dir_path:}')
+                logger.info(f"Creating directory to store files: {dir_path:}")
                 os.mkdir(dir_path)
 
             os.chdir(dir_path)
@@ -149,19 +153,23 @@ def work_in(dir_ext: str):
                 os.chdir(here)
 
                 if len(os.listdir(dir_path)) == 0:
-                    logger.warning(f'Worked in {dir_path} but made no files '
-                                   f'- deleting')
+                    logger.warning(
+                        f"Worked in {dir_path} but made no files " f"- deleting"
+                    )
                     os.rmdir(dir_path)
 
             return result
 
         return wrapped_function
+
     return func_decorator
 
 
-def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
-                    kept_file_exts:    Optional[Sequence[str]] = None,
-                    use_ll_tmp:        bool = False):
+def work_in_tmp_dir(
+    filenames_to_copy: Optional[Sequence[str]] = None,
+    kept_file_exts: Optional[Sequence[str]] = None,
+    use_ll_tmp: bool = False,
+):
     """Execute a function in a temporary directory.
 
     -----------------------------------------------------------------------
@@ -173,6 +181,7 @@ def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
         use_ll_tmp (bool): If true then use autode.config.Config.ll_tmp_dir
     """
     from autode.config import Config
+
     if filenames_to_copy is None:
         filenames_to_copy = []
 
@@ -180,7 +189,6 @@ def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
         kept_file_exts = []
 
     def func_decorator(func):
-
         @wraps(func)
         def wrapped_function(*args, **kwargs):
             here = os.getcwd()
@@ -191,15 +199,15 @@ def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
                 assert os.path.exists(base_dir)
 
             tmpdir_path = mkdtemp(dir=base_dir)
-            logger.info(f'Creating tmpdir to work in: {tmpdir_path}')
+            logger.info(f"Creating tmpdir to work in: {tmpdir_path}")
 
             if len(filenames_to_copy) > 0:
-                logger.info(f'Copying {filenames_to_copy}')
+                logger.info(f"Copying {filenames_to_copy}")
 
             for filename in filenames_to_copy:
-                if filename.endswith('_mol.in'):
+                if filename.endswith("_mol.in"):
                     # MOPAC needs the file to be called this
-                    shutil.move(filename, os.path.join(tmpdir_path, 'mol.in'))
+                    shutil.move(filename, os.path.join(tmpdir_path, "mol.in"))
                 else:
                     shutil.copy(filename, tmpdir_path)
 
@@ -207,54 +215,56 @@ def work_in_tmp_dir(filenames_to_copy: Optional[Sequence[str]] = None,
             os.chdir(tmpdir_path)
 
             try:
-                logger.info('Function   ...running')
+                logger.info("Function   ...running")
                 result = func(*args, **kwargs)
-                logger.info('           ...done')
+                logger.info("           ...done")
 
                 for filename in os.listdir(tmpdir_path):
 
                     if any([filename.endswith(ext) for ext in kept_file_exts]):
-                        logger.info(f'Copying back {filename}')
+                        logger.info(f"Copying back {filename}")
                         shutil.copy(filename, here)
 
             finally:
                 os.chdir(here)
 
-                logger.info('Removing temporary directory')
+                logger.info("Removing temporary directory")
                 shutil.rmtree(tmpdir_path)
 
             return result
 
         return wrapped_function
+
     return func_decorator
 
 
-def log_time(prefix: str = 'Executed in: ', units: str = 'ms'):
+def log_time(prefix: str = "Executed in: ", units: str = "ms"):
     """A function requiring a number of atoms to run"""
 
-    if units.lower() == 's' or units.lower() == 'seconds':
+    if units.lower() == "s" or units.lower() == "seconds":
         s_to_units = 1.0
 
-    elif units.lower() == 'ms' or units.lower() == 'milliseconds':
+    elif units.lower() == "ms" or units.lower() == "milliseconds":
         s_to_units = 1000.0
 
     else:
-        raise ValueError(f'Unsupported time unit: {units}')
+        raise ValueError(f"Unsupported time unit: {units}")
 
     def func_decorator(func):
-
         @wraps(func)
         def wrapped_function(*args, **kwargs):
             start_time = time()
 
             result = func(*args, **kwargs)
 
-            logger.info(f'{prefix} '
-                        f'{(time() - start_time) * s_to_units:.2f} {units}')
+            logger.info(
+                f"{prefix} " f"{(time() - start_time) * s_to_units:.2f} {units}"
+            )
 
             return result
 
         return wrapped_function
+
     return func_decorator
 
 
@@ -265,7 +275,7 @@ def requires_atoms(func: Callable):
     def wrapped_function(*args, **kwargs):
 
         # Species must be the first argument
-        assert hasattr(args[0], 'n_atoms')
+        assert hasattr(args[0], "n_atoms")
 
         if args[0].n_atoms == 0:
             raise NoAtomsInMolecule
@@ -282,7 +292,7 @@ def requires_graph(func: Callable):
     def wrapped_function(*args, **kwargs):
 
         # Species must be the first argument
-        assert hasattr(args[0], 'graph')
+        assert hasattr(args[0], "graph")
 
         if args[0].graph is None:
             raise NoMolecularGraph
@@ -299,7 +309,7 @@ def requires_conformers(func: Callable):
     def wrapped_function(*args, **kwargs):
 
         # Species must be the first argument
-        assert hasattr(args[0], 'n_conformers')
+        assert hasattr(args[0], "n_conformers")
 
         if args[0].n_conformers == 0:
             raise NoConformers
@@ -316,19 +326,21 @@ def requires_hl_level_methods(func: Callable):
     def wrapped_function(*args, **kwargs):
         from autode.methods import get_lmethod, get_hmethod
 
-        suffix = 'neither was available.'
+        suffix = "neither was available."
 
         try:
             _ = get_lmethod()
 
             # Have a low-level method, so the high-level must not be available
-            suffix = 'the high-level was not available.'
+            suffix = "the high-level was not available."
             _ = get_hmethod()
 
         except MethodUnavailable:
-            raise MethodUnavailable(f'Function *{func.__name__}* requires both'
-                                    f' a high and low-level method but '
-                                    f'{suffix}')
+            raise MethodUnavailable(
+                f"Function *{func.__name__}* requires both"
+                f" a high and low-level method but "
+                f"{suffix}"
+            )
 
         return func(*args, **kwargs)
 
@@ -341,7 +353,7 @@ def requires_output(func: Callable):
     @wraps(func)
     def wrapped_function(*args, **kwargs):
         # Calculation must be the first argument
-        assert hasattr(args[0], 'output')
+        assert hasattr(args[0], "output")
 
         if args[0].output.file_lines is None:
             raise NoCalculationOutput
@@ -359,8 +371,9 @@ def requires_output_to_exist(func):
         calc = args[0]
 
         if not calc.output.exists:
-            raise CouldNotGetProperty(f'Could not get property from '
-                                      f'{calc.name}. Has .run() been called?')
+            raise CouldNotGetProperty(
+                f"Could not get property from " f"{calc.name}. Has .run() been called?"
+            )
         return func(*args, **kwargs)
 
     return wrapped_function
@@ -393,15 +406,14 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
     Returns:
         (Any): Result of the function | return_value
     """
+
     def handler(queue, func, args, kwargs):
         queue.put(func(*args, **kwargs))
 
     def decorator(func):
-
         def wraps(*args, **kwargs):
             q = multiprocessing.Queue()
-            p = multiprocessing.Process(target=handler,
-                                        args=(q, func, args, kwargs))
+            p = multiprocessing.Process(target=handler, args=(q, func, args, kwargs))
 
             if mp.current_process().daemon:
                 # Cannot run a subprocess in a daemon process - timeout is not
@@ -412,7 +424,7 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
                 p.start()
 
             else:
-                logger.error('Failed to wrap function')
+                logger.error("Failed to wrap function")
                 return func(*args, **kwargs)
 
             p.join(timeout=seconds)
@@ -450,12 +462,11 @@ def run_in_tmp_environment(**kwargs):
     env_vars = [EnvVar(k, v) for k, v in kwargs.items()]
 
     def func_decorator(func):
-
         @wraps(func)
         def wrapped_function(*args, **_kwargs):
 
             for env_var in env_vars:
-                logger.info(f'Setting the {env_var.name} to {env_var.new_val}')
+                logger.info(f"Setting the {env_var.name} to {env_var.new_val}")
                 os.environ[env_var.name] = env_var.new_val
 
             result = func(*args, **_kwargs)
@@ -471,15 +482,18 @@ def run_in_tmp_environment(**kwargs):
             return result
 
         return wrapped_function
+
     return func_decorator
 
 
 def deprecated(func):
-
     @wraps(func)
     def wrapped_function(*args, **kwargs):
-        warnings.warn("This function is deprecated and will be removed "
-                      "in autodE v1.4.0", DeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "This function is deprecated and will be removed " "in autodE v1.4.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return func(*args, **kwargs)
 
     return wrapped_function
@@ -492,9 +506,7 @@ class StringDict:
     """
     _value_type = str
 
-    def __init__(self,
-                 string: str,
-                 delim:  str = " = "):
+    def __init__(self, string: str, delim: str = " = "):
 
         self._string = string
         self._delim = delim
@@ -506,8 +518,10 @@ class StringDict:
             return self._value_type(split_string[1].split()[0])
 
         except (ValueError, IndexError) as e:
-            raise IndexError(f"Failed to extract {item} from {self._string} "
-                             f"using delimiter *{self._delim}*") from e
+            raise IndexError(
+                f"Failed to extract {item} from {self._string} "
+                f"using delimiter *{self._delim}*"
+            ) from e
 
     def get(self, item: str, default: Any) -> Any:
         """Get an item or return a default"""

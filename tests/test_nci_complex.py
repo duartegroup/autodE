@@ -6,8 +6,8 @@ from autode import geom
 
 def test_nci_complex():
 
-    water = Molecule(name='water', smiles='O')
-    f = Molecule(name='formaldehyde', smiles='C=O')
+    water = Molecule(name="water", smiles="O")
+    f = Molecule(name="formaldehyde", smiles="C=O")
 
     nci_complex = NCIComplex(f, water)
     assert nci_complex.n_atoms == 7

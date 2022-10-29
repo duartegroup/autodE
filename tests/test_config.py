@@ -9,11 +9,11 @@ from autode.wrappers.keywords import Keywords
 
 def test_config():
 
-    keywords_attr = ['low_opt', 'grad', 'opt', 'opt_ts', 'hess', 'sp']
-    global_attr = ['max_core', 'n_cores']
+    keywords_attr = ["low_opt", "grad", "opt", "opt_ts", "hess", "sp"]
+    global_attr = ["max_core", "n_cores"]
 
     assert all([hasattr(Config, attr) for attr in global_attr])
-    assert all([hasattr(Config.ORCA, attr) for attr in ['path', 'keywords']])
+    assert all([hasattr(Config.ORCA, attr) for attr in ["path", "keywords"]])
 
     def assert_has_correct_keywords(keywords):
         for attribute in keywords_attr:
@@ -38,12 +38,12 @@ def test_maxcore_setter():
 
     # Default units are megabytes
     _config.max_core = 1
-    assert int(_config.max_core.to('MB')) == 1
-    assert 'mb' in repr(_config.max_core.to('MB'))
+    assert int(_config.max_core.to("MB")) == 1
+    assert "mb" in repr(_config.max_core.to("MB"))
 
     # and should be able to convert MB -> GB
-    _config.max_core = Allocation(1, units='GB')
-    assert int(_config.max_core.to('MB')) == 1000
+    _config.max_core = Allocation(1, units="GB")
+    assert int(_config.max_core.to("MB")) == 1000
 
 
 @pytest.mark.parametrize("factor", (-0.1, 1.1, "a string"))
@@ -71,11 +71,8 @@ def test_step_size_setter():
 
     # Setting the attribute should default to a Distance (Å)
     _config.max_step_size = 0.1
-    assert np.isclose(_config.max_step_size.to('ang'),
-                      0.1)
+    assert np.isclose(_config.max_step_size.to("ang"), 0.1)
 
     # Setting in Bohr should convert to angstroms
-    _config.max_step_size = Distance(0.2, units='a0')
-    assert np.isclose(_config.max_step_size.to('ang'),
-                      0.1,
-                      atol=0.02)
+    _config.max_step_size = Distance(0.2, units="a0")
+    assert np.isclose(_config.max_step_size.to("ang"), 0.1, atol=0.02)

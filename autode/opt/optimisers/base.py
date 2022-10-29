@@ -27,12 +27,13 @@ class BaseOptimiser(ABC):
 class Optimiser(BaseOptimiser, ABC):
     """Abstract base class for an optimiser"""
 
-    def __init__(self,
-                 maxiter:         int,
-                 coords:          Optional['autode.opt.OptCoordinates'] = None,
-                 callback:        Optional[Callable] = None,
-                 callback_kwargs: Optional[dict] = None
-                 ):
+    def __init__(
+        self,
+        maxiter: int,
+        coords: Optional["autode.opt.OptCoordinates"] = None,
+        callback: Optional[Callable] = None,
+        callback_kwargs: Optional[dict] = None,
+    ):
         """
         Optimiser
 
@@ -53,28 +54,32 @@ class Optimiser(BaseOptimiser, ABC):
             callback_kwargs: Keyword arguments to pass to the callback function
         """
         if int(maxiter) <= 0:
-            raise ValueError('An optimiser must be able to run at least one '
-                             f'step, but tried to set maxiter = {maxiter}')
+            raise ValueError(
+                "An optimiser must be able to run at least one "
+                f"step, but tried to set maxiter = {maxiter}"
+            )
 
         self._callback = _OptimiserCallbackFunction(callback, callback_kwargs)
 
         self._maxiter = int(maxiter)
-        self._n_cores:  int = Config.n_cores
+        self._n_cores: int = Config.n_cores
 
         self._history = _OptimiserHistory()
 
         self._coords = coords
-        self._species: Optional['autode.species.Species'] = None
-        self._method:  Optional['autode.wrappers.methods.Method'] = None
+        self._species: Optional["autode.species.Species"] = None
+        self._method: Optional["autode.wrappers.methods.Method"] = None
 
     @classmethod
     @abstractmethod
-    def optimise(cls,
-                 species: 'autode.species.Species',
-                 method:  'autode.wrappers.methods.Method',
-                 n_cores: Optional[int] = None,
-                 coords:  Optional[OptCoordinates] = None,
-                 **kwargs):
+    def optimise(
+        cls,
+        species: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        n_cores: Optional[int] = None,
+        coords: Optional[OptCoordinates] = None,
+        **kwargs,
+    ):
         """
         Optimise a species using a method
 
@@ -85,11 +90,12 @@ class Optimiser(BaseOptimiser, ABC):
           >>> Optimiser.optimise(mol, method=ade.methods.ORCA())
         """
 
-    def run(self,
-            species: 'autode.species.Species',
-            method:  'autode.wrappers.methods.Method',
-            n_cores: Optional[int] = None
-            ) -> None:
+    def run(
+        self,
+        species: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        n_cores: Optional[int] = None,
+    ) -> None:
         """
         Run the optimiser. Updates species.atoms and species.energy
 
@@ -113,22 +119,24 @@ class Optimiser(BaseOptimiser, ABC):
 
         self._initialise_run()
 
-        logger.info(f'Using {self._method} to optimise {self._species.name} '
-                    f'with {self._n_cores} cores using {self._maxiter} max '
-                    f'iterations')
-        logger.info('Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1')
+        logger.info(
+            f"Using {self._method} to optimise {self._species.name} "
+            f"with {self._n_cores} cores using {self._maxiter} max "
+            f"iterations"
+        )
+        logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
 
         while not self.converged:
 
             self._callback(self._coords)
-            self._step()                                # Update self._coords
-            self._update_gradient_and_energy()          # Update self._coords.g
+            self._step()  # Update self._coords
+            self._update_gradient_and_energy()  # Update self._coords.g
             self._log_convergence()
 
             if self._exceeded_maximum_iteration:
                 break
 
-        logger.info(f'Converged: {self.converged}, in {self.iteration} cycles')
+        logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
         return None
 
     @property
@@ -143,27 +151,32 @@ class Optimiser(BaseOptimiser, ABC):
         """
         return len(self._history) - 1
 
-    def _initialise_species_and_method(self,
-                                       species: 'autode.species.Species',
-                                       method:  'autode.wrappers.methods.Method'
-                                       ) -> None:
+    def _initialise_species_and_method(
+        self,
+        species: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+    ) -> None:
         """
         Initialise the internal species and method. They be the correct types
 
         -----------------------------------------------------------------------
          Raises:
              (ValueError): For incorrect types
-         """
+        """
         from autode.species.species import Species
         from autode.wrappers.methods import Method
 
         if not isinstance(species, Species):
-            raise ValueError(f'{species} must be a autoode.Species instance '
-                             f'but had {type(species)}')
+            raise ValueError(
+                f"{species} must be a autoode.Species instance "
+                f"but had {type(species)}"
+            )
 
         if not isinstance(method, Method):
-            raise ValueError(f'{method} must be a autoode.wrappers.base.Method '
-                             f'instance but had {type(method)}')
+            raise ValueError(
+                f"{method} must be a autoode.wrappers.base.Method "
+                f"instance but had {type(method)}"
+            )
 
         if species.constraints.n_cartesian > 0:
             raise NotImplementedError
@@ -182,23 +195,27 @@ class Optimiser(BaseOptimiser, ABC):
             (autode.exceptions.CalculationException):
         """
         from autode.calculations import Calculation
+
         # TODO: species.calc_grad() method
 
         # Calculations need to be performed in cartesian coordinates
         if self._coords is not None:
-            self._species.coordinates = self._coords.to('cart')
+            self._species.coordinates = self._coords.to("cart")
 
-        grad = Calculation(name=f'{self._species.name}_opt_{self.iteration}',
-                           molecule=self._species,
-                           method=self._method,
-                           keywords=self._method.keywords.grad,
-                           n_cores=self._n_cores)
+        grad = Calculation(
+            name=f"{self._species.name}_opt_{self.iteration}",
+            molecule=self._species,
+            method=self._method,
+            keywords=self._method.keywords.grad,
+            n_cores=self._n_cores,
+        )
         grad.run()
         grad.clean_up(force=True, everything=True)
 
         if self._species.gradient is None:
-            raise RuntimeError("Calculation failed to calculate a gradient. "
-                               "Cannot continue!")
+            raise RuntimeError(
+                "Calculation failed to calculate a gradient. " "Cannot continue!"
+            )
 
         self._coords.e = self._species.energy
         self._coords.update_g_from_cart_g(arr=self._species.gradient)
@@ -217,13 +234,16 @@ class Optimiser(BaseOptimiser, ABC):
         """
         self._update_gradient_and_energy()
 
-        species = self._species.new_species(name=f'{self._species.name}'
-                                                 f'_opt_{self.iteration}')
-        species.coordinates = self._coords.to('cartesian')
+        species = self._species.new_species(
+            name=f"{self._species.name}" f"_opt_{self.iteration}"
+        )
+        species.coordinates = self._coords.to("cartesian")
 
-        species.calc_hessian(method=self._method,
-                             keywords=self._method.keywords.hess,
-                             n_cores=self._n_cores)
+        species.calc_hessian(
+            method=self._method,
+            keywords=self._method.keywords.hess,
+            n_cores=self._n_cores,
+        )
 
         self._species.hessian = species.hessian.copy()
         self._coords.update_h_from_cart_h(self._species.hessian)
@@ -240,7 +260,7 @@ class Optimiser(BaseOptimiser, ABC):
         Current set of coordinates this optimiser is using
         """
         if len(self._history) == 0:
-            logger.warning('Optimiser had no history, thus no coordinates')
+            logger.warning("Optimiser had no history, thus no coordinates")
             return None
 
         return self._history[-1]
@@ -265,8 +285,7 @@ class Optimiser(BaseOptimiser, ABC):
             self._history.append(value.copy())
 
         else:
-            raise ValueError('Cannot set the optimiser coordinates with '
-                             f'{value}')
+            raise ValueError("Cannot set the optimiser coordinates with " f"{value}")
 
     @abstractmethod
     def _step(self) -> None:
@@ -294,21 +313,23 @@ class Optimiser(BaseOptimiser, ABC):
 
     @property
     def last_energy_change(self) -> PotentialEnergy:
-        """Last ∆E found in this """
+        """Last ∆E found in this"""
 
         if self.iteration > 0:
             delta_e = self._history.final.e - self._history.penultimate.e
             return PotentialEnergy(delta_e, units="Ha")
 
         if self.converged:
-            logger.warning("Optimiser was converged in less than two "
-                           "cycles. Assuming an energy change of 0")
+            logger.warning(
+                "Optimiser was converged in less than two "
+                "cycles. Assuming an energy change of 0"
+            )
             return PotentialEnergy(0)
 
         return PotentialEnergy(np.inf)
 
     @property
-    def final_coordinates(self) -> Optional['autode.opt.OptCoordinates']:
+    def final_coordinates(self) -> Optional["autode.opt.OptCoordinates"]:
         return None if len(self._history) == 0 else self._history.final
 
     def _log_convergence(self) -> None:
@@ -332,8 +353,10 @@ class Optimiser(BaseOptimiser, ABC):
             (bool):
         """
         if self.iteration >= self._maxiter:
-            logger.warning(f'Reached the maximum number of iterations '
-                           f'*{self._maxiter}*. Did not converge')
+            logger.warning(
+                f"Reached the maximum number of iterations "
+                f"*{self._maxiter}*. Did not converge"
+            )
             return True
 
         else:
@@ -355,12 +378,14 @@ class NullOptimiser(BaseOptimiser):
 class NDOptimiser(Optimiser, ABC):
     """Abstract base class for an optimiser in N-dimensions"""
 
-    def __init__(self,
-                 maxiter: int,
-                 gtol:    GradientRMS,
-                 etol:    PotentialEnergy,
-                 coords:  Optional[OptCoordinates] = None,
-                 **kwargs):
+    def __init__(
+        self,
+        maxiter: int,
+        gtol: GradientRMS,
+        etol: PotentialEnergy,
+        coords: Optional[OptCoordinates] = None,
+        **kwargs,
+    ):
         """
         Geometry optimiser. Signature follows that in scipy.minimize so
         species and method are keyword arguments. Converged when both energy
@@ -401,8 +426,10 @@ class NDOptimiser(Optimiser, ABC):
         """Set the gradient tolerance"""
 
         if float(value) <= 0:
-            raise ValueError('Tolerance on the gradient (||∇E||) must be '
-                             f'positive. Had: gtol={value}')
+            raise ValueError(
+                "Tolerance on the gradient (||∇E||) must be "
+                f"positive. Had: gtol={value}"
+            )
 
         self._gtol = GradientRMS(value)
 
@@ -421,22 +448,25 @@ class NDOptimiser(Optimiser, ABC):
     def etol(self, value: Union[int, float, PotentialEnergy]):
         """Set the energy tolerance"""
         if float(value) <= 0:
-            raise ValueError('Tolerance on the energy change is absolute so '
-                             f'must be positive. Had etol = {value}')
+            raise ValueError(
+                "Tolerance on the energy change is absolute so "
+                f"must be positive. Had etol = {value}"
+            )
 
         self._etol = PotentialEnergy(value)
 
     @classmethod
-    def optimise(cls,
-                 species: 'autode.species.Species',
-                 method:  'autode.wrappers.methods.Method',
-                 maxiter: int = 100,
-                 gtol:    Union[float, GradientRMS] = GradientRMS(1E-3, units='Ha Å-1'),
-                 etol:    Union[float, PotentialEnergy] = PotentialEnergy(1E-4, units='Ha'),
-                 coords:  Optional[OptCoordinates] = None,
-                 n_cores: Optional[int] = None,
-                 **kwargs
-                 ) -> None:
+    def optimise(
+        cls,
+        species: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        maxiter: int = 100,
+        gtol: Union[float, GradientRMS] = GradientRMS(1e-3, units="Ha Å-1"),
+        etol: Union[float, PotentialEnergy] = PotentialEnergy(1e-4, units="Ha"),
+        coords: Optional[OptCoordinates] = None,
+        n_cores: Optional[int] = None,
+        **kwargs,
+    ) -> None:
         """
         Convenience function for constructing and running an optimiser
 
@@ -462,8 +492,7 @@ class NDOptimiser(Optimiser, ABC):
             (ValueError | RuntimeError):
         """
 
-        optimiser = cls(maxiter=maxiter, gtol=gtol, etol=etol, coords=coords,
-                        **kwargs)
+        optimiser = cls(maxiter=maxiter, gtol=gtol, etol=etol, coords=coords, **kwargs)
         optimiser.run(species, method, n_cores=n_cores)
 
         return None
@@ -486,9 +515,11 @@ class NDOptimiser(Optimiser, ABC):
             return True  # Optimisation 0 DOF is always converged
 
         if self._abs_delta_e < self.etol / 10:
-            logger.warning(f'Energy change is overachieved. '
-                           f'{self.etol.to("kcal")/10:.3E} kcal mol-1. '
-                           f'Signaling convergence')
+            logger.warning(
+                f"Energy change is overachieved. "
+                f'{self.etol.to("kcal")/10:.3E} kcal mol-1. '
+                f"Signaling convergence"
+            )
             return True
 
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
@@ -503,9 +534,11 @@ class NDOptimiser(Optimiser, ABC):
             return None
 
         atomic_symbols = self._species.atomic_symbols
-        title_str = (f" etol = {self.etol.to('Ha')} Ha"
-                     f" gtol = {self.gtol.to('Ha Å^-1')} Ha Å^-1"
-                     f" maxiter = {self._maxiter}")
+        title_str = (
+            f" etol = {self.etol.to('Ha')} Ha"
+            f" gtol = {self.gtol.to('Ha Å^-1')} Ha Å^-1"
+            f" maxiter = {self._maxiter}"
+        )
 
         for i, coordinates in enumerate(self._history):
 
@@ -517,17 +550,22 @@ class NDOptimiser(Optimiser, ABC):
             assert n_atoms == len(cart_coords) == len(gradient)
 
             with open(filename, "a") as file:
-                print(n_atoms,
-                      f"E = {energy} Ha" + (title_str if i == 0 else ""),
-                      sep="\n", file=file)
+                print(
+                    n_atoms,
+                    f"E = {energy} Ha" + (title_str if i == 0 else ""),
+                    sep="\n",
+                    file=file,
+                )
 
                 for j, symbol in enumerate(atomic_symbols):
                     x, y, z = cart_coords[j]
                     dedx, dedy, dedz = gradient[j]
 
-                    print(f"{symbol:<3}{x:10.5f}{y:10.5f}{z:10.5f}"
-                          f"{dedx:15.5f}{dedy:10.5f}{dedz:10.5f}",
-                          file=file)
+                    print(
+                        f"{symbol:<3}{x:10.5f}{y:10.5f}{z:10.5f}"
+                        f"{dedx:15.5f}{dedy:10.5f}{dedz:10.5f}",
+                        file=file,
+                    )
         return None
 
     @classmethod
@@ -541,21 +579,23 @@ class NDOptimiser(Optimiser, ABC):
         n_atoms = int(lines[0].split()[0])
 
         title_line = NumericStringDict(lines[1])
-        optimiser = cls(maxiter=int(title_line["maxiter"]),
-                        gtol=GradientRMS(title_line["gtol"]),
-                        etol=PotentialEnergy(title_line["etol"]))
+        optimiser = cls(
+            maxiter=int(title_line["maxiter"]),
+            gtol=GradientRMS(title_line["gtol"]),
+            etol=PotentialEnergy(title_line["etol"]),
+        )
 
-        for i in range(0, len(lines), n_atoms+2):
+        for i in range(0, len(lines), n_atoms + 2):
             raw_coordinates = np.zeros(shape=(n_atoms, 3))
             gradient = np.zeros(shape=(n_atoms, 3))
 
-            for j, line in enumerate(lines[i+2:i+n_atoms+2]):
+            for j, line in enumerate(lines[i + 2 : i + n_atoms + 2]):
                 _, x, y, z, dedx, dedy, dedz = line.split()
                 raw_coordinates[j, :] = [float(x), float(y), float(z)]
                 gradient[j, :] = [float(dedx), float(dedy), float(dedz)]
 
             coords = CartesianCoordinates(raw_coordinates)
-            coords.e = NumericStringDict(lines[i+1])["E"]
+            coords.e = NumericStringDict(lines[i + 1])["E"]
             coords.g = gradient.flatten()
 
             optimiser._history.append(coords)
@@ -577,13 +617,13 @@ class NDOptimiser(Optimiser, ABC):
         """
 
         if len(self._history) < 2:
-            logger.info('First iteration - returning |∆E| = ∞')
+            logger.info("First iteration - returning |∆E| = ∞")
             return PotentialEnergy(np.inf)
 
         e1, e2 = self._coords.e, self._history.penultimate.e
 
         if e1 is None or e2 is None:
-            raise RuntimeError('Cannot determine absolute energy difference')
+            raise RuntimeError("Cannot determine absolute energy difference")
 
         return PotentialEnergy(abs(e1 - e2))
 
@@ -598,7 +638,7 @@ class NDOptimiser(Optimiser, ABC):
                                           gradient is not defined
         """
         if self._coords is None:
-            logger.warning('Had no coordinates - cannot determine ||∇E||')
+            logger.warning("Had no coordinates - cannot determine ||∇E||")
             return GradientRMS(np.inf)
 
         if self._coords.g is None:
@@ -607,8 +647,8 @@ class NDOptimiser(Optimiser, ABC):
         return GradientRMS(np.sqrt(np.mean(np.square(self._coords.g))))
 
     def _log_convergence(self) -> None:
-        """Log the convergence of the energy """
-        log_string = f'{self.iteration}\t'
+        """Log the convergence of the energy"""
+        log_string = f"{self.iteration}\t"
 
         if len(self._history) > 1:
             de = self._coords.e - self._history.penultimate.e
@@ -632,7 +672,7 @@ class NDOptimiser(Optimiser, ABC):
         """
 
         if self.iteration == 0:
-            logger.info('First iteration so using exact inverse, H^-1')
+            logger.info("First iteration so using exact inverse, H^-1")
             return np.linalg.inv(self._coords.h)
 
         return self._best_hessian_updater.updated_h_inv
@@ -649,13 +689,13 @@ class NDOptimiser(Optimiser, ABC):
         """
 
         if self.iteration == 0:
-            logger.info('First iteration so not updating the Hessian')
+            logger.info("First iteration so not updating the Hessian")
             return self._coords.h
 
         return self._best_hessian_updater.updated_h
 
     @property
-    def _best_hessian_updater(self) -> 'HessianUpdater':
+    def _best_hessian_updater(self) -> "HessianUpdater":
         """
         Find the best Hessian update strategy by enumerating all the possible
         Hessian update types implemented for this optimiser and returning the
@@ -671,11 +711,13 @@ class NDOptimiser(Optimiser, ABC):
         coords_l, coords_k = self._history.final, self._history.penultimate
 
         for update_type in self._hessian_update_types:
-            updater = update_type(h=coords_k.h,
-                                  h_inv=coords_k.h_inv,
-                                  s=coords_l.raw - coords_k.raw,
-                                  y=coords_l.g - coords_k.g,
-                                  subspace_idxs=coords_l.indexes)
+            updater = update_type(
+                h=coords_k.h,
+                h_inv=coords_k.h_inv,
+                s=coords_l.raw - coords_k.raw,
+                y=coords_l.g - coords_k.g,
+                subspace_idxs=coords_l.indexes,
+            )
 
             if not updater.conditions_met:
                 logger.info(f"Conditions for {update_type} not met")
@@ -683,8 +725,9 @@ class NDOptimiser(Optimiser, ABC):
 
             return updater
 
-        raise RuntimeError('Could not update the inverse Hessian - no '
-                           'suitable update strategies')
+        raise RuntimeError(
+            "Could not update the inverse Hessian - no " "suitable update strategies"
+        )
 
 
 class _OptimiserHistory(list):
@@ -700,8 +743,10 @@ class _OptimiserHistory(list):
             (autode.opt.OptCoordinates):
         """
         if len(self) < 2:
-            raise IndexError('Cannot obtain the penultimate set of '
-                             f'coordinates, only had {len(self)}')
+            raise IndexError(
+                "Cannot obtain the penultimate set of "
+                f"coordinates, only had {len(self)}"
+            )
 
         return self[-2]
 
@@ -715,8 +760,9 @@ class _OptimiserHistory(list):
             (autode.opt.OptCoordinates):
         """
         if len(self) < 1:
-            raise IndexError('Cannot obtain the final set of coordinates from '
-                             'an empty history')
+            raise IndexError(
+                "Cannot obtain the final set of coordinates from " "an empty history"
+            )
 
         return self[-1]
 
@@ -730,7 +776,7 @@ class _OptimiserHistory(list):
             (autode.opt.OptCoordinates):
         """
         if len(self) == 0:
-            raise IndexError('No minimum with no history')
+            raise IndexError("No minimum with no history")
 
         return self[np.argmin([coords.e for coords in self])]
 
@@ -750,15 +796,14 @@ class _OptimiserHistory(list):
             (bool): Presence of an explicit minima
         """
 
-        for idx in range(1, len(self)-1):
-            if self[idx].e < self[idx+1].e:
+        for idx in range(1, len(self) - 1):
+            if self[idx].e < self[idx + 1].e:
                 return True
 
         return False
 
 
 class ExternalOptimiser(BaseOptimiser, ABC):
-
     @property
     @abstractmethod
     def converged(self) -> bool:
@@ -771,7 +816,6 @@ class ExternalOptimiser(BaseOptimiser, ABC):
 
 
 class _OptimiserCallbackFunction:
-
     def __init__(self, f: Optional[Callable], kwargs: Optional[dict]):
         """Callback function initializer"""
 

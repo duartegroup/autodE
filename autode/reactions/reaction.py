@@ -18,13 +18,14 @@ from autode.reactions import reaction_types
 
 
 class Reaction:
-
-    def __init__(self,
-                 *args:        Union[str, 'autode.species.species.Species'],
-                 name:         str = 'reaction',
-                 solvent_name: Optional[str] = None,
-                 smiles:       Optional[str] = None,
-                 temp:         float = 298.15):
+    def __init__(
+        self,
+        *args: Union[str, "autode.species.species.Species"],
+        name: str = "reaction",
+        solvent_name: Optional[str] = None,
+        smiles: Optional[str] = None,
+        temp: float = 298.15,
+    ):
         r"""
         Elementary chemical reaction formed from reactants and products.
         Number of atoms, charge and solvent must match on either side of
@@ -53,10 +54,10 @@ class Reaction:
 
             temp (float): Temperature in Kelvin.
         """
-        logger.info(f'Generating a Reaction for {name}')
+        logger.info(f"Generating a Reaction for {name}")
 
         self.name = name
-        self.reacs,  self.prods = [], []
+        self.reacs, self.prods = [], []
         self._reactant_complex, self._product_complex = None, None
         self.tss = TransitionStates()
 
@@ -70,7 +71,7 @@ class Reaction:
             self._init_from_molecules(molecules=args)
 
         self.type = reaction_types.classify(self.reacs, self.prods)
-        self.solvent = get_solvent(solvent_name, kind='implicit')
+        self.solvent = get_solvent(solvent_name, kind="implicit")
         self.temp = float(temp)
 
         self._check_solvent()
@@ -79,24 +80,27 @@ class Reaction:
 
     def __str__(self):
         """Return a very short 6 character hash of the reaction, not guaranteed
-         to be unique"""
+        to be unique"""
 
-        name = (f'{self.name}_{"+".join([r.name for r in self.reacs])}--'
-                f'{"+".join([p.name for p in self.prods])}')
+        name = (
+            f'{self.name}_{"+".join([r.name for r in self.reacs])}--'
+            f'{"+".join([p.name for p in self.prods])}'
+        )
 
-        if hasattr(self, 'solvent') and self.solvent is not None:
-            name += f'_{self.solvent.name}'
+        if hasattr(self, "solvent") and self.solvent is not None:
+            name += f"_{self.solvent.name}"
 
         hasher = hashlib.sha1(name.encode()).digest()
         return base64.urlsafe_b64encode(hasher).decode()[:6]
 
     @requires_hl_level_methods
-    def calculate_reaction_profile(self,
-                                   units:         Union['autode.units.Unit', str] = 'kcal mol-1',
-                                   with_complexes: bool = False,
-                                   free_energy:    bool = False,
-                                   enthalpy:       bool = False
-                                   ) -> None:
+    def calculate_reaction_profile(
+        self,
+        units: Union["autode.units.Unit", str] = "kcal mol-1",
+        with_complexes: bool = False,
+        free_energy: bool = False,
+        enthalpy: bool = False,
+    ) -> None:
         """
         Calculate and plot a reaction profile for this elemtary reaction. Will
         search conformers, find the lowest energy TS and plot a profile.
@@ -113,14 +117,17 @@ class Reaction:
 
             enthalpy (bool): Calculate the enthalpic profile (H)
         """
-        logger.info('Calculating reaction profile')
+        logger.info("Calculating reaction profile")
 
-        if (not Config.allow_association_complex_G
-                and (with_complexes and (free_energy or enthalpy))):
-            raise NotImplementedError('Significant likelihood of very low '
-                                      'frequency harmonic modes – G and H. Set'
-                                      ' Config.allow_association_complex_G to '
-                                      'override this')
+        if not Config.allow_association_complex_G and (
+            with_complexes and (free_energy or enthalpy)
+        ):
+            raise NotImplementedError(
+                "Significant likelihood of very low "
+                "frequency harmonic modes – G and H. Set"
+                " Config.allow_association_complex_G to "
+                "override this"
+            )
 
         @work_in(self.name)
         def calculate(reaction):
@@ -139,36 +146,44 @@ class Reaction:
         calculate(self)
 
         if not with_complexes:
-            plot_reaction_profile([self], units=units, name=self.name,
-                                  free_energy=free_energy, enthalpy=enthalpy)
+            plot_reaction_profile(
+                [self],
+                units=units,
+                name=self.name,
+                free_energy=free_energy,
+                enthalpy=enthalpy,
+            )
 
         if with_complexes:
-            self._plot_reaction_profile_with_complexes(units=units,
-                                                       free_energy=free_energy,
-                                                       enthalpy=enthalpy)
+            self._plot_reaction_profile_with_complexes(
+                units=units, free_energy=free_energy, enthalpy=enthalpy
+            )
         return None
 
     def _check_balance(self) -> None:
         """Check that the number of atoms and charge balances between reactants
-         and products. If they don't then raise excpetions
+        and products. If they don't then raise excpetions
         """
+
         def total(molecules, attr):
             return sum([getattr(m, attr) for m in molecules])
 
-        if total(self.reacs, 'n_atoms') != total(self.prods, 'n_atoms'):
-            raise UnbalancedReaction('Number of atoms doesn\'t balance')
+        if total(self.reacs, "n_atoms") != total(self.prods, "n_atoms"):
+            raise UnbalancedReaction("Number of atoms doesn't balance")
 
-        if total(self.reacs, 'charge') != total(self.prods, 'charge'):
-            raise UnbalancedReaction('Charge doesn\'t balance')
+        if total(self.reacs, "charge") != total(self.prods, "charge"):
+            raise UnbalancedReaction("Charge doesn't balance")
 
         # Ensure the number of unpaired electrons is equal on the left and
         # right-hand sides of the reaction, for now
-        if (total(self.reacs, 'mult') - len(self.reacs)
-                != total(self.prods, 'mult') - len(self.prods)):
-            raise NotImplementedError('Found a change in spin state – not '
-                                      'implemented yet!')
+        if total(self.reacs, "mult") - len(self.reacs) != total(
+            self.prods, "mult"
+        ) - len(self.prods):
+            raise NotImplementedError(
+                "Found a change in spin state – not " "implemented yet!"
+            )
 
-        self.charge = total(self.reacs, 'charge')
+        self.charge = total(self.reacs, "charge")
         return None
 
     def _check_solvent(self) -> None:
@@ -181,31 +196,36 @@ class Reaction:
 
         if self.solvent is None:
             if all([mol.solvent is None for mol in molecules]):
-                logger.info('Reaction is in the gas phase')
+                logger.info("Reaction is in the gas phase")
                 return
 
             # Are solvents defined for all molecules?
             elif all([mol.solvent is not None for mol in molecules]):
 
                 if not all([mol.solvent == first_solvent for mol in molecules]):
-                    raise SolventsDontMatch('Solvents in reactants and '
-                                            'products do not match')
+                    raise SolventsDontMatch(
+                        "Solvents in reactants and " "products do not match"
+                    )
                 else:
-                    logger.info(f'Setting the solvent to {first_solvent}')
+                    logger.info(f"Setting the solvent to {first_solvent}")
                     self.solvent = first_solvent
 
             else:
-                raise SolventsDontMatch('Some species solvated and some not. '
-                                        'Ill-determined solvation.')
+                raise SolventsDontMatch(
+                    "Some species solvated and some not. " "Ill-determined solvation."
+                )
 
         if self.solvent is not None:
-            logger.info(f'Setting solvent to {self.solvent.name} for all '
-                        f'molecules in the reaction')
+            logger.info(
+                f"Setting solvent to {self.solvent.name} for all "
+                f"molecules in the reaction"
+            )
             for mol in molecules:
                 mol.solvent = self.solvent
 
-        logger.info(f'Set the solvent of all species in the reaction to '
-                    f'{self.solvent.name}')
+        logger.info(
+            f"Set the solvent of all species in the reaction to " f"{self.solvent.name}"
+        )
         return None
 
     def _check_names(self) -> None:
@@ -218,14 +238,15 @@ class Reaction:
         if len(set(all_names)) == len(all_names):  # Everything is unique
             return
 
-        logger.warning('Names in reactants and products are not unique. '
-                       'Adding prefixes')
+        logger.warning(
+            "Names in reactants and products are not unique. " "Adding prefixes"
+        )
 
         for i, reac in enumerate(self.reacs):
-            reac.name = f'r{i}_{reac.name}'
+            reac.name = f"r{i}_{reac.name}"
 
         for i, prod in enumerate(self.prods):
-            prod.name = f'p{i}_{prod.name}'
+            prod.name = f"p{i}_{prod.name}"
 
         return None
 
@@ -242,19 +263,19 @@ class Reaction:
             reaction_smiles (str):
         """
         try:
-            reacs_smiles, prods_smiles = reaction_smiles.split('>>')
+            reacs_smiles, prods_smiles = reaction_smiles.split(">>")
         except ValueError:
-            raise UnbalancedReaction('Could not decompose to reacs & prods')
+            raise UnbalancedReaction("Could not decompose to reacs & prods")
 
         # Add all the reactants and products with interpretable names
-        for i, reac_smiles in enumerate(reacs_smiles.split('.')):
+        for i, reac_smiles in enumerate(reacs_smiles.split(".")):
             reac = Reactant(smiles=reac_smiles)
-            reac.name = f'r{i}_{reac.formula}'
+            reac.name = f"r{i}_{reac.formula}"
             self.reacs.append(reac)
 
-        for i, prod_smiles in enumerate(prods_smiles.split('.')):
+        for i, prod_smiles in enumerate(prods_smiles.split(".")):
             prod = Product(smiles=prod_smiles)
-            prod.name = f'p{i}_{prod.formula}'
+            prod.name = f"p{i}_{prod.formula}"
             self.prods.append(prod)
 
         return None
@@ -262,11 +283,17 @@ class Reaction:
     def _init_from_molecules(self, molecules) -> None:
         """Set the reactants and products from a set of molecules"""
 
-        self.reacs = [mol for mol in molecules
-                      if isinstance(mol, Reactant) or isinstance(mol, ReactantComplex)]
+        self.reacs = [
+            mol
+            for mol in molecules
+            if isinstance(mol, Reactant) or isinstance(mol, ReactantComplex)
+        ]
 
-        self.prods = [mol for mol in molecules
-                      if isinstance(mol, Product) or isinstance(mol, ProductComplex)]
+        self.prods = [
+            mol
+            for mol in molecules
+            if isinstance(mol, Product) or isinstance(mol, ProductComplex)
+        ]
 
         return None
 
@@ -274,15 +301,17 @@ class Reaction:
         """Generator for components of a reaction that have sensible geometries
         and also energies"""
 
-        for mol in (self.reacs
-                    + self.prods
-                    + [self.ts, self._reactant_complex, self._product_complex]):
+        for mol in (
+            self.reacs
+            + self.prods
+            + [self.ts, self._reactant_complex, self._product_complex]
+        ):
 
             if mol is None:
                 continue
 
             if mol.energy is None:
-                logger.warning(f'{mol.name} energy was None')
+                logger.warning(f"{mol.name} energy was None")
                 continue
 
             if not mol.has_reasonable_coordinates:
@@ -306,8 +335,9 @@ class Reaction:
         """
 
         if self.delta(e_type) is None:
-            logger.error(f'Could not estimate barrierless {e_type},'
-                         f' an energy was None')
+            logger.error(
+                f"Could not estimate barrierless {e_type}," f" an energy was None"
+            )
             return None
 
         # Minimum barrier is the 0 for an exothermic reaction but the reaction
@@ -315,14 +345,16 @@ class Reaction:
         value = max(Energy(0.0), self.delta(e_type))
 
         if self.type != reaction_types.Rearrangement:
-            logger.warning('Have a barrierless bimolecular reaction. Assuming'
-                           'a diffusion limited with a rate of 4 x 10^9 s^-1')
+            logger.warning(
+                "Have a barrierless bimolecular reaction. Assuming"
+                "a diffusion limited with a rate of 4 x 10^9 s^-1"
+            )
 
-            value += Energy(0.00694, units='Ha')
+            value += Energy(0.00694, units="Ha")
 
-        if e_type == 'free_energy':
+        if e_type == "free_energy":
             return FreeEnergy(value, estimated=True)
-        elif e_type == 'enthalpy':
+        elif e_type == "enthalpy":
             return Enthalpy(value, estimated=True)
         else:
             return PotentialEnergy(value, estimated=True)
@@ -363,25 +395,28 @@ class Reaction:
             (autode.values.Energy | None): Difference if all energies are
                                           defined or None otherwise
         """
+
         def delta_type_matches(*args):
             return any(s in delta_type.lower() for s in args)
 
         def is_ts_delta():
-            return delta_type_matches('ddagger', '‡', 'double dagger')
+            return delta_type_matches("ddagger", "‡", "double dagger")
 
         # Determine the species on the left and right hand sides of the eqn.
         lhs, rhs = self.reacs, [self.ts] if is_ts_delta() else self.prods
 
         # and the type of energy to calculate
-        if delta_type_matches('h', 'enthalpy'):
-            e_type = 'enthalpy'
-        elif delta_type_matches('e', 'energy') and not delta_type_matches('free'):
-            e_type = 'energy'
-        elif delta_type_matches('g', 'free energy', 'free_energy'):
-            e_type = 'free_energy'
+        if delta_type_matches("h", "enthalpy"):
+            e_type = "enthalpy"
+        elif delta_type_matches("e", "energy") and not delta_type_matches("free"):
+            e_type = "energy"
+        elif delta_type_matches("g", "free energy", "free_energy"):
+            e_type = "free_energy"
         else:
-            raise ValueError('Could not determine the type of energy change '
-                             f'to calculate from: {delta_type}')
+            raise ValueError(
+                "Could not determine the type of energy change "
+                f"to calculate from: {delta_type}"
+            )
 
         # If there is no TS estimate the effective barrier from diffusion limit
         if is_ts_delta() and self.is_barrierless:
@@ -390,12 +425,12 @@ class Reaction:
         # If the electronic structure has failed to calculate the energy then
         # the difference between the left and right cannot be calculated
         if any(getattr(mol, e_type) is None for mol in lhs + rhs):
-            logger.warning(f'Could not calculate ∆{delta_type}, an energy was '
-                           f'None')
+            logger.warning(f"Could not calculate ∆{delta_type}, an energy was " f"None")
             return None
 
-        return (sum(getattr(mol, e_type).to('Ha') for mol in rhs)
-                - sum(getattr(mol, e_type).to('Ha') for mol in lhs))
+        return sum(getattr(mol, e_type).to("Ha") for mol in rhs) - sum(
+            getattr(mol, e_type).to("Ha") for mol in lhs
+        )
 
     @property
     def is_barrierless(self) -> bool:
@@ -422,9 +457,9 @@ class Reaction:
         if self._reactant_complex is not None:
             return self._reactant_complex
 
-        return ReactantComplex(*self.reacs,
-                               name=f'{self}_reactant',
-                               do_init_translation=True)
+        return ReactantComplex(
+            *self.reacs, name=f"{self}_reactant", do_init_translation=True
+        )
 
     @reactant.setter
     def reactant(self, value: ReactantComplex):
@@ -437,8 +472,10 @@ class Reaction:
             value (autode.species.ReactantComplex):
         """
         if not isinstance(value, ReactantComplex):
-            raise ValueError(f'Could not set the reactant of {self.name} '
-                             f'using {type(value)}. Must be a ReactantComplex')
+            raise ValueError(
+                f"Could not set the reactant of {self.name} "
+                f"using {type(value)}. Must be a ReactantComplex"
+            )
 
         self._reactant_complex = value
 
@@ -454,9 +491,9 @@ class Reaction:
         if self._product_complex is not None:
             return self._product_complex
 
-        return ProductComplex(*self.prods,
-                              name=f'{self}_product',
-                              do_init_translation=True)
+        return ProductComplex(
+            *self.prods, name=f"{self}_product", do_init_translation=True
+        )
 
     @product.setter
     def product(self, value: ProductComplex):
@@ -469,8 +506,10 @@ class Reaction:
             value (autode.species.ProductComplex):
         """
         if not isinstance(value, ProductComplex):
-            raise ValueError(f'Could not set the product of {self.name} '
-                             f'using {type(value)}. Must be a ProductComplex')
+            raise ValueError(
+                f"Could not set the product of {self.name} "
+                f"using {type(value)}. Must be a ProductComplex"
+            )
 
         self._product_complex = value
 
@@ -503,7 +542,7 @@ class Reaction:
             return
 
         if not isinstance(value, TransitionState):
-            raise ValueError(f'TS of {self.name} must be a TransitionState')
+            raise ValueError(f"TS of {self.name} must be a TransitionState")
 
         self.tss.append(value)
 
@@ -512,13 +551,14 @@ class Reaction:
         and products and classify as dissociation. Likewise for reactions wher
         the change in the number of bonds is negative
         """
-        logger.info('Swapping reactants and products')
+        logger.info("Swapping reactants and products")
 
         self.prods, self.reacs = self.reacs, self.prods
 
-        (self._product_complex,
-         self._reactant_complex) = (self._reactant_complex,
-                                    self._product_complex)
+        (self._product_complex, self._reactant_complex) = (
+            self._reactant_complex,
+            self._product_complex,
+        )
         return None
 
     def find_lowest_energy_conformers(self) -> None:
@@ -534,32 +574,32 @@ class Reaction:
 
         return None
 
-    @work_in('reactants_and_products')
+    @work_in("reactants_and_products")
     def optimise_reacs_prods(self) -> None:
         """Perform a geometry optimisation on all the reactants and products
         using the method"""
         h_method = get_hmethod()
-        logger.info(f'Optimising reactants and products with {h_method.name}')
+        logger.info(f"Optimising reactants and products with {h_method.name}")
 
         for mol in self.reacs + self.prods:
             mol.optimise(h_method)
 
         return None
 
-    @work_in('complexes')
+    @work_in("complexes")
     def calculate_complexes(self) -> None:
         """Find the lowest energy conformers of reactant and product complexes
         using optimisation and single points"""
         h_method = get_hmethod()
         conf_hmethod = h_method if Config.hmethod_conformers else None
 
-        self._reactant_complex = ReactantComplex(*self.reacs,
-                                                 name=f'{self}_reactant',
-                                                 do_init_translation=True)
+        self._reactant_complex = ReactantComplex(
+            *self.reacs, name=f"{self}_reactant", do_init_translation=True
+        )
 
-        self._product_complex = ProductComplex(*self.prods,
-                                               name=f'{self}_product',
-                                               do_init_translation=True)
+        self._product_complex = ProductComplex(
+            *self.prods, name=f"{self}_product", do_init_translation=True
+        )
 
         for species in [self._reactant_complex, self._product_complex]:
             species.find_lowest_energy_conformer(hmethod=conf_hmethod)
@@ -568,13 +608,14 @@ class Reaction:
         return None
 
     @requires_hl_level_methods
-    @work_in('transition_states')
+    @work_in("transition_states")
     def locate_transition_state(self) -> None:
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
-        if (sum(p.graph.number_of_edges() for p in self.prods)
-                > sum(r.graph.number_of_edges() for r in self.reacs)):
+        if sum(p.graph.number_of_edges() for p in self.prods) > sum(
+            r.graph.number_of_edges() for r in self.reacs
+        ):
 
             self.switch_reactants_products()
             self.tss = find_tss(self)
@@ -585,53 +626,58 @@ class Reaction:
 
         return None
 
-    @work_in('transition_states')
+    @work_in("transition_states")
     def find_lowest_energy_ts_conformer(self) -> None:
         """Find the lowest energy conformer of the transition state"""
         if self.ts is None:
-            logger.error('No transition state to evaluate the conformer of')
+            logger.error("No transition state to evaluate the conformer of")
             return None
 
         else:
             return self.ts.find_lowest_energy_ts_conformer()
 
-    @work_in('single_points')
+    @work_in("single_points")
     def calculate_single_points(self) -> None:
         """Perform a single point energy evaluations on all the reactants and
         products using the hmethod"""
         h_method = get_hmethod()
-        logger.info(f'Calculating single points with {h_method.name}')
+        logger.info(f"Calculating single points with {h_method.name}")
 
         for mol in self._reasonable_components_with_energy():
             mol.single_point(h_method)
 
         return None
 
-    @work_in('output')
+    @work_in("output")
     def print_output(self) -> None:
         """Print the final optimised structures along with the methods used"""
         from autode.log.methods import methods
 
         # Print the computational methods used in this autode initialisation
-        with open('methods.txt', 'w') as out_file:
+        with open("methods.txt", "w") as out_file:
             print(methods, file=out_file)
 
-        csv_file = open('energies.csv', 'w')
+        csv_file = open("energies.csv", "w")
         method = get_hmethod()
-        print(f'Energies generated by autodE on: {date.today()}. Single point '
-              f'energies at {method.keywords.sp.bstring} and optimisations at '
-              f'{method.keywords.opt.bstring}',
-              'Species, E_opt, G_cont, H_cont, E_sp',
-              sep='\n',
-              file=csv_file)
+        print(
+            f"Energies generated by autodE on: {date.today()}. Single point "
+            f"energies at {method.keywords.sp.bstring} and optimisations at "
+            f"{method.keywords.opt.bstring}",
+            "Species, E_opt, G_cont, H_cont, E_sp",
+            sep="\n",
+            file=csv_file,
+        )
 
         def print_energies_to_csv(_mol):
-            print(f'{_mol.name}',
-                  f'{_mol.energies.first_potential}',
-                  f'{_mol.g_cont}',
-                  f'{_mol.h_cont}',
-                  f'{_mol.energies.last_potential}',
-                  sep=',', file=csv_file)
+            print(
+                f"{_mol.name}",
+                f"{_mol.energies.first_potential}",
+                f"{_mol.g_cont}",
+                f"{_mol.h_cont}",
+                f"{_mol.energies.last_potential}",
+                sep=",",
+                file=csv_file,
+            )
 
         # Print xyz files of all the reactants and products
         for mol in self.reacs + self.prods:
@@ -646,27 +692,27 @@ class Reaction:
 
         # If it exists print the xyz file of the transition state
         if self.ts is not None:
-            ts_title_str = ''
+            ts_title_str = ""
             imags = self.ts.imaginary_frequencies
 
             if self.ts.has_imaginary_frequencies and len(imags) > 0:
-                ts_title_str += f'. Imaginary frequency = {imags[0]:.1f} cm-1'
+                ts_title_str += f". Imaginary frequency = {imags[0]:.1f} cm-1"
 
             if self.ts.has_imaginary_frequencies and len(imags) > 1:
-                ts_title_str += (f'. Additional imaginary frequencies: '
-                                 f'{imags[1:]} cm-1')
+                ts_title_str += (
+                    f". Additional imaginary frequencies: " f"{imags[1:]} cm-1"
+                )
 
             print_energies_to_csv(self.ts)
             self.ts.print_xyz_file(additional_title_line=ts_title_str)
-            self.ts.print_imag_vector(name='TS_imag_mode')
+            self.ts.print_imag_vector(name="TS_imag_mode")
 
         return None
 
-    @work_in('thermal')
-    def calculate_thermochemical_cont(self,
-                                      free_energy: bool = True,
-                                      enthalpy:    bool = True
-                                      ) -> None:
+    @work_in("thermal")
+    def calculate_thermochemical_cont(
+        self, free_energy: bool = True, enthalpy: bool = True
+    ) -> None:
         """
         Calculate thermochemical contributions to the energies
 
@@ -676,10 +722,10 @@ class Reaction:
 
             enthalpy (bool):
         """
-        logger.info('Calculating thermochemical contributions')
+        logger.info("Calculating thermochemical contributions")
 
         if not (free_energy or enthalpy):
-            logger.info('Nothing to be done – neither G or H requested')
+            logger.info("Nothing to be done – neither G or H requested")
             return None
 
         # Calculate G and H contributions for all components
@@ -688,25 +734,29 @@ class Reaction:
 
         return None
 
-    def _plot_reaction_profile_with_complexes(self,
-                                              units:       'autode.units.Unit',
-                                              free_energy: bool,
-                                              enthalpy:    bool
-                                              ) -> None:
+    def _plot_reaction_profile_with_complexes(
+        self, units: "autode.units.Unit", free_energy: bool, enthalpy: bool
+    ) -> None:
         """Plot a reaction profile with the association complexes of R, P"""
         rxns = []
 
         if any(mol.energy is None for mol in (self.reactant, self.product)):
-            raise ValueError('Could not plot a reaction profile with '
-                             'association complexes without energies for'
-                             'reaction.reactant_complex or product_complex')
+            raise ValueError(
+                "Could not plot a reaction profile with "
+                "association complexes without energies for"
+                "reaction.reactant_complex or product_complex"
+            )
 
         # If the reactant complex contains more than one molecule then
         # make a reaction that is separated reactants -> reactant complex
         if len(self.reacs) > 1:
-            rxns.append(Reaction(*self.reacs,
-                                 self.reactant.to_product_complex(),
-                                 name='reactant_complex'))
+            rxns.append(
+                Reaction(
+                    *self.reacs,
+                    self.reactant.to_product_complex(),
+                    name="reactant_complex",
+                )
+            )
 
         # The elementary reaction is then
         # reactant complex -> product complex
@@ -717,14 +767,21 @@ class Reaction:
         # As with the product complex add the dissociation of the product
         # complex into it's separated components
         if len(self.prods) > 1:
-            rxns.append(Reaction(*self.prods,
-                                 self.product.to_reactant_complex(),
-                                 name='product_complex'))
+            rxns.append(
+                Reaction(
+                    *self.prods,
+                    self.product.to_reactant_complex(),
+                    name="product_complex",
+                )
+            )
 
-        plot_reaction_profile(reactions=rxns,
-                              units=units, name=self.name,
-                              free_energy=free_energy,
-                              enthalpy=enthalpy)
+        plot_reaction_profile(
+            reactions=rxns,
+            units=units,
+            name=self.name,
+            free_energy=free_energy,
+            enthalpy=enthalpy,
+        )
         return None
 
     @property
@@ -753,8 +810,6 @@ class Reaction:
 
         return list(sorted(all_atomic_symbols))
 
-    def has_identical_composition_as(self,
-                                     reaction: 'Reaction'
-                                     ) -> bool:
+    def has_identical_composition_as(self, reaction: "Reaction") -> bool:
         """Does this reaction have the same chemical identity as another?"""
         return self.atomic_symbols == reaction.atomic_symbols

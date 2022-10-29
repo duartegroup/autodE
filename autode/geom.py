@@ -26,8 +26,7 @@ def are_coords_reasonable(coords: np.ndarray) -> bool:
     dist_mat = distance_matrix(coords, coords) + np.identity(n_atoms)
 
     if np.min(dist_mat) < 0.7:
-        logger.warning('There is a distance < 0.7 Å. Structure is *not* '
-                       'sensible')
+        logger.warning("There is a distance < 0.7 Å. Structure is *not* " "sensible")
         return False
 
     return True
@@ -80,9 +79,13 @@ def get_rot_mat_euler_from_terms(a: float, b: float, c: float, d: float) -> np.n
 
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
     bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-    rot_matrix = np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                           [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                           [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+    rot_matrix = np.array(
+        [
+            [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
+        ]
+    )
 
     return rot_matrix
 
@@ -101,11 +104,11 @@ def get_rot_mat_euler(axis: np.ndarray, theta: float) -> np.ndarray:
     Returns:
         (np.ndarray): Rotation matrix. shape = (3, 3)
     """
-    if hasattr(theta, 'to'):
-        theta = theta.to('rad')
+    if hasattr(theta, "to"):
+        theta = theta.to("rad")
 
     axis = np.asarray(axis)
-    axis = axis / np.linalg.norm(axis)   # Normalise
+    axis = axis / np.linalg.norm(axis)  # Normalise
 
     a = np.cos(theta / 2.0)
     b, c, d = -axis * np.sin(theta / 2.0)
@@ -114,10 +117,9 @@ def get_rot_mat_euler(axis: np.ndarray, theta: float) -> np.ndarray:
     return rot_matrix
 
 
-def get_neighbour_list(species: 'autode.species.species.Species',
-                       atom_i: int,
-                       index_set: Sequence[int]
-                       ) -> Sequence[int]:
+def get_neighbour_list(
+    species: "autode.species.species.Species", atom_i: int, index_set: Sequence[int]
+) -> Sequence[int]:
     """Calculate a neighbour list from atom i as a list of atom labels
 
     ---------------------------------------------------------------------------
@@ -133,9 +135,11 @@ def get_neighbour_list(species: 'autode.species.species.Species',
         (list(int)): list of atom ids in ascending distance away from i
     """
     if atom_i not in set(range(species.n_atoms)):
-        raise ValueError(f'Cannot get a neighbour list for atom {atom_i} '
-                         f'as it is not in {species.name}, containing '
-                         f'{species.n_atoms} atoms')
+        raise ValueError(
+            f"Cannot get a neighbour list for atom {atom_i} "
+            f"as it is not in {species.name}, containing "
+            f"{species.n_atoms} atoms"
+        )
 
     coords = species.coordinates
     distance_vector = cdist(np.array([coords[atom_i]]), coords)[0]
@@ -155,7 +159,7 @@ def get_neighbour_list(species: 'autode.species.species.Species',
     return atom_label_neighbour_list
 
 
-def get_distance_constraints(species: 'autode.species.species.Species') -> dict:
+def get_distance_constraints(species: "autode.species.species.Species") -> dict:
     """
     Set all the distance constraints required in an optimisation as the
     active bonds
@@ -171,23 +175,24 @@ def get_distance_constraints(species: 'autode.species.species.Species') -> dict:
     distance_constraints = {}
 
     if species.graph is None:
-        logger.warning('Molecular graph was not set cannot find any distance '
-                       'constraints')
+        logger.warning(
+            "Molecular graph was not set cannot find any distance " "constraints"
+        )
         return None
 
     # Add the active edges(/bonds) in the molecular graph to the dict, value
     # being the current distance
     for edge in species.graph.edges:
 
-        if species.graph.edges[edge]['active']:
+        if species.graph.edges[edge]["active"]:
             distance_constraints[edge] = species.distance(*edge)
 
     return distance_constraints
 
 
-def calc_heavy_atom_rmsd(atoms1: 'autode.atoms.Atoms',
-                         atoms2: 'autode.atoms.Atoms'
-                         ) -> float:
+def calc_heavy_atom_rmsd(
+    atoms1: "autode.atoms.Atoms", atoms2: "autode.atoms.Atoms"
+) -> float:
     """
     Calculate the RMSD between two sets of atoms considering only the 'heavy'
     atoms, i.e. the non-hydrogen atoms
@@ -202,14 +207,16 @@ def calc_heavy_atom_rmsd(atoms1: 'autode.atoms.Atoms',
         (float): RMSD between the two sets
     """
     if len(atoms1) != len(atoms2):
-        raise ValueError('RMSD must be computed between atom lists of the'
-                         f'same length: {len(atoms1)} =/= {len(atoms2)}')
+        raise ValueError(
+            "RMSD must be computed between atom lists of the"
+            f"same length: {len(atoms1)} =/= {len(atoms2)}"
+        )
 
-    coords1 = np.array([atom.coord for atom in atoms1 if atom.label != 'H'])
-    coords2 = np.array([atom.coord for atom in atoms2 if atom.label != 'H'])
+    coords1 = np.array([atom.coord for atom in atoms1 if atom.label != "H"])
+    coords2 = np.array([atom.coord for atom in atoms2 if atom.label != "H"])
 
     if len(coords1) == 0 or len(coords2) == 0:
-        logger.warning('No heavy atoms! assuming a zero RMSD')
+        logger.warning("No heavy atoms! assuming a zero RMSD")
         return 0.0
 
     return calc_rmsd(coords1, coords2)
@@ -267,13 +274,17 @@ def get_points_on_sphere(n_points: int, r: float = 1) -> Sequence[np.ndarray]:
 
     for m in range(m_theta):
         theta = np.pi * (m + 0.5) / m_theta
-        m_phi = int(np.round(2.0 * np.pi * np.sin(theta)/d_phi))
+        m_phi = int(np.round(2.0 * np.pi * np.sin(theta) / d_phi))
 
         for n in range(m_phi):
             phi = 2.0 * np.pi * n / m_phi
-            point = np.array([r * np.sin(theta) * np.cos(phi),
-                              r * np.sin(theta) * np.sin(phi),
-                              r * np.cos(theta)])
+            point = np.array(
+                [
+                    r * np.sin(theta) * np.cos(phi),
+                    r * np.sin(theta) * np.sin(phi),
+                    r * np.cos(theta),
+                ]
+            )
 
             points.append(point)
 
@@ -299,22 +310,22 @@ def symm_matrix_from_ltril(array: Sequence[float]) -> np.ndarray:
         # Flatten the array of arrays
         array = [item for sublist in array for item in sublist]
 
-    n = int((np.sqrt(8*len(array) + 1) - 1)/2)
+    n = int((np.sqrt(8 * len(array) + 1) - 1) / 2)
 
-    matrix = np.zeros(shape=(n, n), dtype='f8')
+    matrix = np.zeros(shape=(n, n), dtype="f8")
 
     try:
         matrix[np.tril_indices(n=n, k=0)] = np.array(array)
 
     except ValueError:
-        raise ValueError('Array was not the correct shape to be broadcast '
-                         'into the lower triangle. Need N(N+1)/2 elements'
-                         'for an NxN array')
+        raise ValueError(
+            "Array was not the correct shape to be broadcast "
+            "into the lower triangle. Need N(N+1)/2 elements"
+            "for an NxN array"
+        )
 
     # Symmetrise by making the upper triangular elements to the lower
     lower_idxs = np.tril_indices(n=n, k=-1)
     matrix.T[lower_idxs] = matrix[lower_idxs]
 
     return matrix
-
-

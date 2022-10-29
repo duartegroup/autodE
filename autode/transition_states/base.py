@@ -21,15 +21,17 @@ class TSbase(Species, ABC):
                  H                   r2 = 2.2 Å
     """
 
-    def __init__(self,
-                 atoms:      'autode.atoms.Atoms',
-                 reactant:   Optional['autode.species.ReactantComplex'] = None,
-                 product:    Optional['autode.species.ProductComplex'] = None,
-                 name:       str = 'ts_guess',
-                 charge:     int = 0,
-                 mult:       int = 1,
-                 bond_rearr: Optional['autode.bond_rearrangement.BondRearrangement'] = None,
-                 solvent_name: Optional[str] = None):
+    def __init__(
+        self,
+        atoms: "autode.atoms.Atoms",
+        reactant: Optional["autode.species.ReactantComplex"] = None,
+        product: Optional["autode.species.ProductComplex"] = None,
+        name: str = "ts_guess",
+        charge: int = 0,
+        mult: int = 1,
+        bond_rearr: Optional["autode.bond_rearrangement.BondRearrangement"] = None,
+        solvent_name: Optional[str] = None,
+    ):
         """
         Parent transition state class
 
@@ -52,11 +54,13 @@ class TSbase(Species, ABC):
 
             solvent_name: Name of the solvent
         """
-        super().__init__(name=name,
-                         atoms=atoms,
-                         charge=charge if reactant is None else reactant.charge,
-                         mult=mult if reactant is None else reactant.mult,
-                         solvent_name=solvent_name)
+        super().__init__(
+            name=name,
+            atoms=atoms,
+            charge=charge if reactant is None else reactant.charge,
+            mult=mult if reactant is None else reactant.mult,
+            solvent_name=solvent_name,
+        )
 
         self.reactant = reactant
         self.product = product
@@ -67,14 +71,14 @@ class TSbase(Species, ABC):
 
     def __eq__(self, other):
         """Equality of this TS base to another"""
-        logger.warning('TSs types are not equal to any others')
+        logger.warning("TSs types are not equal to any others")
         return False
 
     def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
 
         if self.reactant is not None:
-            logger.warning(f'Setting the graph of {self.name} from reactants')
+            logger.warning(f"Setting the graph of {self.name} from reactants")
             self._graph = self.reactant.graph.copy()
 
         return None
@@ -82,22 +86,29 @@ class TSbase(Species, ABC):
     def _init_solvent(self) -> None:
         """Initialise the solvent on this TS guesss"""
 
-        if ((self.reactant is not None and self.product is not None)
-                and self.reactant.solvent != self.product.solvent):
-            raise ValueError("Cannot initialise a TS guess with reactants "
-                             "and products immersed in different solvents")
+        if (
+            self.reactant is not None and self.product is not None
+        ) and self.reactant.solvent != self.product.solvent:
+            raise ValueError(
+                "Cannot initialise a TS guess with reactants "
+                "and products immersed in different solvents"
+            )
 
         if self.reactant is not None:
 
-            if (self.solvent is not None
-                    and self.reactant.solvent != self.solvent):
-                raise ValueError("Reactant does not have the same solvent as "
-                                 "the TS guess")
+            if self.solvent is not None and self.reactant.solvent != self.solvent:
+                raise ValueError(
+                    "Reactant does not have the same solvent as " "the TS guess"
+                )
 
-            if (self.solvent is None  # No solvent has been given explicitly
-                    and self.reactant.solvent is not None):
-                logger.info("Setting TS guess solvent from reactant state to "
-                            f"{self.reactant.solvent}")
+            if (
+                self.solvent is None  # No solvent has been given explicitly
+                and self.reactant.solvent is not None
+            ):
+                logger.info(
+                    "Setting TS guess solvent from reactant state to "
+                    f"{self.reactant.solvent}"
+                )
                 self.solvent = self.reactant.solvent
 
         return None
@@ -129,34 +140,37 @@ class TSbase(Species, ABC):
                           is no chance of determining the right mode
         """
         if self.bond_rearrangement is None:
-            raise ValueError('Do not have a bond rearrangment - cannot '
-                             'check the imaginary mode')
+            raise ValueError(
+                "Do not have a bond rearrangment - cannot " "check the imaginary mode"
+            )
 
         if self.hessian is None:
-            logger.info('Calculating the hessian..')
+            logger.info("Calculating the hessian..")
             self._run_hess_calculation(method=get_hmethod())
 
         imag_freqs = self.imaginary_frequencies
 
         if imag_freqs is None:
-            logger.warning('Hessian had no imaginary modes. Do not have the '
-                           'correct mode')
+            logger.warning(
+                "Hessian had no imaginary modes. Do not have the " "correct mode"
+            )
             return False
 
         if len(imag_freqs) > 1:
-            logger.warning(f'Hessian had {len(imag_freqs)} imaginary modes')
+            logger.warning(f"Hessian had {len(imag_freqs)} imaginary modes")
 
         if imag_freqs[0] > Config.min_imag_freq:
-            logger.warning('Imaginary modes were too small to be significant')
+            logger.warning("Imaginary modes were too small to be significant")
             return False
 
         # Check very conservatively for the correct displacement
-        if not self.imag_mode_has_correct_displacement(delta_threshold=0.05,
-                                                       req_all=False):
-            logger.warning('Species does not have the correct imaginary mode')
+        if not self.imag_mode_has_correct_displacement(
+            delta_threshold=0.05, req_all=False
+        ):
+            logger.warning("Species does not have the correct imaginary mode")
             return False
 
-        logger.info('Species could have the correct imaginary mode')
+        logger.info("Species could have the correct imaginary mode")
         return True
 
     @property
@@ -178,23 +192,24 @@ class TSbase(Species, ABC):
             return False
 
         if self.imag_mode_has_correct_displacement(req_all=True):
-            logger.info('Displacement of the active atoms in the imaginary '
-                        'mode bond forms and breaks the correct bonds')
+            logger.info(
+                "Displacement of the active atoms in the imaginary "
+                "mode bond forms and breaks the correct bonds"
+            )
             return True
 
         # Perform displacements over the imaginary mode to ensure the mode
         # connects reactants and products
         if self.imag_mode_links_reactant_products(disp_mag=1.0):
-            logger.info('Imaginary mode does link reactants and products')
+            logger.info("Imaginary mode does link reactants and products")
             return True
 
-        logger.warning('Species does *not* have the correct imaginary mode')
+        logger.warning("Species does *not* have the correct imaginary mode")
         return False
 
-    def imag_mode_has_correct_displacement(self,
-                                           disp_mag:        float = 1.0,
-                                           delta_threshold: float = 0.3,
-                                           req_all:         bool = True) -> bool:
+    def imag_mode_has_correct_displacement(
+        self, disp_mag: float = 1.0, delta_threshold: float = 0.3, req_all: bool = True
+    ) -> bool:
         """
         Check whether the imaginary mode in a calculation with a hessian forms
         and breaks the correct bonds
@@ -210,21 +225,21 @@ class TSbase(Species, ABC):
         Returns:
             (bool):
         """
-        logger.info('Checking displacement on imaginary mode forms the correct'
-                    ' bonds')
+        logger.info(
+            "Checking displacement on imaginary mode forms the correct" " bonds"
+        )
 
-        f_species = displaced_species_along_mode(self, mode_number=6,
-                                                 max_atom_disp=0.5,
-                                                 disp_factor=disp_mag)
+        f_species = displaced_species_along_mode(
+            self, mode_number=6, max_atom_disp=0.5, disp_factor=disp_mag
+        )
 
-        b_species = displaced_species_along_mode(self, mode_number=6,
-                                                 max_atom_disp=0.5,
-                                                 disp_factor=-disp_mag)
+        b_species = displaced_species_along_mode(
+            self, mode_number=6, max_atom_disp=0.5, disp_factor=-disp_mag
+        )
 
         # Be conservative with metal complexes - what even is a bond..
-        if imag_mode_generates_other_bonds(self, f_species, b_species,
-                                           allow_mx=True):
-            logger.warning('Imaginary mode generates bonds that are not active')
+        if imag_mode_generates_other_bonds(self, f_species, b_species, allow_mx=True):
+            logger.warning("Imaginary mode generates bonds that are not active")
             return False
 
         # Product could be either the forward displaced molecule or the
@@ -259,24 +274,29 @@ class TSbase(Species, ABC):
                 else:
                     fbond_bbond_correct_disps.append(False)
 
-            logger.info(f'List of forming and breaking bonds that have the '
-                        f'correct properties {fbond_bbond_correct_disps}')
+            logger.info(
+                f"List of forming and breaking bonds that have the "
+                f"correct properties {fbond_bbond_correct_disps}"
+            )
 
             if all(fbond_bbond_correct_disps) and req_all:
-                logger.info(f'{product.name} afforded the correct bond '
-                            f'forming/breaking reactants -> products')
+                logger.info(
+                    f"{product.name} afforded the correct bond "
+                    f"forming/breaking reactants -> products"
+                )
                 return True
 
             if not req_all and any(fbond_bbond_correct_disps):
-                logger.info('At least one bond had the correct displacement')
+                logger.info("At least one bond had the correct displacement")
                 return True
 
-        logger.warning('Displacement along the imaginary mode did not form '
-                       'and break the correct bonds')
+        logger.warning(
+            "Displacement along the imaginary mode did not form "
+            "and break the correct bonds"
+        )
         return False
 
-    def imag_mode_links_reactant_products(self,
-                                          disp_mag: float = 1.0) -> bool:
+    def imag_mode_links_reactant_products(self, disp_mag: float = 1.0) -> bool:
         """Displaces atoms along the imaginary mode forwards (f) and backwards (b)
         to see if products and reactants are made
 
@@ -288,33 +308,37 @@ class TSbase(Species, ABC):
         Returns:
             (bool): if the imag mode is correct or not
         """
-        logger.info('Displacing along imag modes to check that the TS links '
-                    'reactants and products')
+        logger.info(
+            "Displacing along imag modes to check that the TS links "
+            "reactants and products"
+        )
         if self.reactant is None or self.product is None:
-            raise ValueError('Could not check imaginary mode – reactants '
-                             ' and/or products not set ')
+            raise ValueError(
+                "Could not check imaginary mode – reactants "
+                " and/or products not set "
+            )
 
         # Generate and optimise conformers with the low level of theory
         try:
             self.reactant.populate_conformers()
             self.product.populate_conformers()
         except NotImplementedError:
-            logger.error('Could not generate conformers of reactant/product(s)'
-                         ' QRC will run without conformers')
+            logger.error(
+                "Could not generate conformers of reactant/product(s)"
+                " QRC will run without conformers"
+            )
 
         # Get the species by displacing forwards along the mode
-        f_mol = displaced_species_along_mode(self,
-                                             mode_number=6,
-                                             disp_factor=disp_mag,
-                                             max_atom_disp=0.2)
-        f_mol.name = f'{self.name}_forwards'
+        f_mol = displaced_species_along_mode(
+            self, mode_number=6, disp_factor=disp_mag, max_atom_disp=0.2
+        )
+        f_mol.name = f"{self.name}_forwards"
 
         # and the same backwards
-        b_mol = displaced_species_along_mode(self,
-                                             mode_number=6,
-                                             disp_factor=-disp_mag,
-                                             max_atom_disp=0.2)
-        b_mol.name = f'{self.name}_backwards'
+        b_mol = displaced_species_along_mode(
+            self, mode_number=6, disp_factor=-disp_mag, max_atom_disp=0.2
+        )
+        b_mol.name = f"{self.name}_backwards"
 
         # The high and low level methods may not have the same minima, so
         # optimise and recheck isomorphisms
@@ -323,27 +347,33 @@ class TSbase(Species, ABC):
             for mol in (f_mol, b_mol):
 
                 try:
-                    mol.optimise(method=method,
-                                 keywords=method.keywords.low_opt,
-                                 reset_graph=True)
+                    mol.optimise(
+                        method=method,
+                        keywords=method.keywords.low_opt,
+                        reset_graph=True,
+                    )
 
                 except ex.CalculationException:
-                    logger.error(f'Failed to optimise {mol.name} with '
-                                 f'{method}. Assuming no link')
+                    logger.error(
+                        f"Failed to optimise {mol.name} with "
+                        f"{method}. Assuming no link"
+                    )
                     return False
 
             if f_b_isomorphic_to_r_p(f_mol, b_mol, self.reactant, self.product):
                 return True
 
-        logger.info(f'Forwards displaced edges {f_mol.graph.edges}')
-        logger.info(f'Backwards displaced edges {b_mol.graph.edges}')
+        logger.info(f"Forwards displaced edges {f_mol.graph.edges}")
+        logger.info(f"Backwards displaced edges {b_mol.graph.edges}")
         return False
 
 
-def displaced_species_along_mode(species:       Species,
-                                 mode_number:   int,
-                                 disp_factor:   float = 1.0,
-                                 max_atom_disp: float = 99.9) -> Optional[Species]:
+def displaced_species_along_mode(
+    species: Species,
+    mode_number: int,
+    disp_factor: float = 1.0,
+    max_atom_disp: float = 99.9,
+) -> Optional[Species]:
     """
     Displace the geometry along a normal mode with mode number indexed from 0,
     where 0-2 are translational normal modes, 3-5 are rotational modes and 6
@@ -366,12 +396,13 @@ def displaced_species_along_mode(species:       Species,
     Raises:
         (autode.exceptions.CouldNotGetProperty):
     """
-    logger.info(f'Displacing along mode {mode_number} in {species.name}')
+    logger.info(f"Displacing along mode {mode_number} in {species.name}")
 
     mode_disp_coords = species.normal_mode(mode_number)
     if mode_disp_coords is None:
-        logger.error('Could not get a displaced species. No normal mode '
-                     'could be found')
+        logger.error(
+            "Could not get a displaced species. No normal mode " "could be found"
+        )
         return None
 
     coords = species.coordinates
@@ -388,19 +419,20 @@ def displaced_species_along_mode(species:       Species,
         disp_coords -= (disp_factor / 20) * mode_disp_coords
 
     # Create a new species from the initial
-    disp_species = Species(name=f'{species.name}_disp',
-                           atoms=species.atoms.copy(),
-                           charge=species.charge,
-                           mult=species.mult)
+    disp_species = Species(
+        name=f"{species.name}_disp",
+        atoms=species.atoms.copy(),
+        charge=species.charge,
+        mult=species.mult,
+    )
     disp_species.coordinates = disp_coords
 
     return disp_species
 
 
-def imag_mode_generates_other_bonds(ts:        TSbase,
-                                    f_species: Species,
-                                    b_species: Species,
-                                    allow_mx:  bool = False) -> bool:
+def imag_mode_generates_other_bonds(
+    ts: TSbase, f_species: Species, b_species: Species, allow_mx: bool = False
+) -> bool:
     """Determine if the forward or backwards displaced molecule break or make
     bonds that aren't in all the active bonds bond_rearrangement.all. Will be
     fairly conservative here
@@ -426,29 +458,38 @@ def imag_mode_generates_other_bonds(ts:        TSbase,
 
     for product in (f_species, b_species):
 
-        new_bonds_in_product = set([bond for bond in product.graph.edges
-                                    if bond not in _ts.graph.edges])
+        new_bonds_in_product = set(
+            [bond for bond in product.graph.edges if bond not in _ts.graph.edges]
+        )
 
         if allow_mx:
-            new_bonds_in_product = set([(i, j) for i, j in new_bonds_in_product
-                                        if _ts.atoms[i].label not in metals and
-                                        _ts.atoms[j].label not in metals])
+            new_bonds_in_product = set(
+                [
+                    (i, j)
+                    for i, j in new_bonds_in_product
+                    if _ts.atoms[i].label not in metals
+                    and _ts.atoms[j].label not in metals
+                ]
+            )
 
         br = _ts.bond_rearrangement
-        if not set(a for b in new_bonds_in_product for a in b
-                   ).issubset(set(br.active_atoms)):
-            logger.warning(f'New bonds in product: {new_bonds_in_product}')
-            logger.warning(f'Active bonds: {br.all}. Active atoms {br.active_atoms}')
+        if not set(a for b in new_bonds_in_product for a in b).issubset(
+            set(br.active_atoms)
+        ):
+            logger.warning(f"New bonds in product: {new_bonds_in_product}")
+            logger.warning(f"Active bonds: {br.all}. Active atoms {br.active_atoms}")
             return True
 
-    logger.info('Imaginary mode does not generate any other unwanted bonds')
+    logger.info("Imaginary mode does not generate any other unwanted bonds")
     return False
 
 
-def f_b_isomorphic_to_r_p(forwards:  Species,
-                          backwards: Species,
-                          reactant:  'autode.species.ReactantComplex',
-                          product:   'autode.species.ProductComplex') -> bool:
+def f_b_isomorphic_to_r_p(
+    forwards: Species,
+    backwards: Species,
+    reactant: "autode.species.ReactantComplex",
+    product: "autode.species.ProductComplex",
+) -> bool:
     """
     Are the forward/backward displaced species isomorphic to
     reactants/products?
@@ -468,20 +509,21 @@ def f_b_isomorphic_to_r_p(forwards:  Species,
     """
 
     if any(mol.atoms is None for mol in (forwards, backwards)):
-        logger.warning('Atoms not set in the output. '
-                       'Cannot calculate isomorphisms')
+        logger.warning("Atoms not set in the output. " "Cannot calculate isomorphisms")
         return False
 
-    if (species_are_isomorphic(backwards, reactant)
-            and species_are_isomorphic(forwards, product)):
-        logger.info('Forwards displacement lead to products '
-                    'and backwards reactants')
+    if species_are_isomorphic(backwards, reactant) and species_are_isomorphic(
+        forwards, product
+    ):
+        logger.info("Forwards displacement lead to products " "and backwards reactants")
         return True
 
-    if (species_are_isomorphic(forwards, reactant)
-            and species_are_isomorphic(backwards, product)):
-        logger.info('Backwards displacement lead to products '
-                    'and forwards to reactants')
+    if species_are_isomorphic(forwards, reactant) and species_are_isomorphic(
+        backwards, product
+    ):
+        logger.info(
+            "Backwards displacement lead to products " "and forwards to reactants"
+        )
         return True
 
     return False

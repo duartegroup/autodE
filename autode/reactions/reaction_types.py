@@ -21,16 +21,17 @@ class ReactionType:
         return isinstance(other, ReactionType) and self.name == other.name
 
 
-Addition = ReactionType(name='addition')
-Dissociation = ReactionType(name='dissociation')
-Substitution = ReactionType(name='substitution')
-Elimination = ReactionType(name='elimination')
-Rearrangement = ReactionType(name='rearrangement')
+Addition = ReactionType(name="addition")
+Dissociation = ReactionType(name="dissociation")
+Substitution = ReactionType(name="substitution")
+Elimination = ReactionType(name="elimination")
+Rearrangement = ReactionType(name="rearrangement")
 
 
-def classify(reactants: Sequence['autode.species.molecule.Reactant'],
-             products:  Sequence['autode.species.molecule.Product']
-             ) -> ReactionType:
+def classify(
+    reactants: Sequence["autode.species.molecule.Reactant"],
+    products: Sequence["autode.species.molecule.Product"],
+) -> ReactionType:
     """
     Classify a reaction into a type given some reactants and products
 
@@ -45,35 +46,40 @@ def classify(reactants: Sequence['autode.species.molecule.Reactant'],
     n_reactants, n_products = len(reactants), len(products)
 
     if n_reactants == 0:
-        raise ReactionFormationFailed(f'Reaction had 0 reactants and '
-                                      f'{n_products} products. A reaction '
-                                      f'requires at least 1 reactant!')
+        raise ReactionFormationFailed(
+            f"Reaction had 0 reactants and "
+            f"{n_products} products. A reaction "
+            f"requires at least 1 reactant!"
+        )
 
     if n_products == 0:
-        raise ReactionFormationFailed(f'Reaction had 0 products but '
-                                      f'{n_reactants} reactants. A reaction '
-                                      f'requires at least 1 product!')
+        raise ReactionFormationFailed(
+            f"Reaction had 0 products but "
+            f"{n_reactants} reactants. A reaction "
+            f"requires at least 1 product!"
+        )
 
     if n_reactants == 2 and n_products == 1:
-        logger.info('Classifying reaction as addition')
+        logger.info("Classifying reaction as addition")
         return Addition
 
     elif n_reactants == 1 and n_products in [2, 3]:
-        logger.info('Classifying reaction as dissociation')
+        logger.info("Classifying reaction as dissociation")
         return Dissociation
 
     elif n_reactants == 2 and n_products == 2:
-        logger.info('Classifying reaction as substitution')
+        logger.info("Classifying reaction as substitution")
         return Substitution
 
     elif n_reactants == 2 and n_products == 3:
-        logger.info('Classifying reaction as elimination')
+        logger.info("Classifying reaction as elimination")
         return Elimination
 
     elif n_reactants == 1 and n_products == 1:
-        logger.info('Classifying reaction as rearrangement')
+        logger.info("Classifying reaction as rearrangement")
         return Rearrangement
 
     else:
-        raise NotImplementedError('Unsupported reaction type: '
-                                  f'{n_reactants} -> {n_products}')
+        raise NotImplementedError(
+            "Unsupported reaction type: " f"{n_reactants} -> {n_products}"
+        )

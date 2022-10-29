@@ -13,28 +13,41 @@ from autode.config import Config
 from autode.constants import Constants
 from autode.values import ValueArray, Frequency, Coordinates, Distance
 from autode.utils import work_in, hashable
-from autode.units import (Unit, wavenumber,
-                          ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
-                          J_per_ang_sq_kg)
+from autode.units import (
+    Unit,
+    wavenumber,
+    ha_per_ang_sq,
+    ha_per_a0_sq,
+    J_per_m_sq,
+    J_per_ang_sq,
+    J_per_ang_sq_kg,
+)
 
 
 class Hessian(ValueArray):
 
-    implemented_units = [ha_per_ang_sq, ha_per_a0_sq, J_per_m_sq, J_per_ang_sq,
-                         J_per_ang_sq_kg]
+    implemented_units = [
+        ha_per_ang_sq,
+        ha_per_a0_sq,
+        J_per_m_sq,
+        J_per_ang_sq,
+        J_per_ang_sq_kg,
+    ]
 
     def __repr__(self):
-        return f'Hessian({np.ndarray.__str__(self)} {self.units.name})'
+        return f"Hessian({np.ndarray.__str__(self)} {self.units.name})"
 
     def __hash__(self):
         # NOTE: Required for functools.lru_cache (< Python 3.8)
         return hash(str(self))
 
-    def __new__(cls,
-                input_array: np.ndarray,
-                units:       Union[Unit, str] = ha_per_ang_sq,
-                atoms:       Optional['autode.atoms.Atoms'] = None,
-                functional:  Optional[Functional] = None):
+    def __new__(
+        cls,
+        input_array: np.ndarray,
+        units: Union[Unit, str] = ha_per_ang_sq,
+        atoms: Optional["autode.atoms.Atoms"] = None,
+        functional: Optional[Functional] = None,
+    ):
         """
         Hessian matrix
 
@@ -51,10 +64,12 @@ class Hessian(ValueArray):
         """
         arr = super().__new__(cls, input_array, units=units)
 
-        if atoms is not None and (3*len(atoms), 3*len(atoms)) != input_array.shape:
-            raise ValueError(f'Shape mismatch. Expecting '
-                             f'{input_array.shape[0]//3} atoms from the Hessian'
-                             f' shape, but had {len(atoms)}')
+        if atoms is not None and (3 * len(atoms), 3 * len(atoms)) != input_array.shape:
+            raise ValueError(
+                f"Shape mismatch. Expecting "
+                f"{input_array.shape[0]//3} atoms from the Hessian"
+                f" shape, but had {len(atoms)}"
+            )
 
         arr.atoms = atoms
         arr.functional = functional
@@ -73,9 +88,11 @@ class Hessian(ValueArray):
         Raises:
             (ValueError): Without atoms set
         """
-        if self.atoms is None or not hasattr(self.atoms, 'are_linear'):
-            raise ValueError('Could not determine the number of translations'
-                             'and rotations. Atoms must be set')
+        if self.atoms is None or not hasattr(self.atoms, "are_linear"):
+            raise ValueError(
+                "Could not determine the number of translations"
+                "and rotations. Atoms must be set"
+            )
 
         return 5 if self.atoms.are_linear() else 6
 
@@ -92,13 +109,15 @@ class Hessian(ValueArray):
             (ValueError): Without atoms set
         """
         if self.atoms is None:
-            raise ValueError('Could not determine the number of vibrations.'
-                             ' Atoms must be set')
+            raise ValueError(
+                "Could not determine the number of vibrations." " Atoms must be set"
+            )
 
-        return 3*len(self.atoms) - self.n_tr
+        return 3 * len(self.atoms) - self.n_tr
 
-    def _tr_vecs(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray,
-                                np.ndarray, np.ndarray, np.ndarray]:
+    def _tr_vecs(
+        self,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         Orthonormal translation and rotation (tr) vectors for Hessian
         projection.
@@ -114,9 +133,13 @@ class Hessian(ValueArray):
 
         if n_atoms > 2:
             # Get an orthonormal basis shifted from the principal rotation axis
-            _rot_M = np.array([[1., 0.,                   0.],
-                               [0., 0.09983341664682815, -0.9950041652780258],
-                               [0., 0.9950041652780258,   0.09983341664682815]])
+            _rot_M = np.array(
+                [
+                    [1.0, 0.0, 0.0],
+                    [0.0, 0.09983341664682815, -0.9950041652780258],
+                    [0.0, 0.9950041652780258, 0.09983341664682815],
+                ]
+            )
 
             _, (e_x, e_y, e_z) = np.linalg.eigh(_rot_M.dot(self.atoms.moi))
         else:
@@ -127,7 +150,7 @@ class Hessian(ValueArray):
         t2 = np.tile(e_y, reps=n_atoms)
         t3 = np.tile(e_z, reps=n_atoms)
 
-        com = self.atoms.com               # Centre of mass
+        com = self.atoms.com  # Centre of mass
         t4, t5, t6 = [], [], []
 
         for atom in self.atoms:
@@ -164,14 +187,15 @@ class Hessian(ValueArray):
             (np.ndarray): Transform matrix (D)
         """
         if self.atoms is None:
-            raise ValueError('Could generate projected Hessian. Atoms not set')
+            raise ValueError("Could generate projected Hessian. Atoms not set")
 
         t1, t2, t3, t4, t5, t6 = self._tr_vecs()
 
         # Construct M^1/2, which as it's diagonal, is just the roots of the
         # diagonal elements
-        masses = np.repeat([atom.mass for atom in self.atoms], repeats=3,
-                           axis=np.newaxis)
+        masses = np.repeat(
+            [atom.mass for atom in self.atoms], repeats=3, axis=np.newaxis
+        )
         m_half = np.diag(np.sqrt(masses))
 
         for t_i in (t1, t2, t3, t4, t5, t6):
@@ -195,15 +219,16 @@ class Hessian(ValueArray):
                    √(m_i x m_j)
         """
         if self.atoms is None:
-            raise ValueError('Could not calculate frequencies. Atoms not set')
+            raise ValueError("Could not calculate frequencies. Atoms not set")
 
-        H = self.to('J ang^-2')
-        mass_array = np.repeat([atom.mass.to('kg') for atom in self.atoms],
-                               repeats=3,
-                               axis=np.newaxis)
+        H = self.to("J ang^-2")
+        mass_array = np.repeat(
+            [atom.mass.to("kg") for atom in self.atoms], repeats=3, axis=np.newaxis
+        )
 
-        return Hessian(H / np.sqrt(np.outer(mass_array, mass_array)),
-                       units='J m^-2 kg^-1')
+        return Hessian(
+            H / np.sqrt(np.outer(mass_array, mass_array)), units="J m^-2 kg^-1"
+        )
 
     @cached_property
     def _proj_mass_weighted(self) -> np.ndarray:
@@ -217,9 +242,9 @@ class Hessian(ValueArray):
         Returns:
             (np.ndarray):
         """
-        H = np.linalg.multi_dot((self._proj_matrix.T,
-                                 self._mass_weighted,
-                                 self._proj_matrix))
+        H = np.linalg.multi_dot(
+            (self._proj_matrix.T, self._mass_weighted, self._proj_matrix)
+        )
         return H
 
     @cached_property
@@ -250,17 +275,22 @@ class Hessian(ValueArray):
             (list(autode.values.Coordinates)):
         """
         if self.atoms is None:
-            raise ValueError('Could not calculate projected normal modes, must'
-                             ' have atoms set')
+            raise ValueError(
+                "Could not calculate projected normal modes, must" " have atoms set"
+            )
 
-        n_tr = self.n_tr             # Number of translational+rotational modes
-        n_v = self.n_v               # and the number of vibrations
+        n_tr = self.n_tr  # Number of translational+rotational modes
+        n_v = self.n_v  # and the number of vibrations
 
         _, S_bar = np.linalg.eigh(self._proj_mass_weighted[n_tr:, n_tr:])
 
         # Re-construct the block matrix
-        S_prime = np.block([[np.zeros((n_tr, n_tr)),  np.zeros((n_tr, n_v))],
-                            [np.zeros((n_v, n_tr)),         S_bar        ]])
+        S_prime = np.block(
+            [
+                [np.zeros((n_tr, n_tr)), np.zeros((n_tr, n_v))],
+                [np.zeros((n_v, n_tr)), S_bar],
+            ]
+        )
 
         # then apply the back-transformation
         modes = []
@@ -301,8 +331,9 @@ class Hessian(ValueArray):
             (list(autode.values.Frequency)):
         """
 
-        nus = (np.sqrt(np.complex_(lambdas))
-               / (2.0 * np.pi * Constants.ang_to_m * Constants.c_in_cm))
+        nus = np.sqrt(np.complex_(lambdas)) / (
+            2.0 * np.pi * Constants.ang_to_m * Constants.c_in_cm
+        )
         nus *= self._freq_scale_factor
 
         # Cast the purely complex eigenvalues to negative real numbers, as is
@@ -343,10 +374,11 @@ class Hessian(ValueArray):
             (ValueError): Without atoms set
         """
         if self.atoms is None:
-            raise ValueError('Could not calculate projected frequencies, must '
-                             'have atoms set')
+            raise ValueError(
+                "Could not calculate projected frequencies, must " "have atoms set"
+            )
 
-        n_tr = self.n_tr             # Number of translational+rotational modes
+        n_tr = self.n_tr  # Number of translational+rotational modes
         lambdas = np.linalg.eigvalsh(self._proj_mass_weighted[n_tr:, n_tr:])
 
         trans_rot_freqs = [Frequency(0.0) for _ in range(n_tr)]
@@ -354,48 +386,52 @@ class Hessian(ValueArray):
 
         return trans_rot_freqs + vib_freqs
 
-    def copy(self) -> 'Hessian':
+    def copy(self) -> "Hessian":
         return self.__class__(np.copy(self), units=self.units, atoms=self.atoms)
 
 
 class NumericalHessianCalculator:
-
-    def __init__(self,
-                 species:   'autode.species.Species',
-                 method:    'autode.wrappers.methods.Method',
-                 keywords:  'autode.wrappers.keywords.GradientKeywords',
-                 do_c_diff:  bool,
-                 shift:      Distance,
-                 n_cores:    Optional[int] = None
-                 ):
+    def __init__(
+        self,
+        species: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        keywords: "autode.wrappers.keywords.GradientKeywords",
+        do_c_diff: bool,
+        shift: Distance,
+        n_cores: Optional[int] = None,
+    ):
 
         self._species = species
         self._method = method
         self._keywords = self._validated(keywords)
 
         self._do_c_diff = do_c_diff
-        self._shift = shift.to('Å')
+        self._shift = shift.to("Å")
 
-        self._hessian = Hessian(np.zeros(shape=self._hessian_shape),
-                                units='Ha Å^-2',
-                                atoms=species.atoms.copy())
+        self._hessian = Hessian(
+            np.zeros(shape=self._hessian_shape),
+            units="Ha Å^-2",
+            atoms=species.atoms.copy(),
+        )
 
         self._calculated_rows = []
 
         self._n_total_cores = Config.n_cores if n_cores is None else n_cores
 
-    @work_in('numerical_hessian')
+    @work_in("numerical_hessian")
     def calculate(self) -> None:
         """Calculate the Hessian"""
 
-        logger.info(f'Calculating a numerical Hessian '
-                    f'{"with" if self._do_c_diff else "without"} central '
-                    f'differences using {self._n_total_cores} total cores.\n'
-                    f'Doing: {self._n_rows * (2 if self._do_c_diff else 1)} '
-                    f'gradient evaluations')
+        logger.info(
+            f"Calculating a numerical Hessian "
+            f'{"with" if self._do_c_diff else "without"} central '
+            f"differences using {self._n_total_cores} total cores.\n"
+            f"Doing: {self._n_rows * (2 if self._do_c_diff else 1)} "
+            f"gradient evaluations"
+        )
 
         if not self._do_c_diff:
-            logger.info('Calculating gradient at current point')
+            logger.info("Calculating gradient at current point")
             self._init_gradient = self._gradient(species=self._species)
 
         if mp.current_process().daemon:
@@ -404,11 +440,12 @@ class NumericalHessianCalculator:
         # Although n_rows may be < n_cores there will not be > n_rows processes
         with mp.pool.Pool(processes=self._n_total_cores) as pool:
 
-            func_name = '_cdiff_row' if self._do_c_diff else '_diff_row'
+            func_name = "_cdiff_row" if self._do_c_diff else "_diff_row"
 
-            res = [pool.apply_async(hashable(func_name, self),
-                                    args=(i, k))
-                   for (i, k) in self._idxs_to_calculate()]
+            res = [
+                pool.apply_async(hashable(func_name, self), args=(i, k))
+                for (i, k) in self._idxs_to_calculate()
+            ]
 
             for row_idx, row in enumerate(res):
                 self._hessian[row_idx, :] = row.get(timeout=None)
@@ -455,21 +492,21 @@ class NumericalHessianCalculator:
         for a water molecule where the 0th atom has been shifted in the
         positive x direction
         """
-        assert direction in ('+', '-')    # Positive or negative
+        assert direction in ("+", "-")  # Positive or negative
 
         species = self._species.new_species()
 
-        c = ['x', 'y', 'z'][component]
-        species.name = f'{self._species.name}_{atom_idx}{c}{direction}'
+        c = ["x", "y", "z"][component]
+        species.name = f"{self._species.name}_{atom_idx}{c}{direction}"
 
         vec = self._shift_vector(component=component)
-        species.atoms[atom_idx].translate(vec if direction == '+' else -vec)
+        species.atoms[atom_idx].translate(vec if direction == "+" else -vec)
 
         return species
 
     def _idxs_to_calculate(self) -> Iterator:
         """Generate the indexes of atoms and cartesian components that
-         need to be calculated"""
+        need to be calculated"""
 
         for row_idx in range(self._n_rows):
 
@@ -477,24 +514,28 @@ class NumericalHessianCalculator:
                 self._calculated_rows.append(row_idx)
 
                 atom_idx = row_idx // 3
-                component = row_idx % 3    # 0: x, 1: y, 2: z
+                component = row_idx % 3  # 0: x, 1: y, 2: z
 
                 yield atom_idx, component
 
         return
 
     @staticmethod
-    def _validated(keywords: 'autode.keywords.Keywords'
-                   ) -> 'autode.keywords.GradientKeywords':
+    def _validated(
+        keywords: "autode.keywords.Keywords",
+    ) -> "autode.keywords.GradientKeywords":
         """Validate the keywords"""
 
         if not isinstance(keywords, GradientKeywords):
-            raise ValueError('Numerical Hessian require the keywords to be '
-                             'GradientKeywords')
+            raise ValueError(
+                "Numerical Hessian require the keywords to be " "GradientKeywords"
+            )
 
-        if keywords.contain_any_of('hess', 'freq', 'hessian', 'frequency'):
-            raise ValueError('Cannot calculate numerical Hessian with keywords'
-                             ' that contain Hess or Freq. Must be only grad')
+        if keywords.contain_any_of("hess", "freq", "hessian", "frequency"):
+            raise ValueError(
+                "Cannot calculate numerical Hessian with keywords"
+                " that contain Hess or Freq. Must be only grad"
+            )
 
         return keywords
 
@@ -507,20 +548,22 @@ class NumericalHessianCalculator:
 
         return vec
 
-    def _gradient(self, species) -> 'autode.values.Gradient':
-        """Evaluate the flat gradient, with shape = (3 n_atoms,) """
+    def _gradient(self, species) -> "autode.values.Gradient":
+        """Evaluate the flat gradient, with shape = (3 n_atoms,)"""
         from autode.calculations import Calculation
 
-        calc = Calculation(name=species.name,
-                           molecule=species,
-                           method=self._method,
-                           keywords=self._keywords,
-                           n_cores=self._n_cores_pp)
+        calc = Calculation(
+            name=species.name,
+            molecule=species,
+            method=self._method,
+            keywords=self._keywords,
+            n_cores=self._n_cores_pp,
+        )
         calc.run()
         return species.gradient.flatten()
 
     @property
-    def _init_gradient(self) -> 'autode.values.Gradient':
+    def _init_gradient(self) -> "autode.values.Gradient":
         """Gradient at the initial geometry of the species"""
         return np.array(self._species.gradient).flatten()
 
@@ -532,21 +575,19 @@ class NumericalHessianCalculator:
     def _cdiff_row(self, atom_idx, component) -> np.ndarray:
         """Calculate a Hessian row with central differences"""
 
-        s_plus = self._new_species(atom_idx, component, direction='+')
-        s_minus = self._new_species(atom_idx, component, direction='-')
+        s_plus = self._new_species(atom_idx, component, direction="+")
+        s_minus = self._new_species(atom_idx, component, direction="-")
 
-        row = ((self._gradient(s_plus) - self._gradient(s_minus))
-               / (2 * self._shift))
+        row = (self._gradient(s_plus) - self._gradient(s_minus)) / (2 * self._shift)
 
         return row
 
     def _diff_row(self, atom_idx, component) -> np.ndarray:
         """Calculate a Hessian row with one-sided differences"""
 
-        s_plus = self._new_species(atom_idx, component, direction='+')
+        s_plus = self._new_species(atom_idx, component, direction="+")
 
-        row = ((self._gradient(s_plus) - self._init_gradient)
-               / self._shift)
+        row = (self._gradient(s_plus) - self._init_gradient) / self._shift
 
         return row
 
@@ -570,14 +611,15 @@ class HybridHessianCalculator(NumericalHessianCalculator):
         >>> calculator.calculate()
     """
 
-    def __init__(self,
-                 species: 'autode.species.Species',
-                 idxs:     Sequence[int],
-                 shift:   'autode.values.Distance',
-                 lmethod:  Optional['autode.wrappers.methods.Method'] = None,
-                 hmethod:  Optional['autode.wrappers.methods.Method'] = None,
-                 n_cores:  Optional[int] = None
-                 ):
+    def __init__(
+        self,
+        species: "autode.species.Species",
+        idxs: Sequence[int],
+        shift: "autode.values.Distance",
+        lmethod: Optional["autode.wrappers.methods.Method"] = None,
+        hmethod: Optional["autode.wrappers.methods.Method"] = None,
+        n_cores: Optional[int] = None,
+    ):
         """
         Initialise a two-level numerical Hessian calculation using a low-level
         method (lmethod) and a high-level method (hmethod) for only some atoms,
@@ -600,17 +642,21 @@ class HybridHessianCalculator(NumericalHessianCalculator):
         """
         lmethod = _method_or_default_lmethod(lmethod)
 
-        super().__init__(species=species,
-                         method=lmethod,
-                         keywords=lmethod.keywords.grad,
-                         do_c_diff=False,
-                         shift=shift,
-                         n_cores=n_cores)
+        super().__init__(
+            species=species,
+            method=lmethod,
+            keywords=lmethod.keywords.grad,
+            do_c_diff=False,
+            shift=shift,
+            n_cores=n_cores,
+        )
 
         if not set(idxs).issubset(set(range(species.n_atoms))):
-            raise ValueError('Cannot calculate a partial numerical Hessian '
-                             'at least one atom index was not present in the '
-                             'species.')
+            raise ValueError(
+                "Cannot calculate a partial numerical Hessian "
+                "at least one atom index was not present in the "
+                "species."
+            )
 
         self._hmethod_atom_idxs = set(idxs)
         self._hmethod = _method_or_default_hmethod(hmethod)
@@ -620,8 +666,10 @@ class HybridHessianCalculator(NumericalHessianCalculator):
 
         super().calculate()
 
-        logger.info('Switching to high-level method and calculating '
-                    f'displacements for atoms: {self._hmethod_atom_idxs}')
+        logger.info(
+            "Switching to high-level method and calculating "
+            f"displacements for atoms: {self._hmethod_atom_idxs}"
+        )
 
         self._remove_h_method_rows()
         self._method = self._hmethod
@@ -637,21 +685,25 @@ class HybridHessianCalculator(NumericalHessianCalculator):
         """
 
         for atom_idx in self._hmethod_atom_idxs:
-            for i, _ in enumerate(('x', 'y', 'z')):
-                self._calculated_rows.remove(3*atom_idx+i)
+            for i, _ in enumerate(("x", "y", "z")):
+                self._calculated_rows.remove(3 * atom_idx + i)
 
         return None
 
 
-def _method_or_default_hmethod(method: 'autode.wrappers.methods.Method'
-                               ) -> 'autode.wrappers.methods.Method':
+def _method_or_default_hmethod(
+    method: "autode.wrappers.methods.Method",
+) -> "autode.wrappers.methods.Method":
     # Avoid cyclic imports
     from autode.methods import method_or_default_hmethod
+
     return method_or_default_hmethod(method)
 
 
-def _method_or_default_lmethod(method: 'autode.wrappers.methods.Method'
-                               ) -> 'autode.wrappers.methods.Method':
+def _method_or_default_lmethod(
+    method: "autode.wrappers.methods.Method",
+) -> "autode.wrappers.methods.Method":
     # Avoid cyclic imports
     from autode.methods import method_or_default_lmethod
+
     return method_or_default_lmethod(method)

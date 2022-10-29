@@ -9,9 +9,11 @@ from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
 from autode.smiles.angles import SDihedral, SDihedrals, SAngle, SAngles
 from ade_dihedrals import rotate, closed_ring_coords
 from ade_rb_opt import opt_rb_coords
-from autode.exceptions import (SMILESBuildFailed,
-                               FailedToSetRotationIdxs,
-                               FailedToAdjustAngles)
+from autode.exceptions import (
+    SMILESBuildFailed,
+    FailedToSetRotationIdxs,
+    FailedToAdjustAngles,
+)
 
 
 class Builder(AtomCollection):
@@ -32,10 +34,10 @@ class Builder(AtomCollection):
         """
         super().__init__()
 
-        self.atoms = None              # list(SMILESAtom)
-        self.bonds = None              # SMILESBonds
-        self.graph = None              # nx.Graph
-        self.rings_idxs = None         # Iterator for atom indexes in all rings
+        self.atoms = None  # list(SMILESAtom)
+        self.bonds = None  # SMILESBonds
+        self.graph = None  # nx.Graph
+        self.rings_idxs = None  # Iterator for atom indexes in all rings
 
         # A queue of atom indexes, the neighbours for which need to be added
         self.queued_atoms = []
@@ -65,8 +67,7 @@ class Builder(AtomCollection):
         atoms = []
         for atom in self.atoms:
             x, y, z = atom.coord
-            atoms.append(Atom(atom.label, x=x, y=y, z=z,
-                              atom_class=atom.atom_class))
+            atoms.append(Atom(atom.label, x=x, y=y, z=z, atom_class=atom.atom_class))
 
         return atoms
 
@@ -101,7 +102,7 @@ class Builder(AtomCollection):
             (np.ndarray): shape = (n_atoms, n_atoms)
         """
 
-        idxs = np.ones(shape=(self.n_atoms, self.n_atoms), dtype='i4')
+        idxs = np.ones(shape=(self.n_atoms, self.n_atoms), dtype="i4")
         np.fill_diagonal(idxs, 0)  # Exclude self-repulsion
 
         for bond in self.bonds:
@@ -143,10 +144,10 @@ class Builder(AtomCollection):
         """
         atom = self.atoms[idx]
 
-        if atom.atomic_symbol not in ['Rh', 'Pd', 'Ir', 'Pt']:
+        if atom.atomic_symbol not in ["Rh", "Pd", "Ir", "Pt"]:
             return False
 
-        dn = atom.group - atom.charge     # Initial number of d electrons
+        dn = atom.group - atom.charge  # Initial number of d electrons
 
         for bond in self.bonds.involving(idx):
 
@@ -155,7 +156,7 @@ class Builder(AtomCollection):
             if bond.order % 2 == 1:
                 dn -= 1
 
-        logger.info(f'{atom}, dn = {dn}')
+        logger.info(f"{atom}, dn = {dn}")
         return dn == 8
 
     def _explicit_all_hydrogens(self):
@@ -164,17 +165,18 @@ class Builder(AtomCollection):
         h_atoms = []
         for idx, atom in enumerate(self.atoms):
 
-            if not hasattr(atom, 'n_hydrogens') or atom.n_hydrogens is None:
-                logger.warning(f'{atom} did not have a defined number of '
-                               'hydrogens. Assuming 0')
+            if not hasattr(atom, "n_hydrogens") or atom.n_hydrogens is None:
+                logger.warning(
+                    f"{atom} did not have a defined number of " "hydrogens. Assuming 0"
+                )
                 atom.n_hydrogens = 0
 
             for _ in range(atom.n_hydrogens):
-                h_atoms.append(SMILESAtom('H', n_hydrogens=0))
+                h_atoms.append(SMILESAtom("H", n_hydrogens=0))
 
                 # Add the bond between the current atom and the new H
                 h_idx = self.n_atoms + len(h_atoms) - 1
-                self.bonds.append(SMILESBond(idx, h_idx, symbol='-'))
+                self.bonds.append(SMILESBond(idx, h_idx, symbol="-"))
 
             # zero the number of implicit hydrogens bonded to this atom now
             # they are explicit
@@ -189,10 +191,10 @@ class Builder(AtomCollection):
         by the number of bonded atoms, and the 'hybridisation' as well as
         the stereochemistry
         """
-        logger.info(f'Setting {self.n_atoms} atom types')
+        logger.info(f"Setting {self.n_atoms} atom types")
 
         self.rings_idxs = nx.minimum_cycle_basis(self.graph)
-        logger.info(f'Have {len(self.rings_idxs)} ring(s)')
+        logger.info(f"Have {len(self.rings_idxs)} ring(s)")
 
         for i, atom in enumerate(self.atoms):
 
@@ -201,35 +203,35 @@ class Builder(AtomCollection):
             atom.in_ring = len(self._ring_idxs([i], return_empty=True)) > 0
 
             if not isinstance(atom, SMILESAtom):
-                raise SMILESBuildFailed('Builder requires SMILESAtom-s')
+                raise SMILESBuildFailed("Builder requires SMILESAtom-s")
 
             if atom.n_bonded == 0:
                 # No type is needed for an isolated atom
                 continue
 
-            elif atom.n_bonded == 1:                            # e.g. H2, FCH3
+            elif atom.n_bonded == 1:  # e.g. H2, FCH3
                 atom.type = atom_types.TerminalAtom()
 
-            elif atom.n_bonded == 2:                           # e.g. OH2, SR2
+            elif atom.n_bonded == 2:  # e.g. OH2, SR2
                 if atom.group == 16:
                     atom.type = atom_types.BentAtom()
 
-                elif atom.group == 15:                         # e.g. H2C=NH
+                elif atom.group == 15:  # e.g. H2C=NH
                     atom.type = atom_types.TrigonalAtom()
 
-                else:                                          # e.g. AuR2
+                else:  # e.g. AuR2
                     atom.type = atom_types.LinearAtom()
 
-            elif atom.n_bonded == 3:                           # e.g. NH3
+            elif atom.n_bonded == 3:  # e.g. NH3
                 if atom.group == 15:
                     atom.type = atom_types.TrigonalPyramidalAtom()
 
-                else:                                          # e.g. BH3
+                else:  # e.g. BH3
                     atom.type = atom_types.TrigonalAtom()
 
-            elif atom.n_bonded == 4:                           # e.g. CH4
+            elif atom.n_bonded == 4:  # e.g. CH4
 
-                if atom.atomic_symbol == 'Xe':                 # e.g. XeF4
+                if atom.atomic_symbol == "Xe":  # e.g. XeF4
                     atom.type = atom_types.SquarePlanarAtom()
 
                 # Second row transition metals that are d8 should be sq planar
@@ -258,8 +260,9 @@ class Builder(AtomCollection):
                 atom.type = atom_types.SquareAntiprismAtom()
 
             else:
-                raise NotImplementedError('Coordination numbers >8 are not'
-                                          '(yet) supported')
+                raise NotImplementedError(
+                    "Coordination numbers >8 are not" "(yet) supported"
+                )
 
         return None
 
@@ -281,14 +284,15 @@ class Builder(AtomCollection):
             (autode.exceptions.SMILESBuildFailed): If there is no such ring
         """
         try:
-            return next(idxs for idxs in self.rings_idxs
-                        if all(idx in idxs for idx in inc_idxs))
+            return next(
+                idxs for idxs in self.rings_idxs if all(idx in idxs for idx in inc_idxs)
+            )
 
         except StopIteration:
             if return_empty:
                 return []
 
-            raise SMILESBuildFailed(f'No ring containing {inc_idxs}')
+            raise SMILESBuildFailed(f"No ring containing {inc_idxs}")
 
     def _ring_path(self, ring_bond):
         """
@@ -312,9 +316,9 @@ class Builder(AtomCollection):
         """
         ring_idxs = self._ring_idxs(ring_bond)
 
-        paths = nx.shortest_simple_paths(self.graph,
-                                         source=ring_bond[0],
-                                         target=ring_bond[1])
+        paths = nx.shortest_simple_paths(
+            self.graph, source=ring_bond[0], target=ring_bond[1]
+        )
 
         for possible_path in paths:
 
@@ -327,7 +331,7 @@ class Builder(AtomCollection):
             if all(idx in ring_idxs for idx in possible_path):
                 return possible_path
 
-        raise SMILESBuildFailed('Could not find path in ring')
+        raise SMILESBuildFailed("Could not find path in ring")
 
     def _ring_dihedrals(self, ring_bond):
         """
@@ -348,7 +352,7 @@ class Builder(AtomCollection):
         path = self._ring_path(ring_bond=ring_bond)
 
         # The dihedrals are then all the 4 atom tuples in sequence
-        dihedral_idxs = [tuple(path[i:i + 4]) for i in range(len(path) - 3)]
+        dihedral_idxs = [tuple(path[i : i + 4]) for i in range(len(path) - 3)]
 
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedral_idxs):
@@ -365,7 +369,7 @@ class Builder(AtomCollection):
                 dihedral.phi_ideal = 0.0
 
             # Only yield single bonds, that can be rotated freely
-            if self.graph.get_edge_data(*dihedral.mid_idxs)['order'] == 1:
+            if self.graph.get_edge_data(*dihedral.mid_idxs)["order"] == 1:
                 yield dihedral
 
     def _reset_queued_atom_sites(self, other_idxs=None):
@@ -378,10 +382,11 @@ class Builder(AtomCollection):
         Keyword Arguments:
             other_idxs (list | set | None): Other indexes that need to be reset
         """
-        for idx_i in set(self.queued_atoms
-                         + list(other_idxs if other_idxs is not None else [])):
+        for idx_i in set(
+            self.queued_atoms + list(other_idxs if other_idxs is not None else [])
+        ):
 
-            logger.info(f'Resetting sites on atom {idx_i}')
+            logger.info(f"Resetting sites on atom {idx_i}")
 
             atom = self.atoms[idx_i]
             points = [self.atoms[idx].coord for idx in atom.neighbours]
@@ -395,21 +400,22 @@ class Builder(AtomCollection):
 
         return None
 
-    @log_time(prefix='Closed ring in:', units='ms')
+    @log_time(prefix="Closed ring in:", units="ms")
     def _adjust_ring_dihedrals(self, ring_bond, dihedrals):
         """Outsource the ring closure to an external function"""
-        logger.info('Adjusting ring dihedrals to close the ring')
+        logger.info("Adjusting ring dihedrals to close the ring")
 
-        coords = closed_ring_coords(py_coords=self.coordinates,
-                                    py_curr_angles=dihedrals.values(self.atoms),
-                                    py_ideal_angles=dihedrals.ideal_angles,
-                                    py_axes=dihedrals.axes,
-                                    py_rot_idxs=dihedrals.rot_idxs,
-                                    py_origins=dihedrals.origins,
-                                    py_rep_idxs=self.non_bonded_idx_matrix,
-                                    py_close_idxs=np.array(tuple(ring_bond),
-                                                           dtype='i4'),
-                                    py_r0=ring_bond.r0)
+        coords = closed_ring_coords(
+            py_coords=self.coordinates,
+            py_curr_angles=dihedrals.values(self.atoms),
+            py_ideal_angles=dihedrals.ideal_angles,
+            py_axes=dihedrals.axes,
+            py_rot_idxs=dihedrals.rot_idxs,
+            py_origins=dihedrals.origins,
+            py_rep_idxs=self.non_bonded_idx_matrix,
+            py_close_idxs=np.array(tuple(ring_bond), dtype="i4"),
+            py_r0=ring_bond.r0,
+        )
         self.coordinates = coords
         return
 
@@ -433,11 +439,11 @@ class Builder(AtomCollection):
         ring_n = len(path)
 
         if ring_n >= 5:
-            logger.warning('Closing large rings not implemented')
+            logger.warning("Closing large rings not implemented")
             raise FailedToAdjustAngles
 
-        angles_idxs = [tuple(path[i:i + 3]) for i in range(len(path) - 2)]
-        logger.info(f'Adjusting {len(angles_idxs)} angles to close a ring')
+        angles_idxs = [tuple(path[i : i + 3]) for i in range(len(path) - 2)]
+        logger.info(f"Adjusting {len(angles_idxs)} angles to close a ring")
 
         angles = SAngles()
 
@@ -446,19 +452,20 @@ class Builder(AtomCollection):
             graph = self.graph.copy()
             graph.remove_edge(ring_bond[0], ring_bond[1])
 
-            angle = SAngle(idxs=angle_idxs,
-                           phi0=(np.pi - (2.0 * np.pi / ring_n)))
+            angle = SAngle(idxs=angle_idxs, phi0=(np.pi - (2.0 * np.pi / ring_n)))
 
             try:
                 angle.find_rot_idxs(graph=graph, atoms=self.atoms)
 
             except FailedToSetRotationIdxs:
-                logger.warning(f'Could not adjust angle {angle_idxs}')
+                logger.warning(f"Could not adjust angle {angle_idxs}")
                 raise FailedToAdjustAngles
 
-            angle_alt = SAngle(idxs=angle_idxs,
-                               rot_idxs=angle.inverse_rot_idxs(self.atoms),
-                               phi0=angle.phi0)
+            angle_alt = SAngle(
+                idxs=angle_idxs,
+                rot_idxs=angle.inverse_rot_idxs(self.atoms),
+                phi0=angle.phi0,
+            )
 
             angles.append(angle)
             angles.append(angle_alt)
@@ -470,16 +477,18 @@ class Builder(AtomCollection):
         for i, angle in enumerate(angles):
             idx_x, idx_y, idx_z = angle.idxs
 
-            axis = np.cross(coords[idx_x, :] - coords[idx_y, :],
-                            coords[idx_z, :] - coords[idx_y, :])
+            axis = np.cross(
+                coords[idx_x, :] - coords[idx_y, :], coords[idx_z, :] - coords[idx_y, :]
+            )
 
             # Alternate between forward and reverse rotations
             if i % 2 == 0:
                 axis *= -1
 
             # Append the axis onto the coordinates
-            coords = np.concatenate((coords,
-                                     np.expand_dims(axis + coords[idx_y, :], axis=0)))
+            coords = np.concatenate(
+                (coords, np.expand_dims(axis + coords[idx_y, :], axis=0))
+            )
 
             # Now the axis is coords[-1] - coods[idx_y], so
             axes.append([coords.shape[0] - 1, idx_y])
@@ -488,13 +497,15 @@ class Builder(AtomCollection):
             # number of added coordinates (axes)
             rot_idxs[i] += len(angles) * [0]
 
-        coords = rotate(py_coords=coords,
-                        py_angles=angles.dvalues(self.atoms) / 2,
-                        py_axes=np.array(axes, dtype='i4'),
-                        py_rot_idxs=np.array(rot_idxs, dtype='i4'),
-                        py_origins=angles.origins)
+        coords = rotate(
+            py_coords=coords,
+            py_angles=angles.dvalues(self.atoms) / 2,
+            py_axes=np.array(axes, dtype="i4"),
+            py_rot_idxs=np.array(rot_idxs, dtype="i4"),
+            py_origins=angles.origins,
+        )
 
-        self.coordinates = coords[:-len(angles), :]
+        self.coordinates = coords[: -len(angles), :]
         return
 
     def _ff_distance_matrix(self, dist_consts=None):
@@ -510,7 +521,7 @@ class Builder(AtomCollection):
         dist_consts = dist_consts if dist_consts is not None else {}
         built_idxs = self.built_atom_idxs
 
-        r0 = np.zeros((len(built_idxs), len(built_idxs)), dtype='f8')
+        r0 = np.zeros((len(built_idxs), len(built_idxs)), dtype="f8")
 
         for bond in self.bonds:
             idx_i, idx_j = bond
@@ -529,25 +540,33 @@ class Builder(AtomCollection):
                 continue
 
             if bond.in_ring(self.rings_idxs) and bond.is_cis(self.atoms):
-                logger.info('cis double bond in ring not adding constraint')
+                logger.info("cis double bond in ring not adding constraint")
                 continue
 
-            logger.info('Double bond - adding constraint')
+            logger.info("Double bond - adding constraint")
             try:
-                idx_in = next(idx for idx in iter(self.atoms[idx_i].neighbours)
-                              if self.atoms[idx].is_shifted)
-                idx_jn = next(idx for idx in iter(self.atoms[idx_j].neighbours)
-                              if self.atoms[idx].is_shifted)
+                idx_in = next(
+                    idx
+                    for idx in iter(self.atoms[idx_i].neighbours)
+                    if self.atoms[idx].is_shifted
+                )
+                idx_jn = next(
+                    idx
+                    for idx in iter(self.atoms[idx_j].neighbours)
+                    if self.atoms[idx].is_shifted
+                )
 
                 pair = (idx_in, idx_jn)
 
             except StopIteration:
-                logger.warning('Could not fix stereochemistry, no neighbours '
-                               'to add constraints to')
+                logger.warning(
+                    "Could not fix stereochemistry, no neighbours "
+                    "to add constraints to"
+                )
                 continue
 
             # A single distance constraint will be enough?!
-            if all(p not in dist_consts  for p in (pair, reversed(pair))):
+            if all(p not in dist_consts for p in (pair, reversed(pair))):
                 dist_consts[pair] = self.distance(*pair)
 
         # Set the items in the distance matrix, given that this may be a subset
@@ -570,24 +589,31 @@ class Builder(AtomCollection):
         bond_matrix[r0 != 0.0] = True
 
         # No repulsion between bonded atoms
-        c = np.ones((n_atoms, n_atoms), dtype='f8')
-        c -= np.asarray(bond_matrix, dtype='f8')
+        c = np.ones((n_atoms, n_atoms), dtype="f8")
+        c -= np.asarray(bond_matrix, dtype="f8")
         c *= 0.8
 
         # and less repulsion between H and other atoms
-        h_idxs = np.array([built_idxs.index(idx) for idx in built_idxs
-                           if self.atoms[idx].label == 'H'], dtype=int)
+        h_idxs = np.array(
+            [
+                built_idxs.index(idx)
+                for idx in built_idxs
+                if self.atoms[idx].label == "H"
+            ],
+            dtype=int,
+        )
         c[h_idxs, h_idxs] *= 0.01
 
         # Now minimise all coordinates that are bonded
         coords = self.coordinates
-        opt_cs = opt_rb_coords(py_coords=coords[built_idxs],
-                               py_bonded_matrix=bond_matrix,
-                               py_r0_matrix=np.asarray(r0, dtype='f8'),
-                               py_k_matrix=np.ones((n_atoms, n_atoms),
-                                                   dtype='f8'),
-                               py_c_matrix=c,
-                               py_exponent=4)
+        opt_cs = opt_rb_coords(
+            py_coords=coords[built_idxs],
+            py_bonded_matrix=bond_matrix,
+            py_r0_matrix=np.asarray(r0, dtype="f8"),
+            py_k_matrix=np.ones((n_atoms, n_atoms), dtype="f8"),
+            py_c_matrix=c,
+            py_exponent=4,
+        )
 
         # Set the partial coordinate set
         coords[built_idxs] = opt_cs
@@ -602,7 +628,7 @@ class Builder(AtomCollection):
         Arguments:
             ring_bond (autode.smiles.SMILESBond):
         """
-        logger.info(f'Closing ring on: {ring_bond} and adjusting atoms')
+        logger.info(f"Closing ring on: {ring_bond} and adjusting atoms")
 
         dihedrals = SDihedrals()
         for dihedral in self._ring_dihedrals(ring_bond):
@@ -616,35 +642,35 @@ class Builder(AtomCollection):
                 dihedral.find_rot_idxs(graph=graph, atoms=self.atoms)
 
             except FailedToSetRotationIdxs:
-                logger.warning(f'Could not rotate dihedral {dihedral} '
-                               f'splitting across {dihedral.mid_idxs} did not '
-                               f'afford two fragments')
+                logger.warning(
+                    f"Could not rotate dihedral {dihedral} "
+                    f"splitting across {dihedral.mid_idxs} did not "
+                    f"afford two fragments"
+                )
                 continue
 
             dihedrals.append(dihedral)
 
         if len(dihedrals) == 0:
-            logger.info('No dihedrals to adjust to close the ring')
+            logger.info("No dihedrals to adjust to close the ring")
 
         else:
             self._adjust_ring_dihedrals(ring_bond, dihedrals=dihedrals)
 
-        if not np.isclose(ring_bond.distance(self.atoms),
-                          ring_bond.r0, atol=0.2):
-            logger.info(f'A ring was poorly closed - adjusting angles')
+        if not np.isclose(ring_bond.distance(self.atoms), ring_bond.r0, atol=0.2):
+            logger.info(f"A ring was poorly closed - adjusting angles")
 
             try:
                 self._adjust_ring_angles(ring_bond)
 
             except FailedToAdjustAngles:
-                logger.warning('Failed to close a ring, minimising on '
-                               'all atoms')
+                logger.warning("Failed to close a ring, minimising on " "all atoms")
                 self._ff_minimise()
 
         self._reset_queued_atom_sites(other_idxs=ring_bond)
         return None
 
-    @log_time(prefix='Performed final dihedral rotation in:', units='ms')
+    @log_time(prefix="Performed final dihedral rotation in:", units="ms")
     def _minimise_non_ring_dihedrals(self):
         """
         Minimise the repulsive pairwise energy with respect to all non-ring
@@ -657,7 +683,7 @@ class Builder(AtomCollection):
             W
 
         """
-        logger.info('Minimising non-bonded repulsion by dihedral rotation')
+        logger.info("Minimising non-bonded repulsion by dihedral rotation")
 
         dihedrals = SDihedrals()
 
@@ -672,13 +698,19 @@ class Builder(AtomCollection):
 
             # Find the other atoms that form the 4 atom tuple
             try:
-                idx_w = next(idx for idx in self.atoms[idx_x].neighbours
-                             if idx != idx_y and self.atoms[idx].n_bonded > 1)
-                idx_z = next(idx for idx in self.atoms[idx_y].neighbours
-                             if idx != idx_x and self.atoms[idx].n_bonded > 1)
+                idx_w = next(
+                    idx
+                    for idx in self.atoms[idx_x].neighbours
+                    if idx != idx_y and self.atoms[idx].n_bonded > 1
+                )
+                idx_z = next(
+                    idx
+                    for idx in self.atoms[idx_y].neighbours
+                    if idx != idx_x and self.atoms[idx].n_bonded > 1
+                )
 
             except StopIteration:
-                continue   # No suitable neighbours
+                continue  # No suitable neighbours
 
             dihedral = SDihedral(idxs=[idx_w, idx_x, idx_y, idx_z])
 
@@ -693,15 +725,17 @@ class Builder(AtomCollection):
         if len(dihedrals) == 0:
             return  # No rotation required
 
-        logger.info(f'Have {len(dihedrals)} dihedrals to rotate')
+        logger.info(f"Have {len(dihedrals)} dihedrals to rotate")
 
-        coords = rotate(py_coords=self.coordinates,
-                        py_angles=np.zeros(len(dihedrals)),
-                        py_axes=dihedrals.axes,
-                        py_rot_idxs=dihedrals.rot_idxs,
-                        py_origins=dihedrals.origins,
-                        minimise=True,
-                        py_rep_idxs=self.non_bonded_idx_matrix)
+        coords = rotate(
+            py_coords=self.coordinates,
+            py_angles=np.zeros(len(dihedrals)),
+            py_axes=dihedrals.axes,
+            py_rot_idxs=dihedrals.rot_idxs,
+            py_origins=dihedrals.origins,
+            minimise=True,
+            py_rep_idxs=self.non_bonded_idx_matrix,
+        )
 
         self.coordinates = coords
         return None
@@ -722,12 +756,16 @@ class Builder(AtomCollection):
         Arguments:
             dihedral (autode.smiles.builder.Dihedral):
         """
-        logger.info(f'Forcing stereochemistry for {dihedral}')
+        logger.info(f"Forcing stereochemistry for {dihedral}")
 
-        if not (self.graph.edges[dihedral.mid_idxs]['order'] == 2
-                and np.isclose(dihedral.phi0 % np.pi, 0)):
-            raise ValueError('Expecting a 0º or 180º dihedral for E/Z'
-                             'over a double bond - cannot rotate')
+        if not (
+            self.graph.edges[dihedral.mid_idxs]["order"] == 2
+            and np.isclose(dihedral.phi0 % np.pi, 0)
+        ):
+            raise ValueError(
+                "Expecting a 0º or 180º dihedral for E/Z"
+                "over a double bond - cannot rotate"
+            )
 
         # Get the bond lengths for the three bonds
         r_wx = self.bonds.first_involving(*dihedral.idxs[:2]).r0
@@ -736,27 +774,31 @@ class Builder(AtomCollection):
 
         if np.isclose(dihedral.phi0, np.pi):
             # Distance constraint for a trans double bond
-            r_wz = np.sqrt(((r_wx + r_yz) * np.sin(np.pi/3.0))**2
-                           + ((r_wx + r_yz) * np.cos(np.pi/3.0) + r_xy)**2)
+            r_wz = np.sqrt(
+                ((r_wx + r_yz) * np.sin(np.pi / 3.0)) ** 2
+                + ((r_wx + r_yz) * np.cos(np.pi / 3.0) + r_xy) ** 2
+            )
 
         else:  # and similarly for cis
-            r_wz = (r_wx + r_yz) * np.sin(np.pi/6.0) + r_xy
+            r_wz = (r_wx + r_yz) * np.sin(np.pi / 6.0) + r_xy
 
         def c_cosine_rule(a, b, gamma):
             """c = √a^2 + b^2 - 2ab cos(γ)"""
             return np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(gamma))
 
-        r_wy = c_cosine_rule(r_wx, r_xy, 2.0*np.pi/3.0)
-        r_xz = c_cosine_rule(r_xy, r_yz, 2.0*np.pi/3.0)
+        r_wy = c_cosine_rule(r_wx, r_xy, 2.0 * np.pi / 3.0)
+        r_xz = c_cosine_rule(r_xy, r_yz, 2.0 * np.pi / 3.0)
 
         # Apply distance constraints over the all the pairwise distances,
         # such that the correct geometry is the only minimum (with just r_wz)
         # constraints the WXY and XYZ angles change to accommodate r_wz, rather
         # than there being any dihedral rotation)
-        dist_consts = {dihedral.end_idxs: r_wz,
-                       (dihedral.idxs[0], dihedral.idxs[2]): r_wy,
-                       (dihedral.idxs[1], dihedral.idxs[3]): r_xz,
-                       dihedral.mid_idxs: r_xy}
+        dist_consts = {
+            dihedral.end_idxs: r_wz,
+            (dihedral.idxs[0], dihedral.idxs[2]): r_wy,
+            (dihedral.idxs[1], dihedral.idxs[3]): r_xz,
+            dihedral.mid_idxs: r_xy,
+        }
 
         self._ff_minimise(distance_constraints=dist_consts)
         self._reset_queued_atom_sites(other_idxs=dihedral.mid_idxs)
@@ -782,14 +824,16 @@ class Builder(AtomCollection):
         nbrs_y = [idx for idx in self.atoms[idx_y].neighbours if idx != idx_x]
 
         if len(nbrs_x) == 0 or len(nbrs_y) == 0:
-            logger.info(f'At least one atom forming {bond} had no '
-                        'neighbours - no need to rotate the dihedral')
+            logger.info(
+                f"At least one atom forming {bond} had no "
+                "neighbours - no need to rotate the dihedral"
+            )
             return
 
         # Remove any hydrogen atoms from the neighbours, as they are skipped
         # when defining the stereochem
-        nbrs_x_noH = [idx for idx in nbrs_x if self.atoms[idx].label != 'H']
-        nbrs_y_noH = [idx for idx in nbrs_y if self.atoms[idx].label != 'H']
+        nbrs_x_noH = [idx for idx in nbrs_x if self.atoms[idx].label != "H"]
+        nbrs_y_noH = [idx for idx in nbrs_y if self.atoms[idx].label != "H"]
 
         if len(nbrs_x_noH) > 0:
             nbrs_x = nbrs_x_noH
@@ -807,50 +851,59 @@ class Builder(AtomCollection):
 
         phi = np.pi  # Default to a trans double bond
 
-        if ((all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
-            and not self.atoms[idx_x].has_stereochem)
+        if (
+            (
+                all(self.atoms[idx].in_ring for idx in (idx_w, idx_x, idx_y, idx_z))
+                and not self.atoms[idx_x].has_stereochem
+            )
             or stro_x == stro_y == SMILESStereoChem.ALKENE_UP
-            or stro_x == stro_y == SMILESStereoChem.ALKENE_DOWN):
+            or stro_x == stro_y == SMILESStereoChem.ALKENE_DOWN
+        ):
             phi = 0
 
         dihedral = SDihedral([idx_w, idx_x, idx_y, idx_z], phi0=phi)
 
-        logger.info(f'Queuing {dihedral}')
+        logger.info(f"Queuing {dihedral}")
         self.queued_dihedrals.append(dihedral)
         return None
 
     def _rotate_dihedrals(self):
         """Rotate all dihedrals in the queue"""
         if len(self.queued_dihedrals) == 0:
-            return   # Nothing to be done
+            return  # Nothing to be done
 
-        logger.info(f'Have {len(self.queued_dihedrals)} dihedral(s) to rotate')
+        logger.info(f"Have {len(self.queued_dihedrals)} dihedral(s) to rotate")
 
         for i, dihedral in enumerate(self.queued_dihedrals):
             try:
-                dihedral.find_rot_idxs(graph=self.graph.copy(),
-                                       atoms=self.atoms)
+                dihedral.find_rot_idxs(graph=self.graph.copy(), atoms=self.atoms)
 
             except FailedToSetRotationIdxs:
-                logger.warning(f'Could not apply rotation {dihedral}')
+                logger.warning(f"Could not apply rotation {dihedral}")
 
                 if dihedral.needs_forcing(atoms=self.atoms):
-                    logger.info('Dihedral is too far away from that defined '
-                                'by the stereochemistry - forcing')
+                    logger.info(
+                        "Dihedral is too far away from that defined "
+                        "by the stereochemistry - forcing"
+                    )
                     self._force_double_bond_stereochem(dihedral)
 
                 # Delete this dihedral, that has beed forced, and continue
                 del self.queued_dihedrals[i]
                 return self._rotate_dihedrals()
 
-        dphis = [dihedral.phi0 - dihedral.value(self.atoms)
-                 for dihedral in self.queued_dihedrals]
+        dphis = [
+            dihedral.phi0 - dihedral.value(self.atoms)
+            for dihedral in self.queued_dihedrals
+        ]
 
-        self.coordinates = rotate(py_coords=self.coordinates,
-                                  py_angles=np.array(dphis, dtype='f8'),
-                                  py_axes=self.queued_dihedrals.axes,
-                                  py_rot_idxs=self.queued_dihedrals.rot_idxs,
-                                  py_origins=self.queued_dihedrals.origins)
+        self.coordinates = rotate(
+            py_coords=self.coordinates,
+            py_angles=np.array(dphis, dtype="f8"),
+            py_axes=self.queued_dihedrals.axes,
+            py_rot_idxs=self.queued_dihedrals.rot_idxs,
+            py_origins=self.queued_dihedrals.origins,
+        )
 
         self.queued_dihedrals.clear()
         self._reset_queued_atom_sites()
@@ -895,8 +948,9 @@ class Builder(AtomCollection):
             if atom.type.is_chiral:
                 site = atom.type.empty_site()
             else:
-                site = atom.type.empty_site_mr(atom.coord,
-                                               other_coords=self.coordinates)
+                site = atom.type.empty_site_mr(
+                    atom.coord, other_coords=self.coordinates
+                )
 
             # Coordinate of this atom is the current position shifted by
             # the ideal distance in a direction of a empty coordination
@@ -909,8 +963,9 @@ class Builder(AtomCollection):
             if not isinstance(self.atoms[bonded_idx].type, atom_types.TerminalAtom):
                 # and the atom type rotated so an empty site is coincident
                 # with this atom
-                bonded_atom.type.rotate_empty_onto(point=atom.coord,
-                                                   coord=bonded_atom.coord)
+                bonded_atom.type.rotate_empty_onto(
+                    point=atom.coord, coord=bonded_atom.coord
+                )
                 # and queue
                 self.queued_atoms.append(bonded_idx)
 
@@ -928,7 +983,7 @@ class Builder(AtomCollection):
             bonds (auode.smiles.base.SMILESBonds):
         """
         if atoms is None or len(atoms) == 0:
-            raise SMILESBuildFailed('Cannot build a structure with no atoms')
+            raise SMILESBuildFailed("Cannot build a structure with no atoms")
 
         # Set attributes
         self.atoms, self.bonds = atoms, bonds
@@ -959,7 +1014,7 @@ class Builder(AtomCollection):
         self.atoms[0].translate(vec=np.array([0.001, 0.001, 0.001]))
         return None
 
-    @log_time(prefix='Built 3D in:', units='ms')
+    @log_time(prefix="Built 3D in:", units="ms")
     def build(self, atoms, bonds):
         """
         Build a molecule by iterating through all the atoms adding it and
@@ -991,7 +1046,7 @@ class Builder(AtomCollection):
             self._add_bonded_atoms(idx)
             self._rotate_dihedrals()
 
-            logger.info(f'Queue: {self.queued_atoms}')
+            logger.info(f"Queue: {self.queued_atoms}")
 
         self._minimise_non_ring_dihedrals()
         return None

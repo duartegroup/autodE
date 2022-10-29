@@ -21,10 +21,12 @@ _rs_type = Dict[Tuple[int, int], Union[Tuple, np.ndarray]]
 class PESnD(ABC):
     """Potential energy surface (PES) in N-dimensions"""
 
-    def __init__(self,
-                 species:        Optional['autode.species.Species'] = None,
-                 rs:             Optional[_rs_type] = None,
-                 allow_rounding: bool = True):
+    def __init__(
+        self,
+        species: Optional["autode.species.Species"] = None,
+        rs: Optional[_rs_type] = None,
+        allow_rounding: bool = True,
+    ):
         """
         N-dimensional PES for a species in a number of distances, defined by
         the 'rs' dictionary containing atom pairs and distances
@@ -44,18 +46,18 @@ class PESnD(ABC):
         """
         self._species = species
 
-        self._rs = _ListDistances1D(species,
-                                    rs_dict=rs if rs is not None else {},
-                                    allow_rounding=allow_rounding)
+        self._rs = _ListDistances1D(
+            species, rs_dict=rs if rs is not None else {}, allow_rounding=allow_rounding
+        )
 
-        self._energies = EnergyArray(np.empty(self.shape), units='Ha')
+        self._energies = EnergyArray(np.empty(self.shape), units="Ha")
         self._init_tensors()
 
         # Attributes set in calculate()
         self._coordinates: Optional[np.ndarray] = None
-        self._method:      Optional['autode.wrappers.methods.Method'] = None
-        self._n_cores:     int = Config.n_cores
-        self._keywords:    Optional['autode.wrappers.keywords.Keywords'] = None
+        self._method: Optional["autode.wrappers.methods.Method"] = None
+        self._n_cores: int = Config.n_cores
+        self._keywords: Optional["autode.wrappers.keywords.Keywords"] = None
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -101,11 +103,12 @@ class PESnD(ABC):
         """
         return self._energies - np.min(self._energies)
 
-    def calculate(self,
-                  method:   'autode.wrappers.ElectronicStructureMethod',
-                  keywords:  Union[Sequence[str], str, None] = None,
-                  n_cores:   Optional[int] = None
-                  ) -> None:
+    def calculate(
+        self,
+        method: "autode.wrappers.ElectronicStructureMethod",
+        keywords: Union[Sequence[str], str, None] = None,
+        n_cores: Optional[int] = None,
+    ) -> None:
         """
         Calculate the surface by running calculations over each structure on
         the surface. Requires the PES to be initialised with a species
@@ -120,14 +123,17 @@ class PESnD(ABC):
             n_cores: Number of cores. If None then use ade.Config.n_cores
         """
         if self._species is None:
-            raise ValueError('Cannot calculate a PES without an initial '
-                             'species. Initialise PESNd with a species '
-                             'or reactant')
+            raise ValueError(
+                "Cannot calculate a PES without an initial "
+                "species. Initialise PESNd with a species "
+                "or reactant"
+            )
 
         if keywords is None:
             keywords = self._default_keywords(method)
-            logger.info('PES calculation keywords not specified, using:\n'
-                        f'{keywords}')
+            logger.info(
+                "PES calculation keywords not specified, using:\n" f"{keywords}"
+            )
         else:
             keywords = self._default_keyword_type(keywords)
 
@@ -142,16 +148,18 @@ class PESnD(ABC):
         self._calculate()
 
         if not self._has_energy(self.origin):
-            raise RuntimeError('PES calculation failed. Not even the first '
-                               'point had an energy')
+            raise RuntimeError(
+                "PES calculation failed. Not even the first " "point had an energy"
+            )
 
         return None
 
-    def plot(self,
-             filename:      Optional[str] = 'PES.pdf',
-             interp_factor: int = 0,
-             units:         str = 'kcal mol-1'
-             ) -> None:
+    def plot(
+        self,
+        filename: Optional[str] = "PES.pdf",
+        interp_factor: int = 0,
+        units: str = "kcal mol-1",
+    ) -> None:
         """
         Plot this PES along a number of dimensions
 
@@ -168,10 +176,11 @@ class PESnD(ABC):
         """
 
         if interp_factor < 0:
-            raise ValueError(f'Unsupported interpolation factor: '
-                             f'{interp_factor}, must be >= 0')
+            raise ValueError(
+                f"Unsupported interpolation factor: " f"{interp_factor}, must be >= 0"
+            )
 
-        logger.info(f'Plotting the {self.ndim}D-PES')
+        logger.info(f"Plotting the {self.ndim}D-PES")
         self._set_mpl_params()
 
         if self.ndim == 1:
@@ -181,8 +190,9 @@ class PESnD(ABC):
             self._plot_2d(interp_factor, units)
 
         else:
-            raise NotImplementedError(f'Cannot plot a surface in {self.ndim} '
-                                      f'dimensions')
+            raise NotImplementedError(
+                f"Cannot plot a surface in {self.ndim} " f"dimensions"
+            )
 
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.4 if self.ndim > 1 else None)
@@ -209,9 +219,9 @@ class PESnD(ABC):
                       extension .npz will be added
         """
         if len(self._rs) == 0:
-            raise ValueError('Cannot save an empty PES')
+            raise ValueError("Cannot save an empty PES")
 
-        if filename.endswith('.txt'):
+        if filename.endswith(".txt"):
             self._save_txt(filename)
 
         else:
@@ -231,29 +241,32 @@ class PESnD(ABC):
             (FileNotFoundError):
         """
 
-        if not filename.endswith('.npz'):
-            raise ValueError(f'Cannot reload a PES from {filename}. Must be a '
-                             f'.npz compressed numpy file')
+        if not filename.endswith(".npz"):
+            raise ValueError(
+                f"Cannot reload a PES from {filename}. Must be a "
+                f".npz compressed numpy file"
+            )
 
         data = np.load(filename, allow_pickle=True)
-        self._energies = EnergyArray(data['E'], units='Ha')
-        self._coordinates = data['R']
+        self._energies = EnergyArray(data["E"], units="Ha")
+        self._coordinates = data["R"]
 
         # Maximum dimension is the largest integer out of e.g. 'r0', 'r1', ...
-        ndim = max(int(key.split('r')[1]) for key in data.keys() if 'r' in key)
+        ndim = max(int(key.split("r")[1]) for key in data.keys() if "r" in key)
         self._rs = _ListDistances1D(species=None, rs_dict={})
 
         for i in range(ndim):
-            idx_i, idx_j = tuple(int(idx) for idx in data[f'a{i+1}'])
+            idx_i, idx_j = tuple(int(idx) for idx in data[f"a{i+1}"])
 
-            self._rs.append(_Distances1D(input_array=data[f'r{i + 1}'],
-                                         atom_idxs=(idx_i, idx_j)))
+            self._rs.append(
+                _Distances1D(input_array=data[f"r{i + 1}"], atom_idxs=(idx_i, idx_j))
+            )
 
         self._mesh()
         return None
 
     @classmethod
-    def from_file(cls, filename: str) -> 'PESnD':
+    def from_file(cls, filename: str) -> "PESnD":
         """
         Load a potential energy surface from a compressed numpy file (.npz)
 
@@ -270,9 +283,9 @@ class PESnD(ABC):
         return pes
 
     @abstractmethod
-    def _default_keywords(self,
-                          method: 'autode.wrappers.ElectronicStructureMethod'
-                          ) -> 'autode.wrappers.Keywords':
+    def _default_keywords(
+        self, method: "autode.wrappers.ElectronicStructureMethod"
+    ) -> "autode.wrappers.Keywords":
         """
         Default keywords to use for this type of PES e.g. opt or sp
 
@@ -286,7 +299,7 @@ class PESnD(ABC):
 
     @property
     @abstractmethod
-    def _default_keyword_type(self) -> Type['autode.wrappers.Keywords']:
+    def _default_keyword_type(self) -> Type["autode.wrappers.Keywords"]:
         """Default keyword type e.g. OptKeywords for a relaxed PES"""
 
     @abstractmethod
@@ -309,10 +322,11 @@ class PESnD(ABC):
 
         if self._species is not None:
             # Coordinates tensor is the shape of the PES plus (N, 3) dimensions
-            self._coordinates = np.zeros((*self.shape, self._species.n_atoms, 3),
-                                         dtype=np.float64)
+            self._coordinates = np.zeros(
+                (*self.shape, self._species.n_atoms, 3), dtype=np.float64
+            )
 
-        if hasattr(self, '_coordinates') and self._coordinates is not None:
+        if hasattr(self, "_coordinates") and self._coordinates is not None:
             self._coordinates.fill(0.0)
 
         self._mesh()  # Mesh each coordinate and dynamically add r1, r2.. attrs
@@ -326,8 +340,8 @@ class PESnD(ABC):
         value of r1 at the point (0, 0) on the grid.
         """
 
-        for i, meshed_rs in enumerate(np.meshgrid(*self._rs, indexing='ij')):
-            setattr(self, f'r{i+1}', meshed_rs)
+        for i, meshed_rs in enumerate(np.meshgrid(*self._rs, indexing="ij")):
+            setattr(self, f"r{i+1}", meshed_rs)
 
         return None
 
@@ -397,8 +411,7 @@ class PESnD(ABC):
         Returns:
             (bool):
         """
-        return (self._is_contained(point)
-                and not np.isnan(self._energies[point]))
+        return self._is_contained(point) and not np.isnan(self._energies[point])
 
     @staticmethod
     def _neighbour(point: Tuple, dim: int, delta: int) -> Tuple:
@@ -426,8 +439,7 @@ class PESnD(ABC):
             (ValueError, IndexError):
         """
         if delta == 0:
-            raise ValueError('Cannot find a neighbour using ∆=0 in dimension '
-                             f'{dim}')
+            raise ValueError("Cannot find a neighbour using ∆=0 in dimension " f"{dim}")
 
         new_point = list(point)
         new_point[dim] += delta
@@ -465,7 +477,7 @@ class PESnD(ABC):
         r1 = np.array([self._r(point1, i) for i in range(self.ndim)])
         r2 = np.array([self._r(point2, i) for i in range(self.ndim)])
 
-        return Distance(np.linalg.norm(r1 - r2), units='Å')
+        return Distance(np.linalg.norm(r1 - r2), units="Å")
 
     def _save_txt(self, filename: str) -> None:
         """
@@ -477,11 +489,11 @@ class PESnD(ABC):
         Arguments:
             filename: Name of the file ot save
         """
-        logger.warning('Saving a PES as a .txt file. Not re-loadable')
-        arr = np.array(self._energies.to('Ha'))
+        logger.warning("Saving a PES as a .txt file. Not re-loadable")
+        arr = np.array(self._energies.to("Ha"))
 
         if self.ndim > 2:
-            logger.warning('Flattening PES to save to .txt file')
+            logger.warning("Flattening PES to save to .txt file")
 
         np.savetxt(filename, arr.flatten() if self.ndim > 2 else arr)
         return None
@@ -489,18 +501,21 @@ class PESnD(ABC):
     def _save_npz(self, filename: str) -> None:
         """Save a compressed numpy array, from which a PES can be re-loaded"""
 
-        if not filename.endswith('.npz'):
-            filename += '.npz'
+        if not filename.endswith(".npz"):
+            filename += ".npz"
 
         # Dictionary of flat arrays in each dimension, and their atom indices
-        kwds = {f'r{i+1}': np.array(_r) for i, _r in enumerate(self._rs)}
-        kwds.update({f'a{i+1}': np.array(_r.atom_idxs, dtype=int)
-                     for i, _r in enumerate(self._rs)})
+        kwds = {f"r{i+1}": np.array(_r) for i, _r in enumerate(self._rs)}
+        kwds.update(
+            {
+                f"a{i+1}": np.array(_r.atom_idxs, dtype=int)
+                for i, _r in enumerate(self._rs)
+            }
+        )
 
-        np.savez(filename,
-                 R=self._coordinates,
-                 E=np.array(self._energies.to('Ha')),
-                 **kwds)
+        np.savez(
+            filename, R=self._coordinates, E=np.array(self._energies.to("Ha")), **kwds
+        )
 
         return None
 
@@ -517,30 +532,36 @@ class PESnD(ABC):
         energies, units = self._energies, energy_unit_from_name(units)
         energies = units.conversion * (energies - np.min(energies))
 
-        plt.scatter(r_x, energies,
-                    marker='o',
-                    s=80,  # Marker size
-                    alpha=0.8,  # Opacity
-                    zorder=10,  # Order
-                    facecolors='white',
-                    edgecolors='blue')
+        plt.scatter(
+            r_x,
+            energies,
+            marker="o",
+            s=80,  # Marker size
+            alpha=0.8,  # Opacity
+            zorder=10,  # Order
+            facecolors="white",
+            edgecolors="blue",
+        )
 
         if interp_factor > 0:
             from scipy.interpolate import UnivariateSpline
+
             spline = UnivariateSpline(r_x, energies)
             r_x = r_x.smoothed(interp_factor)
             energies = spline(r_x)
 
         # Plot straight lines between the points
-        plt.plot(r_x,
-                 energies,
-                 lw=2,
-                 ls='--' if interp_factor > 0 else '-',
-                 c='blue',
-                 alpha=0.9 if interp_factor > 0 else 0.4)
+        plt.plot(
+            r_x,
+            energies,
+            lw=2,
+            ls="--" if interp_factor > 0 else "-",
+            c="blue",
+            alpha=0.9 if interp_factor > 0 else 0.4,
+        )
 
-        plt.ylabel(f'$E$ / {units.plot_name}')
-        plt.xlabel('$r$ / Å')
+        plt.ylabel(f"$E$ / {units.plot_name}")
+        plt.xlabel("$r$ / Å")
 
         return None
 
@@ -572,36 +593,39 @@ class PESnD(ABC):
         units = energy_unit_from_name(units)
         energies = units.conversion * (energies - np.min(energies))
 
-        ax0.plot_surface(*np.meshgrid(r_x, r_y),
-                         energies.T,
-                         cmap=plt.get_cmap('plasma'))
-        ax0.set_xlabel('$r_1$ / Å')
-        ax0.set_ylabel('$r_2$ / Å')
-        ax0.set_zlabel(f'$E$ / {units.plot_name}')
+        ax0.plot_surface(
+            *np.meshgrid(r_x, r_y), energies.T, cmap=plt.get_cmap("plasma")
+        )
+        ax0.set_xlabel("$r_1$ / Å")
+        ax0.set_ylabel("$r_2$ / Å")
+        ax0.set_zlabel(f"$E$ / {units.plot_name}")
 
-        im = ax1.imshow(energies.T,
-                        aspect=(r_x.abs_diff / r_y.abs_diff),
-                        extent=(r_x[0], r_x[-1],
-                                r_y[0], r_y[-1]),
-                        origin='lower',
-                        cmap=plt.get_cmap('plasma'))
+        im = ax1.imshow(
+            energies.T,
+            aspect=(r_x.abs_diff / r_y.abs_diff),
+            extent=(r_x[0], r_x[-1], r_y[0], r_y[-1]),
+            origin="lower",
+            cmap=plt.get_cmap("plasma"),
+        )
 
-        contour = ax1.contour(*np.meshgrid(r_x, r_y),
-                              energies.T,
-                              levels=8,
-                              origin='lower',
-                              colors='k',
-                              linewidths=1,
-                              alpha=0.5)
+        contour = ax1.contour(
+            *np.meshgrid(r_x, r_y),
+            energies.T,
+            levels=8,
+            origin="lower",
+            colors="k",
+            linewidths=1,
+            alpha=0.5,
+        )
 
-        plt.clabel(contour, inline=1, fontsize=10, colors='k')
+        plt.clabel(contour, inline=1, fontsize=10, colors="k")
 
         cbar = plt.colorbar(im, fraction=0.0458, pad=0.04)
-        cbar.set_label(f'$E$ / {units.plot_name}')
-        ax1.set_xlabel('$r_1$ / Å')
-        ax1.set_ylabel('$r_2$ / Å')
-        ax1.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        ax1.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        cbar.set_label(f"$E$ / {units.plot_name}")
+        ax1.set_xlabel("$r_1$ / Å")
+        ax1.set_ylabel("$r_2$ / Å")
+        ax1.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+        ax1.xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
 
         return None
 
@@ -610,20 +634,20 @@ class PESnD(ABC):
         """Set some matplotlib (mpl) parameters for nice plotting"""
         import matplotlib as mpl
 
-        mpl.rcParams['axes.labelsize'] = 15
-        mpl.rcParams['lines.linewidth'] = 1
-        mpl.rcParams['lines.markersize'] = 5
-        mpl.rcParams['xtick.labelsize'] = 14
-        mpl.rcParams['ytick.labelsize'] = 14
-        mpl.rcParams['xtick.direction'] = 'in'
-        mpl.rcParams['ytick.direction'] = 'in'
-        mpl.rcParams['xtick.top'] = True
-        mpl.rcParams['ytick.right'] = True
-        mpl.rcParams['axes.linewidth'] = 1.2
+        mpl.rcParams["axes.labelsize"] = 15
+        mpl.rcParams["lines.linewidth"] = 1
+        mpl.rcParams["lines.markersize"] = 5
+        mpl.rcParams["xtick.labelsize"] = 14
+        mpl.rcParams["ytick.labelsize"] = 14
+        mpl.rcParams["xtick.direction"] = "in"
+        mpl.rcParams["ytick.direction"] = "in"
+        mpl.rcParams["xtick.top"] = True
+        mpl.rcParams["ytick.right"] = True
+        mpl.rcParams["axes.linewidth"] = 1.2
 
         return None
 
-    def _spline_2d(self) -> 'scipy.interpolate.RectBivariateSpline':
+    def _spline_2d(self) -> "scipy.interpolate.RectBivariateSpline":
         """
         Spline the surface using Scipy. As of scipy v1.7.1 RectBivariateSpline
         can only accept monotonically increasing arrays. This function thus
@@ -649,11 +673,9 @@ class PESnD(ABC):
             return RectBivariateSpline(r_x, r_y[::-1], self._energies[:, ::-1])
 
         # Reverse both the x and y arrays
-        return RectBivariateSpline(r_x[::-1], r_y[::-1],
-                                   self._energies[::-1, ::-1])
+        return RectBivariateSpline(r_x[::-1], r_y[::-1], self._energies[::-1, ::-1])
 
-    def __getitem__(self,
-                    indices: Union[Tuple, int]):
+    def __getitem__(self, indices: Union[Tuple, int]):
         """
         Get a value on this potential energy surface (PES) at a (set of)
         indices
@@ -668,11 +690,10 @@ class PESnD(ABC):
         return Energy(self._energies[indices], units=self._energies.units)
 
     def __repr__(self):
-        return f'PES(shape={self.shape})'
+        return f"PES(shape={self.shape})"
 
 
 class _ListDistances1D(list):
-
     def __init__(self, species, rs_dict, allow_rounding=True):
         """Construct a list of distance arrays in each dimension"""
         super().__init__([])
@@ -683,10 +704,11 @@ class _ListDistances1D(list):
         for idxs, value in rs_dict.items():
             self.append(self._distance1d_from_key_val(idxs, value))
 
-    def _distance1d_from_key_val(self,
-                                 atom_idxs: Tuple[int, int],
-                                 value:     Union[Tuple, np.ndarray],
-                                 ) -> np.ndarray:
+    def _distance1d_from_key_val(
+        self,
+        atom_idxs: Tuple[int, int],
+        value: Union[Tuple, np.ndarray],
+    ) -> np.ndarray:
         """
         From a 'value' determine the initial and final distances to use
 
@@ -708,15 +730,19 @@ class _ListDistances1D(list):
             return _Distances1D(value, atom_idxs=atom_idxs)
 
         else:
-            raise ValueError('Unable to populate distance array for atom '
-                             f'indices {atom_idxs} with: {value}. Must be '
-                             f'either a tuple or numpy array')
+            raise ValueError(
+                "Unable to populate distance array for atom "
+                f"indices {atom_idxs} with: {value}. Must be "
+                f"either a tuple or numpy array"
+            )
 
-    def _distance1d_from_key_val_tuple(self,
-                                       atom_idxs: Tuple[int, int],
-                                       value:     Union[Tuple[float, Union[float, int]],
-                                                        Tuple[float, float, Union[float, int]]]
-                                       ):
+    def _distance1d_from_key_val_tuple(
+        self,
+        atom_idxs: Tuple[int, int],
+        value: Union[
+            Tuple[float, Union[float, int]], Tuple[float, float, Union[float, int]]
+        ],
+    ):
         """
         Determine a array of distances based on a tuple containing either
         a final distance or a number of steps to perform.
@@ -733,8 +759,9 @@ class _ListDistances1D(list):
         if len(value) == 2:
 
             if self._species is None:
-                raise ValueError('Cannot determine initial point without '
-                                 'a defined species')
+                raise ValueError(
+                    "Cannot determine initial point without " "a defined species"
+                )
 
             # Have a pair, the final distance and either the number of steps
             # or the step size
@@ -745,8 +772,10 @@ class _ListDistances1D(list):
             r_init, r_final = value[0], value[1]
 
         else:
-            raise ValueError(f'Cannot interpret *{value}* as a final '
-                             f'distance and number of steps or step size')
+            raise ValueError(
+                f"Cannot interpret *{value}* as a final "
+                f"distance and number of steps or step size"
+            )
 
         if isinstance(value[-1], int):
             # Integer values must be a number of steps
@@ -760,13 +789,12 @@ class _ListDistances1D(list):
                 r_final = r_init + dr
 
         else:
-            raise ValueError(f'Uninterpretable type: {type(value)}')
+            raise ValueError(f"Uninterpretable type: {type(value)}")
 
         if num <= 1:
-            raise ValueError(f'Unsupported number of steps: {num}')
+            raise ValueError(f"Unsupported number of steps: {num}")
 
-        return _Distances1D(np.linspace(r_init, r_final, num=num),
-                            atom_idxs=atom_idxs)
+        return _Distances1D(np.linspace(r_init, r_final, num=num), atom_idxs=atom_idxs)
 
     def __eq__(self, other):
         """Equality of two _ListDistances1D instances"""
@@ -777,9 +805,9 @@ class _Distances1D(ValueArray):
 
     implemented_units = [ang]
 
-    def __new__(cls,
-                input_array: Union[np.ndarray, Sequence],
-                atom_idxs:   Tuple[int, int]):
+    def __new__(
+        cls, input_array: Union[np.ndarray, Sequence], atom_idxs: Tuple[int, int]
+    ):
         """
         Create an array of distances in a single dimension, with associated
         atom indices, indexed from 0
@@ -794,14 +822,14 @@ class _Distances1D(ValueArray):
         arr = super().__new__(cls, input_array=input_array, units=ang)
 
         if len(atom_idxs) != 2:
-            raise ValueError(f'Indices must be a 2-tuple. Had: {atom_idxs}')
+            raise ValueError(f"Indices must be a 2-tuple. Had: {atom_idxs}")
 
         i, j = atom_idxs
         if not (isinstance(i, int) and isinstance(j, int)):
-            raise ValueError(f'Atom indices must be integers. Had: {i}, {j}')
+            raise ValueError(f"Atom indices must be integers. Had: {i}, {j}")
 
         if i < 0 or j < 0:
-            raise ValueError(f'Atom indices must be >0: Had {i}, {j}')
+            raise ValueError(f"Atom indices must be >0: Had {i}, {j}")
 
         arr.atom_idxs = atom_idxs
         return arr
@@ -843,4 +871,4 @@ class _Distances1D(ValueArray):
         return _Distances1D(input_array=new_arr, atom_idxs=self.atom_idxs)
 
     def __repr__(self):
-        return f'Distances(n={len(self)}, [{self.min, self.max}])'
+        return f"Distances(n={len(self)}, [{self.min, self.max}])"

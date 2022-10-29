@@ -9,7 +9,7 @@ import autode as ade
 # one of: INFO, WARNING, ERROR
 
 # Will not print any log
-_ = ade.Molecule(smiles='N')
+_ = ade.Molecule(smiles="N")
 
 # To set the level to info in bash:
 # export AUTODE_LOG_LEVEL=INFO

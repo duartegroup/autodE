@@ -3,14 +3,16 @@ import pytest
 
 from autode.species import Molecule
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.trust_region import (CauchyTROptimiser,
-                                                DoglegTROptimiser,
-                                                CGSteihaugTROptimiser)
+from autode.opt.optimisers.trust_region import (
+    CauchyTROptimiser,
+    DoglegTROptimiser,
+    CGSteihaugTROptimiser,
+)
 from .setup import Method
 
 
 def branin_energy(x, y):
-    return (y - 0.129 * x ** 2 + 1.6 * x - 6) ** 2 + 6.07 * np.cos(x) + 10
+    return (y - 0.129 * x**2 + 1.6 * x - 6) ** 2 + 6.07 * np.cos(x) + 10
 
 
 class BraninCauchyTROptimiser(CauchyTROptimiser):
@@ -29,31 +31,42 @@ class BraninCauchyTROptimiser(CauchyTROptimiser):
 
         self._coords.e = branin_energy(x, y)
 
-        grad = [(2 * (1.6 - 0.258*x) * (y - 0.129*x**2 + 1.6*x - 6)
-                 - 6.07*np.sin(x)),
-                (2 * (y - 0.129*x**2 + 1.6*x - 6))]
+        grad = [
+            (
+                2 * (1.6 - 0.258 * x) * (y - 0.129 * x**2 + 1.6 * x - 6)
+                - 6.07 * np.sin(x)
+            ),
+            (2 * (y - 0.129 * x**2 + 1.6 * x - 6)),
+        ]
 
         self._coords.g = np.array(grad)
 
-        h_xx = (2*(1.6-0.258*x)**2
-                - 0.516*(-0.129*x**2 + 1.6*x + y - 6)
-                - 6.07*np.cos(x))
-        h_xy = 2*(1.6 - 0.258*x)
+        h_xx = (
+            2 * (1.6 - 0.258 * x) ** 2
+            - 0.516 * (-0.129 * x**2 + 1.6 * x + y - 6)
+            - 6.07 * np.cos(x)
+        )
+        h_xy = 2 * (1.6 - 0.258 * x)
         h_yy = 2
-        self._coords.h = np.array([[h_xx, h_xy],
-                                   [h_xy, h_yy]])
+        self._coords.h = np.array([[h_xx, h_xy], [h_xy, h_yy]])
 
     def _log_convergence(self) -> None:
 
-        attrs = [self.iteration, self._coords.e, *self._coords, self.rho,
-                      self.alpha, np.linalg.norm(self.p), self._g_norm]
+        attrs = [
+            self.iteration,
+            self._coords.e,
+            *self._coords,
+            self.rho,
+            self.alpha,
+            np.linalg.norm(self.p),
+            self._g_norm,
+        ]
 
-        if hasattr(self, 'tau'):
+        if hasattr(self, "tau"):
             attrs.append(self.tau)
 
         for thing in attrs:
-            print(f'{round(thing, 3):10.3f}'
-                  f'', end=' ')
+            print(f"{round(thing, 3):10.3f}" f"", end=" ")
         print()
 
     @property
@@ -62,7 +75,6 @@ class BraninCauchyTROptimiser(CauchyTROptimiser):
 
 
 class BraninDoglegTROptimiser(DoglegTROptimiser):
-
     def _space_has_degrees_of_freedom(self) -> bool:
         return True
 
@@ -78,7 +90,6 @@ class BraninDoglegTROptimiser(DoglegTROptimiser):
 
 
 class BraninCGSteihaugTROptimiser(CGSteihaugTROptimiser):
-
     def _space_has_degrees_of_freedom(self) -> bool:
         return True
 
@@ -96,11 +107,13 @@ class BraninCGSteihaugTROptimiser(CGSteihaugTROptimiser):
 def test_trm_base_properties():
     init_coords = CartesianCoordinates([6.0, 14.0])
 
-    optimiser = BraninCauchyTROptimiser(maxiter=20,
-                                        etol=100,  # Some large value
-                                        trust_radius=2.0,
-                                        coords=init_coords,
-                                        gtol=0.01)
+    optimiser = BraninCauchyTROptimiser(
+        maxiter=20,
+        etol=100,  # Some large value
+        trust_radius=2.0,
+        coords=init_coords,
+        gtol=0.01,
+    )
 
     # Updating the Hessian should be possible, and be the identity matrix
     CauchyTROptimiser._update_hessian(optimiser)
@@ -119,89 +132,87 @@ def test_branin_minimisation():
 
     init_coords = CartesianCoordinates([6.0, 14.0])
 
-    optimiser = BraninCauchyTROptimiser(maxiter=20,
-                                        etol=100,  # Some large value
-                                        trust_radius=2.0,
-                                        coords=init_coords,
-                                        gtol=0.01,
-                                        max_trust_radius=5.0,
-                                        t_1=0.25,
-                                        t_2=2.0,
-                                        eta_1=0.2,
-                                        eta_2=0.25,
-                                        eta_3=0.75)
+    optimiser = BraninCauchyTROptimiser(
+        maxiter=20,
+        etol=100,  # Some large value
+        trust_radius=2.0,
+        coords=init_coords,
+        gtol=0.01,
+        max_trust_radius=5.0,
+        t_1=0.25,
+        t_2=2.0,
+        eta_1=0.2,
+        eta_2=0.25,
+        eta_3=0.75,
+    )
 
-    optimiser.run(Molecule(name='blank'), method=Method())
+    optimiser.run(Molecule(name="blank"), method=Method())
     assert optimiser.converged
-    assert np.allclose(optimiser._coords,
-                       np.array([3.138, 2.252]),
-                       atol=0.01)
+    assert np.allclose(optimiser._coords, np.array([3.138, 2.252]), atol=0.01)
 
 
 def test_branin_dogleg_minimisation():
 
     # Dogleg optimiser doesn't seem to be so efficient - TODO: Check
-    optimiser = BraninDoglegTROptimiser(maxiter=1000,
-                                        etol=100,  # Some large value
-                                        trust_radius=2.0,
-                                        coords=CartesianCoordinates([6., 14.]),
-                                        gtol=0.01,
-                                        max_trust_radius=5.0,
-                                        t_1=0.25,
-                                        t_2=2.0,
-                                        eta_1=0.2,
-                                        eta_2=0.25,
-                                        eta_3=0.75)
+    optimiser = BraninDoglegTROptimiser(
+        maxiter=1000,
+        etol=100,  # Some large value
+        trust_radius=2.0,
+        coords=CartesianCoordinates([6.0, 14.0]),
+        gtol=0.01,
+        max_trust_radius=5.0,
+        t_1=0.25,
+        t_2=2.0,
+        eta_1=0.2,
+        eta_2=0.25,
+        eta_3=0.75,
+    )
 
-    optimiser.run(Molecule(name='blank'), method=Method())
+    optimiser.run(Molecule(name="blank"), method=Method())
 
     assert optimiser.converged
-    assert np.allclose(optimiser._coords,
-                       np.array([3.138, 2.252]),
-                       atol=0.02)
+    assert np.allclose(optimiser._coords, np.array([3.138, 2.252]), atol=0.02)
 
 
 def test_branin_cg_minimisation():
 
     optimiser = BraninCGSteihaugTROptimiser(
-                            maxiter=1000,
-                            etol=100,  # Some large value
-                            trust_radius=2.0,
-                            coords=CartesianCoordinates([6., 14.]),
-                            gtol=0.01,
-                            max_trust_radius=5.0,
-                            t_1=0.25,
-                            t_2=2.0,
-                            eta_1=0.2,
-                            eta_2=0.25,
-                            eta_3=0.75
-                 )
+        maxiter=1000,
+        etol=100,  # Some large value
+        trust_radius=2.0,
+        coords=CartesianCoordinates([6.0, 14.0]),
+        gtol=0.01,
+        max_trust_radius=5.0,
+        t_1=0.25,
+        t_2=2.0,
+        eta_1=0.2,
+        eta_2=0.25,
+        eta_3=0.75,
+    )
 
-    optimiser.run(Molecule(name='blank'), method=Method())
+    optimiser.run(Molecule(name="blank"), method=Method())
 
     assert optimiser.converged
-    assert np.allclose(optimiser._coords,
-                       np.array([3.138, 2.252]),
-                       atol=0.02)
+    assert np.allclose(optimiser._coords, np.array([3.138, 2.252]), atol=0.02)
 
     # Should also be able to optimise directly
-    coords = CartesianCoordinates([6., 14.])
-    BraninCGSteihaugTROptimiser.optimise(Molecule(name='blank'),
-                                         method=Method(),
-                                         gtol=0.01,
-                                         etol=10,
-                                         coords=coords)
+    coords = CartesianCoordinates([6.0, 14.0])
+    BraninCGSteihaugTROptimiser.optimise(
+        Molecule(name="blank"), method=Method(), gtol=0.01, etol=10, coords=coords
+    )
 
     assert optimiser.converged
 
 
 def test_base_cg_properties():
 
-    optimiser = CGSteihaugTROptimiser(maxiter=10,
-                                      trust_radius=1.0,
-                                      etol=1,
-                                      gtol=0.1,
-                                      coords=CartesianCoordinates([0.1, 0.0]))
+    optimiser = CGSteihaugTROptimiser(
+        maxiter=10,
+        trust_radius=1.0,
+        etol=1,
+        gtol=0.1,
+        coords=CartesianCoordinates([0.1, 0.0]),
+    )
 
     assert not optimiser.converged
 
@@ -209,4 +220,4 @@ def test_base_cg_properties():
     optimiser._solve_subproblem()
 
     # For an almost zero gradient the step size should be zero
-    assert np.linalg.norm(optimiser.p) < 1E-10
+    assert np.linalg.norm(optimiser.p) < 1e-10

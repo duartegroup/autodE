@@ -12,15 +12,16 @@ import numpy as np
 from typing import Any, Optional, Type, List
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
-from autode.opt.coordinates.primitives import (InverseDistance,
-                                               Primitive,
-                                               Distance,
-                                               DihedralAngle)
+from autode.opt.coordinates.primitives import (
+    InverseDistance,
+    Primitive,
+    Distance,
+    DihedralAngle,
+)
 
 
-class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
-
-    def __new__(cls, input_array) -> 'InternalCoordinates':
+class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
+    def __new__(cls, input_array) -> "InternalCoordinates":
         """New instance of these internal coordinates"""
 
         arr = super().__new__(cls, input_array, units=None)
@@ -30,7 +31,7 @@ class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
 
         return arr
 
-    def __array_finalize__(self, obj: 'OptCoordinates') -> None:
+    def __array_finalize__(self, obj: "OptCoordinates") -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
         OptCoordinates.__array_finalize__(self, obj)
 
@@ -45,7 +46,7 @@ class InternalCoordinates(OptCoordinates, ABC):   # lgtm [py/missing-equals]
         return self.primitives.n_constrained
 
     @property
-    def constrained_primitives(self) -> List['ConstrainedPrimitive']:
+    def constrained_primitives(self) -> List["ConstrainedPrimitive"]:
         return [p for p in self.primitives if p.is_constrained]
 
     @property
@@ -69,16 +70,20 @@ class PIC(list, ABC):
         self._B: Optional[np.ndarray] = None
 
         if not self._are_all_primitive_coordinates(args):
-            raise ValueError('Cannot construct primitive internal coordinates '
-                             f'from {args}. Must be primitive internals')
+            raise ValueError(
+                "Cannot construct primitive internal coordinates "
+                f"from {args}. Must be primitive internals"
+            )
 
     @property
     def B(self) -> np.ndarray:
         """Wilson B matrix"""
 
         if self._B is None:
-            raise AttributeError(f'{self} had no B matrix. Please calculate '
-                                 f'the value of the primitives to determine B')
+            raise AttributeError(
+                f"{self} had no B matrix. Please calculate "
+                f"the value of the primitives to determine B"
+            )
 
         return self._B
 
@@ -88,9 +93,10 @@ class PIC(list, ABC):
         return np.dot(self.B, self.B.T)
 
     @classmethod
-    def from_cartesian(cls,
-                       x:          'autode.opt.cartesian.CartesianCoordinates',
-                       ) -> 'PIC':
+    def from_cartesian(
+        cls,
+        x: "autode.opt.cartesian.CartesianCoordinates",
+    ) -> "PIC":
         """Construct a complete set of primitive internal coordinates from
         a set of Cartesian coordinates"""
 
@@ -132,9 +138,11 @@ class PIC(list, ABC):
     def __eq__(self, other: Any):
         """Comparison of two PIC sets"""
 
-        is_equal = (isinstance(other, PIC)
-                    and len(other) == len(self)
-                    and all(p0 == p1 for p0, p1 in zip(self, other)))
+        is_equal = (
+            isinstance(other, PIC)
+            and len(other) == len(self)
+            and all(p0 == p1 for p0, p1 in zip(self, other))
+        )
 
         return is_equal
 
@@ -154,8 +162,10 @@ class PIC(list, ABC):
         """Calculate the Wilson B matrix"""
 
         if len(self) == 0:
-            raise ValueError('Cannot calculate the Wilson B matrix, no '
-                             'primitive internal coordinates')
+            raise ValueError(
+                "Cannot calculate the Wilson B matrix, no "
+                "primitive internal coordinates"
+            )
 
         cart_coords = x.reshape((-1, 3))
 
@@ -165,9 +175,15 @@ class PIC(list, ABC):
         for i, primitive in enumerate(self):
             for j in range(n_atoms):
 
-                B[i, 3 * j + 0] = primitive.derivative(j, CartesianComponent.x, x=cart_coords)
-                B[i, 3 * j + 1] = primitive.derivative(j, CartesianComponent.y, x=cart_coords)
-                B[i, 3 * j + 2] = primitive.derivative(j, CartesianComponent.z, x=cart_coords)
+                B[i, 3 * j + 0] = primitive.derivative(
+                    j, CartesianComponent.x, x=cart_coords
+                )
+                B[i, 3 * j + 1] = primitive.derivative(
+                    j, CartesianComponent.y, x=cart_coords
+                )
+                B[i, 3 * j + 2] = primitive.derivative(
+                    j, CartesianComponent.z, x=cart_coords
+                )
 
         self._B = B
         return None
@@ -183,10 +199,9 @@ class PIC(list, ABC):
 
 
 class _FunctionOfDistances(PIC):
-
     @property
     @abstractmethod
-    def _primitive_type(self) -> Type['_DistanceFunction']:
+    def _primitive_type(self) -> Type["_DistanceFunction"]:
         """Type of primitive coordinate defining f(r_ij)"""
 
     def _populate_all(self, x: np.ndarray):

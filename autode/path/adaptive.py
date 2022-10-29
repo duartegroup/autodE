@@ -8,12 +8,13 @@ from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
 
 
-def get_ts_adaptive_path(reactant:   'autode.species.ReactantComplex',
-                         product:    'autode.species.ProductComplex',
-                         method:     'autode.wrappers.methods.Method',
-                         bond_rearr: 'autode.bond_rearrangement.BondRearrangement',
-                         name:       str = 'adaptive'
-                         ) -> 'autode.transition_states.TSguess ':
+def get_ts_adaptive_path(
+    reactant: "autode.species.ReactantComplex",
+    product: "autode.species.ProductComplex",
+    method: "autode.wrappers.methods.Method",
+    bond_rearr: "autode.bond_rearrangement.BondRearrangement",
+    name: str = "adaptive",
+) -> "autode.transition_states.TSguess ":
     """
     Generate a TS guess geometry based on an adaptive path along multiple
     breaking and/or forming bonds
@@ -35,21 +36,25 @@ def get_ts_adaptive_path(reactant:   'autode.species.ReactantComplex',
     """
     fbonds, bbonds = bond_rearr.fbonds, bond_rearr.bbonds
 
-    ts_path = AdaptivePath(init_species=reactant,
-                           bonds=pruned_active_bonds(reactant, fbonds, bbonds),
-                           method=method,
-                           final_species=product)
+    ts_path = AdaptivePath(
+        init_species=reactant,
+        bonds=pruned_active_bonds(reactant, fbonds, bbonds),
+        method=method,
+        final_species=product,
+    )
     ts_path.generate(name=name)
 
     if not ts_path.contains_peak:
-        logger.warning('Adaptive path had no peak')
+        logger.warning("Adaptive path had no peak")
         return None
 
-    ts_guess = TSguess(atoms=ts_path[ts_path.peak_idx].species.atoms,
-                       reactant=reactant,
-                       product=product,
-                       bond_rearr=bond_rearr,
-                       name=name)
+    ts_guess = TSguess(
+        atoms=ts_path[ts_path.peak_idx].species.atoms,
+        reactant=reactant,
+        product=product,
+        bond_rearr=bond_rearr,
+        name=name,
+    )
     return ts_guess
 
 
@@ -79,7 +84,7 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
     Returns:
         (list(autode.pes.pes.ScannedBond)):
     """
-    logger.info('Pruning active bonds for special cases')
+    logger.info("Pruning active bonds for special cases")
 
     # Flat list of all the atom indexes in the breaking/forming bonds
     a_atoms = [bond.atom_indexes for bond in fbonds + bbonds]
@@ -87,7 +92,7 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
     coords = reactant.coordinates
 
     if len(fbonds) == 1 and len(bbonds) == 2 and len(set(a_atoms)) == 3:
-        logger.info('Found 3-membered ring with 2 breaking & 1 forming bonds')
+        logger.info("Found 3-membered ring with 2 breaking & 1 forming bonds")
 
         f_i, f_j = fbonds[0].atom_indexes
         f_vec = coords[f_i] - coords[f_j]
@@ -100,15 +105,17 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
         b1_projection = np.dot((coords[b1_i] - coords[b1_j]), f_vec)
 
         if b0_projection > b1_projection:
-            logger.info(f'Excluding {bbonds[0]}')
+            logger.info(f"Excluding {bbonds[0]}")
             bbonds.pop(0)
         else:
-            logger.info(f'Excluding {bbonds[1]}')
+            logger.info(f"Excluding {bbonds[1]}")
             bbonds.pop(1)
 
     if any(bond.dr < 0 for bond in bbonds):
-        logger.info('Found at least one breaking bond where the final distance'
-                    ' is shorter than the initial - removing')
+        logger.info(
+            "Found at least one breaking bond where the final distance"
+            " is shorter than the initial - removing"
+        )
         """
         Counterintuitively, this is possible e.g. metallocyclobutate formation
         from a metalocyclopropane and a alkylidene (due to the way bonds are 
@@ -120,7 +127,6 @@ def pruned_active_bonds(reactant, fbonds, bbonds):
 
 
 class PathPoint:
-
     def __init__(self, species, constraints):
         """
         Point on a PES path
@@ -135,8 +141,8 @@ class PathPoint:
         self.species = species
         self.species.constraints.distance = constraints
 
-        self.energy = None    # Ha
-        self.grad = None      # Ha Å^-1
+        self.energy = None  # Ha
+        self.grad = None  # Ha Å^-1
 
     @property
     def constraints(self) -> dict:
@@ -144,12 +150,13 @@ class PathPoint:
 
     def copy(self):
         """Return a copy of this point"""
-        return PathPoint(species=self.species.new_species(),
-                         constraints=deepcopy(self.species.constraints.distance))
+        return PathPoint(
+            species=self.species.new_species(),
+            constraints=deepcopy(self.species.constraints.distance),
+        )
 
 
 class AdaptivePath(Path):
-
     def __init__(self, init_species, bonds, method, final_species=None):
         """
         PES Path
@@ -175,9 +182,10 @@ class AdaptivePath(Path):
             assert bond.curr_dist is not None and bond.final_dist is not None
 
         # Add the first point - will run a constrained minimisation if possible
-        init_point = PathPoint(species=init_species,
-                               constraints={bond.atom_indexes: bond.curr_dist
-                                            for bond in bonds})
+        init_point = PathPoint(
+            species=init_species,
+            constraints={bond.atom_indexes: bond.curr_dist for bond in bonds},
+        )
 
         if init_point.species.n_atoms > 0:
             self.append(init_point)
@@ -189,7 +197,7 @@ class AdaptivePath(Path):
 
         return super().__eq__(other)
 
-    @work_in('initial_path')
+    @work_in("initial_path")
     def append(self, point) -> None:
         """
         Append a point to the path and  optimise it
@@ -207,11 +215,13 @@ class AdaptivePath(Path):
         keywords = self.method.keywords.low_opt.copy()
         keywords.max_opt_cycles = 50
 
-        calc = ade.Calculation(name=f'path_opt{idx}',
-                               molecule=self[idx].species,
-                               method=self.method,
-                               keywords=keywords,
-                               n_cores=ade.Config.n_cores)
+        calc = ade.Calculation(
+            name=f"path_opt{idx}",
+            molecule=self[idx].species,
+            method=self.method,
+            keywords=keywords,
+            n_cores=ade.Config.n_cores,
+        )
         calc.run()
 
         # Set the required properties from the calculation
@@ -219,16 +229,18 @@ class AdaptivePath(Path):
         make_graph(self[idx].species)
         self[idx].energy = calc.get_energy()
 
-        if self.method.name == 'xtb' or self.method.name == 'mopac':
+        if self.method.name == "xtb" or self.method.name == "mopac":
             # XTB prints gradients including the constraints, which are ~0
             # the gradient here is just the derivative of the electronic energy
             # so rerun a gradient calculation, which should be very fast
             # while MOPAC doesn't print gradients for a constrained opt
-            calc = ade.Calculation(name=f'path_grad{idx}',
-                                   molecule=self[idx].species.new_species(),
-                                   method=self.method,
-                                   keywords=self.method.keywords.grad,
-                                   n_cores=ade.Config.n_cores)
+            calc = ade.Calculation(
+                name=f"path_grad{idx}",
+                molecule=self[idx].species.new_species(),
+                method=self.method,
+                keywords=self.method.keywords.grad,
+                n_cores=ade.Config.n_cores,
+            )
             calc.run()
             self[idx].grad = calc.get_gradients()
             calc.clean_up(force=True, everything=True)
@@ -238,7 +250,7 @@ class AdaptivePath(Path):
 
         return None
 
-    def plot_energies(self, save=True, name='init_path', color='k', xlabel='ζ') -> None:
+    def plot_energies(self, save=True, name="init_path", color="k", xlabel="ζ") -> None:
         return super().plot_energies(save, name, color, xlabel)
 
     def contains_suitable_peak(self) -> bool:
@@ -248,16 +260,19 @@ class AdaptivePath(Path):
 
         idx = self.product_idx(product=self.final_species)
         if idx is not None and self[idx].energy < self[self.peak_idx].energy:
-            logger.info('Products made and have a peak. Assuming suitable!')
+            logger.info("Products made and have a peak. Assuming suitable!")
             return True
 
         # Products aren't made by isomorphism but we may still have a suitable
         # peak..
-        if any(self[-1].constraints[b.atom_indexes] == b.final_dist
-               for b in self.bonds):
-            logger.warning('Have a peak, products not made on isomorphism, but'
-                           ' at least one of the distances is final. Assuming '
-                           'the peak is suitable    ')
+        if any(
+            self[-1].constraints[b.atom_indexes] == b.final_dist for b in self.bonds
+        ):
+            logger.warning(
+                "Have a peak, products not made on isomorphism, but"
+                " at least one of the distances is final. Assuming "
+                "the peak is suitable    "
+            )
             return True
 
         return False
@@ -270,7 +285,7 @@ class AdaptivePath(Path):
         Arguments:
             point (autode.neb.PathPoint):
         """
-        logger.info(f'Adjusting constraints on point {len(self)}')
+        logger.info(f"Adjusting constraints on point {len(self)}")
 
         # Flat list of all the atom indexes involved in the bonds
         atom_idxs = [i for bond in self.bonds for i in bond]
@@ -298,7 +313,7 @@ class AdaptivePath(Path):
             else:
                 grad = np.average((gradi, gradj))
 
-            logger.info(f'|∇E_i·r| = {grad:.4f} on {bond}')
+            logger.info(f"|∇E_i·r| = {grad:.4f} on {bond}")
 
             # Downhill in energy to break/form this breaking/forming bond
             if grad * np.sign(bond.dr) > 0:
@@ -307,7 +322,7 @@ class AdaptivePath(Path):
             # otherwise use a scaled value, depending on the gradient
             # large values will have small step sizes, down to min_step Å
             else:
-                dr = (max_step - min_step) * np.exp(-(grad/0.05)**2) + min_step
+                dr = (max_step - min_step) * np.exp(-((grad / 0.05) ** 2)) + min_step
                 dr *= np.sign(bond.dr)
 
             new_dist = point.species.distance(*bond.atom_indexes) + dr
@@ -320,13 +335,13 @@ class AdaptivePath(Path):
                 new_dist = bond.final_dist
 
             else:
-                logger.info(f'Using step {dr:.3f} Å on bond: {bond}')
+                logger.info(f"Using step {dr:.3f} Å on bond: {bond}")
 
             point.constraints[bond.atom_indexes] = new_dist
 
         return None
 
-    def generate(self, init_step_size=0.2, name='initial') -> None:
+    def generate(self, init_step_size=0.2, name="initial") -> None:
         """
         Generate the path from the starting point; can be called only once!
 
@@ -337,11 +352,11 @@ class AdaptivePath(Path):
 
             name (str): Prefix to use for saved plot and geometries
         """
-        logger.info('Generating path from the initial species')
+        logger.info("Generating path from the initial species")
         assert len(self) == 1
 
         # Always perform an initial step linear in all bonds
-        logger.info('Performing a linear step and calculating gradients')
+        logger.info("Performing a linear step and calculating gradients")
         point = self[0].copy()
 
         for bond in self.bonds:
@@ -351,21 +366,22 @@ class AdaptivePath(Path):
             point.constraints[bond.atom_indexes] += dr
 
         self.append(point)
-        logger.info('First point found')
+        logger.info("First point found")
 
         def reached_final_point():
             """Are there any more points to add?"""
-            return all(point.constraints[b.atom_indexes] == b.final_dist
-                       for b in self.bonds)
+            return all(
+                point.constraints[b.atom_indexes] == b.final_dist for b in self.bonds
+            )
 
-        logger.info('Adaptively adding points to the path')
+        logger.info("Adaptively adding points to the path")
         while not (reached_final_point() or self.contains_suitable_peak()):
 
             point = self[-1].copy()
             self._adjust_constraints(point=point)
             self.append(point)
 
-        self.plot_energies(name=f'{name}_path')
-        self.print_geometries(name=f'{name}_path')
+        self.plot_energies(name=f"{name}_path")
+        self.print_geometries(name=f"{name}_path")
 
         return None

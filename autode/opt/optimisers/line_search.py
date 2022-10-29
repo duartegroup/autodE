@@ -15,11 +15,13 @@ from autode.opt.optimisers.base import Optimiser
 class LineSearchOptimiser(Optimiser, ABC):
     """Optimiser for a 1D line search in a direction"""
 
-    def __init__(self,
-                 maxiter:    int = 10,
-                 direction:  Optional[np.ndarray] = None,
-                 coords:     Optional['autode.opt.OptCoordinates'] = None,
-                 init_alpha: float = 1.0):
+    def __init__(
+        self,
+        maxiter: int = 10,
+        direction: Optional[np.ndarray] = None,
+        coords: Optional["autode.opt.OptCoordinates"] = None,
+        init_alpha: float = 1.0,
+    ):
         """
         Line search optimiser
 
@@ -39,18 +41,19 @@ class LineSearchOptimiser(Optimiser, ABC):
         """
         super().__init__(maxiter=maxiter, coords=coords)
 
-        self.p: Optional[np.ndarray] = direction     # Direction
-        self.alpha = init_alpha                      # Step size
+        self.p: Optional[np.ndarray] = direction  # Direction
+        self.alpha = init_alpha  # Step size
 
     @classmethod
-    def optimise(cls,
-                 species:   'autode.species.Species',
-                 method:    'autode.wrappers.methods.Method',
-                 coords:     Optional['autode.opt.OptCoordinates'] = None,
-                 direction:  Optional[np.ndarray] = None,
-                 maxiter:    int = 5,
-                 n_cores:    Optional[int] = None
-                 ) -> None:
+    def optimise(
+        cls,
+        species: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        coords: Optional["autode.opt.OptCoordinates"] = None,
+        direction: Optional[np.ndarray] = None,
+        maxiter: int = 5,
+        n_cores: Optional[int] = None,
+    ) -> None:
         """
         Optimise a species along a single direction. If the direction is
         unspecified then guess the direction as just the steepest decent
@@ -75,8 +78,10 @@ class LineSearchOptimiser(Optimiser, ABC):
             self._initialise_coordinates()
 
         if self.p is None:
-            logger.warning('Line search optimiser was initialised without a '
-                           'search direction. Using steepest decent direction')
+            logger.warning(
+                "Line search optimiser was initialised without a "
+                "search direction. Using steepest decent direction"
+            )
             if self._coords.g is None:
                 self._update_gradient_and_energy()
 
@@ -84,12 +89,14 @@ class LineSearchOptimiser(Optimiser, ABC):
         return None
 
     @property
-    def minimum_e_coords(self) -> Optional['autode.opt.coordinates.base.OptCoordinates']:
+    def minimum_e_coords(
+        self,
+    ) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
         """Minimum energy coordinates"""
         return None if len(self._history) == 0 else self._history.minimum
 
     @property
-    def _init_coords(self) -> Optional['autode.opt.coordinates.base.OptCoordinates']:
+    def _init_coords(self) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
         """
         Initial coordinates from which this line search was initialised from
 
@@ -101,14 +108,15 @@ class LineSearchOptimiser(Optimiser, ABC):
 
 
 class ArmijoLineSearch(LineSearchOptimiser):
-
-    def __init__(self,
-                 maxiter:    int = 10,
-                 direction:  Optional[np.ndarray] = None,
-                 beta:       float = 0.1,
-                 tau:        float = 0.5,
-                 init_alpha: float = 1.0,
-                 coords:     Optional['autode.opt.OptCoordinates'] = None):
+    def __init__(
+        self,
+        maxiter: int = 10,
+        direction: Optional[np.ndarray] = None,
+        beta: float = 0.1,
+        tau: float = 0.5,
+        init_alpha: float = 1.0,
+        coords: Optional["autode.opt.OptCoordinates"] = None,
+    ):
         """
         Backtracking line search by Armijo. Reduces the step size iteratively
         until the convergence condition is satisfied
@@ -152,7 +160,7 @@ class ArmijoLineSearch(LineSearchOptimiser):
 
     @property
     def _satisfies_wolfe1(self) -> bool:
-        """First Wolfe condition: """
+        """First Wolfe condition:"""
 
         term_2 = self.alpha * self.beta * np.dot(self._init_coords.g, self.p)
         return self._coords.e < self._init_coords.e + term_2
@@ -196,8 +204,9 @@ class SArmijoLineSearch(ArmijoLineSearch):
             return False
 
         if not self._history.contains_energy_rise:
-            logger.warning(f'Line search has not reached a well yet, '
-                           f'{self.alpha:.4f}')
+            logger.warning(
+                f"Line search has not reached a well yet, " f"{self.alpha:.4f}"
+            )
             return False
 
         return self._has_coordinates_and_gradient and self._satisfies_wolfe1
@@ -241,7 +250,9 @@ class NullLineSearch(LineSearchOptimiser):
         """No step required in a null line search"""
 
     @property
-    def minimum_e_coords(self) -> Optional['autode.opt.coordinates.base.OptCoordinates']:
+    def minimum_e_coords(
+        self,
+    ) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
         """
         Minimum energy coordinates are defined to be the true step
 

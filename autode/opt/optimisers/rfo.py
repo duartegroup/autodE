@@ -9,10 +9,7 @@ from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
 class RFOptimiser(NDOptimiser):
     """Rational function optimisation in delocalised internal coordinates"""
 
-    def __init__(self,
-                 *args,
-                 init_alpha: float = 0.1,
-                 **kwargs):
+    def __init__(self, *args, init_alpha: float = 0.1, **kwargs):
         """
         Rational function optimiser (RFO) using a maximum step size of alpha
 
@@ -35,7 +32,7 @@ class RFOptimiser(NDOptimiser):
 
     def _step(self) -> None:
         """RFO step"""
-        logger.info('Taking a RFO step')
+        logger.info("Taking a RFO step")
 
         self._coords.h_inv = self._updated_h_inv()
 
@@ -51,8 +48,8 @@ class RFOptimiser(NDOptimiser):
         aug_H_lmda, aug_H_v = np.linalg.eigh(aug_H)
         # A RF step uses the eigenvector corresponding to the lowest non zero
         # eigenvalue
-        mode = np.where(np.abs(aug_H_lmda) > 1E-16)[0][0]
-        logger.info(f'Stepping along mode: {mode}')
+        mode = np.where(np.abs(aug_H_lmda) > 1e-16)[0][0]
+        logger.info(f"Stepping along mode: {mode}")
 
         # and the step scaled by the final element of the eigenvector
         delta_s = aug_H_v[:-1, mode] / aug_H_v[-1, mode]
@@ -65,7 +62,7 @@ class RFOptimiser(NDOptimiser):
         Initialise the energy, gradient, and initial Hessian to use
         """
 
-        self._coords = CartesianCoordinates(self._species.coordinates).to('dic')
+        self._coords = CartesianCoordinates(self._species.coordinates).to("dic")
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._coords.make_hessian_positive_definite()
         self._update_gradient_and_energy()
@@ -83,17 +80,17 @@ class RFOptimiser(NDOptimiser):
         condition is satisfied
         """
         from autode.methods import get_lmethod
+
         logger.info("Calculating low-level Hessian")
 
         species = self._species.copy()
-        species.calc_hessian(method=get_lmethod(),
-                             n_cores=self._n_cores)
+        species.calc_hessian(method=get_lmethod(), n_cores=self._n_cores)
 
         return species.hessian
 
-    def _take_step_within_trust_radius(self,
-                                       delta_s: np.ndarray,
-                                       factor: float = 1.) -> float:
+    def _take_step_within_trust_radius(
+        self, delta_s: np.ndarray, factor: float = 1.0
+    ) -> float:
         """
         Update the coordinates while ensuring the step isn't too large in
         cartesian coordinates
@@ -114,13 +111,15 @@ class RFOptimiser(NDOptimiser):
         max_component = np.max(np.abs(cartesian_delta))
 
         if max_component > self.alpha:
-            logger.info(f"Calculated step is too large ({max_component:.3f} Å)"
-                        f" - scaling down")
+            logger.info(
+                f"Calculated step is too large ({max_component:.3f} Å)"
+                f" - scaling down"
+            )
 
             # Note because the transformation is not linear this will not
             # generate a step exactly max(∆x) ≡ α, but is empirically close
-            factor = self.alpha/max_component
-            new_coords = self._coords + self.alpha/max_component * delta_s
+            factor = self.alpha / max_component
+            new_coords = self._coords + self.alpha / max_component * delta_s
 
         self._coords = new_coords
         return factor

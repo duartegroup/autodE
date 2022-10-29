@@ -14,7 +14,7 @@ def save_plot(plot, filename):
     """Save a plot"""
 
     if os.path.exists(filename):
-        logger.warning('Plot already exists. Overriding..')
+        logger.warning("Plot already exists. Overriding..")
         os.remove(filename)
 
     plot.savefig(filename, dpi=400 if Config.high_quality_plots else 100)
@@ -23,12 +23,13 @@ def save_plot(plot, filename):
     return None
 
 
-def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
-                          units:       Union['autode.units.Unit', str],
-                          name:        str,
-                          free_energy: bool = False,
-                          enthalpy:    bool = False
-                          ) -> None:
+def plot_reaction_profile(
+    reactions: Sequence["autode.reactions.Reaction"],
+    units: Union["autode.units.Unit", str],
+    name: str,
+    free_energy: bool = False,
+    enthalpy: bool = False,
+) -> None:
     """
     For a set of reactions plot the reaction profile using matplotlib
 
@@ -45,10 +46,11 @@ def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
         enthalpy (bool): Plot the enthalpic profile (H)
     """
     import matplotlib.pyplot as plt
-    logger.info('Plotting reaction profile')
+
+    logger.info("Plotting reaction profile")
 
     if free_energy and enthalpy:
-        raise AssertionError('Cannot plot a profile in both G and H')
+        raise AssertionError("Cannot plot a profile in both G and H")
 
     if isinstance(units, str):
         units = energy_unit_from_name(name=units)
@@ -57,10 +59,9 @@ def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
 
     # Get the energies for the reaction profile (y values) plotted against the
     # reaction coordinate (zi_s)
-    energies = calculate_reaction_profile_energies(reactions,
-                                                   units=units,
-                                                   free_energy=free_energy,
-                                                   enthalpy=enthalpy)
+    energies = calculate_reaction_profile_energies(
+        reactions, units=units, free_energy=free_energy, enthalpy=enthalpy
+    )
     zi_s = np.array(range(len(energies)))
 
     try:
@@ -69,29 +70,33 @@ def plot_reaction_profile(reactions:   Sequence['autode.reactions.Reaction'],
     except CouldNotPlotSmoothProfile:
         plot_points(zi_s, energies, ax=ax)
 
-    ec = 'E'
+    ec = "E"
     if free_energy:
-        ec = 'G'
+        ec = "G"
     elif enthalpy:
-        ec = 'H'
+        ec = "H"
 
-    plt.ylabel(f'∆${ec}$ / {units.plot_name}', fontsize=12)
-    plt.xlabel('Reaction coordinate')
+    plt.ylabel(f"∆${ec}$ / {units.plot_name}", fontsize=12)
+    plt.xlabel("Reaction coordinate")
 
     energy_values = [energy for energy in energies]
     max_delta = max(energy_values) - min(energy_values)
-    plt.ylim(min(energy_values)-0.09*max_delta,
-             max(energy_values)+0.09*max_delta)
+    plt.ylim(
+        min(energy_values) - 0.09 * max_delta, max(energy_values) + 0.09 * max_delta
+    )
     plt.xticks([])
     plt.subplots_adjust(top=0.95, right=0.95)
-    fig.text(.1, .05,
-             get_reaction_profile_warnings(reactions),
-             ha='left',
-             fontsize=6,
-             wrap=True)
+    fig.text(
+        0.1,
+        0.05,
+        get_reaction_profile_warnings(reactions),
+        ha="left",
+        fontsize=6,
+        wrap=True,
+    )
 
-    prefix = '' if name == 'reaction' else f'{name}_'
-    return save_plot(plt, filename=f'{prefix}reaction_profile.pdf')
+    prefix = "" if name == "reaction" else f"{name}_"
+    return save_plot(plt, filename=f"{prefix}reaction_profile.pdf")
 
 
 def plot_smooth_profile(zi_s, energies, ax):
@@ -111,16 +116,18 @@ def plot_smooth_profile(zi_s, energies, ax):
 
     # Minimise a set of spline points so the stationary points have y values
     # given in the energies array
-    energies_arr = np.array([energy for energy in energies], dtype='f')
-    result = minimize(error_on_stationary_points, x0=energies_arr,
-                      args=(energies_arr,),
-                      method='BFGS',
-                      tol=0.1)
+    energies_arr = np.array([energy for energy in energies], dtype="f")
+    result = minimize(
+        error_on_stationary_points,
+        x0=energies_arr,
+        args=(energies_arr,),
+        method="BFGS",
+        tol=0.1,
+    )
 
     # Use the optimised values to construct a spline function that will be
     # plotted
-    optimised_spline = interpolate.CubicSpline(zi_s, result.x,
-                                               bc_type='clamped')
+    optimised_spline = interpolate.CubicSpline(zi_s, result.x, bc_type="clamped")
 
     # Create more zi values from slightly before the minimum to slightly after
     # the maximum
@@ -133,8 +140,8 @@ def plot_smooth_profile(zi_s, energies, ax):
         raise CouldNotPlotSmoothProfile
 
     # Plot the function
-    ax.plot(fine_zi_s, optimised_spline(fine_zi_s), c='k')
-    ax.scatter(zi_s, optimised_spline(zi_s), c='b', zorder=10)
+    ax.plot(fine_zi_s, optimised_spline(fine_zi_s), c="k")
+    ax.scatter(zi_s, optimised_spline(zi_s), c="b", zorder=10)
 
     # Annotate the plot with the relative energies
     max_delta = max(energies) - min(energies)
@@ -148,8 +155,9 @@ def plot_smooth_profile(zi_s, energies, ax):
         # transition state labels above the point
         shift = -0.07 * max_delta if i % 2 == 0 else 0.03 * max_delta
 
-        ax.annotate(f'{energy:.1f}', (zi_s[i], energy + shift),
-                    fontsize=12, ha='center')
+        ax.annotate(
+            f"{energy:.1f}", (zi_s[i], energy + shift), fontsize=12, ha="center"
+        )
 
     return None
 
@@ -168,17 +176,20 @@ def plot_points(zi_s, energies, ax):
     """
     energies_arr = np.array([energy for energy in energies])
 
-    ax.plot(zi_s, energies_arr, ls='--', c='k', marker='o')
+    ax.plot(zi_s, energies_arr, ls="--", c="k", marker="o")
 
     # Annotate the plot with the relative energies
     for i, energy in enumerate(energies):
-        if hasattr(energy, 'estimated') and energy.is_estimated:
+        if hasattr(energy, "estimated") and energy.is_estimated:
             # Don't add estimated energies
             continue
 
-        ax.annotate(f'{np.round(energies_arr[i], 1)}',
-                    (zi_s[i], energies_arr[i] + 0.7),
-                    fontsize=12, ha='center')
+        ax.annotate(
+            f"{np.round(energies_arr[i], 1)}",
+            (zi_s[i], energies_arr[i] + 0.7),
+            fontsize=12,
+            ha="center",
+        )
     return None
 
 
@@ -193,19 +204,20 @@ def get_reaction_profile_warnings(reactions):
     Returns:
         (str): List of warnings to annotate the plot with
     """
-    logger.info('Getting warnings for reaction profile')
-    warnings = ''
+    logger.info("Getting warnings for reaction profile")
+    warnings = ""
 
     for reaction in reactions:
 
-        if reaction.delta('E') is None:
-            warnings += (f'∆Er not calculated for {reaction.name}, '
-                         f'∆Er = 0 assumed. ')
+        if reaction.delta("E") is None:
+            warnings += f"∆Er not calculated for {reaction.name}, " f"∆Er = 0 assumed. "
 
-        de_ts = reaction.delta('E‡')
+        de_ts = reaction.delta("E‡")
         if de_ts is None or (de_ts is not None and de_ts.is_estimated):
-            warnings += (f'∆E‡ not calculated for {reaction.name}, '
-                         f'barrierless reaction assumed. ')
+            warnings += (
+                f"∆E‡ not calculated for {reaction.name}, "
+                f"barrierless reaction assumed. "
+            )
 
         if reaction.ts is not None:
 
@@ -213,20 +225,23 @@ def get_reaction_profile_warnings(reactions):
                 n_imag_freqs = len(reaction.ts.imaginary_frequencies)
 
                 if n_imag_freqs != 1:
-                    warnings += (f'TS for {reaction.name} has {n_imag_freqs} '
-                                 f'imaginary frequencies. ')
+                    warnings += (
+                        f"TS for {reaction.name} has {n_imag_freqs} "
+                        f"imaginary frequencies. "
+                    )
 
             warnings += reaction.ts.warnings
 
     # If no strings were added then there are no warnings
     if len(warnings) == 0:
-        warnings = 'None'
+        warnings = "None"
 
-    return f'WARNINGS: {warnings}'
+    return f"WARNINGS: {warnings}"
 
 
-def calculate_reaction_profile_energies(reactions, units, free_energy=False,
-                                        enthalpy=False):
+def calculate_reaction_profile_energies(
+    reactions, units, free_energy=False, enthalpy=False
+):
     """
     Calculate a list of energies comprising the reaction profile
 
@@ -247,7 +262,7 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
     # Populate a list of reaction relative energies
     # [reactants -> TS -> products], all floats
     reaction_energies = []
-    energy_type = 'H' if enthalpy else ('G' if free_energy else 'E')
+    energy_type = "H" if enthalpy else ("G" if free_energy else "E")
 
     for reaction in reactions:
 
@@ -258,12 +273,12 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
         if de is None:
             de = Energy(0.0, estimated=True)
 
-        de_ts = reaction.delta(f'{energy_type}‡')
+        de_ts = reaction.delta(f"{energy_type}‡")
 
         # If there is no ∆E then de_ts could be None. Use the Effective free
         # energy barrier of 4.35 kcal mol-1
         if de_ts is None:
-            de_ts = Energy(0.00694, units='Ha', estimated=True)
+            de_ts = Energy(0.00694, units="Ha", estimated=True)
 
         reaction_energies.append([Energy(0.0), de_ts, de])
 
@@ -274,8 +289,10 @@ def calculate_reaction_profile_energies(reactions, units, free_energy=False,
     for i in range(1, len(reaction_energies)):
         # Add the energies from the next TS and the next product reaction_
         # energies[i][0] == energies[-1
-        energies += [reaction_energies[i][1] + energies[-1],
-                     reaction_energies[i][2] + energies[-1]]
+        energies += [
+            reaction_energies[i][1] + energies[-1],
+            reaction_energies[i][2] + energies[-1],
+        ]
 
     return [energy * units.conversion for energy in energies]
 
@@ -328,14 +345,13 @@ def error_on_stationary_points(x, energies):
     zi_s = np.array(range(len(x)))
 
     # Spline the energies to get a function that has stationary points
-    spline = interpolate.CubicSpline(zi_s, x, bc_type='clamped')
+    spline = interpolate.CubicSpline(zi_s, x, bc_type="clamped")
 
     # Calculate the energy values at the stationary points of the function with
     # a fine-ish spacing that extrapolates
     # slightly
-    fine_zi_s = np.linspace(min(zi_s)-0.2, max(zi_s)+0.2, num=500)
-    stationary_points = get_stationary_points(xs=fine_zi_s,
-                                              dydx=spline.derivative())
+    fine_zi_s = np.linspace(min(zi_s) - 0.2, max(zi_s) + 0.2, num=500)
+    stationary_points = get_stationary_points(xs=fine_zi_s, dydx=spline.derivative())
 
     if len(stationary_points) != len(energies):
         # TODO make this smooth somehow

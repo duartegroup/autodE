@@ -36,15 +36,15 @@ def get_ts_template_folder_path(folder_path):
     if folder_path is not None:
         return folder_path
 
-    logger.info('Folder path is not set – TS templates in the default path')
+    logger.info("Folder path is not set – TS templates in the default path")
 
     if Config.ts_template_folder_path is not None:
-        logger.info('Configuration ts_template_folder_path is set')
+        logger.info("Configuration ts_template_folder_path is set")
         return Config.ts_template_folder_path
 
     else:
         ts_dir_path = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(ts_dir_path, 'lib')
+        return os.path.join(ts_dir_path, "lib")
 
 
 def get_ts_templates(folder_path=None):
@@ -62,10 +62,10 @@ def get_ts_templates(folder_path=None):
         templates
     """
     folder_path = get_ts_template_folder_path(folder_path)
-    logger.info(f'Getting TS templates from {folder_path}')
+    logger.info(f"Getting TS templates from {folder_path}")
 
     if not os.path.exists(folder_path):
-        logger.error('Folder does not exist')
+        logger.error("Folder does not exist")
         return []
 
     templates = []
@@ -74,7 +74,7 @@ def get_ts_templates(folder_path=None):
     # TS template folder
     for filename in os.listdir(folder_path):
 
-        if not filename.endswith('.txt'):
+        if not filename.endswith(".txt"):
             continue
 
         try:
@@ -82,9 +82,9 @@ def get_ts_templates(folder_path=None):
             templates.append(template)
 
         except TemplateLoadingFailed:
-            logger.warning(f'Failed to load a template for {filename}')
+            logger.warning(f"Failed to load a template for {filename}")
 
-    logger.info(f'Have {len(templates)} TS templates')
+    logger.info(f"Have {len(templates)} TS templates")
     return templates
 
 
@@ -124,7 +124,7 @@ def template_matches(reactant, truncated_graph, ts_template):
         return False
 
     if is_isomorphic(truncated_graph, ts_template.graph):
-        logger.info('Found matching TS template')
+        logger.info("Found matching TS template")
         return True
 
     return False
@@ -170,9 +170,9 @@ def get_value_from_file(key, file_lines):
             return value
 
         except (TypeError, ValueError):
-            raise TemplateLoadingFailed(f'Incorrectly formatted line {i}')
+            raise TemplateLoadingFailed(f"Incorrectly formatted line {i}")
 
-    raise TemplateLoadingFailed(f'Did not find a {key} template')
+    raise TemplateLoadingFailed(f"Did not find a {key} template")
 
 
 def get_values_dict_from_file(key, file_lines):
@@ -211,32 +211,32 @@ def get_values_dict_from_file(key, file_lines):
     key_lines = [line for line in file_lines if line.startswith(key)]
 
     if len(key_lines) != 1:
-        raise TemplateLoadingFailed(f'Incorrect format of {key} section')
+        raise TemplateLoadingFailed(f"Incorrect format of {key} section")
 
     values_dict = {}
 
     # Enumerate all indented lines starting after this key
     line_idx = file_lines.index(key_lines[0])
 
-    for i, line in enumerate(file_lines[line_idx+1:]):
+    for i, line in enumerate(file_lines[line_idx + 1 :]):
 
         # Only consider indented lines
-        if not line.startswith('    '):
+        if not line.startswith("    "):
             break
 
         # Split the line on spaces
         items = line.split()
 
-        if not items[0].endswith(':'):
-            raise TemplateLoadingFailed(f'Key error on line {i}')
+        if not items[0].endswith(":"):
+            raise TemplateLoadingFailed(f"Key error on line {i}")
 
         # This key in the value dictionary is the first item in the line with
         # the whitespace and final colon removed
         v_key = items[0][:-1]
 
         # If the key is e.g. 0-1 as an edge then split it to the tuple (0, 1)
-        if '-' in v_key:
-            v_key = tuple(int(idx) for idx in v_key.split('-'))
+        if "-" in v_key:
+            v_key = tuple(int(idx) for idx in v_key.split("-"))
 
         else:
             v_key = int(v_key)
@@ -246,12 +246,12 @@ def get_values_dict_from_file(key, file_lines):
         # Expecting the remaining items to be separated by equals symbols
         # e.g. active=True
         for item in items[1:]:
-            p_key, p_value = item.split('=')
+            p_key, p_value = item.split("=")
 
-            if p_value.lower() == 'true':
+            if p_value.lower() == "true":
                 p_value = True
 
-            elif p_value.lower() == 'false':
+            elif p_value.lower() == "false":
                 p_value = False
 
             else:
@@ -265,14 +265,20 @@ def get_values_dict_from_file(key, file_lines):
 
         values_dict[v_key] = p_dict
 
-    logger.info(f'Found {key}: {list(values_dict.keys())}')
+    logger.info(f"Found {key}: {list(values_dict.keys())}")
     return values_dict
 
 
 class TStemplate:
-
-    def __init__(self, graph=None, charge=None, mult=None, solvent=None,
-                 species=None, filename=None):
+    def __init__(
+        self,
+        graph=None,
+        charge=None,
+        mult=None,
+        solvent=None,
+        species=None,
+        filename=None,
+    ):
         """
         TS template
 
@@ -310,39 +316,44 @@ class TStemplate:
     def _save_to_file(self, file):
         """Save this template to a plain text .txt file with a ~yaml syntax"""
 
-        title_line = (f'TS template generated by autode v.{autode.__version__}'
-                      f' on {date.today()}\n')
+        title_line = (
+            f"TS template generated by autode v.{autode.__version__}"
+            f" on {date.today()}\n"
+        )
 
         # Add nodes as a list, and their atom labels/symbols
-        nodes_str = ''
+        nodes_str = ""
         for i, data in self.graph.nodes(data=True):
             nodes_str += f'    {i}: atom_label={data["atom_label"]}\n'
 
         # Add edges as a list and their associated properties as a dict
-        edges_str = ''
+        edges_str = ""
         for i, j, data in self.graph.edges(data=True):
-            edge_str = f'    {i}-{j}: '
+            edge_str = f"    {i}-{j}: "
 
-            if 'pi' in data.keys():
+            if "pi" in data.keys():
                 edge_str += f'pi={str(data["pi"])} '
 
-            if 'active' in data.keys():
+            if "active" in data.keys():
                 edge_str += f'active={str(data["active"])} '
 
-            if 'distance' in data.keys():
+            if "distance" in data.keys():
                 edge_str += f'distance={data["distance"]:.4f} '
 
-            edges_str += f'{edge_str}\n'
+            edges_str += f"{edge_str}\n"
 
-        print(title_line,
-              f'solvent: {self.solvent}',
-              f'charge: {self.charge}',
-              f'multiplicity: {self.mult}',
-              'nodes:',
-              nodes_str,
-              'edges:',
-              edges_str,
-              sep='\n', file=file)
+        print(
+            title_line,
+            f"solvent: {self.solvent}",
+            f"charge: {self.charge}",
+            f"multiplicity: {self.mult}",
+            "nodes:",
+            nodes_str,
+            "edges:",
+            edges_str,
+            sep="\n",
+            file=file,
+        )
 
         return None
 
@@ -350,21 +361,23 @@ class TStemplate:
         """Check that the graph has some active edges and distances"""
 
         if self.graph is None:
-            logger.warning('Incorrect TS template stricture - it was None!')
+            logger.warning("Incorrect TS template stricture - it was None!")
             return False
 
         n_active_edges = 0
         for edge in self.graph.edges:
 
-            if 'active' not in self.graph.edges[edge].keys():
+            if "active" not in self.graph.edges[edge].keys():
                 continue
 
-            if not self.graph.edges[edge]['active']:
+            if not self.graph.edges[edge]["active"]:
                 continue
 
-            if (self.graph.edges[edge]['active']
-                    and 'distance' not in self.graph.edges[edge].keys()):
-                logger.warning('Active edge has no distance')
+            if (
+                self.graph.edges[edge]["active"]
+                and "distance" not in self.graph.edges[edge].keys()
+            ):
+                logger.warning("Active edge has no distance")
                 return False
 
             n_active_edges += 1
@@ -374,10 +387,10 @@ class TStemplate:
             return True
 
         else:
-            logger.warning('Graph had no active edges')
+            logger.warning("Graph had no active edges")
             return False
 
-    def save(self, basename='template', folder_path=None):
+    def save(self, basename="template", folder_path=None):
         """
         Save the TS template object in a plain text .txt file. With folder_path
         =None then the template will be saved to the default directory
@@ -393,24 +406,24 @@ class TStemplate:
         """
 
         folder_path = get_ts_template_folder_path(folder_path)
-        logger.info(f'Saving TS template to {folder_path}')
+        logger.info(f"Saving TS template to {folder_path}")
 
         if not os.path.exists(folder_path):
-            logger.info(f'Making directory {folder_path}')
+            logger.info(f"Making directory {folder_path}")
             os.mkdir(folder_path)
 
         # Iterate i until the templatei.obj file doesn't exist
-        name, i = basename + '0', 0
+        name, i = basename + "0", 0
         while True:
-            if not os.path.exists(os.path.join(folder_path, f'{name}.txt')):
+            if not os.path.exists(os.path.join(folder_path, f"{name}.txt")):
                 break
             name = basename + str(i)
             i += 1
 
-        file_path = os.path.join(folder_path, f'{name}.txt')
-        logger.info(f'Saving the template as {file_path}')
+        file_path = os.path.join(folder_path, f"{name}.txt")
+        logger.info(f"Saving the template as {file_path}")
 
-        with open(file_path, 'w') as template_file:
+        with open(file_path, "w") as template_file:
             self._save_to_file(template_file)
 
         return None
@@ -427,41 +440,41 @@ class TStemplate:
             (autode.exceptions.TemplateLoadingFailed):
         """
         try:
-            template_lines = open(filename, 'r').readlines()
+            template_lines = open(filename, "r").readlines()
         except (IOError, UnicodeDecodeError):
-            raise TemplateLoadingFailed('Failed to read file lines')
+            raise TemplateLoadingFailed("Failed to read file lines")
 
         if len(template_lines) < 5:
-            raise TemplateLoadingFailed('Not enough lines in the template')
+            raise TemplateLoadingFailed("Not enough lines in the template")
 
-        name = get_value_from_file('solvent', template_lines)
+        name = get_value_from_file("solvent", template_lines)
 
-        if name.lower() == 'none':
+        if name.lower() == "none":
             self.solvent = None
         else:
-            self.solvent = get_solvent(solvent_name=name, kind='implicit')
+            self.solvent = get_solvent(solvent_name=name, kind="implicit")
 
-        self.charge = int(get_value_from_file('charge', template_lines))
-        self.mult = int(get_value_from_file('multiplicity', template_lines))
+        self.charge = int(get_value_from_file("charge", template_lines))
+        self.mult = int(get_value_from_file("multiplicity", template_lines))
 
         # Set the template graph by adding nodes and edges with atoms labels
         # and active/pi/distance attributes respectively
         self.graph = MolecularGraph()
 
-        nodes = get_values_dict_from_file('nodes', template_lines)
+        nodes = get_values_dict_from_file("nodes", template_lines)
         for idx, data in nodes.items():
             self.graph.add_node(idx, **data)
 
-        edges = get_values_dict_from_file('edges', template_lines)
+        edges = get_values_dict_from_file("edges", template_lines)
 
         for pair, data in edges.items():
             self.graph.add_edge(*pair, **data)
 
         if not self.graph_has_correct_structure():
-            raise TemplateLoadingFailed('Incorrect graph structure')
+            raise TemplateLoadingFailed("Incorrect graph structure")
 
         return None
 
     @property
     def filename(self) -> str:
-        return 'unknown' if self._filename is None else self._filename
+        return "unknown" if self._filename is None else self._filename

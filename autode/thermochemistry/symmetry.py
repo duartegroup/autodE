@@ -63,7 +63,7 @@ def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.1):
     for i in range(n_atoms):
         for j in range(n_atoms):
 
-            if i > j:            # For the unique pairs add the i–j vector
+            if i > j:  # For the unique pairs add the i–j vector
                 vec = coords[j] - coords[i]
                 vec /= np.linalg.norm(vec)
                 possible_axes.append(vec)
@@ -79,19 +79,17 @@ def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.1):
                 if all(np.linalg.norm(vec) < max_triple_dist for vec in (vec1, vec2)):
 
                     avg_vec = (vec1 + vec2) / 2.0
-                    possible_axes.append(avg_vec/np.linalg.norm(avg_vec))
+                    possible_axes.append(avg_vec / np.linalg.norm(avg_vec))
 
                     perp_vec = np.cross(vec1, vec2)
-                    possible_axes.append(perp_vec/np.linalg.norm(perp_vec))
+                    possible_axes.append(perp_vec / np.linalg.norm(perp_vec))
 
-    unique_possible_axes = strip_identical_and_inv_axes(possible_axes,
-                                                        sim_axis_tol)
+    unique_possible_axes = strip_identical_and_inv_axes(possible_axes, sim_axis_tol)
 
     return unique_possible_axes
 
 
-def is_same_under_n_fold(pcoords, axis, n, m=1, tol=0.25,
-                         excluded_pcoords=None):
+def is_same_under_n_fold(pcoords, axis, n, m=1, tol=0.25, excluded_pcoords=None):
     """
     Does applying an n-fold rotation about an axis generate the same structure
     back again?
@@ -140,8 +138,10 @@ def is_same_under_n_fold(pcoords, axis, n, m=1, tol=0.25,
 
             # If these rotated coordinates are similar to those on the excluded
             # list then these should not be considered identical
-            if any(np.linalg.norm(rotated_coords[i] - pcoords[i])
-                   < tol for pcoords in excluded_pcoords):
+            if any(
+                np.linalg.norm(rotated_coords[i] - pcoords[i]) < tol
+                for pcoords in excluded_pcoords
+            ):
                 excluded[i] = True
 
     # This permutation has already been found - return False even though
@@ -174,12 +174,12 @@ def cn_and_axes(species, pcoords, max_n, dist_tol):
     axes = get_possible_axes(coords=species.coordinates)
 
     # Cn numbers and their associated axes
-    cn_assos_axes = {i: [] for i in range(2, max_n+1)}
+    cn_assos_axes = {i: [] for i in range(2, max_n + 1)}
 
     for axis in axes:
 
         # Minimum n-fold rotation is 2
-        for n in range(2, max_n+1):
+        for n in range(2, max_n + 1):
 
             if is_same_under_n_fold(pcoords, axis, n=n, tol=dist_tol):
                 cn_assos_axes[n].append(axis)
@@ -212,7 +212,7 @@ def create_pcoords(species):
     return pcoords
 
 
-def symmetry_number(species, max_n_fold_rot_searched=6,  dist_tol=0.25):
+def symmetry_number(species, max_n_fold_rot_searched=6, dist_tol=0.25):
     """
     Calculate the symmetry number of a molecule. See:
     Theor Chem Account (2007) 118:813–826. 10.1007/s00214-007-0328-0
@@ -239,7 +239,7 @@ def symmetry_number(species, max_n_fold_rot_searched=6,  dist_tol=0.25):
     if all(len(cn_axes[n]) == 0 for n in cn_axes.keys()):
         return 1
 
-    sigma_r = 1                          # Already has E symmetry
+    sigma_r = 1  # Already has E symmetry
 
     added_pcoords = []
 
@@ -251,9 +251,14 @@ def symmetry_number(species, max_n_fold_rot_searched=6,  dist_tol=0.25):
 
                 # If the structure is the same but and has *not* been generated
                 # by another rotation increment the symmetry number by 1
-                if is_same_under_n_fold(pcoords, axis, n=n, m=m,
-                                        tol=dist_tol,
-                                        excluded_pcoords=added_pcoords):
+                if is_same_under_n_fold(
+                    pcoords,
+                    axis,
+                    n=n,
+                    m=m,
+                    tol=dist_tol,
+                    excluded_pcoords=added_pcoords,
+                ):
                     sigma_r += 1
 
     if species.is_linear():

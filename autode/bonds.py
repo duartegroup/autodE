@@ -1,9 +1,7 @@
-
 class ScannedBond:
-
     def __str__(self):
         i, j = self.atom_indexes
-        return f'{i}-{j}'
+        return f"{i}-{j}"
 
     def __getitem__(self, item):
         return self.atom_indexes[item]
@@ -37,7 +35,6 @@ class ScannedBond:
 
 
 class FormingBond(ScannedBond):
-
     def __init__(self, atom_indexes, species, final_species=None):
         """
         Forming bond with current and final distances
@@ -61,7 +58,6 @@ class FormingBond(ScannedBond):
 
 
 class BreakingBond(ScannedBond):
-
     def __init__(self, atom_indexes, species, final_species=None):
         """
         Form a breaking bond with current and final distances
@@ -85,5 +81,6 @@ class BreakingBond(ScannedBond):
         else:
             # Take the smallest possible final distance, thus the shortest
             # path to traverse
-            self.final_dist = min(final_species.distance(*self.atom_indexes),
-                                  2.0 * self.curr_dist)
+            self.final_dist = min(
+                final_species.distance(*self.atom_indexes), 2.0 * self.curr_dist
+            )

@@ -4,6 +4,7 @@ from autode.calculations import Calculation
 from scipy.optimize import minimize
 import numpy as np
 from scipy.spatial import distance_matrix
+
 ade.Config.max_num_complex_conformers = 10
 
 ha_to_kcalmol = 627.509
@@ -19,9 +20,13 @@ def rot_matrix(axis, theta):
     b, c, d = -axis * np.sin(theta / 2.0)
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
     bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
-    return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
-                     [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
-                     [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+    return np.array(
+        [
+            [aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc],
+        ]
+    )
 
 
 def rotation_translation(x, atoms, fixed_idxs_, shift_idxs_, return_energy=True):
@@ -38,7 +43,7 @@ def rotation_translation(x, atoms, fixed_idxs_, shift_idxs_, return_energy=True)
     # Apply the roation
     s_coords = rot_matrix(axis=x[:3], theta=x[3]).dot(s_coords.T).T
     # Shift back, and apply the translation
-    s_coords += (com + x[4:])
+    s_coords += com + x[4:]
 
     s_charges = np.array([atoms[i].charge for i in shift_idxs_])
     s_vdw = np.array([atoms[i].vdw for i in shift_idxs_])
@@ -78,8 +83,9 @@ def rotation_translation(x, atoms, fixed_idxs_, shift_idxs_, return_energy=True)
 
 def set_charges_vdw(species):
     """Calculate the partial atomic charges to atoms with XTB"""
-    calc = Calculation(name='tmp', molecule=species, method=XTB(),
-                       keywords=ade.SinglePointKeywords([]))
+    calc = Calculation(
+        name="tmp", molecule=species, method=XTB(), keywords=ade.SinglePointKeywords([])
+    )
     calc.run()
     charges = calc.get_atomic_charges()
 
@@ -90,9 +96,9 @@ def set_charges_vdw(species):
     return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    h2o = ade.Molecule(smiles='O')
+    h2o = ade.Molecule(smiles="O")
     set_charges_vdw(h2o)
 
     water_dimer = ade.species.NCIComplex(h2o, h2o)
@@ -103,15 +109,17 @@ if __name__ == '__main__':
 
     for conformer in water_dimer.conformers:
 
-        opt = minimize(rotation_translation,
-                       x0=np.random.random(size=7),
-                       args=(conformer.atoms, fixed_idxs, shift_idxs),
-                       method='L-BFGS-B',
-                       tol=0.01)
+        opt = minimize(
+            rotation_translation,
+            x0=np.random.random(size=7),
+            args=(conformer.atoms, fixed_idxs, shift_idxs),
+            method="L-BFGS-B",
+            tol=0.01,
+        )
         print(opt)
 
         conformer.energy = opt.fun
-        conformer.atoms = rotation_translation(opt.x, conformer.atoms,
-                                               fixed_idxs, shift_idxs,
-                                               return_energy=False)
+        conformer.atoms = rotation_translation(
+            opt.x, conformer.atoms, fixed_idxs, shift_idxs, return_energy=False
+        )
         conformer.print_xyz_file()
