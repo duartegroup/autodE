@@ -3,7 +3,16 @@ Contributing to autodE
 **********************
 
 Contributions in any form are very much welcome. To make managing these
-easier, we kindly ask that you follow the guidelines below.
+easier, we kindly ask that you follow the guidelines below. First, install
+from source with::
+
+    $ git clone https://github.com/duartegroup/autodE.git && cd autodE
+    $ conda install --file requirements.txt --channel conda-forge
+    $ pip install -e . autode[dev]
+    $ pre-commit install
+
+
+
 
 Reporting a bug or suggesting changes/improvements
 ==================================================
