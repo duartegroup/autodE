@@ -4,9 +4,10 @@ from typing import Optional
 
 
 class TransitionStates(list):
-
     @property
-    def lowest_energy(self) -> Optional['autode.transition_states.TransitionState']:
+    def lowest_energy(
+        self,
+    ) -> Optional["autode.transition_states.TransitionState"]:
         """
         Return the lowest energy transition state from this set
 
@@ -16,7 +17,7 @@ class TransitionStates(list):
                                                                there are none.
         """
         if len(self) == 0:
-            logger.error('Have no transition states so no lowest energy TS')
+            logger.error("Have no transition states so no lowest energy TS")
             return None
 
         min_idx = np.argmin([ts.energy for ts in self])

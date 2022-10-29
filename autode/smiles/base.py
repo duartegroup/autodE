@@ -6,9 +6,9 @@ from autode.log import logger
 from autode.atoms import Atom
 from autode.exceptions import InvalidSmilesString
 
-bond_order_symbols = ['-', '=', '#', '$']
-organic_symbols = ['B', 'C', 'N', 'O', 'P', 'S', 'F', 'Cl', 'Br', 'I']
-aromatic_symbols = ['b', 'c', 'n', 'o', 's', 'p']
+bond_order_symbols = ["-", "=", "#", "$"]
+organic_symbols = ["B", "C", "N", "O", "P", "S", "F", "Cl", "Br", "I"]
+aromatic_symbols = ["b", "c", "n", "o", "s", "p"]
 
 
 @enum.unique
@@ -25,12 +25,14 @@ class SMILESStereoChem(enum.Enum):
 class SMILESAtom(Atom):
     """Atom in a SMILES string"""
 
-    def __init__(self,
-                 label:       str,
-                 stereochem:  SMILESStereoChem = SMILESStereoChem.NONE,
-                 n_hydrogens: Optional[int] = None,
-                 charge:      int = 0,
-                 atom_class:  Optional[int] = None):
+    def __init__(
+        self,
+        label: str,
+        stereochem: SMILESStereoChem = SMILESStereoChem.NONE,
+        n_hydrogens: Optional[int] = None,
+        charge: int = 0,
+        atom_class: Optional[int] = None,
+    ):
         """
         SMILES atom initialised at the origin
 
@@ -68,7 +70,7 @@ class SMILESAtom(Atom):
         return self.__repr__()
 
     def __repr__(self):
-        return f'SMILESAtom({self.label}, stereo={self.stereochem})'
+        return f"SMILESAtom({self.label}, stereo={self.stereochem})"
 
     @property
     def is_shifted(self):
@@ -96,7 +98,7 @@ class SMILESAtom(Atom):
 
     def invert_stereochem(self):
         """Invert the stereochemistry at this centre"""
-        logger.info('Inverting stereochemistry')
+        logger.info("Inverting stereochemistry")
         self.stereochem = SMILESStereoChem(-self.stereochem.value)
         return
 
@@ -119,18 +121,18 @@ class SMILESBond:
         self._list = [idx_i, idx_j]
 
         if symbol not in bond_order_symbols:
-            raise InvalidSmilesString(f'{symbol} is an unknown bond type')
+            raise InvalidSmilesString(f"{symbol} is an unknown bond type")
 
         self.closes_ring = False
         self.order = bond_order_symbols.index(symbol) + 1
 
-        self.r0 = None                               # Ideal bond distance (Å)
+        self.r0 = None  # Ideal bond distance (Å)
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return f'SMILESBond({self._list}, order={self.order})'
+        return f"SMILESBond({self._list}, order={self.order})"
 
     def __getitem__(self, item):
         return self._list[item]
@@ -203,14 +205,14 @@ class RingBond(SMILESBond):
     """Dangling bond created when a ring is found"""
 
     def __repr__(self):
-        return f'RingSMILESBond({self._list}, order={self.order})'
+        return f"RingSMILESBond({self._list}, order={self.order})"
 
     def close(self, idx, symbol):
         """Close this bond using an atom index"""
         self._list = list(sorted([self[0], idx]))
 
         # Only override implicit single bonds with double, triple etc.
-        if self.symbol == '-':
+        if self.symbol == "-":
             self.symbol = symbol
 
         return None
@@ -236,7 +238,6 @@ class RingBond(SMILESBond):
 
 
 class SMILESBonds(list):
-
     def _bond_exists(self, bond):
         """Does this bond already exist in this set of bonds?"""
         return any(bond.atom_indexes == item.atom_indexes for item in self)

@@ -8,13 +8,19 @@ from autode import hessians
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.atoms import Atom
-from autode.species.molecule import (Reactant,  Product, Molecule, Species)
+from autode.species.molecule import Reactant, Product, Molecule, Species
 from autode.species.complex import NCIComplex
 from autode.config import Config
 from autode.calculations import Calculation
-from autode.wrappers.keywords import (KeywordsSet, OptKeywords,
-                                      HessianKeywords, SinglePointKeywords,
-                                      Keywords, GradientKeywords)
+from autode.wrappers.keywords import (
+    KeywordsSet,
+    OptKeywords,
+    HessianKeywords,
+    SinglePointKeywords,
+    Keywords,
+    GradientKeywords,
+)
+
 """
 Bumping the version number requires following the release proceedure:
 
@@ -32,31 +38,31 @@ Bumping the version number requires following the release proceedure:
   - Merge when tests pass
 """
 
-__version__ = '1.3.2'
+__version__ = "1.3.2"
 
 
 __all__ = [
-    'KeywordsSet',
-    'Keywords',
-    'OptKeywords',
-    'HessianKeywords',
-    'SinglePointKeywords',
-    'GradientKeywords',
-    'Reaction',
-    'MultiStepReaction',
-    'Atom',
-    'Species',
-    'Reactant',
-    'Product',
-    'Molecule',
-    'NCIComplex',
-    'Config',
-    'Calculation',
-    'pes',
-    'neb',
-    'geom',
-    'methods',
-    'mol_graphs',
-    'utils',
-    'hessians'
+    "KeywordsSet",
+    "Keywords",
+    "OptKeywords",
+    "HessianKeywords",
+    "SinglePointKeywords",
+    "GradientKeywords",
+    "Reaction",
+    "MultiStepReaction",
+    "Atom",
+    "Species",
+    "Reactant",
+    "Product",
+    "Molecule",
+    "NCIComplex",
+    "Config",
+    "Calculation",
+    "pes",
+    "neb",
+    "geom",
+    "methods",
+    "mol_graphs",
+    "utils",
+    "hessians",
 ]

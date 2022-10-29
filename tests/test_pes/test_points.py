@@ -22,8 +22,7 @@ def test_point_list_1d():
 
 def test_point_list_2d():
 
-    pes = TestPES(rs={(0, 1): (1.0, 2.0, 2),
-                           (1, 2): (1.0, 2.0, 2)})
+    pes = TestPES(rs={(0, 1): (1.0, 2.0, 2), (1, 2): (1.0, 2.0, 2)})
     assert pes.ndim == 2
     assert pes.shape == (2, 2)
 
@@ -32,17 +31,29 @@ def test_point_list_2d():
 
 def test_point_list_non_square():
 
-    pes = TestPES(rs={(0, 1): (1.0, 2.0, 2),
-                           (1, 2): (1.0, 3.0, 3)})
+    pes = TestPES(rs={(0, 1): (1.0, 2.0, 2), (1, 2): (1.0, 3.0, 3)})
 
     assert pes.ndim == 2 and pes.shape == (2, 3)
 
     points = pes._points()
-    assert (points == [(0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (1, 2)]
-            or points == [(0, 0), (0, 1), (1, 0), (1, 1), (0, 2), (1, 2)])
+    assert points == [
+        (0, 0),
+        (0, 1),
+        (1, 0),
+        (0, 2),
+        (1, 1),
+        (1, 2),
+    ] or points == [
+        (0, 0),
+        (0, 1),
+        (1, 0),
+        (1, 1),
+        (0, 2),
+        (1, 2),
+    ]
 
-    assert np.isclose(pes.r1[1, 2], 2.0, atol=1E-10)
-    assert np.isclose(pes.r2[1, 2], 3.0, atol=1E-10)
+    assert np.isclose(pes.r1[1, 2], 2.0, atol=1e-10)
+    assert np.isclose(pes.r2[1, 2], 3.0, atol=1e-10)
 
 
 def test_closest_coordinates():
@@ -60,25 +71,24 @@ def test_closest_coordinates():
 
     # So the closet point to the second (index (1,))
     # with an energy is the origin point
-    assert np.allclose(pes._closest_coordinates(point=(1,)),
-                       np.ones(shape=(1, 3)),
-                       atol=1E-10)
+    assert np.allclose(
+        pes._closest_coordinates(point=(1,)), np.ones(shape=(1, 3)), atol=1e-10
+    )
 
 
 def test_distance():
 
     pes = TestPES(rs={(0, 1): np.array([1.0, 2.0])})
 
-    assert np.isclose(pes._distance(point1=(0,), point2=(1,)),
-                      1.0,
-                      atol=1E-10)
+    assert np.isclose(pes._distance(point1=(0,), point2=(1,)), 1.0, atol=1e-10)
 
-    pes = TestPES(rs={(0, 1): np.array([1.0, 2.0]),
-                      (1, 2): np.array([1.0, 2.0])})
+    pes = TestPES(
+        rs={(0, 1): np.array([1.0, 2.0]), (1, 2): np.array([1.0, 2.0])}
+    )
 
-    assert np.isclose(pes._distance(point1=(0, 0), point2=(1, 1)),
-                      np.sqrt(2),
-                      atol=1E-10)
+    assert np.isclose(
+        pes._distance(point1=(0, 0), point2=(1, 1)), np.sqrt(2), atol=1e-10
+    )
 
 
 def test_closest_coordinates_no_energy():
@@ -98,11 +108,11 @@ def test_constraints_1d():
 
     consts = pes._constraints(point=(0,))
     assert len(consts) == 1
-    assert np.isclose(consts[(0, 1)], 0.1, atol=1E-10)
+    assert np.isclose(consts[(0, 1)], 0.1, atol=1e-10)
 
     for i in range(3):
         consts = pes._constraints(point=(i,))
-        assert np.isclose(consts[(0, 1)], 0.1*(i+1), atol=1E-10)
+        assert np.isclose(consts[(0, 1)], 0.1 * (i + 1), atol=1e-10)
 
 
 def test_invalid_constraints_1d():
@@ -142,12 +152,10 @@ def test_stationary_points_1d():
 
 
 def test_stationary_points_2d():
-
     def energy(x, y):
         return 0.01 * (x * y - x**2 - x * y**2)
 
-    pes = TestPES(rs={(0, 1): (-1.5, 1.5, 11),
-                        (1, 0): (-1.5, 1.5, 11)})
+    pes = TestPES(rs={(0, 1): (-1.5, 1.5, 11), (1, 0): (-1.5, 1.5, 11)})
 
     pes._energies = Energies(energy(pes.r1, pes.r2))
     # pes.plot('tmp.pdf', interp_factor=0)
@@ -162,12 +170,10 @@ def test_stationary_points_2d():
 
 
 def test_saddle_points_2d():
-
     def energy(x, y):
-        return -x**2 + y**2
+        return -(x**2) + y**2
 
-    pes = TestPES(rs={(0, 1): (-1.0, 1.0, 11),
-                        (1, 0): (-1.0, 1.0, 11)})
+    pes = TestPES(rs={(0, 1): (-1.0, 1.0, 11), (1, 0): (-1.0, 1.0, 11)})
 
     pes._energies = Energies(energy(pes.r1, pes.r2))
     # pes.plot('tmp.pdf', interp_factor=0)
@@ -206,7 +212,7 @@ def test_gradient_some_undefined_energies():
     pes = harmonic_2d_pes()
     i, j = pes.shape
 
-    pes._energies[i//3, j//3] = np.nan
+    pes._energies[i // 3, j // 3] = np.nan
 
     # Should not raise any kind of exception, even though one of the
     # energies is undefined

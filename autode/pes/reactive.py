@@ -13,12 +13,12 @@ from autode.pes.mep import peak_point
 
 
 class ReactivePESnD(PESnD, ABC):
-
-    def __init__(self,
-                 species:        'autode.species.Species',
-                 rs:             Dict[Tuple[int, int], Union[Tuple, np.ndarray]],
-                 allow_rounding: bool = True,
-                 ):
+    def __init__(
+        self,
+        species: "autode.species.Species",
+        rs: Dict[Tuple[int, int], Union[Tuple, np.ndarray]],
+        allow_rounding: bool = True,
+    ):
         """
         Reactive potential energy surface in N-dimensions
 
@@ -33,13 +33,18 @@ class ReactivePESnD(PESnD, ABC):
         """
         PESnD.__init__(self, species, rs, allow_rounding)
 
-        self._gradients = np.full(shape=(*self.shape, self.ndim), fill_value=np.nan)
-        self._hessians = np.full(shape=(*self.shape, self.ndim, self.ndim), fill_value=np.nan)
+        self._gradients = np.full(
+            shape=(*self.shape, self.ndim), fill_value=np.nan
+        )
+        self._hessians = np.full(
+            shape=(*self.shape, self.ndim, self.ndim), fill_value=np.nan
+        )
 
-    def ts_guesses(self,
-                   product:        Optional['autode.species.Species'] = None,
-                   min_separation: Distance = Distance(0.5, units='Å')
-                   ) -> Iterator['autode.transition_states.ts_guess.TSguess']:
+    def ts_guesses(
+        self,
+        product: Optional["autode.species.Species"] = None,
+        min_separation: Distance = Distance(0.5, units="Å"),
+    ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
         """
         Generate TS guesses from the saddle points in the energy on this
         surface. Only those that are seperated by at least min_separation will
@@ -56,8 +61,10 @@ class ReactivePESnD(PESnD, ABC):
             (autode.transition_states.ts_guess.TSguess):
         """
         if not self._has_energy(self.origin):
-            logger.warning('Initial point on the PES not calculated - have '
-                           'no transition state guesses')
+            logger.warning(
+                "Initial point on the PES not calculated - have "
+                "no transition state guesses"
+            )
             return StopIteration
 
         if product is not None:
@@ -67,8 +74,9 @@ class ReactivePESnD(PESnD, ABC):
                 yield next(self._mep_ts_guess(product=product))
 
             except StopIteration:
-                logger.warning('Found no TS guesses from the minimum energy '
-                               'path')
+                logger.warning(
+                    "Found no TS guesses from the minimum energy " "path"
+                )
 
             return StopIteration
 
@@ -76,11 +84,12 @@ class ReactivePESnD(PESnD, ABC):
 
         for idx, point in enumerate(self._sorted_saddle_points()):
 
-            if any(self._distance(p, point) < min_separation for p in
-                   yielded_p):
+            if any(
+                self._distance(p, point) < min_separation for p in yielded_p
+            ):
                 continue
 
-            species = self._species.new_species(name=f'ts_guess{idx}')
+            species = self._species.new_species(name=f"ts_guess{idx}")
             species.coordinates = self._coordinates[point]
 
             yielded_p.append(point)
@@ -88,10 +97,9 @@ class ReactivePESnD(PESnD, ABC):
 
         return StopIteration
 
-    def _stationary_points(self,
-                           threshold:      float = 0.05,
-                           require_energy: bool = True
-                           ) -> Iterator[Tuple]:
+    def _stationary_points(
+        self, threshold: float = 0.05, require_energy: bool = True
+    ) -> Iterator[Tuple]:
         """
         Stationary points on the surface, characterised by a zero gradient
         vector. On a finite surface the gradient (g) will never truly vanish,
@@ -124,9 +132,7 @@ class ReactivePESnD(PESnD, ABC):
 
         return StopIteration
 
-    def _saddle_points(self,
-                       threshold: float = 0.2
-                       ) -> Iterator[Tuple]:
+    def _saddle_points(self, threshold: float = 0.2) -> Iterator[Tuple]:
         """
         Find all the saddle points on the surface
 
@@ -158,9 +164,9 @@ class ReactivePESnD(PESnD, ABC):
         """
         return sorted(self._saddle_points(), key=lambda p: self._energies[p])
 
-    def _mep_ts_guess(self,
-                      product:  'autode.species.Species'
-                      ) -> Iterator['autode.transition_states.ts_guess.TSguess']:
+    def _mep_ts_guess(
+        self, product: "autode.species.Species"
+    ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
         """
         Find a TS guess by traversing the minimum energy pathway (MEP) on a
         discreet potential energy surface between the initial species
@@ -180,29 +186,33 @@ class ReactivePESnD(PESnD, ABC):
         reactant = self._species
 
         if reactant.graph is None or product.graph is None:
-            logger.warning('Products or reactants did not have a defined '
-                           'graph, thus the MEP could not be traversed')
+            logger.warning(
+                "Products or reactants did not have a defined "
+                "graph, thus the MEP could not be traversed"
+            )
             return StopIteration
 
         product_point = self._point_with_isomorphic_graph_to(product)
 
         if product_point is None:
-            logger.warning('Could not find any point on the surface that had '
-                           f'the same connectivity as {product}')
+            logger.warning(
+                "Could not find any point on the surface that had "
+                f"the same connectivity as {product}"
+            )
             return StopIteration
 
-        ts_point = peak_point(energies=self._energies,
-                              point1=self.origin,
-                              point2=product_point)
+        ts_point = peak_point(
+            energies=self._energies, point1=self.origin, point2=product_point
+        )
 
         species = self._species.new_species()
         species.coordinates = self._coordinates[ts_point]
 
         yield TSguess.from_species(species)
 
-    def _point_with_isomorphic_graph_to(self,
-                                        species: 'autode.species.Species'
-                                        ) -> Optional[Tuple]:
+    def _point_with_isomorphic_graph_to(
+        self, species: "autode.species.Species"
+    ) -> Optional[Tuple]:
         """
         Find a point on this surface that is graph-isomorphic to a particular
         species. Attempt to return the lowest energy point.
@@ -226,7 +236,7 @@ class ReactivePESnD(PESnD, ABC):
                 isomorphic_points.append(point)
 
         if len(isomorphic_points) == 0:
-            logger.warning('No isomorphic points found')
+            logger.warning("No isomorphic points found")
             return None
 
         min_idx = np.argmin([self._energies[p] for p in isomorphic_points])
@@ -247,10 +257,13 @@ class ReactivePESnD(PESnD, ABC):
             for j in range(i, self.ndim):
 
                 # Point plus 1 (pp) and point minus 1 (pm) in this dimension
-                pp, pm = self._neighbour(point, j, +1), self._neighbour(point, j, -1)
+                pp, pm = self._neighbour(point, j, +1), self._neighbour(
+                    point, j, -1
+                )
 
-                hessian[i, j] = ((self._gradients[pp][i] - self._gradients[pm][i])
-                                 / (self._r(pp, j) - self._r(pm, j)))
+                hessian[i, j] = (
+                    self._gradients[pp][i] - self._gradients[pm][i]
+                ) / (self._r(pp, j) - self._r(pm, j))
 
                 # Hessians are symmetric
                 hessian[j, i] = hessian[i, j]
@@ -274,11 +287,13 @@ class ReactivePESnD(PESnD, ABC):
         are used. If neither possible then the gradient is set as np.nan
         """
         for p in self._points():
-            grad = self._gradients[p]   # Gradient with shape: (ndim,)
+            grad = self._gradients[p]  # Gradient with shape: (ndim,)
 
             if not self._has_energy(p):
-                logger.warning(f'Cannot set the gradient for point: {p} as it '
-                               'did not have an energy')
+                logger.warning(
+                    f"Cannot set the gradient for point: {p} as it "
+                    "did not have an energy"
+                )
                 grad.fill(np.nan)
                 continue
 
@@ -292,18 +307,20 @@ class ReactivePESnD(PESnD, ABC):
                     pp = p
 
                 if pm == pp:
-                    logger.warning('Cannot determine gradient. Neither '
-                                   'neighbour had an energy')
+                    logger.warning(
+                        "Cannot determine gradient. Neither "
+                        "neighbour had an energy"
+                    )
                     grad[n] = np.nan
                     continue
 
-                grad[n] = ((self._energies[pp] - self._energies[pm])
-                           / (self._r(pp, n) - self._r(pm, n)))
+                grad[n] = (self._energies[pp] - self._energies[pm]) / (
+                    self._r(pp, n) - self._r(pm, n)
+                )
 
         return None
 
-    def _is_minimum_in_gradient(self,
-                                point: Tuple) -> bool:
+    def _is_minimum_in_gradient(self, point: Tuple) -> bool:
         """
         Is a particular point surrounded by points with larger gradients?
         Only checks ±1 in each dimension, NOT combinations (i.e. diagonals)
@@ -319,7 +336,9 @@ class ReactivePESnD(PESnD, ABC):
         norm_grad = np.linalg.norm(self._gradients[point])
 
         for n in range(self.ndim):
-            pm, pp = self._neighbour(point, n, +1), self._neighbour(point, n, -1)
+            pm, pp = self._neighbour(point, n, +1), self._neighbour(
+                point, n, -1
+            )
 
             if not (self._is_contained(pm) and self._is_contained(pp)):
                 return False
@@ -335,10 +354,7 @@ class ReactivePESnD(PESnD, ABC):
 
         return True
 
-    def _is_saddle_point(self,
-                         point:     Tuple,
-                         threshold: float = 0.2
-                         ) -> bool:
+    def _is_saddle_point(self, point: Tuple, threshold: float = 0.2) -> bool:
         """
         Is this point in the surface a saddle point. In the ideal case of a
         continuous surface a saddle point has a single negative eigenvalue
@@ -362,12 +378,12 @@ class ReactivePESnD(PESnD, ABC):
         # Eigenvalues (λ) with an absolute value less than the tolerance are 0
         eigenvals[np.abs(eigenvals) < tol] = 0.0
 
-        logger.warning(f'{point} had eigenvalues: {eigenvals}')
+        logger.warning(f"{point} had eigenvalues: {eigenvals}")
         return len([x for x in eigenvals if x < 0]) == 1
 
     @property
     def _tensors(self) -> Sequence[np.ndarray]:
         """Tensors in this PES"""
-        attrs = ('_energies', '_gradients', '_hessians')
+        attrs = ("_energies", "_gradients", "_hessians")
 
         return [getattr(self, a) for a in attrs if hasattr(self, a)]

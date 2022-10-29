@@ -21,48 +21,53 @@ def get_keywords(calc_input, molecule):
     # needs to be a subclass of Keywords
     assert isinstance(calc_input.keywords, kwds.Keywords)
 
-    keywords = [kwd for kwd in calc_input.keywords.copy()
-                if not isinstance(kwd, kwds.MaxOptCycles)]
+    keywords = [
+        kwd
+        for kwd in calc_input.keywords.copy()
+        if not isinstance(kwd, kwds.MaxOptCycles)
+    ]
 
     if isinstance(calc_input.keywords, kwds.SinglePointKeywords):
         # Single point calculation add the 1SCF keyword to prevent opt
-        if not any('1scf' in kw.lower() for kw in keywords):
-            keywords.append('1SCF')
+        if not any("1scf" in kw.lower() for kw in keywords):
+            keywords.append("1SCF")
 
     if isinstance(calc_input.keywords, kwds.GradientKeywords):
         # Gradient calculation needs GRAD
-        if not any('grad' in kw.lower() for kw in keywords):
-            keywords.append('GRAD')
+        if not any("grad" in kw.lower() for kw in keywords):
+            keywords.append("GRAD")
 
         # Gradient calculation add the 1SCF keyword to prevent opt
-        if not any('1scf' in kw.lower() for kw in keywords):
-            keywords.append('1SCF')
+        if not any("1scf" in kw.lower() for kw in keywords):
+            keywords.append("1SCF")
 
     if calc_input.point_charges is not None:
-        keywords.append('QMMM')
+        keywords.append("QMMM")
 
     if molecule.solvent is not None:
 
         if molecule.solvent.dielectric is None:
-            err_str = (f'Could not use solvent {molecule.solvent} for MOPAC '
-                       f'calculation, a dielectric constant was not defined')
+            err_str = (
+                f"Could not use solvent {molecule.solvent} for MOPAC "
+                f"calculation, a dielectric constant was not defined"
+            )
             raise UnsupportedCalculationInput(message=err_str)
 
-        keywords.append(f'EPS={molecule.solvent.dielectric}')
+        keywords.append(f"EPS={molecule.solvent.dielectric}")
 
     # Add the charge and multiplicity
-    keywords.append(f'CHARGE={molecule.charge}')
+    keywords.append(f"CHARGE={molecule.charge}")
 
     if "ENPART" not in keywords:
         keywords.append("ENPART")  # Print an energy partition, and also E_tot
 
     if molecule.mult != 1:
         if molecule.mult == 2:
-            keywords.append('DOUBLET')
+            keywords.append("DOUBLET")
         elif molecule.mult == 3:
-            keywords.append('OPEN(2,2)')
+            keywords.append("OPEN(2,2)")
         else:
-            logger.critical('Unsupported spin multiplicity')
+            logger.critical("Unsupported spin multiplicity")
             raise UnsupportedCalculationInput
 
     return keywords
@@ -89,8 +94,9 @@ def get_atoms_and_fixed_atom_indexes(molecule):
     distances = list(molecule.constraints.distance.values())
 
     # Get a set of atoms that have been shifted using a linear interpolation
-    atoms = _get_atoms_linear_interp(atoms=molecule.atoms, bonds=bonds,
-                                     final_distances=distances)
+    atoms = _get_atoms_linear_interp(
+        atoms=molecule.atoms, bonds=bonds, final_distances=distances
+    )
 
     # Populate a flat list of atom ids to fix
     fixed_atoms = [i for bond in bonds for i in bond]
@@ -105,9 +111,9 @@ def print_atoms(inp_file, atoms, fixed_atom_idxs):
         x, y, z = atom.coord
 
         if i in fixed_atom_idxs:
-            line = f'{atom.label:<3}{x:^10.5f} 0 {y:^10.5f} 0 {z:^10.5f} 0'
+            line = f"{atom.label:<3}{x:^10.5f} 0 {y:^10.5f} 0 {z:^10.5f} 0"
         else:
-            line = f'{atom.label:<3}{x:^10.5f} 1 {y:^10.5f} 1 {z:^10.5f} 1'
+            line = f"{atom.label:<3}{x:^10.5f} 1 {y:^10.5f} 1 {z:^10.5f} 1"
 
         print(line, file=inp_file)
     return
@@ -125,24 +131,29 @@ def print_point_charges(calc, atoms):
         coord = atom.coord
         for point_charge in calc.input.point_charges:
             # V = q/r_ij
-            potential += (point_charge.charge
-                          / np.linalg.norm(coord - point_charge.coord))
+            potential += point_charge.charge / np.linalg.norm(
+                coord - point_charge.coord
+            )
 
         # Distance in Å need to be converted to a0 and then the energy
         # Ha e^-1 to kcal mol-1 e^-1
-        potentials.append(Constants.ha_to_kcalmol * Constants.a0_to_ang * potential)
+        potentials.append(
+            Constants.ha_to_kcalmol * Constants.a0_to_ang * potential
+        )
 
-    with open(f'{calc.name}_mol.in', 'w') as pc_file:
-        print(f'\n{len(atoms)} 0', file=pc_file)
+    with open(f"{calc.name}_mol.in", "w") as pc_file:
+        print(f"\n{len(atoms)} 0", file=pc_file)
 
         for potential in potentials:
-            print(f'0 0 0 0 {potential}', file=pc_file)
+            print(f"0 0 0 0 {potential}", file=pc_file)
 
-    calc.input.additional_filenames.append(f'{calc.name}_mol.in')
+    calc.input.additional_filenames.append(f"{calc.name}_mol.in")
     return
 
 
-def _get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Atoms':
+def _get_atoms_linear_interp(
+    atoms, bonds, final_distances
+) -> "autode.atoms.Atoms":
     """For a geometry defined by a set of xyzs, set the constrained bonds to
     the correct lengths
 
@@ -183,25 +194,24 @@ def _get_atoms_linear_interp(atoms, bonds, final_distances) -> 'autode.atoms.Ato
 
 
 class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
-
     def __init__(self):
-        super().__init__(executable_name='mopac',
-                         path=Config.MOPAC.path,
-                         keywords_set=Config.MOPAC.keywords,
-                         implicit_solvation_type=Config.MOPAC.implicit_solvation_type,
-                         doi_list=['10.1007/BF00128336'])
+        super().__init__(
+            executable_name="mopac",
+            path=Config.MOPAC.path,
+            keywords_set=Config.MOPAC.keywords,
+            implicit_solvation_type=Config.MOPAC.implicit_solvation_type,
+            doi_list=["10.1007/BF00128336"],
+        )
 
     def __repr__(self):
-        return f'MOPAC(available = {self.is_available})'
+        return f"MOPAC(available = {self.is_available})"
 
-    def generate_input_for(self,
-                           calc: "CalculationExecutor"
-                           ) -> None:
+    def generate_input_for(self, calc: "CalculationExecutor") -> None:
         molecule = calc.molecule
 
-        with open(calc.input.filename, 'w') as input_file:
+        with open(calc.input.filename, "w") as input_file:
             keywords = get_keywords(calc.input, molecule)
-            print(*keywords, '\n\n', file=input_file)
+            print(*keywords, "\n\n", file=input_file)
 
             atoms, fixed_atom_idxs = get_atoms_and_fixed_atom_indexes(molecule)
 
@@ -215,57 +225,56 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
 
     @staticmethod
     def input_filename_for(calc: "CalculationExecutor") -> str:
-        return f'{calc.name}.mop'
+        return f"{calc.name}.mop"
 
     @staticmethod
     def output_filename_for(calc: "CalculationExecutor") -> str:
-        return f'{calc.name}.out'
+        return f"{calc.name}.out"
 
-    def version_in(self,
-                   calc: "CalculationExecutor"
-                   ) -> str:
+    def version_in(self, calc: "CalculationExecutor") -> str:
         """Get the version of MOPAC used to execute this calculation"""
 
         for line in calc.output.file_lines:
 
-            if '(Version:' in line and len(line.split()) >= 3:
+            if "(Version:" in line and len(line.split()) >= 3:
                 # e.g.        MOPAC2016 (Version: 19.144L)
 
                 try:
                     name = line.split()[0]
                     # Item between the brackets with only the version number
-                    version = line.split('(')[1].split(')')[0].split()[1]
+                    version = line.split("(")[1].split(")")[0].split()[1]
 
-                    return f'{name} {version}'
+                    return f"{name} {version}"
 
                 except IndexError:
                     pass
 
-        logger.warning('Could not get the version number from the output file')
-        return '???'
+        logger.warning("Could not get the version number from the output file")
+        return "???"
 
     def execute(self, calc):
-
-        @work_in_tmp_dir(filenames_to_copy=calc.input.filenames,
-                         kept_file_exts=('.mop', '.out'),
-                         use_ll_tmp=True)
+        @work_in_tmp_dir(
+            filenames_to_copy=calc.input.filenames,
+            kept_file_exts=(".mop", ".out"),
+            use_ll_tmp=True,
+        )
         def execute_mopac():
-            logger.info(f'Setting the number of OMP threads to {calc.n_cores}')
-            os.environ['OMP_NUM_THREADS'] = str(calc.n_cores)
-            run_external(params=[calc.method.path, calc.input.filename],
-                         output_filename=calc.output.filename)
+            logger.info(f"Setting the number of OMP threads to {calc.n_cores}")
+            os.environ["OMP_NUM_THREADS"] = str(calc.n_cores)
+            run_external(
+                params=[calc.method.path, calc.input.filename],
+                output_filename=calc.output.filename,
+            )
 
         execute_mopac()
         return None
 
-    def terminated_normally_in(self,
-                               calc: "CalculationExecutor"
-                               ) -> bool:
+    def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
         n_errors = 0
 
         for i, line in enumerate(reversed(calc.output.file_lines)):
 
-            if 'Error' in line:
+            if "Error" in line:
                 n_errors += 1
 
             if i == 100:
@@ -273,10 +282,7 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
 
         return n_errors == 0
 
-    def _energy_from(self,
-                     calc: "CalculationExecutor"
-                     ) -> PotentialEnergy:
-
+    def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
         def _energy(x):
             return PotentialEnergy(x, units="eV").to("Ha")
 
@@ -284,22 +290,22 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
             if "ETOT (EONE + ETWO)" in line:
                 return _energy(line.split()[-2])
 
-            if 'TOTAL ENERGY' in line:
+            if "TOTAL ENERGY" in line:
                 return _energy(line.split()[3])
 
-        raise CouldNotGetProperty(name='energy')
+        raise CouldNotGetProperty(name="energy")
 
-    def optimiser_from(self,
-                       calc: "CalculationExecutor"
-                       ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(
+        self, calc: "CalculationExecutor"
+    ) -> "autode.opt.optimisers.base.BaseOptimiser":
 
-        is_converged = any('GRADIENT' in l and 'IS LESS THAN CUTOFF' in l
-                           for l in reversed(calc.output.file_lines))
+        is_converged = any(
+            "GRADIENT" in l and "IS LESS THAN CUTOFF" in l
+            for l in reversed(calc.output.file_lines)
+        )
         return MOPACOptimiser(converged=is_converged)
 
-    def coordinates_from(self,
-                         calc: "CalculationExecutor"
-                         ) -> Coordinates:
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
 
         coords = []
         n_atoms = calc.molecule.n_atoms
@@ -310,37 +316,33 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
                 # At the end of the file
                 break
 
-            line_length = len(calc.output.file_lines[i+3].split())
+            line_length = len(calc.output.file_lines[i + 3].split())
 
-            if 'CARTESIAN COORDINATES' in line and line_length == 5:
+            if "CARTESIAN COORDINATES" in line and line_length == 5:
                 #                              CARTESIAN COORDINATES
                 #
                 #    1    C        1.255660629     0.020580974    -0.276235553
 
                 coords = []
-                xyz_lines = calc.output.file_lines[i+2:i+2+n_atoms]
+                xyz_lines = calc.output.file_lines[i + 2 : i + 2 + n_atoms]
                 for xyz_line in xyz_lines:
                     x, y, z = xyz_line.split()[2:]
                     coords.append([float(x), float(y), float(z)])
 
         return Coordinates(coords, units="Å")
 
-    def partial_charges_from(self,
-                             calc: "CalculationExecutor"
-                             ) -> List[float]:
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
         raise NotImplementedInMethod
 
-    def gradient_from(self,
-                      calc: "CalculationExecutor"
-                      ) -> Gradient:
+    def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
         gradients_section = False
         raw = []
         for line in calc.output.file_lines:
 
-            if 'FINAL  POINT  AND  DERIVATIVES' in line:
+            if "FINAL  POINT  AND  DERIVATIVES" in line:
                 gradients_section = True
 
-            if gradients_section and 'ATOM   CHEMICAL' in line:
+            if gradients_section and "ATOM   CHEMICAL" in line:
                 gradients_section = False
 
             if gradients_section and len(line.split()) == 8:
@@ -348,13 +350,12 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
                 try:
                     raw.append(float(value))
                 except ValueError:
-                    raise CouldNotGetProperty(name='gradients')
+                    raise CouldNotGetProperty(name="gradients")
 
         return Gradient(raw, units="kcal mol^-1 Å^-1").to("Ha Å^-1")
 
 
 class MOPACOptimiser(ExternalOptimiser):
-
     def __init__(self, converged: bool):
         self._converged = converged
 
@@ -368,4 +369,3 @@ class MOPACOptimiser(ExternalOptimiser):
 
 
 mopac = MOPAC()
-

@@ -8,15 +8,16 @@ from autode.species.species import Species
 
 
 class Conformer(Species):
-
-    def __init__(self,
-                 name:         str = 'conf',
-                 atoms:        Optional['autode.atoms.Atoms'] = None,
-                 solvent_name: Optional[str] = None,
-                 charge:       int = 0,
-                 mult:         int = 1,
-                 dist_consts:  Optional[dict] = None,
-                 species:      Optional[Species] = None):
+    def __init__(
+        self,
+        name: str = "conf",
+        atoms: Optional["autode.atoms.Atoms"] = None,
+        solvent_name: Optional[str] = None,
+        charge: int = 0,
+        mult: int = 1,
+        dist_consts: Optional[dict] = None,
+        species: Optional[Species] = None,
+    ):
         """
         Construct a conformer either using the standard species constructor,
         or from a species directly.
@@ -42,16 +43,18 @@ class Conformer(Species):
         self.constraints.update(distance=dist_consts)
 
     def __repr__(self):
-        """Representation of """
-        return self._repr(prefix='Conformer')
+        """Representation of"""
+        return self._repr(prefix="Conformer")
 
     def __eq__(self, other):
         return super().__eq__(other)
 
-    def single_point(self,
-                     method:  'autode.wrappers.base.ElectronicStructureMethod',
-                     keywords: Optional['autode.wrappers.keywords.Keywords'] = None,
-                     n_cores:  Optional[int] = None):
+    def single_point(
+        self,
+        method: "autode.wrappers.base.ElectronicStructureMethod",
+        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        n_cores: Optional[int] = None,
+    ):
         """
         Calculate a single point and default to a low level single point method
 
@@ -67,12 +70,16 @@ class Conformer(Species):
 
         return super().single_point(method, keywords, n_cores=n_cores)
 
-    def optimise(self,
-                 method:      Optional['autode.wrappers.base.ElectronicStructureMethod'] = None,
-                 reset_graph: bool = False,
-                 calc:        Optional['autode.calculation.Calculation'] = None,
-                 keywords:    Optional['autode.wrappers.keywords.Keywords'] = None,
-                 n_cores:     Optional[int] = None):
+    def optimise(
+        self,
+        method: Optional[
+            "autode.wrappers.base.ElectronicStructureMethod"
+        ] = None,
+        reset_graph: bool = False,
+        calc: Optional["autode.calculation.Calculation"] = None,
+        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        n_cores: Optional[int] = None,
+    ):
         """
         Optimise the geometry of this conformer using a method. Will use
         low_opt keywords if no keywords are given.
@@ -93,10 +100,12 @@ class Conformer(Species):
             if keywords is None and method is not None:
                 keywords = method.keywords.low_opt
 
-            super().optimise(method, keywords=keywords, calc=calc, n_cores=n_cores)
+            super().optimise(
+                method, keywords=keywords, calc=calc, n_cores=n_cores
+            )
 
         except AtomsNotFound:
-            logger.error(f'Atoms not found for {self.name} but not critical')
+            logger.error(f"Atoms not found for {self.name} but not critical")
             self.atoms = None
 
         return None
@@ -107,11 +116,13 @@ class Conformer(Species):
         return self._coordinates
 
     @coordinates.setter
-    def coordinates(self, value: 'numpy.ndarray'):
+    def coordinates(self, value: "numpy.ndarray"):
         """Set the coordinates of this conformer"""
         if self._parent_atoms is None:
-            raise ValueError('Conformer has no parent atoms. Setting the '
-                            'coordinates will leave the atoms undefined')
+            raise ValueError(
+                "Conformer has no parent atoms. Setting the "
+                "coordinates will leave the atoms undefined"
+            )
 
         self._coordinates = Coordinates(value)
 
@@ -135,8 +146,7 @@ class Conformer(Species):
         return atoms
 
     @atoms.setter
-    def atoms(self,
-              value: Optional[Atoms]):
+    def atoms(self, value: Optional[Atoms]):
         """
         Set the atoms of this conformer.
 
@@ -161,8 +171,10 @@ class Conformer(Species):
 
             parent_atom = self._parent_atoms[i]
             if atom.label != parent_atom.label:
-                raise ValueError('Cannot alter the atomic symbols of a '
-                                 'conformer. Parent molecule was different: '
-                                 f'{atom.label} != {parent_atom.label}')
+                raise ValueError(
+                    "Cannot alter the atomic symbols of a "
+                    "conformer. Parent molecule was different: "
+                    f"{atom.label} != {parent_atom.label}"
+                )
 
             self._coordinates[i] = atom.coord.copy()

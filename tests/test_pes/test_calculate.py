@@ -9,7 +9,7 @@ from autode.pes.relaxed import RelaxedPESnD
 
 
 def h2():
-    return Molecule(atoms=[Atom('H'), Atom('H', x=0.70)])
+    return Molecule(atoms=[Atom("H"), Atom("H", x=0.70)])
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
@@ -43,8 +43,7 @@ def test_calculate_1d_serial():
     """
 
     n_points = 5
-    pes = RelaxedPESnD(species=h2(),
-                       rs={(0, 1): (1.0, n_points)})
+    pes = RelaxedPESnD(species=h2(), rs={(0, 1): (1.0, n_points)})
 
     pes.calculate(method=XTB())
     energies = [pes[i] for i in range(n_points)]
@@ -55,4 +54,4 @@ def test_calculate_1d_serial():
         e, coords = pes._single_energy_coordinates(pes._species_at(point=(i,)))
         pes._energies[i] = e
         pes._coordinates[i] = coords
-        assert np.isclose(energies[i], e, atol=1E-6)
+        assert np.isclose(energies[i], e, atol=1e-6)

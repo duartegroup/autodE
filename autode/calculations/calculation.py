@@ -10,24 +10,36 @@ from autode.log import logger
 from autode.hessians import Hessian
 from autode.values import PotentialEnergy, Gradient
 from autode.calculations.types import CalculationType
-from autode.calculations.executors import (CalculationExecutor,
-                                           CalculationExecutorO,
-                                           CalculationExecutorG,
-                                           CalculationExecutorH)
+from autode.calculations.executors import (
+    CalculationExecutor,
+    CalculationExecutorO,
+    CalculationExecutorG,
+    CalculationExecutorH,
+)
 
-output_exts = ('.out', '.hess', '.xyz', '.inp', '.com', '.log', '.nw',
-               '.pc', '.grad')
+output_exts = (
+    ".out",
+    ".hess",
+    ".xyz",
+    ".inp",
+    ".com",
+    ".log",
+    ".nw",
+    ".pc",
+    ".grad",
+)
 
 
 class Calculation:
-
-    def __init__(self,
-                 name:          str,
-                 molecule:      'autode.species.Species',
-                 method:        'autode.wrappers.methods.Method',
-                 keywords:      'autode.wrappers.keywords.Keywords',
-                 n_cores:       int = 1,
-                 point_charges: Optional[List[PointCharge]] = None):
+    def __init__(
+        self,
+        name: str,
+        molecule: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        keywords: "autode.wrappers.keywords.Keywords",
+        n_cores: int = 1,
+        point_charges: Optional[List[PointCharge]] = None,
+    ):
         """
         Calculation e.g. single point energy evaluation on a molecule. This
         will update the molecule inplace. For example, an optimisation will
@@ -59,11 +71,12 @@ class Calculation:
 
         self._check()
 
-    def _executor_for(self,
-                      molecule: 'autode.species.Species',
-                      method: "autode.wrappers.methods.Method",
-                      keywords: 'autode.wrappers.keywords.Keywords'
-                      ) -> "autode.calculations.executors.CalculationExecutor":
+    def _executor_for(
+        self,
+        molecule: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        keywords: "autode.wrappers.keywords.Keywords",
+    ) -> "autode.calculations.executors.CalculationExecutor":
         """
         Return a calculation executor depending on the calculation modes
         implemented in the wrapped method. For instance if the method does not
@@ -72,23 +85,33 @@ class Calculation:
         implement way of calculating Hessians then use a numerical evaluation
         of the Hessian
         """
-        _type = CalculationExecutor   # base type, implements all calc types
+        _type = CalculationExecutor  # base type, implements all calc types
 
         if _are_opt(keywords) and not method.implements(CalculationType.opt):
             _type = CalculationExecutorO
 
-        if _are_grad(keywords) and not method.implements(CalculationType.gradient):
+        if _are_grad(keywords) and not method.implements(
+            CalculationType.gradient
+        ):
             _type = CalculationExecutorG
 
-        if _are_hess(keywords) and not method.implements(CalculationType.hessian):
+        if _are_hess(keywords) and not method.implements(
+            CalculationType.hessian
+        ):
             _type = CalculationExecutorH
 
-        return _type(self.name, molecule, method, keywords,
-                     self.n_cores, self.point_charges)
+        return _type(
+            self.name,
+            molecule,
+            method,
+            keywords,
+            self.n_cores,
+            self.point_charges,
+        )
 
     def run(self) -> None:
-        """Run the calculation using the EST method """
-        logger.info(f'Running calculation: {self.name}')
+        """Run the calculation using the EST method"""
+        logger.info(f"Running calculation: {self.name}")
 
         self._executor.run()
         self._check_properties_exist()
@@ -96,10 +119,7 @@ class Calculation:
 
         return None
 
-    def clean_up(self,
-                 force:      bool = False,
-                 everything: bool = False
-                 ) -> None:
+    def clean_up(self, force: bool = False, everything: bool = False) -> None:
         """
         Clean up input and output files, if Config.keep_input_files is False
         (and not force=True)
@@ -117,8 +137,10 @@ class Calculation:
         """Generate the input required for this calculation"""
 
         if not self.method.uses_external_io:
-            logger.warning("Calculation does not create an input file. No "
-                           "input has been generated")
+            logger.warning(
+                "Calculation does not create an input file. No "
+                "input has been generated"
+            )
         else:
             self._executor.generate_input()
 
@@ -145,8 +167,8 @@ class Calculation:
 
     def set_output_filename(self, filename: str) -> None:
         """
-        Set the output filename. If it exists then the properties of 
-        the molecule this calculation was created with from will be 
+        Set the output filename. If it exists then the properties of
+        the molecule this calculation was created with from will be
         set
         """
         self._executor.output.filename = filename
@@ -159,23 +181,23 @@ class Calculation:
         """The optimiser used to run this calculation"""
         return self._executor.optimiser
 
-    def copy(self) -> 'Calculation':
+    def copy(self) -> "Calculation":
         return deepcopy(self)
 
     @property
-    def molecule(self) -> 'autode.species.Species':
+    def molecule(self) -> "autode.species.Species":
         return self._executor.molecule
 
     @molecule.setter
-    def molecule(self, value: 'autode.species.Species'):
+    def molecule(self, value: "autode.species.Species"):
         self._executor.molecule = value
 
     @property
-    def keywords(self) -> 'autode.wrappers.keywords.Keywords':
+    def keywords(self) -> "autode.wrappers.keywords.Keywords":
         return self._executor.input.keywords
 
     @property
-    def method(self) -> 'autode.wrappers.methods.Method':
+    def method(self) -> "autode.wrappers.methods.Method":
         return self._executor.method
 
     def _check(self) -> None:
@@ -193,7 +215,7 @@ class Calculation:
         assert isinstance(self.molecule, Species)
 
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
-            raise ex.NoInputError('Have no atoms. Can\'t form a calculation')
+            raise ex.NoInputError("Have no atoms. Can't form a calculation")
 
         return None
 
@@ -201,41 +223,51 @@ class Calculation:
         """Add the methods used in this calculation to the used methods list"""
         from autode.log.methods import methods
 
-        methods.add(f'Calculations were performed using {self.method.name} v. '
-                    f'{self.method.version_in(self)} '
-                    f'({self.method.doi_str}).')
+        methods.add(
+            f"Calculations were performed using {self.method.name} v. "
+            f"{self.method.version_in(self)} "
+            f"({self.method.doi_str})."
+        )
 
         # Type of calculation ----
         if isinstance(self.input.keywords, kws.SinglePointKeywords):
-            string = 'Single point '
+            string = "Single point "
 
         elif isinstance(self.input.keywords, kws.OptKeywords):
-            string = 'Optimisation '
+            string = "Optimisation "
 
         else:
-            logger.warning('Not adding gradient or hessian to methods section '
-                           'anticipating that they will be the same as opt')
+            logger.warning(
+                "Not adding gradient or hessian to methods section "
+                "anticipating that they will be the same as opt"
+            )
             # and have been already added to the methods section
             return
 
         # Level of theory ----
-        string += (f'calculations performed at the '
-                   f'{self.input.keywords.method_string} level')
+        string += (
+            f"calculations performed at the "
+            f"{self.input.keywords.method_string} level"
+        )
 
         basis = self.input.keywords.basis_set
         if basis is not None:
-            string += (f' in combination with the {str(basis)} '
-                       f'({basis.doi_str}) basis set')
+            string += (
+                f" in combination with the {str(basis)} "
+                f"({basis.doi_str}) basis set"
+            )
 
         if self.molecule.solvent is not None:
             solv_type = self.method.implicit_solvation_type
-            doi = solv_type.doi_str if hasattr(solv_type, 'doi_str') else '?'
+            doi = solv_type.doi_str if hasattr(solv_type, "doi_str") else "?"
 
-            string += (f' and {solv_type.upper()} ({doi}) '
-                       f'solvation, with parameters appropriate for '
-                       f'{self.molecule.solvent}')
+            string += (
+                f" and {solv_type.upper()} ({doi}) "
+                f"solvation, with parameters appropriate for "
+                f"{self.molecule.solvent}"
+            )
 
-        methods.add(f'{string}.\n')
+        methods.add(f"{string}.\n")
         return None
 
     def _check_properties_exist(self) -> None:
@@ -250,18 +282,20 @@ class Calculation:
         logger.info("Checking required properties exist")
 
         if not self.terminated_normally:
-            logger.error(f'Calculation of {self.molecule} did not terminate '
-                         f'normally')
+            logger.error(
+                f"Calculation of {self.molecule} did not terminate "
+                f"normally"
+            )
             raise ex.CouldNotGetProperty()
 
         if self.molecule.energy is None:
-            raise ex.CouldNotGetProperty(name='energy')
+            raise ex.CouldNotGetProperty(name="energy")
 
         if _are_grad(self.keywords) and self.molecule.gradient is None:
-            raise ex.CouldNotGetProperty(name='gradient')
+            raise ex.CouldNotGetProperty(name="gradient")
 
         if _are_hess(self.keywords) and self.molecule.hessian is None:
-            raise ex.CouldNotGetProperty(name='Hessian')
+            raise ex.CouldNotGetProperty(name="Hessian")
 
         return None
 
@@ -281,8 +315,10 @@ class Calculation:
     def optimisation_nearly_converged(self) -> bool:
         self._executor.set_properties()
         tol = PotentialEnergy(0.1, units="kcal mol-1")
-        return (not self.optimiser.converged 
-                and self.optimiser.last_energy_change < tol)
+        return (
+            not self.optimiser.converged
+            and self.optimiser.last_energy_change < tol
+        )
 
     @deprecated
     def get_final_atoms(self) -> Atoms:

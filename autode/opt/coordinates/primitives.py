@@ -14,17 +14,18 @@ class Primitive(ABC):
         self._atom_indexes = atom_indexes
 
     @abstractmethod
-    def __call__(self,
-                 x: 'autode.opt.coordinates.CartesianCoordinates'
-                 ) -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
         """Return the value of this PIC given a set of cartesian coordinates"""
 
     @abstractmethod
-    def derivative(self,
-                   i:         int,
-                   component: 'autode.opt.coordinates.CartesianComponent',
-                   x:         'autode.opt.coordinates.CartesianCoordinates'
-                   ) -> float:
+    def derivative(
+        self,
+        i: int,
+        component: "autode.opt.coordinates.CartesianComponent",
+        x: "autode.opt.coordinates.CartesianCoordinates",
+    ) -> float:
         r"""
         Calculate the derivative with respect to a cartesian coordinate
 
@@ -70,16 +71,18 @@ class ConstrainedPrimitive(Primitive, ABC):
     def _value(self) -> float:
         """Value of the constraint that must be satisfied e.g. r0"""
 
-    def is_satisfied(self,
-                     x:   'autode.opt.coordinates.CartesianCoordinates',
-                     tol: float = 1E-4
-                     ) -> bool:
+    def is_satisfied(
+        self,
+        x: "autode.opt.coordinates.CartesianCoordinates",
+        tol: float = 1e-4,
+    ) -> bool:
         """Is this constraint satisfied to within an absolute tolerance"""
         return abs(self.delta(x)) < tol
 
-    def delta(self,
-              x: 'autode.opt.coordinates.CartesianCoordinates',
-              ) -> float:
+    def delta(
+        self,
+        x: "autode.opt.coordinates.CartesianCoordinates",
+    ) -> float:
         """Difference between the observed and required value"""
         return self(x) - self._value
 
@@ -87,9 +90,7 @@ class ConstrainedPrimitive(Primitive, ABC):
 class _DistanceFunction(Primitive, ABC):
     """Function of a distance between two atoms"""
 
-    def __init__(self,
-                 i: int,
-                 j: int):
+    def __init__(self, i: int, j: int):
         """
         Function of a distance between a pair of atoms
 
@@ -112,8 +113,10 @@ class _DistanceFunction(Primitive, ABC):
     def __eq__(self, other) -> bool:
         """Equality of two distance functions"""
 
-        return (isinstance(other, self.__class__)
-                and other._ordered_idxs == self._ordered_idxs)
+        return (
+            isinstance(other, self.__class__)
+            and other._ordered_idxs == self._ordered_idxs
+        )
 
 
 class InverseDistance(_DistanceFunction):
@@ -126,11 +129,12 @@ class InverseDistance(_DistanceFunction):
                 {|\boldsymbol{X}_i - \boldsymbol{X}_j|}
     """
 
-    def derivative(self,
-                   i:          int,
-                   component: 'autode.opt.coordinates.CartesianComponent',
-                   x:         'autode.opt.coordinates.CartesianCoordinates'
-                   ) -> float:
+    def derivative(
+        self,
+        i: int,
+        component: "autode.opt.coordinates.CartesianComponent",
+        x: "autode.opt.coordinates.CartesianCoordinates",
+    ) -> float:
         """
         Derivative with respect to Cartesian displacement
 
@@ -143,18 +147,18 @@ class InverseDistance(_DistanceFunction):
         k = int(component)
 
         if i != self.i and i != self.j:
-            return 0                 # Atom does not form part of this distance
+            return 0  # Atom does not form part of this distance
 
         elif i == self.i:
-            return - (_x[i, k] - _x[self.j, k]) * self(x) ** 3
+            return -(_x[i, k] - _x[self.j, k]) * self(x) ** 3
 
         else:  # i == self.idx_j:
             return (_x[self.i, k] - _x[self.j, k]) * self(x) ** 3
 
-    def __call__(self,
-                 x: 'autode.opt.coordinates.CartesianCoordinates'
-                 ) -> float:
-        """1 / |x_i - x_j| """
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
+        """1 / |x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return 1.0 / np.linalg.norm(_x[self.i] - _x[self.j])
 
@@ -168,11 +172,12 @@ class Distance(_DistanceFunction):
         q = |\boldsymbol{X}_i - \boldsymbol{X}_j|
     """
 
-    def derivative(self,
-                   i:          int,
-                   component: 'autode.opt.coordinates.CartesianComponent',
-                   x:         'autode.opt.coordinates.CartesianCoordinates'
-                   ) -> float:
+    def derivative(
+        self,
+        i: int,
+        component: "autode.opt.coordinates.CartesianComponent",
+        x: "autode.opt.coordinates.CartesianCoordinates",
+    ) -> float:
         """
         Derivative with respect to Cartesian displacement
 
@@ -184,29 +189,25 @@ class Distance(_DistanceFunction):
         k = int(component)
 
         if i != self.i and i != self.j:
-            return 0                 # Atom does not form part of this distance
+            return 0  # Atom does not form part of this distance
 
         val = (_x[self.i, k] - _x[self.j, k]) / self(x)
 
         return val if i == self.i else -val
 
-    def __call__(self,
-                 x: 'autode.opt.coordinates.CartesianCoordinates'
-                 ) -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
         """|x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return np.linalg.norm(_x[self.i] - _x[self.j])
 
     def __repr__(self):
-        return f'Distance({self.i}-{self.j})'
+        return f"Distance({self.i}-{self.j})"
 
 
 class ConstrainedDistance(ConstrainedPrimitive, Distance):
-
-    def __init__(self,
-                 i: int,
-                 j: int,
-                 value: float):
+    def __init__(self, i: int, j: int, value: float):
         """
         Distance constrained to a value
 
@@ -228,11 +229,10 @@ class ConstrainedDistance(ConstrainedPrimitive, Distance):
         return self._r0
 
     def __repr__(self):
-        return f'ConstrainedDistance({self.i}-{self.j})'
+        return f"ConstrainedDistance({self.i}-{self.j})"
 
 
 class BondAngle(Primitive):
-
     def __init__(self, o: int, m: int, n: int):
         """Bond angle m-o-n"""
         super().__init__(o, m, n)
@@ -244,29 +244,32 @@ class BondAngle(Primitive):
     def __eq__(self, other) -> bool:
         """Equality of two distance functions"""
 
-        return (isinstance(other, self.__class__)
-                and self.o == other.o
-                and other._ordered_idxs == self._ordered_idxs)
+        return (
+            isinstance(other, self.__class__)
+            and self.o == other.o
+            and other._ordered_idxs == self._ordered_idxs
+        )
 
-    def __call__(self,
-                 x: 'autode.opt.coordinates.CartesianCoordinates') -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
 
         _x = x.reshape((-1, 3))
         u = _x[self.m, :] - _x[self.o, :]
         v = _x[self.n, :] - _x[self.o, :]
 
-        theta = np.arccos(u.dot(v)
-                          / (np.linalg.norm(u) * np.linalg.norm(v)))
+        theta = np.arccos(u.dot(v) / (np.linalg.norm(u) * np.linalg.norm(v)))
         return theta
 
-    def derivative(self,
-                   i: int,
-                   component: 'autode.opt.coordinates.CartesianComponent',
-                   x: 'autode.opt.coordinates.CartesianCoordinates'
-                   ) -> float:
+    def derivative(
+        self,
+        i: int,
+        component: "autode.opt.coordinates.CartesianComponent",
+        x: "autode.opt.coordinates.CartesianCoordinates",
+    ) -> float:
 
         if i not in (self.o, self.m, self.n):
-            return 0.
+            return 0.0
 
         k = int(component)
 
@@ -279,19 +282,20 @@ class BondAngle(Primitive):
         lambda_v = np.linalg.norm(v)
         v /= lambda_v
 
-        t0, t1 = np.array([1., -1., 1.]), np.array([-1., 1., 1.])
+        t0, t1 = np.array([1.0, -1.0, 1.0]), np.array([-1.0, 1.0, 1.0])
 
-        if not np.isclose(np.abs(np.arccos(u.dot(v))), 1.):
+        if not np.isclose(np.abs(np.arccos(u.dot(v))), 1.0):
             w = np.cross(u, v)
-        elif (not np.isclose(np.abs(np.arccos(u.dot(t0))), 1.)
-              and not np.isclose(np.abs(np.arccos(v.dot(t0))), 1.)):
+        elif not np.isclose(
+            np.abs(np.arccos(u.dot(t0))), 1.0
+        ) and not np.isclose(np.abs(np.arccos(v.dot(t0))), 1.0):
             w = np.cross(u, t0)
         else:
             w = np.cross(u, t1)
 
         w /= np.linalg.norm(w)
 
-        dqdx = 0.
+        dqdx = 0.0
 
         if i in (self.m, self.o):
             sign = 1 if i == self.m else -1
@@ -304,16 +308,11 @@ class BondAngle(Primitive):
         return dqdx
 
     def __repr__(self):
-        return f'Angle({self.m}-{self.o}-{self.n})'
+        return f"Angle({self.m}-{self.o}-{self.n})"
 
 
 class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
-
-    def __init__(self,
-                 o: int,
-                 m: int,
-                 n: int,
-                 value: float):
+    def __init__(self, o: int, m: int, n: int, value: float):
         """
         Angle (m-o-n) constrained to a value (in radians)
 
@@ -337,14 +336,15 @@ class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
         return self._theta0
 
     def __repr__(self):
-        return f'ConstrainedCAngle({self.m}-{self.o}-{self.n})'
+        return f"ConstrainedCAngle({self.m}-{self.o}-{self.n})"
 
     def __eq__(self, other):
-        return super().__eq__(other) and np.isclose(self._theta0, other._theta0)
+        return super().__eq__(other) and np.isclose(
+            self._theta0, other._theta0
+        )
 
 
 class DihedralAngle(Primitive):
-
     def __init__(self, m: int, o: int, p: int, n: int):
         """Dihedral angle: m-o-p-n"""
         super().__init__(m, o, p, n)
@@ -354,23 +354,26 @@ class DihedralAngle(Primitive):
         self.p = p
         self.n = n
 
-    def __call__(self,
-                 x: 'autode.opt.coordinates.CartesianCoordinates') -> float:
+    def __call__(
+        self, x: "autode.opt.coordinates.CartesianCoordinates"
+    ) -> float:
         """Value of the dihedral"""
         return self._value(x, return_derivative=False)
 
-    def derivative(self,
-                   i: int,
-                   component: 'autode.opt.coordinates.CartesianComponent',
-                   x: 'autode.opt.coordinates.CartesianCoordinates') -> float:
+    def derivative(
+        self,
+        i: int,
+        component: "autode.opt.coordinates.CartesianComponent",
+        x: "autode.opt.coordinates.CartesianCoordinates",
+    ) -> float:
         return self._value(x, i=i, component=component, return_derivative=True)
 
     def __eq__(self, other) -> bool:
         """Equality of two distance functions"""
-        return (isinstance(other, self.__class__)
-                and (self._atom_indexes == other._atom_indexes
-                     or self._atom_indexes == tuple(reversed(other._atom_indexes)))
-                )
+        return isinstance(other, self.__class__) and (
+            self._atom_indexes == other._atom_indexes
+            or self._atom_indexes == tuple(reversed(other._atom_indexes))
+        )
 
     def _value(self, x, i=None, component=None, return_derivative=False):
         """Evaluate either the value or the derivative. Shared function
@@ -395,33 +398,41 @@ class DihedralAngle(Primitive):
         if not return_derivative:
             v1 = np.cross(u, w)
             v2 = np.cross(-w, v)
-            return -np.arctan2(np.cross(v1, w).dot(v2),
-                               (v1.dot(v2)))
+            return -np.arctan2(np.cross(v1, w).dot(v2), (v1.dot(v2)))
 
         # are now computing the derivative..
         if i not in self._atom_indexes:
-            return 0.
+            return 0.0
 
         k = int(component)
-        dqdx = 0.
+        dqdx = 0.0
 
         if i in (self.m, self.o):
             sign = 1 if i == self.m else -1
-            dqdx += sign * (np.cross(u, w)[k]/(lambda_u * np.sin(phi_u)**2))
+            dqdx += sign * (
+                np.cross(u, w)[k] / (lambda_u * np.sin(phi_u) ** 2)
+            )
 
         if i in (self.p, self.n):
             sign = 1 if i == self.p else -1
-            dqdx += sign * (np.cross(v, w)[k] / (lambda_v * np.sin(phi_v)**2))
+            dqdx += sign * (
+                np.cross(v, w)[k] / (lambda_v * np.sin(phi_v) ** 2)
+            )
 
         if i in (self.o, self.p):
             sign = 1 if i == self.o else -1
-            dqdx += sign * (((np.cross(u, w)[k] * np.cos(phi_u))
-                            / (lambda_w * np.sin(phi_u)**2))
-                            - ((np.cross(v, w)[k] * np.cos(phi_v))
-                               / (lambda_w * np.sin(phi_v)**2))
-                            )
+            dqdx += sign * (
+                (
+                    (np.cross(u, w)[k] * np.cos(phi_u))
+                    / (lambda_w * np.sin(phi_u) ** 2)
+                )
+                - (
+                    (np.cross(v, w)[k] * np.cos(phi_v))
+                    / (lambda_w * np.sin(phi_v) ** 2)
+                )
+            )
 
         return dqdx
 
     def __repr__(self):
-        return f'Dihedral({self.m}-{self.o}-{self.p}-{self.n})'
+        return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"

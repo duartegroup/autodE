@@ -1,5 +1,3 @@
-
-
 class ComputationalMethods:
     """Generic computational methods section built by autodE"""
 
@@ -26,8 +24,11 @@ class ComputationalMethods:
         """String of the computational methods used in this initialisation
         of autodE prepended with the current version"""
         import autode
-        autode_str = (f'All calculations were performed in autodE '
-                      f'v. {autode.__version__} (10.1002/anie.202011941). ')
+
+        autode_str = (
+            f"All calculations were performed in autodE "
+            f"v. {autode.__version__} (10.1002/anie.202011941). "
+        )
 
         return autode_str + " ".join(self._list)
 

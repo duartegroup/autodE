@@ -17,11 +17,11 @@ class IDPP:
     as suggested in the paper.
     """
 
-    def __init__(self, images: 'autode.neb.original.Images'):
+    def __init__(self, images: "autode.neb.original.Images"):
         """Initialise a IDPP potential from a set of NEB images"""
 
         if len(images) < 2:
-            raise ValueError('Must have at least 2 images for IDPP')
+            raise ValueError("Must have at least 2 images for IDPP")
 
         # Distance matrices containing all r_{ij}^k
         self._dists = {image_k.name: None for image_k in images}
@@ -29,9 +29,7 @@ class IDPP:
 
         self._set_distance_matrices(images)
 
-    def __call__(self,
-                 image: 'autode.neb.original.Image'
-                 ) -> float:
+    def __call__(self, image: "autode.neb.original.Image") -> float:
         r"""
         Value of the IDPP objective function for a single image defined by,
 
@@ -54,9 +52,7 @@ class IDPP:
 
         return 0.5 * np.sum(w * (r_k - r) ** 2)
 
-    def grad(self,
-             image: 'autode.neb.original.Image'
-             ) -> np.ndarray:
+    def grad(self, image: "autode.neb.original.Image") -> np.ndarray:
         r"""
         Gradient of the potential with respect to displacement of
         the Cartesian components: :math:`\nabla S = (dS/dx_0, dS/dy_0, dS/dz_0,
@@ -86,8 +82,7 @@ class IDPP:
         w = self._weight_matrix(image)
         r_k = self._req_distance_matrix(image)
 
-        a = -2 * (2 * (r_k - r)**2 * r**(-6)
-                  + w * (r_k - r) * r**(-1))
+        a = -2 * (2 * (r_k - r) ** 2 * r ** (-6) + w * (r_k - r) * r ** (-1))
 
         """
         The following numpy operations are the same as:
@@ -106,9 +101,9 @@ class IDPP:
         a[self._diagonal_distance_matrix_idxs] = 0.0
         delta = np.subtract.outer(x, x)
 
-        grad[0::3] = np.sum(a * delta[0::3, 0::3], axis=1)   # x
-        grad[1::3] = np.sum(a * delta[1::3, 1::3], axis=1)   # y
-        grad[2::3] = np.sum(a * delta[2::3, 2::3], axis=1)   # z
+        grad[0::3] = np.sum(a * delta[0::3, 0::3], axis=1)  # x
+        grad[1::3] = np.sum(a * delta[1::3, 1::3], axis=1)  # y
+        grad[2::3] = np.sum(a * delta[2::3, 2::3], axis=1)  # z
 
         return grad
 
@@ -126,7 +121,7 @@ class IDPP:
         dist_mat_1 = self._distance_matrix(image=images[0])
         dist_mat_n = self._distance_matrix(image=images[-1])
 
-        delta = (dist_mat_n - dist_mat_1)
+        delta = dist_mat_n - dist_mat_1
         n = len(images)
 
         for k, image in enumerate(images):
@@ -162,7 +157,7 @@ class IDPP:
         for :math:`i \ne j` otherwise :math:`w_{ii} = 0`
         """
         r = self._distance_matrix(image, unity_diagonal=True)
-        w = r**(-4.0)
+        w = r ** (-4.0)
         w[self._diagonal_distance_matrix_idxs] = 0.0  # Zero w_ii elements
 
         return w

@@ -20,15 +20,16 @@ from autode.utils import requires_atoms
 
 
 class Molecule(Species):
-
-    def __init__(self,
-                 arg:          str = 'molecule',
-                 smiles:       Optional[str] = None,
-                 atoms:        Optional[Sequence['autode.atoms.Atom']] = None,
-                 solvent_name: Optional[str] = None,
-                 charge:       int = 0,
-                 mult:         int = 1,
-                 **kwargs):
+    def __init__(
+        self,
+        arg: str = "molecule",
+        smiles: Optional[str] = None,
+        atoms: Optional[Sequence["autode.atoms.Atom"]] = None,
+        solvent_name: Optional[str] = None,
+        charge: int = 0,
+        mult: int = 1,
+        **kwargs,
+    ):
         """
         A molecular species constructable from SMILES or a set of atoms,
         has default charge and spin multiplicity.
@@ -51,12 +52,12 @@ class Molecule(Species):
             name: Name of the molecule. Overrides arg if arg is not a .xyz
                   filename
         """
-        logger.info(f'Generating a Molecule object for {arg}')
-        name = arg if 'name' not in kwargs else kwargs['name']
+        logger.info(f"Generating a Molecule object for {arg}")
+        name = arg if "name" not in kwargs else kwargs["name"]
 
         super().__init__(name, atoms, charge, mult, solvent_name)
 
-        if arg.endswith('.xyz'):
+        if arg.endswith(".xyz"):
             self._init_xyz_file(xyz_filename=arg)
 
         self.smiles = smiles
@@ -67,11 +68,11 @@ class Molecule(Species):
             self._init_smiles(smiles)
 
         # If the name is unassigned use a more interpretable chemical formula
-        if name == 'molecule' and self.atoms is not None:
+        if name == "molecule" and self.atoms is not None:
             self.name = self.formula
 
     def __repr__(self):
-        return self._repr(prefix='Molecule')
+        return self._repr(prefix="Molecule")
 
     def __eq__(self, other):
         """Equality of two molecules is only dependent on the identity"""
@@ -85,7 +86,7 @@ class Molecule(Species):
         Arguments:
             smiles (str):
         """
-        at_strings = re.findall(r'\[.*?]', smiles)
+        at_strings = re.findall(r"\[.*?]", smiles)
 
         if any(metal in string for metal in metals for string in at_strings):
             init_smiles(self, smiles)
@@ -93,9 +94,11 @@ class Molecule(Species):
         else:
             init_organic_smiles(self, smiles)
 
-        logger.info(f'Initialisation with SMILES successful. '
-                    f'Charge={self.charge}, Multiplicity={self.mult}, '
-                    f'Num. Atoms={self.n_atoms}')
+        logger.info(
+            f"Initialisation with SMILES successful. "
+            f"Charge={self.charge}, Multiplicity={self.mult}, "
+            f"Num. Atoms={self.n_atoms}"
+        )
         return None
 
     def _init_xyz_file(self, xyz_filename: str):
@@ -109,26 +112,30 @@ class Molecule(Species):
         Raises:
             (ValueError)
         """
-        logger.info('Generating species from .xyz file')
+        logger.info("Generating species from .xyz file")
 
         self.atoms = xyz_file_to_atoms(xyz_filename)
 
-        if (sum(atom.atomic_number for atom in self.atoms) % 2 != 0
-            and self.charge % 2 == 0 and self.mult == 1):
-            raise ValueError('Initialised a molecule from an xyz file with  '
-                             'an odd number of electrons but had an even '
-                             'charge and 2S + 1 = 1. Impossible!')
+        if (
+            sum(atom.atomic_number for atom in self.atoms) % 2 != 0
+            and self.charge % 2 == 0
+            and self.mult == 1
+        ):
+            raise ValueError(
+                "Initialised a molecule from an xyz file with  "
+                "an odd number of electrons but had an even "
+                "charge and 2S + 1 = 1. Impossible!"
+            )
 
         # Override the default name with something more descriptive
-        if self.name == 'molecule' or self.name.endswith('.xyz'):
+        if self.name == "molecule" or self.name.endswith(".xyz"):
             self.name = Path(self.name).stem
 
         make_graph(self)
         return None
 
     @requires_atoms
-    def _generate_conformers(self,
-                             n_confs: Optional[int] = None):
+    def _generate_conformers(self, n_confs: Optional[int] = None):
         """
         Use a simulated annealing approach to generate conformers for this
         molecule.
@@ -143,10 +150,10 @@ class Molecule(Species):
         self.conformers.clear()
 
         if self.smiles is not None and self.rdkit_conf_gen_is_fine:
-            logger.info(f'Using RDKit to gen conformers. {n_confs} requested')
+            logger.info(f"Using RDKit to gen conformers. {n_confs} requested")
 
-            m_string = 'ETKDGv3' if hasattr(AllChem, 'ETKDGv3') else 'ETKDGv2'
-            logger.info(f'Using the {m_string} method')
+            m_string = "ETKDGv3" if hasattr(AllChem, "ETKDGv3") else "ETKDGv2"
+            logger.info(f"Using the {m_string} method")
 
             method_class = getattr(AllChem, m_string)
             method = method_class()
@@ -154,29 +161,39 @@ class Molecule(Species):
             method.numThreads = Config.n_cores
             method.useSmallRingTorsion = True
 
-            logger.info('Running conformation generation with RDKit... running')
-            conf_ids = list(AllChem.EmbedMultipleConfs(self.rdkit_mol_obj,
-                                                       numConfs=n_confs,
-                                                       params=method))
-            logger.info('                                          ... done')
+            logger.info(
+                "Running conformation generation with RDKit... running"
+            )
+            conf_ids = list(
+                AllChem.EmbedMultipleConfs(
+                    self.rdkit_mol_obj, numConfs=n_confs, params=method
+                )
+            )
+            logger.info("                                          ... done")
 
             for conf_id in conf_ids:
-                conf = Conformer(species=self, name=f'{self.name}_conf{conf_id}')
+                conf = Conformer(
+                    species=self, name=f"{self.name}_conf{conf_id}"
+                )
                 conf.atoms = atoms_from_rdkit_mol(self.rdkit_mol_obj, conf_id)
                 self.conformers.append(conf)
 
-            methods.add(f'{m_string} algorithm (10.1021/acs.jcim.5b00654) '
-                        f'implemented in RDKit v. {rdkit.__version__}')
+            methods.add(
+                f"{m_string} algorithm (10.1021/acs.jcim.5b00654) "
+                f"implemented in RDKit v. {rdkit.__version__}"
+            )
 
         else:
-            logger.info('Using repulsion+relaxed (RR) to generate conformers')
+            logger.info("Using repulsion+relaxed (RR) to generate conformers")
             with Pool(processes=Config.n_cores) as pool:
-                results = [pool.apply_async(get_simanl_conformer, (self, None, i))
-                           for i in range(n_confs)]
+                results = [
+                    pool.apply_async(get_simanl_conformer, (self, None, i))
+                    for i in range(n_confs)
+                ]
                 self.conformers = [res.get(timeout=None) for res in results]
 
-            self.conformers.prune_on_energy(e_tol=1E-10)
-            methods.add('RR algorithm (???) implemented in autodE')
+            self.conformers.prune_on_energy(e_tol=1e-10)
+            methods.add("RR algorithm (???) implemented in autodE")
 
         self.conformers.prune_on_rmsd()
         return None
@@ -192,7 +209,7 @@ class Molecule(Species):
         """
         return self._generate_conformers(n_confs=n_confs)
 
-    def to_product(self) -> 'Product':
+    def to_product(self) -> "Product":
         """
         Generate a copy of this reactant as a product
 
@@ -205,7 +222,7 @@ class Molecule(Species):
 
         return product
 
-    def to_reactant(self) -> 'Reactant':
+    def to_reactant(self) -> "Reactant":
         """
         Generate a copy of this product as a reactant
 

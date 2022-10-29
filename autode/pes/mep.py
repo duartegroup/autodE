@@ -7,10 +7,11 @@ from networkx.generators.lattice import grid_graph
 from networkx.algorithms.shortest_paths import dijkstra_path
 
 
-def peak_point(energies: np.ndarray,
-               point1:   Tuple[int, ...],
-               point2:   Tuple[int, ...],
-               ) -> Tuple[int, ...]:
+def peak_point(
+    energies: np.ndarray,
+    point1: Tuple[int, ...],
+    point2: Tuple[int, ...],
+) -> Tuple[int, ...]:
     """
     Find a point in an array of energies that connects two points via
     the minimum energy pathway. If there is no peak in the path then the
@@ -32,10 +33,12 @@ def peak_point(energies: np.ndarray,
         """Weight between two nodes in the graph is taken as the abs diff"""
         return np.abs(energies[u] - energies[v])
 
-    path = dijkstra_path(G=grid_graph(dim=energies.shape, periodic=False),
-                         source=point1,
-                         target=point2,
-                         weight=weight)
+    path = dijkstra_path(
+        G=grid_graph(dim=energies.shape, periodic=False),
+        source=point1,
+        target=point2,
+        weight=weight,
+    )
 
     peak_idx = np.argmax(np.array([energies[p] for p in path]))
 

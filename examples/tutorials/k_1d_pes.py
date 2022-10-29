@@ -2,12 +2,12 @@ import autode as ade
 
 xtb = ade.methods.XTB()
 if not xtb.is_available:
-    exit('This example requires an XTB install')
+    exit("This example requires an XTB install")
 
 # One dimensional potential energy surfaces without optimising other
 # coordinates can be calculated. For example, for the C-C stretch in ethane
 
-ethane = ade.Molecule(smiles='CC')
+ethane = ade.Molecule(smiles="CC")
 ethane.optimise(method=xtb)
 
 # Determine the initial C-C bond length for the scan
@@ -18,7 +18,7 @@ r = ethane.distance(*atom_idxs) - 0.05
 pes = ade.pes.UnRelaxedPES1D(ethane, rs={atom_idxs: (r, 2.0, 20)})
 pes.calculate(method=xtb)
 
-print('Energies:', pes.relative_energies.to('kcal mol-1'))
+print("Energies:", pes.relative_energies.to("kcal mol-1"))
 
 # PESs can also be plotted. To save PES.pdf in the current directory
 pes.plot()

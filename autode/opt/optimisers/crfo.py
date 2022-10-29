@@ -13,16 +13,16 @@ from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
-from autode.opt.coordinates.primitives import (Distance, BondAngle, DihedralAngle,
-                                               ConstrainedDistance)
+from autode.opt.coordinates.primitives import (
+    Distance,
+    BondAngle,
+    DihedralAngle,
+    ConstrainedDistance,
+)
 
 
 class CRFOptimiser(RFOptimiser):
-
-    def __init__(self,
-                 init_alpha: float = 0.05,
-                 *args,
-                 **kwargs):
+    def __init__(self, init_alpha: float = 0.05, *args, **kwargs):
         """
         Constrained rational function optimisation
 
@@ -46,13 +46,17 @@ class CRFOptimiser(RFOptimiser):
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
         idxs = self._coords.active_indexes
-        n_satisfied_constraints = (n + m - len(idxs))//2
-        logger.info(f"Satisfied {n_satisfied_constraints} constraints. "
-                    f"Active space is {len(idxs)} dimensional")
+        n_satisfied_constraints = (n + m - len(idxs)) // 2
+        logger.info(
+            f"Satisfied {n_satisfied_constraints} constraints. "
+            f"Active space is {len(idxs)} dimensional"
+        )
 
         b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])
-        logger.info(f"∇^2L has {sum(lmda < 0 for lmda in b)} negative "
-                    f"eigenvalue(s). Should have {m - n_satisfied_constraints}")
+        logger.info(
+            f"∇^2L has {sum(lmda < 0 for lmda in b)} negative "
+            f"eigenvalue(s). Should have {m - n_satisfied_constraints}"
+        )
 
         logger.info("Calculating transformed gradient vector")
         f = u.T.dot(self._coords.g[idxs])
@@ -73,10 +77,10 @@ class CRFOptimiser(RFOptimiser):
             delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
 
         for j in range(n - n_satisfied_constraints):
-            delta_s_active -= f[o+j] * u[:, o+j] / (b[o+j] - lambda_n)
+            delta_s_active -= f[o + j] * u[:, o + j] / (b[o + j] - lambda_n)
 
         # Set all the non-active components of the step to zero
-        delta_s = np.zeros(shape=(n+m,))
+        delta_s = np.zeros(shape=(n + m,))
         delta_s[idxs] = delta_s_active
 
         c = self._take_step_within_trust_radius(delta_s[:n])
@@ -108,12 +112,13 @@ class CRFOptimiser(RFOptimiser):
         delocalized internals"""
 
         if self._species is None:
-            raise RuntimeError("Cannot set initial coordinates. No species set")
+            raise RuntimeError(
+                "Cannot set initial coordinates. No species set"
+            )
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
         self._coords = DICWithConstraints.from_cartesian(
-            x=cartesian_coords,
-            primitives=self._primitives
+            x=cartesian_coords, primitives=self._primitives
         )
         self._coords.zero_lagrangian_multipliers()
         return None
@@ -128,8 +133,10 @@ class CRFOptimiser(RFOptimiser):
 
         for (i, j) in sorted(graph.edges):
 
-            if (self._species.constraints.distance
-                    and (i, j) in self._species.constraints.distance):
+            if (
+                self._species.constraints.distance
+                and (i, j) in self._species.constraints.distance
+            ):
 
                 r = self._species.constraints.distance[(i, j)]
                 pic.append(ConstrainedDistance(i, j, value=r))
@@ -145,13 +152,15 @@ class CRFOptimiser(RFOptimiser):
             for dihedral in _dihedrals(self._species):
                 pic.append(dihedral)
 
-        logger.info(f"Using {pic.n_constrained} constraints in {len(pic)} "
-                    f"primitive internal coordinates")
+        logger.info(
+            f"Using {pic.n_constrained} constraints in {len(pic)} "
+            f"primitive internal coordinates"
+        )
         return pic
 
-    def _lambda_p_from_eigvals_and_gradient(self,
-                                            b: np.ndarray,
-                                            f: np.ndarray) -> float:
+    def _lambda_p_from_eigvals_and_gradient(
+        self, b: np.ndarray, f: np.ndarray
+    ) -> float:
         """
         Calculate the positive eigenvalue of the augmented hessian from
         the eigenvalues of the full lagrangian Hessian matrix (b) and the
@@ -159,16 +168,16 @@ class CRFOptimiser(RFOptimiser):
         """
         m = self._coords.n_constraints - self._coords.n_satisfied_constraints
 
-        aug_h = np.zeros(shape=(m+1, m+1))
+        aug_h = np.zeros(shape=(m + 1, m + 1))
         aug_h[:m, :m] = np.diag(b[:m])
         aug_h[:-1, -1] = aug_h[-1, :-1] = f[:m]
 
         eigenvalues = np.linalg.eigvalsh(aug_h)
         return eigenvalues[-1]
 
-    def _lambda_n_from_eigvals_and_gradient(self,
-                                            b: np.ndarray,
-                                            f: np.ndarray) -> float:
+    def _lambda_n_from_eigvals_and_gradient(
+        self, b: np.ndarray, f: np.ndarray
+    ) -> float:
         """Like lambda_p but for the negative component"""
         n_satisfied = self._coords.n_satisfied_constraints
         m = self._coords.n_constraints - n_satisfied

@@ -10,19 +10,19 @@ def test_classify():
     """
 
     addition = classify([0, 0], [0])
-    assert addition.name == 'addition'
+    assert addition.name == "addition"
 
     dissociation = classify([0], [0, 0])
-    assert dissociation.name == 'dissociation'
+    assert dissociation.name == "dissociation"
 
     substitution = classify([0, 0], [0, 0])
-    assert substitution.name == 'substitution'
+    assert substitution.name == "substitution"
 
     elimination = classify([0, 0], [0, 0, 0])
-    assert elimination.name == 'elimination'
+    assert elimination.name == "elimination"
 
     rearrangement = classify([0], [0])
-    assert rearrangement.name == 'rearrangement'
+    assert rearrangement.name == "rearrangement"
 
     # Needs to have at least some reactants and products
     with pytest.raises(ReactionFormationFailed):

@@ -26,11 +26,19 @@ here = os.path.dirname(os.path.abspath(__file__))
 def test_neb_properties():
 
     # H-H  H
-    reac = Species(name='reac', charge=0, mult=2,
-                   atoms=[Atom('H'), Atom('H', x=0.7), Atom('H', x=2.0)])
+    reac = Species(
+        name="reac",
+        charge=0,
+        mult=2,
+        atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.0)],
+    )
     # H  H-H
-    prod = Species(name='prod', charge=0, mult=2,
-                   atoms=[Atom('H'), Atom('H', x=1.3), Atom('H', x=2.0)])
+    prod = Species(
+        name="prod",
+        charge=0,
+        mult=2,
+        atoms=[Atom("H"), Atom("H", x=1.3), Atom("H", x=2.0)],
+    )
 
     neb = NEB(initial_species=reac, final_species=prod, num=3)
     assert len(neb.images) == 3
@@ -40,7 +48,7 @@ def test_neb_properties():
     # Should move monotonically from 0.7 -> 1.3 Angstroms
     for i in range(1, len(neb.images)):
 
-        prev_bb_dist = neb.images[i-1].species.distance(0, 1)
+        prev_bb_dist = neb.images[i - 1].species.distance(0, 1)
         curr_bb_dist = neb.images[i].species.distance(0, 1)
 
         assert curr_bb_dist > prev_bb_dist
@@ -48,7 +56,7 @@ def test_neb_properties():
 
 def test_image_properties():
 
-    images = CImages(images=[Image(name='tmp', k=0.1)])
+    images = CImages(images=[Image(name="tmp", k=0.1)])
     assert images != 0
     assert images == images
 
@@ -61,8 +69,9 @@ def test_contains_peak():
 
     species_list = Path()
     for i in range(5):
-        h2 = Species(name='h2', charge=0, mult=2,
-                     atoms=[Atom('H'), Atom('H', x=0)])
+        h2 = Species(
+            name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=0)]
+        )
 
         h2.energy = i
         species_list.append(h2)
@@ -78,22 +87,32 @@ def test_contains_peak():
 
 
 @testutils.requires_with_working_xtb_install
-@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'neb.zip'))
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
 def test_full_calc_with_xtb():
 
-    sn2_neb = NEB(initial_species=Species(name='inital', charge=-1, mult=0,
-                                          atoms=xyz_file_to_atoms('sn2_init.xyz'),
-                                          solvent_name='water'),
-                  final_species=Species(name='final', charge=-1, mult=0,
-                                        atoms=xyz_file_to_atoms('sn2_final.xyz'),
-                                        solvent_name='water'),
-                  num=14)
+    sn2_neb = NEB(
+        initial_species=Species(
+            name="inital",
+            charge=-1,
+            mult=0,
+            atoms=xyz_file_to_atoms("sn2_init.xyz"),
+            solvent_name="water",
+        ),
+        final_species=Species(
+            name="final",
+            charge=-1,
+            mult=0,
+            atoms=xyz_file_to_atoms("sn2_final.xyz"),
+            solvent_name="water",
+        ),
+        num=14,
+    )
 
     sn2_neb.interpolate_geometries()
 
     xtb = XTB()
 
-    xtb.path = shutil.which('xtb')
+    xtb.path = shutil.which("xtb")
     sn2_neb.calculate(method=xtb, n_cores=2)
 
     # There should be a peak in this surface
@@ -109,30 +128,40 @@ def test_full_calc_with_xtb():
 
 
 @testutils.requires_with_working_xtb_install
-@testutils.work_in_zipped_dir(os.path.join(here, 'data', 'neb.zip'))
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
 def test_get_ts_guess_neb():
 
-    reactant = Reactant(name='inital', charge=-1, mult=0, solvent_name='water',
-                        atoms=xyz_file_to_atoms('sn2_init.xyz'))
+    reactant = Reactant(
+        name="inital",
+        charge=-1,
+        mult=0,
+        solvent_name="water",
+        atoms=xyz_file_to_atoms("sn2_init.xyz"),
+    )
 
-    product = Reactant(name='final', charge=-1, mult=0, solvent_name='water',
-                       atoms=xyz_file_to_atoms('sn2_final.xyz'))
+    product = Reactant(
+        name="final",
+        charge=-1,
+        mult=0,
+        solvent_name="water",
+        atoms=xyz_file_to_atoms("sn2_final.xyz"),
+    )
 
     xtb = XTB()
-    xtb.path = shutil.which('xtb')
+    xtb.path = shutil.which("xtb")
 
     ts_guess = get_ts_guess_neb(reactant, product, method=xtb, n=10)
 
     assert ts_guess is not None
     # Approximate distances at the TS guess
-    assert 1.8 < ts_guess.distance(0, 2) < 2.3      # C-F
-    assert 2.1 < ts_guess.distance(2, 1) < 2.6      # C-Cl
+    assert 1.8 < ts_guess.distance(0, 2) < 2.3  # C-F
+    assert 2.1 < ts_guess.distance(2, 1) < 2.6  # C-Cl
 
-    if os.path.exists('NEB'):
-        shutil.rmtree('NEB')
+    if os.path.exists("NEB"):
+        shutil.rmtree("NEB")
 
-    if os.path.exists('neb.xyz'):
-        os.remove('neb.xyz')
+    if os.path.exists("neb.xyz"):
+        os.remove("neb.xyz")
 
     # Trying to get a TS guess with an unavailable method should return None
     # as a TS guess
@@ -145,7 +174,7 @@ def test_get_ts_guess_neb():
 
 def test_climbing_image():
 
-    images = CImages(images=[Image(name='tmp', k=0.1)])
+    images = CImages(images=[Image(name="tmp", k=0.1)])
     assert images.peak_idx is None
     assert images[0].iteration == 0
     images[0].iteration = 10
@@ -157,8 +186,9 @@ def _simple_h2_images(num, shift, increment):
     images = Images(num=num, init_k=1.0)
 
     for i in range(num):
-        images[i].species = Molecule(atoms=[Atom('H'),
-                                            Atom('H', x=shift + i * increment)])
+        images[i].species = Molecule(
+            atoms=[Atom("H"), Atom("H", x=shift + i * increment)]
+        )
 
     return images
 
@@ -167,9 +197,7 @@ def test_energy_gradient_type():
 
     # Energy and gradient must have a method (EST or IDPP)
     with pytest.raises(ValueError):
-        _ = energy_gradient(image=Image('tmp', k=1.0),
-                            method=None,
-                            n_cores=1)
+        _ = energy_gradient(image=Image("tmp", k=1.0), method=None, n_cores=1)
 
 
 def test_iddp_init():
@@ -191,10 +219,12 @@ def test_iddp_energy():
     value = idpp(images[1])
 
     assert value is not None
-    assert np.isclose(value,
-                      # w           r_k             r
-                      0.6**(-4)*((0.5 + 2*0.2/3) - 0.6)**2,
-                      atol=1E-5)
+    assert np.isclose(
+        value,
+        # w           r_k             r
+        0.6 ** (-4) * ((0.5 + 2 * 0.2 / 3) - 0.6) ** 2,
+        atol=1e-5,
+    )
 
 
 def test_iddp_gradient():
@@ -210,7 +240,7 @@ def test_iddp_gradient():
     assert grad is not None
 
     # And the gradient be close to the numerical analogue
-    def num_grad(n, h=1E-8):
+    def num_grad(n, h=1e-8):
         i, k = n // 3, n % 3
 
         shift_vec = np.zeros(3)
@@ -220,35 +250,34 @@ def test_iddp_gradient():
         new_value = idpp(image)
         image.species.atoms[i].translate(-shift_vec)
 
-        return (new_value - value)/h
+        return (new_value - value) / h
 
     # Numerical gradient should be finite
-    assert not np.isclose(num_grad(0), 0.0, atol=1E-10)
+    assert not np.isclose(num_grad(0), 0.0, atol=1e-10)
 
     # Check all the elements in the gradient vector
     for i, analytic_value in enumerate(grad):
-        assert np.isclose(analytic_value,
-                          num_grad(i),
-                          atol=1E-5)
+        assert np.isclose(analytic_value, num_grad(i), atol=1e-5)
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_neb_interpolate_and_idpp_relax():
 
-    mol = Molecule(name='methane',
-                   atoms=[Atom('C', -0.91668,  0.42765,  0.00000),
-                          Atom('H',  0.15332,  0.42765,  0.00000),
-                          Atom('H', -1.27334,  0.01569, -0.92086),
-                          Atom('H', -1.27334,  1.43112,  0.10366),
-                          Atom('H', -1.27334, -0.16385,  0.81720)])
+    mol = Molecule(
+        name="methane",
+        atoms=[
+            Atom("C", -0.91668, 0.42765, 0.00000),
+            Atom("H", 0.15332, 0.42765, 0.00000),
+            Atom("H", -1.27334, 0.01569, -0.92086),
+            Atom("H", -1.27334, 1.43112, 0.10366),
+            Atom("H", -1.27334, -0.16385, 0.81720),
+        ],
+    )
 
     rot_mol = mol.copy()
-    rot_mol.rotate(axis=[1.0, 0.0, 0.0],
-                   theta=1.5)
+    rot_mol.rotate(axis=[1.0, 0.0, 0.0], theta=1.5)
 
-    neb = NEB(initial_species=mol,
-              final_species=rot_mol,
-              num=10)
+    neb = NEB(initial_species=mol, final_species=rot_mol, num=10)
     neb.interpolate_geometries()
     neb.idpp_relax()
 
@@ -258,51 +287,69 @@ def test_neb_interpolate_and_idpp_relax():
 
 def test_max_delta_between_images():
 
-    _list = [Molecule(atoms=[Atom("H"), Atom("H", x=2.7)]),
-             Molecule(atoms=[Atom("H"), Atom("H", x=1.7)])]
+    _list = [
+        Molecule(atoms=[Atom("H"), Atom("H", x=2.7)]),
+        Molecule(atoms=[Atom("H"), Atom("H", x=1.7)]),
+    ]
 
-    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images,
-                      1.0)
+    assert np.isclose(
+        NEB(species_list=_list).max_atom_distance_between_images, 1.0
+    )
 
     _list[0].atoms[1].coord[0] = 1.7  # x coordinate of the second atom
-    assert np.isclose(NEB(species_list=_list).max_atom_distance_between_images,
-                      0.0)
+    assert np.isclose(
+        NEB(species_list=_list).max_atom_distance_between_images, 0.0
+    )
 
 
 def test_max_delta_between_images_h3():
 
-    _list = [Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
-             Molecule(atoms=[Atom("H"), Atom("H", x=0.70657), Atom("H", x=2.7)])]
+    _list = [
+        Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
+        Molecule(atoms=[Atom("H"), Atom("H", x=0.70657), Atom("H", x=2.7)]),
+    ]
 
     neb = NEB(species_list=_list)
-    assert np.isclose(neb.max_atom_distance_between_images,
-                      0.00657)
+    assert np.isclose(neb.max_atom_distance_between_images, 0.00657)
 
-    assert np.isclose(neb.max_atom_distance_between_images,
-                      neb._max_atom_distance_between_images([0, 1]))
+    assert np.isclose(
+        neb.max_atom_distance_between_images,
+        neb._max_atom_distance_between_images([0, 1]),
+    )
 
 
 def test_partition_max_delta():
 
     # Set of molecules that are like: [H-H...H, H--H--H, H...H-H]
-    _list = [Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
-             Molecule(atoms=[Atom("H"), Atom("H", x=1.35), Atom("H", x=2.7)]),
-             Molecule(atoms=[Atom("H"), Atom("H", x=2.0), Atom("H", x=2.7)])]
+    _list = [
+        Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
+        Molecule(atoms=[Atom("H"), Atom("H", x=1.35), Atom("H", x=2.7)]),
+        Molecule(atoms=[Atom("H"), Atom("H", x=2.0), Atom("H", x=2.7)]),
+    ]
 
     h2_h = NEB(species_list=_list)
-    max_delta = Distance(0.1, units='Å')
+    max_delta = Distance(0.1, units="Å")
 
-    assert np.max(
-        np.linalg.norm(_list[0].coordinates - _list[1].coordinates, axis=1)
-    ) > max_delta
+    assert (
+        np.max(
+            np.linalg.norm(_list[0].coordinates - _list[1].coordinates, axis=1)
+        )
+        > max_delta
+    )
 
     h2_h.partition(max_delta=max_delta)
 
     for (i, j) in [(0, 1), (1, 2)]:
-        assert np.max(
-            np.linalg.norm(h2_h.images[i].species.coordinates
-                           - h2_h.images[j].species.coordinates, axis=1)
-        ) <= max_delta
+        assert (
+            np.max(
+                np.linalg.norm(
+                    h2_h.images[i].species.coordinates
+                    - h2_h.images[j].species.coordinates,
+                    axis=1,
+                )
+            )
+            <= max_delta
+        )
 
 
 def _h_xyz_string_with_energy(energy: float):
@@ -317,10 +364,13 @@ def _h_xyz_string():
 def test_init_from_file_sets_force_constant():
 
     with open("tmp.xyz", "w") as file:
-        print(_h_xyz_string_with_energy(0.1),
-              _h_xyz_string_with_energy(0.1015),
-              _h_xyz_string_with_energy(0.105),
-              sep="\n", file=file)
+        print(
+            _h_xyz_string_with_energy(0.1),
+            _h_xyz_string_with_energy(0.1015),
+            _h_xyz_string_with_energy(0.105),
+            sep="\n",
+            file=file,
+        )
 
     # Should be able to set the initial force constant
     neb = NEB.from_file("tmp.xyz", k=0.234)
@@ -333,10 +383,13 @@ def test_init_from_file_sets_force_constant():
     assert 0.001 < neb.init_k < 0.2
 
     with open("tmp.xyz", "w") as file:
-        print(_h_xyz_string_with_energy(0.1),
-              _h_xyz_string_with_energy(0.25),
-              _h_xyz_string_with_energy(0.4),
-              sep="\n", file=file)
+        print(
+            _h_xyz_string_with_energy(0.1),
+            _h_xyz_string_with_energy(0.25),
+            _h_xyz_string_with_energy(0.4),
+            sep="\n",
+            file=file,
+        )
 
     # with larger energy differences we should have a larger k
     assert NEB.from_file("tmp.xyz").init_k > k_1kcal_diffs
@@ -346,9 +399,7 @@ def test_init_from_file_sets_force_constant():
 def test_init_from_file_sets_force_constant_no_energies():
 
     with open("tmp.xyz", "w") as file:
-        print(_h_xyz_string(),
-              _h_xyz_string(),
-              sep="\n", file=file)
+        print(_h_xyz_string(), _h_xyz_string(), sep="\n", file=file)
 
     neb = NEB.from_file("tmp.xyz")
     # Estimated value should be reasonable even without energies

@@ -47,7 +47,9 @@ def get_complex_conformer_atoms(molecules, rotations, points):
         centroid = np.average(np.array([atom.coord for atom in atoms]), axis=0)
 
         # Shift to the origin and rotate randomly, by the same amount
-        theta, axis = np.random.uniform(-np.pi, np.pi), np.random.uniform(-1, 1, size=3)
+        theta, axis = np.random.uniform(-np.pi, np.pi), np.random.uniform(
+            -1, 1, size=3
+        )
         for atom in atoms:
             atom.translate(vec=-centroid)
             atom.rotate(axis, theta)
@@ -86,13 +88,14 @@ def get_complex_conformer_atoms(molecules, rotations, points):
 
 
 class Complex(Species):
-
-    def __init__(self,
-                 *args:                Species,
-                 name:                 str = 'complex',
-                 do_init_translation:  bool = False,
-                 copy:                 bool = True,
-                 solvent_name: Optional[str] = None):
+    def __init__(
+        self,
+        *args: Species,
+        name: str = "complex",
+        do_init_translation: bool = False,
+        copy: bool = True,
+        solvent_name: Optional[str] = None,
+    ):
         """
         Molecular complex e.g. VdW complex of one or more Molecules
 
@@ -112,11 +115,15 @@ class Complex(Species):
                                        the first solvent from the constituent
                                        molecules
         """
-        super().__init__(name=name,
-                         atoms=sum((deepcopy(mol.atoms) if copy else mol.atoms
-                                    for mol in args), None),
-                         charge=sum(mol.charge for mol in args),
-                         mult=sum(m.mult for m in args) - (len(args) - 1))
+        super().__init__(
+            name=name,
+            atoms=sum(
+                (deepcopy(mol.atoms) if copy else mol.atoms for mol in args),
+                None,
+            ),
+            charge=sum(mol.charge for mol in args),
+            mult=sum(m.mult for m in args) - (len(args) - 1),
+        )
 
         self._molecules = args
 
@@ -127,28 +134,32 @@ class Complex(Species):
         self.graph = union(graphs=[mol.graph for mol in self._molecules])
 
     def __repr__(self):
-        return self._repr(prefix='Complex')
+        return self._repr(prefix="Complex")
 
     def __eq__(self, other):
         """Equality of two complexes"""
-        return (isinstance(other, self.__class__)
-                and all(a == b for (a, b) in zip(self._molecules, other._molecules)))
+        return isinstance(other, self.__class__) and all(
+            a == b for (a, b) in zip(self._molecules, other._molecules)
+        )
 
     @Species.atoms.setter
-    def atoms(self,
-              value: Union[List[Atom], Atoms, None]):
+    def atoms(self, value: Union[List[Atom], Atoms, None]):
 
         if value is None:
             self.graph = None
             self._molecules = []
 
         elif self.n_atoms != len(value):
-            raise ValueError(f'Cannot set atoms in {self.name} with a '
-                             'different number of atoms. Molecular composition'
-                             ' must have changed.')
+            raise ValueError(
+                f"Cannot set atoms in {self.name} with a "
+                "different number of atoms. Molecular composition"
+                " must have changed."
+            )
 
-        logger.warning(f'Modifying the atoms of {self.name} - assuming the '
-                       f'same molecular composition')
+        logger.warning(
+            f"Modifying the atoms of {self.name} - assuming the "
+            f"same molecular composition"
+        )
         return super(Complex, type(self)).atoms.fset(self, value)
 
     @property
@@ -156,8 +167,7 @@ class Complex(Species):
         """Number of molecules in this molecular complex"""
         return len(self._molecules)
 
-    def atom_indexes(self,
-                     mol_index: int):
+    def atom_indexes(self, mol_index: int):
         """
         List of atom indexes of a molecule withibn a Complex
 
@@ -166,16 +176,19 @@ class Complex(Species):
             mol_index (int): Index of the molecule
         """
         if mol_index not in set(range(self.n_molecules)):
-            raise AssertionError(f'Could not get idxs for molecule {mol_index}'
-                                 f'. Not present in this complex')
+            raise AssertionError(
+                f"Could not get idxs for molecule {mol_index}"
+                f". Not present in this complex"
+            )
 
         first_index = sum([mol.n_atoms for mol in self._molecules[:mol_index]])
-        last_index = sum([mol.n_atoms for mol in self._molecules[:mol_index + 1]])
+        last_index = sum(
+            [mol.n_atoms for mol in self._molecules[: mol_index + 1]]
+        )
 
         return list(range(first_index, last_index))
 
-    def reorder_atoms(self,
-                      mapping: dict) -> None:
+    def reorder_atoms(self, mapping: dict) -> None:
         """
         Reorder the atoms in this complex using a dictionary keyed with current
         atom indexes and values as their new positions
@@ -184,8 +197,10 @@ class Complex(Species):
         Arguments:
             mapping (dict):
         """
-        logger.warning(f'Reordering the atoms in a complex ({self.name}) will'
-                       f' not preserve the molecular composition')
+        logger.warning(
+            f"Reordering the atoms in a complex ({self.name}) will"
+            f" not preserve the molecular composition"
+        )
 
         return super().reorder_atoms(mapping)
 
@@ -205,35 +220,45 @@ class Complex(Species):
             return None
 
         self.conformers = []
-        m = 0                                        # Current conformer number
+        m = 0  # Current conformer number
 
-        points_on_sphere = get_points_on_sphere(n_points=Config.num_complex_sphere_points)
+        points_on_sphere = get_points_on_sphere(
+            n_points=Config.num_complex_sphere_points
+        )
 
-        for _ in iterprod(range(Config.num_complex_random_rotations), repeat=n-1):
+        for _ in iterprod(
+            range(Config.num_complex_random_rotations), repeat=n - 1
+        ):
             # Generate the rotation thetas and axes
-            rotations = [np.random.uniform(-np.pi, np.pi, size=4) for _ in range(n - 1)]
+            rotations = [
+                np.random.uniform(-np.pi, np.pi, size=4) for _ in range(n - 1)
+            ]
 
-            for points in iterprod(points_on_sphere, repeat=n-1):
+            for points in iterprod(points_on_sphere, repeat=n - 1):
 
-                conf = Conformer(name=f'{self.name}_conf{m}',
-                                 charge=self.charge,
-                                 mult=self.mult)
+                conf = Conformer(
+                    name=f"{self.name}_conf{m}",
+                    charge=self.charge,
+                    mult=self.mult,
+                )
                 conf.solvent = self.solvent
-                conf.atoms = get_complex_conformer_atoms(self._molecules,
-                                                         rotations,
-                                                         points)
+                conf.atoms = get_complex_conformer_atoms(
+                    self._molecules, rotations, points
+                )
                 self.conformers.append(conf)
                 m += 1
 
                 if m == Config.max_num_complex_conformers:
-                    logger.warning(f'Generated the maximum number of complex '
-                                   f'conformers ({m})')
+                    logger.warning(
+                        f"Generated the maximum number of complex "
+                        f"conformers ({m})"
+                    )
                     return None
 
-        logger.info(f'Generated {m} conformers')
+        logger.info(f"Generated {m} conformers")
         return None
 
-    @work_in('conformers')
+    @work_in("conformers")
     def populate_conformers(self):
         r"""
         Generate and optimise with a low level method a set of conformers, the
@@ -245,11 +270,15 @@ class Complex(Species):
         This will not be exact as get_points_on_sphere does not return quite
         the desired number of points for small N.
         """
-        n_confs = (Config.num_complex_sphere_points
-                   * Config.num_complex_random_rotations
-                   * (self.n_molecules - 1))
-        logger.info(f'Generating and optimising {n_confs} conformers of '
-                    f'{self.name} with a low-level method')
+        n_confs = (
+            Config.num_complex_sphere_points
+            * Config.num_complex_random_rotations
+            * (self.n_molecules - 1)
+        )
+        logger.info(
+            f"Generating and optimising {n_confs} conformers of "
+            f"{self.name} with a low-level method"
+        )
 
         self._generate_conformers()
 
@@ -260,13 +289,11 @@ class Complex(Species):
                 conformer.print_xyz_file()
 
         except MethodUnavailable:
-            logger.error('Could not optimise complex conformers')
+            logger.error("Could not optimise complex conformers")
 
         return None
 
-    def translate_mol(self,
-                      vec:       Sequence[float],
-                      mol_index: int):
+    def translate_mol(self, vec: Sequence[float], mol_index: int):
         """
         Translate a molecule within a complex by a vector
 
@@ -278,22 +305,28 @@ class Complex(Species):
                              translate molecule 1 in the complex
                              they are indexed from 0
         """
-        logger.info(f'Translating molecule {mol_index} by {vec} in {self.name}')
+        logger.info(
+            f"Translating molecule {mol_index} by {vec} in {self.name}"
+        )
 
         if mol_index not in set(range(self.n_molecules)):
-            raise ValueError(f'Could not translate molecule {mol_index} '
-                             'not present in this complex')
+            raise ValueError(
+                f"Could not translate molecule {mol_index} "
+                "not present in this complex"
+            )
 
         for atom_idx in self.atom_indexes(mol_index):
             self.atoms[atom_idx].translate(vec)
 
         return None
 
-    def rotate_mol(self,
-                   axis:      Union[np.ndarray, Sequence],
-                   theta:     Union['autode.values.Angle', float],
-                   mol_index: int,
-                   origin:    Union[np.ndarray, Sequence, None] = None):
+    def rotate_mol(
+        self,
+        axis: Union[np.ndarray, Sequence],
+        theta: Union["autode.values.Angle", float],
+        mol_index: int,
+        origin: Union[np.ndarray, Sequence, None] = None,
+    ):
         """
         Rotate a molecule within a complex an angle theta about an axis given
         an origin
@@ -310,12 +343,16 @@ class Complex(Species):
                             translate molecule 1 in the complex
                              they are indexed from 0
         """
-        logger.info(f'Rotating molecule {mol_index} by {theta:.4f} radians '
-                    f'in {self.name}')
+        logger.info(
+            f"Rotating molecule {mol_index} by {theta:.4f} radians "
+            f"in {self.name}"
+        )
 
         if mol_index not in set(range(self.n_molecules)):
-            raise ValueError(f'Could not rotate molecule {mol_index} '
-                             'not present in this complex')
+            raise ValueError(
+                f"Could not rotate molecule {mol_index} "
+                "not present in this complex"
+            )
 
         for atom_idx in self.atom_indexes(mol_index):
             self.atoms[atom_idx].rotate(axis, theta, origin)
@@ -331,8 +368,9 @@ class Complex(Species):
 
         mol_indexes = self.atom_indexes(mol_index)
         mol_coords = [coords[i] for i in mol_indexes]
-        other_coords = [coords[i] for i in range(self.n_atoms)
-                        if i not in mol_indexes]
+        other_coords = [
+            coords[i] for i in range(self.n_atoms) if i not in mol_indexes
+        ]
 
         # Repulsion is the sum over all pairs 1/r^4
         distance_mat = distance_matrix(mol_coords, other_coords)
@@ -344,7 +382,7 @@ class Complex(Species):
         """Translate all molecules initially to avoid overlaps"""
 
         if self.n_molecules < 2:
-            return   # No need to translate 0 or 1 molecule
+            return  # No need to translate 0 or 1 molecule
 
         # Points on the unit sphere maximally displaced from one another
         points = get_points_on_sphere(n_points=self.n_molecules)
@@ -352,21 +390,24 @@ class Complex(Species):
         # Shift along the vector defined on the unit sphere by the molecule's
         # radius + 4Å, which should generate a somewhat reasonable geometry
         for i in range(self.n_molecules):
-            self.translate_mol(vec=(self._molecules[i].radius + 4) * points[i],
-                               mol_index=i)
+            self.translate_mol(
+                vec=(self._molecules[i].radius + 4) * points[i], mol_index=i
+            )
         return None
 
     def _init_solvent(self, solvent_name: str):
         """Initial solvent"""
 
         if solvent_name is not None:
-            return get_solvent(solvent_name, kind='implicit')
+            return get_solvent(solvent_name, kind="implicit")
 
         if self.n_molecules > 0:
             solvent = self._molecules[0].solvent
             if any(solvent != mol.solvent for mol in self._molecules):
-                raise AssertionError('Cannot form a complex with molecules in '
-                                     'different solvents')
+                raise AssertionError(
+                    "Cannot form a complex with molecules in "
+                    "different solvents"
+                )
 
             return solvent
 
@@ -384,7 +425,7 @@ class ReactantComplex(Complex):
 
         return prod_complex
 
-    def __init__(self, *args, name='reac_complex', **kwargs):
+    def __init__(self, *args, name="reac_complex", **kwargs):
         """
         Reactant complex
 
@@ -409,7 +450,7 @@ class ProductComplex(Complex):
 
         return reac_complex
 
-    def __init__(self, *args, name='prod_complex', **kwargs):
+    def __init__(self, *args, name="prod_complex", **kwargs):
         """
         Product complex
 

@@ -1,22 +1,34 @@
-from autode.units import (ha, kjmol, kcalmol, ev,
-                          ang, a0, nm, pm, m,
-                          rad, deg,
-                          ha_per_ang, ev_per_ang, ha_per_a0)
+from autode.units import (
+    ha,
+    kjmol,
+    kcalmol,
+    ev,
+    ang,
+    a0,
+    nm,
+    pm,
+    m,
+    rad,
+    deg,
+    ha_per_ang,
+    ev_per_ang,
+    ha_per_a0,
+)
 
 
 def test_units():
 
-    assert ha == 'ha'
-    assert ha == 'hartree'
+    assert ha == "ha"
+    assert ha == "hartree"
 
     # Ensure units have some base attributes
     for unit in (ha, kjmol, kcalmol, ev, ang, a0, nm, pm, m, rad, deg):
 
-        assert unit.name != ''
-        assert str(unit) != ''
-        assert repr(unit) != ''
+        assert unit.name != ""
+        assert str(unit) != ""
+        assert repr(unit) != ""
         assert len(unit.aliases) > 1
-        assert unit.plot_name != ''
+        assert unit.plot_name != ""
 
 
 def test_composite_units():

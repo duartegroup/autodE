@@ -30,8 +30,10 @@ def calc_multiplicity(molecule, n_radical_electrons):
         return 2
 
     if molecule.mult == 1 and n_radical_electrons > 1:
-        logger.warning('Diradicals by default singlets. Set mol.mult if it\'s '
-                       'any different')
+        logger.warning(
+            "Diradicals by default singlets. Set mol.mult if it's "
+            "any different"
+        )
         return 1
 
     return molecule.mult
@@ -55,7 +57,7 @@ def init_organic_smiles(molecule, smiles):
 
     # RDKit struggles with large rings or single atoms
     if builder.max_ring_n >= 8 or builder.n_atoms == 1:
-        logger.info('Falling back to autodE builder')
+        logger.info("Falling back to autodE builder")
 
         # TODO: currently the SMILES is parsed twice, which is not ideal
         return init_smiles(molecule=molecule, smiles=smiles)
@@ -64,7 +66,7 @@ def init_organic_smiles(molecule, smiles):
         rdkit_mol = Chem.MolFromSmiles(smiles)
 
         if rdkit_mol is None:
-            logger.warning('RDKit failed to initialise a molecule')
+            logger.warning("RDKit failed to initialise a molecule")
             return init_smiles(molecule, smiles)
 
         rdkit_mol = Chem.AddHs(rdkit_mol)
@@ -72,19 +74,20 @@ def init_organic_smiles(molecule, smiles):
     except RuntimeError:
         raise RDKitFailed
 
-    logger.info('Using RDKit to initialise')
+    logger.info("Using RDKit to initialise")
 
     molecule.charge = Chem.GetFormalCharge(rdkit_mol)
-    molecule.mult = calc_multiplicity(molecule,
-                                      NumRadicalElectrons(rdkit_mol))
+    molecule.mult = calc_multiplicity(molecule, NumRadicalElectrons(rdkit_mol))
 
-    bonds = [(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
-             for bond in rdkit_mol.GetBonds()]
+    bonds = [
+        (bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
+        for bond in rdkit_mol.GetBonds()
+    ]
 
     # Generate a single 3D structure using RDKit's ETKDG conformer generation
     # algorithm
     method = AllChem.ETKDGv2()
-    method.randomSeed = 0xf00d
+    method.randomSeed = 0xF00D
     AllChem.EmbedMultipleConfs(rdkit_mol, numConfs=1, params=method)
     molecule.atoms = atoms_from_rdkit_mol(rdkit_mol, conf_id=0)
 
@@ -95,17 +98,17 @@ def init_organic_smiles(molecule, smiles):
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 
     for atom, _ in Chem.FindMolChiralCenters(rdkit_mol):
-        molecule.graph.nodes[atom]['stereo'] = True
+        molecule.graph.nodes[atom]["stereo"] = True
 
     for bond in rdkit_mol.GetBonds():
         idx_i, idx_j = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
 
         if bond.GetBondType() != Chem.rdchem.BondType.SINGLE:
-            molecule.graph.edges[idx_i, idx_j]['pi'] = True
+            molecule.graph.edges[idx_i, idx_j]["pi"] = True
 
         if bond.GetStereo() != Chem.rdchem.BondStereo.STEREONONE:
-            molecule.graph.nodes[idx_i]['stereo'] = True
-            molecule.graph.nodes[idx_j]['stereo'] = True
+            molecule.graph.nodes[idx_i]["stereo"] = True
+            molecule.graph.nodes[idx_j]["stereo"] = True
 
     for atom, smiles_atom in zip(molecule.atoms, parser.atoms):
         atom.atom_class = smiles_atom.atom_class
@@ -129,7 +132,7 @@ def init_smiles(molecule, smiles):
     """
     molecule.rdkit_conf_gen_is_fine = False
 
-    parser, builder = Parser(),  Builder()
+    parser, builder = Parser(), Builder()
 
     parser.parse(smiles)
     molecule.charge = parser.charge
@@ -147,17 +150,19 @@ def init_smiles(molecule, smiles):
 
     for idx, atom in enumerate(builder.atoms):
         if atom.has_stereochem:
-            molecule.graph.nodes[idx]['stereo'] = True
+            molecule.graph.nodes[idx]["stereo"] = True
 
     make_graph(molecule, bond_list=parser.bonds)
     check_bonds(molecule, bonds=parser.bonds)
 
     for bond in parser.bonds:
-        molecule.graph.edges[tuple(bond)]['pi'] = True
+        molecule.graph.edges[tuple(bond)]["pi"] = True
 
     if not molecule.has_reasonable_coordinates:
-        logger.warning('3D builder did not make a sensible geometry, '
-                       'Falling back to random minimisation.')
+        logger.warning(
+            "3D builder did not make a sensible geometry, "
+            "Falling back to random minimisation."
+        )
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 
     return None
@@ -178,6 +183,6 @@ def check_bonds(molecule, bonds):
     make_graph(check_molecule)
 
     if len(bonds) != check_molecule.graph.number_of_edges():
-        logger.warning('Bonds and graph do not match')
+        logger.warning("Bonds and graph do not match")
 
     return None
