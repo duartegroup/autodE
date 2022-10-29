@@ -61,7 +61,9 @@ class Atom:
         self.label = atomic_symbol
         self._coord = Coordinate(float(x), float(y), float(z))
         self.atom_class = atom_class
-        self.partial_charge = None if partial_charge is None else float(partial_charge)
+        self.partial_charge = (
+            None if partial_charge is None else float(partial_charge)
+        )
 
     def __repr__(self):
         """
@@ -277,7 +279,8 @@ class Atom:
 
         except KeyError:
             logger.warning(
-                f"Could not find a valid weight for {self.label}. " f"Guessing at 70"
+                f"Could not find a valid weight for {self.label}. "
+                f"Guessing at 70"
             )
             return Mass(70)
 
@@ -316,7 +319,9 @@ class Atom:
         if self.label in _max_valances:
             return _max_valances[self.label]
 
-        logger.warning(f"Could not find a valid valance for {self}. " f"Guessing at 6")
+        logger.warning(
+            f"Could not find a valid valance for {self}. " f"Guessing at 6"
+        )
         return 6
 
     @property
@@ -339,7 +344,8 @@ class Atom:
             radius = vdw_radii[self.label]
         else:
             logger.error(
-                f"Couldn't find the VdV radii for {self}. " f"Guessing at 2.3 Å"
+                f"Couldn't find the VdV radii for {self}. "
+                f"Guessing at 2.3 Å"
             )
             radius = 2.3
 
@@ -360,7 +366,9 @@ class Atom:
         Returns:
             (autode.values.Distance): Van der Waals radius
         """
-        radius = Distance(_covalent_radii_pm[self.atomic_number - 1], units="pm")
+        radius = Distance(
+            _covalent_radii_pm[self.atomic_number - 1], units="pm"
+        )
         return radius.to("Å")
 
     def is_pi(self, valency: int) -> bool:
@@ -440,7 +448,9 @@ class Atom:
             self.coord += np.asarray(kwargs["vec"])
 
         elif len(kwargs) > 0:
-            raise ValueError(f"Expecting only a vec keyword argument. " f"Had {kwargs}")
+            raise ValueError(
+                f"Expecting only a vec keyword argument. " f"Had {kwargs}"
+            )
 
         else:
             self.coord += Coordinate(*args)
@@ -907,7 +917,8 @@ class AtomCollection:
         """
         if self.atoms is None:
             raise ValueError(
-                "Must have atoms set to be able to set the " "coordinates of them"
+                "Must have atoms set to be able to set the "
+                "coordinates of them"
             )
 
         self._atoms.coordinates = value
@@ -1011,7 +1022,8 @@ class AtomCollection:
 
         if np.isclose(norms, 0.0):
             raise ValueError(
-                f"Cannot calculate the angle {i}-{j}-{k} - at " f"least one zero vector"
+                f"Cannot calculate the angle {i}-{j}-{k} - at "
+                f"least one zero vector"
             )
 
         value = np.arccos(np.dot(vec1, vec2) / norms)
@@ -1085,7 +1097,9 @@ class AtomCollection:
         the bond A-B is rotated in a clockwise direction through less than
         180 degrees"
         """
-        value = -np.arctan2(np.dot(np.cross(vec1, vec_xy), vec2), np.dot(vec1, vec2))
+        value = -np.arctan2(
+            np.dot(np.cross(vec1, vec_xy), vec2), np.dot(vec1, vec2)
+        )
 
         return Angle(value)
 
@@ -1219,132 +1233,18 @@ elements = [
 
 class PeriodicTable:
 
+    # fmt: off
     table = np.array(
-        [
-            ["H", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "He"],
-            [
-                "Li",
-                "Be",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "B",
-                "C",
-                "N",
-                "O",
-                "F",
-                "Ne",
-            ],
-            [
-                "Na",
-                "Mg",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "",
-                "Al",
-                "Si",
-                "P",
-                "S",
-                "Cl",
-                "Ar",
-            ],
-            [
-                "K",
-                "Ca",
-                "Sc",
-                "Ti",
-                "V",
-                "Cr",
-                "Mn",
-                "Fe",
-                "Co",
-                "Ni",
-                "Cu",
-                "Zn",
-                "Ga",
-                "Ge",
-                "As",
-                "Se",
-                "Br",
-                "Kr",
-            ],
-            [
-                "Rb",
-                "Sr",
-                "Y",
-                "Zr",
-                "Nb",
-                "Mo",
-                "Tc",
-                "Ru",
-                "Rh",
-                "Pd",
-                "Ag",
-                "Cd",
-                "In",
-                "Sn",
-                "Sb",
-                "Te",
-                "I",
-                "Xe",
-            ],
-            [
-                "Cs",
-                "Ba",
-                "",
-                "Hf",
-                "Ta",
-                "W",
-                "Re",
-                "Os",
-                "Ir",
-                "Pt",
-                "Au",
-                "Hg",
-                "Tl",
-                "Pb",
-                "Bi",
-                "Po",
-                "At",
-                "Rn",
-            ],
-            [
-                "Fr",
-                "Ra",
-                "",
-                "Rf",
-                "Db",
-                "Sg",
-                "Bh",
-                "Hs",
-                "Mt",
-                "Ds",
-                "Rg",
-                "Cn",
-                "Nh",
-                "Fl",
-                "Mc",
-                "Lv",
-                "Ts",
-                "Og",
-            ],
-        ],
-        dtype=str,
+        [['H',    '',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '',   '',   '',   '',   '',   '', 'He'],
+         ['Li', 'Be',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '',  'B',  'C',  'N',  'O',  'F', 'Ne'],
+         ['Na', 'Mg',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '', 'Al', 'Si',  'P',  'S', 'Cl', 'Ar'],
+         ['K',  'Ca', 'Sc', 'Ti',  'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr'],
+         ['Rb', 'Sr',  'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te',  'I', 'Xe'],
+         ['Cs', 'Ba',   '', 'Hf', 'Ta',  'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn'],
+         ['Fr', 'Ra',   '', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og']],
+        type=str
     )
+    # fmt: on
 
     @classmethod
     def period(cls, n: int):
@@ -1407,7 +1307,9 @@ class PeriodicTable:
             (IndexError): If such an element does not exist
         """
         try:
-            elem = cls.table[period - 1, group - 1]  # Convert from 1 -> 0 indexing
+            elem = cls.table[
+                period - 1, group - 1
+            ]  # Convert from 1 -> 0 indexing
             assert elem != ""
 
         except (IndexError, AssertionError):
