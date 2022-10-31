@@ -206,8 +206,9 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             if os.path.exists("gradient"):
                 shutil.move("gradient", f"{calc.name}_OLD.grad")
 
+            self._remove_xtbopt_xyz_file()
+
         execute_xtb()
-        self._remove_xtbopt_xyz_file()
         return None
 
     def terminated_normally_in(self, calc):
