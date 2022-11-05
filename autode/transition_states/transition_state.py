@@ -8,7 +8,7 @@ from autode.input_output import atoms_to_xyz_file
 from autode.calculations import Calculation
 from autode.config import Config
 from autode.exceptions import CalculationException
-from autode.geom import get_distance_constraints, calc_heavy_atom_rmsd
+from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.mol_graphs import get_truncated_active_mol_graph
@@ -136,7 +136,7 @@ class TransitionState(TSbase):
         n_confs = Config.num_conformers if n_confs is None else n_confs
         self.conformers = []
 
-        distance_consts = get_distance_constraints(self)
+        distance_consts = self.active_bond_constraints
 
         with Pool(processes=Config.n_cores) as pool:
             results = [

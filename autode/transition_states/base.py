@@ -4,6 +4,7 @@ from typing import Optional
 import autode.exceptions as ex
 from autode.atoms import metals
 from autode.config import Config
+from autode.constraints import DistanceConstraints
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
 from autode.mol_graphs import make_graph, species_are_isomorphic
@@ -384,6 +385,26 @@ class TSbase(Species, ABC):
         logger.info(f"Forwards displaced edges {f_mol.graph.edges}")
         logger.info(f"Backwards displaced edges {b_mol.graph.edges}")
         return False
+
+    @property
+    def active_bond_constraints(self) -> DistanceConstraints:
+        """
+        Set all the distance constraints required in an optimisation as the
+        active bonds
+
+        -----------------------------------------------------------------------
+        Returns:
+            (dict): Keyed with atom indexes for the active atoms (tuple) and
+                    equal to the constrained value
+        """
+        constraints = DistanceConstraints()
+
+        for edge in self.graph.edges:
+
+            if self.graph.edges[edge]["active"]:
+                constraints[edge] = self.distance(*edge)
+
+        return constraints
 
 
 def displaced_species_along_mode(

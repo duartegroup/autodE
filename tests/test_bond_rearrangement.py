@@ -1,15 +1,15 @@
 import os
 import pytest
-import networkx as nx
 import autode as ade
 from autode import bond_rearrangement as br
 from autode.mol_graphs import MolecularGraph
 from autode.species.molecule import Molecule
-from autode.bond_rearrangement import BondRearrangement
+from autode.bond_rearrangement import BondRearrangement, get_bond_rearrangs
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.atoms import Atom
 from autode.mol_graphs import is_isomorphic
 from autode.mol_graphs import make_graph
+from autode.utils import work_in_tmp_dir
 
 
 # Some of the 'reactions' here are not physical, hence for some the graph will
@@ -606,3 +606,36 @@ def test_br_from_file():
     assert saved_br.n_bbonds == 2
 
     os.remove("tmp.txt")
+
+
+@work_in_tmp_dir()
+def test_2b2f_single_bond_type():
+    """
+    Test that the bond rearrangement can be found where only OO bonds break
+    and only OH bonds form. Not a very realistic reaction
+    """
+
+    reac = Molecule(
+        atoms=[
+            Atom("O", 0.0, 0.0, 0.0),
+            Atom("O", 1.5, 0.0, 0.0),
+            Atom("O", 0.0, 1.5, 0.0),
+            Atom("O", 1.5, 1.5, 0.0),
+            Atom("H", 9.0, 0.0, 0.0),
+            Atom("H", 9.0, 2.0, 0.0),
+        ]
+    )
+
+    prod = Molecule(
+        atoms=[
+            Atom("O", -9.0, 0.0, 0.0),
+            Atom("O", 8.0, 0.0, 0.0),
+            Atom("O", -9.0, 1.0, 0.0),
+            Atom("O", 8.0, 1.0, 0.0),
+            Atom("H", 9.0, 0.0, 0.0),
+            Atom("H", 9.0, 1.0, 0.0),
+        ]
+    )
+
+    brs = get_bond_rearrangs(reac, prod, "test")
+    assert brs is not None and len(brs) == 1

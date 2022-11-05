@@ -9,7 +9,6 @@ from autode.geom import are_coords_reasonable
 from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.transition_state import TransitionState
 from autode.bond_rearrangement import BondRearrangement
-from autode.geom import get_distance_constraints
 import numpy as np
 import os
 
@@ -283,11 +282,10 @@ def test_ts_conformer(tmpdir):
     f_ch3cl_ts = TransitionState(ts_guess=f_ch3cl_tsguess)
 
     atoms = conf_gen.get_simanl_atoms(
-        species=f_ch3cl_ts, dist_consts=get_distance_constraints(f_ch3cl_ts)
+        species=f_ch3cl_ts, dist_consts=f_ch3cl_ts.active_bond_constraints
     )
 
     regen = Molecule(name="regenerated_ts", charge=-1, mult=1, atoms=atoms)
-    # regen.print_xyz_file()
 
     # Ensure the making/breaking bonds retain their length
     regen_coords = regen.coordinates
