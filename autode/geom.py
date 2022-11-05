@@ -167,40 +167,6 @@ def get_neighbour_list(
     return atom_label_neighbour_list
 
 
-def get_distance_constraints(
-    species: "autode.species.species.Species",
-) -> dict:
-    """
-    Set all the distance constraints required in an optimisation as the
-    active bonds
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        species (autode.species.Species):
-
-    Returns:
-        (dict): Keyed with atom indexes for the active atoms (tuple) and
-                equal to the constrained value
-    """
-    distance_constraints = {}
-
-    if species.graph is None:
-        logger.warning(
-            "Molecular graph was not set cannot find any distance "
-            "constraints"
-        )
-        return None
-
-    # Add the active edges(/bonds) in the molecular graph to the dict, value
-    # being the current distance
-    for edge in species.graph.edges:
-
-        if species.graph.edges[edge]["active"]:
-            distance_constraints[edge] = species.distance(*edge)
-
-    return distance_constraints
-
-
 def calc_heavy_atom_rmsd(
     atoms1: "autode.atoms.Atoms", atoms2: "autode.atoms.Atoms"
 ) -> float:
