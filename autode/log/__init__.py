@@ -1,4 +1,4 @@
 from autode.log.log import logger
 
 
-__all__ = ['logger']
+__all__ = ["logger"]

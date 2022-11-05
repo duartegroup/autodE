@@ -11,7 +11,7 @@ from autode.exceptions import CalculationException
 
 class RelaxedPESnD(ReactivePESnD):
     """Potential energy surface over a set of distances, where all other
-     degrees of freedom are minimised"""
+    degrees of freedom are minimised"""
 
     def _calculate(self) -> None:
         """
@@ -21,32 +21,39 @@ class RelaxedPESnD(ReactivePESnD):
         for points in self._points_generator():
 
             n_cores_pp = max(self._n_cores // len(points), 1)
-            logger.info(f'Calculating tranche {points} on the surface, using '
-                        f'{n_cores_pp} cores per process')
+            logger.info(
+                f"Calculating tranche {points} on the surface, using "
+                f"{n_cores_pp} cores per process"
+            )
 
             with Pool(processes=self._n_cores) as pool:
 
                 results = []
-                func = hashable('_single_energy_coordinates', self)
+                func = hashable("_single_energy_coordinates", self)
 
                 for point in points:
-                    res = pool.apply_async(func=func,
-                                           args=(self._species_at(point),),
-                                           kwds={'n_cores': n_cores_pp})
+                    res = pool.apply_async(
+                        func=func,
+                        args=(self._species_at(point),),
+                        kwds={"n_cores": n_cores_pp},
+                    )
                     results.append(res)
 
                 for i, point in enumerate(points):
-                    (self._energies[point],
-                     self._coordinates[point]) = results[i].get(timeout=None)
+                    (
+                        self._energies[point],
+                        self._coordinates[point],
+                    ) = results[i].get(timeout=None)
 
         return None
 
     @property
-    def _default_keyword_type(self) -> Type['autode.wrappers.Keywords']:
+    def _default_keyword_type(self) -> Type["autode.wrappers.Keywords"]:
         from autode.wrappers.keywords import OptKeywords
+
         return OptKeywords
 
-    def _species_at(self, point: Tuple) -> 'autode.species.Species':
+    def _species_at(self, point: Tuple) -> "autode.species.Species":
         """
         Generate a species on the PES at a defined point. Attributes are
         obtained from the internal species (molecule at the origin in the PES)
@@ -68,10 +75,9 @@ class RelaxedPESnD(ReactivePESnD):
 
         return species
 
-    def _single_energy_coordinates(self,
-                                   species: 'autode.species.Species',
-                                   **kwargs
-                                   ) -> Tuple[float, np.ndarray]:
+    def _single_energy_coordinates(
+        self, species: "autode.species.Species", **kwargs
+    ) -> Tuple[float, np.ndarray]:
         """
         Calculate a single energy and set of coordinates on this surface
 
@@ -84,29 +90,29 @@ class RelaxedPESnD(ReactivePESnD):
                      unassigned then use self._n_cores
         """
 
-        const_opt = Calculation(name=species.name,
-                                molecule=species,
-                                method=self._method,
-                                n_cores=kwargs.get('n_cores', self._n_cores),
-                                keywords=self._keywords)
+        const_opt = Calculation(
+            name=species.name,
+            molecule=species,
+            method=self._method,
+            n_cores=kwargs.get("n_cores", self._n_cores),
+            keywords=self._keywords,
+        )
 
         try:
             species.optimise(method=self._method, calc=const_opt)
             return float(species.energy), np.array(species.coordinates)
 
         except (CalculationException, ValueError, TypeError):
-            logger.error(f'Optimisation failed for: {species.name}')
+            logger.error(f"Optimisation failed for: {species.name}")
             return np.nan, np.zeros(shape=(species.n_atoms, 3))
 
-    def _default_keywords(self,
-                          method: 'autode.wrapper.ElectronicStructureMethod'
-                          ) -> 'autode.wrappers.Keywords':
+    def _default_keywords(
+        self, method: "autode.wrapper.ElectronicStructureMethod"
+    ) -> "autode.wrappers.Keywords":
         """Default keywords"""
         return method.keywords.opt
 
-    def _closest_coordinates(self,
-                             point: Tuple
-                             ) -> np.ndarray:
+    def _closest_coordinates(self, point: Tuple) -> np.ndarray:
         """
         From a point in the PES defined by its indices obtain the closest set
         of coordinates, which to use as a starting guess for the constrained
@@ -130,7 +136,7 @@ class RelaxedPESnD(ReactivePESnD):
             # Construct a ∆-point tuple, which can be added to the current
             # point to generate one close by, which may have an energy and thus
             # should be selected
-            for d_point in it.product(range(-n, n+1), repeat=self.ndim):
+            for d_point in it.product(range(-n, n + 1), repeat=self.ndim):
 
                 close_point = tuple(np.array(point) + np.array(d_point))
 
@@ -140,12 +146,12 @@ class RelaxedPESnD(ReactivePESnD):
                 if self._has_energy(close_point):
                     return self._coordinates[close_point]
 
-        raise RuntimeError('Failed to find coordinates with an associated '
-                           f'energy close to point {point} in the PES')
+        raise RuntimeError(
+            "Failed to find coordinates with an associated "
+            f"energy close to point {point} in the PES"
+        )
 
-    def _constraints(self,
-                     point: Tuple
-                     ) -> dict:
+    def _constraints(self, point: Tuple) -> dict:
         """
         Construct the distance constraints required for a particular point
         on the PES
@@ -158,8 +164,10 @@ class RelaxedPESnD(ReactivePESnD):
             (dict): Distance constraints
         """
         if not self._is_contained(point):
-            raise ValueError(f'Cannot determine constraints for a point: '
-                             f'{point} in a {self.ndim}D-PES')
+            raise ValueError(
+                f"Cannot determine constraints for a point: "
+                f"{point} in a {self.ndim}D-PES"
+            )
 
         return {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
 

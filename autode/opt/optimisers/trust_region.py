@@ -24,58 +24,64 @@ from autode.opt import CartesianCoordinates
 
 
 class TrustRegionOptimiser(NDOptimiser, ABC):
-
-    def __init__(self,
-                 maxiter:          int,
-                 gtol: 'autode.values.GradientRMS',
-                 etol:            'autode.values.PotentialEnergy',
-                 trust_radius:     float,
-                 coords:           Optional['autode.opt.OptCoordinates'] = None,
-                 max_trust_radius: Optional[float] = None,
-                 eta_1:            float = 0.1,
-                 eta_2:            float = 0.25,
-                 eta_3:            float = 0.75,
-                 t_1:              float = 0.25,
-                 t_2:              float = 2.0,
-                 **kwargs):
+    def __init__(
+        self,
+        maxiter: int,
+        gtol: "autode.values.GradientRMS",
+        etol: "autode.values.PotentialEnergy",
+        trust_radius: float,
+        coords: Optional["autode.opt.OptCoordinates"] = None,
+        max_trust_radius: Optional[float] = None,
+        eta_1: float = 0.1,
+        eta_2: float = 0.25,
+        eta_3: float = 0.75,
+        t_1: float = 0.25,
+        t_2: float = 2.0,
+        **kwargs,
+    ):
         """Trust radius optimiser"""
-        super().__init__(maxiter=maxiter,
-                         etol=etol,
-                         gtol=gtol,
-                         coords=coords, **kwargs)
+        super().__init__(
+            maxiter=maxiter, etol=etol, gtol=gtol, coords=coords, **kwargs
+        )
 
         self.alpha = trust_radius
-        self.alpha_max = (max_trust_radius if max_trust_radius is not None
-                          else 10 * trust_radius)
+        self.alpha_max = (
+            max_trust_radius
+            if max_trust_radius is not None
+            else 10 * trust_radius
+        )
 
         # Parameters for the TR optimiser
         self._eta = _Eta(eta_1, eta_2, eta_3)
         self._t = _T(t_1, t_2)
 
-        self.m:       Optional[float] = None        # Energy estimate
-        self.p:       Optional[np.ndarray] = None   # Direction
+        self.m: Optional[float] = None  # Energy estimate
+        self.p: Optional[np.ndarray] = None  # Direction
 
     @classmethod
-    def optimise(cls,
-                 species:     'autode.species.Species',
-                 method:      'autode.wrappers.methods.Method',
-                 n_cores:      Optional[int] = None,
-                 coords:       Optional['autode.opt.OptCoordinates'] = None,
-                 gtol:         Union[float, GradientRMS] = GradientRMS(1E-3, 'Ha Å-1'),
-                 etol:         Union[float, PotentialEnergy] = PotentialEnergy(1E-4, 'Ha'),
-                 maxiter:      int = 5,
-                 trust_radius: float = 0.2,
-                 **kwargs
-                 ) -> None:
+    def optimise(
+        cls,
+        species: "autode.species.Species",
+        method: "autode.wrappers.methods.Method",
+        n_cores: Optional[int] = None,
+        coords: Optional["autode.opt.OptCoordinates"] = None,
+        gtol: Union[float, GradientRMS] = GradientRMS(1e-3, "Ha Å-1"),
+        etol: Union[float, PotentialEnergy] = PotentialEnergy(1e-4, "Ha"),
+        maxiter: int = 5,
+        trust_radius: float = 0.2,
+        **kwargs,
+    ) -> None:
         """
         Construct and optimiser using a trust region optimiser
         """
 
-        optimiser = cls(maxiter=maxiter,
-                        gtol=gtol,
-                        etol=etol,
-                        trust_radius=trust_radius,
-                        coords=coords)
+        optimiser = cls(
+            maxiter=maxiter,
+            gtol=gtol,
+            etol=etol,
+            trust_radius=trust_radius,
+            coords=coords,
+        )
 
         optimiser.run(species, method, n_cores=n_cores)
 
@@ -91,7 +97,7 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         self._solve_subproblem()
 
         e, g, h, p = self._coords.e, self._coords.g, self._coords.h, self.p
-        self.m = (e + np.dot(g, p) + 0.5 * np.dot(p, np.matmul(h, p)))
+        self.m = e + np.dot(g, p) + 0.5 * np.dot(p, np.matmul(h, p))
 
         if self.iteration == 0:
             # First iteration, so take a normal step
@@ -112,8 +118,10 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
             self._coords = self._coords + self.p
 
         else:
-            logger.warning('Trust radius step did not result in a satisfactory'
-                           ' reduction. Not taking a step')
+            logger.warning(
+                "Trust radius step did not result in a satisfactory"
+                " reduction. Not taking a step"
+            )
             self._coords = self._coords.copy()
 
         return None
@@ -158,17 +166,21 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         """
 
         if self.iteration == 0:
-            logger.warning('ρ is unknown for the 0th iteration with only one '
-                           'energy and gradient having been evaluated')
+            logger.warning(
+                "ρ is unknown for the 0th iteration with only one "
+                "energy and gradient having been evaluated"
+            )
             return np.inf
 
         if not self._last_step_updated_coordinates:
-            logger.warning(f'Step {self.iteration} did not update the '
-                           'coordinates, using ρ = 0.5')
+            logger.warning(
+                f"Step {self.iteration} did not update the "
+                "coordinates, using ρ = 0.5"
+            )
             return 0.5
 
         if self.m is None:
-            raise RuntimeError('Predicted energy update (m) undefined')
+            raise RuntimeError("Predicted energy update (m) undefined")
 
         true_diff = self._history.penultimate.e - self._history.final.e
         predicted_diff = self._history.penultimate.e - self.m
@@ -183,10 +195,11 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         Returns:
             (bool): If the last step updated the coordinates
         """
-        dx = (np.array(self._history.final, copy=True)
-              - np.array(self._history.penultimate, copy=True))
+        dx = np.array(self._history.final, copy=True) - np.array(
+            self._history.penultimate, copy=True
+        )
 
-        return np.linalg.norm(dx) > 1E-10
+        return np.linalg.norm(dx) > 1e-10
 
 
 class CauchyTROptimiser(TrustRegionOptimiser):
@@ -262,7 +275,7 @@ class DoglegTROptimiser(CauchyTROptimiser):
         """
         tau, g, h = self.tau, self._coords.g, self._coords.h
 
-        p_u = - (np.dot(g, g) / np.dot(g, np.matmul(h, g))) * g
+        p_u = -(np.dot(g, g) / np.dot(g, np.matmul(h, g))) * g
 
         if 0 < tau <= 1:
             self.p = tau * p_u
@@ -272,7 +285,7 @@ class DoglegTROptimiser(CauchyTROptimiser):
             # self.p = tau * p_u + (tau - 1) * (p_b - p_u)
 
         else:
-            raise RuntimeError(f'τ = {tau} was outside the acceptable region')
+            raise RuntimeError(f"τ = {tau} was outside the acceptable region")
 
         return None
 
@@ -282,10 +295,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
 
     coordinate_type = CartesianCoordinates
 
-    def __init__(self,
-                 *args,
-                 epsilon: float = 0.001,
-                 **kwargs):
+    def __init__(self, *args, epsilon: float = 0.001, **kwargs):
         """
         CG trust region optimiser
 
@@ -337,20 +347,21 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         for tau in tau_arr:
 
             p = z + tau * d
-            m = (e + np.dot(g, p) + 0.5 * np.dot(p, np.matmul(h, p)))
+            m = e + np.dot(g, p) + 0.5 * np.dot(p, np.matmul(h, p))
 
             m_arr.append(m)
 
         min_m_tau = tau_arr[np.argmin(m_arr)]
-        logger.info(f'Optimised τ={min_m_tau:.6f}')
+        logger.info(f"Optimised τ={min_m_tau:.6f}")
 
         p = z + min_m_tau * d
         step_length = np.linalg.norm(p)
 
         if step_length > self.alpha:
-            logger.warning(f'Step size {step_length} was too large, '
-                           f'scaling down')
-            p *= (self.alpha / step_length)
+            logger.warning(
+                f"Step size {step_length} was too large, " f"scaling down"
+            )
+            p *= self.alpha / step_length
 
         return p
 
@@ -373,7 +384,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
                 return
 
             alpha = np.dot(r, r) / (np.dot(d, np.matmul(h, d)))
-            z += alpha*d
+            z += alpha * d
 
             if np.linalg.norm(z) >= self.alpha:
                 self.p = self._discrete_optimised_p(z, d)
@@ -389,11 +400,10 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
             beta = np.dot(r, r) / np.dot(r_old, r_old)
             d = -r + beta * d
 
-        raise RuntimeError('Failed to converge CG trust region solve')
+        raise RuntimeError("Failed to converge CG trust region solve")
 
 
 class _ParametersIndexedFromOne:
-
     def __getitem__(self, item):
         """Internal array is indexed from 1"""
         return self._arr[item - 1]

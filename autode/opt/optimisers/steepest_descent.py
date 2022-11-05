@@ -4,7 +4,6 @@ from autode.opt.optimisers.base import NDOptimiser
 
 
 class SteepestDescent(NDOptimiser, ABC):
-
     def __init__(self, maxiter, gtol, etol, step_size=0.2, **kwargs):
         """
         Steepest decent optimiser
@@ -51,5 +50,7 @@ class DIC_SD_Optimiser(SteepestDescent):
 
     def _initialise_run(self) -> None:
         """Initialise the delocalised internal coordinates"""
-        self._coords = CartesianCoordinates(self._species.coordinates).to('dic')
+        self._coords = CartesianCoordinates(self._species.coordinates).to(
+            "dic"
+        )
         self._update_gradient_and_energy()

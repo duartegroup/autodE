@@ -1,6 +1,7 @@
 \build/
 \dist/
 \.idea/
+.eggs/
 **__MACOSX/
 autode/ext/*.cpp
 **cmake-build-debug/
@@ -18,4 +19,4 @@ tests/*.xyz
 *.so
 *.inp
 *.pyc
-**.autode_calculations
+.autode_calculations

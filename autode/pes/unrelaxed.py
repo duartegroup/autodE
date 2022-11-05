@@ -27,8 +27,10 @@ class UnRelaxedPES1D(ReactivePESnD):
             results = []
 
             for p in points:
-                res = pool.apply_async(func=hashable('_single_energy', self),
-                                       args=(self._species_at(p), n_cores_pp))
+                res = pool.apply_async(
+                    func=hashable("_single_energy", self),
+                    args=(self._species_at(p), n_cores_pp),
+                )
                 results.append(res)
 
             for i, p in enumerate(points):
@@ -37,11 +39,12 @@ class UnRelaxedPES1D(ReactivePESnD):
         return None
 
     @property
-    def _default_keyword_type(self) -> Type['autode.wrappers.Keywords']:
+    def _default_keyword_type(self) -> Type["autode.wrappers.Keywords"]:
         from autode.wrappers.keywords import SinglePointKeywords
+
         return SinglePointKeywords
 
-    def _species_at(self, point: Tuple) -> 'autode.species.Species':
+    def _species_at(self, point: Tuple) -> "autode.species.Species":
         """
         Shift this structure to a point in the surface
 
@@ -64,8 +67,9 @@ class UnRelaxedPES1D(ReactivePESnD):
         coords = np.array(species.coordinates, copy=True)
         required_r = self._r(point=point, dim=0)
 
-        coords[shift_idxs] += ((required_r - species.distance(i, j))
-                               * species.atoms.nvector(b, a))
+        coords[shift_idxs] += (
+            required_r - species.distance(i, j)
+        ) * species.atoms.nvector(b, a)
 
         self._coordinates[point] = coords
         species.coordinates = coords
@@ -76,19 +80,23 @@ class UnRelaxedPES1D(ReactivePESnD):
         """Check that some attributes have required values"""
 
         if self.ndim != 1:
-            raise NotImplementedError('Cannot calculate an unrelaxed surface '
-                                      'for >1 dimension surfaces')
+            raise NotImplementedError(
+                "Cannot calculate an unrelaxed surface "
+                "for >1 dimension surfaces"
+            )
 
         atom_idxs = self._rs[0].atom_idxs
         if atom_idxs not in self._species.graph.edges:
-            raise ValueError(f'Unrelaxed PESs must be over a bond {atom_idxs} '
-                             f'was not in the list of bonds')
+            raise ValueError(
+                f"Unrelaxed PESs must be over a bond {atom_idxs} "
+                f"was not in the list of bonds"
+            )
 
         return None
 
-    def _default_keywords(self,
-                          method: 'autode.wrappers.ElectronicStructureMethod'
-                          ) -> 'autode.wrappers.Keywords':
+    def _default_keywords(
+        self, method: "autode.wrappers.ElectronicStructureMethod"
+    ) -> "autode.wrappers.Keywords":
         """
         Default keywords for an unrelaxed scan that uses single point
         evaluations is
@@ -102,10 +110,9 @@ class UnRelaxedPES1D(ReactivePESnD):
         """
         return method.keywords.sp
 
-    def _single_energy(self,
-                       species: 'autode.species.Species',
-                       n_cores: int
-                       ) -> float:
+    def _single_energy(
+        self, species: "autode.species.Species", n_cores: int
+    ) -> float:
         """
         Evaluate the energy using a single point calculation
 
@@ -120,12 +127,12 @@ class UnRelaxedPES1D(ReactivePESnD):
         """
 
         try:
-            species.single_point(method=self._method,
-                                 keywords=self._keywords,
-                                 n_cores=n_cores)
+            species.single_point(
+                method=self._method, keywords=self._keywords, n_cores=n_cores
+            )
 
             return float(species.energy)
 
         except (CalculationException, ValueError, TypeError):
-            logger.error(f'Single point failed for: {species.name}')
+            logger.error(f"Single point failed for: {species.name}")
             return np.nan

@@ -2,8 +2,7 @@ import numpy as np
 import networkx as nx
 from autode.log import logger
 from autode.atoms import AtomCollection
-from autode.exceptions import (FailedToSetRotationIdxs,
-                               SMILESBuildFailed)
+from autode.exceptions import FailedToSetRotationIdxs, SMILESBuildFailed
 
 
 class SAngle:
@@ -17,7 +16,7 @@ class SAngle:
         self.rot_idxs = rot_idxs
 
     def __str__(self):
-        return f'Angle(idxs={self.idxs})'
+        return f"Angle(idxs={self.idxs})"
 
     def __repr__(self):
         return self.__str__()
@@ -37,11 +36,13 @@ class SAngle:
         vec1 = atoms[idx_x].coord - atoms[idx_y].coord
         vec2 = atoms[idx_z].coord - atoms[idx_y].coord
 
-        return np.arccos(np.dot(vec1, vec2)
-                         / (np.linalg.norm(vec1) * np.linalg.norm(vec2)))
+        return np.arccos(
+            np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+        )
 
-    def _find_rot_idxs_from_pair(self, graph, atoms, pair,
-                                 max_bond_distance=4.0):
+    def _find_rot_idxs_from_pair(
+        self, graph, atoms, pair, max_bond_distance=4.0
+    ):
         """
         Split the graph across a pair of indexes and set the atom indexes
         to be rotated
@@ -61,20 +62,24 @@ class SAngle:
         # Remove all the nodes in the graph that have not been shifted, thus
         # the rotation indexes only include atoms that have been 'built'
         for idx, atom in enumerate(atoms):
-            if hasattr(atom, 'is_shifted') and not atom.is_shifted:
+            if hasattr(atom, "is_shifted") and not atom.is_shifted:
                 graph.remove_node(idx)
 
         # Delete edges that are too far away (i.e. unclosed rings)
         for (idx_i, idx_j) in graph.edges:
 
             if {idx_i, idx_j} == set(pair):
-                logger.error('Cannot cut across a ring')
+                logger.error("Cannot cut across a ring")
                 continue
 
-            if np.linalg.norm(atoms[idx_i].coord
-                              - atoms[idx_j].coord) > max_bond_distance:
-                logger.info(f'Bond {idx_i}-{idx_j} was not present, may '
-                            f'remove from graph for idx location')
+            if (
+                np.linalg.norm(atoms[idx_i].coord - atoms[idx_j].coord)
+                > max_bond_distance
+            ):
+                logger.info(
+                    f"Bond {idx_i}-{idx_j} was not present, may "
+                    f"remove from graph for idx location"
+                )
 
                 graph.remove_edge(idx_i, idx_j)
 
@@ -84,18 +89,22 @@ class SAngle:
                 if not nx.is_connected(graph):
                     graph.add_edge(idx_i, idx_j)
 
-        components = [graph.subgraph(c) for c in
-                      nx.connected_components(graph)]
+        components = [
+            graph.subgraph(c) for c in nx.connected_components(graph)
+        ]
 
         if len(components) != 2:
-            raise FailedToSetRotationIdxs(f'Splitting over {pair} did '
-                                          'not afford two fragments')
+            raise FailedToSetRotationIdxs(
+                f"Splitting over {pair} did " "not afford two fragments"
+            )
 
         # Choose the components that will be rotated
         cpnt_idx = 0 if pair[0] in components[0].nodes else 1
 
-        self.rot_idxs = [1 if i in components[cpnt_idx].nodes else 0
-                         for i in range(len(atoms))]
+        self.rot_idxs = [
+            1 if i in components[cpnt_idx].nodes else 0
+            for i in range(len(atoms))
+        ]
         return None
 
     def find_rot_idxs(self, graph, atoms):
@@ -121,9 +130,13 @@ class SAngle:
         Returns:
             (list(int)):
         """
-        return [1 if (hasattr(atom, 'is_shifted') and atom.is_shifted)
-                and self.rot_idxs[i] != 1 else 0
-                for i, atom in enumerate(atoms)]
+        return [
+            1
+            if (hasattr(atom, "is_shifted") and atom.is_shifted)
+            and self.rot_idxs[i] != 1
+            else 0
+            for i, atom in enumerate(atoms)
+        ]
 
     @property
     def phi0(self):
@@ -132,7 +145,6 @@ class SAngle:
 
 
 class SAngles(list):
-
     @property
     def axes(self):
         raise NotImplementedError
@@ -140,12 +152,12 @@ class SAngles(list):
     @property
     def origins(self):
         """Origins for the rotation, as the central atom of the trio"""
-        return np.array([angle.idxs[1] for angle in self], dtype='i4')
+        return np.array([angle.idxs[1] for angle in self], dtype="i4")
 
     @property
     def rot_idxs(self):
         """Matrix of atom indexes to rotate"""
-        return np.array([angle.rot_idxs for angle in self], dtype='i4')
+        return np.array([angle.rot_idxs for angle in self], dtype="i4")
 
     @property
     def ideal_angles(self):
@@ -154,19 +166,19 @@ class SAngles(list):
 
     def values(self, atoms):
         """Current angle vector in radians"""
-        return np.array([angle.value(atoms) for angle in self], dtype='f8')
+        return np.array([angle.value(atoms) for angle in self], dtype="f8")
 
     def dvalues(self, atoms):
         """Difference between the current and ideal angles"""
-        return np.array([angle.phi0 - angle.value(atoms) for angle in self],
-                        dtype='f8')
+        return np.array(
+            [angle.phi0 - angle.value(atoms) for angle in self], dtype="f8"
+        )
 
 
 class SDihedrals(SAngles):
-
     @property
     def axes(self):
-        return np.array([dihedral.mid_idxs for dihedral in self], dtype='i4')
+        return np.array([dihedral.mid_idxs for dihedral in self], dtype="i4")
 
     @property
     def origins(self):
@@ -176,7 +188,7 @@ class SDihedrals(SAngles):
             idx_i, idx_j = dihedral.mid_idxs
             origins.append(idx_i if dihedral.rot_idxs[idx_i] == 1 else idx_j)
 
-        return np.array(origins, dtype='i4')
+        return np.array(origins, dtype="i4")
 
 
 class SDihedral(SAngle):
@@ -222,7 +234,7 @@ class SDihedral(SAngle):
         self.mid_dist = mid_dist
 
     def __str__(self):
-        return f'Dihedral(idxs={self.idxs}, φ0={round(self.phi0, 2)})'
+        return f"Dihedral(idxs={self.idxs}, φ0={round(self.phi0, 2)})"
 
     @property
     def end_idxs(self):
@@ -238,8 +250,10 @@ class SDihedral(SAngle):
         """Does this dihedral angle need to be forced? i.e. has defined
         stereochemistry that is not respected"""
 
-        return (atoms[self.mid_idxs[0]].has_stereochem
-                and abs(self.dphi(atoms)) > np.pi / 3)
+        return (
+            atoms[self.mid_idxs[0]].has_stereochem
+            and abs(self.dphi(atoms)) > np.pi / 3
+        )
 
     def dphi(self, atoms):
         """∆φ = φ_curr - φ_ideal"""
@@ -277,5 +291,9 @@ class SDihedral(SAngle):
 
             atoms (list(autode.atoms.Atom)):
         """
-        return self._find_rot_idxs_from_pair(graph, atoms, pair=self.mid_idxs,
-                                             max_bond_distance=1.5*self.mid_dist)
+        return self._find_rot_idxs_from_pair(
+            graph,
+            atoms,
+            pair=self.mid_idxs,
+            max_bond_distance=1.5 * self.mid_dist,
+        )

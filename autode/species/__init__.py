@@ -7,11 +7,13 @@ from autode.species.complex import NCIComplex
 from autode.species.complex import ReactantComplex
 from autode.species.complex import ProductComplex
 
-__all__ = ['Species',
-           'Reactant',
-           'Product',
-           'Molecule',
-           'Complex',
-           'ReactantComplex',
-           'NCIComplex',
-           'ProductComplex']
+__all__ = [
+    "Species",
+    "Reactant",
+    "Product",
+    "Molecule",
+    "Complex",
+    "ReactantComplex",
+    "NCIComplex",
+    "ProductComplex",
+]

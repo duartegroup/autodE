@@ -23,17 +23,17 @@ def get_log_level():
     """
 
     try:
-        log_level_str = os.environ['AUTODE_LOG_LEVEL']
+        log_level_str = os.environ["AUTODE_LOG_LEVEL"]
     except KeyError:
-        log_level_str = ''
+        log_level_str = ""
 
-    if log_level_str == 'DEBUG':
+    if log_level_str == "DEBUG":
         return logging.DEBUG
 
-    if log_level_str == 'WARNING':
+    if log_level_str == "WARNING":
         return logging.WARNING
 
-    if log_level_str == 'INFO':
+    if log_level_str == "INFO":
         return logging.INFO
 
     return logging.CRITICAL
@@ -54,27 +54,32 @@ def log_to_log_file():
     """
 
     try:
-        _ = os.environ['AUTODE_LOG_FILE']
+        _ = os.environ["AUTODE_LOG_FILE"]
         return True
     except KeyError:
         return False
 
 
 if log_to_log_file():
-    logging.basicConfig(level=get_log_level(),
-                        filename=os.environ['AUTODE_LOG_FILE'], filemode='w',
-                        format='%(asctime)s %(name)-12s: %(levelname)-8s '
-                               '%(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    logging.basicConfig(
+        level=get_log_level(),
+        filename=os.environ["AUTODE_LOG_FILE"],
+        filemode="w",
+        format="%(asctime)s %(name)-12s: %(levelname)-8s " "%(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
 else:
-    logging.basicConfig(level=get_log_level(),
-                        format='%(name)-12s: %(levelname)-8s %(message)s')
+    logging.basicConfig(
+        level=get_log_level(),
+        format="%(name)-12s: %(levelname)-8s %(message)s",
+    )
 logger = logging.getLogger(__name__)
 
 # Try and use colourful logs...
 try:
     import coloredlogs
+
     coloredlogs.install(level=get_log_level(), logger=logger)
 except ImportError:
     pass

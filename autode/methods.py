@@ -17,11 +17,13 @@ DFT/WF theory calculations, low level methods are, for example, xtb and mopac
 which are fast non ab-initio methods
 """
 
-high_level_method_names = ['orca', 'g09', 'g16', 'nwchem', 'qchem']
-low_level_method_names = ['xtb', 'mopac']
+high_level_method_names = ["orca", "g09", "g16", "nwchem", "qchem"]
+low_level_method_names = ["xtb", "mopac"]
 
 
-def method_or_default_lmethod(method: Optional["autode.wrappers.methods.Method"]):
+def method_or_default_lmethod(
+    method: Optional["autode.wrappers.methods.Method"],
+):
     """
     Return a method if one is defined but default to a low-level method if
     if it is None.
@@ -35,12 +37,14 @@ def method_or_default_lmethod(method: Optional["autode.wrappers.methods.Method"]
     """
     if method is None:
         method = get_lmethod()
-        logger.info(f'Using the default low-level method {method}')
+        logger.info(f"Using the default low-level method {method}")
 
     return method
 
 
-def method_or_default_hmethod(method: Optional["autode.wrappers.methods.Method"]):
+def method_or_default_hmethod(
+    method: Optional["autode.wrappers.methods.Method"],
+):
     """
     Return a method if one is defined but default to a high-level method if
     if it is None.
@@ -54,7 +58,7 @@ def method_or_default_hmethod(method: Optional["autode.wrappers.methods.Method"]
     """
     if method is None:
         method = get_hmethod()
-        logger.info(f'Using the default high-level method {method}')
+        logger.info(f"Using the default high-level method {method}")
 
     return method
 
@@ -90,7 +94,9 @@ def get_lmethod() -> "autode.wrappers.methods.Method":
         return get_first_available_method(all_methods)
 
 
-def get_first_available_method(possibilities) -> "autode.wrappers.methods.Method":
+def get_first_available_method(
+    possibilities,
+) -> "autode.wrappers.methods.Method":
     """
     Get the first electronic structure method that is available in a list of
     possibilities.
@@ -110,10 +116,12 @@ def get_first_available_method(possibilities) -> "autode.wrappers.methods.Method
         if method.is_available:
             return method
 
-    raise MethodUnavailable('No electronic structure methods available')
+    raise MethodUnavailable("No electronic structure methods available")
 
 
-def get_defined_method(name, possibilities) -> "autode.wrappers.methods.Method":
+def get_defined_method(
+    name, possibilities
+) -> "autode.wrappers.methods.Method":
     """
     Get an electronic structure method defined by it's name.
 
@@ -136,11 +144,13 @@ def get_defined_method(name, possibilities) -> "autode.wrappers.methods.Method":
                 return method
 
             else:
-                err_str = (f'Electronic structure method *{name}* is not '
-                           f'available. Check that {method.name} exists in a '
-                           f'directory present in $PATH, or set '
-                           f'ade.Config.{method.__class__.__name__}.path')
+                err_str = (
+                    f"Electronic structure method *{name}* is not "
+                    f"available. Check that {method.name} exists in a "
+                    f"directory present in $PATH, or set "
+                    f"ade.Config.{method.__class__.__name__}.path"
+                )
 
                 raise MethodUnavailable(err_str)
 
-    raise MethodUnavailable('Requested code does not exist')
+    raise MethodUnavailable("Requested code does not exist")

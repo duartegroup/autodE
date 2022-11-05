@@ -17,7 +17,8 @@ class MethodUnavailable(CalculationException):
 
 class UnsupportedCalculationInput(CalculationException):
     """Exception for an autodE calculation input not being valid"""
-    def __init__(self, message='Parameters not supported'):
+
+    def __init__(self, message="Parameters not supported"):
         super().__init__(message)
 
 
@@ -35,7 +36,7 @@ class CouldNotGetProperty(CalculationException):
 
     def __init__(self, *args, name=None):
         if name is not None:
-            super().__init__(f'Could not get {name}')
+            super().__init__(f"Could not get {name}")
 
         else:
             super().__init__(*args)

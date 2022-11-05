@@ -7,7 +7,6 @@ from autode.log import logger
 
 
 class CalculationOutput:
-
     def __init__(self, filename: Optional[str] = None):
 
         self._filename = filename
@@ -36,12 +35,12 @@ class CalculationOutput:
         Raises:
             (autode.exceptions.NoCalculationOutput): If the file doesn't exist
         """
-        logger.info('Setting output file lines')
+        logger.info("Setting output file lines")
 
         if self.filename is None or not os.path.exists(self.filename):
             raise ex.NoCalculationOutput
 
-        file = open(self.filename, 'r', encoding='utf-8', errors='ignore')
+        file = open(self.filename, "r", encoding="utf-8", errors="ignore")
         return file.readlines()
 
     @property
@@ -52,8 +51,8 @@ class CalculationOutput:
     def clear(self) -> None:
         """Clear the cached file lines"""
 
-        if 'file_lines' in self.__dict__:
-            del self.__dict__['file_lines']
+        if "file_lines" in self.__dict__:
+            del self.__dict__["file_lines"]
 
         return None
 
@@ -73,7 +72,6 @@ class CalculationOutput:
 
 
 class BlankCalculationOutput(CalculationOutput):
-
     @property
     def filename(self) -> Optional[str]:
         return None

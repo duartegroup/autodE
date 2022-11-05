@@ -5,6 +5,7 @@ Contributing to autodE
 Contributions in any form are very much welcome. To make managing these
 easier, we kindly ask that you follow the guidelines below.
 
+
 Reporting a bug or suggesting changes/improvements
 ==================================================
 
@@ -60,6 +61,15 @@ on the GitHub docs.
 
 Guidelines for pull requests
 ----------------------------
+
+First, install from source in a new envrionment and setup
+`pre-commit <https://pre-commit.com/>`__ with::
+
+    $ git clone https://github.com/duartegroup/autodE.git && cd autodE
+    $ conda create -n ade python=3.9 --file requirements.txt --channel conda-forge
+    $ conda activate ade
+    $ pip install . autode[dev]
+    $ pre-commit install
 
 
 Forks instead of branches

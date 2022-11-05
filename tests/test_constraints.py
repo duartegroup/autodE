@@ -6,8 +6,8 @@ def test_base_properties():
 
     consts = Constraints()
 
-    assert 'constraints' in str(consts).lower()
-    assert 'constraints' in repr(consts).lower()
+    assert "constraints" in str(consts).lower()
+    assert "constraints" in repr(consts).lower()
 
     assert not consts.any
     assert consts.distance is None
@@ -32,7 +32,7 @@ def test_base_properties():
         consts.distance = {(0, 1): -1.0}  # Invalid distance
 
     with pytest.raises(Exception):
-        consts.distance = {0: 1.0}        # Invalid atom index pair
+        consts.distance = {0: 1.0}  # Invalid atom index pair
 
     with pytest.raises(Exception):
         consts.distance = {(0, -1): 1.0}  # Invalid atom index (-1)
@@ -56,7 +56,7 @@ def test_base_properties():
     conts2 = Constraints(cartesian=[0], distance={(0, 1): 1.1})
     assert conts2.cartesian is not None and conts2.distance is not None
 
-    assert '0' in str(conts2) and '1.1' in str(conts2)
+    assert "0" in str(conts2) and "1.1" in str(conts2)
 
 
 def test_multiple_update():
@@ -110,6 +110,3 @@ def test_clear():
 
     consts.update(cartesian=[0])
     assert len(consts.cartesian) == 1
-
-
-

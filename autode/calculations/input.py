@@ -6,11 +6,12 @@ from autode.point_charges import PointCharge
 
 
 class CalculationInput:
-
-    def __init__(self,
-                 keywords:        'autode.wrappers.keywords.Keywords',
-                 added_internals:  Optional[list] = None,
-                 point_charges:    Optional[List[PointCharge]] = None):
+    def __init__(
+        self,
+        keywords: "autode.wrappers.keywords.Keywords",
+        added_internals: Optional[list] = None,
+        point_charges: Optional[List[PointCharge]] = None,
+    ):
         """
         Calculation input
 
@@ -56,8 +57,9 @@ class CalculationInput:
     @property
     def exists(self):
         """Does the input (files) exist?"""
-        return (self.filename is not None
-                and all(os.path.exists(fn) for fn in self.filenames))
+        return self.filename is not None and all(
+            os.path.exists(fn) for fn in self.filenames
+        )
 
     @property
     def filenames(self):
@@ -66,4 +68,3 @@ class CalculationInput:
             return self.additional_filenames
 
         return [self.filename] + self.additional_filenames
-

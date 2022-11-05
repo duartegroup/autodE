@@ -4,19 +4,22 @@ from typing import Type
 from autode.log import logger
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
-from autode.opt.optimisers.line_search import (LineSearchOptimiser,
-                                               ArmijoLineSearch)
+from autode.opt.optimisers.line_search import (
+    LineSearchOptimiser,
+    ArmijoLineSearch,
+)
 
 
 class BFGSOptimiser(NDOptimiser, ABC):
-
-    def __init__(self,
-                 maxiter:          int,
-                 gtol: 'autode.values.GradientRMS',
-                 etol:             'autode.values.PotentialEnergy',
-                 init_alpha:       float = 1.0,
-                 line_search_type: Type[LineSearchOptimiser] = ArmijoLineSearch,
-                 **kwargs):
+    def __init__(
+        self,
+        maxiter: int,
+        gtol: "autode.values.GradientRMS",
+        etol: "autode.values.PotentialEnergy",
+        init_alpha: float = 1.0,
+        line_search_type: Type[LineSearchOptimiser] = ArmijoLineSearch,
+        **kwargs,
+    ):
         """
         Broyden–Fletcher–Goldfarb–Shanno optimiser. Implementation taken
         from: https://tinyurl.com/526yymsw
@@ -67,10 +70,10 @@ class BFGSOptimiser(NDOptimiser, ABC):
         self._coords.h_inv = self._updated_h_inv()
         p = np.matmul(self._coords.h_inv, -self._coords.g)
 
-        logger.info('Performing a line search')
-        ls = self._line_search_type(direction=p,
-                                    init_alpha=self._alpha,
-                                    coords=self._coords.copy())
+        logger.info("Performing a line search")
+        ls = self._line_search_type(
+            direction=p, init_alpha=self._alpha, coords=self._coords.copy()
+        )
 
         ls.run(self._species, self._method, n_cores=self._n_cores)
 

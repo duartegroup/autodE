@@ -5,16 +5,17 @@ from autode.log import logger
 
 
 class KeywordsSet:
-
-    def __init__(self,
-                 low_opt:     Optional[Sequence[str]] = None,
-                 grad:        Optional[Sequence[str]] = None,
-                 low_sp:      Optional[Sequence[str]] = None,
-                 opt:         Optional[Sequence[str]] = None,
-                 opt_ts:      Optional[Sequence[str]] = None,
-                 hess:        Optional[Sequence[str]] = None,
-                 sp:          Optional[Sequence[str]] = None,
-                 ecp:         Optional['autode.wrappers.keywords.ECP'] = None):
+    def __init__(
+        self,
+        low_opt: Optional[Sequence[str]] = None,
+        grad: Optional[Sequence[str]] = None,
+        low_sp: Optional[Sequence[str]] = None,
+        opt: Optional[Sequence[str]] = None,
+        opt_ts: Optional[Sequence[str]] = None,
+        hess: Optional[Sequence[str]] = None,
+        sp: Optional[Sequence[str]] = None,
+        ecp: Optional["autode.wrappers.keywords.ECP"] = None,
+    ):
         """
         Keywords used to specify the type and method used in electronic
         structure theory calculations. The input file for a single point
@@ -55,22 +56,22 @@ class KeywordsSet:
              optts_block: String as extra input for a TS optimisation
         """
 
-        self._low_opt = OptKeywords(low_opt)           # Low-level optimisation
-        self._opt = OptKeywords(opt)                   # Optimisation
-        self._opt_ts = OptTSKeywords(opt_ts)           # TS optimisation
+        self._low_opt = OptKeywords(low_opt)  # Low-level optimisation
+        self._opt = OptKeywords(opt)  # Optimisation
+        self._opt_ts = OptTSKeywords(opt_ts)  # TS optimisation
 
-        self._grad = GradientKeywords(grad)            # Gradient
-        self._hess = HessianKeywords(hess)             # Hessian
+        self._grad = GradientKeywords(grad)  # Gradient
+        self._hess = HessianKeywords(hess)  # Hessian
 
-        self._low_sp = SinglePointKeywords(low_sp)     # Low-level single point
-        self._sp = SinglePointKeywords(sp)             # Single point
+        self._low_sp = SinglePointKeywords(low_sp)  # Low-level single point
+        self._sp = SinglePointKeywords(sp)  # Single point
 
         if ecp is not None:
             self.set_ecp(ecp)
 
     def __repr__(self):
-        str_methods = ',\n'.join(str(c) for c in self._list if c is not None)
-        return f'KeywordsSet({str_methods})'
+        str_methods = ",\n".join(str(c) for c in self._list if c is not None)
+        return f"KeywordsSet({str_methods})"
 
     def __getitem__(self, item):
         return self._list[item]
@@ -80,7 +81,7 @@ class KeywordsSet:
         return isinstance(other, KeywordsSet) and self._list == other._list
 
     @property
-    def low_opt(self) -> 'OptKeywords':
+    def low_opt(self) -> "OptKeywords":
         return self._low_opt
 
     @low_opt.setter
@@ -88,7 +89,7 @@ class KeywordsSet:
         self._low_opt = OptKeywords(value)
 
     @property
-    def opt(self) -> 'OptKeywords':
+    def opt(self) -> "OptKeywords":
         return self._opt
 
     @opt.setter
@@ -96,7 +97,7 @@ class KeywordsSet:
         self._opt = OptKeywords(value)
 
     @property
-    def opt_ts(self) -> 'OptTSKeywords':
+    def opt_ts(self) -> "OptTSKeywords":
         return self._opt_ts
 
     @opt_ts.setter
@@ -104,7 +105,7 @@ class KeywordsSet:
         self._opt_ts = OptKeywords(value)
 
     @property
-    def grad(self) -> 'GradientKeywords':
+    def grad(self) -> "GradientKeywords":
         return self._grad
 
     @grad.setter
@@ -112,7 +113,7 @@ class KeywordsSet:
         self._grad = GradientKeywords(value)
 
     @property
-    def hess(self) -> 'HessianKeywords':
+    def hess(self) -> "HessianKeywords":
         return self._hess
 
     @hess.setter
@@ -120,7 +121,7 @@ class KeywordsSet:
         self._hess = HessianKeywords(value)
 
     @property
-    def low_sp(self) -> Optional['SinglePointKeywords']:
+    def low_sp(self) -> Optional["SinglePointKeywords"]:
         return self._low_sp
 
     @low_sp.setter
@@ -128,7 +129,7 @@ class KeywordsSet:
         self._low_sp = value if value is None else SinglePointKeywords(value)
 
     @property
-    def sp(self) -> 'SinglePointKeywords':
+    def sp(self) -> "SinglePointKeywords":
         return self._sp
 
     @sp.setter
@@ -136,21 +137,28 @@ class KeywordsSet:
         self._sp = SinglePointKeywords(value)
 
     @property
-    def _list(self) -> List['autode.wrappers.keywords.Keywords']:
+    def _list(self) -> List["autode.wrappers.keywords.Keywords"]:
         """List of all the keywords in this set"""
-        return [self._low_opt, self._opt, self._opt_ts, self._grad,
-                self._hess, self._sp, self._low_sp]
+        return [
+            self._low_opt,
+            self._opt,
+            self._opt_ts,
+            self._grad,
+            self._hess,
+            self._sp,
+            self._low_sp,
+        ]
 
     def set_opt_functional(self, functional):
         """Set the functional for all optimisation and gradient calculations"""
-        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
+        for attr in ("low_opt", "opt", "opt_ts", "grad", "hess"):
             getattr(self, attr).functional = functional
 
         return None
 
     def set_opt_basis_set(self, basis_set):
         """Set the basis set for all optimisation and gradient calculations"""
-        for attr in ('low_opt', 'opt', 'opt_ts', 'grad', 'hess'):
+        for attr in ("low_opt", "opt", "opt_ts", "grad", "hess"):
             getattr(self, attr).basis_set = basis_set
 
         return None
@@ -176,14 +184,12 @@ class KeywordsSet:
 
         return None
 
-    def copy(self) -> 'KeywordsSet':
+    def copy(self) -> "KeywordsSet":
         return deepcopy(self)
 
 
 class Keywords(ABC):
-
-    def __init__(self,
-                 keyword_list: Union[Sequence, str, None] = None):
+    def __init__(self, keyword_list: Union[Sequence, str, None] = None):
         """
         List of keywords used in an electronic structure calculation
 
@@ -199,12 +205,13 @@ class Keywords(ABC):
             self._list = list(keyword_list) if keyword_list is not None else []
 
     def __str__(self):
-        return ' '.join([repr(kw) for kw in self._list])
+        return " ".join([repr(kw) for kw in self._list])
 
     def __eq__(self, other) -> bool:
         """Equality of these keywords to another kind"""
-        return (isinstance(other, self.__class__)
-                and set(self._list) == set(other._list))
+        return isinstance(other, self.__class__) and set(self._list) == set(
+            other._list
+        )
 
     def __add__(self, other):
         """Add some keywords to these"""
@@ -216,8 +223,10 @@ class Keywords(ABC):
             return self.__class__(self._list + other)
 
         else:
-            raise ValueError(f"Cannot add {other} to the keywords. Must be a "
-                             f"list or a Keywords object")
+            raise ValueError(
+                f"Cannot add {other} to the keywords. Must be a "
+                f"list or a Keywords object"
+            )
 
     @abstractmethod
     def __repr__(self):
@@ -248,14 +257,18 @@ class Keywords(ABC):
                 return
 
             # Cannot have both wavefunction and DFT methoda
-            if ((isinstance(keyword_in_list, WFMethod)
-                 and keyword_type == Functional)
-                or
-                (isinstance(keyword_in_list, Functional)
-                 and keyword_type == WFMethod)):
+            if (
+                isinstance(keyword_in_list, WFMethod)
+                and keyword_type == Functional
+            ) or (
+                isinstance(keyword_in_list, Functional)
+                and keyword_type == WFMethod
+            ):
 
-                raise ValueError('Could not set a functional with a '
-                                 'WF method present, or vice-versa ')
+                raise ValueError(
+                    "Could not set a functional with a "
+                    "WF method present, or vice-versa "
+                )
 
         # This keyword does not appear in the list, so add it
         self.append(keyword)
@@ -316,27 +329,27 @@ class Keywords(ABC):
     @property
     def method_string(self):
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
-        string = ''
+        string = ""
 
         func = self.functional
         if func is not None:
-            string += f'{func.upper()}({func.doi_str})'
+            string += f"{func.upper()}({func.doi_str})"
 
         disp = self.dispersion
         if disp is not None:
-            string += f'-{disp.upper()}({disp.doi_str})'
+            string += f"-{disp.upper()}({disp.doi_str})"
 
         wf = self.wf_method
         if wf is not None:
-            string += f'{str(wf)}({wf.doi_str})'
+            string += f"{str(wf)}({wf.doi_str})"
 
         ri = self._get_keyword(keyword_type=RI)
         if ri is not None:
-            string += f'({ri.upper()}, {ri.doi_str})'
+            string += f"({ri.upper()}, {ri.doi_str})"
 
         if len(string) == 0:
-            logger.warning('Unknown method')
-            string = '???'
+            logger.warning("Unknown method")
+            string = "???"
 
         return string
 
@@ -344,19 +357,19 @@ class Keywords(ABC):
     def bstring(self):
         """Brief string without dois of the method e.g. PBE0-D3BJ/def2-SVP"""
 
-        string = ''
+        string = ""
 
         if self.functional is not None:
             string += self.functional.upper()
 
         if self.wf_method is not None:
-            string += f'-{self.wf_method.upper()}'
+            string += f"-{self.wf_method.upper()}"
 
         if self.dispersion is not None:
-            string += f'-{self.dispersion.upper()}'
+            string += f"-{self.dispersion.upper()}"
 
         if self.basis_set is not None:
-            string += f'/{self.basis_set.name}'
+            string += f"/{self.basis_set.name}"
 
         return string
 
@@ -405,7 +418,6 @@ class Keywords(ABC):
 
 
 class OptKeywords(Keywords):
-
     @property
     def max_opt_cycles(self):
         """
@@ -417,19 +429,19 @@ class OptKeywords(Keywords):
         return self._get_keyword(MaxOptCycles)
 
     @max_opt_cycles.setter
-    def max_opt_cycles(self, value: Union[int, 'MaxOptCycles', None]):
+    def max_opt_cycles(self, value: Union[int, "MaxOptCycles", None]):
         """Set the maximum number of optimisation cycles"""
         if value is None:
             self._set_keyword(None, MaxOptCycles)
             return
 
         if int(value) <= 0:
-            raise ValueError('Must have a positive number of opt cycles')
+            raise ValueError("Must have a positive number of opt cycles")
 
         self._set_keyword(MaxOptCycles(int(value)), MaxOptCycles)
 
     def __repr__(self):
-        return f'OptKeywords({self.__str__()})'
+        return f"OptKeywords({self.__str__()})"
 
 
 class OptTSKeywords(OptKeywords):
@@ -437,29 +449,24 @@ class OptTSKeywords(OptKeywords):
 
 
 class HessianKeywords(Keywords):
-
     def __repr__(self):
-        return f'HessKeywords({self.__str__()})'
+        return f"HessKeywords({self.__str__()})"
 
 
 class GradientKeywords(Keywords):
-
     def __repr__(self):
-        return f'GradKeywords({self.__str__()})'
+        return f"GradKeywords({self.__str__()})"
 
 
 class SinglePointKeywords(Keywords):
-
     def __repr__(self):
-        return f'SPKeywords({self.__str__()})'
+        return f"SPKeywords({self.__str__()})"
 
 
 class Keyword(ABC):
-
-    def __init__(self,
-                 name: str,
-                 doi_list: Optional[List[str]] = None,
-                 **kwargs):
+    def __init__(
+        self, name: str, doi_list: Optional[List[str]] = None, **kwargs
+    ):
         """
         A keyword for an electronic structure theory method e.g. basis set or
         functional, with possibly a an associated reference or set of
@@ -492,8 +499,8 @@ class Keyword(ABC):
         self.__dict__.update(kwargs)
 
         # Gaussian 09 and Gaussian 16 keywords are the same
-        if 'g09' in kwargs.keys():
-            self.g16 = kwargs['g09']
+        if "g09" in kwargs.keys():
+            self.g16 = kwargs["g09"]
 
     @abstractmethod
     def __repr__(self):
@@ -517,7 +524,7 @@ class Keyword(ABC):
 
     @property
     def doi_str(self):
-        return ' '.join(self.doi_list)
+        return " ".join(self.doi_list)
 
     @property
     def has_only_name(self):
@@ -527,7 +534,7 @@ class Keyword(ABC):
         to be set, where method is e.g. orca
         """
 
-        excl_attrs = ('name', 'doi_list', 'doi', 'freq_scale_factor')
+        excl_attrs = ("name", "doi_list", "doi", "freq_scale_factor")
         for attr in self.__dict__:
             if attr in excl_attrs:
                 continue
@@ -540,37 +547,40 @@ class BasisSet(Keyword):
     """Basis set for a QM method"""
 
     def __repr__(self):
-        return f'BasisSet({self.name})'
+        return f"BasisSet({self.name})"
 
 
 class DispersionCorrection(Keyword):
     """Functional for a DFT method"""
 
     def __repr__(self):
-        return f'DispersionCorrection({self.name})'
+        return f"DispersionCorrection({self.name})"
 
 
 class Functional(Keyword):
     """Functional for a DFT method"""
 
-    def __init__(self, name,
-                 doi=None,
-                 doi_list=None,
-                 freq_scale_factor: float = 1.0,
-                 **kwargs):
+    def __init__(
+        self,
+        name,
+        doi=None,
+        doi_list=None,
+        freq_scale_factor: float = 1.0,
+        **kwargs,
+    ):
         super().__init__(name, doi=doi, doi_list=doi_list, **kwargs)
 
         self.freq_scale_factor = freq_scale_factor
 
     def __repr__(self):
-        return f'Functional({self.name})'
+        return f"Functional({self.name})"
 
     def __eq__(self, other):
         return isinstance(other, Functional) and self.name == other.name
 
     def __hash__(self):
         return hash(self.name)
-    
+
 
 class ImplicitSolventType(Keyword):
     """
@@ -580,45 +590,49 @@ class ImplicitSolventType(Keyword):
     """
 
     def __repr__(self):
-        return f'ImplicitSolventType({self.name})'
+        return f"ImplicitSolventType({self.name})"
 
 
 class RI(Keyword):
     """Resolution of identity approximation"""
 
     def __repr__(self):
-        return f'ResolutionOfIdentity({self.name})'
+        return f"ResolutionOfIdentity({self.name})"
 
 
 class WFMethod(Keyword):
     """Keyword for a wavefunction method e.g. HF or CCSD(T)"""
 
     def __repr__(self):
-        return f'WaveFunctionMethod({self.name})'
+        return f"WaveFunctionMethod({self.name})"
 
 
 class ECP(Keyword):
     """Effective core potential"""
 
     def __repr__(self):
-        return f'EffectiveCorePotential({self.name})'
+        return f"EffectiveCorePotential({self.name})"
 
     def __eq__(self, other):
         """Equality of ECPs"""
-        return (isinstance(other, ECP)
-                and str(self) == str(other)
-                and self.min_atomic_number == other.min_atomic_number)
+        return (
+            isinstance(other, ECP)
+            and str(self) == str(other)
+            and self.min_atomic_number == other.min_atomic_number
+        )
 
     def __hash__(self):
         """Unique hash of this effective core potential"""
         return hash(str(self) + str(self.min_atomic_number))
 
-    def __init__(self,
-                 name:              str,
-                 min_atomic_number: int = 37,
-                 doi:               Optional[str] = None,
-                 doi_list:          Optional[Sequence[str]] = None,
-                 **kwargs):
+    def __init__(
+        self,
+        name: str,
+        min_atomic_number: int = 37,
+        doi: Optional[str] = None,
+        doi_list: Optional[Sequence[str]] = None,
+        **kwargs,
+    ):
         """
         An effective core potential that applies to all atoms with atomic
         numbers larger than min_atomic_number
@@ -640,11 +654,10 @@ class MaxOptCycles(Keyword):
     """Maximum number of optimisation cycles"""
 
     def __repr__(self):
-        return f'MaxOptCycles(N = {self.name})'
+        return f"MaxOptCycles(N = {self.name})"
 
     def __int__(self):
         return int(self.name)
 
-    def __init__(self,
-                 number: int):
+    def __init__(self, number: int):
         super().__init__(name=str(int(number)))

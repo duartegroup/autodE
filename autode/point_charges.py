@@ -3,13 +3,14 @@ from autode.atoms import DummyAtom
 
 
 class PointCharge(DummyAtom):
-
-    def __init__(self,
-                 charge: float,
-                 x:      float = 0.0,
-                 y:      float = 0.0,
-                 z:      float = 0.0,
-                 coord:  Optional[Sequence] = None):
+    def __init__(
+        self,
+        charge: float,
+        x: float = 0.0,
+        y: float = 0.0,
+        z: float = 0.0,
+        coord: Optional[Sequence] = None,
+    ):
         """
         Point charge
 

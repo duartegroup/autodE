@@ -26,101 +26,122 @@ class DimerCoordinates(OptCoordinates):
 
     implemented_units = [ang_amu_half]
 
-    def __new__(cls,
-                input_array: Union[Sequence, np.ndarray],
-                units:       Union[str, 'autode.units.Unit'] = 'Å amu^1/2'
-                ) -> 'OptCoordinates':
+    def __new__(
+        cls,
+        input_array: Union[Sequence, np.ndarray],
+        units: Union[str, "autode.units.Unit"] = "Å amu^1/2",
+    ) -> "OptCoordinates":
         """New instance of these coordinates"""
 
         arr = super().__new__(cls, np.array(input_array), units)
 
         if arr.ndim != 2 or arr.shape[0] != 3:
-            raise ValueError('Dimer coordinates must be initialised from a '
-                             '3x3N array for a system with N atoms')
+            raise ValueError(
+                "Dimer coordinates must be initialised from a "
+                "3x3N array for a system with N atoms"
+            )
 
-        arr._e = None                             # Energy
-        arr._dist = MWDistance(0.0, 'Å amu^1/2')  # Translation distance
-        arr._phi = Angle(0.0, 'radians')          # Rotation amount
+        arr._e = None  # Energy
+        arr._dist = MWDistance(0.0, "Å amu^1/2")  # Translation distance
+        arr._phi = Angle(0.0, "radians")  # Rotation amount
 
         """
         Compared to standard Cartesian coordinates these arrays have and
         additional dimension for the two end points of the dimer.
         """
-        arr._g = None           # Gradient: {dE/dX_0, dE/dX_1, dE/dx_2}
-        arr._h = None           # Hessian: {d2E/dXdY_0, d2E/dXdY_1, d2E/dXdY_2}
+        arr._g = None  # Gradient: {dE/dX_0, dE/dX_1, dE/dx_2}
+        arr._h = None  # Hessian: {d2E/dXdY_0, d2E/dXdY_1, d2E/dXdY_2}
 
-        arr.masses = None       # Atomic masses
+        arr.masses = None  # Atomic masses
 
         return arr
 
-    def __array_finalize__(self, obj: 'OptCoordinates') -> None:
+    def __array_finalize__(self, obj: "OptCoordinates") -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
-        for attr in ('units', '_e', '_g', '_h', '_dist', '_phi', 'masses'):
+        for attr in ("units", "_e", "_g", "_h", "_dist", "_phi", "masses"):
             self.__dict__[attr] = getattr(obj, attr, None)
 
         return None
 
     @classmethod
-    def from_species(cls,
-                     species1: 'autode.species.Species',
-                     species2: 'autode.species.Species'
-                     ) -> 'DimerCoordinates':
+    def from_species(
+        cls,
+        species1: "autode.species.Species",
+        species2: "autode.species.Species",
+    ) -> "DimerCoordinates":
         """
         Initialise a set of DimerCoordinates from two species, i.e. those
         either side of the saddle point.
         """
         if not species1.has_identical_composition_as(species2):
-            raise ValueError('Cannot form a set of dimer coordinates from two '
-                             'species with a different number of atoms')
+            raise ValueError(
+                "Cannot form a set of dimer coordinates from two "
+                "species with a different number of atoms"
+            )
 
-        coords = cls(np.stack((np.empty(3*species1.n_atoms),
-                               np.array(species1.coordinates).flatten(),
-                               np.array(species2.coordinates).flatten()),
-                              axis=0))
+        coords = cls(
+            np.stack(
+                (
+                    np.empty(3 * species1.n_atoms),
+                    np.array(species1.coordinates).flatten(),
+                    np.array(species2.coordinates).flatten(),
+                ),
+                axis=0,
+            )
+        )
 
         # Mass weight the coordinates by m^1/2 for each atom
-        coords.masses = np.repeat(np.array(species1.atomic_masses, dtype=float),
-                                  repeats=3,
-                                  axis=np.newaxis)
+        coords.masses = np.repeat(
+            np.array(species1.atomic_masses, dtype=float),
+            repeats=3,
+            axis=np.newaxis,
+        )
 
         coords *= np.sqrt(coords.masses)
 
         return coords
 
-    def _update_g_from_cart_g(self,
-                              arr: Optional['autode.values.Gradient']) -> None:
-        raise NotImplementedError('Cannot update the gradient - indeterminate '
-                                  'point in the dimer')
+    def _update_g_from_cart_g(
+        self, arr: Optional["autode.values.Gradient"]
+    ) -> None:
+        raise NotImplementedError(
+            "Cannot update the gradient - indeterminate " "point in the dimer"
+        )
 
-    def _update_h_from_cart_h(self,
-                              arr: Optional['autode.values.Hessian']) -> None:
-        logger.warning('Dimer does not require Hessians - skipping')
+    def _update_h_from_cart_h(
+        self, arr: Optional["autode.values.Hessian"]
+    ) -> None:
+        logger.warning("Dimer does not require Hessians - skipping")
         return None
 
     def __repr__(self) -> str:
-        return f'Dimer Coordinates({np.ndarray.__str__(self)} {self.units.name})'
+        return (
+            f"Dimer Coordinates({np.ndarray.__str__(self)} {self.units.name})"
+        )
 
     def __eq__(self, other):
         """Coordinates can never be identical..."""
         return False
 
-    def to(self, *args, **kwargs) -> 'OptCoordinates':
-        raise NotImplementedError('Cannot convert dimer coordinates to other '
-                                  'types')
+    def to(self, *args, **kwargs) -> "OptCoordinates":
+        raise NotImplementedError(
+            "Cannot convert dimer coordinates to other " "types"
+        )
 
-    def iadd(self, value: np.ndarray) -> 'OptCoordinates':
+    def iadd(self, value: np.ndarray) -> "OptCoordinates":
         return np.ndarray.__iadd__(self, value)
 
-    def x_at(self,
-             point:         DimerPoint,
-             mass_weighted: bool = True
-             ) -> np.ndarray:
+    def x_at(
+        self, point: DimerPoint, mass_weighted: bool = True
+    ) -> np.ndarray:
         """Coordinates at a point in the dimer"""
 
         if mass_weighted is False and self.masses is None:
-            raise RuntimeError('Cannot un-mass weight the coordinates, '
-                               'coordinates had no masses set')
+            raise RuntimeError(
+                "Cannot un-mass weight the coordinates, "
+                "coordinates had no masses set"
+            )
 
         if point == DimerPoint.midpoint:
             x = self.x0
@@ -155,14 +176,13 @@ class DimerCoordinates(OptCoordinates):
 
     def g_at(self, point: DimerPoint) -> np.ndarray:
         if self._g is None:
-            raise RuntimeError(f'Cannot get the gradient at {point}')
+            raise RuntimeError(f"Cannot get the gradient at {point}")
 
         return self._g[int(point), :]
 
-    def set_g_at(self,
-                 point:         DimerPoint,
-                 arr:           np.ndarray,
-                 mass_weighted: bool = True):
+    def set_g_at(
+        self, point: DimerPoint, arr: np.ndarray, mass_weighted: bool = True
+    ):
         """Set the gradient vector at a particular point"""
 
         if self._g is None:
@@ -170,8 +190,9 @@ class DimerCoordinates(OptCoordinates):
 
         if not mass_weighted:
             if self.masses is None:
-                raise RuntimeError('Cannot set the mass-weighted gradient '
-                                   'without masses')
+                raise RuntimeError(
+                    "Cannot set the mass-weighted gradient " "without masses"
+                )
 
             arr *= np.sqrt(self.masses)
 
@@ -225,8 +246,9 @@ class DimerCoordinates(OptCoordinates):
     @property
     def delta(self) -> float:
         """Distance between the dimer point, Δ"""
-        return MWDistance(np.linalg.norm(self.x1 - self.x2) / 2.0,
-                          units=self.units)
+        return MWDistance(
+            np.linalg.norm(self.x1 - self.x2) / 2.0, units=self.units
+        )
 
     @property
     def phi(self) -> Angle:
@@ -236,7 +258,7 @@ class DimerCoordinates(OptCoordinates):
     @phi.setter
     def phi(self, value: Angle):
         if not isinstance(value, Angle):
-            raise ValueError('phi must be an autode.values.Angle instance')
+            raise ValueError("phi must be an autode.values.Angle instance")
 
         self._phi = value
 
@@ -248,16 +270,16 @@ class DimerCoordinates(OptCoordinates):
     @dist.setter
     def dist(self, value: MWDistance):
         if not isinstance(value, MWDistance):
-            raise ValueError('dist must be an autode.values.Distance instance')
+            raise ValueError("dist must be an autode.values.Distance instance")
 
         self._dist = value
 
     @property
     def did_rotation(self):
         """Rotated this iteration?"""
-        return abs(self._phi) > 1E-10
+        return abs(self._phi) > 1e-10
 
     @property
     def did_translation(self):
         """Translated this iteration?"""
-        return abs(self.dist) > 1E-10
+        return abs(self.dist) > 1e-10

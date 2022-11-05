@@ -19,22 +19,22 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
     Returns:
         (autode.atoms.Atoms): Atoms
     """
-    logger.info(f'Getting atoms from {filename}')
+    logger.info(f"Getting atoms from {filename}")
 
     _check_xyz_file_exists(filename)
     atoms = Atoms()
 
-    with open(filename, 'r') as xyz_file:
+    with open(filename, "r") as xyz_file:
 
         try:
             # First item in an xyz file is the number of atoms
             n_atoms = int(xyz_file.readline().split()[0])
 
         except (IndexError, ValueError):
-            raise XYZfileWrongFormat('Number of atoms not found')
+            raise XYZfileWrongFormat("Number of atoms not found")
 
         # XYZ lines should be the following 2 + n_atoms lines
-        xyz_lines = xyz_file.readlines()[1:n_atoms+1]
+        xyz_lines = xyz_file.readlines()[1 : n_atoms + 1]
 
         for i, line in enumerate(xyz_lines):
 
@@ -43,20 +43,25 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
                 atoms.append(Atom(atomic_symbol=atom_label, x=x, y=y, z=z))
 
             except (IndexError, TypeError, ValueError):
-                raise XYZfileWrongFormat(f'Coordinate line {i} ({line}) '
-                                         f'not the correct format')
+                raise XYZfileWrongFormat(
+                    f"Coordinate line {i} ({line}) " f"not the correct format"
+                )
 
         if len(atoms) != n_atoms:
-            raise XYZfileWrongFormat(f'Number of atoms declared ({n_atoms}) '
-                                     f'not equal to the number of atoms found '
-                                     f'{len(atoms)}')
+            raise XYZfileWrongFormat(
+                f"Number of atoms declared ({n_atoms}) "
+                f"not equal to the number of atoms found "
+                f"{len(atoms)}"
+            )
     return atoms
 
 
-def atoms_to_xyz_file(atoms:      Collection[Atom],
-                      filename:   str,
-                      title_line: str = '',
-                      append:     bool = False):
+def atoms_to_xyz_file(
+    atoms: Collection[Atom],
+    filename: str,
+    title_line: str = "",
+    append: bool = False,
+):
     """
     Print a standard .xyz file from a list of atoms
 
@@ -72,15 +77,14 @@ def atoms_to_xyz_file(atoms:      Collection[Atom],
                 filename will be overwritten if it already exists
     """
     assert atoms is not None
-    assert filename.endswith('.xyz')
+    assert filename.endswith(".xyz")
 
-    with open(filename, 'a' if append else 'w') as xyz_file:
-        print(len(atoms), title_line, sep='\n', file=xyz_file)
+    with open(filename, "a" if append else "w") as xyz_file:
+        print(len(atoms), title_line, sep="\n", file=xyz_file)
 
         for atom in atoms:
             x, y, z = atom.coord  # (Å)
-            print(f'{atom.label:<3}{x:10.5f}{y:10.5f}{z:10.5f}',
-                  file=xyz_file)
+            print(f"{atom.label:<3}{x:10.5f}{y:10.5f}{z:10.5f}", file=xyz_file)
     return None
 
 
@@ -108,12 +112,13 @@ def xyz_file_to_molecules(filename: str) -> List["autode.Molecule"]:
 
         atoms = []
         title_line = StringDict(lines[i + 1])
-        for j, line in enumerate(lines[i + 2:i + n_atoms + 2]):
+        for j, line in enumerate(lines[i + 2 : i + n_atoms + 2]):
             symbol, x, y, z = line.split()[:4]
             atoms.append(Atom(atomic_symbol=symbol, x=x, y=y, z=z))
 
-        molecule = Molecule(atoms=atoms,
-                            solvent_name=title_line.get("solvent", None))
+        molecule = Molecule(
+            atoms=atoms, solvent_name=title_line.get("solvent", None)
+        )
 
         _set_attr_from_title_line(molecule, "charge", title_line)
         _set_attr_from_title_line(molecule, "mult", title_line)
@@ -127,18 +132,20 @@ def xyz_file_to_molecules(filename: str) -> List["autode.Molecule"]:
 def _check_xyz_file_exists(filename: str) -> None:
 
     if not os.path.exists(filename):
-        raise XYZfileDidNotExist(f'{filename} did not exist')
+        raise XYZfileDidNotExist(f"{filename} did not exist")
 
-    if not filename.endswith('.xyz'):
-        raise XYZfileWrongFormat('xyz file must have a .xyz file extension')
+    if not filename.endswith(".xyz"):
+        raise XYZfileWrongFormat("xyz file must have a .xyz file extension")
 
     return None
 
 
-def _set_attr_from_title_line(species: "Species",
-                              attr: str,
-                              title_line: StringDict,
-                              key_in_line: Optional[str] = None) -> None:
+def _set_attr_from_title_line(
+    species: "Species",
+    attr: str,
+    title_line: StringDict,
+    key_in_line: Optional[str] = None,
+) -> None:
 
     if key_in_line is None:
         key_in_line = attr  # Default to e.g. charge attribute is "charge = 0"

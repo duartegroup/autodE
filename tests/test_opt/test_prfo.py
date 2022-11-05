@@ -13,13 +13,19 @@ def test_sn2_opt():
 
     xtb = XTB()
 
-    mol = Molecule(name='sn2_ts', charge=-1, solvent_name='water',
-                   atoms=[Atom('F', -4.17085, 3.55524, 1.59944),
-                          Atom('Cl', -0.75962, 3.53830, -0.72354),
-                          Atom('C', -2.51988, 3.54681,  0.47836),
-                          Atom('H', -3.15836, 3.99230, -0.27495),
-                          Atom('H', -2.54985, 2.47411,  0.62732),
-                          Atom('H', -2.10961, 4.17548,  1.25945)])
+    mol = Molecule(
+        name="sn2_ts",
+        charge=-1,
+        solvent_name="water",
+        atoms=[
+            Atom("F", -4.17085, 3.55524, 1.59944),
+            Atom("Cl", -0.75962, 3.53830, -0.72354),
+            Atom("C", -2.51988, 3.54681, 0.47836),
+            Atom("H", -3.15836, 3.99230, -0.27495),
+            Atom("H", -2.54985, 2.47411, 0.62732),
+            Atom("H", -2.10961, 4.17548, 1.25945),
+        ],
+    )
 
     assert mol.is_implicitly_solvated
 
@@ -29,6 +35,4 @@ def test_sn2_opt():
     assert len(mol.imaginary_frequencies) == 1
     freq = mol.imaginary_frequencies[0]
 
-    assert np.isclose(freq.to('cm-1'),
-                      -555,
-                      atol=20)
+    assert np.isclose(freq.to("cm-1"), -555, atol=20)

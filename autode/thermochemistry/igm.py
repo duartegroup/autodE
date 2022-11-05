@@ -18,9 +18,9 @@ from autode.values import FreeEnergyCont, EnthalpyCont
 class SIConstants:
     """Constants in SI (International System of Units) units"""
 
-    k_b = 1.38064852E-23                # J K-1
-    h = 6.62607004E-34                  # J s
-    c = 299792458                       # m s-1
+    k_b = 1.38064852e-23  # J K-1
+    h = 6.62607004e-34  # J s
+    c = 299792458  # m s-1
 
 
 class LFMethod(Enum):
@@ -81,35 +81,41 @@ def calculate_thermo_cont(species, temp=298.15, **kwargs):
         (KeyError | ValueError): If frequencies are not defined
     """
     if species.n_atoms == 0:
-        logger.warning('Species had no atoms. Cannot calculate thermochemical '
-                       'contributions (G_cont, H_cont)')
+        logger.warning(
+            "Species had no atoms. Cannot calculate thermochemical "
+            "contributions (G_cont, H_cont)"
+        )
         return
 
     if species.frequencies is None and species.n_atoms > 1:
-        raise ValueError('Cannot calculate vibrational entropy/internal energy'
-                         f' no frequencies present for {species.name}.')
+        raise ValueError(
+            "Cannot calculate vibrational entropy/internal energy"
+            f" no frequencies present for {species.name}."
+        )
 
-    if 'lfm_method' in kwargs and type(kwargs['lfm_method']) is str:
-        kwargs['lfm_method'] = LFMethod[kwargs['lfm_method'].lower()]
+    if "lfm_method" in kwargs and type(kwargs["lfm_method"]) is str:
+        kwargs["lfm_method"] = LFMethod[kwargs["lfm_method"].lower()]
 
-    S_cont = _entropy(species,
-                      method=kwargs.get('lfm_method', LFMethod[Config.lfm_method]),
-                      temp=temp,
-                      ss=kwargs.get('ss', Config.standard_state),
-                      shift=kwargs.get('freq_shift', Config.vib_freq_shift),
-                      w0=kwargs.get('w0', Config.grimme_w0),
-                      alpha=kwargs.get('alpha', Config.grimme_alpha),
-                      sigma_r=kwargs.get('sn', species.sn))
+    S_cont = _entropy(
+        species,
+        method=kwargs.get("lfm_method", LFMethod[Config.lfm_method]),
+        temp=temp,
+        ss=kwargs.get("ss", Config.standard_state),
+        shift=kwargs.get("freq_shift", Config.vib_freq_shift),
+        w0=kwargs.get("w0", Config.grimme_w0),
+        alpha=kwargs.get("alpha", Config.grimme_alpha),
+        sigma_r=kwargs.get("sn", species.sn),
+    )
 
     U_cont = _internal_energy(species, temp=temp)
 
-    H_cont = EnthalpyCont(U_cont + SIConstants.k_b * temp, units='J').to('Ha')
+    H_cont = EnthalpyCont(U_cont + SIConstants.k_b * temp, units="J").to("Ha")
 
     # Add a method string for how this enthalpic contribution was calculated
     H_cont.method_str = _thermo_method_str(species, **kwargs)
     species.energies.append(H_cont)
 
-    G_cont = FreeEnergyCont(H_cont.to('J') - temp * S_cont, units='J').to('Ha')
+    G_cont = FreeEnergyCont(H_cont.to("J") - temp * S_cont, units="J").to("Ha")
 
     # Method used to calculate the free energy is the  same as the enthalpy..
     G_cont.method_str = H_cont.method_str
@@ -132,14 +138,16 @@ def _thermo_method_str(species, **kwargs):
     Returns:
         (str):
     """
-    string = ''
+    string = ""
 
     if species.energy is not None:
-        string += f'{species.energy.method_str} '
+        string += f"{species.energy.method_str} "
 
-    string += (f'{kwargs.get("ss", Config.standard_state)} standard state, '
-               f'using a {kwargs.get("lfm_method", Config.lfm_method)} '
-               f'treatment of low-frequency modes to the entropy.')
+    string += (
+        f'{kwargs.get("ss", Config.standard_state)} standard state, '
+        f'using a {kwargs.get("lfm_method", Config.lfm_method)} '
+        f"treatment of low-frequency modes to the entropy."
+    )
 
     return string
 
@@ -159,18 +167,28 @@ def _q_trans_igm(species, ss, temp):
         (float): Translational partition function q_trns
     """
 
-    if ss.lower() == '1atm':
+    if ss.lower() == "1atm":
         effective_volume = SIConstants.k_b * temp / Constants.atm_to_pa
 
-    elif ss.lower() == '1m':
-        effective_volume = 1.0 / (Constants.n_a * (1.0 / Constants.dm_to_m)**3)
+    elif ss.lower() == "1m":
+        effective_volume = 1.0 / (
+            Constants.n_a * (1.0 / Constants.dm_to_m) ** 3
+        )
 
     else:
-        raise ValueError(f'Cannot calculate PIB partition function using a'
-                         f' {ss} state. Only "1atm" and "1m" implemented')
+        raise ValueError(
+            f"Cannot calculate PIB partition function using a"
+            f' {ss} state. Only "1atm" and "1m" implemented'
+        )
 
-    q_trans = ((2.0 * np.pi * species.weight.to('kg') * SIConstants.k_b * temp
-                / SIConstants.h**2)**1.5 * effective_volume)
+    q_trans = (
+        2.0
+        * np.pi
+        * species.weight.to("kg")
+        * SIConstants.k_b
+        * temp
+        / SIConstants.h**2
+    ) ** 1.5 * effective_volume
 
     return q_trans
 
@@ -194,19 +212,28 @@ def _q_rot_igm(species, temp, sigma_r):
         return 1
 
     if species.is_linear():
-        com = species.com.to('m')
-        i_val = sum(atom.mass.to('kg') * np.linalg.norm(atom.coord.to('m') - com)**2
-                    for atom in species.atoms)
+        com = species.com.to("m")
+        i_val = sum(
+            atom.mass.to("kg") * np.linalg.norm(atom.coord.to("m") - com) ** 2
+            for atom in species.atoms
+        )
 
-        return (temp * 8 * np.pi**2 * SIConstants.k_b * i_val
-                / (sigma_r * SIConstants.h**2))
+        return (
+            temp
+            * 8
+            * np.pi**2
+            * SIConstants.k_b
+            * i_val
+            / (sigma_r * SIConstants.h**2)
+        )
 
     # otherwise a polyatomic..
-    i_mat = species.moi.to('kg m^2')
-    omega_diag = (SIConstants.h**2
-                  / (8.0 * np.pi**2 * SIConstants.k_b * np.diagonal(i_mat)))
+    i_mat = species.moi.to("kg m^2")
+    omega_diag = SIConstants.h**2 / (
+        8.0 * np.pi**2 * SIConstants.k_b * np.diagonal(i_mat)
+    )
 
-    return temp**1.5/sigma_r * np.sqrt(np.pi / np.prod(omega_diag))
+    return temp**1.5 / sigma_r * np.sqrt(np.pi / np.prod(omega_diag))
 
 
 def _s_trans_pib(species, ss, temp):
@@ -269,9 +296,10 @@ def _igm_s_vib(species, temp):
     s = 0.0
 
     for freq in species.vib_frequencies:
-        x = freq.real.to('hz') * SIConstants.h / (SIConstants.k_b * temp)
-        s += SIConstants.k_b * ((x / (np.exp(x) - 1.0))
-                                - np.log(1.0 - np.exp(-x)))
+        x = freq.real.to("hz") * SIConstants.h / (SIConstants.k_b * temp)
+        s += SIConstants.k_b * (
+            (x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x))
+        )
 
     return float(s)
 
@@ -292,8 +320,8 @@ def _truhlar_s_vib(species, temp, shift_freq):
     """
     s = 0
 
-    if hasattr(shift_freq, 'to'):
-        shift_freq = float(shift_freq.to('cm-1'))
+    if hasattr(shift_freq, "to"):
+        shift_freq = float(shift_freq.to("cm-1"))
 
     for freq in species.vib_frequencies:
 
@@ -301,8 +329,10 @@ def _truhlar_s_vib(species, temp, shift_freq):
         freq = max(float(freq.real), shift_freq)
 
         x = freq * Constants.c_in_cm * SIConstants.h / SIConstants.k_b
-        s += SIConstants.k_b * (((x / temp) / (np.exp(x / temp) - 1.0)) -
-                                np.log(1.0 - np.exp(-x / temp)))
+        s += SIConstants.k_b * (
+            ((x / temp) / (np.exp(x / temp) - 1.0))
+            - np.log(1.0 - np.exp(-x / temp))
+        )
 
     return float(s)
 
@@ -323,26 +353,29 @@ def _grimme_s_vib(species, temp, omega_0, alpha):
         (float): S_vib
     """
     s = 0.0
-    omega_0 = float(omega_0.to('cm-1')) if hasattr(omega_0, 'to') else omega_0
+    omega_0 = float(omega_0.to("cm-1")) if hasattr(omega_0, "to") else omega_0
 
     # Average I = (I_xx + I_yy + I_zz) / 3.0
-    b_avg = np.trace(species.moi.to('kg m^2')) / 3.0
+    b_avg = np.trace(species.moi.to("kg m^2")) / 3.0
 
     for freq in species.vib_frequencies:
 
-        omega = freq.real.to('hz')
+        omega = freq.real.to("hz")
 
         mu = SIConstants.h / (8.0 * np.pi**2 * omega)
         mu_prime = (mu * b_avg) / (mu + b_avg)
 
         x = omega * SIConstants.h / (SIConstants.k_b * temp)
-        s_v = SIConstants.k_b * ((x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x)))
+        s_v = SIConstants.k_b * (
+            (x / (np.exp(x) - 1.0)) - np.log(1.0 - np.exp(-x))
+        )
 
-        factor = ((8.0 * np.pi**3 * mu_prime * SIConstants.k_b * temp)
-                  / SIConstants.h**2)
+        factor = (
+            8.0 * np.pi**3 * mu_prime * SIConstants.k_b * temp
+        ) / SIConstants.h**2
         s_r = SIConstants.k_b * (0.5 + np.log(np.sqrt(factor)))
 
-        w = 1.0 / (1.0 + (omega_0 / freq)**alpha)
+        w = 1.0 / (1.0 + (omega_0 / freq) ** alpha)
 
         s += w * s_v + (1.0 - w) * s_r
 
@@ -369,7 +402,7 @@ def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
     Raises:
         (NotImplementedError):
     """
-    logger.info(f'Calculating molecular entropy. σ_R = {sigma_r}')
+    logger.info(f"Calculating molecular entropy. σ_R = {sigma_r}")
 
     # Translational entropy component
     s_trans = _s_trans_pib(species, ss=ss, temp=temp)
@@ -392,12 +425,14 @@ def _entropy(species, method, temp, ss, shift, w0, alpha, sigma_r):
         s_vib = _grimme_s_vib(species, temp, omega_0=w0, alpha=alpha)
 
     else:
-        raise NotImplementedError(f'Unrecognised method: {method}')
+        raise NotImplementedError(f"Unrecognised method: {method}")
 
-    logger.info(f'S_trans = {s_trans*Constants.n_a:.3f} J K-1 mol-1\n'
-                f'S_rot = {s_rot*Constants.n_a:.3f} J K-1 mol-1\n'
-                f'S_vib = {s_vib*Constants.n_a:.3f} J K-1 mol-1\n'
-                f'S_elec = 0.0')
+    logger.info(
+        f"S_trans = {s_trans*Constants.n_a:.3f} J K-1 mol-1\n"
+        f"S_rot = {s_rot*Constants.n_a:.3f} J K-1 mol-1\n"
+        f"S_vib = {s_vib*Constants.n_a:.3f} J K-1 mol-1\n"
+        f"S_elec = 0.0"
+    )
 
     return s_trans + s_rot + s_vib
 
@@ -420,7 +455,7 @@ def _zpe(species):
 
     zpe = 0.0
     for freq in species.vib_frequencies:
-        zpe += 0.5 * SIConstants.h * freq.real.to('hz')
+        zpe += 0.5 * SIConstants.h * freq.real.to("hz")
 
     return float(zpe)
 
@@ -441,9 +476,13 @@ def _internal_vib_energy(species, temp):
 
     # Final 6 vibrational frequencies are translational/rotational
     for freq in species.vib_frequencies:
-        x = (float(freq.real.to('cm-1')) * Constants.c_in_cm * SIConstants.h
-             / SIConstants.k_b)
-        e_vib += SIConstants.k_b * x * (1.0 / (np.exp(x/temp) - 1.0))
+        x = (
+            float(freq.real.to("cm-1"))
+            * Constants.c_in_cm
+            * SIConstants.h
+            / SIConstants.k_b
+        )
+        e_vib += SIConstants.k_b * x * (1.0 / (np.exp(x / temp) - 1.0))
 
     return float(e_vib)
 
@@ -477,9 +516,11 @@ def _internal_energy(species, temp):
     zpe = _zpe(species)
     e_vib = _internal_vib_energy(species, temp=temp)
 
-    logger.info(f'ZPE =     {zpe*Constants.n_a/1E3:.3f}    kJ mol-1\n'
-                f'E_trans = {e_trns*Constants.n_a/1E3:.3f} kJ mol-1\n'
-                f'E_rot =   {e_rot*Constants.n_a/1E3:.3f}  kJ mol-1\n'
-                f'E_vib =   {e_vib*Constants.n_a/1E3:.3f}  kJ mol-1')
+    logger.info(
+        f"ZPE =     {zpe*Constants.n_a/1E3:.3f}    kJ mol-1\n"
+        f"E_trans = {e_trns*Constants.n_a/1E3:.3f} kJ mol-1\n"
+        f"E_rot =   {e_rot*Constants.n_a/1E3:.3f}  kJ mol-1\n"
+        f"E_vib =   {e_vib*Constants.n_a/1E3:.3f}  kJ mol-1"
+    )
 
     return zpe + e_trns + e_rot + e_vib
