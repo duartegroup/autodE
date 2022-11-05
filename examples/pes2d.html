@@ -785,16 +785,18 @@ over the available number of cores. For example, to calculate and plot the 2D
 relaxed surface over the forming C-C distances in a Diels-Alder reaction between
 ethene and butadiene:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
-<span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">10</span>   <span class="c1"># Distribute over 10 cores</span>
+
+<span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Distribute over 10 cores</span>
 
 <span class="c1"># PES from the current C-C distances (~1.5 Å) to broken (3.0 Å) in 10 steps</span>
-<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;cyclohexene.xyz&#39;</span><span class="p">),</span>
-                           <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
-                               <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)})</span>
+<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="p">(</span>
+    <span class="n">species</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s2">&quot;cyclohexene.xyz&quot;</span><span class="p">),</span>
+    <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)},</span>
+<span class="p">)</span>
 
 <span class="n">pes</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">())</span>
-<span class="n">pes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;DA_surface.png&#39;</span><span class="p">)</span>
-<span class="n">pes</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;DA_surface.npz&#39;</span><span class="p">)</span>
+<span class="n">pes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;DA_surface.png&quot;</span><span class="p">)</span>
+<span class="n">pes</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;DA_surface.npz&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Out:</p>
@@ -804,8 +806,8 @@ ethene and butadiene:</p>
 To reload the PES and plot using a 4-fold interpolation (i.e. 10 -&gt; 40 points in each dimension):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
 
-<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;DA_surface.npz&#39;</span><span class="p">)</span>
-<span class="n">pes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;DA_surface_interpolated.png&#39;</span><span class="p">,</span> <span class="n">interp_factor</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;DA_surface.npz&quot;</span><span class="p">)</span>
+<span class="n">pes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;DA_surface_interpolated.png&quot;</span><span class="p">,</span> <span class="n">interp_factor</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Out:</p>

@@ -1,6 +1,23 @@
 Changelog
 =========
 
+1.3.2
+--------
+----------
+
+Bugfix release.
+
+
+Usability improvements/Changes
+******************************
+* Removes :code:`autode.geom.get_distance_constraints` in favour of a better named method :code:`TSBase().active_bond_constraints`
+
+
+Bug Fixes
+*********
+- :code:`autode.transition_states.ts_guess.TSguess.from_species` now inherits solvent from the species
+- Fixes a possible race condition in I/O for XTB conformer optimisations
+
 
 1.3.1
 --------

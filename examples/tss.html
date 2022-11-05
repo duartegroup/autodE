@@ -844,11 +844,12 @@ rearrangement.</p>
 Chemdraw<sup>TM</sup> (selecting reactants and products with arrows and ‘+’ then Edit-&gt;Copy As-&gt;SMILES)
 the TS can be located with</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+
 <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">8</span>
 
-<span class="n">rxn</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;CC(N=[N+]=[N-])=O&gt;&gt;CN=C=O.N#N&#39;</span><span class="p">)</span>
+<span class="n">rxn</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Reaction</span><span class="p">(</span><span class="s2">&quot;CC(N=[N+]=[N-])=O&gt;&gt;CN=C=O.N#N&quot;</span><span class="p">)</span>
 <span class="n">rxn</span><span class="o">.</span><span class="n">locate_transition_state</span><span class="p">()</span>
-<span class="n">rxn</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;ts.xyz&#39;</span><span class="p">)</span>
+<span class="n">rxn</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;ts.xyz&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Out (visualised)</p>
@@ -869,20 +870,18 @@ the prototypical Claisen rearrangement ([3,3]-sigmatropic rearrangement of
 allyl phenyl ether)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
 
-<span class="n">reac</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Reactant</span><span class="p">(</span><span class="s1">&#39;claisen_r.xyz&#39;</span><span class="p">)</span>
-<span class="n">prod</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Product</span><span class="p">(</span><span class="s1">&#39;claisen_p.xyz&#39;</span><span class="p">)</span>
+<span class="n">reac</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Reactant</span><span class="p">(</span><span class="s2">&quot;claisen_r.xyz&quot;</span><span class="p">)</span>
+<span class="n">prod</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Product</span><span class="p">(</span><span class="s2">&quot;claisen_p.xyz&quot;</span><span class="p">)</span>
 
 <span class="c1"># Create an 8 image nudged elastic band with intermediate images interpolated</span>
 <span class="c1"># from the final points, thus they must be structurally similar</span>
-<span class="n">neb</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">neb</span><span class="o">.</span><span class="n">CINEB</span><span class="p">(</span><span class="n">initial_species</span><span class="o">=</span><span class="n">reac</span><span class="p">,</span>
-                    <span class="n">final_species</span><span class="o">=</span><span class="n">prod</span><span class="p">,</span>
-                    <span class="n">num</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">neb</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">neb</span><span class="o">.</span><span class="n">CINEB</span><span class="p">(</span><span class="n">initial_species</span><span class="o">=</span><span class="n">reac</span><span class="p">,</span> <span class="n">final_species</span><span class="o">=</span><span class="n">prod</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 <span class="c1"># minimise with XTB</span>
 <span class="n">neb</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">(),</span> <span class="n">n_cores</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
 <span class="c1"># print the geometry of the peak species</span>
 <span class="n">peak_species</span> <span class="o">=</span> <span class="n">neb</span><span class="o">.</span><span class="n">get_species_saddle_point</span><span class="p">()</span>
-<span class="n">peak_species</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;peak.xyz&#39;</span><span class="p">)</span>
+<span class="n">peak_species</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;peak.xyz&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Out:</p>

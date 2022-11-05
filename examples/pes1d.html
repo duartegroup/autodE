@@ -836,25 +836,22 @@ optimise (relaxed).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+<span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;O&quot;</span><span class="p">)</span>
 <span class="c1"># water.atoms = [[O, x, y, z], [H, x&#39;, y&#39;, z&#39;], [H, x&#39;&#39;, y&#39;&#39;, z&#39;&#39;]]</span>
 
 <span class="c1"># Initialise the unrelaxed potential energy surface over the</span>
 <span class="c1"># O-H bond from 0.65 Å to 2.0 Å in 20 steps</span>
-<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">UnRelaxedPES1D</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">water</span><span class="p">,</span>
-                             <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)})</span>
+<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">UnRelaxedPES1D</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">water</span><span class="p">,</span> <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)})</span>
 
 <span class="c1"># Calculate the surface using the XTB tight-binding DFT method</span>
 <span class="n">pes</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">())</span>
 
 <span class="c1"># Finally, plot the surface using matplotlib</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">pes</span><span class="o">.</span><span class="n">r1</span><span class="p">,</span>
-         <span class="n">pes</span><span class="o">.</span><span class="n">relative_energies</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;kcal mol-1&#39;</span><span class="p">),</span>
-         <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">pes</span><span class="o">.</span><span class="n">r1</span><span class="p">,</span> <span class="n">pes</span><span class="o">.</span><span class="n">relative_energies</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;kcal mol-1&quot;</span><span class="p">),</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;ΔE / kcal mol$^{-1}$&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;r / Å&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;OH_PES_unrelaxed.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;ΔE / kcal mol$^{-1}$&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;r / Å&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;OH_PES_unrelaxed.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Out (OH_PES_unrelaxed.png):</p>
@@ -864,26 +861,28 @@ optimise (relaxed).</p>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Initialise the PES over the O-H bond 0.65 -&gt; 2.0 Å</span>
-<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">UnRelaxedPES1D</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">),</span>
-                             <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)})</span>
+<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">UnRelaxedPES1D</span><span class="p">(</span>
+    <span class="n">species</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;O&quot;</span><span class="p">),</span> <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">20</span><span class="p">)}</span>
+<span class="p">)</span>
 
 <span class="c1"># For the three different DFT functionals calculate the PES and plot the line</span>
-<span class="k">for</span> <span class="n">functional</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;PBE&#39;</span><span class="p">,</span> <span class="s1">&#39;PBE0&#39;</span><span class="p">,</span> <span class="s1">&#39;B3LYP&#39;</span><span class="p">):</span>
+<span class="k">for</span> <span class="n">functional</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;PBE&quot;</span><span class="p">,</span> <span class="s2">&quot;PBE0&quot;</span><span class="p">,</span> <span class="s2">&quot;B3LYP&quot;</span><span class="p">):</span>
 
-    <span class="n">pes</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">ORCA</span><span class="p">(),</span>
-                  <span class="n">keywords</span><span class="o">=</span><span class="p">[</span><span class="n">functional</span><span class="p">,</span> <span class="s1">&#39;def2-SVP&#39;</span><span class="p">])</span>
+    <span class="n">pes</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">ORCA</span><span class="p">(),</span> <span class="n">keywords</span><span class="o">=</span><span class="p">[</span><span class="n">functional</span><span class="p">,</span> <span class="s2">&quot;def2-SVP&quot;</span><span class="p">])</span>
 
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">pes</span><span class="o">.</span><span class="n">r1</span><span class="p">,</span>
-             <span class="n">pes</span><span class="o">.</span><span class="n">relative_energies</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;kcal mol-1&#39;</span><span class="p">),</span>
-             <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span>
-             <span class="n">label</span><span class="o">=</span><span class="n">functional</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">pes</span><span class="o">.</span><span class="n">r1</span><span class="p">,</span>
+        <span class="n">pes</span><span class="o">.</span><span class="n">relative_energies</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;kcal mol-1&quot;</span><span class="p">),</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;o&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="n">functional</span><span class="p">,</span>
+    <span class="p">)</span>
 
 <span class="c1"># Add labels to the plot and save the figure</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;ΔE / kcal mol$^{-1}$&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;r / Å&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;ΔE / kcal mol$^{-1}$&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;r / Å&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;OH_PES_unrelaxed_DFT.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;OH_PES_unrelaxed_DFT.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Out (OH_PES_unrelaxed2.png):</p>
@@ -895,25 +894,24 @@ optimise (relaxed).</p>
 method for the same O-H stretch using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
 
-<span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+<span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;O&quot;</span><span class="p">)</span>
 
 <span class="c1"># Initialise a relaxed potential energy surface for the water O-H stretch</span>
 <span class="c1"># from 0.65 -&gt; 2.0 Å in 15 steps</span>
-<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">water</span><span class="p">,</span>
-                           <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">15</span><span class="p">)})</span>
+<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">water</span><span class="p">,</span> <span class="n">rs</span><span class="o">=</span><span class="p">{(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span> <span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">15</span><span class="p">)})</span>
 
 <span class="n">pes</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">())</span>
-<span class="n">pes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;OH_PES_relaxed.png&#39;</span><span class="p">)</span>
+<span class="n">pes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;OH_PES_relaxed.png&quot;</span><span class="p">)</span>
 
 <span class="c1"># PESs can also be saved as compressed numpy objects and reloaded</span>
-<span class="n">pes</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;pes.npz&#39;</span><span class="p">)</span>
+<span class="n">pes</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;pes.npz&quot;</span><span class="p">)</span>
 
 <span class="c1"># For example, reload the PES and print the distances and energies</span>
-<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;pes.npz&#39;</span><span class="p">)</span>
+<span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;pes.npz&quot;</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;r (Å)   E (Ha)&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;r (Å)   E (Ha)&quot;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pes</span><span class="o">.</span><span class="n">r1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">pes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s1">.5f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pes</span><span class="o">.</span><span class="n">r1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Out (OH_PES_relaxed.png):</p>

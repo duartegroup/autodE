@@ -878,26 +878,28 @@ while retaining the square planar geometry</p>
 <span class="kn">from</span> <span class="nn">autode.conformers</span> <span class="kn">import</span> <span class="n">conf_gen</span><span class="p">,</span> <span class="n">Conformer</span>
 
 <span class="c1"># Initialise the complex from a .xyz file containing a square planar structure</span>
-<span class="n">vaskas</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s1">&#39;vaskas.xyz&#39;</span><span class="p">)</span>
+<span class="n">vaskas</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s2">&quot;vaskas.xyz&quot;</span><span class="p">)</span>
 
 <span class="c1"># Set up some distance constraints where the keys are the atom indexes and</span>
 <span class="c1"># the value the distance in Å. Fixing the Cl-P, Cl-P and Cl-C(=O) distances</span>
 <span class="c1"># enforces a square planar geometry</span>
-<span class="n">distance_constraints</span> <span class="o">=</span> <span class="p">{(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span> <span class="n">vaskas</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-                        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span> <span class="n">vaskas</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-                        <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span> <span class="n">vaskas</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)}</span>
+<span class="n">distance_constraints</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span> <span class="n">vaskas</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span> <span class="n">vaskas</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span> <span class="n">vaskas</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+<span class="p">}</span>
 
 <span class="c1"># Generate 5 conformers</span>
 <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
 
     <span class="c1"># Apply random displacements to each atom and minimise under a bonded +</span>
     <span class="c1"># repulsive forcefield including the distance constraints</span>
-    <span class="n">atoms</span> <span class="o">=</span> <span class="n">conf_gen</span><span class="o">.</span><span class="n">get_simanl_atoms</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="n">vaskas</span><span class="p">,</span>
-                                      <span class="n">dist_consts</span><span class="o">=</span><span class="n">distance_constraints</span><span class="p">,</span>
-                                      <span class="n">conf_n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">atoms</span> <span class="o">=</span> <span class="n">conf_gen</span><span class="o">.</span><span class="n">get_simanl_atoms</span><span class="p">(</span>
+        <span class="n">species</span><span class="o">=</span><span class="n">vaskas</span><span class="p">,</span> <span class="n">dist_consts</span><span class="o">=</span><span class="n">distance_constraints</span><span class="p">,</span> <span class="n">conf_n</span><span class="o">=</span><span class="n">n</span>
+    <span class="p">)</span>
 
     <span class="c1"># Generate a conformer from these atoms then optimise with XTB</span>
-    <span class="n">conformer</span> <span class="o">=</span> <span class="n">Conformer</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;vaskas_conf</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="n">atoms</span><span class="p">)</span>
+    <span class="n">conformer</span> <span class="o">=</span> <span class="n">Conformer</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;vaskas_conf</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="n">atoms</span><span class="p">)</span>
 
     <span class="n">conformer</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">XTB</span><span class="p">())</span>
     <span class="n">conformer</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">()</span>

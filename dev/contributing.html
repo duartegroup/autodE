@@ -994,6 +994,15 @@ request</a>
 on the GitHub docs.</p>
 <div class="section" id="guidelines-for-pull-requests">
 <h3>Guidelines for pull requests<a class="headerlink" href="#guidelines-for-pull-requests" title="Permalink to this headline">#</a></h3>
+<p>First, install from source in a new envrionment and setup
+<a class="reference external" href="https://pre-commit.com/">pre-commit</a> with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/duartegroup/autodE.git &amp;&amp; cd autodE
+$ conda create -n ade python=3.9 --file requirements.txt --channel conda-forge
+$ conda activate ade
+$ pip install . autode[dev]
+$ pre-commit install
+</pre></div>
+</div>
 <div class="section" id="forks-instead-of-branches">
 <h4>Forks instead of branches<a class="headerlink" href="#forks-instead-of-branches" title="Permalink to this headline">#</a></h4>
 <p>By default, contributors do not have permission to push branches to the
