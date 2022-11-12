@@ -1,3 +1,4 @@
+import os.path
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -566,6 +567,10 @@ class NDOptimiser(Optimiser, ABC):
             f" gtol = {self.gtol.to('Ha Å^-1')} Ha Å^-1"
             f" maxiter = {self._maxiter}"
         )
+
+        if os.path.exists(filename):
+            logger.warning(f"FIle {filename} existed. Overwriting")
+            open(filename, "w").close()
 
         for i, coordinates in enumerate(self._history):
 

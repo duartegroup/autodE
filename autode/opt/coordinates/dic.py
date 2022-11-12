@@ -434,7 +434,7 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
     provide pure primitive coordinates, which can then be constrained simply
     """
     logger.info(
-        f"Schmidt-orthogonalizing. Using {indexes} as " f"orthonormal vectors"
+        f"Schmidt-orthogonalizing. Using {indexes} as orthonormal vectors"
     )
 
     u = np.zeros_like(arr)
