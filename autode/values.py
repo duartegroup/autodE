@@ -300,22 +300,7 @@ class Energy(Value):
         super().__init__(value, units=units)
 
         self.is_estimated = estimated
-        self.method_str = ""
-        self.set_method_str(method, keywords)
-
-    def set_method_str(
-        self,
-        method: Optional["autode.wrappers.methods.Method"],
-        keywords: Optional["autode.wrappers.keywords.Keywords"],
-    ) -> None:
-        """
-        Set the method string for a method and the keywords that were used
-        to calculate it
-        """
-        self.method_str = (
-            f"{method.name} " if method is not None else "unknown"
-        )
-        self.method_str += keywords.bstring if keywords is not None else ""
+        self.method_str = method_string(method, keywords)
 
     def __repr__(self):
         return f"Energy({round(self, 5)} {self.units.name})"
@@ -338,6 +323,13 @@ class Energy(Value):
             return False
 
         return abs(other - float(self.to("Ha"))) < tol_ha
+
+    def set_method_str(
+        self,
+        method: Optional["autode.wrappers.methods.Method"],
+        keywords: Optional["autode.wrappers.keywords.Keywords"],
+    ) -> None:
+        self.method_str = method_string(method, keywords)
 
 
 class PotentialEnergy(Energy):
@@ -747,3 +739,15 @@ class EnergyArray(ValueArray):
     def __repr__(self):
         """Representation of the energies in a PES"""
         return f"PES{self.ndim}d"
+
+
+def method_string(
+    method: Optional["autode.wrappers.methods.Method"],
+    keywords: Optional["autode.wrappers.keywords.Keywords"],
+) -> str:
+    """
+    Create a method string for a method and the keywords
+    """
+    method_str = f"{method.name} " if method is not None else "unknown"
+    method_str += keywords.bstring if keywords is not None else ""
+    return method_str

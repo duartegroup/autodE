@@ -4,11 +4,12 @@ from autode.log import logger
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BofillUpdate
+from autode.exceptions import CalculationException
 
 
 class PRFOptimiser(RFOptimiser):
     def __init__(
-        self, init_alpha: float = 0.1, imag_mode_idx: int = 0, *args, **kwargs
+        self, init_alpha: float = 0.05, imag_mode_idx: int = 0, *args, **kwargs
     ):
         """
         Partitioned rational function optimiser (PRFO) using a maximum step
@@ -43,8 +44,8 @@ class PRFOptimiser(RFOptimiser):
         lmda, v = np.linalg.eigh(self._coords.h)
 
         if np.min(lmda) > 0:
-            raise RuntimeError(
-                "Hessian had no negative eigenvalues, cannot " "follow to a TS"
+            raise CalculationException(
+                "Hessian had no negative eigenvalues, cannot follow to a TS"
             )
 
         logger.info(

@@ -5,9 +5,10 @@ from typing import Union, Optional, Callable, Any
 from autode.log import logger
 from autode.utils import NumericStringDict
 from autode.config import Config
-from autode.values import GradientRMS, PotentialEnergy
+from autode.values import GradientRMS, PotentialEnergy, method_string
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
+from autode.exceptions import CalculationException
 
 
 class BaseOptimiser(ABC):
@@ -213,7 +214,7 @@ class Optimiser(BaseOptimiser, ABC):
         grad.clean_up(force=True, everything=True)
 
         if self._species.gradient is None:
-            raise RuntimeError(
+            raise CalculationException(
                 "Calculation failed to calculate a gradient. "
                 "Cannot continue!"
             )
@@ -233,21 +234,37 @@ class Optimiser(BaseOptimiser, ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
+        should_calc_hessian = True
+
+        if (
+            self._species.energy.method_str
+            == method_string(self._method, self._method.keywords.hess)
+            and self._species.hessian is not None
+        ):
+            logger.info(
+                "Have a calculated the energy at the same level of "
+                "theory as this optimisation and a present Hessian. "
+                "Not calculating a new Hessian"
+            )
+            should_calc_hessian = False
+
         self._update_gradient_and_energy()
 
-        species = self._species.new_species(
-            name=f"{self._species.name}" f"_opt_{self.iteration}"
-        )
-        species.coordinates = self._coords.to("cartesian")
+        if should_calc_hessian:
+            species = self._species.new_species(
+                name=f"{self._species.name}_opt_{self.iteration}"
+            )
+            species.coordinates = self._coords.to("cartesian")
 
-        species.calc_hessian(
-            method=self._method,
-            keywords=self._method.keywords.hess,
-            n_cores=self._n_cores,
-        )
+            species.calc_hessian(
+                method=self._method,
+                keywords=self._method.keywords.hess,
+                n_cores=self._n_cores,
+            )
 
-        self._species.hessian = species.hessian.copy()
-        self._coords.update_h_from_cart_h(self._species.hessian)
+            self._species.hessian = species.hessian.copy()
+
+        self._coords.update_h_from_cart_h(self._species.hessian.to("Ha Å^-2"))
         return None
 
     @property
