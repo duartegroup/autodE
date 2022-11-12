@@ -237,8 +237,11 @@ class Optimiser(BaseOptimiser, ABC):
         should_calc_hessian = True
 
         if (
-            self._species.energy.method_str
-            == method_string(self._method, self._method.keywords.hess)
+            self._species.energy is not None
+            and (
+                self._species.energy.method_str
+                == method_string(self._method, self._method.keywords.hess)
+            )
             and self._species.hessian is not None
         ):
             logger.info(
