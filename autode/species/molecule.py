@@ -87,12 +87,26 @@ class Molecule(Species):
             smiles (str):
         """
         at_strings = re.findall(r"\[.*?]", smiles)
+        init_charge, init_mult = self._charge, self._mult
 
         if any(metal in string for metal in metals for string in at_strings):
             init_smiles(self, smiles)
 
         else:
             init_organic_smiles(self, smiles)
+
+        if not _is_default_mult(init_mult) and init_mult != self._mult:
+            logger.warning(
+                "Specified multiplicity did not match SMILES "
+                "calculated value - using the former"
+            )
+            self._mult = init_mult
+
+        if not _is_default_charge(init_charge) and init_charge != self._charge:
+            raise ValueError(
+                "SMILES charge was not the same as the "
+                f"defined value. {self._charge} ≠ {init_charge}"
+            )
 
         logger.info(
             f"Initialisation with SMILES successful. "
@@ -242,3 +256,11 @@ class Reactant(Molecule):
 
 class Product(Molecule):
     """Product molecule"""
+
+
+def _is_default_mult(value) -> bool:
+    return value == 1
+
+
+def _is_default_charge(value) -> bool:
+    return value == 0

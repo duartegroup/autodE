@@ -1,6 +1,18 @@
 Changelog
 =========
 
+1.3.3
+--------
+----------
+
+Bugfix release.
+
+
+Bug Fixes
+*********
+- Adds checking of SMILES-defined charge and multiplicity against user-specified values
+
+
 1.3.2
 --------
 ----------
