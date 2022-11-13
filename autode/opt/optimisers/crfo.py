@@ -127,7 +127,15 @@ class CRFOptimiser(RFOptimiser):
     def _primitives(self) -> PIC:
         """Primitive internal coordinates in this molecule"""
         logger.info("Generating primitive internal coordinates")
-        graph = self._species.graph
+        graph = self._species.graph.copy()
+
+        # Any distance constraints should also count as 'bonds' when forming
+        # the set of primitive internal coordinates, so that there is a
+        # single molecule if those distances are approaching dissociation
+        if self._species.constraints.distance is not None:
+            logger.info("Adding distance constraints as primitives")
+            for (i, j) in self._species.constraints.distance:
+                graph.add_edge(i, j)
 
         pic = PIC()
 
