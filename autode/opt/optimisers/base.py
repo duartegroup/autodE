@@ -255,21 +255,28 @@ class Optimiser(BaseOptimiser, ABC):
         self._update_gradient_and_energy()
 
         if should_calc_hessian:
-            species = self._species.new_species(
-                name=f"{self._species.name}_opt_{self.iteration}"
+            self._update_hessian()
+        else:
+            self._coords.update_h_from_cart_h(
+                self._species.hessian.to("Ha Å^-2")
             )
-            species.coordinates = self._coords.to("cartesian")
-
-            species.calc_hessian(
-                method=self._method,
-                keywords=self._method.keywords.hess,
-                n_cores=self._n_cores,
-            )
-
-            self._species.hessian = species.hessian.copy()
-
-        self._coords.update_h_from_cart_h(self._species.hessian.to("Ha Å^-2"))
         return None
+
+    def _update_hessian(self) -> None:
+        """Update the Hessian of a species"""
+        species = self._species.new_species(
+            name=f"{self._species.name}_opt_{self.iteration}"
+        )
+        species.coordinates = self._coords.to("cartesian")
+
+        species.calc_hessian(
+            method=self._method,
+            keywords=self._method.keywords.hess,
+            n_cores=self._n_cores,
+        )
+
+        self._species.hessian = species.hessian.copy()
+        self._coords.update_h_from_cart_h(self._species.hessian.to("Ha Å^-2"))
 
     @property
     def _space_has_degrees_of_freedom(self) -> bool:
