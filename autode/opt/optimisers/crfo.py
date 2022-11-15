@@ -124,9 +124,7 @@ class CRFOptimiser(RFOptimiser):
                 "Had an incomplete set of primitives. Adding "
                 "additional distances"
             )
-            for i, j in itertools.combinations(
-                range(self._species.n_atoms), 2
-            ):
+            for i, j in combinations(range(self._species.n_atoms), 2):
                 primitives.append(Distance(i, j))
 
         self._coords = DICWithConstraints.from_cartesian(
