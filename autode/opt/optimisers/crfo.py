@@ -117,8 +117,20 @@ class CRFOptimiser(RFOptimiser):
             )
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
+        primitives = self._primitives
+
+        if len(primitives) < cartesian_coords.expected_number_of_dof:
+            logger.info(
+                "Had an incomplete set of primitives. Adding "
+                "additional distances"
+            )
+            for i, j in itertools.combinations(
+                range(self._species.n_atoms), 2
+            ):
+                primitives.append(Distance(i, j))
+
         self._coords = DICWithConstraints.from_cartesian(
-            x=cartesian_coords, primitives=self._primitives
+            x=cartesian_coords, primitives=primitives
         )
         self._coords.zero_lagrangian_multipliers()
         return None

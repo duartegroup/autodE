@@ -69,7 +69,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         # of 3N - 6 non-redundant internals for a system of N atoms
         idxs = np.where(np.abs(lambd) > 1e-10)[0]
 
-        if len(idxs) < (len(x.flatten()) - 6):
+        if len(idxs) < x.expected_number_of_dof:
             raise RuntimeError(
                 "Failed to create a complete set of delocalised internal "
                 f"coordinates. {len(idxs)} < 3 N_atoms - 6. Likely due to "
