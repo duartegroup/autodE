@@ -251,9 +251,5 @@ class Product(Molecule):
     """Product molecule"""
 
 
-def _is_default_mult(value) -> bool:
-    return value == 1
-
-
 def _is_default_charge(value) -> bool:
     return value == 0
