@@ -4,6 +4,7 @@ import numpy as np
 
 from autode.methods import XTB
 from autode.values import GradientRMS, PotentialEnergy
+from autode.hessians import Hessian
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_with_working_xtb_install
 from .molecules import h2, methane_mol, h_atom
@@ -295,3 +296,29 @@ def test_last_energy_change_less_than_two_steps():
     optimiser.__class__ = UnconvergedHarmonicPotentialOptimiser
     assert not optimiser.converged
     assert not np.isfinite(optimiser.last_energy_change)
+
+
+class HessianInTesting(Hessian):
+    """Hessian with a different class, used for testing"""
+
+
+@work_in_tmp_dir()
+@requires_with_working_xtb_install
+def test_hessian_is_not_recalculated_if_present():
+
+    mol = h2()
+    xtb = XTB()
+
+    optimiser = CartesianSDOptimiser(
+        maxiter=1,
+        gtol=GradientRMS(0.01),
+        etol=PotentialEnergy(1e-3),
+    )
+    optimiser.run(species=mol, method=xtb, n_cores=1)
+
+    mol.calc_hessian(method=xtb)
+    mol.hessian.__class__ = HessianInTesting
+
+    # If the Hessian calculation is skipped then the class will be retained
+    optimiser._update_hessian_gradient_and_energy()
+    assert mol.hessian.__class__ == HessianInTesting

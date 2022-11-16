@@ -229,7 +229,10 @@ class Optimiser(BaseOptimiser, ABC):
         Update the energy, gradient and Hessian using the method. Will
         transform from the current coordinates type to Cartesian coordinates
         to perform the calculation, then back. Uses a numerical Hessian if
-        analytic Hessians are not implemented for this method
+        analytic Hessians are not implemented for this method. Does not
+        perform a Hessian evaluation if the molecule's energy is evaluated
+        at the same level of theory that would be used for the Hessian
+        evaluation.
 
         -----------------------------------------------------------------------
         Raises:
@@ -238,11 +241,8 @@ class Optimiser(BaseOptimiser, ABC):
         should_calc_hessian = True
 
         if (
-            self._species.energy is not None
-            and (
-                self._species.energy.method_str
-                == method_string(self._method, self._method.keywords.hess)
-            )
+            _energy_method_string(self._species)
+            == method_string(self._method, self._method.keywords.hess)
             and self._species.hessian is not None
         ):
             logger.info(
@@ -871,3 +871,7 @@ class _OptimiserCallbackFunction:
 
         logger.info("Calling callback function")
         return self._f(coordinates, **self._kwargs)
+
+
+def _energy_method_string(species: "Species") -> str:
+    return "" if species.energy is None else species.energy.method_str

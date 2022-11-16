@@ -233,6 +233,8 @@ def test_cart_to_dic():
     # as a copy, so changing the initial x should not change prev_x
     assert id(dics._x) != id(x)
 
+    assert dics.inactive_indexes == []
+
     x += 0.1
     assert np.allclose(x, np.array([0.1, 0.1, 0.1, 2.1, 0.1, 0.1]))
     assert not np.allclose(x, dics._x)

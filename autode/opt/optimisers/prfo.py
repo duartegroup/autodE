@@ -7,7 +7,7 @@ from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.exceptions import CalculationException
 
 
-class TSRFOptimiser(CRFOptimiser):
+class PRFOptimiser(CRFOptimiser):
     def __init__(
         self,
         init_alpha: float = 0.05,

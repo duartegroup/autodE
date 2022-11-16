@@ -350,14 +350,14 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
     def run(self) -> None:
         """Run an optimisation with using default autodE optimisers"""
         from autode.opt.optimisers.crfo import CRFOptimiser
-        from autode.opt.optimisers.prfo import TSRFOptimiser
+        from autode.opt.optimisers.prfo import PRFOptimiser
 
         if self._opt_trajectory_exists:
             self.optimiser = CRFOptimiser.from_file(self._opt_trajectory_name)
             self._set_properties_from_optimiser()
             return None
 
-        type_ = TSRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
+        type_ = PRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
 
         self.optimiser = type_(
             init_alpha=self._step_size,
