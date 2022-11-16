@@ -322,3 +322,24 @@ def test_hessian_is_not_recalculated_if_present():
     # If the Hessian calculation is skipped then the class will be retained
     optimiser._update_hessian_gradient_and_energy()
     assert mol.hessian.__class__ == HessianInTesting
+
+
+@work_in_tmp_dir()
+@requires_with_working_xtb_install
+def test_multiple_optimiser_saves_overrides_not_append():
+
+    optimiser = CartesianSDOptimiser(
+        maxiter=2,
+        gtol=GradientRMS(0.01),
+        etol=PotentialEnergy(1e-3),
+    )
+    optimiser.run(method=XTB(), species=h2())
+    optimiser.save("tmp.traj")
+
+    def n_lines_in_traj_file():
+        return len(open("tmp.traj", "r").readlines())
+
+    n_init_lines = n_lines_in_traj_file()
+    optimiser.save("tmp.traj")
+
+    assert n_lines_in_traj_file() == n_init_lines

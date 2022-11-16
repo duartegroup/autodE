@@ -745,3 +745,12 @@ def test_constrained_angle_equality():
 
     b._theta0 = 0.0
     assert a != b
+
+
+def test_dics_cannot_be_built_with_incomplete_primitives():
+
+    x = CartesianCoordinates(methane_mol().coordinates)
+    primitives = PIC(Distance(0, 1))
+
+    with pytest.raises(RuntimeError):
+        _ = DIC.from_cartesian(x=x, primitives=primitives)
