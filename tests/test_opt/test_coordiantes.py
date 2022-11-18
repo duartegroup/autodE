@@ -233,6 +233,8 @@ def test_cart_to_dic():
     # as a copy, so changing the initial x should not change prev_x
     assert id(dics._x) != id(x)
 
+    assert dics.inactive_indexes == []
+
     x += 0.1
     assert np.allclose(x, np.array([0.1, 0.1, 0.1, 2.1, 0.1, 0.1]))
     assert not np.allclose(x, dics._x)
@@ -743,3 +745,12 @@ def test_constrained_angle_equality():
 
     b._theta0 = 0.0
     assert a != b
+
+
+def test_dics_cannot_be_built_with_incomplete_primitives():
+
+    x = CartesianCoordinates(methane_mol().coordinates)
+    primitives = PIC(Distance(0, 1))
+
+    with pytest.raises(RuntimeError):
+        _ = DIC.from_cartesian(x=x, primitives=primitives)

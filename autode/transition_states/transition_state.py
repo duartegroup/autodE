@@ -43,6 +43,10 @@ class TransitionState(TSbase):
             mult=ts_guess.mult,
         )
 
+        self.energy = ts_guess.energy
+        self.gradient = ts_guess.gradient
+        self.hessian = ts_guess.hessian
+
         if bond_rearr is not None:
             self.bond_rearrangement = bond_rearr
 
@@ -85,15 +89,11 @@ class TransitionState(TSbase):
             n_cores=Config.n_cores,
             keywords=method.keywords.opt_ts,
         )
-        optts_calc.run()
-
-        if not optts_calc.optimisation_converged():
-            optts_calc = self._reoptimise(optts_calc, name_ext, method)
-
         try:
-            self.atoms = optts_calc.get_final_atoms()
-            self.energy = optts_calc.get_energy()
-            self.hessian = optts_calc.get_hessian()
+            optts_calc.run()
+
+            if not optts_calc.optimisation_converged():
+                self._reoptimise(optts_calc, name_ext, method)
 
         except CalculationException:
             logger.error("Transition state optimisation calculation failed")

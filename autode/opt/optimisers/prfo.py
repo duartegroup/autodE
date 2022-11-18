@@ -1,14 +1,19 @@
 """Partitioned rational function optimisation"""
 import numpy as np
 from autode.log import logger
-from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.rfo import RFOptimiser
+from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.optimisers.hessian_update import BofillUpdate
+from autode.opt.coordinates.cartesian import CartesianCoordinates
+from autode.exceptions import CalculationException
 
 
-class PRFOptimiser(RFOptimiser):
+class PRFOptimiser(CRFOptimiser):
     def __init__(
-        self, init_alpha: float = 0.1, imag_mode_idx: int = 0, *args, **kwargs
+        self,
+        init_alpha: float = 0.05,
+        recalc_hessian_every: int = 10,
+        *args,
+        **kwargs,
     ):
         """
         Partitioned rational function optimiser (PRFO) using a maximum step
@@ -17,7 +22,7 @@ class PRFOptimiser(RFOptimiser):
 
         -----------------------------------------------------------------------
         Arguments:
-            init_alpha: Maximum step size
+            init_alpha: Maximum step size (Å)
 
             imag_mode_idx: Index of the imaginary mode to follow. Default = 0,
                            the most imaginary mode (i.e. most negative
@@ -29,77 +34,41 @@ class PRFOptimiser(RFOptimiser):
         super().__init__(*args, **kwargs)
 
         self.alpha = float(init_alpha)
-        self.imag_mode_idx = int(imag_mode_idx)
-
+        self.recalc_hessian_every = int(recalc_hessian_every)
         self._hessian_update_types = [BofillUpdate]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
 
-        self._coords.h = self._updated_h()
+        if self.should_calculate_hessian:
+            self._update_hessian()
+        else:
+            self._coords.h = self._updated_h()
 
-        # Eigenvalues (\tilde{H}_kk in ref [1]) and eigenvectors (V in ref [1])
-        # of the Hessian matrix
-        lmda, v = np.linalg.eigh(self._coords.h)
+        idxs = list(range(len(self._coords)))
 
-        if np.min(lmda) > 0:
-            raise RuntimeError(
-                "Hessian had no negative eigenvalues, cannot " "follow to a TS"
-            )
-
+        b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])
+        n_negative_eigenvalues = sum(lmda < 0 for lmda in b)
         logger.info(
-            f"Maximising along mode {self.imag_mode_idx} with "
-            f"λ={lmda[self.imag_mode_idx]:.4f}"
+            f"∇^2E has {n_negative_eigenvalues} negative "
+            f"eigenvalue(s). Should have 1"
         )
 
-        # Gradient in the eigenbasis of the Hessian. egn 49 in ref. 50
-        g_tilde = np.matmul(v.T, self._coords.g)
+        if n_negative_eigenvalues < 1:
+            raise CalculationException("Lost imaginary (TS) mode")
 
-        # Initialised step in the Hessian eigenbasis
-        s_tilde = np.zeros_like(g_tilde)
+        f = u.T.dot(self._coords.g[idxs])
+        lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
+        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
+        logger.info(f"Calculated λ_p=+{lambda_p:.8f}, λ_n={lambda_n:.8f}")
 
-        # For a step in Cartesian coordinates the Hessian will have zero
-        # eigenvalues for translation/rotation - keep track of them
-        non_zero_lmda = np.where(np.abs(lmda) > 1e-8)[0]
+        delta_s = np.zeros(shape=(len(idxs),))
+        delta_s -= f[0] * u[:, 0] / (b[0] - lambda_p)
 
-        # Augmented Hessian 1 along the imaginary mode to maximise, with the
-        # form (see eqn. 59 in ref [1]):
-        #  (\tilde{H}_11  \tilde{g}_1) (\tilde{s}_1)  =      (\tilde{s}_1)
-        #  (                         ) (           )  =  ν_R (           )
-        #  (\tilde{g}_1        0     ) (    1      )         (     1     )
-        #
-        aug1 = np.array(
-            [
-                [lmda[self.imag_mode_idx], g_tilde[self.imag_mode_idx]],
-                [g_tilde[self.imag_mode_idx], 0.0],
-            ]
-        )
-        _, aug1_v = np.linalg.eigh(aug1)
+        for j in range(1, len(idxs)):
+            delta_s -= f[j] * u[:, j] / (b[j] - lambda_n)
 
-        # component of the step along the imaginary mode is the first element
-        # of the eigenvector with the largest eigenvalue (1), scaled by the
-        # final element
-        s_tilde[self.imag_mode_idx] = aug1_v[0, 1] / aug1_v[1, 1]
-
-        # Augmented Hessian along all other modes with non-zero eigenvalues,
-        # that are also not the imaginary mode to be followed
-        non_mode_lmda = np.delete(non_zero_lmda, [self.imag_mode_idx])
-
-        # see eqn. 60 in ref. [1] for the structure of this matrix!
-        augn = np.diag(np.concatenate((lmda[non_mode_lmda], np.zeros(1))))
-        augn[:-1, -1] = g_tilde[non_mode_lmda]
-        augn[-1, :-1] = g_tilde[non_mode_lmda]
-
-        _, augn_v = np.linalg.eigh(augn)
-
-        # The step along all other components is then the all but the final
-        # component of the eigenvector with the smallest eigenvalue (0)
-        s_tilde[non_mode_lmda] = augn_v[:-1, 0] / augn_v[-1, 0]
-
-        # Transform back from the eigenbasis with eqn. 52 in ref [1]
-        delta_s = np.matmul(v, s_tilde)
-
-        self._take_step_within_trust_radius(delta_s)
+        _ = self._take_step_within_trust_radius(delta_s)
         return None
 
     def _initialise_run(self) -> None:
@@ -107,8 +76,15 @@ class PRFOptimiser(RFOptimiser):
         Initialise running a partitioned rational function optimisation by
         setting the coordinates and Hessian
         """
+        # self._build_internal_coordinates()
         self._coords = CartesianCoordinates(self._species.coordinates).to(
             "dic"
         )
         self._update_hessian_gradient_and_energy()
         return None
+
+    @property
+    def should_calculate_hessian(self) -> bool:
+        """Should an explicit Hessian calculation be performed?"""
+        n = self.iteration
+        return n > 1 and n % self.recalc_hessian_every == 0

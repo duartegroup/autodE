@@ -833,7 +833,6 @@ class Species(AtomCollection):
             keywords=HessianKeywords(keywords),
             n_cores=Config.n_cores if n_cores is None else n_cores,
         )
-
         return calc
 
     def _default_opt_calculation(
