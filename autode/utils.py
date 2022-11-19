@@ -1,4 +1,5 @@
 import os
+import platform
 import psutil
 import shutil
 import signal
@@ -8,8 +9,8 @@ from typing import Any, Optional, Sequence, List, Callable
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
-import multiprocessing as mp
-import joblib.externals.loky as loky
+from multiprocessing import Pipe
+import loky
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -419,14 +420,19 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
 
     def decorator(func):
         def wrapper(*args, **kwargs):
+            if platform.system() == 'Windows':
+                interrupt_sig = signal.CTRL_C_EVENT
+            else:
+                interrupt_sig = signal.SIGINT
+
             def run_func(connector):
                 pid = os.getpid()
                 connector.send(pid)  # send PID of process running job
-                result = func(*args,**kwargs)
+                result = func(*args, **kwargs)
                 return result
 
-            pool = loky.ProcessPoolExecutor(max_workers=2)  # get private process pool
-            conn1, conn2 = mp.Pipe()
+            pool = loky.get_reusable_executor(max_workers=2)  # get process pool
+            conn1, conn2 = Pipe()
             try:
                 job = pool.submit(run_func, conn1)
             except RuntimeError:
@@ -443,8 +449,9 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
                     job_proc = psutil.Process(pid=job_pid)  # attach to job process
                     job_sub_children = job_proc.children(recursive=True)  # any subprocesses of job
                     for proc in job_sub_children:
-                        proc.send_signal(signal.SIGTERM)
-                    job_proc.send_signal(signal.SIGTERM)  # kill job process
+                        proc.send_signal(interrupt_sig)
+                    job_proc.send_signal(interrupt_sig)  # try to exit gracefully
+                    if job_proc.is_running(): job_proc.send_signal(signal.SIGTERM)
                     return return_value
                 else:
                     raise
