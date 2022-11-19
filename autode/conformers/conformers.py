@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional, Union
-from multiprocessing import Pool
+from joblib import Parallel, delayed
 from rdkit import Chem
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
@@ -254,18 +254,15 @@ class Conformers(list):
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
-        with Pool(processes=Config.n_cores // n_cores_pp) as pool:
-            results = [
-                pool.apply_async(
-                    _calc_conformer,
-                    args=(conf, calc_type, method, keywords),
-                    kwds={"n_cores": n_cores_pp},
-                )
+        with Parallel(n_jobs=Config.n_cores // n_cores_pp) as parallel:
+            jobs = [
+                delayed(_calc_conformer)(conf, calc_type, method, keywords, n_cores=n_cores_pp)
                 for conf in self
             ]
+            results = parallel(jobs)
 
             for idx, res in enumerate(results):
-                self[idx] = res.get(timeout=None)
+                self[idx] = res
 
         return None
 

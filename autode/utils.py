@@ -1,5 +1,7 @@
 import os
+import psutil
 import shutil
+import signal
 import warnings
 from time import time
 from typing import Any, Optional, Sequence, List, Callable
@@ -7,7 +9,7 @@ from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 import multiprocessing as mp
-import multiprocessing.pool
+import joblib.externals.loky as loky
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -21,10 +23,12 @@ from autode.exceptions import (
     CouldNotGetProperty,
 )
 
-try:
-    mp.set_start_method("fork")
-except RuntimeError:
-    logger.warning("Multiprocessing context has already been defined")
+#try:
+#    mp.set_start_method("fork")
+#except RuntimeError:
+#    logger.warning("Multiprocessing context has already been defined")
+#except ValueError:
+#    logger.warning("Multiprocessing is not used in Windows")
 
 
 def check_sufficient_memory(func: Callable):
@@ -36,12 +40,12 @@ def check_sufficient_memory(func: Callable):
         physical_mem = None
         required_mem = int(Config.n_cores) * Config.max_core
 
-        try:
+        try:  # check available memory
             physical_mem = Allocation(
-                os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"),
-                units="bytes",
+                psutil.virtual_memory().available,
+                units="bytes"
             )
-        except (ValueError, OSError):
+        except (ValueError, OSError, RuntimeError):
             logger.warning("Cannot check physical memory")
 
         if physical_mem is not None and physical_mem < required_mem:
@@ -413,39 +417,39 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
         (Any): Result of the function | return_value
     """
 
-    def handler(queue, func, args, kwargs):
-        queue.put(func(*args, **kwargs))
-
     def decorator(func):
-        def wraps(*args, **kwargs):
-            q = multiprocessing.Queue()
-            p = multiprocessing.Process(
-                target=handler, args=(q, func, args, kwargs)
-            )
+        def wrapper(*args, **kwargs):
+            def run_func(connector):
+                pid = os.getpid()
+                connector.send(pid)  # send PID of process running job
+                result = func(*args,**kwargs)
+                return result
 
-            if mp.current_process().daemon:
-                # Cannot run a subprocess in a daemon process - timeout is not
-                # possible
+            pool = loky.ProcessPoolExecutor(max_workers=2)  # get private process pool
+            conn1, conn2 = mp.Pipe()
+            try:
+                job = pool.submit(run_func, conn1)
+            except RuntimeError:
+                logger.warn("Failed to wrap function")
                 return func(*args, **kwargs)
 
-            elif isinstance(mp.get_context(), mp.context.ForkContext):
-                p.start()
+            job_pid = conn2.recv()  # get PID of process running job
+            try:
+                res = job.result(timeout=seconds)
+                return res
+            except loky.TimeoutError:
+                pool.shutdown(wait=False)
+                if job_pid != os.getpid():  # prevent accidentally killing main process
+                    job_proc = psutil.Process(pid=job_pid)  # attach to job process
+                    job_sub_children = job_proc.children(recursive=True)  # any subprocesses of job
+                    for proc in job_sub_children:
+                        proc.send_signal(signal.SIGTERM)
+                    job_proc.send_signal(signal.SIGTERM)  # kill job process
+                    return return_value
+                else:
+                    raise
 
-            else:
-                logger.error("Failed to wrap function")
-                return func(*args, **kwargs)
-
-            p.join(timeout=seconds)
-
-            if p.is_alive():
-                p.kill()
-                p.join()
-                return return_value
-
-            else:
-                return q.get()
-
-        return wraps
+        return wrapper
 
     return decorator
 

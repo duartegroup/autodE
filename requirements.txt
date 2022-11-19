@@ -4,3 +4,7 @@ networkx
 matplotlib
 cython
 scipy
+pytest
+psutil
+joblib
+setuptools

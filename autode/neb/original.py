@@ -13,7 +13,7 @@ from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
 from autode.values import Distance, PotentialEnergy
-from multiprocessing import Pool
+from joblib import Parallel, delayed
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,15 +99,13 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
     )
 
     # Run an energy + gradient evaluation in parallel across all images
-    with Pool(processes=n_cores) as pool:
+    with Parallel(n_jobs=n_cores) as parallel:
         results = [
-            pool.apply_async(
-                func=energy_gradient, args=(images[i], method, n_cores_pp)
-            )
+            delayed(energy_gradient)(images[i], method, n_cores_pp)
             for i in range(1, len(images) - 1)
         ]
 
-        images[1:-1] = [result.get(timeout=None) for result in results]
+        images[1:-1] = parallel(results)
 
     images.increment()
 

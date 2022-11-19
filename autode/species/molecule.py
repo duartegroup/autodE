@@ -2,7 +2,7 @@ import re
 import rdkit
 from pathlib import Path
 from typing import Optional, Sequence
-from multiprocessing import Pool
+from joblib import Parallel, delayed
 from rdkit.Chem import AllChem
 from autode.log.methods import methods
 from autode.input_output import xyz_file_to_atoms
@@ -185,12 +185,12 @@ class Molecule(Species):
 
         else:
             logger.info("Using repulsion+relaxed (RR) to generate conformers")
-            with Pool(processes=Config.n_cores) as pool:
+            with Parallel(n_jobs=Config.n_cores) as parallel:
                 results = [
-                    pool.apply_async(get_simanl_conformer, (self, None, i))
+                    delayed(get_simanl_conformer)(self, None, i)
                     for i in range(n_confs)
                 ]
-                self.conformers = [res.get(timeout=None) for res in results]
+                self.conformers = parallel(results)
 
             self.conformers.prune_on_energy(e_tol=1e-10)
             methods.add("RR algorithm (???) implemented in autodE")
