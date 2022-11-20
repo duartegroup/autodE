@@ -67,6 +67,7 @@ def test_printing_ecp():
     )
     _print_custom_basis(tmp_file, molecule=tmp_mol, calc_input=calc_input)
     assert os.path.exists("basis.gbs")
+    tmp_file.close()
 
     os.remove("tmp.com")
     os.remove("basis.gbs")
