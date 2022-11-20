@@ -420,10 +420,6 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
 
     def decorator(func):
         def wrapper(*args, **kwargs):
-            if platform.system() == 'Windows':
-                interrupt_sig = signal.CTRL_C_EVENT
-            else:
-                interrupt_sig = signal.SIGINT
 
             def run_func(connector):
                 pid = os.getpid()
@@ -449,9 +445,8 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
                     job_proc = psutil.Process(pid=job_pid)  # attach to job process
                     job_sub_children = job_proc.children(recursive=True)  # any subprocesses of job
                     for proc in job_sub_children:
-                        proc.send_signal(interrupt_sig)
-                    job_proc.send_signal(interrupt_sig)  # try to exit gracefully
-                    if job_proc.is_running(): job_proc.send_signal(signal.SIGTERM)
+                        proc.send_signal(signal.SIGTERM)  # shut-down subprocesses of job
+                    job_proc.send_signal(signal.SIGTERM)  # shut-down job process
                     return return_value
                 else:
                     raise
