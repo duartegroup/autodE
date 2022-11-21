@@ -1,3 +1,4 @@
+import os.path
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -5,9 +6,10 @@ from typing import Union, Optional, Callable, Any
 from autode.log import logger
 from autode.utils import NumericStringDict
 from autode.config import Config
-from autode.values import GradientRMS, PotentialEnergy
+from autode.values import GradientRMS, PotentialEnergy, method_string
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
+from autode.exceptions import CalculationException
 
 
 class BaseOptimiser(ABC):
@@ -213,7 +215,7 @@ class Optimiser(BaseOptimiser, ABC):
         grad.clean_up(force=True, everything=True)
 
         if self._species.gradient is None:
-            raise RuntimeError(
+            raise CalculationException(
                 "Calculation failed to calculate a gradient. "
                 "Cannot continue!"
             )
@@ -227,16 +229,43 @@ class Optimiser(BaseOptimiser, ABC):
         Update the energy, gradient and Hessian using the method. Will
         transform from the current coordinates type to Cartesian coordinates
         to perform the calculation, then back. Uses a numerical Hessian if
-        analytic Hessians are not implemented for this method
+        analytic Hessians are not implemented for this method. Does not
+        perform a Hessian evaluation if the molecule's energy is evaluated
+        at the same level of theory that would be used for the Hessian
+        evaluation.
 
         -----------------------------------------------------------------------
         Raises:
             (autode.exceptions.CalculationException):
         """
+        should_calc_hessian = True
+
+        if (
+            _energy_method_string(self._species)
+            == method_string(self._method, self._method.keywords.hess)
+            and self._species.hessian is not None
+        ):
+            logger.info(
+                "Have a calculated the energy at the same level of "
+                "theory as this optimisation and a present Hessian. "
+                "Not calculating a new Hessian"
+            )
+            should_calc_hessian = False
+
         self._update_gradient_and_energy()
 
+        if should_calc_hessian:
+            self._update_hessian()
+        else:
+            self._coords.update_h_from_cart_h(
+                self._species.hessian.to("Ha Å^-2")
+            )
+        return None
+
+    def _update_hessian(self) -> None:
+        """Update the Hessian of a species"""
         species = self._species.new_species(
-            name=f"{self._species.name}" f"_opt_{self.iteration}"
+            name=f"{self._species.name}_opt_{self.iteration}"
         )
         species.coordinates = self._coords.to("cartesian")
 
@@ -247,8 +276,7 @@ class Optimiser(BaseOptimiser, ABC):
         )
 
         self._species.hessian = species.hessian.copy()
-        self._coords.update_h_from_cart_h(self._species.hessian)
-        return None
+        self._coords.update_h_from_cart_h(self._species.hessian.to("Ha Å^-2"))
 
     @property
     def _space_has_degrees_of_freedom(self) -> bool:
@@ -547,6 +575,10 @@ class NDOptimiser(Optimiser, ABC):
             f" maxiter = {self._maxiter}"
         )
 
+        if os.path.exists(filename):
+            logger.warning(f"FIle {filename} existed. Overwriting")
+            open(filename, "w").close()
+
         for i, coordinates in enumerate(self._history):
 
             energy = coordinates.e
@@ -839,3 +871,7 @@ class _OptimiserCallbackFunction:
 
         logger.info("Calling callback function")
         return self._f(coordinates, **self._kwargs)
+
+
+def _energy_method_string(species: "Species") -> str:
+    return "" if species.energy is None else species.energy.method_str

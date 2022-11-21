@@ -1,6 +1,25 @@
 Changelog
 =========
 
+1.3.3
+--------
+----------
+
+Bugfix release.
+
+
+Functionality improvements
+**************************
+- Adds skipping Hessian re-evaluation when using autodE optimisers if a molecules has a Hessian calculated at the same level of theory
+- Adds a Hessian recalculation frequency to :code:`autode.optimisers.PRFOptimiser`
+- Improves the default step size for TS optimising to be consistent with the ORCA default
+
+Bug Fixes
+*********
+- Adds checking of SMILES-defined charge against the user-specified value
+- Fixes :code:`autode.optimisers.CRFOptimiser` building incomplete internal coordinates for partially or completely fragmented molecules
+
+
 1.3.2
 --------
 ----------
