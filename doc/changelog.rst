@@ -1,6 +1,25 @@
 Changelog
 =========
 
+1.4.0
+--------
+----------
+
+Functionality improvements
+**************************
+-
+
+
+Usability improvements/Changes
+******************************
+-
+
+
+Bug Fixes
+*********
+-
+
+
 1.3.5
 --------
 ----------
