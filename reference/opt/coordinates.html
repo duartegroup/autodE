@@ -1001,6 +1001,12 @@ N atoms, zeroing the second derivatives if required</p>
 <dt class="sig sig-object py" id="autode.opt.coordinates.cartesian.CartesianCoordinates">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.cartesian.</span></span><span class="sig-name descname"><span class="pre">CartesianCoordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Å'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.cartesian.CartesianCoordinates" title="Permalink to this definition">#</a></dt>
 <dd><p>Flat Cartesian coordinates shape = (3 × n_atoms, )</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.cartesian.CartesianCoordinates.expected_number_of_dof">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_number_of_dof</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.opt.coordinates.cartesian.CartesianCoordinates.expected_number_of_dof" title="Permalink to this definition">#</a></dt>
+<dd><p>Expected number of degrees of freedom for the system</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.cartesian.CartesianCoordinates.iadd">
 <span class="sig-name descname"><span class="pre">iadd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.base.OptCoordinates" title="autode.opt.coordinates.base.OptCoordinates"><span class="pre">autode.opt.coordinates.base.OptCoordinates</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.cartesian.CartesianCoordinates.iadd" title="Permalink to this definition">#</a></dt>
@@ -1051,6 +1057,12 @@ summarised below:</p>
 <dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.opt.coordinates.dic.</span></span><span class="sig-name descname"><span class="pre">DIC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_array</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC" title="Permalink to this definition">#</a></dt>
 <dd><p>Delocalised internal coordinates (DIC)</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC.active_indexes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">active_indexes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.dic.DIC.active_indexes" title="Permalink to this definition">#</a></dt>
+<dd><p>A list of indexes for the active modes in this coordinate set</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC.from_cartesian">
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_cartesian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autode.opt.coordinates.CartesianCoordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primitives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">autode.opt.coordinates.internals.PIC</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.opt.coordinates.dic.DIC" title="autode.opt.coordinates.dic.DIC"><span class="pre">autode.opt.coordinates.dic.DIC</span></a></span></span><a class="headerlink" href="#autode.opt.coordinates.dic.DIC.from_cartesian" title="Permalink to this definition">#</a></dt>
@@ -1090,6 +1102,12 @@ the same shape as self into self.shape.</p>
 <dd class="field-even"><p><strong>(</strong><strong>RuntimeError</strong><strong>)</strong> – If the transformation diverges</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.opt.coordinates.dic.DIC.inactive_indexes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">inactive_indexes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.opt.coordinates.dic.DIC.inactive_indexes" title="Permalink to this definition">#</a></dt>
+<dd><p>A list of indexes for the non-active modes in this coordinate set</p>
 </dd></dl>
 
 <dl class="py method">
