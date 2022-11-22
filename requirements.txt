@@ -4,8 +4,6 @@ networkx
 matplotlib
 cython
 scipy
-pytest
 psutil
 joblib
 loky
-setuptools
