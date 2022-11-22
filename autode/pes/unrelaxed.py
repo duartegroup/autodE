@@ -24,13 +24,12 @@ class UnRelaxedPES1D(ReactivePESnD):
 
         with Parallel(n_jobs=self._n_cores) as parallel:
 
-            jobs = []
-
-            for p in points:
-                job = delayed(hashable("_single_energy", self))(self._species_at(p), n_cores_pp)
-                jobs.append(job)
-
-            results = parallel(jobs)
+            results = parallel(
+                delayed(hashable("_single_energy", self))(
+                    self._species_at(p), n_cores_pp
+                )
+                for p in points
+            )
 
             for i, p in enumerate(points):
                 self._energies[p] = results[i]
