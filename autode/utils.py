@@ -41,7 +41,7 @@ def check_sufficient_memory(func: Callable):
         physical_mem = None
         required_mem = int(Config.n_cores) * Config.max_core
 
-        try:  # check available memory
+        try:
             physical_mem = Allocation(
                 psutil.virtual_memory().available,
                 units="bytes"
