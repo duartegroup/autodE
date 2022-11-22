@@ -884,7 +884,7 @@ def test_numerical_hessian_in_daemon():
     calculated within a Joblib process pool
     """
     with Parallel(n_jobs=1) as parallel:
-        res = parallel(delayed(_calc_num_hessian_h2))
+        res = parallel([delayed(_calc_num_hessian_h2)])
     # What is the purpose of this function? I am not quite sure, so I replaced
     # multiprocessing with joblib, but it does not seem to be necessary in joblib
     # as joblib's Parallel pool does not spawn daemon processes.
