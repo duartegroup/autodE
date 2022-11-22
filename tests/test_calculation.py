@@ -327,7 +327,7 @@ def test_exec_too_much_memory_requested_py38():
         return  # Only supported on Python 3.8
 
     # Python 3.8 can't use os.sysconf, so check that external can still be run
-    run_external(["ls"], output_filename="tmp.txt")
+    run_external(["whoami"], output_filename="tmp.txt")
 
 
 @requires_with_working_xtb_install
