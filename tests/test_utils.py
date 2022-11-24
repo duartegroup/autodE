@@ -45,7 +45,7 @@ def test_reset_dir_on_error():
 def test_monitored_external():
 
     echo = ["echo", "test"]
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         echo = ["cmd", "/c", *echo]  # echo is cmd prompt builtin
 
     utils.run_external_monitored(params=echo, output_filename="test.txt")
@@ -56,7 +56,7 @@ def test_monitored_external():
 
     # If the break word is in the stdout or stderr then the process should exit
     echo = ["echo", "ABORT\ntest"]
-    if platform.system() == 'Windows':
+    if platform.system() == "Windows":
         echo = ["cmd", "/c", *echo]
 
     utils.run_external_monitored(

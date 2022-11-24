@@ -32,7 +32,9 @@ class RelaxedPESnD(ReactivePESnD):
                 func = hashable("_single_energy_coordinates", self)
 
                 for point in points:
-                    job = delayed(func)(self._species_at(point), n_cores=n_cores_pp)
+                    job = delayed(func)(
+                        self._species_at(point), n_cores=n_cores_pp
+                    )
                     jobs.append(job)
 
                 results = parallel(jobs)

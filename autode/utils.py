@@ -24,13 +24,6 @@ from autode.exceptions import (
     CouldNotGetProperty,
 )
 
-#try:
-#    mp.set_start_method("fork")
-#except RuntimeError:
-#    logger.warning("Multiprocessing context has already been defined")
-#except ValueError:
-#    logger.warning("Multiprocessing is not used in Windows")
-
 
 def check_sufficient_memory(func: Callable):
     """Decorator to check that enough memory is available for a calculation"""
@@ -41,10 +34,9 @@ def check_sufficient_memory(func: Callable):
         physical_mem = None
         required_mem = int(Config.n_cores) * Config.max_core
 
-        try:  # check available memory
+        try:
             physical_mem = Allocation(
-                psutil.virtual_memory().available,
-                units="bytes"
+                psutil.virtual_memory().available, units="bytes"
             )
         except (ValueError, OSError, RuntimeError):
             logger.warning("Cannot check physical memory")
@@ -420,14 +412,13 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
 
     def decorator(func):
         def wrapper(*args, **kwargs):
-
             def run_func(connector):
                 pid = os.getpid()
                 connector.send(pid)  # send PID of process running job
                 result = func(*args, **kwargs)
                 return result
 
-            pool = loky.get_reusable_executor(max_workers=2)  # get process pool
+            pool = loky.get_reusable_executor(max_workers=2)
             conn1, conn2 = Pipe()
             try:
                 job = pool.submit(run_func, conn1)
@@ -441,12 +432,12 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
                 return res
             except loky.TimeoutError:
                 pool.shutdown(wait=False)
-                if job_pid != os.getpid():  # prevent accidentally killing main process
-                    job_proc = psutil.Process(pid=job_pid)  # attach to job process
-                    job_sub_children = job_proc.children(recursive=True)  # any subprocesses of job
+                if job_pid != os.getpid():
+                    job_proc = psutil.Process(pid=job_pid)
+                    job_sub_children = job_proc.children(recursive=True)
                     for proc in job_sub_children:
-                        proc.send_signal(signal.SIGTERM)  # shut-down subprocesses of job
-                    job_proc.send_signal(signal.SIGTERM)  # shut-down job process
+                        proc.send_signal(signal.SIGTERM)
+                    job_proc.send_signal(signal.SIGTERM)
                     return return_value
                 else:
                     raise

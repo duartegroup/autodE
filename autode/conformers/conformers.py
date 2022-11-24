@@ -256,7 +256,9 @@ class Conformers(list):
 
         with Parallel(n_jobs=Config.n_cores // n_cores_pp) as parallel:
             jobs = [
-                delayed(_calc_conformer)(conf, calc_type, method, keywords, n_cores=n_cores_pp)
+                delayed(_calc_conformer)(
+                    conf, calc_type, method, keywords, n_cores=n_cores_pp
+                )
                 for conf in self
             ]
             results = parallel(jobs)
