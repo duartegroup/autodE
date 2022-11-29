@@ -619,7 +619,7 @@ class Reaction:
 
     @requires_hl_level_methods
     @work_in("transition_states")
-    def locate_transition_state(self) -> None:
+    def locate_transition_state(self, only_template_guess=False) -> None:
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
@@ -628,7 +628,7 @@ class Reaction:
         ):
 
             self.switch_reactants_products()
-            self.tss = find_tss(self)
+            self.tss = find_tss(self, only_template_guess)
             self.switch_reactants_products()
 
         else:

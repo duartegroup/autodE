@@ -23,7 +23,7 @@ from autode.substitution import get_cost_rotate_translate
 from autode.substitution import get_substc_and_add_dummy_atoms
 
 
-def find_tss(reaction):
+def find_tss(reaction, only_template_guess=False):
     """
     Find all the possible the transition states of a reaction over possible
     paths from reaction.reactant to reaction.product. Will not search the
@@ -58,7 +58,7 @@ def find_tss(reaction):
             f"{bond_rearrangement.all}"
         )
 
-        ts = get_ts(str(reaction), reactant, product, bond_rearrangement)
+        ts = get_ts(str(reaction), reactant, product, bond_rearrangement, only_template_guess)
 
         if ts is not None:
             tss.append(ts)
@@ -245,7 +245,7 @@ def get_truncated_ts(name, reactant, product, bond_rearr):
     return
 
 
-def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
+def get_ts(name, reactant, product, bond_rearr, is_truncated=False, only_template_guess=False):
     """For a bond rearrangement run PES exploration and TS optimisation to
     find a TS
 
@@ -297,33 +297,61 @@ def get_ts(name, reactant, product, bond_rearr, is_truncated=False):
     if not is_truncated and is_worth_truncating(reactant, bond_rearr):
         get_truncated_ts(name, reactant, product, bond_rearr)
 
-    # There are multiple methods of finding a transition state. Iterate through
-    # from the cheapest -> most expensive
-    for func, params in ts_guess_funcs_prms(
-        name, reactant, product, bond_rearr
-    ):
-        logger.info(f"Trying to find a TS guess with {func.__name__}")
-        ts_guess = func(*params)
+    if only_template_guess: 
+        # Attempts to find a TS guess from a template only. If it fails it simply gives 
+        # a warning
+        r, p = reactant.copy(), product.copy()  # Reactants/products may be edited
+
+        hmethod = get_hmethod()
+
+        # TODO: make this less awful (consistent types)
+        for i, pair in enumerate(bond_rearr.bbonds):
+            bond_rearr.bbonds[i] = BreakingBond(pair, r, p)
+
+        for i, pair in enumerate(bond_rearr.fbonds):
+            bond_rearr.fbonds[i] = FormingBond(pair, r, p)
+        # TODO: -------------------------------------------
+
+        ts_guess = get_template_ts_guess(r, p, bond_rearr, f'{name}_template_{bond_rearr}', hmethod)
 
         if ts_guess is None:
-            continue
+            logger.warning(f'No template TS guess was found for reaction {name}')
+            
+        else: 
+            logger.info(f'Creating TS from {name} template TS guess')
+            ts = TransitionState(ts_guess, bond_rearr=bond_rearr)
 
-        if not ts_guess.could_have_correct_imag_mode:
-            continue
+        if ts_guess.could_have_correct_imag_mode:
+            logger.info(f'Template TS guess for reaction {name} could have correct imaginary mode.')
 
-        # Form a transition state object and run an OptTS calculation
-        ts = TransitionState(ts_guess, bond_rearr=bond_rearr)
-        ts.optimise()
+    else:
+        # There are multiple methods of finding a transition state. Iterate through
+        # from the cheapest -> most expensive
+        for func, params in ts_guess_funcs_prms(
+            name, reactant, product, bond_rearr
+        ):
+            logger.info(f"Trying to find a TS guess with {func.__name__}")
+            ts_guess = func(*params)
 
-        if not ts.is_true_ts:
-            continue
+            if ts_guess is None:
+                continue
 
-        # Save a transition state template if specified in the config
-        if Config.make_ts_template:
-            ts.save_ts_template(folder_path=Config.ts_template_folder_path)
+            if not ts_guess.could_have_correct_imag_mode:
+                continue
 
-        logger.info(f"Found a transition state with {func.__name__}")
-        return ts
+            # Form a transition state object and run an OptTS calculation
+            ts = TransitionState(ts_guess, bond_rearr=bond_rearr)
+            ts.optimise()
+
+            if not ts.is_true_ts:
+                continue
+
+            # Save a transition state template if specified in the config
+            if Config.make_ts_template:
+                ts.save_ts_template(folder_path=Config.ts_template_folder_path)
+
+            logger.info(f"Found a transition state with {func.__name__}")
+            return ts
 
     return None
 
