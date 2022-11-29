@@ -58,7 +58,7 @@ def find_tss(reaction, only_template_guess=False):
             f"{bond_rearrangement.all}"
         )
 
-        ts = get_ts(str(reaction), reactant, product, bond_rearrangement, only_template_guess)
+        ts = get_ts(str(reaction), reactant, product, bond_rearrangement, only_template_guess=only_template_guess)
 
         if ts is not None:
             tss.append(ts)
@@ -300,6 +300,7 @@ def get_ts(name, reactant, product, bond_rearr, is_truncated=False, only_templat
     if only_template_guess: 
         # Attempts to find a TS guess from a template only. If it fails it simply gives 
         # a warning
+        logger.info(f'Getting a TS guess using only get_template_ts_guess() for reaction {name}')
         r, p = reactant.copy(), product.copy()  # Reactants/products may be edited
 
         hmethod = get_hmethod()
