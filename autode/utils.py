@@ -36,7 +36,7 @@ def check_sufficient_memory(func: Callable):
 
         try:
             physical_mem = Allocation(
-                psutil.virtual_memory().available, units="bytes"
+                psutil.virtual_memory().total, units="bytes"
             )
         except (ValueError, OSError, RuntimeError):
             logger.warning("Cannot check physical memory")
