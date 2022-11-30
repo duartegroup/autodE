@@ -271,3 +271,18 @@ def test_atom_class_defined_for_organic():
 
     mol = Molecule(smiles="[Br-:1]")
     assert mol.atoms[0].atom_class is not None
+
+
+def test_smiles_and_user_defined_charge_raises_exception():
+
+    with pytest.raises(Exception):
+        _ = Molecule(smiles="[Cl-]", charge=1)
+
+
+def test_user_defined_charge_overrides_smiles_mult():
+
+    ch2 = Molecule(smiles="[H][C][H]")
+    default_mult = ch2.mult
+
+    ch2_alt = Molecule(smiles="[H][C][H]", mult=3 if default_mult == 1 else 1)
+    assert ch2_alt.mult != default_mult

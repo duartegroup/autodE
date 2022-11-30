@@ -117,8 +117,18 @@ class CRFOptimiser(RFOptimiser):
             )
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
+        primitives = self._primitives
+
+        if len(primitives) < cartesian_coords.expected_number_of_dof:
+            logger.info(
+                "Had an incomplete set of primitives. Adding "
+                "additional distances"
+            )
+            for i, j in combinations(range(self._species.n_atoms), 2):
+                primitives.append(Distance(i, j))
+
         self._coords = DICWithConstraints.from_cartesian(
-            x=cartesian_coords, primitives=self._primitives
+            x=cartesian_coords, primitives=primitives
         )
         self._coords.zero_lagrangian_multipliers()
         return None
@@ -127,7 +137,15 @@ class CRFOptimiser(RFOptimiser):
     def _primitives(self) -> PIC:
         """Primitive internal coordinates in this molecule"""
         logger.info("Generating primitive internal coordinates")
-        graph = self._species.graph
+        graph = self._species.graph.copy()
+
+        # Any distance constraints should also count as 'bonds' when forming
+        # the set of primitive internal coordinates, so that there is a
+        # single molecule if those distances are approaching dissociation
+        if self._species.constraints.distance is not None:
+            logger.info("Adding distance constraints as primitives")
+            for (i, j) in self._species.constraints.distance:
+                graph.add_edge(i, j)
 
         pic = PIC()
 

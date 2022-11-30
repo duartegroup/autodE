@@ -305,7 +305,7 @@ class _ConfigClass:
             grad=[def2svp, pbe0, "task dft gradient"],
             low_sp=[def2svp, pbe0, "task dft energy"],
             opt=[def2svp, pbe0, MaxOptCycles(100), "task dft gradient"],
-            opt_ts=[def2svp, pbe0, "task dft gradient"],
+            opt_ts=[def2svp, pbe0, MaxOptCycles(50), "task dft gradient"],
             hess=[def2svp, pbe0, "task dft freq"],
             sp=[def2tzvp, pbe0, "task dft energy"],
             ecp=def2ecp,

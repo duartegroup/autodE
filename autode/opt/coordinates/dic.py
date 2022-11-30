@@ -69,6 +69,13 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         # of 3N - 6 non-redundant internals for a system of N atoms
         idxs = np.where(np.abs(lambd) > 1e-10)[0]
 
+        if len(idxs) < x.expected_number_of_dof:
+            raise RuntimeError(
+                "Failed to create a complete set of delocalised internal "
+                f"coordinates. {len(idxs)} < 3 N_atoms - 6. Likely due to "
+                f"missing primitives"
+            )
+
         logger.info(f"Removed {len(lambd) - len(idxs)} redundant vectors")
         return u[:, idxs]
 
@@ -247,6 +254,16 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
     @property
     def _allow_unconverged_back_transform(self) -> bool:
         return True
+
+    @property
+    def active_indexes(self) -> List[int]:
+        """A list of indexes for the active modes in this coordinate set"""
+        return list(range(len(self)))
+
+    @property
+    def inactive_indexes(self) -> List[int]:
+        """A list of indexes for the non-active modes in this coordinate set"""
+        return []
 
 
 class DICWithConstraints(DIC):
@@ -434,7 +451,7 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
     provide pure primitive coordinates, which can then be constrained simply
     """
     logger.info(
-        f"Schmidt-orthogonalizing. Using {indexes} as " f"orthonormal vectors"
+        f"Schmidt-orthogonalizing. Using {indexes} as orthonormal vectors"
     )
 
     u = np.zeros_like(arr)

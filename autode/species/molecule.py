@@ -87,12 +87,19 @@ class Molecule(Species):
             smiles (str):
         """
         at_strings = re.findall(r"\[.*?]", smiles)
+        init_charge = self._charge
 
         if any(metal in string for metal in metals for string in at_strings):
             init_smiles(self, smiles)
 
         else:
             init_organic_smiles(self, smiles)
+
+        if not _is_default_charge(init_charge) and init_charge != self._charge:
+            raise ValueError(
+                "SMILES charge was not the same as the "
+                f"defined value. {self._charge} ≠ {init_charge}"
+            )
 
         logger.info(
             f"Initialisation with SMILES successful. "
@@ -242,3 +249,7 @@ class Reactant(Molecule):
 
 class Product(Molecule):
     """Product molecule"""
+
+
+def _is_default_charge(value) -> bool:
+    return value == 0

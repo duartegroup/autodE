@@ -89,3 +89,9 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
             raise ValueError(
                 f"Cannot convert Cartesian coordinates to {value}"
             )
+
+    @property
+    def expected_number_of_dof(self) -> int:
+        """Expected number of degrees of freedom for the system"""
+        n_atoms = len(self.flatten()) // 3
+        return 3 * n_atoms - 6
