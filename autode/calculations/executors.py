@@ -360,7 +360,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         type_ = PRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
 
         self.optimiser = type_(
-            init_alpha=0.1,  # Å
+            init_alpha=self._step_size,
             maxiter=self._max_opt_cycles,
             etol=self.etol,
             gtol=self.gtol,
@@ -433,7 +433,11 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
                 if isinstance(kwd, kws.MaxOptCycles)
             )
         except StopIteration:
-            return 30
+            return 50
+
+    @property
+    def _step_size(self) -> float:
+        return 0.05 if self._calc_is_ts_opt else 0.1
 
     @property
     def _opt_trajectory_name(self) -> str:
