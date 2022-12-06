@@ -34,13 +34,10 @@ except RuntimeError:
 # be started by a dummy call that initiates loky in the current
 # working dir, otherwise on Windows there will be permission errors
 
-def initialize_loky_processing():
-    if mp.parent_process() is None:
-        proc = LokyProcess(target=len, args=([1, 2],))
-        proc.start()
-        proc.join()
-    # TODO fix this
-    return None
+if __name__ == '__main__':
+    proc = LokyProcess(target=len, args=([1, 2],))
+    proc.start()
+    proc.join()
 
 
 def check_sufficient_memory(func: Callable):

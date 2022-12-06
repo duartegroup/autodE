@@ -22,8 +22,6 @@ from autode.wrappers.keywords import (
     GradientKeywords,
 )
 
-utils.initialize_loky_processing()
-
 """
 Bumping the version number requires following the release proceedure:
 
