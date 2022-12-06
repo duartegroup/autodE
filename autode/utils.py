@@ -1,15 +1,13 @@
 import os
-import platform
 import psutil
 import shutil
-import signal
 import warnings
 from time import time
 from typing import Any, Optional, Sequence, List, Callable
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
-from multiprocessing import Pipe
+import multiprocessing as mp
 import loky
 from loky.backend.process import LokyProcess
 from autode.config import Config
@@ -37,9 +35,11 @@ except RuntimeError:
 # working dir, otherwise on Windows there will be permission errors
 
 def initialize_loky_processing():
-    proc = LokyProcess(target=len, args=([1, 2],))
-    proc.start()
-    proc.join()
+    if mp.parent_process() is None:
+        proc = LokyProcess(target=len, args=([1, 2],))
+        proc.start()
+        proc.join()
+    # TODO fix this
     return None
 
 
