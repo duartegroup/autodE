@@ -34,12 +34,13 @@ except RuntimeError:
 # Loky uses a resource tracker server process that is always
 # active, otherwise the parallelisation fails. It needs to
 # be started by a dummy call that initiates loky in the current
-# working dir, otherwise on Windows we will get weird OSErrors
-proc = LokyProcess(target=len, args=([1, 2],))
-proc.start()
-proc.join()
-proc = None
-# TODO put this in a function, and __init__, spawn errors in posix
+# working dir, otherwise on Windows there will be permission errors
+
+def initialize_loky_processing():
+    proc = LokyProcess(target=len, args=([1, 2],))
+    proc.start()
+    proc.join()
+    return None
 
 
 def check_sufficient_memory(func: Callable):

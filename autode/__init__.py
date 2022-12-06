@@ -1,3 +1,4 @@
+import autode.utils
 from autode import methods
 from autode import geom
 from autode import pes
@@ -20,6 +21,8 @@ from autode.wrappers.keywords import (
     Keywords,
     GradientKeywords,
 )
+
+utils.initialize_loky_processing()
 
 """
 Bumping the version number requires following the release proceedure:
