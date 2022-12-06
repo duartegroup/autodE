@@ -440,7 +440,10 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
             p.start()
             # TODO what errors can be thrown by this?
             # Only error possible seems to be some kind of OS
-            # error in spawning new process. Should it be handled?
+            # error in spawning new process. Should it be handled
+            # at all? If multiprocessing cannot make new processes
+            # then something is seriously wrong and there is no need
+            # to continue
 
             # TODO should I put a few seconds leeway? Creating
             # new processes takes some time
