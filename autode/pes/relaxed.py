@@ -3,7 +3,7 @@ import itertools as it
 from typing import Tuple, List, Type
 from autode.log import logger
 from autode.utils import hashable
-from joblib import Parallel, delayed
+import loky
 from autode.pes.reactive import ReactivePESnD
 from autode.calculations import Calculation
 from autode.exceptions import CalculationException
@@ -26,25 +26,22 @@ class RelaxedPESnD(ReactivePESnD):
                 f"{n_cores_pp} cores per process"
             )
 
-            with Parallel(n_jobs=self._n_cores) as parallel:
+            with loky.ProcessPoolExecutor(max_workers=self._n_cores) as pool:
 
-                jobs = []
                 func = hashable("_single_energy_coordinates", self)
 
-                for point in points:
-                    job = delayed(func)(
-                        self._species_at(point), n_cores=n_cores_pp
+                jobs = [
+                    pool.submit(
+                        func, self._species_at(point), n_cores=n_cores_pp
                     )
-                    jobs.append(job)
-
-                results = parallel(jobs)
+                    for point in points
+                ]
 
                 for i, point in enumerate(points):
                     (
                         self._energies[point],
                         self._coordinates[point],
-                    ) = results[i]
-                # TODO check if joblib is okay with tuples being returned
+                    ) = jobs[i].result()
 
         return None
 

@@ -1,5 +1,5 @@
 from typing import Optional, List
-from joblib import Parallel, delayed
+import loky
 from autode.values import Frequency
 from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
@@ -138,13 +138,13 @@ class TransitionState(TSbase):
 
         distance_consts = self.active_bond_constraints
 
-        with Parallel(n_jobs=Config.n_cores) as parallel:
+        with loky.ProcessPoolExecutor(max_workers=Config.n_cores) as pool:
             results = [
-                delayed(get_simanl_conformer)(self, distance_consts, i)
+                pool.submit(get_simanl_conformer, self, distance_consts, i)
                 for i in range(n_confs)
             ]
 
-            self.conformers = parallel(results)
+            self.conformers = [res.result() for res in results]
 
         self.conformers.prune(e_tol=1e-6)
         return None

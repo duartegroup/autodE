@@ -3,7 +3,8 @@ Hessian diagonalisation and projection routines. See autode/common/hessians.pdf
 for mathematical background
 """
 import numpy as np
-from joblib import Parallel, delayed
+import loky
+import multiprocessing as mp
 
 from functools import cached_property
 from typing import List, Tuple, Iterator, Optional, Sequence, Union
@@ -446,24 +447,22 @@ class NumericalHessianCalculator:
             logger.info("Calculating gradient at current point")
             self._init_gradient = self._gradient(species=self._species)
 
-        #if mp.current_process().daemon:
-        #    return self._calculate_in_serial()
-        # TODO get current process from joblib?
+        # if run in a child process, do serial calculation
+        if mp.parent_process() is not None:
+            return self._calculate_in_serial()
 
         # Although n_rows may be < n_cores there will not be > n_rows processes
-        with Parallel(n_jobs=self._n_total_cores) as parallel:
+        with loky.ProcessPoolExecutor(max_workers=self._n_total_cores) as pool:
 
             func_name = "_cdiff_row" if self._do_c_diff else "_diff_row"
 
             jobs = [
-                delayed(hashable(func_name, self))(i, k)
+                pool.submit(hashable(func_name, self), i, k)
                 for (i, k) in self._idxs_to_calculate()
             ]
 
-            res = parallel(jobs)
-
-            for row_idx, row in enumerate(res):
-                self._hessian[row_idx, :] = row
+            for row_idx, row in enumerate(jobs):
+                self._hessian[row_idx, :] = row.result()
 
         return None
 

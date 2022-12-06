@@ -1,7 +1,7 @@
 """Unrelaxed potential energy surfaces"""
 import numpy as np
 from typing import Tuple, Type
-from joblib import Parallel, delayed
+import loky
 from autode.pes.reactive import ReactivePESnD
 from autode.utils import hashable
 from autode.log import logger
@@ -22,17 +22,19 @@ class UnRelaxedPES1D(ReactivePESnD):
         # PES. The number of workers executing will be at most len(points)
         n_cores_pp = max(self._n_cores // len(points), 1)
 
-        with Parallel(n_jobs=self._n_cores) as parallel:
+        with loky.ProcessPoolExecutor(max_workers=self._n_cores) as pool:
 
-            results = parallel(
-                delayed(hashable("_single_energy", self))(
-                    self._species_at(p), n_cores_pp
+            results = [
+                pool.submit(
+                    hashable("_single_energy", self),
+                    self._species_at(p),
+                    n_cores_pp,
                 )
                 for p in points
-            )
+            ]
 
             for i, p in enumerate(points):
-                self._energies[p] = results[i]
+                self._energies[p] = results[i].result()
 
         return None
 

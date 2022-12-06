@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional, Union
-from joblib import Parallel, delayed
+import loky
 from rdkit import Chem
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
@@ -254,17 +254,23 @@ class Conformers(list):
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
-        with Parallel(n_jobs=Config.n_cores // n_cores_pp) as parallel:
+        with loky.ProcessPoolExecutor(
+            max_workers=Config.n_cores // n_cores_pp
+        ) as pool:
             jobs = [
-                delayed(_calc_conformer)(
-                    conf, calc_type, method, keywords, n_cores=n_cores_pp
+                pool.submit(
+                    _calc_conformer,
+                    conf,
+                    calc_type,
+                    method,
+                    keywords,
+                    n_cores=n_cores_pp,
                 )
                 for conf in self
             ]
-            results = parallel(jobs)
 
-            for idx, res in enumerate(results):
-                self[idx] = res
+            for idx, res in enumerate(jobs):
+                self[idx] = res.result()
 
         return None
 

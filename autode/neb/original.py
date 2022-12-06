@@ -13,7 +13,7 @@ from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
 from autode.values import Distance, PotentialEnergy
-from joblib import Parallel, delayed
+import loky
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,13 +99,13 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
     )
 
     # Run an energy + gradient evaluation in parallel across all images
-    with Parallel(n_jobs=n_cores) as parallel:
+    with loky.ProcessPoolExecutor(max_workers=n_cores) as pool:
         results = [
-            delayed(energy_gradient)(images[i], method, n_cores_pp)
+            pool.submit(energy_gradient, images[i], method, n_cores_pp)
             for i in range(1, len(images) - 1)
         ]
 
-        images[1:-1] = parallel(results)
+        images[1:-1] = [res.result() for res in results]
 
     images.increment()
 

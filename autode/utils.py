@@ -11,6 +11,7 @@ from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 from multiprocessing import Pipe
 import loky
+from loky.backend.process import LokyProcess
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -23,6 +24,21 @@ from autode.exceptions import (
     MethodUnavailable,
     CouldNotGetProperty,
 )
+
+
+try:
+    loky.backend.context.set_start_method("loky")
+except RuntimeError:
+    logger.warning("Loky context has already been set")
+
+# Loky uses a resource tracker server process that is always
+# active, otherwise the parallelisation fails. It needs to
+# be started by a dummy call that initiates loky in the current
+# working dir, otherwise on Windows we will get weird OSErrors
+proc = LokyProcess(target=len, args=([1, 2],))
+proc.start()
+proc.join()
+proc = None
 
 
 def check_sufficient_memory(func: Callable):
