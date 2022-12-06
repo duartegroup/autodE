@@ -39,7 +39,7 @@ proc = LokyProcess(target=len, args=([1, 2],))
 proc.start()
 proc.join()
 proc = None
-# TODO put this in a process, spawn errors in posix
+# TODO put this in a function, and __init__, spawn errors in posix
 
 
 def check_sufficient_memory(func: Callable):
