@@ -426,39 +426,36 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
         (Any): Result of the function | return_value
     """
 
+    def handler(queue, func, args, kwargs):
+        queue.put(func(*args, **kwargs))
+
     def decorator(func):
-        def wrapper(*args, **kwargs):
-            def run_func(connector):
-                pid = os.getpid()
-                connector.send(pid)  # send PID of process running job
-                result = func(*args, **kwargs)
-                return result
+        def wraps(*args, **kwargs):
+            current_context = loky.backend.context.get_context()
+            q = current_context.Queue()
+            p = current_context.Process(
+                target=handler, args=(q, func, args, kwargs)
+            )
 
-            pool = loky.get_reusable_executor(max_workers=2)
-            conn1, conn2 = Pipe()
-            try:
-                job = pool.submit(run_func, conn1)
-            except RuntimeError:
-                logger.warn("Failed to wrap function")
-                return func(*args, **kwargs)
+            p.start()
+            # TODO what errors can be thrown by this?
+            # Only error possible seems to be some kind of OS
+            # error in spawning new process. Should it be handled?
 
-            job_pid = conn2.recv()  # get PID of process running job
-            try:
-                res = job.result(timeout=seconds)
-                return res
-            except loky.TimeoutError:
-                pool.shutdown(wait=False)
-                if job_pid != os.getpid():
-                    job_proc = psutil.Process(pid=job_pid)
-                    job_sub_children = job_proc.children(recursive=True)
-                    for proc in job_sub_children:
-                        proc.send_signal(signal.SIGTERM)
-                    job_proc.send_signal(signal.SIGTERM)
-                    return return_value
-                else:
-                    raise
+            # TODO should I put a few seconds leeway? Creating
+            # new processes takes some time
 
-        return wrapper
+            p.join(timeout=seconds)
+
+            if p.is_alive():
+                p.kill()
+                p.join()
+                return return_value
+
+            else:
+                return q.get()
+
+        return wraps
 
     return decorator
 
