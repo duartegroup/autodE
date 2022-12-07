@@ -1,5 +1,5 @@
 import os
-import psutil
+import platform
 import shutil
 import warnings
 from time import time
@@ -9,7 +9,7 @@ from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 import multiprocessing as mp
 import loky
-from loky.backend.process import LokyProcess
+import loky.backend.resource_tracker
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -34,10 +34,33 @@ except RuntimeError:
 # be started by a dummy call that initiates loky in the current
 # working dir, otherwise on Windows there will be permission errors
 
-if __name__ == '__main__':
-    proc = LokyProcess(target=len, args=([1, 2],))
-    proc.start()
-    proc.join()
+loky.backend.resource_tracker.ensure_running()
+
+
+def get_total_memory() -> int:
+    """Returns total amount of physical memory available in bytes"""
+    if platform.system() == 'Windows':
+        from ctypes import Structure, c_int32, c_uint64, sizeof, byref, windll
+        # Use Win32 API : https://stackoverflow.com/questions/31546309/
+        class MemoryStatusEx(Structure):
+            _fields_ = [
+                ('length', c_int32),
+                ('memoryLoad', c_int32),
+                ('totalPhys', c_uint64),
+                ('availPhys', c_uint64),
+                ('totalPageFile', c_uint64),
+                ('availPageFile', c_uint64),
+                ('totalVirtual', c_uint64),
+                ('availVirtual', c_uint64),
+                ('availExtendedVirtual', c_uint64)
+            ]
+            def __init__(self):
+                self.length = sizeof(self)
+        win_mem = MemoryStatusEx()
+        assert windll.kernel32.GlobalMemoryStatusEx(byref(win_mem))
+        return win_mem.totalPhys
+    else:
+        return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
 
 
 def check_sufficient_memory(func: Callable):
@@ -51,7 +74,7 @@ def check_sufficient_memory(func: Callable):
 
         try:
             physical_mem = Allocation(
-                psutil.virtual_memory().total, units="bytes"
+                get_total_memory(), units="bytes"
             )
         except (ValueError, OSError, RuntimeError):
             logger.warning("Cannot check physical memory")
