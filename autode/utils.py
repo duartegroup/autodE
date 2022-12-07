@@ -32,7 +32,6 @@ except RuntimeError:
 # active, otherwise the parallelisation fails. It needs to
 # be started by a dummy call that initiates loky in the current
 # working dir, otherwise on Windows there will be permission errors
-
 loky.backend.resource_tracker.ensure_running()
 
 

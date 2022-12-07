@@ -3,7 +3,7 @@ from setuptools.extension import Extension
 from Cython.Build import cythonize
 import platform
 
-if platform.system() == 'Windows':  # compile with Visual C/C++
+if platform.system() == "Windows":  # compile with Visual C/C++
     cpp_compile_args = ["-permissive-", "-O2"]
     cpp_link_args = []
 else:  # on Linux or MacOS
