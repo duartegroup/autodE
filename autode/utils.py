@@ -57,8 +57,10 @@ def get_total_memory() -> int:
             def __init__(self):
                 self.length = sizeof(self)
         win_mem = MemoryStatusEx()
-        assert windll.kernel32.GlobalMemoryStatusEx(byref(win_mem))
-        return win_mem.totalPhys
+        if windll.kernel32.GlobalMemoryStatusEx(byref(win_mem)):
+            return win_mem.totalPhys
+        else:
+            raise RuntimeError
     else:
         return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
 
