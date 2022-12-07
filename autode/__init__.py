@@ -1,4 +1,3 @@
-import autode.utils
 from autode import methods
 from autode import geom
 from autode import pes
