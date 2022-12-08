@@ -455,8 +455,7 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
         (Any): Result of the function | return_value
     """
 
-    def handler(queue, sync_conn, func, args, kwargs):
-        sync_conn.send(1)
+    def handler(queue, func, args, kwargs):
         queue.put(func(*args, **kwargs))
 
     def decorator(func):
@@ -468,9 +467,8 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
                 return func(*args, **kwargs)
 
             q = current_context.Queue()
-            sync_conn1, sync_conn2 = mp.Pipe()
             p = current_context.Process(
-                target=handler, args=(q, sync_conn1, func, args, kwargs)
+                target=handler, args=(q, func, args, kwargs)
             )
 
             p.start()
@@ -481,8 +479,8 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
             # then something is seriously wrong and there is no need
             # to continue
 
-            # Use Pipes to synchronize
-            _ = sync_conn2.recv()
+            # TODO should I have some leeway in the timeout to
+            # account for the time required to spawn a new process?
 
             p.join(timeout=seconds)
 
