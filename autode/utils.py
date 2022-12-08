@@ -9,6 +9,7 @@ from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 import loky
 import loky.backend.resource_tracker
+import multiprocessing as mp
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -32,7 +33,12 @@ except RuntimeError:
 # active, otherwise the parallelisation fails. It needs to
 # be started by a dummy call that initiates loky in the current
 # working dir, otherwise on Windows there will be permission errors
-loky.backend.resource_tracker.ensure_running()
+current_context = loky.backend.context.get_context()
+if isinstance(current_context, loky.backend.context.LokyContext) or isinstance(
+    current_context, loky.backend.context.LokyInitMainContext
+):
+    loky.backend.resource_tracker.ensure_running()
+current_context = None
 
 
 def get_total_memory() -> int:
@@ -59,7 +65,7 @@ def get_total_memory() -> int:
 
         win_mem = MemoryStatusEx()
         if windll.kernel32.GlobalMemoryStatusEx(byref(win_mem)):
-            return win_mem.totalPhys
+            return int(win_mem.totalPhys)
         else:
             raise RuntimeError
     else:
@@ -453,8 +459,13 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
         queue.put(func(*args, **kwargs))
 
     def decorator(func):
-        def wraps(*args, **kwargs):
+        def wrapper(*args, **kwargs):
             current_context = loky.backend.context.get_context()
+
+            if isinstance(current_context, mp.context.SpawnContext):
+                logger.warning("Timeout does not work in spawn context")
+                return func(*args, **kwargs)
+
             q = current_context.Queue()
             p = current_context.Process(
                 target=handler, args=(q, func, args, kwargs)
@@ -481,7 +492,7 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
             else:
                 return q.get()
 
-        return wraps
+        return wrapper
 
     return decorator
 

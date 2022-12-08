@@ -4,7 +4,8 @@ import numpy as np
 import autode as ade
 from autode.utils import work_in_tmp_dir
 from . import testutils
-from joblib import Parallel, delayed
+import multiprocessing as mp
+import loky
 from autode.config import Config
 from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
@@ -881,18 +882,17 @@ def test_partial_water_num_hess():
 def test_numerical_hessian_in_daemon():
     """
     Ensure that no exceptions are raised when a numerical hessian is
-    calculated within a Joblib process pool
+    calculated within a loky process pool
     """
-    with Parallel(n_jobs=1) as parallel:
-        res = parallel([delayed(_calc_num_hessian_h2)()])
-    # What is the purpose of this function? I am not quite sure, so I replaced
-    # multiprocessing with joblib, but it does not seem to be necessary in joblib
-    # as joblib's Parallel pool does not spawn daemon processes.
+    with loky.ProcessPoolExecutor(max_workers=1) as pool:
+
+        res = pool.submit(_calc_num_hessian_h2)
+        _ = res.result(timeout=None)
 
 
 def _calc_num_hessian_h2():
 
-    assert mp.current_process().daemon
+    assert mp.parent_process() is not None
     h2 = Molecule(smiles="[H][H]")
     h2.calc_hessian(method=XTB(), numerical=True, n_cores=1)
 
