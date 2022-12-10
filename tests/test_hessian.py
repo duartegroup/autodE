@@ -2,7 +2,7 @@ import os
 import pytest
 import numpy as np
 import autode as ade
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, copy_current_config
 from . import testutils
 import multiprocessing as mp
 import loky
@@ -884,7 +884,9 @@ def test_numerical_hessian_in_daemon():
     Ensure that no exceptions are raised when a numerical hessian is
     calculated within a loky process pool
     """
-    with loky.ProcessPoolExecutor(max_workers=1) as pool:
+    with loky.ProcessPoolExecutor(
+        max_workers=1, initializer=copy_current_config, initargs=(Config,)
+    ) as pool:
 
         res = pool.submit(_calc_num_hessian_h2)
         _ = res.result(timeout=None)

@@ -3,10 +3,11 @@ import numpy as np
 from typing import Tuple, Type
 import loky
 from autode.pes.reactive import ReactivePESnD
-from autode.utils import hashable
+from autode.utils import hashable, copy_current_config
 from autode.log import logger
 from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CalculationException
+from autode import Config
 
 
 class UnRelaxedPES1D(ReactivePESnD):
@@ -22,7 +23,11 @@ class UnRelaxedPES1D(ReactivePESnD):
         # PES. The number of workers executing will be at most len(points)
         n_cores_pp = max(self._n_cores // len(points), 1)
 
-        with loky.ProcessPoolExecutor(max_workers=self._n_cores) as pool:
+        with loky.ProcessPoolExecutor(
+            max_workers=self._n_cores,
+            initializer=copy_current_config,
+            initargs=(Config,),
+        ) as pool:
 
             results = [
                 pool.submit(

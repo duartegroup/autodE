@@ -12,7 +12,7 @@ from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.mol_graphs import get_truncated_active_mol_graph
-from autode.utils import requires_atoms, requires_graph
+from autode.utils import requires_atoms, requires_graph, copy_current_config
 
 
 class TransitionState(TSbase):
@@ -138,7 +138,11 @@ class TransitionState(TSbase):
 
         distance_consts = self.active_bond_constraints
 
-        with loky.ProcessPoolExecutor(max_workers=Config.n_cores) as pool:
+        with loky.ProcessPoolExecutor(
+            max_workers=Config.n_cores,
+            initializer=copy_current_config,
+            initargs=(Config,),
+        ) as pool:
             results = [
                 pool.submit(get_simanl_conformer, self, distance_consts, i)
                 for i in range(n_confs)

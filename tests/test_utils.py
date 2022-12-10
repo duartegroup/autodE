@@ -1,7 +1,10 @@
 import time
 import pytest
+import loky
 import platform
 import os
+
+import autode
 from autode import utils
 from autode.calculations import Calculation
 from autode.species.molecule import Molecule
@@ -12,6 +15,7 @@ from subprocess import Popen, TimeoutExpired
 from autode import exceptions as ex
 from autode.mol_graphs import is_isomorphic
 from autode.utils import work_in_tmp_dir, log_time, requires_graph
+from autode.wrappers.keywords.keywords import Functional
 
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -204,6 +208,86 @@ def test_timeout():
     start_time = time.time()
     assert return_string() == "test"
     assert time.time() - start_time < 10
+
+
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_loky_spawn():
+
+    with open("tmp.py", "w") as py_file:
+        print(
+            "import loky",
+            'loky.backend.context.set_start_method("spawn")',
+            "import autode as ade",
+            "def mol():",
+            '    return ade.Molecule(atoms=[ade.Atom("H"), ade.Atom("H", x=0.7)])',
+            'if __name__ == "__main__":',
+            "    with loky.ProcessPoolExecutor(2) as pool:",
+            "        res = [pool.submit(mol) for _ in range(2)]",
+            "        mols = [r.result() for r in res]",
+            sep="\n",
+            file=py_file,
+        )
+
+    process = Popen(["python", "tmp.py"])
+
+    # Executing the script should not take more than a second, if the function
+    # hangs then it should timeout after 10s
+    try:
+        process.wait(timeout=10)
+    except TimeoutExpired:
+        raise AssertionError
+
+    os.remove("tmp.py")
+
+
+def test_fork_loky_graph():
+    # Test fork method for POSIX only
+    if platform.system() == "Windows":
+        return None
+
+    loky.backend.context.set_start_method("fork", force=True)
+
+    # Isomorphism should still be able to be checked
+    h2o_a, h2o_b = Molecule(smiles="O"), Molecule(smiles="O")
+    assert is_isomorphic(h2o_a.graph, h2o_b.graph)
+
+    loky.backend.context.set_start_method("loky", force=True)
+
+
+def test_spawn_loky_graph():
+
+    loky.backend.context.set_start_method("spawn", force=True)
+
+    # Isomorphism should still be able to be checked
+    # but there is no timeout in this case
+    h2o_a, h2o_b = Molecule(smiles="O"), Molecule(smiles="O")
+    assert is_isomorphic(h2o_a.graph, h2o_b.graph)
+
+    loky.backend.context.set_start_method("loky", force=True)
+
+
+def test_config_in_worker_proc():
+    # check that the config is able to be passed to child processes
+
+    def work_fn():
+        assert autode.Config.n_cores == 9
+        assert autode.Config.ORCA.keywords.sp.functional == Functional("B3LYP")
+
+    old_n_cores = autode.Config.n_cores
+    old_orca_funct = autode.Config.ORCA.keywords.sp.functional
+    autode.Config.n_cores = 9
+    autode.Config.ORCA.keywords.sp.functional = "B3LYP"
+
+    with loky.ProcessPoolExecutor(
+        max_workers=2,
+        initializer=utils.copy_current_config,
+        initargs=(autode.Config,),
+    ) as pool:
+        job = pool.submit(work_fn)
+        _ = job.result()
+
+    autode.Config.n_cores = old_n_cores
+    autode.Config.ORCA.keywords.sp.functional = old_orca_funct
 
 
 def test_time_units():

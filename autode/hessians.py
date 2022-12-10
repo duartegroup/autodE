@@ -13,7 +13,7 @@ from autode.log import logger
 from autode.config import Config
 from autode.constants import Constants
 from autode.values import ValueArray, Frequency, Coordinates, Distance
-from autode.utils import work_in, hashable
+from autode.utils import work_in, hashable, copy_current_config
 from autode.units import (
     Unit,
     wavenumber,
@@ -452,7 +452,11 @@ class NumericalHessianCalculator:
             return self._calculate_in_serial()
 
         # Although n_rows may be < n_cores there will not be > n_rows processes
-        with loky.ProcessPoolExecutor(max_workers=self._n_total_cores) as pool:
+        with loky.ProcessPoolExecutor(
+            max_workers=self._n_total_cores,
+            initializer=copy_current_config,
+            initargs=(Config,),
+        ) as pool:
 
             func_name = "_cdiff_row" if self._do_c_diff else "_diff_row"
 

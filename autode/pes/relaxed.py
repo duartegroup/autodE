@@ -2,11 +2,12 @@ import numpy as np
 import itertools as it
 from typing import Tuple, List, Type
 from autode.log import logger
-from autode.utils import hashable
+from autode.utils import hashable, copy_current_config
 import loky
 from autode.pes.reactive import ReactivePESnD
 from autode.calculations import Calculation
 from autode.exceptions import CalculationException
+from autode.config import Config
 
 
 class RelaxedPESnD(ReactivePESnD):
@@ -26,7 +27,11 @@ class RelaxedPESnD(ReactivePESnD):
                 f"{n_cores_pp} cores per process"
             )
 
-            with loky.ProcessPoolExecutor(max_workers=self._n_cores) as pool:
+            with loky.ProcessPoolExecutor(
+                max_workers=self._n_cores,
+                initializer=copy_current_config,
+                initargs=(Config,),
+            ) as pool:
 
                 func = hashable("_single_energy_coordinates", self)
 

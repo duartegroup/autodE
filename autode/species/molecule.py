@@ -16,7 +16,7 @@ from autode.mol_graphs import make_graph
 from autode.smiles.smiles import init_organic_smiles
 from autode.smiles.smiles import init_smiles
 from autode.species.species import Species
-from autode.utils import requires_atoms
+from autode.utils import requires_atoms, copy_current_config
 
 
 class Molecule(Species):
@@ -192,7 +192,11 @@ class Molecule(Species):
 
         else:
             logger.info("Using repulsion+relaxed (RR) to generate conformers")
-            with loky.ProcessPoolExecutor(max_workers=Config.n_cores) as pool:
+            with loky.ProcessPoolExecutor(
+                max_workers=Config.n_cores,
+                initializer=copy_current_config,
+                initargs=(Config,),
+            ) as pool:
                 results = [
                     pool.submit(get_simanl_conformer, self, None, i)
                     for i in range(n_confs)

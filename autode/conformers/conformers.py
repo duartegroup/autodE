@@ -8,6 +8,7 @@ from autode.config import Config
 from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
+from autode.utils import copy_current_config
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -255,7 +256,9 @@ class Conformers(list):
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
         with loky.ProcessPoolExecutor(
-            max_workers=Config.n_cores // n_cores_pp
+            max_workers=Config.n_cores // n_cores_pp,
+            initializer=copy_current_config,
+            initargs=(Config,),
         ) as pool:
             jobs = [
                 pool.submit(

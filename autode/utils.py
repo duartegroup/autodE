@@ -10,6 +10,8 @@ from tempfile import mkdtemp
 import loky
 import loky.backend.resource_tracker
 import multiprocessing as mp
+
+import autode.config
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -39,6 +41,75 @@ if isinstance(current_context, loky.backend.context.LokyContext) or isinstance(
 ):
     loky.backend.resource_tracker.ensure_running()
 current_context = None
+
+
+def copy_current_config(parent_config: "autode.config._ConfigClass") -> None:
+    """
+    Copies an instance of Config into current process. Required to set the
+    process pool workers' Config to the same state as the parent, when
+    not forking the interpreter. To be only run on initializing workers
+
+    Args:
+        parent_config: Parent config instance that will be copied into
+         present process
+    """
+    # if forking the interpreter, no need to copy vars
+    if platform.system() != "Windows":
+        if isinstance(
+            loky.backend.context.get_context(), mp.context.ForkContext
+        ):
+            return None
+
+    for attrib in dir(parent_config):
+        # no need to copy class methods
+        if attrib.startswith("__"):
+            pass
+        elif attrib in [
+            "_ORCA",
+            "_G09",
+            "_G16",
+            "_NWChem",
+            "_XTB",
+            "_MOPAC",
+            "_QChem",
+        ]:
+            pass
+        # if attribute is basic type
+        elif isinstance(
+            getattr(parent_config, attrib),
+            (
+                int,
+                float,
+                str,
+                bool,
+                list,
+                tuple,
+                dict,
+                type(None),
+                autode.values.Value,
+            ),
+        ):
+            autode.Config.__setattr__(attrib, getattr(parent_config, attrib))
+        elif attrib in [
+            "ORCA",
+            "G09",
+            "G16",
+            "NWChem",
+            "XTB",
+            "MOPAC",
+            "QChem",
+        ]:
+            method_attrib_local = getattr(autode.Config, attrib)
+            for sub_attrib in dir(method_attrib_local):
+                if not sub_attrib.startswith("__"):
+                    method_attrib_local.__setattr__(
+                        sub_attrib,
+                        getattr(getattr(parent_config, attrib), sub_attrib),
+                    )
+        else:
+            raise AttributeError(
+                f"Unknown attribute in parent Config: {attrib}"
+            )
 
 
 def get_total_memory() -> int:

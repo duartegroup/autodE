@@ -8,7 +8,7 @@ from autode.calculations import Calculation
 from autode.wrappers.methods import Method
 from autode.input_output import xyz_file_to_molecules
 from autode.path import Path
-from autode.utils import work_in
+from autode.utils import work_in, copy_current_config
 from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
@@ -99,7 +99,11 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
     )
 
     # Run an energy + gradient evaluation in parallel across all images
-    with loky.ProcessPoolExecutor(max_workers=n_cores) as pool:
+    with loky.ProcessPoolExecutor(
+        max_workers=n_cores,
+        initializer=copy_current_config,
+        initargs=(Config,),
+    ) as pool:
         results = [
             pool.submit(energy_gradient, images[i], method, n_cores_pp)
             for i in range(1, len(images) - 1)
