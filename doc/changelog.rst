@@ -14,7 +14,7 @@ Usability improvements/Changes
 
 Functionality improvements
 **************************
-- 
+- Adds :code:`ade.transition_states.TransitionState.from_species` method/constructor
 
 Bug Fixes
 *********
