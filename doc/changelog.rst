@@ -1,6 +1,22 @@
 Changelog
 =========
 
+1.3.4
+--------
+----------
+
+Feature additions.
+
+
+Functionality improvements
+**************************
+- 
+
+Bug Fixes
+*********
+-
+
+
 1.3.3
 --------
 ----------
