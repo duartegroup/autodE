@@ -5,6 +5,7 @@ from autode.config import Config
 from autode.values import Allocation, Distance
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.keywords import Keywords
+from autode.transition_states.templates import get_ts_template_folder_path
 
 
 def test_config():
@@ -76,3 +77,13 @@ def test_step_size_setter():
     # Setting in Bohr should convert to angstroms
     _config.max_step_size = Distance(0.2, units="a0")
     assert np.isclose(_config.max_step_size.to("ang"), 0.1, atol=0.02)
+
+
+def test_invalid_get_ts_template_folder_path():
+
+    Config.ts_template_folder_path = ""
+
+    with pytest.raises(ValueError):
+        _ = get_ts_template_folder_path(None)
+
+    Config.ts_template_folder_path = None
