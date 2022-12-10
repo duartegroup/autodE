@@ -5,6 +5,7 @@ from .. import testutils
 import pytest
 from autode.exceptions import TemplateLoadingFailed
 from autode.config import Config
+from autode.species.molecule import Molecule
 from autode.bond_rearrangement import BondRearrangement
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.species.molecule import Reactant, Product
@@ -238,3 +239,13 @@ def test_inactive_graph():
 
     template.graph = ch3f.graph.copy()
     assert not template.graph_has_correct_structure()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_template.zip"))
+def test_ts_from_species_is_same_as_from_ts_guess():
+
+    ts = TransitionState(
+        TSguess(atoms=xyz_file_to_atoms("vaskas_TS.xyz"), charge=0, mult=1)
+    )
+
+    assert TransitionState.from_species(Molecule("vaskas_TS.xyz")) == ts
