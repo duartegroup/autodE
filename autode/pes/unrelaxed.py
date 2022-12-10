@@ -7,7 +7,7 @@ from autode.utils import hashable, copy_current_config
 from autode.log import logger
 from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CalculationException
-from autode import Config
+from autode.config import Config
 
 
 class UnRelaxedPES1D(ReactivePESnD):
