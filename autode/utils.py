@@ -551,7 +551,18 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
             # to continue
 
             # TODO should I have some leeway in the timeout to
-            # account for the time required to spawn a new process?
+            # account for the time required to create a new process?
+
+            # TODO should I pass parent's config into worker processes?
+            # The only function that is wrapped with timeout is the graph
+            # isomorphism check, but that does not use Config, so it can
+            # be avoided
+
+            # TODO should there be a mechanism to check if the function
+            # creates more subprocesses? Because then those also need
+            # to be terminated. The previous autode code does not check
+            # for this. If only graph isomorphism is done, then we know
+            # there is no extra subprocess, so this is fine
 
             p.join(timeout=seconds)
 
