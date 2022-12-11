@@ -135,7 +135,7 @@ def run_external_monitored(
     return None
 
 
-def work_in(dir_ext: str):
+def work_in(dir_ext: str) -> Callable:
     """Execute a function in a different directory"""
 
     def func_decorator(func):
@@ -173,7 +173,7 @@ def work_in_tmp_dir(
     filenames_to_copy: Optional[Sequence[str]] = None,
     kept_file_exts: Optional[Sequence[str]] = None,
     use_ll_tmp: bool = False,
-):
+) -> Callable:
     """Execute a function in a temporary directory.
 
     -----------------------------------------------------------------------
@@ -242,7 +242,7 @@ def work_in_tmp_dir(
     return func_decorator
 
 
-def log_time(prefix: str = "Executed in: ", units: str = "ms"):
+def log_time(prefix: str = "Executed in: ", units: str = "ms") -> Callable:
     """A function requiring a number of atoms to run"""
 
     if units.lower() == "s" or units.lower() == "seconds":
@@ -273,7 +273,7 @@ def log_time(prefix: str = "Executed in: ", units: str = "ms"):
     return func_decorator
 
 
-def requires_atoms(func: Callable):
+def requires_atoms(func: Callable) -> Callable:
     """A function requiring a number of atoms to run"""
 
     @wraps(func)
@@ -290,7 +290,7 @@ def requires_atoms(func: Callable):
     return wrapped_function
 
 
-def requires_graph(func: Callable):
+def requires_graph(func: Callable) -> Callable:
     """A function requiring a number of atoms to run"""
 
     @wraps(func)
@@ -307,7 +307,7 @@ def requires_graph(func: Callable):
     return wrapped_function
 
 
-def requires_conformers(func: Callable):
+def requires_conformers(func: Callable) -> Callable:
     """A function requiring the species to have a list of conformers"""
 
     @wraps(func)
@@ -324,7 +324,7 @@ def requires_conformers(func: Callable):
     return wrapped_function
 
 
-def requires_hl_level_methods(func: Callable):
+def requires_hl_level_methods(func: Callable) -> Callable:
     """A function requiring both high and low-level methods to be available"""
 
     @wraps(func)
@@ -352,7 +352,7 @@ def requires_hl_level_methods(func: Callable):
     return wrapped_function
 
 
-def requires_output(func: Callable):
+def requires_output(func: Callable) -> Callable:
     """A function requiring an output file and output file lines"""
 
     @wraps(func)
@@ -368,7 +368,7 @@ def requires_output(func: Callable):
     return wrapped_function
 
 
-def requires_output_to_exist(func):
+def requires_output_to_exist(func) -> Callable:
     """Calculation method requiring the output filename to be set"""
 
     @wraps(func)
@@ -456,7 +456,7 @@ def hashable(_method_name: str, _object: Any):
     return getattr(_object, _method_name)
 
 
-def run_in_tmp_environment(**kwargs):
+def run_in_tmp_environment(**kwargs) -> Callable:
     """
     Apply a set of environment variables, execute a function and reset them
     """
@@ -494,7 +494,7 @@ def run_in_tmp_environment(**kwargs):
     return func_decorator
 
 
-def deprecated(func):
+def deprecated(func: Callable) -> Callable:
     @wraps(func)
     def wrapped_function(*args, **kwargs):
         warnings.warn(
@@ -506,6 +506,38 @@ def deprecated(func):
         return func(*args, **kwargs)
 
     return wrapped_function
+
+
+def checkpoint_reaction_step(name: str) -> Callable:
+    """
+    Decorator for a function that will save a checkpoint file with the reaction state
+    at that point in time. If the checkpoint exists then the state will be reloaded
+    and the execution skipped
+    """
+
+    def func_decorator(func: Callable[["Reaction"], Any]):
+        @wraps(func)
+        def wrapped_function(reaction: "Reaction"):
+
+            filepath = os.path.join(
+                "checkpoints", f"{str(reaction)}_{name}.chk"
+            )
+            if os.path.exists(filepath):
+                reaction.load(filepath)
+                return
+
+            result = func(reaction)
+
+            if not os.path.exists("checkpoints"):
+                os.mkdir("checkpoints")
+
+            reaction.save(filepath)
+
+            return result
+
+        return wrapped_function
+
+    return func_decorator
 
 
 class StringDict:
