@@ -1,6 +1,26 @@
 Changelog
 =========
 
+1.3.4
+--------
+----------
+
+Feature additions.
+
+Usability improvements/Changes
+******************************
+* Throw useful exception for invalid :code:`ade.Config.ts_template_folder_path`
+
+
+Functionality improvements
+**************************
+- 
+
+Bug Fixes
+*********
+-
+
+
 1.3.3
 --------
 ----------
