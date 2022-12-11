@@ -14,7 +14,8 @@ Usability improvements/Changes
 
 Functionality improvements
 **************************
-- Adds :code:`ade.transition_states.TransitionState.from_species` method/constructor
+- Adds :code:`ade.transition_states.TransitionState.from_species` method to construct transition states from a species or molecule
+
 
 Bug Fixes
 *********
