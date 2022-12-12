@@ -199,6 +199,9 @@ class Reaction:
         If self.solvent is set then override the reactants and products
         """
         molecules = self.reacs + self.prods
+        if len(molecules) == 0:
+            return  # No molecules thus no solvent needs to be checked
+
         first_solvent = self.reacs[0].solvent
 
         if self.solvent is None:
@@ -206,7 +209,6 @@ class Reaction:
                 logger.info("Reaction is in the gas phase")
                 return
 
-            # Are solvents defined for all molecules?
             elif all([mol.solvent is not None for mol in molecules]):
 
                 if not all(
@@ -851,5 +853,13 @@ class Reaction:
         """Load a reaction state from a binary file"""
 
         with open(filepath, "rb") as file:
-            for attr, value in pickle.load(file):
+            for attr, value in dict(pickle.load(file)).items():
                 setattr(self, attr, value)
+
+    @classmethod
+    def from_checkpoint(cls, filepath: str) -> "Reaction":
+        """Create a reaction from a checkpoint file"""
+        logger.info(f"Loading a reaction object from {filepath}")
+        rxn = cls()
+        rxn.load(filepath)
+        return rxn

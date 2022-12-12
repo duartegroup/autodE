@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Sequence, Optional
 from autode.exceptions import ReactionFormationFailed
 from autode.log import logger
 
@@ -31,7 +31,7 @@ Rearrangement = ReactionType(name="rearrangement")
 def classify(
     reactants: Sequence["autode.species.molecule.Reactant"],
     products: Sequence["autode.species.molecule.Product"],
-) -> ReactionType:
+) -> Optional[ReactionType]:
     """
     Classify a reaction into a type given some reactants and products
 
@@ -44,6 +44,9 @@ def classify(
         (autode.reactions.reaction_types.ReactionType): Reaction type
     """
     n_reactants, n_products = len(reactants), len(products)
+
+    if n_reactants == n_products == 0:
+        return None
 
     if n_reactants == 0:
         raise ReactionFormationFailed(
