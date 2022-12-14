@@ -637,6 +637,11 @@ class Reaction:
     @work_in("transition_states")
     def locate_transition_state(self) -> None:
 
+        if self.type is None:
+            raise RuntimeError(
+                "Cannot invoke locate_transition_state without a "
+            )
+
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
         if sum(p.graph.number_of_edges() for p in self.prods) > sum(

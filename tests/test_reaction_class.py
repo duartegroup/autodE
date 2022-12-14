@@ -520,3 +520,15 @@ def test_identity_reaction_is_supported_with_labels():
 
     rxn = reaction.Reaction("[Br-:1].C[Br:2]>>C[Br:1].[Br-:2]")
     assert not reaction_is_isomorphic(rxn)
+
+
+def test_cannot_run_locate_ts_with_no_reactants_or_products():
+
+    Config.lcode = Config.hcode = "ORCA"
+    Config.ORCA.path = here
+
+    rxn = reaction.Reaction()
+    with pytest.raises(RuntimeError):
+        rxn.locate_transition_state()
+
+    Config.lcode = None
