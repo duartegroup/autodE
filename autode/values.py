@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Any, Union, Type, Optional, Sequence
+from typing import Any, Union, Type, Optional, Sequence, Tuple
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
@@ -617,6 +617,19 @@ class ValueArray(ABC, np.ndarray):
 
         return arr
 
+    def __reduce__(self):
+        numpy_state = super().__reduce__()
+        add_vals = tuple(
+            self.__dict__[key] for key in self._additional_attribute_names
+        )
+        return numpy_state[0], numpy_state[1], tuple(numpy_state[2]) + add_vals
+
+    def __setstate__(self, state, *args, **kwargs):
+        n_keys = len(self._additional_attribute_names)
+        for i, key in enumerate(reversed(self._additional_attribute_names)):
+            setattr(self, key, state[-(i + 1)])
+        super().__setstate__(state[:-n_keys])
+
     def to(self, units) -> Any:
         """
         Convert this array to a new unit, returning a copy
@@ -639,6 +652,10 @@ class ValueArray(ABC, np.ndarray):
         if obj is None:
             return
         self.units = getattr(obj, "units", None)
+
+    @property
+    def _additional_attribute_names(self) -> Tuple[str, ...]:
+        return ("units",)
 
 
 class Coordinate(ValueArray):

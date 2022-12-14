@@ -6,7 +6,7 @@ import numpy as np
 import multiprocessing as mp
 
 from functools import cached_property
-from typing import List, Tuple, Iterator, Optional, Sequence, Union
+from typing import List, Tuple, Iterator, Optional, Sequence, Union, Any
 from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
 from autode.config import Config
@@ -78,6 +78,10 @@ class Hessian(ValueArray):
         arr.functional = functional
 
         return arr
+
+    @property
+    def _additional_attribute_names(self) -> Tuple[str, ...]:
+        return super()._additional_attribute_names + ("atoms", "functional")
 
     @cached_property
     def n_tr(self) -> int:
