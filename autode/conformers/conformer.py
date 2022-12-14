@@ -43,7 +43,7 @@ class Conformer(Species):
         self.constraints.update(distance=dist_consts)
 
     def __repr__(self):
-        """Representation of"""
+        """Representation of a conformer"""
         return self._repr(prefix="Conformer")
 
     def __eq__(self, other):
@@ -158,7 +158,7 @@ class Conformer(Species):
 
         if value is None:  # Clear the coordinates
             self._coordinates = None
-            return None
+            return
 
         if self._parent_atoms is None:
             self._parent_atoms = value
