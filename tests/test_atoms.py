@@ -452,3 +452,12 @@ def test_eqm_bond_distance():
     # Cannot determine the distance between atoms not present in the set
     with pytest.raises(ValueError):
         _ = h2_atoms.eqm_bond_distance(0, 2)
+
+
+def test_atom_equality():
+
+    assert Atom("H") == Atom("H")
+    assert Atom("H") != Atom("H", partial_charge=0.1)
+    assert Atom("H", partial_charge=0.1) != Atom("H")
+    assert Atom("H", atom_class=1) != Atom("H", atom_class=0)
+    assert Atom("C") != Atom("H")

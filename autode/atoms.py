@@ -1,6 +1,6 @@
 import numpy as np
 from copy import deepcopy
-from typing import Union, Optional, List, Sequence
+from typing import Union, Optional, List, Sequence, Any
 from autode.log import logger
 from autode.geom import get_rot_mat_euler
 from autode.values import (
@@ -78,6 +78,21 @@ class Atom:
 
     def __str__(self):
         return self.__repr__()
+
+    def __eq__(self, other: Any):
+        """Equality of another atom to this one"""
+        are_equal = (
+            isinstance(other, Atom)
+            and other.label == self.label
+            and other.atom_class == self.atom_class
+            and isinstance(other.partial_charge, type(self.partial_charge))
+            and (
+                (other.partial_charge is None and self.partial_charge is None)
+                or np.isclose(other.partial_charge, self.partial_charge)
+            )
+            and np.allclose(other._coord, self._coord)
+        )
+        return are_equal
 
     @property
     def atomic_number(self) -> int:
