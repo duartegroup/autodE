@@ -1,5 +1,6 @@
 import os
 import shutil
+from autode.utils import cleanup_after_exp_timeout
 from zipfile import ZipFile
 from functools import wraps
 
@@ -38,6 +39,7 @@ def work_in_zipped_dir(zip_path, chdir=True):
                 if chdir:
                     os.chdir(here)
 
+                cleanup_after_exp_timeout()
                 shutil.rmtree(dir_path)
 
             return result

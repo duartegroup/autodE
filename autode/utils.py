@@ -1,6 +1,7 @@
 import os
 import platform
 import shutil
+import signal
 import warnings
 from time import time
 from typing import Any, Optional, Sequence, List, Callable
@@ -26,19 +27,28 @@ from autode.exceptions import (
 )
 
 
-try:
-    loky.backend.context.set_start_method("loky")
-except RuntimeError:
-    logger.warning("Loky context has already been set")
+if platform.system() == "Windows":
+    # On Win64 or Win32, use loky's default start method
+    try:
+        loky.backend.context.set_start_method("loky")
+    except RuntimeError:
+        logger.warning("Loky context has already been set")
+else:
+    # On Linux, macOS, use fork from loky
+    try:
+        loky.backend.context.set_start_method("fork")
+    except RuntimeError:
+        logger.warning("Loky context has already been set")
+    except AssertionError:
+        logger.warning("Fork is not available on this platform")
 
 # Loky uses a resource tracker server process that is always
 # active, otherwise the parallelisation fails. It needs to
 # be started by a dummy call that initiates loky in the current
 # working dir, otherwise on Windows there will be permission errors
+# This is only necessary for 'loky' or 'loky_init_main' contexts.
 current_context = loky.backend.context.get_context()
-if isinstance(current_context, loky.backend.context.LokyContext) or isinstance(
-    current_context, loky.backend.context.LokyInitMainContext
-):
+if isinstance(current_context, loky.backend.context.LokyContext):
     loky.backend.resource_tracker.ensure_running()
 current_context = None
 
@@ -138,7 +148,7 @@ def get_total_memory() -> int:
         if windll.kernel32.GlobalMemoryStatusEx(byref(win_mem)):
             return int(win_mem.totalPhys)
         else:
-            raise RuntimeError
+            raise OSError
     else:
         return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
 
@@ -273,6 +283,7 @@ def work_in(dir_ext: str):
                         f"Worked in {dir_path} but made no files "
                         f"- deleting"
                     )
+                    cleanup_after_exp_timeout()
                     os.rmdir(dir_path)
 
             return result
@@ -346,6 +357,7 @@ def work_in_tmp_dir(
                 os.chdir(here)
 
                 logger.info("Removing temporary directory")
+                cleanup_after_exp_timeout()
                 shutil.rmtree(tmpdir_path)
 
             return result
@@ -514,69 +526,116 @@ def no_exceptions(func) -> Optional[Any]:
 
 def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
     """
-    Function decorator that times-out after a number of seconds
+    Switchable timeout wrapper, uses the default version (with forking)
+    unless the variable Config.use_experimental_timeout = True is set
 
-    ---------------------------------------------------------------------------
-    Arguments:
-        seconds:
-
+    Args:
+        seconds: The number of seconds to timeout
         return_value: Value returned if the function times out
 
     Returns:
-        (Any): Result of the function | return_value
+        (Any): result of function | return_value
+    """
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            if Config.use_experimental_timeout:
+                return _timeout_experimental(
+                    seconds, return_value, func, args, kwargs
+                )
+            else:
+                return _timeout_default(
+                    seconds, return_value, func, args, kwargs
+                )
+
+        return wrapper
+
+    return decorator
+
+
+def cleanup_after_exp_timeout() -> None:
+    """
+    If experimental timeout has been used, the ProcessPool has to be shutdown
+    otherwise File permission errors will be caused on Windows
+    """
+    if Config.use_experimental_timeout:
+        pool = loky.get_reusable_executor()
+        pool.shutdown()
+
+
+def _timeout_experimental(seconds, return_value, func, args, kwargs) -> Any:
+    """
+    Function decorator that times-out after a number of seconds
+    (experimental version, works on Windows, linux and Mac, does **not**
+    work with fork)
+    """
+
+    def func_runner(connector, func, args, kwargs):
+        connector.send(os.getpid())
+        return func(*args, **kwargs)
+
+    current_context = loky.backend.context.get_context()
+    if hasattr(mp.context, "ForkContext"):
+        if isinstance(current_context, mp.context.ForkContext):
+            logger.warning("Loky based timeout will not work with fork method")
+
+    pool = loky.get_reusable_executor(max_workers=1)
+    conn1, conn2 = mp.Pipe()
+    job = pool.submit(func_runner, conn1, func, args, kwargs)
+    job_pid = conn2.recv()
+    try:
+        res = job.result(timeout=seconds)
+        return res
+    except loky.TimeoutError:
+        if os.getpid() != job_pid:
+            os.kill(job_pid, signal.SIGTERM)
+        return return_value
+
+
+def _timeout_default(seconds, return_value, func, args, kwargs) -> Any:
+    """
+    Function decorator that times-out after a number of seconds
+    (default version, uses forking)
     """
 
     def handler(queue, func, args, kwargs):
         queue.put(func(*args, **kwargs))
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            current_context = loky.backend.context.get_context()
+    # if forking is not available (e.g. on Windows), return
+    if not hasattr(mp.context, "ForkContext"):
+        logger.warning("Forking is not available on this system")
+        return func(*args, **kwargs)
 
-            if isinstance(current_context, mp.context.SpawnContext):
-                logger.warning("Timeout does not work in spawn context")
-                return func(*args, **kwargs)
+    current_context = loky.backend.context.get_context()
 
-            q = current_context.Queue()
-            p = current_context.Process(
-                target=handler, args=(q, func, args, kwargs)
-            )
+    q = current_context.Queue()
+    p = current_context.Process(target=handler, args=(q, func, args, kwargs))
 
-            p.start()
-            # TODO what errors can be thrown by this?
-            # Only error possible seems to be some kind of OS
-            # error in spawning new process. Should it be handled
-            # at all? If multiprocessing cannot make new processes
-            # then something is seriously wrong and there is no need
-            # to continue
+    if isinstance(current_context, mp.context.ForkContext):
+        p.start()
+    # in case forking is available, but user chooses something else
+    else:
+        logger.warning(
+            "Default timeout wrapper is only available in fork context"
+        )
+        return func(*args, **kwargs)
 
-            # TODO should I have some leeway in the timeout to
-            # account for the time required to create a new process?
+    # TODO should there be a mechanism to check if the function
+    # creates more subprocesses? Because then those also need
+    # to be terminated. The original autode code does not check
+    # for this. If only graph isomorphism is done, then we know
+    # there is no extra subprocess, so this is fine, but what if
+    # func is something else in future versions of autodE?
 
-            # TODO should I pass parent's config into worker processes?
-            # The only function that is wrapped with timeout is the graph
-            # isomorphism check, but that does not use Config, so it can
-            # be avoided
+    p.join(timeout=seconds)
 
-            # TODO should there be a mechanism to check if the function
-            # creates more subprocesses? Because then those also need
-            # to be terminated. The previous autode code does not check
-            # for this. If only graph isomorphism is done, then we know
-            # there is no extra subprocess, so this is fine
+    if p.is_alive():
+        p.terminate()
+        p.join()
+        return return_value
 
-            p.join(timeout=seconds)
-
-            if p.is_alive():
-                p.terminate()
-                p.join()
-                return return_value
-
-            else:
-                return q.get()
-
-        return wrapper
-
-    return decorator
+    else:
+        return q.get()
 
 
 def hashable(_method_name: str, _object: Any):

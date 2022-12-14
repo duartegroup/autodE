@@ -16,6 +16,7 @@ from autode import exceptions as ex
 from autode.mol_graphs import is_isomorphic
 from autode.utils import work_in_tmp_dir, log_time, requires_graph
 from autode.wrappers.keywords.keywords import Functional
+from autode.config import Config
 
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -184,6 +185,10 @@ def test_work_in_empty():
 
 
 def test_timeout():
+
+    if platform.system() == "Windows":
+        Config.use_experimental_timeout = True
+
     def sleep_2s():
         return time.sleep(2)
 

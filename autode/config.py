@@ -54,6 +54,7 @@ class _ConfigClass:
         "standard_state",
         "ts_template_folder_path",
         "vib_freq_shift",
+        "use_experimental_timeout",
     ]
 
     def __init__(self):
@@ -221,6 +222,15 @@ class _ConfigClass:
         # approximations made in the entropy calculations.
         #
         self.allow_association_complex_G = False
+        # -------------------------------------------------------------------------
+        # Flag to allow use of an experimental timeout function wrapper for
+        # Windows, using loky. The experimental timeout is also usable on Linux
+        # and macOS, provided that loky's start method is set to something other
+        # than 'fork'. To use this, you must set
+        # loky.backend.context.set_start_method('loky'). The default timeout works
+        # only on Linux/Mac and with forking.
+        #
+        self.use_experimental_timeout = False
         # -------------------------------------------------------------------------
         # Now the parameters for each external QM software are set
         # Please see below for further details
