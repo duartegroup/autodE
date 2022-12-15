@@ -283,21 +283,22 @@ def test_config_in_worker_proc():
     # check that the config is able to be passed to child processes
     # mainly for windows, but still nice to check for posix
 
-    def work_fn():
-        assert Config.n_cores == 9
-        assert Config.ORCA.keywords.sp.functional == Functional("B3LYP")
-
     old_n_cores = Config.n_cores
     old_orca_funct = Config.ORCA.keywords.sp.functional
     Config.n_cores = 9
     Config.ORCA.keywords.sp.functional = "B3LYP"
 
     with ProcessPool(max_workers=2) as pool:
-        job = pool.submit(work_fn)
+        job = pool.submit(worker_fn)
         _ = job.result()
 
     Config.n_cores = old_n_cores
     Config.ORCA.keywords.sp.functional = old_orca_funct
+
+
+def worker_fn():
+    assert Config.n_cores == 9
+    assert Config.ORCA.keywords.sp.functional == Functional("B3LYP")
 
 
 def test_time_units():
