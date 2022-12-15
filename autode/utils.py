@@ -508,7 +508,7 @@ def deprecated(func: Callable) -> Callable:
     return wrapped_function
 
 
-def checkpoint_reaction_step(name: str) -> Callable:
+def checkpoint_rxn_profile_step(name: str) -> Callable:
     """
     Decorator for a function that will save a checkpoint file with the reaction state
     at that point in time. If the checkpoint exists then the state will be reloaded
@@ -526,7 +526,13 @@ def checkpoint_reaction_step(name: str) -> Callable:
                 reaction.load(filepath)
                 return
 
+            start_time = time()
             result = func(reaction)
+
+            if (
+                time() - start_time < 1.0
+            ):  # If execution is < 1s don't checkpoint
+                return result
 
             if not os.path.exists("checkpoints"):
                 os.mkdir("checkpoints")

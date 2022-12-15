@@ -19,7 +19,7 @@ from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
 from autode.utils import (
     work_in,
     requires_hl_level_methods,
-    checkpoint_reaction_step,
+    checkpoint_rxn_profile_step,
 )
 from autode.reactions import reaction_types
 
@@ -92,6 +92,7 @@ class Reaction:
         name = (
             f'{self.name}_{"+".join([r.name for r in self.reacs])}--'
             f'{"+".join([p.name for p in self.prods])}'
+            f"{self.temp}"
         )
 
         if hasattr(self, "solvent") and self.solvent is not None:
@@ -583,7 +584,7 @@ class Reaction:
         )
         return None
 
-    @checkpoint_reaction_step("reactant_product_conformers")
+    @checkpoint_rxn_profile_step("reactant_product_conformers")
     def find_lowest_energy_conformers(self) -> None:
         """Try and locate the lowest energy conformation using simulated
         annealing, then optimise them with xtb, then optimise the unique
@@ -597,7 +598,7 @@ class Reaction:
 
         return None
 
-    @checkpoint_reaction_step("reactants_and_products")
+    @checkpoint_rxn_profile_step("reactants_and_products")
     @work_in("reactants_and_products")
     def optimise_reacs_prods(self) -> None:
         """Perform a geometry optimisation on all the reactants and products
@@ -610,7 +611,7 @@ class Reaction:
 
         return None
 
-    @checkpoint_reaction_step("complexes")
+    @checkpoint_rxn_profile_step("complexes")
     @work_in("complexes")
     def calculate_complexes(self) -> None:
         """Find the lowest energy conformers of reactant and product complexes
@@ -633,7 +634,7 @@ class Reaction:
         return None
 
     @requires_hl_level_methods
-    @checkpoint_reaction_step("transition_states")
+    @checkpoint_rxn_profile_step("transition_states")
     @work_in("transition_states")
     def locate_transition_state(self) -> None:
 
@@ -655,7 +656,7 @@ class Reaction:
 
         return None
 
-    @checkpoint_reaction_step("transition_state_conformers")
+    @checkpoint_rxn_profile_step("transition_state_conformers")
     @work_in("transition_states")
     def find_lowest_energy_ts_conformer(self) -> None:
         """Find the lowest energy conformer of the transition state"""
@@ -666,7 +667,7 @@ class Reaction:
         else:
             return self.ts.find_lowest_energy_ts_conformer()
 
-    @checkpoint_reaction_step("single_points")
+    @checkpoint_rxn_profile_step("single_points")
     @work_in("single_points")
     def calculate_single_points(self) -> None:
         """Perform a single point energy evaluations on all the reactants and
@@ -740,7 +741,7 @@ class Reaction:
 
         return None
 
-    @checkpoint_reaction_step("thermal")
+    @checkpoint_rxn_profile_step("thermal")
     @work_in("thermal")
     def calculate_thermochemical_cont(
         self, free_energy: bool = True, enthalpy: bool = True

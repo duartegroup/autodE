@@ -10,6 +10,7 @@ Feature additions.
 Usability improvements/Changes
 ******************************
 * Throw useful exception for invalid :code:`ade.Config.ts_template_folder_path`
+* Adds the reaction temperature to the unique reaction hash
 
 
 Functionality improvements
