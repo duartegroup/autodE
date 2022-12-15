@@ -4,4 +4,4 @@ networkx
 matplotlib
 cython
 scipy
-loky
+loky; platform_system == 'Windows'

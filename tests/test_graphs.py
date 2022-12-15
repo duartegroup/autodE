@@ -314,6 +314,9 @@ def test_timeout():
     # optimal behavior
     assert not mol_graphs.is_isomorphic(graph, isomorphic_graph)
 
+    if platform.system() == "Windows":
+        Config.use_experimental_timeout = False
+
 
 def test_species_conformers_isomorphic():
     h2_a = Molecule(name="H2", atoms=[Atom("H"), Atom("H", x=0.7)])

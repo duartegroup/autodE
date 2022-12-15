@@ -3,14 +3,12 @@ import platform
 import shutil
 import signal
 import warnings
-from time import time
+from time import time, sleep
 from typing import Any, Optional, Sequence, List, Callable
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
-import loky
-import loky.backend.resource_tracker
-import multiprocessing as mp
+import multiprocessing
 
 import autode.config
 from autode.config import Config
@@ -27,32 +25,6 @@ from autode.exceptions import (
 )
 
 
-if platform.system() == "Windows":
-    # On Win64 or Win32, use loky's default start method
-    try:
-        loky.backend.context.set_start_method("loky")
-    except RuntimeError:
-        logger.warning("Loky context has already been set")
-else:
-    # On Linux, macOS, use fork from loky
-    try:
-        loky.backend.context.set_start_method("fork")
-    except RuntimeError:
-        logger.warning("Loky context has already been set")
-    except AssertionError:
-        logger.warning("Fork is not available on this platform")
-
-# Loky uses a resource tracker server process that is always
-# active, otherwise the parallelisation fails. It needs to
-# be started by a dummy call that initiates loky in the current
-# working dir, otherwise on Windows there will be permission errors
-# This is only necessary for 'loky' or 'loky_init_main' contexts.
-current_context = loky.backend.context.get_context()
-if isinstance(current_context, loky.backend.context.LokyContext):
-    loky.backend.resource_tracker.ensure_running()
-current_context = None
-
-
 def copy_current_config(parent_config: "autode.config._ConfigClass") -> None:
     """
     Copies an instance of Config into current process. Required to set the
@@ -63,12 +35,6 @@ def copy_current_config(parent_config: "autode.config._ConfigClass") -> None:
         parent_config: Parent config instance that will be copied into
          present process
     """
-    # if forking the interpreter, no need to copy vars
-    if platform.system() != "Windows":
-        if isinstance(
-            loky.backend.context.get_context(), mp.context.ForkContext
-        ):
-            return None
 
     for attrib in dir(parent_config):
         # no need to copy class methods
@@ -283,7 +249,7 @@ def work_in(dir_ext: str):
                         f"Worked in {dir_path} but made no files "
                         f"- deleting"
                     )
-                    cleanup_after_exp_timeout()
+                    cleanup_after_timeout()
                     os.rmdir(dir_path)
 
             return result
@@ -357,7 +323,7 @@ def work_in_tmp_dir(
                 os.chdir(here)
 
                 logger.info("Removing temporary directory")
-                cleanup_after_exp_timeout()
+                cleanup_after_timeout()
                 shutil.rmtree(tmpdir_path)
 
             return result
@@ -524,36 +490,7 @@ def no_exceptions(func) -> Optional[Any]:
     return wrapped_function
 
 
-def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
-    """
-    Switchable timeout wrapper, uses the default version (with forking)
-    unless the variable Config.use_experimental_timeout = True is set
-
-    Args:
-        seconds: The number of seconds to timeout
-        return_value: Value returned if the function times out
-
-    Returns:
-        (Any): result of function | return_value
-    """
-
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            if Config.use_experimental_timeout:
-                return _timeout_experimental(
-                    seconds, return_value, func, args, kwargs
-                )
-            else:
-                return _timeout_default(
-                    seconds, return_value, func, args, kwargs
-                )
-
-        return wrapper
-
-    return decorator
-
-
-def cleanup_after_exp_timeout() -> None:
+def _cleanup_after_exp_timeout_win() -> None:
     """
     If experimental timeout has been used, the ProcessPool has to be shutdown
     otherwise File permission errors will be caused on Windows
@@ -563,79 +500,105 @@ def cleanup_after_exp_timeout() -> None:
         pool.shutdown()
 
 
-def _timeout_experimental(seconds, return_value, func, args, kwargs) -> Any:
+def _timeout_experimental(
+    seconds: float, return_value: Optional[Any] = None
+) -> Any:
     """
-    Function decorator that times-out after a number of seconds
-    (experimental version, works on Windows, linux and Mac, does **not**
-    work with fork)
+    Function decorator that times-out after a number of seconds, if
+    Config.use_experimental_timeout = True, otherwise no timeout
+    (experimental version, works on Windows)
+
+    Args:
+        seconds: The number of seconds to timeout
+        return_value: Value returned if the function times out
+
+    Returns:
+        (Any): result of function | return_value
     """
 
     def func_runner(connector, func, args, kwargs):
         connector.send(os.getpid())
         return func(*args, **kwargs)
 
-    current_context = loky.backend.context.get_context()
-    if hasattr(mp.context, "ForkContext"):
-        if isinstance(current_context, mp.context.ForkContext):
-            logger.warning("Loky based timeout will not work with fork method")
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # if user does not want it, there is no timeout
+            if not Config.use_experimental_timeout:
+                return func(*args, **kwargs)
 
-    pool = loky.get_reusable_executor(max_workers=1)
-    conn1, conn2 = mp.Pipe()
-    job = pool.submit(func_runner, conn1, func, args, kwargs)
-    job_pid = conn2.recv()
-    try:
-        res = job.result(timeout=seconds)
-        return res
-    except loky.TimeoutError:
-        if os.getpid() != job_pid:
-            os.kill(job_pid, signal.SIGTERM)
-        return return_value
+            pool = loky.get_reusable_executor(max_workers=1)
+            conn1, conn2 = multiprocessing.Pipe()
+            job = pool.submit(func_runner, conn1, func, args, kwargs)
+            job_pid = conn2.recv()
+            try:
+                res = job.result(timeout=seconds)
+                return res
+            except loky.TimeoutError:
+                if os.getpid() != job_pid:
+                    os.kill(job_pid, signal.SIGTERM)
+                # allow the loky process pool manager thread to wakeup
+                sleep(0.6)
+                return return_value
+
+        return wrapper
+
+    return decorator
 
 
-def _timeout_default(seconds, return_value, func, args, kwargs) -> Any:
+def _timeout_default(
+    seconds: float, return_value: Optional[Any] = None
+) -> Any:
     """
     Function decorator that times-out after a number of seconds
     (default version, uses forking)
+
+    Args:
+        seconds: The number of seconds to timeout
+        return_value: Value returned if the function times out
+
+    Returns:
+        (Any): result of function | return_value
     """
 
     def handler(queue, func, args, kwargs):
         queue.put(func(*args, **kwargs))
 
-    # if forking is not available (e.g. on Windows), return
-    if not hasattr(mp.context, "ForkContext"):
-        logger.warning("Forking is not available on this system")
-        return func(*args, **kwargs)
+    def decorator(func):
+        def wrapper(*args, **kwargs):
 
-    current_context = loky.backend.context.get_context()
+            q = multiprocessing.Queue()
+            p = multiprocessing.Process(
+                target=handler, args=(q, func, args, kwargs)
+            )
 
-    q = current_context.Queue()
-    p = current_context.Process(target=handler, args=(q, func, args, kwargs))
+            if multiprocessing.current_process().daemon:
+                # Cannot run a subprocess in a daemon process - timeout is not
+                # possible
+                return func(*args, **kwargs)
 
-    if isinstance(current_context, mp.context.ForkContext):
-        p.start()
-    # in case forking is available, but user chooses something else
-    else:
-        logger.warning(
-            "Default timeout wrapper is only available in fork context"
-        )
-        return func(*args, **kwargs)
+            elif isinstance(
+                multiprocessing.get_context(),
+                multiprocessing.context.ForkContext,
+            ):
+                p.start()
 
-    # TODO should there be a mechanism to check if the function
-    # creates more subprocesses? Because then those also need
-    # to be terminated. The original autode code does not check
-    # for this. If only graph isomorphism is done, then we know
-    # there is no extra subprocess, so this is fine, but what if
-    # func is something else in future versions of autodE?
+            else:
+                logger.error("Failed to wrap function")
+                return func(*args, **kwargs)
 
-    p.join(timeout=seconds)
+            p.join(timeout=seconds)
 
-    if p.is_alive():
-        p.terminate()
-        p.join()
-        return return_value
+            if p.is_alive():
+                p.kill()
+                p.join()
+                return return_value
 
-    else:
-        return q.get()
+            else:
+                return q.get()
+
+        return wrapper
+
+    return decorator
 
 
 def hashable(_method_name: str, _object: Any):
@@ -734,3 +697,59 @@ class StringDict:
 
 class NumericStringDict(StringDict):
     _value_type = float
+
+
+if platform.system() == "Windows":
+    # On Win64 or Win32, use loky
+    import loky
+    import loky.backend.resource_tracker
+
+    try:
+        loky.backend.context.set_start_method("loky")
+    except RuntimeError:
+        logger.warning("Loky context has already been set")
+    # start the resource tracker early to fix file permission errors
+    if isinstance(
+        loky.backend.context.get_context(), loky.backend.context.LokyContext
+    ):
+        loky.backend.resource_tracker.ensure_running()
+
+    class ProcessPool(loky.ProcessPoolExecutor):
+        def __init__(
+            self,
+            max_workers=None,
+            job_reducers=None,
+            result_reducers=None,
+            timeout=None,
+            context=None,
+            env=None,
+        ):
+            # set initializer and initargs
+            super().__init__(
+                max_workers=max_workers,
+                job_reducers=job_reducers,
+                result_reducers=result_reducers,
+                timeout=timeout,
+                context=context,
+                initializer=copy_current_config,
+                initargs=(Config,),
+                env=env,
+            )
+
+    timeout = _timeout_experimental
+    cleanup_after_timeout = _cleanup_after_exp_timeout_win
+
+else:
+    # On Linux, macOS, use concurrent futures, which has multiprocessing backend
+    try:
+        multiprocessing.set_start_method("fork")
+    except RuntimeError:
+        logger.warning("Multiprocessing context has already been set")
+
+    from concurrent.futures import ProcessPoolExecutor
+
+    ProcessPool = ProcessPoolExecutor
+    timeout = _timeout_default
+
+    def cleanup_after_timeout():
+        pass

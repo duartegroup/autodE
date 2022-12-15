@@ -1,6 +1,5 @@
 import numpy as np
 from typing import Optional, Union
-import loky
 from rdkit import Chem
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
@@ -8,7 +7,7 @@ from autode.config import Config
 from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
-from autode.utils import copy_current_config
+from autode.utils import ProcessPool
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -255,11 +254,7 @@ class Conformers(list):
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
-        with loky.ProcessPoolExecutor(
-            max_workers=Config.n_cores // n_cores_pp,
-            initializer=copy_current_config,
-            initargs=(Config,),
-        ) as pool:
+        with ProcessPool(max_workers=Config.n_cores // n_cores_pp) as pool:
             jobs = [
                 pool.submit(
                     _calc_conformer,

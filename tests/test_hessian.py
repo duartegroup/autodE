@@ -2,10 +2,9 @@ import os
 import pytest
 import numpy as np
 import autode as ade
-from autode.utils import work_in_tmp_dir, copy_current_config
+from autode.utils import work_in_tmp_dir, ProcessPool
 from . import testutils
 import multiprocessing as mp
-import loky
 from autode.config import Config
 from autode.atoms import Atom, Atoms
 from autode.methods import ORCA, XTB
@@ -879,14 +878,12 @@ def test_partial_water_num_hess():
 
 @testutils.requires_with_working_xtb_install
 @work_in_tmp_dir()
-def test_numerical_hessian_in_daemon():
+def test_numerical_hessian_in_process_pool():
     """
     Ensure that no exceptions are raised when a numerical hessian is
-    calculated within a loky process pool
+    calculated within a process pool
     """
-    with loky.ProcessPoolExecutor(
-        max_workers=1, initializer=copy_current_config, initargs=(Config,)
-    ) as pool:
+    with ProcessPool(max_workers=2) as pool:
 
         res = pool.submit(_calc_num_hessian_h2)
         _ = res.result(timeout=None)

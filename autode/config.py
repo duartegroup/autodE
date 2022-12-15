@@ -224,11 +224,8 @@ class _ConfigClass:
         self.allow_association_complex_G = False
         # -------------------------------------------------------------------------
         # Flag to allow use of an experimental timeout function wrapper for
-        # Windows, using loky. The experimental timeout is also usable on Linux
-        # and macOS, provided that loky's start method is set to something other
-        # than 'fork'. To use this, you must set
-        # loky.backend.context.set_start_method('loky'). The default timeout works
-        # only on Linux/Mac and with forking.
+        # Windows, using loky. The default case has no timeout for Windows,
+        # and only works for Linux/macOS
         #
         self.use_experimental_timeout = False
         # -------------------------------------------------------------------------
