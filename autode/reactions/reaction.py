@@ -639,7 +639,7 @@ class Reaction:
 
         if self.type is None:
             raise RuntimeError(
-                "Cannot invoke locate_transition_state without a "
+                "Cannot invoke locate_transition_state without a reaction type"
             )
 
         # If there are more bonds in the product e.g. an addition reaction then
@@ -647,11 +647,9 @@ class Reaction:
         if sum(p.graph.number_of_edges() for p in self.prods) > sum(
             r.graph.number_of_edges() for r in self.reacs
         ):
-
             self.switch_reactants_products()
             self.tss = find_tss(self)
             self.switch_reactants_products()
-
         else:
             self.tss = find_tss(self)
 

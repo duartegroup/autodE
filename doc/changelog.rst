@@ -14,7 +14,9 @@ Usability improvements/Changes
 
 Functionality improvements
 **************************
-- 
+- Adds :code:`autode.Reaction.save()` and :code:`autode.Reaction.load()` to save and reload a reaction state
+- Adds saving checkpoints of a reaction during :code:`autode.Reaction.calculate_reaction_profile`
+
 
 Bug Fixes
 *********
