@@ -4,4 +4,5 @@ networkx
 matplotlib
 cython
 scipy
-loky; platform_system == 'Windows'
+loky
+cloudpickle
