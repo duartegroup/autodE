@@ -254,13 +254,13 @@ def test_spawn_multiprocessing_graph_posix():
     if platform.system() == "Windows":
         return None
 
-    mp.set_start_method("fork", force=True)
+    mp.set_start_method("spawn", force=True)
 
     # Isomorphism should still be able to be checked
     h2o_a, h2o_b = Molecule(smiles="O"), Molecule(smiles="O")
     assert is_isomorphic(h2o_a.graph, h2o_b.graph)
 
-    mp.set_start_method("loky", force=True)
+    mp.set_start_method("fork", force=True)
 
 
 def test_spawn_loky_graph_win():
