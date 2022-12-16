@@ -250,7 +250,7 @@ def test_spawn_multiprocessing_posix():
 
 
 def test_spawn_multiprocessing_graph_posix():
-    # Test fork method for POSIX only
+    # Test spawn method for POSIX only
     if platform.system() == "Windows":
         return None
 
