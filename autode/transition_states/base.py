@@ -4,6 +4,7 @@ from typing import Optional
 import autode.exceptions as ex
 from autode.atoms import metals
 from autode.config import Config
+from autode.geom import calc_rmsd
 from autode.constraints import DistanceConstraints
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
@@ -74,8 +75,11 @@ class TSbase(Species, ABC):
 
     def __eq__(self, other):
         """Equality of this TS base to another"""
-        logger.warning("TSs types are not equal to any others")
-        return False
+        return (
+            isinstance(other, TSbase)
+            and calc_rmsd(self.coordinates, other.coordinates) < 1e-6,
+            super().__eq__(other),
+        )
 
     def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
