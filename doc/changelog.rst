@@ -15,6 +15,7 @@ Usability improvements/Changes
 
 Functionality improvements
 **************************
+- Adds :code:`ade.transition_states.TransitionState.from_species` method to construct transition states from a species or molecule
 - Adds :code:`autode.Reaction.save()` and :code:`autode.Reaction.load()` to save and reload a reaction state
 - Adds saving checkpoints of a reaction during :code:`autode.Reaction.calculate_reaction_profile`
 
