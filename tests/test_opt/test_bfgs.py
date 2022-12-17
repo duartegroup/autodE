@@ -86,6 +86,9 @@ class TestBFGSOptimiser(TestBFGSOptimiser2D):
 def test_simple_quadratic_opt():
 
     optimiser = TestBFGSOptimiser()
+    method = Method()
+    assert method.is_available
+
     optimiser.run(Molecule(name="blank"), method=Method())
     assert optimiser.converged
 

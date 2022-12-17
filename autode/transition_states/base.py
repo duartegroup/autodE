@@ -153,7 +153,7 @@ class TSbase(Species, ABC):
         """
         if self.bond_rearrangement is None:
             raise ValueError(
-                "Do not have a bond rearrangment - cannot "
+                "Do not have a bond rearrangement - cannot "
                 "check the imaginary mode"
             )
 
@@ -170,9 +170,7 @@ class TSbase(Species, ABC):
             )
             return False
 
-        if len(imag_freqs) > 1:
-            logger.warning(f"Hessian had {len(imag_freqs)} imaginary modes")
-
+        logger.info(f"Hessian had {len(imag_freqs)} imaginary modes")
         if imag_freqs[0] > Config.min_imag_freq:
             logger.warning("Imaginary modes were too small to be significant")
             return False

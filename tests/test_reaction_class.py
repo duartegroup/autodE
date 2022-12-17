@@ -367,7 +367,7 @@ def test_free_energy_profile():
     # Rerunning the reaction should be fast
     start_time = time()
     rxn.calculate_reaction_profile(free_energy=True)
-    assert time() - start_time < full_calc_reaction_profile_time / 10
+    assert time() - start_time < full_calc_reaction_profile_time / 2
 
     # Should be able to reload the entire reaction state
     reloaded_rxn = reaction.Reaction.from_checkpoint("tmp.chk")
