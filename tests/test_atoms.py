@@ -316,11 +316,12 @@ def test_atom_coord_setting():
 
 def test_periodic_table():
 
-    with pytest.raises(ValueError):
-        _ = atoms.PeriodicTable.period(n=0)  # Periods are indexed from 1
-        _ = atoms.PeriodicTable.period(n=8)  # and don't exceed 8
+    for invalid_period in (0, 8):
+        with pytest.raises(ValueError):
+            _ = atoms.PeriodicTable.period(n=invalid_period)
 
-        _ = atoms.PeriodicTable.period(n=19)  # Groups don't exceed 18
+    with pytest.raises(ValueError):
+        _ = atoms.PeriodicTable.group(n=19)  # Groups don't exceed 18
 
     period2 = atoms.PeriodicTable.period(n=2)
     assert len(period2) == 8

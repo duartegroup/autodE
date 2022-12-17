@@ -89,6 +89,7 @@ def test_making_xyz_file():
         # Requires some atoms
         atoms_to_xyz_file(atoms=None, filename="test.xyz")
 
+    with pytest.raises(AssertionError):
         # Needs .xyz extension
         atoms_to_xyz_file(atoms, filename="test")
 

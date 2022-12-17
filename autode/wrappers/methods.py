@@ -80,9 +80,9 @@ class Method(ABC):
         ]
 
     @property
+    @abstractmethod
     def is_available(self):
         """Is this method available?"""
-        return True
 
     def version_in(self, calc: "CalculationExecutor") -> str:
         """Determine the version of the method used in this calculation"""

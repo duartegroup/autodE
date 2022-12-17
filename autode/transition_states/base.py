@@ -5,6 +5,7 @@ import autode.exceptions as ex
 from autode.atoms import metals
 from autode.config import Config
 from autode.constraints import DistanceConstraints
+from autode.geom import calc_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
 from autode.mol_graphs import make_graph, species_are_isomorphic
@@ -73,9 +74,12 @@ class TSbase(Species, ABC):
         self._init_solvent()
 
     def __eq__(self, other):
-        """Equality of this TS base to another"""
-        logger.warning("TSs types are not equal to any others")
-        return False
+        """Equality of this TS to another"""
+        return (
+            isinstance(other, TSbase)
+            and calc_rmsd(self.coordinates, other.coordinates) < 1e-6,
+            super().__eq__(other),
+        )
 
     def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
