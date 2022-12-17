@@ -92,7 +92,6 @@ class Reaction:
         name = (
             f'{self.name}_{"+".join([r.name for r in self.reacs])}--'
             f'{"+".join([p.name for p in self.prods])}'
-            f"{self.temp}"
         )
 
         if hasattr(self, "solvent") and self.solvent is not None:
