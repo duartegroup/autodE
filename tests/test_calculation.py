@@ -304,8 +304,8 @@ def test_exec_not_avail_method():
 @work_in_tmp_dir()
 def test_exec_too_much_memory_requested_above_py39():
 
-    if sys.version_info.minor > 8:
-        return  # Only supported on Python 3.9
+    if sys.version_info.minor < 9:
+        return  # Only supported on Python 3.9 and above
 
     # Normal external run should be fine
     run_external(["ls"], output_filename="tmp.txt")
