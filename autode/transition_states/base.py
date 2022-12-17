@@ -75,10 +75,10 @@ class TSbase(Species, ABC):
 
     def __eq__(self, other):
         """Equality of this TS base to another"""
-        logger.warning("TSs types are not equal to any others")
         return (
             isinstance(other, TSbase)
-            and calc_rmsd(self.coordinates, other.coordinates) < 1e-6
+            and calc_rmsd(self.coordinates, other.coordinates) < 1e-6,
+            super().__eq__(other),
         )
 
     def _init_graph(self) -> None:
