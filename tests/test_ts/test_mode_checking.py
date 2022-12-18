@@ -4,6 +4,7 @@ from autode.transition_states.base import imag_mode_generates_other_bonds
 from autode.transition_states.base import displaced_species_along_mode
 from autode.species.molecule import Reactant
 from autode.input_output import xyz_file_to_atoms
+from autode.atoms import Atom
 from autode.bond_rearrangement import BondRearrangement
 from autode.methods import ORCA
 from .. import testutils
@@ -45,7 +46,9 @@ def test_imag_modes():
 def test_graph_no_other_bonds():
 
     reac = Reactant(
-        name="r", atoms=xyz_file_to_atoms("h_shift_correct_ts_mode.xyz")
+        name="r",
+        atoms=xyz_file_to_atoms("h_shift_correct_ts_mode.xyz"),
+        mult=2,
     )
 
     calc = Calculation(
@@ -75,14 +78,15 @@ def test_graph_no_other_bonds():
 
 def has_correct_mode(name, fbonds, bbonds):
 
-    reac = Reactant(name="r", atoms=xyz_file_to_atoms(f"{name}.xyz"))
-
     calc = Calculation(
         name=name,
-        molecule=reac,
+        molecule=Reactant(atoms=[Atom("H")], mult=2),
         method=orca,
         keywords=orca.keywords.opt_ts,
         n_cores=1,
+    )
+    calc.molecule = reac = Reactant(
+        name="r", atoms=xyz_file_to_atoms(f"{name}.xyz")
     )
 
     calc.set_output_filename(f"{name}.out")

@@ -100,7 +100,6 @@ def test_get_gradients():
 
     ester = Molecule(
         name="ester",
-        charge=-1,
         atoms=[
             Atom("C", -1.82707, 0.08502, 0.12799),
             Atom("C", -0.42971, 0.07495, -0.39721),

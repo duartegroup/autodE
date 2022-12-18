@@ -160,6 +160,15 @@ class Species(AtomCollection):
 
     @mult.setter
     def mult(self, value: Any) -> None:
+
+        try:
+            assert int(value) > 0
+        except (ValueError, AssertionError, TypeError):
+            raise ValueError(
+                f"Failed to set the spin multiplicity to {value}. "
+                f"Must be a non-zero positive integer"
+            )
+
         self._mult = int(value)
 
     @property
@@ -791,7 +800,7 @@ class Species(AtomCollection):
             True
         """
         num_electrons = (
-            sum(atom.atomic_number for atom in self.atoms) + self.charge
+            sum(atom.atomic_number for atom in self.atoms) - self.charge
         )
         num_unpaired_electrons = self.mult - 1
         return (

@@ -462,3 +462,10 @@ def test_atom_equality():
     assert Atom("H", partial_charge=0.1) != Atom("H")
     assert Atom("H", atom_class=1) != Atom("H", atom_class=0)
     assert Atom("C") != Atom("H")
+
+
+@pytest.mark.parametrize(
+    "element,atomic_number", [("H", 1), ("C", 6), ("F", 9), ("Cl", 17)]
+)
+def test_atomic_numbers(element: str, atomic_number: int):
+    assert Atom(element).atomic_number == atomic_number

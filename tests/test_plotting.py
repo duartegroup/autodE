@@ -145,6 +145,7 @@ def test_reaction_warnings():
     # Should be no warnings  with a TS that exists and has an energy and one
     # imaginary freq
     ts.atoms = xyz_file_to_atoms("TS.xyz")
+    ts.charge = -1
     orca = ORCA()
     ts_calc = Calculation(
         name="TS", molecule=ts, method=orca, keywords=orca.keywords.opt_ts

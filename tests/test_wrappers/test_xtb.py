@@ -294,7 +294,7 @@ def test_xtb_with_autode_opt_method_for_a_single_atom():
 @work_in_tmp_dir()
 def test_xtb_opt_non_contiguous_range_cart_constraints():
 
-    mol = Molecule(smiles="CC", mult=2)
+    mol = Molecule(smiles="CC")
     mol.constraints.cartesian = [0, 1, 2, 5]
 
     calc = Calculation(
@@ -326,7 +326,7 @@ def test_xtb_errors_with_infinite_nuclear_repulsion():
 @work_in_tmp_dir()
 def test_xtb_did_not_terminate_normally_with_blank_output():
 
-    mol = Molecule(atoms=[Atom("H")])
+    mol = Molecule(atoms=[Atom("H")], mult=2)
     calc = Calculation(
         name="h_atom",
         molecule=mol,
