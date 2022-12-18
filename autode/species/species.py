@@ -775,6 +775,31 @@ class Species(AtomCollection):
         return True
 
     @property
+    def has_valid_spin_state(self) -> bool:
+        """
+        Does this species have a valid spin state given the atomic composition and
+        charge state?
+
+        .. code-block:: Python
+
+            >>> import autode as ade
+            >>> h = ade.Molecule(atoms=[ade.Atom('H')], charge=0, mult=1)
+            >>> h.has_valid_spin_state
+            False
+            >>> hydride = ade.Molecule(atoms=[ade.Atom('H')], charge=-1, mult=1)
+            >>> hydride.has_valid_spin_state
+            True
+        """
+        num_electrons = (
+            sum(atom.atomic_number for atom in self.atoms) + self.charge
+        )
+        num_unpaired_electrons = self.mult - 1
+        return (
+            num_unpaired_electrons <= num_electrons
+            and num_electrons % 2 == num_unpaired_electrons % 2
+        )
+
+    @property
     def n_conformers(self) -> int:
         """
         Number of conformers of this species

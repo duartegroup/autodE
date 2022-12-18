@@ -671,3 +671,25 @@ def test_calc_thermo_not_run_calculation():
     # run() has not been called
     with pytest.raises(Exception):
         m.calc_thermo(calc=calc)
+
+
+@pytest.mark.parametrize("mult", [1, 3, 5])
+def test_argon_has_valid_spin_state(mult: int, charge: int = 0):
+    assert Molecule(
+        atoms=[Atom("Ar")], mult=mult, charge=charge
+    ).has_valid_spin_state
+
+
+@pytest.mark.parametrize("mult", [1, 3, 4])
+def test_hydrogen_has_invalid_spin_state(mult: int, charge: int = 0):
+    assert not Molecule(
+        atoms=[Atom("H")], mult=mult, charge=charge
+    ).has_valid_spin_state
+
+
+def test_has_valid_spin_state_docstring():
+
+    assert not Molecule(
+        atoms=[Atom("H")], charge=0, mult=1
+    ).has_valid_spin_state
+    assert Molecule(atoms=[Atom("H")], charge=-1, mult=1).has_valid_spin_state
