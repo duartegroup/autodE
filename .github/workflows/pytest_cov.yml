@@ -39,7 +39,7 @@ jobs:
         conda activate test
         conda install --file requirements.txt
         conda install --file tests/requirements.txt
-        conda install xtb
+        eval $(python ade_ci_helper.py)
         python -m pip install . --no-deps
 
     - name: Test
