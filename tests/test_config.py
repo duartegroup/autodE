@@ -4,7 +4,8 @@ from copy import deepcopy
 from autode.config import Config
 from autode.values import Allocation, Distance
 from autode.wrappers.keywords import KeywordsSet
-from autode.wrappers.keywords import Keywords
+from autode.wrappers.keywords import Keywords, Functional, BasisSet
+from autode.utils import copy_into_current_config
 
 
 def test_config():
@@ -76,3 +77,25 @@ def test_step_size_setter():
     # Setting in Bohr should convert to angstroms
     _config.max_step_size = Distance(0.2, units="a0")
     assert np.isclose(_config.max_step_size.to("ang"), 0.1, atol=0.02)
+
+
+def test_config_simple_copy():
+    _config = deepcopy(Config)
+    _config_restore = deepcopy(Config)
+
+    _config.n_cores = 31
+    _config.ORCA.keywords.low_sp.basis_set = "aug-cc-pVTZ"
+    _config.NWChem.keywords.opt.functional = "B3LYP"
+
+    assert Config.n_cores != 31
+    assert Config.ORCA.keywords.low_sp.basis_set != BasisSet("aug-cc-pVTZ")
+    assert Config.NWChem.keywords.opt.functional != Functional("B3LYP")
+
+    copy_into_current_config(_config)
+
+    assert Config.n_cores == 31
+    assert Config.ORCA.keywords.low_sp.basis_set == BasisSet("aug-cc-pVTZ")
+    assert Config.NWChem.keywords.opt.functional == Functional("B3LYP")
+
+    # restore original config
+    copy_into_current_config(_config_restore)

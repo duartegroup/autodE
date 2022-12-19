@@ -25,7 +25,9 @@ from autode.exceptions import (
 )
 
 
-def copy_current_config(parent_config: "autode.config._ConfigClass") -> None:
+def copy_into_current_config(
+    parent_config: "autode.config._ConfigClass",
+) -> None:
     """
     Copies an instance of Config into current process. Required to set the
     process pool workers' Config to the same state as the parent, when
@@ -731,7 +733,7 @@ if platform.system() == "Windows":
                 result_reducers=result_reducers,
                 timeout=timeout,
                 context=context,
-                initializer=copy_current_config,
+                initializer=copy_into_current_config,
                 initargs=(Config,),
                 env=env,
             )
