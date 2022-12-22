@@ -652,7 +652,7 @@ class ValueArray(ABC, np.ndarray):
     def __setstate__(self, state, *args, **kwargs):
         """Unpickling data and attributes"""
         self.__dict__.update(state[-1])
-        super(ValueArray, self).__setstate__(state[0, -1])
+        super(ValueArray, self).__setstate__(state[0:-1])
 
 
 class Coordinate(ValueArray):
