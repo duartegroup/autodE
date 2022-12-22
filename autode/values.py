@@ -640,6 +640,20 @@ class ValueArray(ABC, np.ndarray):
             return
         self.units = getattr(obj, "units", None)
 
+    def __reduce__(self):
+        """
+        To preserve attributes on pickling.
+        https://stackoverflow.com/questions/26598109
+        """
+        pickled_state = super(ValueArray, self).__reduce__()
+        modified_state = pickled_state[2] + (self.__dict__,)
+        return (pickled_state[0], pickled_state[1], modified_state)
+
+    def __setstate__(self, state, *args, **kwargs):
+        """Unpickling data and attributes"""
+        self.__dict__.update(state[-1])
+        super(ValueArray, self).__setstate__(state[0, -1])
+
 
 class Coordinate(ValueArray):
 
