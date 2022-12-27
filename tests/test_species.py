@@ -693,3 +693,11 @@ def test_has_valid_spin_state_docstring():
         atoms=[Atom("H")], charge=0, mult=1
     ).has_valid_spin_state
     assert Molecule(atoms=[Atom("H")], charge=-1, mult=1).has_valid_spin_state
+
+
+@pytest.mark.parametrize("invalid_mult", [0, -1, "a", (0, 2)])
+def test_cannot_set_multiplicity_to_invalid_value(invalid_mult):
+
+    m = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
+    with pytest.raises(Exception):
+        m.mult = invalid_mult

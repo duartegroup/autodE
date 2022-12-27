@@ -38,9 +38,6 @@ def energy_gradient(image, method, n_cores):
 
 def _est_energy_gradient(image, est_method, n_cores):
     """Electronic structure energy and gradint"""
-    assert image.species.charge == -1
-    print(image.species.atomic_symbols)
-    assert image.species.has_valid_spin_state
     calc = Calculation(
         name=f"{image.name}_{image.iteration}",
         molecule=image.species,
