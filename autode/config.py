@@ -16,47 +16,6 @@ location = os.path.abspath(__file__)
 
 
 class _ConfigClass:
-    __slots__ = [
-        "G09",
-        "G16",
-        "MOPAC",
-        "NWChem",
-        "ORCA",
-        "QChem",
-        "XTB",
-        "adaptive_neb_k",
-        "allow_association_complex_G",
-        "freq_scale_factor",
-        "grimme_alpha",
-        "grimme_w0",
-        "hcode",
-        "high_quality_plots",
-        "hmethod_conformers",
-        "hmethod_sp_conformers",
-        "keep_input_files",
-        "lcode",
-        "lfm_method",
-        "ll_tmp_dir",
-        "make_ts_template",
-        "max_atom_displacement",
-        "max_core",
-        "max_num_complex_conformers",
-        "max_step_size",
-        "min_imag_freq",
-        "min_num_atom_removed_in_truncation",
-        "min_step_size",
-        "n_cores",
-        "num_complex_random_rotations",
-        "num_complex_sphere_points",
-        "num_conformers",
-        "rmsd_threshold",
-        "skip_small_ring_tss",
-        "standard_state",
-        "ts_template_folder_path",
-        "vib_freq_shift",
-        "use_experimental_timeout",
-    ]
-
     def __init__(self):
         # -------------------------------------------------------------------------
         # Total number of cores available
@@ -240,6 +199,8 @@ class _ConfigClass:
         self.MOPAC = self._MOPAC()
         self.QChem = self._QChem()
         # -------------------------------------------------------------------------
+        self._init_finished = True
+        #
 
     class _ORCA:
         def __init__(self):
@@ -458,8 +419,12 @@ class _ConfigClass:
     def __setattr__(self, key, value):
         """Custom setters"""
 
-        # if not hasattr(self, key):
-        #     raise KeyError(f"Cannot set {key}. Not present in ade.Config")
+        # if initialisation is not finished, set any attribute
+        if not hasattr(self, "_init_finished"):
+            return super(_ConfigClass, self).__setattr__(key, value)
+
+        if not hasattr(self, key):
+            raise KeyError(f"Cannot set {key}. Not present in ade.Config")
 
         if key == "max_core":
             value = Allocation(value).to("MB")

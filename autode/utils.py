@@ -10,7 +10,6 @@ from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
 import multiprocessing
 
-import autode.config
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -37,57 +36,7 @@ def copy_into_current_config(
         parent_config: Parent config instance that will be copied into
          present process
     """
-
-    for attrib in dir(parent_config):
-        # no need to copy class methods
-        if attrib.startswith("__"):
-            pass
-        elif attrib in [
-            "_ORCA",
-            "_G09",
-            "_G16",
-            "_NWChem",
-            "_XTB",
-            "_MOPAC",
-            "_QChem",
-        ]:
-            pass
-        # if attribute is basic type
-        elif isinstance(
-            getattr(parent_config, attrib),
-            (
-                int,
-                float,
-                str,
-                bool,
-                list,
-                tuple,
-                dict,
-                type(None),
-                autode.values.Value,
-            ),
-        ):
-            autode.Config.__setattr__(attrib, getattr(parent_config, attrib))
-        elif attrib in [
-            "ORCA",
-            "G09",
-            "G16",
-            "NWChem",
-            "XTB",
-            "MOPAC",
-            "QChem",
-        ]:
-            method_attrib_local = getattr(autode.Config, attrib)
-            for sub_attrib in dir(method_attrib_local):
-                if not sub_attrib.startswith("__"):
-                    method_attrib_local.__setattr__(
-                        sub_attrib,
-                        getattr(getattr(parent_config, attrib), sub_attrib),
-                    )
-        else:
-            raise AttributeError(
-                f"Unknown attribute in parent Config: {attrib}"
-            )
+    Config.__dict__.update(parent_config.__dict__)
 
 
 def get_total_memory() -> int:
