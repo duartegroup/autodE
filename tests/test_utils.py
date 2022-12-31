@@ -12,7 +12,13 @@ from subprocess import Popen, TimeoutExpired
 import multiprocessing as mp
 from autode import exceptions as ex
 from autode.mol_graphs import is_isomorphic
-from autode.utils import work_in_tmp_dir, log_time, requires_graph, ProcessPool
+from autode.utils import (
+    work_in_tmp_dir,
+    log_time,
+    requires_graph,
+    ProcessPool,
+    temporary_config,
+)
 from autode.wrappers.keywords.keywords import Functional
 from autode.config import Config
 
@@ -319,6 +325,38 @@ def test_config_in_worker_proc():
 def worker_fn():
     assert Config.n_cores == 9
     assert Config.ORCA.keywords.sp.functional == Functional("B3LYP")
+
+
+def test_temporary_config_context_manager():
+    old_n_cores = Config.n_cores
+    old_orca_funct = Config.ORCA.keywords.sp.functional
+
+    with temporary_config():
+        Config.n_cores = 9
+        Config.ORCA.keywords.sp.functional = "B3LYP"
+        # test the values have been changed in external function
+        worker_fn()
+
+    # Config should be restored after exit
+    assert Config.n_cores == old_n_cores
+    assert Config.ORCA.keywords.sp.functional == old_orca_funct
+
+
+def test_temporary_config_in_worker_proc():
+    # check that the context manager works if workers
+    # are created inside the context manager
+    old_n_cores = Config.n_cores
+    old_orca_funct = Config.ORCA.keywords.sp.functional
+
+    with temporary_config():
+        Config.n_cores = 9
+        Config.ORCA.keywords.sp.functional = "B3LYP"
+        with ProcessPool(max_workers=2) as pool:
+            job = pool.submit(worker_fn)
+            _ = job.result()
+
+    Config.n_cores = old_n_cores
+    Config.ORCA.keywords.sp.functional = old_orca_funct
 
 
 def test_time_units():
