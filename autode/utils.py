@@ -1,9 +1,11 @@
 import os
 import platform
 import shutil
+import copy
 import signal
 import warnings
-from time import time, sleep
+import contextlib
+from time import time
 from typing import Any, Optional, Sequence, List, Callable
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
@@ -24,7 +26,42 @@ from autode.exceptions import (
 )
 
 
-def copy_into_current_config(
+@contextlib.contextmanager
+def temporary_config():
+    """
+    Context manager to temporarily change autodE's Config. When it
+    exits, the Config will be restored to whatever it was before
+    calling the context manager.
+
+    Example usage:
+
+    .. code-block:: Python
+
+    >>> import autode as ade
+    >>> from autode import Config
+    >>> Config.hcode = 'ORCA'
+    >>> with ade.temporary_config():
+    ...     # change some config vars
+    ...     Config.n_cores = 16
+    ...     Config.ORCA.keywords.sp.functional = 'B3LYP'
+    ...     # then do some calculations
+    ...     # ------
+    >>> # When context manager returns, Config should be restored to what it was before
+    >>> assert Config.n_cores == 4
+    >>> assert str(Config.ORCA.keywords.sp.functional).lower() == 'pbe0'
+
+    """
+    original_config_data = copy.deepcopy(Config.__dict__)
+
+    try:
+        yield
+    finally:
+        Config.__dict__.update(original_config_data)
+
+    return None
+
+
+def _copy_into_current_config(
     parent_config: "autode.config._ConfigClass",
 ) -> None:
     """
@@ -487,8 +524,7 @@ def _timeout_experimental(
             except loky.TimeoutError:
                 if os.getpid() != job_pid:
                     os.kill(job_pid, signal.SIGTERM)
-                # allow the loky process pool manager thread to wakeup
-                sleep(0.6)
+                pool.shutdown()
                 return return_value
 
         return wrapper
@@ -682,7 +718,7 @@ if platform.system() == "Windows":
                 result_reducers=result_reducers,
                 timeout=timeout,
                 context=context,
-                initializer=copy_into_current_config,
+                initializer=_copy_into_current_config,
                 initargs=(Config,),
                 env=env,
             )

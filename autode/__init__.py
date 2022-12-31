@@ -20,6 +20,7 @@ from autode.wrappers.keywords import (
     Keywords,
     GradientKeywords,
 )
+from autode.utils import temporary_config
 
 """
 Bumping the version number requires following the release proceedure:

@@ -216,6 +216,26 @@ def test_timeout():
         Config.use_experimental_timeout = False
 
 
+def test_repeated_timeout_win_loky():
+    if platform.system() != "Windows":
+        return None
+    # With experimental timeout, calling timeout
+    # repeatedly should not cause deadlocks or hangs
+    Config.use_experimental_timeout = True
+
+    @utils.timeout(seconds=1)
+    def sleep_2s():
+        return time.sleep(2)
+
+    start_time = time.time()
+    sleep_2s()
+    sleep_2s()
+    sleep_2s()
+    assert time.time() - start_time < 6
+
+    Config.use_experimental_timeout = False
+
+
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_spawn_multiprocessing_posix():
 

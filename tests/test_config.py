@@ -5,7 +5,7 @@ from autode.config import Config
 from autode.values import Allocation, Distance
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.keywords import Keywords, Functional, BasisSet
-from autode.utils import copy_into_current_config
+from autode.utils import _copy_into_current_config
 
 
 def test_config():
@@ -91,11 +91,11 @@ def test_config_simple_copy():
     assert Config.ORCA.keywords.low_sp.basis_set != BasisSet("aug-cc-pVTZ")
     assert Config.NWChem.keywords.opt.functional != Functional("B3LYP")
 
-    copy_into_current_config(_config)
+    _copy_into_current_config(_config)
 
     assert Config.n_cores == 31
     assert Config.ORCA.keywords.low_sp.basis_set == BasisSet("aug-cc-pVTZ")
     assert Config.NWChem.keywords.opt.functional == Functional("B3LYP")
 
     # restore original config
-    copy_into_current_config(_config_restore)
+    _copy_into_current_config(_config_restore)
