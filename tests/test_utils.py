@@ -188,6 +188,42 @@ def test_work_in_empty():
     os.rmdir("tmp_dir")
 
 
+def test_work_in_compatible_with_experimental_timeout():
+    if platform.system() != "Windows":
+        return
+    # cleanup should take care of all processes unused if the
+    # function finished within time limit
+    Config.use_experimental_timeout = True
+
+    @utils.timeout(seconds=3)
+    def sleep_2s():
+        return time.sleep(2)
+
+    @utils.work_in("tmp_dir")
+    def use_exp_timeout():
+        sleep_2s()
+
+    Config.use_experimental_timeout = False
+
+
+def test_cleanup_after_timeout():
+    if platform.system() != "Windows":
+        return
+    # cleanup should take care of all processes unused
+    Config.use_experimental_timeout = True
+
+    @utils.timeout(seconds=3)
+    def sleep_2s():
+        return time.sleep(2)
+
+    sleep_2s()
+    assert len(mp.active_children()) != 0
+    utils.cleanup_after_timeout()
+    assert len(mp.active_children()) == 0
+
+    Config.use_experimental_timeout = False
+
+
 def test_timeout():
 
     if platform.system() == "Windows":
