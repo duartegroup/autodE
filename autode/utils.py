@@ -79,32 +79,38 @@ def _copy_into_current_config(
 def get_total_memory() -> int:
     """Returns total amount of physical memory available in bytes"""
     if platform.system() == "Windows":
-        from ctypes import Structure, c_int32, c_uint64, sizeof, byref, windll
-
-        # Use Win32 API : https://stackoverflow.com/questions/31546309/
-        class MemoryStatusEx(Structure):
-            _fields_ = [
-                ("length", c_int32),
-                ("memoryLoad", c_int32),
-                ("totalPhys", c_uint64),
-                ("availPhys", c_uint64),
-                ("totalPageFile", c_uint64),
-                ("availPageFile", c_uint64),
-                ("totalVirtual", c_uint64),
-                ("availVirtual", c_uint64),
-                ("availExtendedVirtual", c_uint64),
-            ]
-
-            def __init__(self):
-                self.length = sizeof(self)
-
-        win_mem = MemoryStatusEx()
-        if windll.kernel32.GlobalMemoryStatusEx(byref(win_mem)):
-            return int(win_mem.totalPhys)
-        else:
-            raise OSError
+        return _get_total_memory_on_windows()
     else:
         return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+
+
+def _get_total_memory_on_windows() -> int:
+    """Use WinAPI to get total memory on Windows machines"""
+    from ctypes import Structure, c_int32, c_uint64, sizeof, byref, windll
+
+    # Use Win32 API : https://stackoverflow.com/questions/31546309/
+    class MemoryStatusEx(Structure):
+        _fields_ = [
+            ("length", c_int32),
+            ("memoryLoad", c_int32),
+            ("totalPhys", c_uint64),
+            ("availPhys", c_uint64),
+            ("totalPageFile", c_uint64),
+            ("availPageFile", c_uint64),
+            ("totalVirtual", c_uint64),
+            ("availVirtual", c_uint64),
+            ("availExtendedVirtual", c_uint64),
+        ]
+
+        def __init__(self):
+            super().__init__()
+            self.length = sizeof(self)
+
+    win_mem = MemoryStatusEx()
+    if windll.kernel32.GlobalMemoryStatusEx(byref(win_mem)):
+        return int(win_mem.totalPhys)
+    else:
+        raise OSError
 
 
 def check_sufficient_memory(func: Callable):
@@ -524,7 +530,7 @@ def _timeout_experimental(
             except loky.TimeoutError:
                 if os.getpid() != job_pid:
                     os.kill(job_pid, signal.SIGTERM)
-                pool.shutdown()
+                pool.shutdown(wait=True)
                 return return_value
 
         return wrapper
@@ -711,7 +717,6 @@ if platform.system() == "Windows":
             context=None,
             env=None,
         ):
-            # set initializer and initargs
             super().__init__(
                 max_workers=max_workers,
                 job_reducers=job_reducers,
