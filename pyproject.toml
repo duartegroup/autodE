@@ -6,3 +6,7 @@ build-backend = "setuptools.build_meta"
 line-length = 79
 target-version = ['py39']
 
+[tool.coverage.run]
+omit = [
+    "setup.py"
+]
