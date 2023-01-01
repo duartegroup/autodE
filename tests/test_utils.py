@@ -291,10 +291,10 @@ def test_spawn_multiprocessing_graph_posix():
 
 def test_spawn_loky_graph_win():
 
-    if platform.system() == "Windows":
-        import loky
-    else:
-        return None
+    if platform.system() != "Windows":
+        return
+
+    import loky
 
     loky.backend.context.set_start_method("spawn", force=True)
 
