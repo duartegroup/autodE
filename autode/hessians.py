@@ -79,10 +79,6 @@ class Hessian(ValueArray):
 
         return arr
 
-    @property
-    def _additional_attribute_names(self) -> Tuple[str, ...]:
-        return super()._additional_attribute_names + ("atoms", "functional")
-
     @cached_property
     def n_tr(self) -> int:
         """

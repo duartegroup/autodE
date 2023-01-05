@@ -619,16 +619,15 @@ class ValueArray(ABC, np.ndarray):
 
     def __reduce__(self):
         numpy_state = super().__reduce__()
-        add_vals = tuple(
-            self.__dict__[key] for key in self._additional_attribute_names
+        return (
+            numpy_state[0],
+            numpy_state[1],
+            tuple(numpy_state[2]) + (self.__dict__,),
         )
-        return numpy_state[0], numpy_state[1], tuple(numpy_state[2]) + add_vals
 
     def __setstate__(self, state, *args, **kwargs):
-        n_keys = len(self._additional_attribute_names)
-        for i, key in enumerate(reversed(self._additional_attribute_names)):
-            setattr(self, key, state[-(i + 1)])
-        super().__setstate__(state[:-n_keys])
+        self.__dict__.update(state[-1])
+        super().__setstate__(state[:-1], *args, **kwargs)
 
     def to(self, units) -> Any:
         """
@@ -652,10 +651,6 @@ class ValueArray(ABC, np.ndarray):
         if obj is None:
             return
         self.units = getattr(obj, "units", None)
-
-    @property
-    def _additional_attribute_names(self) -> Tuple[str, ...]:
-        return ("units",)
 
 
 class Coordinate(ValueArray):

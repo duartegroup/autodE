@@ -6,7 +6,6 @@ from autode.atoms import metals
 from autode.config import Config
 from autode.geom import calc_rmsd
 from autode.constraints import DistanceConstraints
-from autode.geom import calc_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
 from autode.mol_graphs import make_graph, species_are_isomorphic
