@@ -270,6 +270,7 @@ class TransitionState(TSbase):
         # Generate a copy of this TS on which conformers are searched, for
         # easy reversion
         _ts = self.copy()
+        _ts.hessian, _ts.gradient, _ts.energy = None, None, None
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
         _ts.find_lowest_energy_conformer(hmethod=hmethod)

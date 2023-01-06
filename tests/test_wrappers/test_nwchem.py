@@ -30,7 +30,6 @@ opt_keywords = OptKeywords(
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
-# @utils.work_in("tmp")
 def test_opt_calc():
 
     calc = Calculation(

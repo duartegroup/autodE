@@ -4,9 +4,10 @@ import os
 
 def test_log_level():
 
-    # Default is debug
     if "AUTODE_LOG_LEVEL" in os.environ:
-        os.environ.pop("AUTODE_LOG_LEVEL")
+        set_log_level = os.environ.pop("AUTODE_LOG_LEVEL")
+    else:
+        set_log_level = "INFO"
 
     assert log.get_log_level() == log.logging.CRITICAL
 
@@ -22,3 +23,5 @@ def test_log_level():
     # Setting AUTODE_LOG_FILE to anything should log to a log file
     os.environ["AUTODE_LOG_FILE"] = "true"
     assert log.log_to_log_file() is True
+
+    os.environ["AUTODE_LOG_LEVEL"] = set_log_level

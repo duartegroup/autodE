@@ -10,6 +10,7 @@ from autode.bond_rearrangement import BondRearrangement
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.species.molecule import Reactant, Product
 from autode.atoms import Atom
+from autode.utils import work_in_tmp_dir
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import get_value_from_file
 from autode.transition_states.templates import get_values_dict_from_file
@@ -215,6 +216,7 @@ def test_ts_template_parse():
         _ = get_values_dict_from_file("nodes", file_lines=["0 C", "1 F"])
 
 
+@work_in_tmp_dir()
 def test_ts_templates_find():
 
     templates = get_ts_templates(folder_path="/a/path/that/doesnt/exist")

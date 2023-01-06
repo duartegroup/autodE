@@ -79,6 +79,11 @@ class Method(ABC):
             s.name for s in solvents if s.is_implicit and hasattr(s, self.name)
         ]
 
+    @property
+    def is_available(self):
+        """Is this method available?"""
+        return True
+
     def version_in(self, calc: "CalculationExecutor") -> str:
         """Determine the version of the method used in this calculation"""
         return "???"

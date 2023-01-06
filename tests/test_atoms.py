@@ -316,11 +316,12 @@ def test_atom_coord_setting():
 
 def test_periodic_table():
 
-    with pytest.raises(ValueError):
-        _ = atoms.PeriodicTable.period(n=0)  # Periods are indexed from 1
-        _ = atoms.PeriodicTable.period(n=8)  # and don't exceed 8
+    for invalid_period in (0, 8):
+        with pytest.raises(ValueError):
+            _ = atoms.PeriodicTable.period(n=invalid_period)
 
-        _ = atoms.PeriodicTable.period(n=19)  # Groups don't exceed 18
+    with pytest.raises(ValueError):
+        _ = atoms.PeriodicTable.group(n=19)  # Groups don't exceed 18
 
     period2 = atoms.PeriodicTable.period(n=2)
     assert len(period2) == 8
@@ -452,3 +453,12 @@ def test_eqm_bond_distance():
     # Cannot determine the distance between atoms not present in the set
     with pytest.raises(ValueError):
         _ = h2_atoms.eqm_bond_distance(0, 2)
+
+
+def test_atom_equality():
+
+    assert Atom("H") == Atom("H")
+    assert Atom("H") != Atom("H", partial_charge=0.1)
+    assert Atom("H", partial_charge=0.1) != Atom("H")
+    assert Atom("H", atom_class=1) != Atom("H", atom_class=0)
+    assert Atom("C") != Atom("H")

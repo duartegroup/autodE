@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Any, Union, Type, Optional, Sequence
+from typing import Any, Union, Type, Optional, Sequence, Tuple
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
@@ -616,6 +616,18 @@ class ValueArray(ABC, np.ndarray):
             arr.units = _units_init(cls, units)
 
         return arr
+
+    def __reduce__(self):
+        numpy_state = super().__reduce__()
+        return (
+            numpy_state[0],
+            numpy_state[1],
+            tuple(numpy_state[2]) + (self.__dict__,),
+        )
+
+    def __setstate__(self, state, *args, **kwargs):
+        self.__dict__.update(state[-1])
+        super().__setstate__(state[:-1], *args, **kwargs)
 
     def to(self, units) -> Any:
         """
