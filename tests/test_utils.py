@@ -261,8 +261,9 @@ def test_timeout():
 def test_repeated_timeout_win_loky():
     if platform.system() != "Windows":
         return None
-    # With experimental timeout, calling timeout
+    # With experimental timeout, triggering timeout
     # repeatedly should not cause deadlocks or hangs
+    # from executor manager thread
     Config.use_experimental_timeout = True
 
     @utils.timeout(seconds=1)
