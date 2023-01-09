@@ -378,9 +378,9 @@ class _ConfigClass:
         # Only SMD is implemented
         implicit_solvation_type = solv.smd
 
-        # =========================================================================
-        # =============               End                        ==================
-        # =========================================================================
+    # =========================================================================
+    # =============               End                        ==================
+    # =========================================================================
 
     def __setattr__(self, key, value):
         """Custom setters"""
@@ -411,7 +411,7 @@ class _ConfigClass:
         return super().__setattr__(key, value)
 
 
-def instantiate_config_opts(cls: type) -> Any:
+def _instantiate_config_opts(cls: type) -> Any:
     """
     Instantiate a config class containing options defined
     as class variables. It generates an instance of the
@@ -435,7 +435,7 @@ def instantiate_config_opts(cls: type) -> Any:
         if name.startswith("__"):
             continue
         if isinstance(attr, type):
-            attr_val = instantiate_config_opts(attr)  # recursive
+            attr_val = _instantiate_config_opts(attr)  # recursive
         else:
             attr_val = attr
         setattr(cls_instance, name, attr_val)
@@ -443,4 +443,4 @@ def instantiate_config_opts(cls: type) -> Any:
 
 
 # Single instance of the configuration
-Config = instantiate_config_opts(_ConfigClass)
+Config = _instantiate_config_opts(_ConfigClass)

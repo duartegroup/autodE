@@ -124,7 +124,7 @@ def check_sufficient_memory(func: Callable):
 
         try:
             physical_mem = Allocation(get_total_memory(), units="bytes")
-        except (ValueError, OSError, RuntimeError):
+        except (ValueError, OSError):
             logger.warning("Cannot check physical memory")
 
         if physical_mem is not None and physical_mem < required_mem:

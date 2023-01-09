@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from copy import deepcopy
-from autode.config import Config
+from autode.config import Config, _instantiate_config_opts, _ConfigClass
 from autode.values import Allocation, Distance
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.keywords import Keywords, Functional, BasisSet
@@ -99,3 +99,14 @@ def test_config_simple_copy():
 
     # restore original config
     _copy_into_current_config(_config_restore)
+
+
+def test_exc_if_not_class_in_config_instantiate_func():
+
+    # passing instance should raise exception
+    with pytest.raises(ValueError):
+        _instantiate_config_opts(_ConfigClass())
+
+    # when passed class it should work
+    test_config = _instantiate_config_opts(_ConfigClass)
+    assert test_config is not None
