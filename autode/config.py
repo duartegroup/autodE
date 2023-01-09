@@ -1,4 +1,5 @@
 import os
+from typing import Any
 from autode.values import Frequency, Distance, Allocation
 from autode.wrappers.keywords import implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
@@ -15,45 +16,7 @@ from autode.wrappers.keywords.ri import rijcosx
 location = os.path.abspath(__file__)
 
 
-class _ConfigGenerator:
-    """First solution"""
-
-    def __init__(self):
-        for name, attr in self.__class__.__dict__.items():
-            if name.startswith("__"):
-                continue
-            # if attribute is a class, like ORCA
-            # however only second layer of class supported
-            if isinstance(attr, type):
-                attr_val = attr()
-                for name2, attr2 in attr.__dict__.items():
-                    if not name2.startswith("__"):
-                        setattr(attr_val, name2, attr2)
-            # otherwise, just take the value
-            else:
-                attr_val = attr
-            setattr(self, name, attr_val)
-
-
-def generate_config(cls):
-    """Alternative solution"""
-    if not isinstance(cls, type):
-        raise Exception("Must be a class, not an instance")
-    cls_instance = cls()
-    for name, attr in cls.__dict__.items():
-        if name.startswith("__"):
-            continue
-        if isinstance(attr, type):
-            attr_val = generate_config(attr)  # recursive
-        else:
-            attr_val = attr
-        setattr(cls_instance, name, attr_val)
-
-    # then do Config = generate_config(_ConfigClass)
-    # and no need to have _ConfigGenerator
-
-
-class _ConfigClass(_ConfigGenerator):
+class _ConfigClass:
     # -------------------------------------------------------------------------
     # Total number of cores available
     #
@@ -220,8 +183,8 @@ class _ConfigClass(_ConfigGenerator):
     allow_association_complex_G = False
     # -------------------------------------------------------------------------
     # Flag to allow use of an experimental timeout function wrapper for
-    # Windows, using loky. The default case has no timeout for Windows,
-    # and only works for Linux/macOS
+    # Windows, using loky. The default case has no timeout for Windows, and
+    # timeout only works on Linux/macOS. This flag is ignored on Linux/macOS.
     #
     use_experimental_timeout = False
     # -------------------------------------------------------------------------
@@ -415,6 +378,10 @@ class _ConfigClass(_ConfigGenerator):
         # Only SMD is implemented
         implicit_solvation_type = solv.smd
 
+        # =========================================================================
+        # =============               End                        ==================
+        # =========================================================================
+
     def __setattr__(self, key, value):
         """Custom setters"""
 
@@ -444,5 +411,36 @@ class _ConfigClass(_ConfigGenerator):
         return super().__setattr__(key, value)
 
 
+def instantiate_config_opts(cls: type) -> Any:
+    """
+    Instantiate a config class containing options defined
+    as class variables. It generates an instance of the
+    class, and then creates instance variables of the same
+    name as class variables, recursively converting any
+    nested class into instances.
+    (This is required because class variables are not pickled,
+    only instance variables are)
+
+    Args:
+        cls (type): Must be a class containing class
+         variables (not instance)
+
+    Returns:
+        (Any): The generated class instance
+    """
+    if not isinstance(cls, type):
+        raise ValueError("Must be a class, not an instance")
+    cls_instance = cls()
+    for name, attr in cls.__dict__.items():
+        if name.startswith("__"):
+            continue
+        if isinstance(attr, type):
+            attr_val = instantiate_config_opts(attr)  # recursive
+        else:
+            attr_val = attr
+        setattr(cls_instance, name, attr_val)
+    return cls_instance
+
+
 # Single instance of the configuration
-Config = _ConfigClass()
+Config = instantiate_config_opts(_ConfigClass)
