@@ -581,3 +581,14 @@ def test_non_external_io_method_can_force_cleanup():
     calc = _test_calc()
     # No exceptions should be raised
     calc.clean_up(force=True, everything=True)
+
+
+def test_init_a_calculation_without_a_valid_spin_state_throws():
+    xtb = XTB()
+    test_m = h_atom()
+    test_m.charge, test_m.mult = 0, 1
+
+    with pytest.raises(ex.CalculationException):
+        _ = Calculation(
+            name="tmp", molecule=test_m, method=xtb, keywords=xtb.keywords.sp
+        )

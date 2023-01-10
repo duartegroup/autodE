@@ -86,10 +86,9 @@ def test_orca_opt_calculation():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_orca_optts_calculation():
 
-    ts_guess = TSguess(
-        Molecule("test_ts_reopt_optts_orca.xyz", charge=-1).atoms
+    ts = TransitionState.from_species(
+        Molecule("test_ts_reopt_optts_orca.xyz", charge=-1)
     )
-    ts = TransitionState(ts_guess)
     ts.graph.add_active_edge(0, 1)
 
     optts_str = (
@@ -258,7 +257,7 @@ def test_mp2_numerical_gradients():
 
     calc = Calculation(
         name="tmp",
-        molecule=Molecule(atoms=xyz_file_to_atoms("tmp_orca.xyz")),
+        molecule=Molecule(atoms=xyz_file_to_atoms("tmp_orca.xyz"), charge=-1),
         method=method,
         keywords=method.keywords.grad,
     )
