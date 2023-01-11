@@ -985,7 +985,7 @@ other autodE users can benefit from them.</p>
 <li><p>Implement changes and tests on your own fork on a given branch
 (<code class="docutils literal notranslate"><span class="pre">&lt;gh-username&gt;/autode:&lt;branch-name&gt;</span></code>).</p></li>
 <li><p>Create a new pull request on the main autodE repository from your
-development branch onto <code class="docutils literal notranslate"><span class="pre">autode:master</span></code>.</p></li>
+development branch onto <code class="docutils literal notranslate"><span class="pre">autode:v1.X</span></code>, where <cite>X</cite> is the latest version.</p></li>
 </ol>
 <p>To learn more about GitHub forks and pull requests, read <a class="reference external" href="https://docs.github.com/en/get-started/quickstart/fork-a-repo">Fork a
 repo</a>
@@ -994,12 +994,12 @@ request</a>
 on the GitHub docs.</p>
 <div class="section" id="guidelines-for-pull-requests">
 <h3>Guidelines for pull requests<a class="headerlink" href="#guidelines-for-pull-requests" title="Permalink to this headline">#</a></h3>
-<p>First, install from source in a new envrionment and setup
+<p>First, install from source in a new environment and setup
 <a class="reference external" href="https://pre-commit.com/">pre-commit</a> with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/duartegroup/autodE.git &amp;&amp; cd autodE
 $ conda create -n ade python=3.9 --file requirements.txt --channel conda-forge
 $ conda activate ade
-$ pip install . autode[dev]
+$ pip install &#39;.[dev]&#39;
 $ pre-commit install
 </pre></div>
 </div>
@@ -1014,8 +1014,8 @@ you should contribute to autodE through a pull request from a fork.</p>
 <p>Smaller pull requests (PRs) are reviewed faster, and more accurately. We
 therefore encourage contributors to keep the set of changes within a
 single pull request as small as possible. If your pull request modifies
-more than 5 files, and/or several hundred lines of code, you should
-probably break it down into two or more pull requests.</p>
+more than 5 files, and/or several hundred lines of code, please break it down
+into two or more pull requests.</p>
 </div>
 <div class="section" id="pull-requests-are-more-than-code">
 <h4>Pull requests are more than code<a class="headerlink" href="#pull-requests-are-more-than-code" title="Permalink to this headline">#</a></h4>
@@ -1088,7 +1088,7 @@ in the Google Python Style Guide.</p></li>
                       <span class="n">units</span><span class="p">:</span>       <span class="s1">&#39;autode.units.Unit&#39;</span><span class="p">,</span>
                       <span class="n">free_energy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
                       <span class="n">enthalpy</span><span class="p">:</span>    <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Plot a reaction profile with the association complexes of R, P&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot a reaction profile with the association complexes of R, P&quot;&quot;&quot;</span>
 
     <span class="c1"># ...</span>
 </pre></div>

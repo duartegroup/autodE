@@ -1209,6 +1209,22 @@ a failed 3D embedding of a structure.</p>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="autode.species.species.Species.has_valid_spin_state">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_valid_spin_state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.species.species.Species.has_valid_spin_state" title="Permalink to this definition">#</a></dt>
+<dd><p>Does this species have a valid spin state given the atomic composition and
+charge state?</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">h</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">h</span><span class="o">.</span><span class="n">has_valid_spin_state</span>
+<span class="kc">False</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">hydride</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">hydride</span><span class="o">.</span><span class="n">has_valid_spin_state</span>
+<span class="kc">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.hessian">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hessian</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../hessians.html#autode.hessians.Hessian" title="autode.hessians.Hessian"><span class="pre">autode.hessians.Hessian</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.species.species.Species.hessian" title="Permalink to this definition">#</a></dt>
 <dd><p>Hessian (d^2E/dx^2) at this geometry (autode.values.Hessian | None)
