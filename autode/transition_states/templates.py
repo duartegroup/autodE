@@ -38,6 +38,11 @@ def get_ts_template_folder_path(folder_path):
 
     logger.info("Folder path is not set – TS templates in the default path")
 
+    if Config.ts_template_folder_path == "":
+        raise ValueError(
+            "Cannot set ts_template_folder_path to an empty string"
+        )
+
     if Config.ts_template_folder_path is not None:
         logger.info("Configuration ts_template_folder_path is set")
         return Config.ts_template_folder_path

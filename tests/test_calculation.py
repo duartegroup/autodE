@@ -302,10 +302,10 @@ def test_exec_not_avail_method():
 
 
 @work_in_tmp_dir()
-def test_exec_too_much_memory_requested_py39():
+def test_exec_too_much_memory_requested_above_py39():
 
-    if sys.version_info.minor != 9:
-        return  # Only supported on Python 3.9
+    if sys.version_info.minor < 9:
+        return  # Only supported on Python 3.9 and above
 
     # Normal external run should be fine
     run_external(["ls"], output_filename="tmp.txt")
@@ -318,16 +318,6 @@ def test_exec_too_much_memory_requested_py39():
         run_external(["ls"], output_filename="tmp.txt")
 
     Config.max_core = curr_max_core
-
-
-@work_in_tmp_dir()
-def test_exec_too_much_memory_requested_py38():
-
-    if sys.version_info.minor != 8:
-        return  # Only supported on Python 3.8
-
-    # Python 3.8 can't use os.sysconf, so check that external can still be run
-    run_external(["ls"], output_filename="tmp.txt")
 
 
 @requires_with_working_xtb_install
@@ -591,3 +581,14 @@ def test_non_external_io_method_can_force_cleanup():
     calc = _test_calc()
     # No exceptions should be raised
     calc.clean_up(force=True, everything=True)
+
+
+def test_init_a_calculation_without_a_valid_spin_state_throws():
+    xtb = XTB()
+    test_m = h_atom()
+    test_m.charge, test_m.mult = 0, 1
+
+    with pytest.raises(ex.CalculationException):
+        _ = Calculation(
+            name="tmp", molecule=test_m, method=xtb, keywords=xtb.keywords.sp
+        )

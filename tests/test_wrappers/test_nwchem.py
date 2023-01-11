@@ -30,7 +30,6 @@ opt_keywords = OptKeywords(
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
-# @utils.work_in("tmp")
 def test_opt_calc():
 
     calc = Calculation(
@@ -123,6 +122,7 @@ def test_hessian_extract_ts():
             Atom("H", -0.74001, 0.78538, 0.60979),
             Atom("H", -0.31016, -1.03356, 0.60979),
         ],
+        charge=-1,
     )
 
     calc = Calculation(

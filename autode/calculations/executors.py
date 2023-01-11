@@ -199,7 +199,7 @@ class CalculationExecutor:
 
         logger.info(f"Deleting: {set(filenames)}")
 
-        for filename in set(filenames):
+        for filename in [fn for fn in set(filenames) if fn is not None]:
 
             try:
                 os.remove(filename)

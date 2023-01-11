@@ -33,7 +33,7 @@ def test_dimer_coord_init():
 def test_dimer_coord_mol_init():
 
     mol1 = Molecule()
-    mol2 = Molecule(atoms=[Atom("H")])
+    mol2 = Molecule(atoms=[Atom("H")], mult=2)
 
     # Dimer coordinates must be created from two species with the same
     # atomic composition
@@ -112,7 +112,7 @@ def test_mass_weighting_no_masses():
 
 def test_dimer_init_zero_distance():
 
-    a = Molecule(atoms=[Atom("H")])
+    a = Molecule(atoms=[Atom("H")], mult=2)
 
     dimer = Dimer(maxiter=10, coords=DimerCoordinates.from_species(a, a))
 
