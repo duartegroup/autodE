@@ -193,7 +193,6 @@ def test_work_in_compatible_with_experimental_timeout():
         return
     # cleanup should take care of all processes unused if the
     # function finished within time limit
-    Config.use_experimental_timeout = True
 
     @utils.timeout(seconds=3)
     def sleep_2s():
@@ -203,25 +202,26 @@ def test_work_in_compatible_with_experimental_timeout():
     def use_exp_timeout():
         sleep_2s()
 
-    Config.use_experimental_timeout = False
+    with temporary_config():
+        Config.use_experimental_timeout = True
+        use_exp_timeout()
 
 
 def test_cleanup_after_timeout():
     if platform.system() != "Windows":
         return
     # cleanup should take care of all processes unused
-    Config.use_experimental_timeout = True
 
     @utils.timeout(seconds=3)
     def sleep_2s():
         return time.sleep(2)
 
-    sleep_2s()
-    assert len(mp.active_children()) != 0
-    utils.cleanup_after_timeout()
-    assert len(mp.active_children()) == 0
-
-    Config.use_experimental_timeout = False
+    with temporary_config():
+        Config.use_experimental_timeout = True
+        sleep_2s()
+        assert len(mp.active_children()) != 0
+        utils.cleanup_after_timeout()
+        assert len(mp.active_children()) == 0
 
 
 def test_timeout():
@@ -264,19 +264,18 @@ def test_repeated_timeout_win_loky():
     # With experimental timeout, triggering timeout
     # repeatedly should not cause deadlocks or hangs
     # from executor manager thread
-    Config.use_experimental_timeout = True
 
     @utils.timeout(seconds=1)
     def sleep_2s():
         return time.sleep(2)
 
-    start_time = time.time()
-    sleep_2s()
-    sleep_2s()
-    sleep_2s()
-    assert time.time() - start_time < 6
-
-    Config.use_experimental_timeout = False
+    with temporary_config():
+        Config.use_experimental_timeout = True
+        start_time = time.time()
+        sleep_2s()
+        sleep_2s()
+        sleep_2s()
+        assert time.time() - start_time < 6
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
@@ -346,17 +345,12 @@ def test_config_in_worker_proc():
     # check that the config is able to be passed to child processes
     # mainly for windows, but still nice to check for posix
 
-    old_n_cores = Config.n_cores
-    old_orca_funct = Config.ORCA.keywords.sp.functional
-    Config.n_cores = 9
-    Config.ORCA.keywords.sp.functional = "B3LYP"
-
-    with ProcessPool(max_workers=2) as pool:
-        job = pool.submit(worker_fn)
-        _ = job.result()
-
-    Config.n_cores = old_n_cores
-    Config.ORCA.keywords.sp.functional = old_orca_funct
+    with temporary_config():
+        Config.n_cores = 9
+        Config.ORCA.keywords.sp.functional = "B3LYP"
+        with ProcessPool(max_workers=2) as pool:
+            job = pool.submit(worker_fn)
+            _ = job.result()
 
 
 def worker_fn():
