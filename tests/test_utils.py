@@ -21,6 +21,7 @@ from autode.utils import (
 )
 from autode.wrappers.keywords.keywords import Functional
 from autode.config import Config
+from .testutils import requires_with_working_xtb_install
 
 
 here = os.path.dirname(os.path.abspath(__file__))

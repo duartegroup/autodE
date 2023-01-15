@@ -6,6 +6,7 @@ from autode.values import Allocation, Distance
 from autode.wrappers.keywords import KeywordsSet
 from autode.wrappers.keywords import Keywords, Functional, BasisSet
 from autode.utils import _copy_into_current_config
+from autode.transition_states.templates import get_ts_template_folder_path
 
 
 def test_config():
@@ -110,3 +111,13 @@ def test_exc_if_not_class_in_config_instantiate_func():
     # when passed class it should work
     test_config = _instantiate_config_opts(_ConfigClass)
     assert test_config is not None
+
+
+def test_invalid_get_ts_template_folder_path():
+
+    Config.ts_template_folder_path = ""
+
+    with pytest.raises(ValueError):
+        _ = get_ts_template_folder_path(None)
+
+    Config.ts_template_folder_path = None

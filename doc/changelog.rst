@@ -21,6 +21,30 @@ Bug Fixes
 - Fixes pickling issue with :code:`autode.config.Config` on Windows and in multiprocessing spawn for Linux/macOS
 
 
+1.3.4
+--------
+----------
+
+Feature additions.
+
+Usability improvements/Changes
+******************************
+* Throw useful exception for invalid :code:`ade.Config.ts_template_folder_path`
+* Adds the reaction temperature to the unique reaction hash
+
+
+Functionality improvements
+**************************
+- Adds :code:`ade.transition_states.TransitionState.from_species` method to construct transition states from a species or molecule
+- Adds :code:`autode.Reaction.save()` and :code:`autode.Reaction.load()` to save and reload a reaction state
+- Adds saving checkpoints of a reaction during :code:`autode.Reaction.calculate_reaction_profile`
+
+
+Bug Fixes
+*********
+-
+
+
 1.3.3
 --------
 ----------

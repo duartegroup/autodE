@@ -320,16 +320,6 @@ def test_exec_too_much_memory_requested_py39():
     Config.max_core = curr_max_core
 
 
-@work_in_tmp_dir()
-def test_exec_too_much_memory_requested_py38():
-
-    if sys.version_info.minor != 8:
-        return  # Only supported on Python 3.8
-
-    # Python 3.8 can't use os.sysconf, so check that external can still be run
-    run_external(["whoami"], output_filename="tmp.txt")
-
-
 @requires_with_working_xtb_install
 @work_in_tmp_dir()
 def test_calculations_have_unique_names():
