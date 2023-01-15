@@ -2,6 +2,7 @@ from typing import Optional, List
 from autode.values import Frequency
 from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
+from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.templates import TStemplate
 from autode.input_output import atoms_to_xyz_file
 from autode.calculations import Calculation
@@ -266,6 +267,7 @@ class TransitionState(TSbase):
         # Generate a copy of this TS on which conformers are searched, for
         # easy reversion
         _ts = self.copy()
+        _ts.hessian, _ts.gradient, _ts.energy = None, None, None
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
         _ts.find_lowest_energy_conformer(hmethod=hmethod)
@@ -355,3 +357,20 @@ class TransitionState(TSbase):
 
         logger.info("Saved TS template")
         return None
+
+    @classmethod
+    def from_species(
+        cls, species: "autode.species.Species"
+    ) -> "TransitionState":
+        """
+        Generate a TS from a species. Note this does not set the bond rearrangement
+        thus mode checking will not work from this species.
+
+        -----------------------------------------------------------------------
+        Arguments:
+            species:
+
+        Returns:
+            (autode.transition_states.transition_state.TransitionState): TS
+        """
+        return cls(ts_guess=TSguess.from_species(species), bond_rearr=None)

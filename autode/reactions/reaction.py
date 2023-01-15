@@ -1,6 +1,9 @@
+import os
 import base64
 import hashlib
-from typing import Union, Optional, List
+import pickle
+
+from typing import Union, Optional, List, Generator
 from datetime import date
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
@@ -13,7 +16,11 @@ from autode.species.complex import ReactantComplex, ProductComplex
 from autode.species.molecule import Reactant, Product
 from autode.plotting import plot_reaction_profile
 from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
-from autode.utils import work_in, requires_hl_level_methods
+from autode.utils import (
+    work_in,
+    requires_hl_level_methods,
+    checkpoint_rxn_profile_step,
+)
 from autode.reactions import reaction_types
 
 
@@ -192,6 +199,9 @@ class Reaction:
         If self.solvent is set then override the reactants and products
         """
         molecules = self.reacs + self.prods
+        if len(molecules) == 0:
+            return  # No molecules thus no solvent needs to be checked
+
         first_solvent = self.reacs[0].solvent
 
         if self.solvent is None:
@@ -199,7 +209,6 @@ class Reaction:
                 logger.info("Reaction is in the gas phase")
                 return
 
-            # Are solvents defined for all molecules?
             elif all([mol.solvent is not None for mol in molecules]):
 
                 if not all(
@@ -302,16 +311,21 @@ class Reaction:
 
         return None
 
-    def _reasonable_components_with_energy(self) -> None:
-        """Generator for components of a reaction that have sensible geometries
-        and also energies"""
+    def _components(self) -> Generator:
+        """Components of this reaction"""
 
         for mol in (
             self.reacs
             + self.prods
             + [self.ts, self._reactant_complex, self._product_complex]
         ):
+            yield mol
 
+    def _reasonable_components_with_energy(self) -> Generator:
+        """Generator for components of a reaction that have sensible geometries
+        and also energies"""
+
+        for mol in self._components():
             if mol is None:
                 continue
 
@@ -323,8 +337,6 @@ class Reaction:
                 continue
 
             yield mol
-
-        return None
 
     def _estimated_barrierless_delta(self, e_type: str) -> Optional[Energy]:
         """
@@ -571,6 +583,7 @@ class Reaction:
         )
         return None
 
+    @checkpoint_rxn_profile_step("reactant_product_conformers")
     def find_lowest_energy_conformers(self) -> None:
         """Try and locate the lowest energy conformation using simulated
         annealing, then optimise them with xtb, then optimise the unique
@@ -584,6 +597,7 @@ class Reaction:
 
         return None
 
+    @checkpoint_rxn_profile_step("reactants_and_products")
     @work_in("reactants_and_products")
     def optimise_reacs_prods(self) -> None:
         """Perform a geometry optimisation on all the reactants and products
@@ -596,6 +610,7 @@ class Reaction:
 
         return None
 
+    @checkpoint_rxn_profile_step("complexes")
     @work_in("complexes")
     def calculate_complexes(self) -> None:
         """Find the lowest energy conformers of reactant and product complexes
@@ -618,24 +633,29 @@ class Reaction:
         return None
 
     @requires_hl_level_methods
+    @checkpoint_rxn_profile_step("transition_states")
     @work_in("transition_states")
     def locate_transition_state(self) -> None:
+
+        if self.type is None:
+            raise RuntimeError(
+                "Cannot invoke locate_transition_state without a reaction type"
+            )
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
         if sum(p.graph.number_of_edges() for p in self.prods) > sum(
             r.graph.number_of_edges() for r in self.reacs
         ):
-
             self.switch_reactants_products()
             self.tss = find_tss(self)
             self.switch_reactants_products()
-
         else:
             self.tss = find_tss(self)
 
         return None
 
+    @checkpoint_rxn_profile_step("transition_state_conformers")
     @work_in("transition_states")
     def find_lowest_energy_ts_conformer(self) -> None:
         """Find the lowest energy conformer of the transition state"""
@@ -646,6 +666,7 @@ class Reaction:
         else:
             return self.ts.find_lowest_energy_ts_conformer()
 
+    @checkpoint_rxn_profile_step("single_points")
     @work_in("single_points")
     def calculate_single_points(self) -> None:
         """Perform a single point energy evaluations on all the reactants and
@@ -719,6 +740,7 @@ class Reaction:
 
         return None
 
+    @checkpoint_rxn_profile_step("thermal")
     @work_in("thermal")
     def calculate_thermochemical_cont(
         self, free_energy: bool = True, enthalpy: bool = True
@@ -823,3 +845,24 @@ class Reaction:
     def has_identical_composition_as(self, reaction: "Reaction") -> bool:
         """Does this reaction have the same chemical identity as another?"""
         return self.atomic_symbols == reaction.atomic_symbols
+
+    def save(self, filepath: str) -> None:
+        """Save the state of this reaction to a binary file that can be reloaded"""
+
+        with open(filepath, "wb") as file:
+            pickle.dump(self.__dict__, file)
+
+    def load(self, filepath: str) -> None:
+        """Load a reaction state from a binary file"""
+
+        with open(filepath, "rb") as file:
+            for attr, value in dict(pickle.load(file)).items():
+                setattr(self, attr, value)
+
+    @classmethod
+    def from_checkpoint(cls, filepath: str) -> "Reaction":
+        """Create a reaction from a checkpoint file"""
+        logger.info(f"Loading a reaction object from {filepath}")
+        rxn = cls()
+        rxn.load(filepath)
+        return rxn

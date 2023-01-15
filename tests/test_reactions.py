@@ -24,10 +24,9 @@ def test_classify():
     rearrangement = classify([0], [0])
     assert rearrangement.name == "rearrangement"
 
-    # Needs to have at least some reactants and products
-    with pytest.raises(ReactionFormationFailed):
-        _ = classify([], [])
+    assert classify([], []) is None
 
+    # Needs to have at least some reactants or products
     with pytest.raises(ReactionFormationFailed):
         _ = classify([0], [])
 

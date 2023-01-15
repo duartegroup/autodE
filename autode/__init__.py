@@ -7,6 +7,7 @@ from autode import mol_graphs
 from autode import hessians
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
+from autode.transition_states.transition_state import TransitionState
 from autode.atoms import Atom
 from autode.species.molecule import Reactant, Product, Molecule, Species
 from autode.species.complex import NCIComplex
@@ -39,7 +40,7 @@ Bumping the version number requires following the release proceedure:
   - Merge when tests pass
 """
 
-__version__ = "1.3.3"
+__version__ = "1.4.0"
 
 
 __all__ = [
@@ -56,6 +57,7 @@ __all__ = [
     "Reactant",
     "Product",
     "Molecule",
+    "TransitionState",
     "NCIComplex",
     "Config",
     "Calculation",

@@ -1,6 +1,10 @@
 from autode.wrappers.MOPAC import MOPAC
 from autode.wrappers.MOPAC import get_keywords, _get_atoms_linear_interp
-from autode.exceptions import CouldNotGetProperty, UnsupportedCalculationInput
+from autode.exceptions import (
+    CouldNotGetProperty,
+    UnsupportedCalculationInput,
+    CalculationException,
+)
 from autode.calculations import Calculation, CalculationInput
 from autode.species.molecule import Molecule
 from autode.solvent import ImplicitSolvent
@@ -120,7 +124,7 @@ def test_other_spin_states():
     h_quin = Molecule(atoms=[Atom("H")], mult=5)
     h_quin.name = "molecule"
 
-    with pytest.raises(UnsupportedCalculationInput):
+    with pytest.raises(CalculationException):
         calc = Calculation(
             name="h",
             molecule=h_quin,

@@ -1,3 +1,4 @@
+import shutil
 import time
 import pytest
 import platform
@@ -394,10 +395,7 @@ def test_temporary_config_in_worker_proc():
 def test_time_units():
 
     with pytest.raises(ValueError):
-
-        @log_time(units="X")  # invalid time format
-        def f():
-            return None
+        log_time(units="X")  # invalid time format
 
 
 def test_requires_graph():
@@ -436,3 +434,19 @@ def test_string_dict():
     assert "a" in str(d)
     assert "solvent" in str(d)
     assert d["a"] == "b"
+
+
+def test_requires_xtb_install():
+
+    path_env_var = os.environ.pop("PATH")
+    assert shutil.which("xtb") is None
+
+    test_list = []
+
+    @requires_with_working_xtb_install
+    def tmp_function():
+        test_list.append("executed")
+
+    # If XTB is not in $PATH then the function should not execute
+    assert len(test_list) == 0
+    os.environ["PATH"] = path_env_var

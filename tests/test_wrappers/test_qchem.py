@@ -24,7 +24,7 @@ def _blank_calc(name="test"):
 
     calc = Calculation(
         name=name,
-        molecule=Molecule(atoms=[Atom("H")]),
+        molecule=Molecule(atoms=[Atom("H")], mult=2),
         method=method,
         keywords=SinglePointKeywords(),
     )

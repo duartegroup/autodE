@@ -1,5 +1,6 @@
 import os
 import pytest
+import pickle
 import numpy as np
 import autode as ade
 from autode.utils import work_in_tmp_dir, ProcessPool
@@ -918,3 +919,19 @@ def test_serial_calculation_matches_parallel():
     serial_result = nhc.hessian
 
     assert np.allclose(parallel_result, serial_result)
+
+
+@work_in_tmp_dir()
+def test_hessian_pickle_and_unpickle():
+
+    mol = Molecule(smiles="O")
+    mol.hessian = Hessian(np.eye(3 * mol.n_atoms), atoms=mol.atoms)
+
+    with open("tmp.obj", "wb") as file:
+        pickle.dump(mol.hessian, file=file)
+
+    with open("tmp.obj", "rb") as file:
+        reloaded_hessian = pickle.load(file=file)
+
+    assert reloaded_hessian.shape == (3 * mol.n_atoms, 3 * mol.n_atoms)
+    assert reloaded_hessian.atoms == mol.atoms

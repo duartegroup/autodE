@@ -4,6 +4,7 @@ from typing import Optional
 import autode.exceptions as ex
 from autode.atoms import metals
 from autode.config import Config
+from autode.geom import calc_rmsd
 from autode.constraints import DistanceConstraints
 from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
@@ -73,9 +74,12 @@ class TSbase(Species, ABC):
         self._init_solvent()
 
     def __eq__(self, other):
-        """Equality of this TS base to another"""
-        logger.warning("TSs types are not equal to any others")
-        return False
+        """Equality of this TS to another"""
+        return (
+            isinstance(other, TSbase)
+            and calc_rmsd(self.coordinates, other.coordinates) < 1e-6,
+            super().__eq__(other),
+        )
 
     def _init_graph(self) -> None:
         """Set the molecular graph for this TS object from the reactant"""
@@ -148,7 +152,7 @@ class TSbase(Species, ABC):
         """
         if self.bond_rearrangement is None:
             raise ValueError(
-                "Do not have a bond rearrangment - cannot "
+                "Do not have a bond rearrangement - cannot "
                 "check the imaginary mode"
             )
 
@@ -165,9 +169,7 @@ class TSbase(Species, ABC):
             )
             return False
 
-        if len(imag_freqs) > 1:
-            logger.warning(f"Hessian had {len(imag_freqs)} imaginary modes")
-
+        logger.info(f"Hessian had {len(imag_freqs)} imaginary modes")
         if imag_freqs[0] > Config.min_imag_freq:
             logger.warning("Imaginary modes were too small to be significant")
             return False

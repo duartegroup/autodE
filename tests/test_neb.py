@@ -94,14 +94,14 @@ def test_full_calc_with_xtb():
         initial_species=Species(
             name="inital",
             charge=-1,
-            mult=0,
+            mult=1,
             atoms=xyz_file_to_atoms("sn2_init.xyz"),
             solvent_name="water",
         ),
         final_species=Species(
             name="final",
             charge=-1,
-            mult=0,
+            mult=1,
             atoms=xyz_file_to_atoms("sn2_final.xyz"),
             solvent_name="water",
         ),
@@ -134,7 +134,7 @@ def test_get_ts_guess_neb():
     reactant = Reactant(
         name="inital",
         charge=-1,
-        mult=0,
+        mult=1,
         solvent_name="water",
         atoms=xyz_file_to_atoms("sn2_init.xyz"),
     )
@@ -142,7 +142,7 @@ def test_get_ts_guess_neb():
     product = Reactant(
         name="final",
         charge=-1,
-        mult=0,
+        mult=1,
         solvent_name="water",
         atoms=xyz_file_to_atoms("sn2_final.xyz"),
     )

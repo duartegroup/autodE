@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from time import time
 from autode.reactions import reaction
 from autode.reactions import reaction_types
 from autode.transition_states.transition_state import TransitionState
@@ -345,7 +346,10 @@ def test_free_energy_profile():
         solvent_name="water",
     )
 
+    start_time = time()
     rxn.calculate_reaction_profile(free_energy=True)
+    full_calc_reaction_profile_time = time() - start_time
+    rxn.save("tmp.chk")
 
     # Allow ~0.5 kcal mol-1 either side of the 'true' value
 
@@ -359,6 +363,15 @@ def test_free_energy_profile():
     plot_reaction_profile([rxn], units=KcalMol, name="enthalpy", enthalpy=True)
     assert os.path.exists("enthalpy_reaction_profile.pdf")
     os.remove("enthalpy_reaction_profile.pdf")
+
+    # Rerunning the reaction should be fast
+    start_time = time()
+    rxn.calculate_reaction_profile(free_energy=True)
+    assert time() - start_time < full_calc_reaction_profile_time / 2
+
+    # Should be able to reload the entire reaction state
+    reloaded_rxn = reaction.Reaction.from_checkpoint("tmp.chk")
+    assert reloaded_rxn.ts is not None
 
     # Reset the configuration to the default values
     Config.hcode = None
@@ -520,3 +533,15 @@ def test_identity_reaction_is_supported_with_labels():
 
     rxn = reaction.Reaction("[Br-:1].C[Br:2]>>C[Br:1].[Br-:2]")
     assert not reaction_is_isomorphic(rxn)
+
+
+def test_cannot_run_locate_ts_with_no_reactants_or_products():
+
+    Config.lcode = Config.hcode = "ORCA"
+    Config.ORCA.path = here
+
+    rxn = reaction.Reaction()
+    with pytest.raises(RuntimeError):
+        rxn.locate_transition_state()
+
+    Config.lcode = None

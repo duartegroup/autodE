@@ -217,6 +217,12 @@ class Calculation:
         if self.molecule.atoms is None or self.molecule.n_atoms == 0:
             raise ex.NoInputError("Have no atoms. Can't form a calculation")
 
+        if not self.molecule.has_valid_spin_state:
+            raise ex.CalculationException(
+                f"Cannot execute a calculation without a valid spin state: "
+                f"Spin multiplicity (2S+1) = {self.molecule.mult}"
+            )
+
         return None
 
     def _add_to_comp_methods(self) -> None:
