@@ -271,7 +271,7 @@ class BITSSOptimiser(BaseOptimiser):
         new_coords = self._imgpair.bitss_coords + factor * delta_s
         cartesian_delta = new_coords - self._imgpair.bitss_coords
         max_component = np.max(np.abs(cartesian_delta))
-        # todo self.alpha
+
         if max_component > self._init_trust:
             logger.info(
                 f"Calculated step is too large ({max_component:.3f} Å)"
