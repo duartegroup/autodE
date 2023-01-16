@@ -4,3 +4,4 @@ networkx
 matplotlib
 cython
 scipy
+loky
