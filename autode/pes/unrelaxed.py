@@ -1,9 +1,8 @@
 """Unrelaxed potential energy surfaces"""
 import numpy as np
 from typing import Tuple, Type
-from multiprocessing import Pool
 from autode.pes.reactive import ReactivePESnD
-from autode.utils import hashable
+from autode.utils import hashable, ProcessPool
 from autode.log import logger
 from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CalculationException
@@ -22,19 +21,19 @@ class UnRelaxedPES1D(ReactivePESnD):
         # PES. The number of workers executing will be at most len(points)
         n_cores_pp = max(self._n_cores // len(points), 1)
 
-        with Pool(processes=self._n_cores) as pool:
+        with ProcessPool(max_workers=self._n_cores) as pool:
 
-            results = []
-
-            for p in points:
-                res = pool.apply_async(
-                    func=hashable("_single_energy", self),
-                    args=(self._species_at(p), n_cores_pp),
+            results = [
+                pool.submit(
+                    hashable("_single_energy", self),
+                    self._species_at(p),
+                    n_cores_pp,
                 )
-                results.append(res)
+                for p in points
+            ]
 
             for i, p in enumerate(points):
-                self._energies[p] = results[i].get(timeout=None)
+                self._energies[p] = results[i].result()
 
         return None
 
