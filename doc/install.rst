@@ -65,8 +65,8 @@ Git: Windows
 Installing autodE on Windows from source is similar to that on Linux/Mac OS, but slightly
 more involved. A C++ compiler needs to be installed, as it is not provided by default. It is
 recommended to install Visual C/C++ compiler from `here <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_.
-Note that only installing the "Build Tools for Visual Studio" (found at the bottom of the page)
-and selecting "Desktop Development with C++" in the installer menu is sufficient.
+Note that installing the "Build Tools for Visual Studio" and selecting only "Desktop Development with C++"
+in the installer menu is sufficient.
 
 Git is also required, this can be either installed in the form of `Git for Windows <https://git-scm.com/download/win>`_
 or in a `Conda environment <https://anaconda.org/conda-forge/git>`_. With git, first clone the autodE
