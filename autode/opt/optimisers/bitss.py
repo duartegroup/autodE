@@ -59,7 +59,7 @@ class BITSSOptimiser(BaseOptimiser):
     @property
     def ts(self) -> Optional["autode.species.Species"]:
         """Return the obtained transition state, if converged"""
-        # TODO need TS opt as well?
+        # TODO need further TS opt as well?
         if not self.converged:
             logger.error(
                 "BITSS calculation is not converged, "
@@ -71,7 +71,7 @@ class BITSSOptimiser(BaseOptimiser):
         if rmsd >= 0.1:
             logger.error("BITSS is converged due to loose distance"
                          "criteria, however, both images are"
-                         "siginificantly different from each other."
+                         "significantly different from each other."
                          "Returning reactant image")
         return self._imgpair._left_image.copy()
 
