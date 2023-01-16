@@ -62,10 +62,34 @@ environment <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-e
 Git: Windows
 ------------
 
-In a bash shell within Windows Subsystem for Linux follow the steps above.
+Installing autodE on Windows from source is similar to that on Linux/Mac OS, but slightly
+more involved. A C++ compiler needs to be installed, as it is not provided by default. It is
+recommended to install Visual C/C++ compiler from `here <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_.
+Note that only installing the "Build Tools for Visual Studio" (found at the bottom of the page)
+and selecting "Desktop Development with C++" in the installer menu is sufficient.
 
-.. warning::
-    Windows installation is only supported within Windows Subsystem for Linux (`WSL <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_)
+Git is also required, this can be either installed in the form of `Git for Windows <https://git-scm.com/download/win>`_
+or in a `Conda environment <https://anaconda.org/conda-forge/git>`_. With git, first clone the autodE
+repository as shown above.
+
+Then open a Conda prompt or shell and cd to the directory where autodE has been cloned
+and then install with pip as usual ((you may want to create a new `virtual
+environment <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_
+as mentioned before)::
+
+    > conda install --file requirements.txt --channel conda-forge
+    > pip install .
+
+.. note::
+    In rare cases :code:`pip` may not be able to find the Visual C/C++ compiler, despite the build
+    tools being installed and show the error message :code:`error: Microsoft Visual C++ 14.0 or greater is required`
+    . In this case, run the Visual Studio build tools command prompt, which is usually named
+    "x64 Native Tools Command Prompt for VS 2022" or something similar in the start menu (This will add compiler to
+    the PATH). Then run :code:`pip` from this command prompt.
+.. note::
+    Windows installation is also supported within Windows Subsystem for Linux (`WSL <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_).
+    Simply follow the instructions for Linux.
+
 
 ******
 
