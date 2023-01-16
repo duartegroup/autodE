@@ -7,17 +7,18 @@ Changelog
 
 Functionality improvements
 **************************
--
+- Adds :code:`temporary_config()` context manager for temporary configuration changes
 
 
 Usability improvements/Changes
 ******************************
--
+- Adds full usability of autodE on Windows, including parallelisation with :code:`loky`
+- Optional timeout for graph isomorphism test in Windows, turned on by :code:`Config.use_experimental_timeout=True` (default behaviour kept for Linux/macOS)
 
 
 Bug Fixes
 *********
--
+- Fixes pickling issue with :code:`autode.config.Config` on Windows and in multiprocessing spawn for Linux/macOS
 
 
 1.3.4

@@ -8,12 +8,11 @@ from autode.calculations import Calculation
 from autode.wrappers.methods import Method
 from autode.input_output import xyz_file_to_molecules
 from autode.path import Path
-from autode.utils import work_in
+from autode.utils import work_in, ProcessPool
 from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
 from autode.values import Distance, PotentialEnergy
-from multiprocessing import Pool
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
@@ -99,15 +98,13 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
     )
 
     # Run an energy + gradient evaluation in parallel across all images
-    with Pool(processes=n_cores) as pool:
+    with ProcessPool(max_workers=n_cores) as pool:
         results = [
-            pool.apply_async(
-                func=energy_gradient, args=(images[i], method, n_cores_pp)
-            )
+            pool.submit(energy_gradient, images[i], method, n_cores_pp)
             for i in range(1, len(images) - 1)
         ]
 
-        images[1:-1] = [result.get(timeout=None) for result in results]
+        images[1:-1] = [res.result() for res in results]
 
     images.increment()
 

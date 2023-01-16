@@ -3,7 +3,7 @@ import pytest
 import pickle
 import numpy as np
 import autode as ade
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, ProcessPool
 from . import testutils
 import multiprocessing as mp
 from autode.config import Config
@@ -879,21 +879,20 @@ def test_partial_water_num_hess():
 
 @testutils.requires_with_working_xtb_install
 @work_in_tmp_dir()
-def test_numerical_hessian_in_daemon():
+def test_numerical_hessian_in_process_pool():
     """
     Ensure that no exceptions are raised when a numerical hessian is
-    calculated within a multiprocessing pool
+    calculated within a process pool
     """
+    with ProcessPool(max_workers=2) as pool:
 
-    with mp.pool.Pool(processes=1) as pool:
-
-        res = pool.apply_async(func=_calc_num_hessian_h2)
-        _ = res.get(timeout=None)
+        res = pool.submit(_calc_num_hessian_h2)
+        _ = res.result(timeout=None)
 
 
 def _calc_num_hessian_h2():
 
-    assert mp.current_process().daemon
+    assert mp.parent_process() is not None
     h2 = Molecule(smiles="[H][H]")
     h2.calc_hessian(method=XTB(), numerical=True, n_cores=1)
 
