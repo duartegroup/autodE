@@ -35,6 +35,9 @@ def get_log_level():
 
     if log_level_str == "INFO":
         return logging.INFO
+    
+    if log_level_str == "ERROR":
+        return logging.ERROR
 
     return logging.CRITICAL
 
