@@ -1,0 +1,203 @@
+\documentclass[10pt]{article}
+\usepackage{bm}% bold math
+\usepackage{amsmath}
+\DeclareMathOperator{\sgn}{sgn}
+
+\begin{document}
+	
+\subsection{BITSS}
+
+The BITSS (Binary-Image Transition State Search) is an algorithm to find transition state and a reaction pathway starting from only reactant and product structure. It is a "bracketing" method, which is different from interpolation-based methods such as NEB, CI-NEB etc. in that it does not require an interpolation for the initial reaction path.
+\\\\
+This means that it can converge to a transition state even if the PES is skewed. BITSS is also a gradient-only method and does not require a Hessian calculation, however, using a Hessian does improve convergence.
+\\\\
+The BITSS method works by putting an energy constraint on both the reactant and product molecules that drives them towards each other until they meet at a saddle point, which is the transition state.
+\\\\
+The BITSS energy for a pair of states (molecules in this case) is defined as:
+
+\begin{equation}
+	E_\mathrm{BITSS}(\vec r_1,\vec r_2) = E_1 (\vec r_1) + E_2 (\vec r_2) + \kappa_e(E_1 - E_2)^2 + \kappa_d (d - d_i)^2
+	\label{eqn:bitss-orig}
+\end{equation}
+\\
+where $E_1$ and $E_2$ are the energies of the two individual molecules respectively. The vectors $\vec r_1$ and $\vec r_2$ are essentially the coordinates of each molecule. In the current \emph{autodE} implementation, Cartesian coordinates of each atom are used. (Internal coordinates are also usable but difficult to implement in code, so it has not been done.)
+
+\begin{equation}
+	\vec r_1 = (x_{1A},y_{1A},z_{1A},x_{1B},y_{1B},...)
+\end{equation}
+\begin{equation}
+	\vec r_2 = (x_{2A},y_{2A},z_{2A},x_{2B},y_{2B},...)
+\end{equation}
+\\
+where $x_{2A}$ represents the x-coordinate of atom A of 2nd state (molecule) for example.
+
+The distance $d$ in eqn.-\eqref{eqn:bitss-orig} can be expressed in multiple ways. In this implementation, we simply use the Euclidean distance in terms of Cartesian coordinates:
+\begin{equation}
+	d = \sqrt{(x_{1A}-x_{2A})^2 + (y_{1A}-y_{2A})^2 + (z_{1A} - z_{2A})^2 + (x_{1B}-x_{2B})^2...}
+\end{equation}
+
+The BITSS optimiser minimises $E_\mathrm{BITSS}$ by varying all of the available coordinates ($\vec r_1$ and $\vec r_2$) simultaneously, i.e. it optimises both reactant and product together in each step.
+
+In \emph{autodE}, the BITSS optimiser can either use steepest descent or RFO for minimisation.
+
+\subsubsection{Analytic gradient}
+
+Gradient of the BITSS pair energy is:
+
+\begin{equation}
+	\nabla E_\mathrm{BITSS} (\vec r_1, \vec r_2) = \left(\frac{\partial E}{\partial x_{1A}},\frac{\partial E}{\partial y_{1A}}, \frac{\partial E}{\partial z_{1A}}, ... , \frac{\partial E}{\partial x_{2A}},\frac{\partial E}{\partial y_{2A}},\frac{\partial E}{\partial z_{2A}}, ...\right)
+	\label{eqn:bitss-grad-vec}
+\end{equation}
+\\
+Notice that the first half of the elements of gradient vector (eqn. \ref{eqn:bitss-grad-vec}) only depend on $\vec r_1$ while the second half of the elements depend on $\vec r_2$ only.
+
+The gradient can be calculated for each term in $E_\mathrm{BITSS}$ as written in eqn.-\ref{eqn:bitss-orig}. First we handle the energy terms:
+\begin{equation}
+	\begin{split}
+		 E_1 + E_2 + \kappa_e(E_1 - E_2)^2 &  = E_1 (1-2\kappa_e E_2) + \kappa_e E_1^2 + (\kappa_e E_2^2 + E_2) \\
+		 & = E_2(1-2\kappa_e E_1) + \kappa_e E_2^2 + (\kappa_e E_1^2 + E_1)
+	\end{split} \label{eqn:grad-eng-terms}
+\end{equation}
+
+Gradient terms from eqn. \eqref{eqn:grad-eng-terms} that only depend on $\vec{r}_1$ would be $$\nabla_{\vec{r}_1} E_1(1-2\kappa_e E_2) + 2 \kappa_e E_1 \nabla_{\vec{r}_1} E_1 = \nabla_{\vec{r}_1}E_1(1-2\kappa_e E_2 + 2 \kappa_e E_1)$$
+and those that depend only on $\vec{r}_2$ would be $$\nabla_{\vec{r}_2} E_2(1-2\kappa_e E_1) + 2 \kappa_e E_2 \nabla_{\vec{r}_2} E_2 = \nabla_{\vec{r}_2}E_2(1+2\kappa_e E_2 - 2 \kappa_e E_1)$$
+
+Now, realising that $\nabla_{\vec{r}_1}E_1$ and $\nabla_{\vec{r}_2}E_2$ are simply the molecular gradients, and concatenating the terms from $\vec{r}_1$ and $\vec{r}_2$ allows us to obtain the gradient contribution from energy.
+
+The distance terms depends on both $\vec{r}_1$ and $\vec{r}_2$ terms. $$\kappa_d(d-d_i)^2 = \kappa_d d^2 - 2 \kappa_d d d_i + \kappa_d d_i^2$$
+Gradient of the distance terms would be ($d_i$ is a constant): $$2\kappa_d (d - d_i) \nabla_{\vec r_1,\vec r_2}d $$
+
+Now, $d = \sqrt{(x_{1A}-x_{2A})^2 + (y_{1A}-y_{2A})^2 + (z_{1A} - z_{2A})^2 + ...}$ So,
+$$\frac{\partial d}{\partial x_{1A}} = \frac{1}{d} (x_{1A} - x_{2A}) \text{ and }\frac{\partial d}{\partial x_{2A}} = \frac{1}{d} (x_{2A} - x_{1A})$$
+
+It is easy to see therefore,
+$$\nabla_{\vec{r}_1}d = \frac{1}{d} (\vec{r}_1 - \vec{r}_2) \text{ and }\nabla_{\vec{r}_2}d = \frac{1}{d} (\vec{r}_2 - \vec{r}_1)$$
+
+Concatenating these two arrays will provide $\nabla_{\vec r_1,\vec r_2}d$.
+
+Summing the contributions of gradient from energy terms and distance terms will provide the gradient of BITSS energy.
+
+\subsubsection{Analytic Hessian}
+
+Optimising with only gradient is possible with gradient descent, but not recommended due to slow rate of convergence. Hessian is necessary for a quasi-Newton optimisation. Fortunately the Hessian for BITSS energy can be built up in terms of molecular Hessians and gradients.
+
+The Hessian of BITSS energy can be written as:
+
+\begin{equation}
+	\nabla^2 E_\text{BITSS} = 
+	\begin{bmatrix}
+		\frac{\partial^2 E}{\partial x_{1A}^2} & \frac{\partial^2 E}{\partial x_{1A}\partial y_{1A}} & ... & \frac{\partial^2 E}{\partial x_{1A}\partial x_{2A}} & \frac{\partial^2 E}{\partial x_{1A}\partial y_{2A}} & ... \\ \\
+		\frac{\partial^2 E}{\partial y_{1A}\partial x_{1A}} & \frac{\partial^2 E}{\partial y_{1A}^2} & ... & \frac{\partial^2 E}{\partial y_{1A}\partial x_{2A}} & \frac{\partial^2 E}{\partial y_{1A}\partial y_{2A}} & ...\\ 
+		\vdots & \vdots & \ddots & \vdots & \vdots & \ddots \\
+		\frac{\partial^2 E}{\partial x_{2A}\partial x_{1A}} & \frac{\partial^2 E}{\partial x_{2A}\partial y_{1A}} & ... & \frac{\partial^2 E}{\partial x_{2A}^2} & \frac{\partial^2 E}{\partial x_{2A}\partial y_{2A}} & ... \\ \\
+		\frac{\partial^2 E}{\partial y_{2A}\partial x_{1A}} & \frac{\partial^2 E}{\partial y_{2A}\partial y_{1A}} & ... & \frac{\partial^2 E}{\partial y_{2A}\partial x_{2A}} & \frac{\partial^2 E}{\partial y_{2A}^2} & ... \\
+		\vdots & \vdots & \ddots & \vdots & \vdots & \ddots
+	\end{bmatrix} \label{eqn:bitss-hess}
+\end{equation}
+
+The Hessian can again be separated in terms of the contributions from energy terms and distance terms. For energy terms, it is useful to divide the Hessian into four square blocks (visible in eqn.-\eqref{eqn:bitss-hess}).
+
+The upper-left block consists of terms that only depend on $\vec{r}_1$. Similarly, the lower-right block only depends on $\vec{r}_2$. The upper-right and lower-left blocks depend on both.
+
+Using eqn.-\eqref{eqn:grad-eng-terms}, the upper-left block can be written as:
+$$(1-2\kappa_e E_2)\nabla_{\vec{r}_1}^2E_1 + \kappa_e \nabla^2_{\vec{r}_1}(E_1^2)$$
+
+\begin{equation}
+	\begin{split}
+		\nabla_{\vec{r}_1}^2(E_1^2)  & =  \begin{bmatrix}
+			\frac{\partial^2 E_1^2}{\partial x_{1A}^2} & \frac{\partial^2 E_1^2}{\partial x_{1A}\partial y_{1A}} & ... \\ \\
+			\frac{\partial^2 E_1^2}{\partial y_{1A}\partial x_{1A}} & \frac{\partial^2 E_1^2}{\partial y_{1A}^2} & ... \\
+			\vdots & \vdots & \ddots
+		\end{bmatrix} \\
+	    & =2 \times \begin{bmatrix}
+	    	(\frac{\partial E_1}{\partial x_{1A}})^2 + E_1\frac{\partial^2 E_1}{\partial x_{1A}^2} & \frac{\partial E_1}{\partial x_{1A}}\frac{\partial E_1}{\partial y_{1A}} + E_1\frac{\partial^2 E_1}{\partial x_{1A}\partial y_{1A}} & ... \\ \\
+	    	\frac{\partial E_1}{\partial y_{1A}}\frac{\partial E_1}{\partial x_{1A}} + E_1\frac{\partial^2 E_1}{\partial y_{1A}\partial x_{1A}} & (\frac{\partial E_1}{\partial y_{1A}})^2 + E_1\frac{\partial^2 E_1}{\partial y_{1A}^2} & ... \\
+	    	\vdots & \vdots & \ddots
+	    \end{bmatrix} \\
+    	& = 2 (\nabla_{\vec{r}_1}E_1)^T(\nabla_{\vec{r}_1}E_1) + 2E_1 \nabla_{\vec{r}_1}^2E_1
+	\end{split}
+\end{equation}
+
+which gives,
+\begin{equation}
+	\begin{split}
+		& (1-2\kappa_e E_2)\nabla_{\vec{r}_1}^2E_1 + 2\kappa_e E_1\nabla^2_{\vec{r}_1}E_1 + 2\kappa_e(\nabla_{\vec{r}_1}E_1)^T(\nabla_{\vec{r}_1}E_1) \\
+		& = (1-2\kappa_e E_2+2\kappa_e E_1)\nabla_{\vec{r}_1}^2E_1 + 2\kappa_e(\nabla_{\vec{r}_1}E_1)^T(\nabla_{\vec{r}_1}E_1)
+	\end{split}
+\end{equation}
+
+Similarly for the lower-right square, all the terms depend only on $\vec{r}_2$, so the Hessian of the energy terms can be written as
+\begin{equation}
+	\begin{split}
+		& (1-2\kappa_e E_1)\nabla_{\vec{r}_2}^2E_2 + 2\kappa_e E_2\nabla^2_{\vec{r}_2}E_2 + 2\kappa_e(\nabla_{\vec{r}_2}E_2)^T(\nabla_{\vec{r}_2}E_2) \\
+		& = (1-2\kappa_e E_1+2\kappa_e E_2)\nabla_{\vec{r}_2}^2E_2 + 2\kappa_e(\nabla_{\vec{r}_2}E_2)^T(\nabla_{\vec{r}_2}E_2)
+	\end{split}
+\end{equation}
+
+Now, the upper-right square of the original Hessian, the terms depend on both $\vec{r}_1$ and $\vec{r}_2$. Looking at eqn,-\eqref{eqn:grad-eng-terms}, it is clear that only the term $-2\kappa_e E_1 E_2$ depends on both. Derivatives of other terms will be zero. So, the upper-right square can be written as:
+$$-2 \kappa_e \begin{bmatrix}
+	\frac{\partial E_1}{x_{1A}}\frac{\partial E_2}{x_{2A}} & \frac{\partial E_1}{x_{1A}}\frac{\partial E_2}{y_{2A}} & ... \\ \\
+	\frac{\partial E_1}{y_{1A}}\frac{\partial E_2}{x_{2A}} & \frac{\partial E_1}{y_{1A}}\frac{\partial E_2}{y_{2A}} & ... \\ \\
+	\vdots & \vdots & \ddots
+\end{bmatrix}$$
+$$= -2 \kappa_e (\nabla_{\vec{r}_1}E_1)^T (\nabla_{\vec{r}_2}E_2)$$
+
+Similarly, the lower-left square can be written as:
+$$= -2 \kappa_e (\nabla_{\vec{r}_2}E_2)^T (\nabla_{\vec{r}_1}E_1)$$
+
+Putting these together, the Hessian from the energy terms:
+
+$$
+\begin{bmatrix}
+	\begin{matrix}
+		(1-2\kappa_e E_2+2\kappa_e E_1)\nabla_{\vec{r}_1}^2E_1 + \\ 2\kappa_e(\nabla_{\vec{r}_1}E_1)^T(\nabla_{\vec{r}_1}E_1) 
+	\end{matrix}
+	& -2 \kappa_e (\nabla_{\vec{r}_1}E_1)^T (\nabla_{\vec{r}_2}E_2) \\ \\
+	 -2 \kappa_e (\nabla_{\vec{r}_2}E_2)^T (\nabla_{\vec{r}_1}E_1) & 
+	\begin{matrix}
+		(1-2\kappa_e E_1+2\kappa_e E_2)\nabla_{\vec{r}_2}^2E_2 + \\ 2\kappa_e(\nabla_{\vec{r}_2}E_2)^T(\nabla_{\vec{r}_2}E_2)
+	\end{matrix}
+\end{bmatrix}
+$$
+
+Realising that $\nabla^2_{\vec{r}_1}E_1$ and $\nabla^2_{\vec{r}_2}E_2$ are the molecular Hessians, which can be calculated with a QM method (preferably a fast semi-empirical method) allows us to calculate the Hessian of energy terms.
+
+Now, the distance term is $\kappa_d (d-d_i)^2$. If we express the concatenation of the $\vec{r}_1$ and $\vec{r}_2$ as $\vec{z}$ then,
+$$\nabla_{\vec r_1,\vec r_2} d = \frac{1}{d} \begin{bmatrix}
+	\mathbf{+I_n }& \mathbf{-I_n} \\
+	\mathbf{-I_n}  & \mathbf{+I_n} 
+\end{bmatrix} (\vec{z})^T = \frac{1}{d} \mathbf{A} (\vec{z})^T$$ 
+
+So Hessian of distance will be
+$$\nabla^2 d = \frac{1}{d} (\mathbf{A} - (\nabla d)^T (\nabla d))$$
+
+Now, Hessian of distance terms is:
+$$\nabla^2 (d^2) - 2 d_i \nabla^2 d$$
+
+\begin{equation}
+\begin{split}
+	\nabla^2 (d^2) & = 
+	\begin{bmatrix}
+		\frac{\partial^2 d^2}{\partial x_{1A}^2} & \frac{\partial^2 d^2}{\partial x_{1A}\partial y_{1A}} & ... \\ \\
+		\frac{\partial^2 d^2}{\partial y_{1A}\partial x_{1A}} & \frac{\partial^2 d^2}{\partial y_{1A}^2} & ... \\ 
+		\vdots & \vdots & \ddots \\
+	\end{bmatrix} \\
+	& = 2 \begin{bmatrix}
+		(\frac{\partial d}{\partial x_{1A}})^2 + d \frac{\partial^2 d}{\partial x_{1A}^2} & \frac{\partial d}{\partial x_{1A}}\frac{\partial d}{\partial y_{1A}} + d \frac{\partial^2 d}{\partial x_{1A}\partial y_{1A}} & ... \\ \\
+		\frac{\partial d}{\partial y_{1A}}\frac{\partial d}{\partial x_{1A}} + d\frac{\partial^2 d}{\partial y_{1A}\partial x_{1A}} & (\frac{\partial d}{\partial y_{1A}})^2 + d \frac{\partial^2 d}{\partial y_{1A}^2} & ... \\ 
+		\vdots & \vdots & \ddots \\
+	\end{bmatrix} \\
+	& = 2 (\nabla d)^T (\nabla d) + 2 \nabla^2 d
+\end{split}
+\end{equation}
+
+So putting it together gives the Hessian of distance terms:
+$$2 (\nabla d)^T (\nabla d) + 2 \nabla^2 d \left( 1 - 2d_i \right)$$
+
+Summing the Hessian contributions from the energy terms and the distance terms provides the Hessian of the BITSS energy.
+
+\subsubsection{Minimisation}
+
+BITSS optimisation requires the BITSS potential to be minimised. With the gradient and Hessian available, we can optimise by using RFO steps, and update the Hessian with BFGS/Bofill formula when not calculating Hessian analytically.
+
+\end{document}
