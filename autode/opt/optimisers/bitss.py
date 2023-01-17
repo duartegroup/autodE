@@ -28,7 +28,7 @@ class BITSSOptimiser(BaseOptimiser):
         initial_species: "autode.species.Species",
         final_species: "autode.species.Species",
         reduction_fac: float = 0.5,
-        rmsd_tol_angs: Union[Distance, float] = Distance(0.0001, "ang"),
+        rmsd_tol_angs: Union[Distance, float] = Distance(0.01, "ang"),
         g_tol: GradientRMS = GradientRMS(1e-3, units="Ha Å-1"),
         max_global_micro_iter: int = 500,
         recalc_hess_freq: int = 50,
@@ -129,11 +129,13 @@ class BITSSOptimiser(BaseOptimiser):
             self.all_update_before_step()
 
             if (
-                self._imgpair.target_dist - self._imgpair.euclidean_dist
+                self._imgpair.euclidean_dist - self._imgpair.target_dist
             ) < 1e-3:
+                macroiter_num += 1
+                print(self._imgpair.euclidean_dist, self._imgpair.target_dist)
                 self._imgpair.target_dist = (
                     1 - self._reduction_fac
-                ) * self._imgpair.euclidean_dist
+                ) * self._imgpair.target_dist
                 logger.error(
                     f"Macro-iteration: {macroiter_num} - target distance: "
                     f"{self._imgpair.target_dist :.3f}"
@@ -267,7 +269,7 @@ class BITSSOptimiser(BaseOptimiser):
         Returns:
             factor: The coefficient of the step taken
         """
-        logger.debug("Taking RFO step")
+        logger.error("Taking RFO step")
 
         if len(delta_s) == 0:  # No need to sanitise a null step
             return 0.0
@@ -277,7 +279,7 @@ class BITSSOptimiser(BaseOptimiser):
         max_component = np.max(np.abs(cartesian_delta))
 
         if max_component > self._init_trust:
-            logger.info(
+            logger.error(
                 f"Calculated step is too large ({max_component:.3f} Å)"
                 f" - scaling down"
             )
@@ -588,6 +590,21 @@ class BinaryImagePair:
             np.concatenate((left_coords_term, right_coords_term))
             + distance_grad
         )
+        rms_dist_grad = np.sqrt(np.average(np.square(distance_grad)))
+        energy_grad = np.sqrt(
+            np.average(
+                np.square(
+                    np.concatenate((left_coords_term, right_coords_term))
+                )
+            )
+        )
+        print("RMS of distance grad = ", rms_dist_grad)
+        print("RMS of energy grad = ", energy_grad)
+        print("max dist grad = ", np.max(distance_grad))
+        print(
+            "max energy grad = ",
+            np.max(np.concatenate((left_coords_term, right_coords_term))),
+        )
 
     def update_molecular_hessian(self) -> None:
         """
@@ -700,7 +717,6 @@ class BinaryImagePair:
             * (for_sq_term / self.euclidean_dist + hess_d * self.target_dist)
         )
         self.hess = energy_hess + distance_hess
-        self.inv_hess = np.linalg.inv(self.hess)
 
     def initialise_run(self):
         pass
@@ -947,6 +963,7 @@ class BinaryImagePair:
         if value is None:
             return
         if isinstance(value, Distance):
+            print("setter called")
             self._target_dist = value.to("ang")
         else:
             raise ValueError
