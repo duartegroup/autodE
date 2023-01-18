@@ -17,6 +17,7 @@ from autode.utils import ProcessPool
 from autode.opt.optimisers.base import _energy_method_string, method_string
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.exceptions import CalculationException, AutodeException
+from autode.utils import work_in_tmp_dir
 
 import autode.species
 import autode.wrappers
@@ -999,6 +1000,7 @@ def _calculate_sp_energy_for_species(
     return species.energy
 
 
+@work_in_tmp_dir()
 def _calculate_hessian_for_species(
     species, method: "autode.wrappers.methods.Method", n_cores
 ):
