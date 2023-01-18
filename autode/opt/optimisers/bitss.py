@@ -826,7 +826,7 @@ class BinaryImagePair:
 
     def update_hessian_by_interpolation(self):
         """
-        Updates the inverse hessian by using gradient information
+        Updates the hessian by using gradient information
         """
         for update_type in self._hessian_update_types:
             updater = update_type(
