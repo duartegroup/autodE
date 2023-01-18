@@ -710,11 +710,17 @@ class BinaryImagePair:
             self.A_mat()
             - (distance_grad.reshape(-1, 1) @ distance_grad.reshape(1, -1))
         )
-        for_sq_term = np.identity(hess_d.shape[0])
         distance_hess = (
+                2
+                * self.kappa_dist
+                * (distance_grad.reshape(-1, 1) @ distance_grad.reshape(1, -1))
+        )
+        distance_hess += (
             2
             * self.kappa_dist
-            * (for_sq_term / self.euclidean_dist + hess_d * self.target_dist)
+            * self.euclidean_dist
+            * (1 - 2 * self.target_dist)
+            * hess_d
         )
         self.hess = energy_hess + distance_hess
 
