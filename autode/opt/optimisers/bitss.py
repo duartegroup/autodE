@@ -18,6 +18,7 @@ from autode.opt.optimisers.base import _energy_method_string, method_string
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.exceptions import CalculationException, AutodeException
 from autode.utils import work_in_tmp_dir
+from autode.input_output import atoms_to_xyz_file
 
 import autode.species
 import autode.wrappers
@@ -176,7 +177,8 @@ class BITSSOptimiser(BaseOptimiser):
         self._imgpair.update_bitss_grad()
         if (
             self._recalc_hess_freq != 0
-            and self.iteration % self._recalc_hess_freq == 0
+            and self.iteration
+            == 0  #% self._recalc_hess_freq == 0 #todo remove
         ):
             self._imgpair.update_molecular_hessian()
             self._imgpair.update_bitss_hess()
@@ -712,9 +714,9 @@ class BinaryImagePair:
             - (distance_grad.reshape(-1, 1) @ distance_grad.reshape(1, -1))
         )
         distance_hess = (
-                2
-                * self.kappa_dist
-                * (distance_grad.reshape(-1, 1) @ distance_grad.reshape(1, -1))
+            2
+            * self.kappa_dist
+            * (distance_grad.reshape(-1, 1) @ distance_grad.reshape(1, -1))
         )
         distance_hess += (
             2
@@ -724,6 +726,10 @@ class BinaryImagePair:
             * hess_d
         )
         self.hess = energy_hess + distance_hess
+        # assert np.allclose(self.hess, self.hess.T)
+        # eigvals = np.linalg.eigvalsh(self.hess)
+        # print("max eigenvalue of Hessian = ", max(eigvals))
+        self.hess = np.identity(hess_d.shape[0])  # todo remove
 
     def initialise_run(self):
         pass
@@ -847,6 +853,8 @@ class BinaryImagePair:
 
         logger.error(f"Updating Hessian with {updater}")
         self.hess = updater.updated_h
+        eigvals = np.linalg.eigvalsh(self.hess)
+        print("Highest eigenvalue = ", max(eigvals))
 
     @property
     def bitss_energy(self) -> PotentialEnergy:
@@ -890,13 +898,13 @@ class BinaryImagePair:
         Args:
             value (CartesianCoordinates): Flattened coordinates of all atoms
         """
+        # TODO the first iteration is not present in left_history or right_history
         if value is None:
             return
         if isinstance(value, np.ndarray):
-            assert (
-                value.shape == (2 * 3 * self._left_image.n_atoms,),
-                "Provided array does not have the right shape",
-            )
+            assert value.shape == (
+                2 * 3 * self._left_image.n_atoms,
+            ), "Provided array does not have the right shape"
         else:
             raise ValueError(
                 f"bitss_coords only accepts arrays but {type(value)}"
@@ -906,7 +914,9 @@ class BinaryImagePair:
         left_coords = CartesianCoordinates(
             self._left_image.coordinates.flatten()
         )
-        left_coords.e = self._left_image.energy.copy()
+        left_coords.e = (
+            self._left_image.energy.copy()
+        )  # todo setting wrong energies
         right_coords = CartesianCoordinates(
             self._right_image.coordinates.flatten()
         )
@@ -974,6 +984,28 @@ class BinaryImagePair:
             self._target_dist = value.to("ang")
         else:
             raise ValueError
+
+    def _write_single_trajectory(self, side):
+        """Writes the trajectory of any one species into xyz"""
+        if side == "left":
+            tmp_image = self._left_image.copy()
+            hist = self._left_history
+        elif side == "right":
+            tmp_image = self._right_image.copy()
+            hist = self._right_history
+        else:
+            return
+        # todo check if file exists
+        for coord in hist:
+            tmp_image.coordinates = coord
+            fname = tmp_image.name + ".trj.xyz"
+            atoms_to_xyz_file(tmp_image.atoms, fname, append=True)
+
+    def write_left_trajectory(self):
+        self._write_single_trajectory("left")
+
+    def write_right_trajectory(self):
+        self._write_single_trajectory("right")
 
 
 def _calculate_sp_energy_for_species(
