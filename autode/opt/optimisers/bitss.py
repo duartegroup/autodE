@@ -77,6 +77,16 @@ class BITSSOptimiser(BaseOptimiser):
             )
         return self._imgpair._left_image.copy()
 
+    @property
+    def converged(self) -> bool:
+        """Has this optimisation converged"""
+        # Python short-circuit and operator means safe to call
+        # even if rms_grad is None
+        return (
+            self._imgpair.euclidean_dist < self._dist_tol
+            and self.rms_grad < self._gtol
+        )
+
     def calculate(
         self, hmethod=None, lmethod=None, n_cores: int = None
     ) -> None:
@@ -97,7 +107,7 @@ class BITSSOptimiser(BaseOptimiser):
 
         if self._imgpair.euclidean_dist < self._dist_tol:
             logger.error(
-                "Reactant and product geometriesa already closer "
+                "Reactant and product geometries are already closer "
                 "than provided tolerance - finishing BITSS calcualation"
             )
 
@@ -106,13 +116,42 @@ class BITSSOptimiser(BaseOptimiser):
             f"with {hmethod} as energies/gradient method and {lmethod} "
             f"for estimating Hessian and current barrier height."
         )
+        # In macro-iters the distance criteria is tightened
 
-        macroiter_num = 1
+        macroiter_num = 0
+        while not self.converged:
+            # tighten the distance criteria
+            self._imgpair.target_dist = (
+                1 - self._reduction_fac
+            ) * self._imgpair.euclidean_dist
+            macroiter_num += 1
+            # must get analytic Hessian as underlying PES changed
+            self.update_gradient_and_energy_calculate_hessian()
+            # now start RFO iterations
+            while True:
+                self._rfo_step()
+                if (
+                    self._recalc_constr_freq != 0
+                    and self.iteration % self._recalc_constr_freq == 0
+                ):
+                    self.update_gradient_and_energy_calculate_hessian()
+                else:
+                    self.update_gradient_and_energy_update_hessian()
+                self._log_convergence()
+                if self.rms_grad < 0.01:
+                    break
+                if self._exceeded_maximum_iteration:
+                    # todo add logger message
+                    break  # todo use return and a different message
+            if self._exceeded_maximum_iteration:
+                break
+
+        # todo remove
         self._coords = self._imgpair.bitss_coords
         self._imgpair.target_dist = (
             1 - self._reduction_fac
         ) * self._imgpair.euclidean_dist
-        self.all_update_before_step()
+        self.update_hessian_gradient_and_energy()
         logger.error(
             f"Macro-iteration: {macroiter_num} - target distance: "
             f"{self._imgpair.target_dist :.3f}"
@@ -129,7 +168,7 @@ class BITSSOptimiser(BaseOptimiser):
             while True:
                 # continue RFO microiterations
                 self._rfo_step()
-                self.all_update_before_step()
+                self.update_hessian_gradient_and_energy()
                 if self._exceeded_maximum_iteration:
                     logger.error("Exceeded the max number of micro-iterations")
                     break
@@ -154,7 +193,22 @@ class BITSSOptimiser(BaseOptimiser):
             f"Finished optimisation run - converged: {self.converged}"
         )
 
-    def all_update_before_step(self) -> None:
+    def update_gradient_and_energy_calculate_hessian(self):
+        """Gradient and energy update and Hessian analytic calculation"""
+        self._imgpair.update_molecular_engrad()
+        self._imgpair.estimate_barrier_and_update_constraints()
+        self._imgpair.update_bitss_grad()
+        self._imgpair.update_molecular_hessian()
+        self._imgpair.update_bitss_hessian_by_calculation()
+
+    def update_gradient_and_energy_update_hessian(self):
+        """Gradient and energy update and Hessian update with formula"""
+        self._imgpair.update_molecular_engrad()
+        self._imgpair.estimate_barrier_and_update_constraints()
+        self._imgpair.update_bitss_grad()
+        self._imgpair.update_bitss_hessian_by_interpolation()
+
+    def update_hessian_gradient_and_energy(self) -> None:
         """
         All updates that need to be done on the image-pair before
         a geometry step can be taken.
@@ -298,15 +352,6 @@ class BITSSOptimiser(BaseOptimiser):
     def rms_grad(self) -> GradientRMS:
         """RMS of current BITSS gradient"""
         return GradientRMS(np.sqrt(np.average(np.square(self._imgpair.grad))))
-
-    @property
-    def converged(self) -> bool:
-        """Has this optimisation converged"""
-        # todo maybe do iteration == 0
-        return (
-            self._imgpair.euclidean_dist < self._dist_tol
-            and self.rms_grad < self._gtol
-        )
 
     @property
     def last_energy_change(self) -> PotentialEnergy:
