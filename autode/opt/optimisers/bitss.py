@@ -34,7 +34,7 @@ class BITSSOptimiser(BaseOptimiser):
         g_tol: GradientRMS = GradientRMS(1e-3, units="Ha Å-1"),
         max_global_micro_iter: int = 500,
         recalc_constr_freq: int = 30,
-        init_trust_radius: float = 0.02,
+        init_trust_radius: float = 0.005,
     ):
         # TODO check reasonableness of microiter values
         # TODO docstrings
@@ -378,7 +378,7 @@ class BinaryImagePair:
         self,
         initial_species: autode.Species,
         final_species: autode.Species,
-        alpha: float = 20.0,
+        alpha: float = 10.0,
         beta: float = 0.01,  # todo check different values of beta
     ):
         # todo ensure that unit is consistent (especially arrays)
@@ -1053,8 +1053,8 @@ class BinaryImagePair:
             if eng is None:
                 raise Exception
             energies.append(eng)
-        plt.plot(energies)
-        plt.savefig(name+"_energy_plot.pdf")
+        plt.plot(energies,'.')
+        plt.show()  #name+"_energy_plot.pdf")
 
 
 def _calculate_sp_energy_for_species(
