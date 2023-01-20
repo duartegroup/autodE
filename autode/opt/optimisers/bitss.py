@@ -35,7 +35,7 @@ class BITSSOptimiser(BaseOptimiser):
         max_global_micro_iter: int = 500,
         recalc_hess_freq: int = 50,
         recalc_barrier_freq: int = 30,
-        initial_trust_radius: float = 0.1,
+        init_trust_radius: float = 0.1,
     ):
         # TODO check reasonableness of microiter values
         # TODO docstrings
@@ -56,7 +56,7 @@ class BITSSOptimiser(BaseOptimiser):
         self._gtol = g_tol
         self._recalc_hess_freq = int(recalc_hess_freq)
         self._recalc_constr_freq = int(recalc_barrier_freq)
-        self._init_trust = initial_trust_radius
+        self._trust = init_trust_radius
 
     @property
     def ts(self) -> Optional["autode.species.Species"]:
@@ -181,9 +181,9 @@ class BITSSOptimiser(BaseOptimiser):
             == 0  #% self._recalc_hess_freq == 0 #todo remove
         ):
             self._imgpair.update_molecular_hessian()
-            self._imgpair.update_bitss_hess()
+            self._imgpair.update_bitss_hessian_by_calculation()
         else:
-            self._imgpair.update_hessian_by_interpolation()
+            self._imgpair.update_bitss_hessian_by_interpolation()
 
     @property
     def iteration(self) -> int:
@@ -248,7 +248,7 @@ class BITSSOptimiser(BaseOptimiser):
         aug_H[:h_n, -1] = self._imgpair.grad
 
         aug_H_lmda, aug_H_v = np.linalg.eigh(aug_H)
-        # A RF step uses the eigenvector corresponding to the lowest non zero
+        # A RF step uses the eigenvector corresponding to the lowest non-zero
         # eigenvalue
         mode = np.where(np.abs(aug_H_lmda) > 1e-16)[0][0]
 
@@ -277,20 +277,20 @@ class BITSSOptimiser(BaseOptimiser):
         if len(delta_s) == 0:  # No need to sanitise a null step
             return 0.0
 
-        new_coords = self._imgpair.bitss_coords + factor * delta_s
-        cartesian_delta = new_coords - self._imgpair.bitss_coords
-        max_component = np.max(np.abs(cartesian_delta))
+        cartesian_delta = factor * delta_s
+        new_coords = self._imgpair.bitss_coords + cartesian_delta
+        delta_magnitude = np.linalg.norm(cartesian_delta)
 
-        if max_component > self._init_trust:
+        if delta_magnitude > self._trust:
             logger.error(
-                f"Calculated step is too large ({max_component:.3f} Å)"
+                f"Calculated step is too large ({delta_magnitude:.3f} Å)"
                 f" - scaling down"
             )
 
-            factor = self._init_trust / max_component
+            factor = self._trust / delta_magnitude
             new_coords = (
-                self._imgpair.bitss_coords
-                + self._init_trust / max_component * delta_s
+                    self._imgpair.bitss_coords
+                    + self._trust / delta_magnitude * delta_s
             )
 
         self._imgpair.bitss_coords = new_coords
@@ -381,6 +381,7 @@ class BinaryImagePair:
         alpha: float = 10.0,
         beta: float = 0.1,
     ):
+        # todo ensure that unit is consistent (especially arrays)
         # todo set different names here, so that new_species not needed for grad, hess etc.
         assert isinstance(initial_species, autode.Species)
         assert isinstance(final_species, autode.Species)
@@ -542,17 +543,15 @@ class BinaryImagePair:
                     [self._left_image, self._right_image]
                 )
             ]
-            self._left_image.energy, self._left_image.gradient = jobs[
-                0
-            ].result()
-            self._right_image.energy, self._right_image.gradient = jobs[
-                1
-            ].result()
+            (self._left_image.energy,
+             self._left_image.gradient) = jobs[0].result()
+            (self._right_image.energy,
+             self._right_image.gradient) = jobs[1].result()
 
     def update_bitss_grad(self) -> None:
         """
-        Calculate the BITSS gradient from the molecular gradients
-        and distances and constraints, then store it
+        Update the BITSS gradient from the molecular gradients
+        and distances and constraints, by analytic formula
         """
         assert self._left_image.gradient is not None
         assert self._right_image.gradient is not None
@@ -581,6 +580,7 @@ class BinaryImagePair:
             self._left_image.coordinates.flatten()
             - self._right_image.coordinates.flatten()
         )
+        # todo update with A matrix
         distance_grad = (
             2
             * (1 / self.euclidean_dist)
@@ -593,6 +593,7 @@ class BinaryImagePair:
             np.concatenate((left_coords_term, right_coords_term))
             + distance_grad
         )
+        # todo remove these parts
         rms_dist_grad = np.sqrt(np.average(np.square(distance_grad)))
         energy_grad = np.sqrt(
             np.average(
@@ -635,7 +636,7 @@ class BinaryImagePair:
             self._left_image.hessian = jobs[0].result()
             self._right_image.hessian = jobs[1].result()
 
-    def update_bitss_hess(self) -> None:
+    def update_bitss_hessian_by_calculation(self) -> None:
         """
         Calculate the Hessian of BITSS energy, using low-level
         molecular Hessian and gradients and energies
@@ -726,10 +727,7 @@ class BinaryImagePair:
             * hess_d
         )
         self.hess = energy_hess + distance_hess
-        # assert np.allclose(self.hess, self.hess.T)
-        # eigvals = np.linalg.eigvalsh(self.hess)
-        # print("max eigenvalue of Hessian = ", max(eigvals))
-        self.hess = np.identity(hess_d.shape[0])  # todo remove
+        self._make_hessian_positive_definite()
 
     def initialise_run(self):
         pass
@@ -831,9 +829,10 @@ class BinaryImagePair:
             max(kappa_d_first_option, kappa_d_second_option)
         )
 
-    def update_hessian_by_interpolation(self):
+    def update_bitss_hessian_by_interpolation(self):
         """
-        Updates the hessian by using gradient information
+        Updates the hessian by interpolation using
+        one of the Hessian update formulas
         """
         for update_type in self._hessian_update_types:
             updater = update_type(
@@ -853,6 +852,7 @@ class BinaryImagePair:
 
         logger.error(f"Updating Hessian with {updater}")
         self.hess = updater.updated_h
+        self._make_hessian_positive_definite()
         eigvals = np.linalg.eigvalsh(self.hess)
         print("Highest eigenvalue = ", max(eigvals))
 
@@ -916,7 +916,7 @@ class BinaryImagePair:
         )
         left_coords.e = (
             self._left_image.energy.copy()
-        )  # todo setting wrong energies
+        )  # todo setting wrong energies?
         right_coords = CartesianCoordinates(
             self._right_image.coordinates.flatten()
         )
@@ -984,6 +984,39 @@ class BinaryImagePair:
             self._target_dist = value.to("ang")
         else:
             raise ValueError
+
+    def _make_hessian_positive_definite(
+            self, min_eigenvalue: float = 1e-5
+    ) -> None:
+        """
+        Ensure that the eigenvalues of a matrix are all >0 i.e. the matrix
+        is positive definite. Will shift all values below min_eigenvalue to that
+        value.
+
+        ---------------------------------------------------------------------------
+        Arguments:
+            min_eigenvalue: Minimum value eigenvalue of the matrix
+        """
+
+        if self.hess is None:
+            raise RuntimeError(
+                "Cannot make a positive definite Hessian, "
+                "there is no Hessian"
+            )
+
+        lmd, v = np.linalg.eig(self.hess)  # Eigenvalues and eigenvectors
+
+        if np.all(lmd > min_eigenvalue):
+            logger.info("Hessian was positive definite")
+            return
+
+        logger.warning(
+            "Hessian was not positive definite. "
+            "Shifting eigenvalues and reconstructing"
+        )
+        lmd[lmd < min_eigenvalue] = min_eigenvalue
+        self.hess = np.linalg.multi_dot((v, np.diag(lmd), v.T)).real
+        return
 
     def _write_single_trajectory(self, side):
         """Writes the trajectory of any one species into xyz"""
