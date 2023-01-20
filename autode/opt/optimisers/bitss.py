@@ -150,8 +150,6 @@ class BITSSOptimiser(BaseOptimiser):
                 f"{self._imgpair.target_dist :.3f}"
             )
 
-
-
         logger.error(
             f"Finished optimisation run - converged: {self.converged}"
         )
@@ -288,8 +286,8 @@ class BITSSOptimiser(BaseOptimiser):
 
             factor = self._trust / delta_magnitude
             new_coords = (
-                    self._imgpair.bitss_coords
-                    + self._trust / delta_magnitude * delta_s
+                self._imgpair.bitss_coords
+                + self._trust / delta_magnitude * delta_s
             )
 
         self._imgpair.bitss_coords = new_coords
@@ -543,10 +541,12 @@ class BinaryImagePair:
                     [self._left_image, self._right_image]
                 )
             ]
-            (self._left_image.energy,
-             self._left_image.gradient) = jobs[0].result()
-            (self._right_image.energy,
-             self._right_image.gradient) = jobs[1].result()
+            (self._left_image.energy, self._left_image.gradient) = jobs[
+                0
+            ].result()
+            (self._right_image.energy, self._right_image.gradient) = jobs[
+                1
+            ].result()
 
     def update_bitss_grad(self) -> None:
         """
@@ -983,7 +983,7 @@ class BinaryImagePair:
             raise ValueError
 
     def _make_hessian_positive_definite(
-            self, min_eigenvalue: float = 1e-5
+        self, min_eigenvalue: float = 1e-5
     ) -> None:
         """
         Ensure that the eigenvalues of a matrix are all >0 i.e. the matrix
@@ -1039,6 +1039,7 @@ class BinaryImagePair:
 
     def plot_energies(self, side):
         import matplotlib.pyplot as plt
+
         if side == "left":
             hist = self._left_history
             name = self._left_image.name
@@ -1053,8 +1054,8 @@ class BinaryImagePair:
             if eng is None:
                 raise Exception
             energies.append(eng)
-        plt.plot(energies,'.')
-        plt.show()  #name+"_energy_plot.pdf")
+        plt.plot(energies, ".")
+        plt.show()  # name+"_energy_plot.pdf")
 
 
 def _calculate_sp_energy_for_species(
