@@ -29,7 +29,7 @@ class BITSSOptimiser(BaseOptimiser):
         self,
         initial_species: "autode.species.Species",
         final_species: "autode.species.Species",
-        reduction_fac: float = 0.5,
+        reduction_fac: float = 0.3,
         rmsd_tol_angs: Union[Distance, float] = Distance(0.01, "ang"),
         g_tol: GradientRMS = GradientRMS(1e-3, units="Ha Å-1"),
         max_global_micro_iter: int = 500,
@@ -125,7 +125,8 @@ class BITSSOptimiser(BaseOptimiser):
 
         while not self.converged:
             # todo consider the order of things
-            while not self.rms_grad < 1e-2:
+            # fix this algorithm
+            while True:
                 # continue RFO microiterations
                 self._rfo_step()
                 self.all_update_before_step()
@@ -133,21 +134,21 @@ class BITSSOptimiser(BaseOptimiser):
                     logger.error("Exceeded the max number of micro-iterations")
                     break
                 self._log_convergence()
+                if self.rms_grad < 1e-3:
+                    break
 
             if self._exceeded_maximum_iteration:
                 logger.error("Exceeded the max number of micro-iterations")
                 break
-            if (
-                self._imgpair.euclidean_dist - self._imgpair.target_dist
-            ) < 1e-3:
-                macroiter_num += 1
-                self._imgpair.target_dist = (
-                    1 - self._reduction_fac
-                ) * self._imgpair.target_dist
-                logger.error(
-                    f"Macro-iteration: {macroiter_num} - target distance: "
-                    f"{self._imgpair.target_dist :.3f}"
-                )
+
+            macroiter_num += 1
+            self._imgpair.target_dist = (
+                1 - self._reduction_fac
+            ) * self._imgpair.target_dist
+            logger.error(
+                f"Macro-iteration: {macroiter_num} - target distance: "
+                f"{self._imgpair.target_dist :.3f}"
+            )
 
 
 
@@ -377,8 +378,8 @@ class BinaryImagePair:
         self,
         initial_species: autode.Species,
         final_species: autode.Species,
-        alpha: float = 10.0,
-        beta: float = 0.05,  # todo check different values of beta
+        alpha: float = 20.0,
+        beta: float = 0.01,  # todo check different values of beta
     ):
         # todo ensure that unit is consistent (especially arrays)
         # todo set different names here, so that new_species not needed for grad, hess etc.
