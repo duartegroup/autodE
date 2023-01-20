@@ -1037,6 +1037,25 @@ class BinaryImagePair:
     def write_right_trajectory(self):
         self._write_single_trajectory("right")
 
+    def plot_energies(self, side):
+        import matplotlib.pyplot as plt
+        if side == "left":
+            hist = self._left_history
+            name = self._left_image.name
+        elif side == "right":
+            hist = self._right_history
+            name = self._right_image.name
+        else:
+            return
+        energies = []
+        for coord in hist:
+            eng = coord.e
+            if eng is None:
+                raise Exception
+            energies.append(eng)
+        plt.plot(energies)
+        plt.savefig(name+"_energy_plot.pdf")
+
 
 def _calculate_sp_energy_for_species(
     species: autode.Species,
