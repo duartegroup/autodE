@@ -33,9 +33,8 @@ class BITSSOptimiser(BaseOptimiser):
         rmsd_tol_angs: Union[Distance, float] = Distance(0.01, "ang"),
         g_tol: GradientRMS = GradientRMS(1e-3, units="Ha Å-1"),
         max_global_micro_iter: int = 500,
-        recalc_hess_freq: int = 50,
-        recalc_barrier_freq: int = 30,
-        init_trust_radius: float = 0.1,
+        recalc_constr_freq: int = 30,
+        init_trust_radius: float = 0.02,
     ):
         # TODO check reasonableness of microiter values
         # TODO docstrings
@@ -54,8 +53,7 @@ class BITSSOptimiser(BaseOptimiser):
         dist_tol = Distance(rmsd_tol_angs, "ang") / np.sqrt(n_atoms)
         self._dist_tol = dist_tol
         self._gtol = g_tol
-        self._recalc_hess_freq = int(recalc_hess_freq)
-        self._recalc_constr_freq = int(recalc_barrier_freq)
+        self._recalc_constr_freq = int(recalc_constr_freq)
         self._trust = init_trust_radius
 
     @property
@@ -127,14 +125,22 @@ class BITSSOptimiser(BaseOptimiser):
 
         while not self.converged:
             # todo consider the order of things
-            self._rfo_step()
-            self.all_update_before_step()
+            while not self.rms_grad < 1e-2:
+                # continue RFO microiterations
+                self._rfo_step()
+                self.all_update_before_step()
+                if self._exceeded_maximum_iteration:
+                    logger.error("Exceeded the max number of micro-iterations")
+                    break
+                self._log_convergence()
 
+            if self._exceeded_maximum_iteration:
+                logger.error("Exceeded the max number of micro-iterations")
+                break
             if (
                 self._imgpair.euclidean_dist - self._imgpair.target_dist
             ) < 1e-3:
                 macroiter_num += 1
-                print(self._imgpair.euclidean_dist, self._imgpair.target_dist)
                 self._imgpair.target_dist = (
                     1 - self._reduction_fac
                 ) * self._imgpair.target_dist
@@ -143,10 +149,7 @@ class BITSSOptimiser(BaseOptimiser):
                     f"{self._imgpair.target_dist :.3f}"
                 )
 
-            if self._exceeded_maximum_iteration:
-                logger.error("Exceeded the max number of micro-iterations")
-                break
-            self._log_convergence()
+
 
         logger.error(
             f"Finished optimisation run - converged: {self.converged}"
@@ -157,33 +160,28 @@ class BITSSOptimiser(BaseOptimiser):
         All updates that need to be done on the image-pair before
         a geometry step can be taken.
         1. Calculate molecular energies/gradients
-        2. Estimate the current barrier (E_B) and update constraints
-        if required
-        3. Store BITSS energy in the history (only for plotting)
+        2. Estimate the current barrier (E_B) and update constraints,
+        then calculate molecular Hessian
+        3. Store BITSS energy in the history (required for plotting)
         3. Calculate the current BITSS gradient
-        4. Calculate the molecular and BITSS Hessian if required, or
-        update the Hessian via interpolation
         """
         # TODO the functions must be separate i.e. molecular engrad must not be called
         # within update_bitss_grad()
         self._imgpair.update_molecular_engrad()
+
         if (
             self._recalc_constr_freq != 0
             and self.iteration % self._recalc_constr_freq == 0
         ):
-            self._imgpair.estimate_barrier_and_update_energy_constraints()
-        self._imgpair.update_distance_constraints()
-        self._coords.e = self._imgpair.bitss_energy
-        self._imgpair.update_bitss_grad()
-        if (
-            self._recalc_hess_freq != 0
-            and self.iteration
-            == 0  #% self._recalc_hess_freq == 0 #todo remove
-        ):
+            self._imgpair.estimate_barrier_and_update_constraints()
+            # must recalculate Hessian as underlying potential changes
             self._imgpair.update_molecular_hessian()
             self._imgpair.update_bitss_hessian_by_calculation()
+            self._imgpair.update_bitss_grad()
         else:
+            self._imgpair.update_bitss_grad()
             self._imgpair.update_bitss_hessian_by_interpolation()
+        self._coords.e = self._imgpair.bitss_energy
 
     @property
     def iteration(self) -> int:
@@ -305,6 +303,7 @@ class BITSSOptimiser(BaseOptimiser):
     @property
     def converged(self) -> bool:
         """Has this optimisation converged"""
+        # todo maybe do iteration == 0
         return (
             self._imgpair.euclidean_dist < self._dist_tol
             and self.rms_grad < self._gtol
@@ -341,7 +340,7 @@ class BITSSOptimiser(BaseOptimiser):
             f"  BITSS energy:{self._imgpair.bitss_energy:.3f}  "
             f"  RMS BITSS gradient:{self.rms_grad:.3f} "
             f"  Distance:{self._imgpair.euclidean_dist:.3f}  "
-            f"  Target distance:{self._imgpair.target_dist}"
+            f"  Target distance:{self._imgpair.target_dist:.3f}"
         )
 
     @property
@@ -379,7 +378,7 @@ class BinaryImagePair:
         initial_species: autode.Species,
         final_species: autode.Species,
         alpha: float = 10.0,
-        beta: float = 0.1,
+        beta: float = 0.05,  # todo check different values of beta
     ):
         # todo ensure that unit is consistent (especially arrays)
         # todo set different names here, so that new_species not needed for grad, hess etc.
@@ -777,11 +776,14 @@ class BinaryImagePair:
         )
         self.estimated_barrier = float(estimated_barrier.to("Ha"))
 
-    def estimate_barrier_and_update_energy_constraints(self):
+    def estimate_barrier_and_update_constraints(self):
         """
-        Estimate the energy barrier and then use it to update the
-        energy constraint kappa_eng
+        Estimate the energy barrier and then use it, along with
+        gradient information to update constraints.
         """
+        assert self._left_image.gradient is not None
+        assert self._right_image.gradient is not None
+
         self._calculate_estimated_barrier()
         logger.error(
             "Updating BITSS energy and distance constraints"
@@ -790,14 +792,6 @@ class BinaryImagePair:
 
         # kappa_e = alpha / (2 * E_B)
         self.kappa_eng = float(self.alpha / (2 * self.estimated_barrier))
-
-    def update_distance_constraints(self):
-        """
-        Update the distance constraint kappa_dist using current
-        gradient information
-        """
-        assert self._left_image.gradient is not None
-        assert self._right_image.gradient is not None
 
         left_grad = np.array(self._left_image.gradient.flatten())
         right_grad = np.array(self._right_image.gradient.flatten())
@@ -822,7 +816,7 @@ class BinaryImagePair:
             grad_left_proj**2 + grad_right_proj**2
         ) / (2 * np.sqrt(2) * self.beta * self.euclidean_dist)
         kappa_d_second_option = self.estimated_barrier / (
-            self.beta * (self.euclidean_dist) ** 2
+            self.beta * self.euclidean_dist**2
         )
 
         self.kappa_dist = float(
@@ -831,8 +825,9 @@ class BinaryImagePair:
 
     def update_bitss_hessian_by_interpolation(self):
         """
-        Updates the hessian by interpolation using
-        one of the Hessian update formulas
+        Updates the hessian by interpolation using one of the
+        Hessian update formulas, requires the current and old
+        BITSS gradient, and old BITSS hessian
         """
         for update_type in self._hessian_update_types:
             updater = update_type(
@@ -853,6 +848,7 @@ class BinaryImagePair:
         logger.error(f"Updating Hessian with {updater}")
         self.hess = updater.updated_h
         self._make_hessian_positive_definite()
+        # todo remove
         eigvals = np.linalg.eigvalsh(self.hess)
         print("Highest eigenvalue = ", max(eigvals))
 
@@ -898,7 +894,7 @@ class BinaryImagePair:
         Args:
             value (CartesianCoordinates): Flattened coordinates of all atoms
         """
-        # TODO the first iteration is not present in left_history or right_history
+        # TODO the first iteration is not present in left_history or right_history?
         if value is None:
             return
         if isinstance(value, np.ndarray):
