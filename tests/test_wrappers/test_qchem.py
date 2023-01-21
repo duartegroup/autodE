@@ -546,3 +546,17 @@ def test_butane_grad_extract():
     assert np.isclose(flat_grad[-1], 0.0055454, atol=1e-5)
 
     assert np.isclose(flat_grad[5], 0.0263383, atol=1e-5)
+
+
+@work_in_zipped_dir(qchem_data_zip_path)
+def test_h2_coordinate_extraction_qchem_v6():
+
+    calc = _blank_calc()
+    calc.input.keywords = method.keywords.opt
+    calc.molecule = Molecule(smiles="[H][H]")
+    calc.set_output_filename("H2_opt_qchem6.out")
+
+    assert np.allclose(
+        calc.molecule.coordinates.to("Å"),
+        np.array([[+0.3803762086, 0.0, 0.0], [-0.3803762086, 0.0, 0.0]]),
+    )
