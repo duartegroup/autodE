@@ -6,6 +6,7 @@ from typing import Optional, Sequence
 from autode.log import logger
 from autode.calculations import Calculation
 from autode.wrappers.methods import Method
+from autode.species.species import Species
 from autode.input_output import xyz_file_to_molecules
 from autode.path import Path
 from autode.utils import work_in, ProcessPool
@@ -48,9 +49,6 @@ def _est_energy_gradient(image, est_method, n_cores):
     @work_in(image.name)
     def run():
         calc.run()
-        image.grad = image.species.gradient.flatten()
-        image.energy = image.species.energy
-        return None
 
     run()
     return image
@@ -77,7 +75,7 @@ def _idpp_energy_gradient(
         (autode.neb.original.Image): Image
     """
     image.energy = idpp(image)
-    image.grad = idpp.grad(image)
+    image.gradient = idpp.grad(image)
 
     return image
 
@@ -127,7 +125,7 @@ def derivative(flat_coords, images, method, n_cores, plot_energies):
     """
 
     # Forces for the first image are fixed at zero
-    forces = np.array(images[0].grad)
+    forces = np.array(images[0].gradient)
 
     # No need to calculate gradient as should already be there from energy eval
     for i in range(1, len(images) - 1):
@@ -135,14 +133,14 @@ def derivative(flat_coords, images, method, n_cores, plot_energies):
         forces = np.append(forces, force)
 
     # Final zero set of forces
-    forces = np.append(forces, images[-1].grad)
+    forces = np.append(forces, images[-1].gradient)
 
     # dV/dx is negative of the force
     logger.info(f"|F| = {np.linalg.norm(forces):.4f} Ha Å-1")
     return -forces
 
 
-class Image:
+class Image(Species):
     def __init__(self, name: str, k: float):
         """
         Image in a NEB
@@ -150,7 +148,7 @@ class Image:
         Arguments:
             name (str):
         """
-        self.name = name
+        super(Image, self).__init__(name=name, charge=0, mult=1, atoms=[])
 
         # Current optimisation iteration of this image
         self.iteration = 0
@@ -158,14 +156,10 @@ class Image:
         # Force constant in Eh/Å^2
         self.k = k
 
-        self.species: Optional["autode.species.Species"] = None
-        self.energy: Optional["autode.values.Energy"] = None
-        self.grad: Optional[np.ndarray] = None
-
     def _tau_xl_x_xr(
         self,
-        im_l: "autode.neb.original.Image",
-        im_r: "autode.neb.original.Image",
+        im_l: "Image",
+        im_r: "Image",
     ) -> tuple:
         """
         Calculate the normalised τ vector, along with the coordinates of the
@@ -194,7 +188,7 @@ class Image:
 
         # x_i-1,   x_i,   x_i+1
         x_l, x, x_r = [
-            image.species.coordinates.flatten() for image in (im_l, self, im_r)
+            image.coordinates.flatten() for image in (im_l, self, im_r)
         ]
         # τ_i+
         tau_plus = x_r - x
@@ -221,8 +215,8 @@ class Image:
 
     def get_force(
         self,
-        im_l: "autode.neb.original.Image",
-        im_r: "autode.neb.original.Image",
+        im_l: "Image",
+        im_r: "Image",
     ) -> np.ndarray:
         """
         Compute F_i. Notation from:
@@ -244,7 +238,7 @@ class Image:
         ) * hat_tau
 
         # ∇V(x)_i|_|_ = ∇V(x)_i - (∇V(x)_i•τ) τ
-        grad_perp = self.grad - np.dot(self.grad, hat_tau) * hat_tau
+        grad_perp = self.gradient - np.dot(self.gradient, hat_tau) * hat_tau
 
         # F_i = F_i^s|| -  ∇V(x)_i|_|_
         return f_parallel - grad_perp
@@ -361,8 +355,8 @@ class NEB:
 
     def __init__(
         self,
-        initial_species: Optional["autode.Species"] = None,
-        final_species: Optional["autode.Species"] = None,
+        initial_species: Optional[Species] = None,
+        final_species: Optional[Species] = None,
         num: int = 8,
         species_list: Optional[list] = None,
         k: float = 0.1,
@@ -528,7 +522,7 @@ class NEB:
         )
         return None
 
-    def _species_at(self, idx: int) -> "autode.species.Species":
+    def _species_at(self, idx: int) -> Species:
         """Return the species associated with a particular image index"""
         return self.images[idx].species
 
@@ -609,7 +603,7 @@ class NEB:
         plt.close()
         return None
 
-    def get_species_saddle_point(self) -> "autode.species.Species":
+    def get_species_saddle_point(self) -> Optional[Species]:
         """Find a TS guess species for this NEB: highest energy saddle point"""
         if self.images.peak_idx is None:
             logger.warning("Found no peaks in the NEB")
@@ -643,11 +637,11 @@ class NEB:
 
         for i, image in enumerate(images):
             image.energy = idpp(image)
-            image.grad = idpp.grad(image)
+            image.gradient = idpp.grad(image)
 
             # Initial and final images are fixed, with zero gradient
             if i == 0 or i == len(images) - 1:
-                image.grad[:] = 0.0
+                image.gradient[:] = 0.0
 
         result = minimize(
             total_energy,

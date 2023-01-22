@@ -29,17 +29,19 @@ from autode.wrappers.keywords import (
 )
 
 
-test_mol = Molecule(smiles="O", name="test_mol")
-
-
 def h_atom() -> Molecule:
     return Molecule(atoms=[Atom("H")], mult=2)
+
+
+def h2o() -> Molecule:
+    return Molecule(smiles="O", name="test_mol")
 
 
 @work_in_tmp_dir()
 def test_calc_class():
 
     xtb = XTB()
+    test_mol = h2o()
 
     calc = Calculation(
         name="-tmp", molecule=test_mol, method=xtb, keywords=xtb.keywords.sp
@@ -51,17 +53,10 @@ def test_calc_class():
     assert calc.method.name == "xtb"
     assert len(calc.input.filenames) == 0
 
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_energy()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_final_atoms()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_gradients()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_atomic_charges()
+    # Without
+    assert test_mol.energy is None
+    assert test_mol.gradient is None
+    assert test_mol.hessian is None
 
     # With a filename that doesn't exist a NoOutput exception should be raised
     calc.output.filename = "/a/path/that/does/not/exist/tmp"
@@ -69,12 +64,12 @@ def test_calc_class():
         _ = calc.output.file_lines
 
     # With no output should not be able to get properties
-    calc.output.filename = "tmp.out"
-    with open(calc.output.filename, "w") as output_file:
+    with open("tmp.out", "w") as output_file:
         print("some\ntest\noutput", file=output_file)
 
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_atomic_charges()
+    with pytest.raises(ex.CalculationException):
+        # Cannot set even the energy from an invalid output file
+        calc.set_output_filename("tmp.out")
 
     # Should default to a single core
     assert calc.n_cores == 1
@@ -105,6 +100,8 @@ def test_calc_class():
 def test_calc_copy():
 
     orca = ORCA()
+    test_mol = h2o()
+
     calc = Calculation(
         name="tmp", molecule=test_mol, method=orca, keywords=orca.keywords.sp
     )
@@ -160,6 +157,7 @@ def test_distance_const_check():
 def test_calc_string():
 
     xtb = XTB()
+    test_mol = h2o()
 
     a = test_mol.copy()
     no_const = Calculation(
@@ -197,6 +195,7 @@ def test_fix_unique():
     autodE checks the input of each previously run calc with the name name"""
 
     orca = ORCA()
+    test_mol = h2o()
 
     calc = CalculationExecutor(
         name="tmp", molecule=test_mol, method=orca, keywords=orca.keywords.sp
@@ -225,7 +224,7 @@ def test_fix_unique():
 
 def test_solvent_get():
     xtb = XTB()
-    _test_mol = Molecule(smiles="O", name="test_mol")
+    _test_mol = h2o()
 
     # Can't get the name of a solvent if molecule.solvent is not a string
     with pytest.raises(ex.SolventUnavailable):
@@ -240,7 +239,7 @@ def test_solvent_get():
 
     # Currently iodoethane is not in XTB - might be in the future
     _test_mol.solvent = "iodoethane"
-    assert not hasattr(test_mol.solvent, "xtb")
+    assert not hasattr(_test_mol.solvent, "xtb")
     assert _test_mol.solvent.is_implicit
 
     with pytest.raises(ex.SolventUnavailable):
@@ -253,6 +252,7 @@ def test_solvent_get():
 def test_input_gen():
 
     xtb = XTB()
+    test_mol = h2o()
 
     calc = Calculation(
         name="tmp", molecule=test_mol, method=xtb, keywords=xtb.keywords.sp
@@ -286,6 +286,8 @@ def test_input_gen():
 def test_exec_not_avail_method():
 
     orca = ORCA()
+    test_mol = h2o()
+
     orca.path = "/a/non/existent/path"
     assert not orca.is_available
 

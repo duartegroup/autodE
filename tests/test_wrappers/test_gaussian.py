@@ -145,8 +145,8 @@ def test_gauss_opt_calc():
 
     assert os.path.exists("opt_g09.com")
     assert os.path.exists("opt_g09.log")
-    assert len(calc.get_final_atoms()) == 5
-    assert calc.get_energy() == -499.729222331
+    assert len(methylchloride.atoms) == 5
+    assert methylchloride.energy.to("Ha") == -499.729222331
     assert calc.output.exists
     assert calc.output.file_lines is not None
     assert methylchloride.imaginary_frequencies is None
@@ -154,16 +154,15 @@ def test_gauss_opt_calc():
     assert calc.input.filename == "opt_g09.com"
     assert calc.output.filename == "opt_g09.log"
     assert calc.terminated_normally
-    assert calc.optimisation_converged()
-    assert calc.optimisation_nearly_converged() is False
+    assert calc.optimiser.converged
 
-    charges = calc.get_atomic_charges()
+    charges = methylchloride.partial_charges
     assert len(charges) == methylchloride.n_atoms
 
     # Should be no very large atomic charges in this molecule
     assert all(-1.0 < c < 1.0 for c in charges)
 
-    gradients = calc.get_gradients()
+    gradients = methylchloride.gradient
     assert len(gradients) == methylchloride.n_atoms
     assert len(gradients[0]) == 3
 
@@ -206,8 +205,7 @@ def test_gauss_optts_calc():
     mol.calc_thermo(calc=calc, ss="1atm", lfm_method="igm")
 
     assert calc.terminated_normally
-    assert calc.optimisation_converged()
-    assert calc.optimisation_nearly_converged() is False
+    assert calc.optimiser.converged
     assert len(mol.imaginary_frequencies) == 1
 
     assert -40.324 < mol.free_energy < -40.322

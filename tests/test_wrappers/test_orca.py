@@ -53,20 +53,18 @@ def test_orca_opt_calculation():
 
     assert os.path.exists("opt_orca.inp") is True
     assert os.path.exists("opt_orca.out") is True
-    assert len(calc.get_final_atoms()) == 5
-    assert -499.735 < calc.get_energy() < -499.730
+    assert len(methylchloride.atoms) == 5
+    assert -499.735 < methylchloride.energy < -499.730
     assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.input.filename == "opt_orca.inp"
     assert calc.output.filename == "opt_orca.out"
     assert calc.terminated_normally
 
-    assert calc.optimisation_converged()
-
-    assert calc.optimisation_nearly_converged() is False
+    assert calc.optimiser.converged
 
     # Should have a partial atomic charge for every atom
-    charges = calc.get_atomic_charges()
+    charges = methylchloride.partial_charges
     assert charges == [-0.006954, -0.147352, 0.052983, 0.052943, 0.053457]
 
     calc = Calculation(
@@ -113,12 +111,11 @@ def test_orca_optts_calculation():
 
     assert ts.normal_mode(mode_number=6) is not None
     assert calc.terminated_normally
-    assert calc.optimisation_converged()
-    assert calc.optimisation_nearly_converged() is False
+    assert calc.optimiser.converged
     assert len(ts.imaginary_frequencies) == 1
 
     # Gradients should be an n_atom x 3 array
-    gradients = calc.get_gradients()
+    gradients = ts.gradient
     assert gradients.shape == (ts.n_atoms, 3)
 
     assert -599.437 < ts.enthalpy < -599.436
