@@ -388,8 +388,8 @@ def test_temporary_config_in_worker_proc():
             job = pool.submit(worker_fn)
             _ = job.result()
 
-    Config.n_cores = old_n_cores
-    Config.ORCA.keywords.sp.functional = old_orca_funct
+    assert Config.n_cores == old_n_cores
+    assert Config.ORCA.keywords.sp.functional == old_orca_funct
 
 
 def test_time_units():
