@@ -131,8 +131,7 @@ restored.
 
 As seen from the above example, the variable :code:`kwds` is useless once the
 context manager exits, and changes to :code:`kwds` no longer affects autodE. It is
-best to always modify :code:`Config` directly. (Or re-assign the variable after
-context manager.)
+best to always modify :code:`Config` directly.
 
 ------------
 
