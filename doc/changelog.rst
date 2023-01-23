@@ -1,6 +1,25 @@
 Changelog
 =========
 
+1.3.5
+--------
+----------
+
+
+Usability improvements/Changes
+******************************
+*
+
+
+Functionality improvements
+**************************
+-
+
+
+Bug Fixes
+*********
+- Fixes :code:`ERROR` logging level being ignored from environment variable :code:`AUTODE_LOG_LEVEL`
+
 1.3.4
 --------
 ----------
