@@ -3,7 +3,7 @@ import os
 
 """
 Set up logging with the standard python logging module. Set the log level with
-$AUTODE_LOG_LEVEL = {'', INFO, WARNING, DEBUG}
+$AUTODE_LOG_LEVEL = {'', ERROR, WARNING, INFO, DEBUG}
 
 i.e. export AUTODE_LOG_LEVEL=DEBUG
 
@@ -35,6 +35,9 @@ def get_log_level():
 
     if log_level_str == "INFO":
         return logging.INFO
+
+    if log_level_str == "ERROR":
+        return logging.ERROR
 
     return logging.CRITICAL
 
