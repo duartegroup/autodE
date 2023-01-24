@@ -8,6 +8,7 @@ from autode.values import (
     Coordinate,
     Coordinates,
     MomentOfInertia,
+    ForceConstant,
     _to,
 )
 
@@ -107,3 +108,12 @@ def test_to_unsupported():
 
     with pytest.raises(ValueError):
         _ = _to(InvalidValue(), Unit())
+
+
+def test_force_constant():
+
+    fc = ForceConstant(0.1)
+    assert "force" in repr(fc).lower()
+
+    # should be able to convert to Ha/a0^2 without any problems
+    _ = fc.to("Ha/a0^2")

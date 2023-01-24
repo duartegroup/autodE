@@ -141,20 +141,25 @@ def derivative(flat_coords, images, method, n_cores, plot_energies):
 
 
 class Image(Species):
-    def __init__(self, name: str, k: float):
+    def __init__(
+        self, species: Species, name: Optional[str] = None, k: float = 0.1
+    ):
         """
         Image in a NEB
 
         Arguments:
             name (str):
         """
-        super(Image, self).__init__(name=name, charge=0, mult=1, atoms=[])
+        super().__init__(name=name, charge=0, mult=1, atoms=[])
 
         # Current optimisation iteration of this image
         self.iteration = 0
 
         # Force constant in Eh/Å^2
         self.k = k
+
+    def _generate_conformers(self, *args, **kwargs):
+        raise RuntimeError("Cannot create conformers of an image")
 
     def _tau_xl_x_xr(
         self,

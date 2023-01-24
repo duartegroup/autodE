@@ -343,7 +343,7 @@ class AdaptivePath(Path):
 
         # Always perform an initial step linear in all bonds
         logger.info("Performing a linear step and calculating gradients")
-        point = self[0].new_species()
+        point = self[0].new_species(with_constraints=True)
 
         for bond in self.bonds:
             # Shift will be -min_step_size if ∆r is negative and larger than
@@ -364,7 +364,7 @@ class AdaptivePath(Path):
         logger.info("Adaptively adding points to the path")
         while not (reached_final_point() or self.contains_suitable_peak()):
 
-            point = self[-1].new_species()
+            point = self[-1].new_species(with_constraints=True)
             self._adjust_constraints(point=point)
             self.append(point)
 
