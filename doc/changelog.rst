@@ -20,6 +20,7 @@ Usability improvements/Changes
 - Defines named constructors (:code:`from_endpoints(...)`, :code:`from_list(...)`) for :code:`NEB`
 - Removes :code:`NEB().contains_peak()` in favour of :code:`NEB().images.contains_peak`
 - Modifies the :code:`CImages` constructor to ensure it's constructed from an :code:`Images` instance
+- Removes :code:`NEB.get_species_saddle_point()` in favour of :code:`NEB.peak_species`
 
 Bug Fixes
 *********

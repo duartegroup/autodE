@@ -168,6 +168,7 @@ class Image(Species):
             mult=species.mult,
             atoms=species.atoms.copy(),
         )
+        self.solvent = species.solvent
 
         self.iteration = 0  #: Current optimisation iteration of this image
         self.k = k
@@ -661,7 +662,7 @@ class NEB:
         for idx in [0, -1]:
             energy_gradient(self.images[idx], method=method, n_cores=n_cores)
             # Zero the forces so the end points don't move
-            self.images[idx].grad = np.zeros(shape=self.images[idx].grad.shape)
+            self.images[idx].gradient[:] = 0.0
 
         if isinstance(etol_per_image, PotentialEnergy):
             etol_per_image = float(
@@ -681,13 +682,15 @@ class NEB:
         plt.close()
         return None
 
-    def get_species_saddle_point(self) -> Optional[Species]:
-        """Find a TS guess species for this NEB: highest energy saddle point"""
-        if self.images.peak_idx is None:
+    @property
+    def peak_species(self) -> Optional[Species]:
+        """TS guess species for this NEB: highest energy saddle point"""
+        if not self.images.contains_peak:
             logger.warning("Found no peaks in the NEB")
             return None
 
-        return self.images[self.images.peak_idx].species
+        image = self.images[self.images.peak_idx]
+        return image.new_species()
 
     def idpp_relax(self) -> None:
         """

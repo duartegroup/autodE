@@ -42,7 +42,7 @@ def test_neb_properties():
 
     neb = NEB.from_end_points(reac, prod, num=3)
     assert len(neb.images) == 3
-    assert neb.get_species_saddle_point() is None
+    assert neb.peak_species is None
     assert not neb.images.contains_peak
 
     # Should move monotonically from 0.7 -> 1.3 Angstroms
@@ -109,14 +109,10 @@ def test_full_calc_with_xtb():
         num=14,
     )
 
-    xtb = XTB()
-
-    xtb.path = shutil.which("xtb")
-    sn2_neb.calculate(method=xtb, n_cores=2)
+    sn2_neb.calculate(method=XTB(), n_cores=2)
 
     # There should be a peak in this surface
-    peak_species = sn2_neb.get_species_saddle_point()
-    assert peak_species is not None
+    assert sn2_neb.peak_species is not None
 
     assert all(image.energy is not None for image in sn2_neb.images)
 

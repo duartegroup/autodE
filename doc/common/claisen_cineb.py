@@ -10,5 +10,5 @@ neb = ade.neb.CINEB(initial_species=reac, final_species=prod, num=8)
 neb.calculate(method=ade.methods.XTB(), n_cores=4)
 
 # print the geometry of the peak species
-peak_species = neb.get_species_saddle_point()
-peak_species.print_xyz_file(filename="peak.xyz")
+print("Found a peak: ", neb.images.contains_peak)
+neb.peak_species.print_xyz_file(filename="peak.xyz")
