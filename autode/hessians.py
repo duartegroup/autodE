@@ -227,7 +227,7 @@ class Hessian(ValueArray):
         if self.atoms is None:
             raise ValueError("Could not calculate frequencies. Atoms not set")
 
-        H = self.to("J ang^-2")
+        H = self.copy().to("J ang^-2")
         mass_array = np.repeat(
             [atom.mass.to("kg") for atom in self.atoms],
             repeats=3,

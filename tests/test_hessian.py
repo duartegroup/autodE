@@ -13,7 +13,7 @@ from autode.calculations import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.geom import calc_rmsd
-from autode.units import wavenumber
+from autode.units import wavenumber, ha_per_ang_sq
 from autode.exceptions import CalculationException
 from autode.wrappers.keywords import pbe0
 from autode.transition_states.base import displaced_species_along_mode
@@ -419,6 +419,7 @@ def test_hessian_modes():
 
     h2o = Molecule("H2O_hess_orca.xyz")
     h2o.hessian = h2o_hessian_arr
+    assert h2o.hessian.units == ha_per_ang_sq
 
     # The structure is a minimum, thus there should be no imaginary frequencies
     assert h2o.imaginary_frequencies is None
@@ -440,6 +441,9 @@ def test_hessian_modes():
         assert np.allclose(
             vib_mode, h2o.hessian.normal_modes[6 + i], atol=0.1
         ) or np.allclose(vib_mode, -h2o.hessian.normal_modes[6 + i], atol=0.1)
+
+    # Hessian units should be retained
+    assert h2o.hessian.units == ha_per_ang_sq
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
