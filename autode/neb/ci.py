@@ -34,14 +34,13 @@ class CImage(Image):
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)
 
         # F_m = ∇V(x_m) + (2∇V(x_m).τ)τ
-        return -self.grad + 2.0 * np.dot(self.grad, hat_tau) * hat_tau
+        return -self.gradient + 2.0 * np.dot(self.gradient, hat_tau) * hat_tau
 
 
 class CImages(Images):
     def __init__(
         self,
         images: Images,
-        num: int = None,
         wait_iterations: int = 4,
         init_k: Optional[float] = None,
     ):
@@ -55,11 +54,10 @@ class CImages(Images):
             wait_iterations (int): Number of iterations to wait before turning
                                   on the climbing image
 
-            init_k: Initial force constant
+            init_k: Initial force constant. Must be defined if the images are empty
         """
         super().__init__(
-            num=num if num is not None else len(images),
-            init_k=init_k if init_k is not None else images[0].k,
+            init_k=init_k if init_k is not None else images.init_k,
         )
 
         self.wait_iteration = wait_iterations

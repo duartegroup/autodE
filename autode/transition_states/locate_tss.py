@@ -340,7 +340,7 @@ def _get_ts_neb_from_adaptive_path(
 
     neb = NEB.from_file(f"{ad_name}_path.xyz")
 
-    if not neb.contains_peak():
+    if not neb.images.contains_peak:
         logger.info("Adaptive path had no peak – not running a NEB")
         return None
 
