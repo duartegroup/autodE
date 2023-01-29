@@ -266,3 +266,13 @@ def test_to_wrong_type():
 
     with pytest.raises(Exception):
         _to(Tmp(), units="Å")
+
+
+def test_div_mul_generate_floats():
+
+    e = PotentialEnergy(1.0)
+    assert isinstance(e / e, float)
+    assert isinstance(e * e, float)
+    assert isinstance(e // e, float)
+
+    assert e // e == 1
