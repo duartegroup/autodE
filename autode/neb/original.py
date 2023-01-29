@@ -128,7 +128,7 @@ def derivative(flat_coords, images, method, n_cores, plot_energies):
     """
 
     # Forces for the first image are fixed at zero
-    forces = np.array(images[0].gradient)
+    forces = np.zeros(shape=images[0].gradient.shape)
 
     # No need to calculate gradient as should already be there from energy eval
     for i in range(1, len(images) - 1):
@@ -136,7 +136,7 @@ def derivative(flat_coords, images, method, n_cores, plot_energies):
         forces = np.append(forces, force)
 
     # Final zero set of forces
-    forces = np.append(forces, images[-1].gradient)
+    forces = np.append(forces, np.zeros(shape=images[-1].gradient.shape))
 
     # dV/dx is negative of the force
     logger.info(f"|F| = {np.linalg.norm(forces):.4f} Ha Å-1")
@@ -658,11 +658,9 @@ class NEB:
         """
         self.print_geometries(name=f"{name_prefix}neb_init")
 
-        # Calculate energy on the first and final points
+        # Calculate energy on the first and final points as these will not be recalc-ed
         for idx in [0, -1]:
             energy_gradient(self.images[idx], method=method, n_cores=n_cores)
-            # Zero the forces so the end points don't move
-            self.images[idx].gradient[:] = 0.0
 
         if isinstance(etol_per_image, PotentialEnergy):
             etol_per_image = float(
