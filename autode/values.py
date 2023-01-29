@@ -214,7 +214,7 @@ class Value(ABC, float):
             float(self) + self._other_same_units(other), units=self.units
         )
 
-    def __mul__(self, other) -> Any:
+    def __mul__(self, other) -> Union[float, "Value"]:
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
@@ -229,7 +229,7 @@ class Value(ABC, float):
             float(self) * self._other_same_units(other), units=self.units
         )
 
-    def __rmul__(self, other) -> Any:
+    def __rmul__(self, other) -> Union[float, "Value"]:
         return self.__mul__(other)
 
     def __radd__(self, other) -> "Value":
@@ -238,19 +238,19 @@ class Value(ABC, float):
     def __sub__(self, other) -> "Value":
         return self.__add__(-other)
 
-    def __floordiv__(self, other) -> Any:
-        value = float(self) // self._other_same_units(other)
+    def __floordiv__(self, other) -> Union[float, "Value"]:
+        x = float(self) // self._other_same_units(other)
         if isinstance(other, Value):
-            return value
+            return x
 
-        return self.__class__(value, units=self.units)
+        return self.__class__(x, units=self.units)
 
-    def __truediv__(self, other) -> Any:
-        value = float(self) / self._other_same_units(other)
+    def __truediv__(self, other) -> Union[float, "Value"]:
+        x = float(self) / self._other_same_units(other)
         if isinstance(other, Value):
-            return value
+            return x
 
-        return self.__class__(value, units=self.units)
+        return self.__class__(x, units=self.units)
 
     def __abs__(self) -> "Value":
         """Absolute value"""
