@@ -3,6 +3,7 @@ import numpy as np
 
 from autode.values import Distance
 from autode.opt.coordinates import OptCoordinates
+from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
 
 import autode.species.species
@@ -30,7 +31,9 @@ def _calculate_engrad_for_species(
 
 @work_in_tmp_dir()
 def _calculate_hessian_for_species(
-    species, method: "autode.wrappers.methods.Method", n_cores
+    species: autode.species.species.Species,
+    method: autode.wrappers.methods.Method,
+    n_cores: int,
 ):
     """
     Convenience function for calculating the Hessian for a
@@ -62,7 +65,7 @@ class ConstrainedImagePair:
         self,
         left_image: autode.species.species.Species,
         right_image: autode.species.species.Species,
-        constrain_energy: bool = True,
+        constrain_energy: bool = False,
     ):
         """
         Initialize the constrained image pair. Does not initialize
@@ -178,7 +181,7 @@ class ConstrainedImagePair:
             A_matrix = np.hstack((dist_constr_grad, eng_constr_grad))
         return A_matrix
 
-    def get_combined_jacobian_of_constraints(self) -> np.ndarray:
+    def get_both_sided_jacobian_of_constraints(self) -> np.ndarray:
         """
         Obtains the Jacobian (first dervatives) of the constraints
         for the combined image pair (i.e. both ends considered)
@@ -230,7 +233,10 @@ class ConstrainedImagePair:
         grad_L = np.vstack((grad_con, constr_func_col))
         return grad_L
 
-    def update_one_side_molecular_hessian(self, side: str):
+    def get_both_sided_lagrangian_gradient(self) -> np.ndarray:
+        pass
+
+    def update_one_side_molecular_hessian(self, side: str) -> None:
         assert self._hess_method is not None
         assert self._n_cores is not None
         if side == "left":
@@ -244,12 +250,13 @@ class ConstrainedImagePair:
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
         )
         img.hessian = hess
+        return None
 
-    def get_one_sided_hessian_of_constraints(
+    def get_one_sided_hessians_of_constraints(
         self, side: str
     ) -> List[np.ndarray]:
         """
-        Obtain the Hessian of the constraint functions C_E and C_d
+        Obtain the Hessians of the constraint functions C_E and C_d
 
         Args:
             side: 'left' or 'right'
@@ -290,7 +297,7 @@ class ConstrainedImagePair:
 
         return hess_list
 
-    def get_both_sided_hessian_of_constraints(self) -> List[np.ndarray]:
+    def get_both_sided_hessians_of_constraints(self) -> List[np.ndarray]:
         hess_list = []
         # hess(d - d_i) = hess(d)
         z = np.concatenate(
@@ -337,14 +344,48 @@ class ConstrainedImagePair:
 
         assert img.hessian is not None
         H_matrix = np.array(img.hessian.to("ha/ang^2"))
-        constr_hessians = self.get_one_sided_hessian_of_constraints(side=side)
+        constr_hessians = self.get_one_sided_hessians_of_constraints(side=side)
+        A_matrix = self.get_one_sided_jacobian_of_constraints(side=side)
+        return self._form_lagrange_hessian(H_matrix, constr_hessians, A_matrix)
+
+    def get_both_sided_lagrangian_hessian(self) -> np.ndarray:
+        assert self._left_image.hessian is not None
+        assert self._right_image.hessian is not None
+        filler = np.zeros((self.n_atoms, self.n_atoms))
+        left_hess = np.array(self._left_image.hessian.to("ha/ang^2"))
+        right_hess = np.array(self._right_image.hessian.to("ha/ang^2"))
+        # hess(E_1 + E_2) = [[hess(E_1), 0], [0, hess(E_2)]]
+        H_matrix = np.vstack(
+            (np.hstack((left_hess, filler)), np.hstack((filler, right_hess)))
+        )
+        constr_hessians = self.get_both_sided_hessians_of_constraints()
+        A_matrix = self.get_both_sided_jacobian_of_constraints()
+        return self._form_lagrange_hessian(H_matrix, constr_hessians, A_matrix)
+
+    def _form_lagrange_hessian(
+        self,
+        H_matrix: np.ndarray,
+        constr_hessians: List[np.ndarray],
+        A_matrix: np.ndarray,
+    ):
+        """
+        Forms the Hessian of the Lagrangian from its components
+
+        Args:
+            H_matrix: Unconstrained hessian of system
+            constr_hessians: Hessians of constraint functions
+            A_matrix: Jacobian of constraint functions
+
+        Returns:
+            (np.ndarray): Hessian of Lagrangian. Square matrix with
+                          dimensions of (n_atoms + n_constraints)
+        """
         if self._is_e_constr:
             W_matrix = H_matrix - self._lambda_eng * constr_hessians[0]
             W_matrix -= self._lambda_dist * constr_hessians[1]
         else:
             W_matrix = H_matrix - self._lambda_dist * constr_hessians[0]
 
-        A_matrix = self.get_one_sided_jacobian_of_constraints(side=side)
         end_zero = np.zeros((self.n_constraints, self.n_constraints))
         # hess(L) = [[W, -A],[-A.T, 0]]
         lagrange_hess = np.vstack(
@@ -355,7 +396,6 @@ class ConstrainedImagePair:
         )
 
         return lagrange_hess
-        # todo refactor so that code is not copied
 
     @property
     def n_atoms(self):
@@ -419,9 +459,26 @@ class DHS:
         self,
         initial_species: autode.species.Species,
         final_species: autode.species.Species,
+        maxiter: int = 10,
         reduction_factor: float = 0.05,
     ):
         self.imgpair = ConstrainedImagePair(
             initial_species, final_species, constrain_energy=False
         )
         self._reduction_fac = reduction_factor
+
+        if int(maxiter) <= 0:
+            raise ValueError(
+                "An optimiser must be able to run at least one "
+                f"step, but tried to set maxiter = {maxiter}"
+            )
+
+        self._maxiter = int(maxiter)
+        self._engrad_method = None
+        self._hess_method = None
+        self._n_cores = None
+
+        self._left_history = _OptimiserHistory()
+        self._right_history = (
+            _OptimiserHistory()
+        )  # todo put them in image pair?
