@@ -343,10 +343,11 @@ def test_butane_gradient_extraction():
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_h2o_hessian_extraction():
 
+    h2o = Molecule(smiles="O")
     calc = _blank_calc()
     calc.input.keywords = method.keywords.hess
-    calc.output.filename = "H2O_hess_qchem.out"
-    calc.molecule = Molecule(smiles="O")
+    calc.molecule = h2o
+    calc.set_output_filename("H2O_hess_qchem.out")
 
     hess = method.hessian_from(calc)
     assert hess.shape == (9, 9)
@@ -358,7 +359,7 @@ def test_h2o_hessian_extraction():
     # Final atoms are available, as the same ones input
     assert np.allclose(
         calc.molecule.coordinates,
-        calc.get_final_atoms().coordinates,
+        h2o.coordinates,
         atol=1e-8,
     )
 

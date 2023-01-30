@@ -132,10 +132,7 @@ def test_bad_orca_output():
     )
 
     with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_energy()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_final_atoms()
+        calc.set_output_filename("no_output")
 
     calc.output_file_lines = None
     assert calc.terminated_normally is False
@@ -214,7 +211,6 @@ def test_gradients():
         keywords=method.keywords.grad,
     )
     calc.run()
-    h2.energy = calc.get_energy()
 
     delta_r = 1e-8
 
@@ -229,7 +225,6 @@ def test_gradients():
         keywords=method.keywords.grad,
     )
     calc.run()
-    h2_disp.energy = calc.get_energy()
 
     delta_energy = h2_disp.energy - h2.energy  # Ha
     grad = delta_energy / delta_r  # Ha A^-1

@@ -9,7 +9,7 @@ from autode.log import logger
 
 
 class CImage(Image):
-    def __init__(self, image):
+    def __init__(self, image: Image):
         """
         Construct a climbing image from a non-climbing one
 
@@ -17,11 +17,11 @@ class CImage(Image):
         Arguments:
             image (autode.neb.Image):
         """
-        super().__init__(image.name, image.k)
+        super().__init__(species=image, name=image.name, k=image.k)
         # Set all the current attributes from the regular image
         self.__dict__.update(image.__dict__)
 
-    def get_force(self, im_l, im_r) -> np.ndarray:
+    def get_force(self, im_l: Image, im_r: Image) -> np.ndarray:
         """
         Compute F_m
 

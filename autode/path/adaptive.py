@@ -249,7 +249,7 @@ class AdaptivePath(Path):
 
         # Products aren't made by isomorphism, but we may still have a suitable peak
         if any(
-            self[-1].constraints[b.atom_indexes] == b.final_dist
+            self[-1].constraints.distance[b.atom_indexes] == b.final_dist
             for b in self.bonds
         ):
             logger.warning(

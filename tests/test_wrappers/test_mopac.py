@@ -42,11 +42,11 @@ def test_mopac_opt_calculation():
 
     assert os.path.exists("opt_mopac.mop") is True
     assert os.path.exists("opt_mopac.out") is True
-    assert len(calc.get_final_atoms()) == 5
+    assert mol.n_atoms == 5
 
     # Actual energy in Hartrees
     energy = Constants.eV_to_ha * -430.43191
-    assert energy - 0.0001 < calc.get_energy() < energy + 0.0001
+    assert energy - 0.0001 < mol.energy < energy + 0.0001
 
     assert calc.output.exists
     assert calc.output.file_lines is not None
@@ -60,9 +60,10 @@ def test_mopac_opt_calculation():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_mopac_with_pc():
 
+    mol = mecl()
     calc = Calculation(
         name="opt_pc",
-        molecule=mecl(),
+        molecule=mol,
         method=method,
         keywords=Config.MOPAC.keywords.opt,
         point_charges=[PointCharge(1, x=4, y=4, z=4)],
@@ -71,11 +72,11 @@ def test_mopac_with_pc():
 
     assert os.path.exists("opt_pc_mopac.mop") is True
     assert os.path.exists("opt_pc_mopac.out") is True
-    assert len(calc.get_final_atoms()) == 5
+    assert len(mol.atoms) == 5
 
     # Actual energy in Hartrees without any point charges
     energy = Constants.eV_to_ha * -430.43191
-    assert np.abs(calc.get_energy() - energy) > 0.0001
+    assert np.abs(mol.energy - energy) > 0.0001
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))

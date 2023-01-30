@@ -201,15 +201,14 @@ def test_gauss_optts_calc():
 
     assert bond_added
 
-    mol = Molecule(atoms=calc.get_final_atoms())
-    mol.calc_thermo(calc=calc, ss="1atm", lfm_method="igm")
+    test_mol.calc_thermo(calc=calc, ss="1atm", lfm_method="igm")
 
     assert calc.terminated_normally
     assert calc.optimiser.converged
-    assert len(mol.imaginary_frequencies) == 1
+    assert len(test_mol.imaginary_frequencies) == 1
 
-    assert -40.324 < mol.free_energy < -40.322
-    assert -40.301 < mol.enthalpy < -40.298
+    assert -40.324 < test_mol.free_energy < -40.322
+    assert -40.301 < test_mol.enthalpy < -40.298
 
 
 def test_bad_gauss_output():
@@ -224,10 +223,7 @@ def test_bad_gauss_output():
     calc.rev_output_file_lines = []
 
     with pytest.raises(CalculationException):
-        _ = calc.get_energy()
-
-    with pytest.raises(CalculationException):
-        calc.get_final_atoms()
+        calc.set_output_filename("no_output")
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
@@ -258,7 +254,7 @@ def test_constraints():
         name="const_dist_opt", molecule=a, method=method, keywords=opt_keywords
     )
     calc.run()
-    opt_atoms = calc.get_final_atoms()
+    opt_atoms = a.atoms
 
     assert (
         1.199 < np.linalg.norm(opt_atoms[0].coord - opt_atoms[1].coord) < 1.201
@@ -270,7 +266,7 @@ def test_constraints():
         name="const_cart_opt", molecule=b, method=method, keywords=opt_keywords
     )
     calc.run()
-    opt_atoms = calc.get_final_atoms()
+    opt_atoms = b.atoms
     assert np.linalg.norm(test_mol.atoms[0].coord - opt_atoms[0].coord) < 1e-3
 
 

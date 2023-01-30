@@ -584,7 +584,7 @@ class NEB:
             for image in sub_neb.images[:-1]:  # add all apart from the last
                 _list.append(image)
 
-        _list.append(self._species_at(-1))  # end with the last
+        _list.append(self.images[-1])  # end with the last
         self.images.clear()
 
         for image in _list:
@@ -594,10 +594,6 @@ class NEB:
             f"Partition successful – now have {len(self.images)} " f"images"
         )
         return None
-
-    def _species_at(self, idx: int) -> Species:
-        """Return the species associated with a particular image index"""
-        return self.images[idx].species
 
     def print_geometries(self, name="neb") -> None:
         return self.images.print_geometries(name)
@@ -733,7 +729,7 @@ class NEB:
         Calculate the maximum atom-atom distance between two consecutive images
         """
         if idxs is None:  # Use all pairwise distances
-            idxs = np.arange(self.images[0].species.n_atoms)
+            idxs = np.arange(self.images[0].n_atoms)
         else:
             idxs = np.array(idxs)
 
@@ -741,8 +737,8 @@ class NEB:
 
         for i in range(len(self.images) // 2):
             k = 2 * i
-            x_i = self._species_at(k).coordinates
-            x_j = self._species_at(k + 1).coordinates
+            x_i = self.images[k].coordinates
+            x_j = self.images[k + 1].coordinates
 
             max_distance = np.max(np.linalg.norm(x_i - x_j, axis=1)[idxs])
             if max_distance > overall_max_distance:

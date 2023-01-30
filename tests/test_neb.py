@@ -171,6 +171,8 @@ def test_climbing_image():
 
     k = ForceConstant(0.1)
     images = CImages(images=Images(init_k=k))
+    images.append_species(Molecule(atoms=[Atom("H")], mult=2))
+
     assert images.peak_idx is None
     assert images[0].iteration == 0
     images[0].iteration = 10
@@ -191,7 +193,7 @@ def _simple_h2_images(num, shift, increment):
 def test_energy_gradient_type():
 
     k = ForceConstant(1.0)
-    image = Image(species=Molecule(), name="tmp", k=k)
+    image = Image(species=Molecule(atoms=[Atom("H")], mult=2), name="tmp", k=k)
 
     # Energy and gradient must have a method (EST or IDPP)
     with pytest.raises(ValueError):
@@ -236,7 +238,7 @@ def test_iddp_gradient():
     value = idpp(image)
 
     # and the gradient calculable
-    grad = idpp.grad(image)
+    grad = idpp.grad(image).flatten()
     assert grad is not None
 
     # And the gradient be close to the numerical analogue
@@ -341,8 +343,7 @@ def test_partition_max_delta():
         assert (
             np.max(
                 np.linalg.norm(
-                    h2_h.images[i].species.coordinates
-                    - h2_h.images[j].species.coordinates,
+                    h2_h.images[i].coordinates - h2_h.images[j].coordinates,
                     axis=1,
                 )
             )
