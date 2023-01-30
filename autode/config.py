@@ -443,4 +443,4 @@ def _instantiate_config_opts(cls: type) -> Any:
 
 
 # Single instance of the configuration
-Config = _instantiate_config_opts(_ConfigClass)
+Config: _ConfigClass = _instantiate_config_opts(_ConfigClass)
