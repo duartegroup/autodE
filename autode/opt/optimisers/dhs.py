@@ -1,13 +1,15 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import numpy as np
 
-from autode.values import Distance
-from autode.opt.coordinates import OptCoordinates
+from autode.values import Distance, PotentialEnergy, Gradient
+from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
+from autode.config import Config
 
 import autode.species.species
 import autode.wrappers.methods
+
 
 
 def _calculate_engrad_for_species(
@@ -94,6 +96,12 @@ class ConstrainedImagePair:
         self._lambda_eng = 0  # energy constraint lagrange multiplier
         self._lambda_dist = 0  # dist. constraint lagrange multiplier
 
+        self._left_history = _OptimiserHistory()
+        self._right_history = _OptimiserHistory()
+        self.left_coord = self._left_image.coordinates.to('ang').flatten()
+        self.right_coord = self._right_image.coordinates.to('ang').flatten()
+        # todo replace image in functions with the coords
+
     def set_method_and_n_cores(
         self,
         engrad_method: autode.wrappers.methods.Method,
@@ -116,25 +124,28 @@ class ConstrainedImagePair:
         self._hess_method = hess_method
         self._n_cores = int(n_cores)
 
-    def update_one_side_molecular_grad(self, side: str):
+    def update_one_side_molecular_engrad(self, side: str):
         assert self._engrad_method is not None
         assert self._n_cores is not None
         if side == "left":
-            image = self._left_image
+            img = self._left_image
+            coord = self.left_coord
         elif side == "right":
-            image = self._right_image
+            img = self._right_image
+            coord = self.right_coord
         else:
             raise Exception
 
         en, grad = _calculate_engrad_for_species(
-            species=image.copy(),
+            species=img.copy(),
             method=self._engrad_method,
             n_cores=self._n_cores,
         )
-        image.energy = en
-        image.gradient = grad
+        img.energy = en
+        img.gradient = grad.copy()
+        coord.update_g_from_cart_g(grad)
 
-    def update_both_side_molecular_grad(self):
+    def update_both_side_molecular_engrad(self):
         # todo parallelise
         pass
 
@@ -219,9 +230,9 @@ class ConstrainedImagePair:
         grad = np.array(img.gradient.to("ha/ang")).flatten().reshape(-1, 1)
         # g_con = g - A @ lambda  <= lambda is a column matrix of multipliers
         if self._is_e_constr:
-            lmda_col = np.array([self._lambda_eng, self._lambda_dist]).reshape(
-                -1, 1
-            )
+            lmda_col = np.array(
+                [self._lambda_eng, self._lambda_dist]
+            ).reshape(-1, 1)
             constr_func_col = np.array([-self.C_E, -self.C_d]).reshape(-1, 1)
         else:
             lmda_col = np.array([self._lambda_dist]).reshape(-1, 1)
@@ -241,8 +252,10 @@ class ConstrainedImagePair:
         assert self._n_cores is not None
         if side == "left":
             img = self._left_image
+            coord = self.left_coord
         elif side == "right":
             img = self._right_image
+            coord = self.right_coord
         else:
             raise Exception
 
@@ -250,6 +263,7 @@ class ConstrainedImagePair:
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
         )
         img.hessian = hess
+        coord.update_h_from_cart_h(hess)
         return None
 
     def get_one_sided_hessians_of_constraints(
@@ -403,8 +417,44 @@ class ConstrainedImagePair:
         return self._left_image.n_atoms
 
     @property
-    def n_constraints(self):
+    def n_constraints(self) -> int:
         return 2 if self._is_e_constr else 1
+
+    @property
+    def left_coord(self) -> Optional[CartesianCoordinates]:
+        if len(self._left_history) == 0:
+            return None
+        return self._left_history[-1]
+
+    @left_coord.setter
+    def left_coord(self, value):
+        if value is None:
+            return
+        elif isinstance(value, CartesianCoordinates):
+            self._left_history.append(value.copy())
+        elif isinstance(value, np.ndarray) and value.shape == 3 * self.n_atoms:
+            self._right_history.append(CartesianCoordinates(value))
+        else:
+            raise ValueError
+        self._left_image.coordinates = self._left_history[-1]
+
+    @property
+    def right_coord(self) -> Optional[CartesianCoordinates]:
+        if len(self._right_history) == 0:
+            return None
+        return self._right_history[-1]
+
+    @right_coord.setter
+    def right_coord(self, value):
+        if value is None:
+            return
+        elif isinstance(value, CartesianCoordinates):
+            self._right_history.append(value.copy())
+        elif isinstance(value, np.ndarray) and value.shape == 3 * self.n_atoms:
+            self._right_history.append(CartesianCoordinates(value))
+        else:
+            raise ValueError
+        self._right_image.coordinates = self._right_history[-1]
 
     @property
     def target_dist(self) -> Distance:
@@ -453,6 +503,17 @@ class ConstrainedImagePair:
         """
         return float(self.euclid_dist.to("ang") - self.target_dist.to("ang"))
 
+    def update_lagrangian_multipliers(self, array):
+        """
+        Updates the Lagrangian multipliers lambda_eng and lambda_dist
+        """
+        lambda_vals = tuple(array)
+        assert len(lambda_vals) == 2
+        self._lambda_eng, self._lambda_dist = lambda_vals
+
+
+_optional_method = Optional[autode.wrappers.methods.Method]
+
 
 class DHS:
     def __init__(
@@ -478,7 +539,25 @@ class DHS:
         self._hess_method = None
         self._n_cores = None
 
-        self._left_history = _OptimiserHistory()
-        self._right_history = (
-            _OptimiserHistory()
-        )  # todo put them in image pair?
+    def calculate(self,
+                  engrad_method: _optional_method = None,
+                  hess_method: _optional_method = None,
+                  n_cores: int = None):
+        from autode.methods import (method_or_default_hmethod,
+                                    method_or_default_lmethod)
+        engrad_method = method_or_default_hmethod(engrad_method)
+        hess_method = method_or_default_lmethod(hess_method)
+        if n_cores is None:
+            n_cores = Config.n_cores
+        self.imgpair.set_method_and_n_cores(engrad_method=engrad_method,
+                                            hess_method=hess_method,
+                                            n_cores=n_cores)
+
+        self._intialise_run()
+
+    def _initialise_run(self):
+        # todo this func is empty
+        self.imgpair.update_both_side_molecular_engrad()
+
+
+
