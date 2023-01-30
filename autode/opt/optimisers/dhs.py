@@ -4,12 +4,11 @@ import numpy as np
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.base import _OptimiserHistory
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.config import Config
 
 import autode.species.species
 import autode.wrappers.methods
-
 
 
 def _calculate_engrad_for_species(
@@ -98,8 +97,8 @@ class ConstrainedImagePair:
 
         self._left_history = _OptimiserHistory()
         self._right_history = _OptimiserHistory()
-        self.left_coord = self._left_image.coordinates.to('ang').flatten()
-        self.right_coord = self._right_image.coordinates.to('ang').flatten()
+        self.left_coord = self._left_image.coordinates.to("ang").flatten()
+        self.right_coord = self._right_image.coordinates.to("ang").flatten()
         # todo replace image in functions with the coords
 
     def set_method_and_n_cores(
@@ -230,9 +229,9 @@ class ConstrainedImagePair:
         grad = np.array(img.gradient.to("ha/ang")).flatten().reshape(-1, 1)
         # g_con = g - A @ lambda  <= lambda is a column matrix of multipliers
         if self._is_e_constr:
-            lmda_col = np.array(
-                [self._lambda_eng, self._lambda_dist]
-            ).reshape(-1, 1)
+            lmda_col = np.array([self._lambda_eng, self._lambda_dist]).reshape(
+                -1, 1
+            )
             constr_func_col = np.array([-self.C_E, -self.C_d]).reshape(-1, 1)
         else:
             lmda_col = np.array([self._lambda_dist]).reshape(-1, 1)
@@ -264,6 +263,37 @@ class ConstrainedImagePair:
         )
         img.hessian = hess
         coord.update_h_from_cart_h(hess)
+        return None
+
+    def update_both_side_molecular_hessian(self) -> None:
+        assert self._hess_method is not None
+        assert self._n_cores is not None
+
+        if self._n_cores == 1:
+            # no need to get processpool
+            [
+                self.update_one_side_molecular_hessian(side)
+                for side in ("left", "right")
+            ]
+            return None
+
+        n_cores_per_pp = self._n_cores // 2
+        with ProcessPool(max_workers=2) as pool:
+            jobs = [
+                pool.submit(
+                    _calculate_hessian_for_species,
+                    species=img,
+                    method=self._hess_method,
+                    n_cores=n_cores_per_pp,
+                )
+                for img in [self._left_image, self._right_image]
+            ]
+            hess1, hess2 = (job.result() for job in jobs)
+            self._left_image.hessian = hess1
+            self._right_image.hessian = hess2
+            self.left_coord.update_h_from_cart_h(hess1)
+            self.right_coord.update_h_from_cart_h(hess2)
+
         return None
 
     def get_one_sided_hessians_of_constraints(
@@ -539,25 +569,39 @@ class DHS:
         self._hess_method = None
         self._n_cores = None
 
-    def calculate(self,
-                  engrad_method: _optional_method = None,
-                  hess_method: _optional_method = None,
-                  n_cores: int = None):
-        from autode.methods import (method_or_default_hmethod,
-                                    method_or_default_lmethod)
+        # todo have a history where store the optimised points after each macroiter
+
+    @property
+    def converged(self):
+        pass
+
+    def calculate(
+        self,
+        engrad_method: _optional_method = None,
+        hess_method: _optional_method = None,
+        n_cores: int = None,
+    ):
+        from autode.methods import (
+            method_or_default_hmethod,
+            method_or_default_lmethod,
+        )
+
         engrad_method = method_or_default_hmethod(engrad_method)
         hess_method = method_or_default_lmethod(hess_method)
         if n_cores is None:
             n_cores = Config.n_cores
-        self.imgpair.set_method_and_n_cores(engrad_method=engrad_method,
-                                            hess_method=hess_method,
-                                            n_cores=n_cores)
+        self.imgpair.set_method_and_n_cores(
+            engrad_method=engrad_method,
+            hess_method=hess_method,
+            n_cores=n_cores,
+        )
 
-        self._intialise_run()
+        self._initialise_run()
+
+        while not self.converged:
+            pass
 
     def _initialise_run(self):
         # todo this func is empty
         self.imgpair.update_both_side_molecular_engrad()
-
-
-
+        self.imgpair.update_both_side_molecular_hessian()
