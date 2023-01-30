@@ -5,6 +5,7 @@ from autode.values import Distance, PotentialEnergy, Gradient
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir, ProcessPool
+from autode.log import logger
 from autode.config import Config
 
 import autode.species.species
@@ -552,6 +553,7 @@ class DHS:
         final_species: autode.species.Species,
         maxiter: int = 10,
         reduction_factor: float = 0.05,
+        dist_tol: float = 0.05,
     ):
         self.imgpair = ConstrainedImagePair(
             initial_species, final_species, constrain_energy=False
@@ -565,21 +567,36 @@ class DHS:
             )
 
         self._maxiter = int(maxiter)
+        self._dist_tol = Distance(dist_tol, units="ang")
         self._engrad_method = None
         self._hess_method = None
         self._n_cores = None
 
+        self._grad = None
+        self._hess = None
+
         # todo have a history where store the optimised points after each macroiter
 
     @property
-    def converged(self):
+    def macroiter_converged(self):
+        if (
+            self.imgpair.euclid_dist < self._dist_tol
+            and self.microiter_converged
+        ):
+            return True
+        else:
+            return False
+
+    @property
+    def microiter_converged(self):
+        # gtol and dist_tol
         pass
 
     def calculate(
         self,
         engrad_method: _optional_method = None,
         hess_method: _optional_method = None,
-        n_cores: int = None,
+        n_cores: Optional[int] = None,
     ):
         from autode.methods import (
             method_or_default_hmethod,
@@ -598,10 +615,43 @@ class DHS:
 
         self._initialise_run()
 
-        while not self.converged:
-            pass
+        # in each macroiter, the distance criteria is reduced by factor
+        macroiter_num = 0
+        maxiter_reached = False
+        while not self.macroiter_converged:
+            self.imgpair.target_dist = self.imgpair.euclid_dist * (
+                1 - self._reduction_fac
+            )
+            macroiter_num += 1
+            while not self.microiter_converged:
+                self._prfo_step()
+                # in gradient update step, update hessian as well
+                # no need to update hessian in prfo
+                if self._exceeded_maximum_iteration:
+                    # error message
+                    maxiter_reached = True
+                    break
+            if maxiter_reached:
+                break
+
+        pass
 
     def _initialise_run(self):
         # todo this func is empty
+        # todo is it really necessary to parallelise in DHS?
         self.imgpair.update_both_side_molecular_engrad()
         self.imgpair.update_both_side_molecular_hessian()
+        pass
+
+    def _prfo_step(self):
+        b, u = np.linalg.eigh(self._hess)
+        f = u.T.dot(self._grad)
+        # partition the RFO
+        pass
+
+    def _parition_eigvecs(self, u):
+        # The constraint is the last item
+        constr_components = u[-1, :]
+        # highest component of constraint must be the required mode
+        constr_mode_pos = np.argmax(constr_components)
+        pass
