@@ -21,7 +21,6 @@ import pytest
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
-Config.high_quality_plots = False
 
 
 def test_plot_reaction_profile():
