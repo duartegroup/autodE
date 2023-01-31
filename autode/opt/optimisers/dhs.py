@@ -629,7 +629,12 @@ class DHS:
             )
             macroiter_num += 1
             while not self.microiter_converged:
-                self._prfo_step()
+                if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
+                    side = "left"
+                else:
+                    side = "right"
+                self._take_one_sided_step(side)
+                self._update_one_side_grad_hess(side)
                 # in gradient update step, update hessian as well
                 # no need to update hessian in prfo step
                 if self._exceeded_maximum_iteration:
@@ -641,6 +646,11 @@ class DHS:
 
         pass
 
+    def _take_one_sided_step(self, side: str):
+        grad = self.imgpair.get_one_sided_lagrangian_gradient(side)
+        hess = self.imgpair.get_one_sided_lagrangian_hessian(side)
+        self._prfo_step(side, grad, hess)
+
     def _initialise_run(self):
         # todo this func is empty
         # todo is it really necessary to parallelise in DHS?
@@ -648,7 +658,7 @@ class DHS:
         self.imgpair.update_both_side_molecular_hessian()
         pass
 
-    def _prfo_step(self):
+    def _prfo_step(self, side: str, grad, hess):
         b, u = np.linalg.eigh(self._hess)
         f = u.T.dot(self._grad)
 
@@ -689,7 +699,8 @@ class DHS:
         for i in range(m):
             delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
 
-        self.take_step_within_trust_radius(delta_s)
+        self.take_step_within_trust_radius(side, delta_s)
 
-    def take_step_within_trust_radius(self, delta_s):
+    def take_step_within_trust_radius(self, side, delta_s):
+        # set the coords to one side
         pass
