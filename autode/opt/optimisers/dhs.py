@@ -488,6 +488,10 @@ class ConstrainedImagePair:
         self._right_image.coordinates = self._right_history[-1]
 
     @property
+    def total_iters(self) -> int:
+        return len(self._left_history) + len(self._right_history)
+
+    @property
     def target_dist(self) -> Distance:
         return Distance(self._d_i, units="ang")
 
@@ -579,10 +583,7 @@ class DHS:
 
     @property
     def macroiter_converged(self):
-        if (
-            self.imgpair.euclid_dist < self._dist_tol
-            and self.microiter_converged
-        ):
+        if self.imgpair.euclid_dist <= self._dist_tol:
             return True
         else:
             return False
@@ -591,6 +592,10 @@ class DHS:
     def microiter_converged(self):
         # gtol and dist_tol
         pass
+
+    @property
+    def _exceeded_maximum_iteration(self) -> bool:
+        return True if self.imgpair.total_iters > self._maxiter else False
 
     def calculate(
         self,
@@ -626,7 +631,7 @@ class DHS:
             while not self.microiter_converged:
                 self._prfo_step()
                 # in gradient update step, update hessian as well
-                # no need to update hessian in prfo
+                # no need to update hessian in prfo step
                 if self._exceeded_maximum_iteration:
                     # error message
                     maxiter_reached = True
@@ -646,12 +651,45 @@ class DHS:
     def _prfo_step(self):
         b, u = np.linalg.eigh(self._hess)
         f = u.T.dot(self._grad)
-        # partition the RFO
-        pass
 
-    def _parition_eigvecs(self, u):
+        delta_s = np.zeros(shape=(self.imgpair.n_atoms,))
+
+        # partition the RFO
         # The constraint is the last item
         constr_components = u[-1, :]
         # highest component of constraint must be the required mode
-        constr_mode_pos = np.argmax(constr_components)
+        constr_mode = np.argmax(constr_components)
+        u_max = u[:, constr_mode]
+        b_max = b[constr_mode]
+        f_max = f[constr_mode]
+
+        # only one constraint - distance
+        aug_h_max = np.zeros(shape=(2, 2))
+        aug_h_max[0, 0] = b_max
+        aug_h_max[1, 0] = f_max
+        aug_h_max[0, 1] = f_max
+        lambda_p = np.linalg.eigvalsh(aug_h_max)[-1]
+        delta_s -= f_max * u_max / (b_max - lambda_p)
+
+        u_min = np.delete(u, constr_mode, axis=1)
+        b_min = np.delete(b, constr_mode)
+        f_min = np.delete(f, constr_mode)
+        # todo deal with rot./trans.?
+
+        # n_atoms non-constraint modes
+        m = self.imgpair.n_atoms
+        aug_h_min = np.zeros(shape=(m + 1, m + 1))
+        aug_h_min[:m, :m] = np.diag(b_min)
+        aug_h_min[-1, :m] = f_min
+        aug_h_min[:m, -1] = f_min
+        eigvals_min = np.linalg.eigvalsh(aug_h_min)
+        min_mode = np.where(np.abs(eigvals_min) > 1e-15)[0][0]
+        lambda_n = eigvals_min[min_mode]
+
+        for i in range(m):
+            delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
+
+        self.take_step_within_trust_radius(delta_s)
+
+    def take_step_within_trust_radius(self, delta_s):
         pass
