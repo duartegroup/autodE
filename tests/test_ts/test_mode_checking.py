@@ -81,7 +81,8 @@ def has_correct_mode(name, fbonds, bbonds):
         keywords=orca.keywords.opt_ts,
         n_cores=1,
     )
-    calc.molecule = reac = Reactant(
+    # need to bypass the pre-calculation checks on the molecule. e.g. valid spin state
+    calc.molecule = reactant = Reactant(
         name="r", atoms=xyz_file_to_atoms(f"{name}.xyz")
     )
 
@@ -89,11 +90,11 @@ def has_correct_mode(name, fbonds, bbonds):
 
     # Don't require all bonds to be breaking/making in a 'could be ts' function
     ts = TSbase(
-        atoms=reac.atoms,
+        atoms=reactant.atoms,
         bond_rearr=BondRearrangement(
             breaking_bonds=bbonds, forming_bonds=fbonds
         ),
     )
-    ts.hessian = calc.get_hessian()
+    ts.hessian = reactant.hessian
 
     return ts.imag_mode_has_correct_displacement(req_all=False)

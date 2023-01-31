@@ -92,7 +92,6 @@ def test_other_spin_states():
         keywords=Config.MOPAC.keywords.sp,
     )
     calc.run()
-    singlet_energy = calc.get_energy()
 
     o_triplet = Molecule(atoms=[Atom("O")], mult=3)
     o_triplet.name = "molecule"
@@ -104,9 +103,8 @@ def test_other_spin_states():
         keywords=Config.MOPAC.keywords.sp,
     )
     calc.run()
-    triplet_energy = calc.get_energy()
 
-    assert triplet_energy < singlet_energy
+    assert o_triplet.energy < o_singlet.energy
 
     h_doublet = Molecule(atoms=[Atom("H")], mult=2)
     h_doublet.name = "molecule"
@@ -120,7 +118,7 @@ def test_other_spin_states():
     calc.run()
 
     # Open shell doublet should work
-    assert calc.get_energy() is not None
+    assert h_doublet.energy is not None
 
     h_quin = Molecule(atoms=[Atom("H")], mult=5)
     h_quin.name = "molecule"
@@ -148,11 +146,9 @@ def test_bad_geometry():
         keywords=Config.MOPAC.keywords.opt,
     )
 
-    calc.output.filename = "h2_overlap_opt_mopac.out"
-    assert not calc.terminated_normally
-
     with pytest.raises(Exception):
-        _ = calc.get_energy()
+        # cannot even get the energy from the output file
+        calc.set_output_filename("h2_overlap_opt_mopac.out")
 
     assert not method.optimiser_from(calc).converged
 
@@ -169,21 +165,23 @@ def test_constrained_opt():
         keywords=Config.MOPAC.keywords.opt,
     )
     calc.run()
-    opt_energy = calc.get_energy()
+    opt_energy = methane.energy
 
     # Constrained optimisation with a C–H distance of 1.2 Å
     # (carbon is the first atom in the file)
+    constrained_methane = methane.copy()
     methane.constraints.distance = {(0, 1): 1.2}
+
     const = Calculation(
         name="methane_const",
-        molecule=methane,
+        molecule=constrained_methane,
         method=method,
         keywords=Config.MOPAC.keywords.opt,
     )
     const.run()
 
-    assert opt_energy < const.get_energy()
-    assert calc.get_hessian() is None
+    assert methane.energy < constrained_methane.energy
+    assert methane.hessian is None
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
@@ -198,10 +196,9 @@ def test_grad():
         keywords=Config.MOPAC.keywords.grad,
     )
     grad_calc.run()
-    energy = grad_calc.get_energy()
-    assert energy is not None
+    assert h2.energy is not None
 
-    gradients = grad_calc.get_gradients()
+    gradients = h2.gradient
     assert gradients.shape == (2, 3)
 
     delta_r = 1e-5
@@ -210,7 +207,7 @@ def test_grad():
     )
     h2_disp.single_point(method)
 
-    delta_energy = h2_disp.energy - energy  # Ha]
+    delta_energy = h2_disp.energy - h2.energy
     grad = delta_energy / delta_r  # Ha A^-1
 
     # Difference between the absolute and finite difference approximation
@@ -227,10 +224,9 @@ def test_broken_grad():
         method=method,
         keywords=Config.MOPAC.keywords.grad,
     )
-    grad_calc_broken.output.filename = "h2_grad_broken.out"
 
     with pytest.raises(CouldNotGetProperty):
-        _ = grad_calc_broken.get_gradients()
+        grad_calc_broken.set_output_filename("h2_grad_broken.out")
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))

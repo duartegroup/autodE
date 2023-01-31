@@ -24,7 +24,7 @@ def test_calculate_no_species():
 @testutils.requires_with_working_xtb_install
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calculate_1d():
-    pes = RelaxedPESnD(species=h2(), rs={(0, 1): (1.6, 10)})
+    pes = RelaxedPESnD(species=h2(), rs={(0, 1): (1.5, 10)})
 
     pes.calculate(method=XTB())
 

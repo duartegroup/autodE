@@ -5,7 +5,7 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 import numpy as np
 import matplotlib.pyplot as plt
 
-from typing import Optional, Sequence, List, Any, Union, TYPE_CHECKING
+from typing import Optional, Sequence, List, Any, TYPE_CHECKING
 from copy import deepcopy
 
 from autode.log import logger
@@ -168,7 +168,8 @@ class Image(Species):
             mult=species.mult,
             atoms=species.atoms.copy(),
         )
-        self.solvent = species.solvent
+        self.solvent = deepcopy(species.solvent)
+        self.energy = deepcopy(species.energy)
 
         self.iteration = 0  #: Current optimisation iteration of this image
         self.k = k

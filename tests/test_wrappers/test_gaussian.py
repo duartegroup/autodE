@@ -23,7 +23,6 @@ from autode.atoms import Atom
 from .. import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
-test_mol = Molecule(name="methane", smiles="C")
 method = G09()
 
 opt_keywords = OptKeywords(["PBE1PBE/Def2SVP", "Opt"])
@@ -37,6 +36,10 @@ optts_keywords = OptKeywords(
 )
 
 sp_keywords = SinglePointKeywords(["PBE1PBE/Def2SVP"])
+
+
+def methane():
+    return Molecule(name="methane", smiles="C")
 
 
 def test_printing_ecp():
@@ -90,7 +93,7 @@ def test_input_print_max_opt():
     keywds = opt_keywords.copy()
     keywds.max_opt_cycles = 10
 
-    str_keywords = _get_keywords(CalculationInput(keywds), molecule=test_mol)
+    str_keywords = _get_keywords(CalculationInput(keywds), molecule=methane())
 
     # Should be only a single instance of the maxcycles declaration
     assert sum("maxcycles=10" in kw.lower() for kw in str_keywords) == 1
@@ -215,7 +218,7 @@ def test_bad_gauss_output():
 
     calc = Calculation(
         name="no_output",
-        molecule=test_mol,
+        molecule=methane(),
         method=method,
         keywords=opt_keywords,
     )
@@ -248,7 +251,7 @@ def test_fix_angle_error():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
 def test_constraints():
 
-    a = test_mol.copy()
+    a = methane()
     a.constraints.distance = {(0, 1): 1.2}
     calc = Calculation(
         name="const_dist_opt", molecule=a, method=method, keywords=opt_keywords
@@ -260,14 +263,14 @@ def test_constraints():
         1.199 < np.linalg.norm(opt_atoms[0].coord - opt_atoms[1].coord) < 1.201
     )
 
-    b = test_mol.copy()
+    b = methane()
     b.constraints.cartesian = [0]
     calc = Calculation(
         name="const_cart_opt", molecule=b, method=method, keywords=opt_keywords
     )
     calc.run()
     opt_atoms = b.atoms
-    assert np.linalg.norm(test_mol.atoms[0].coord - opt_atoms[0].coord) < 1e-3
+    assert np.linalg.norm(methane().atoms[0].coord - opt_atoms[0].coord) < 1e-3
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
@@ -299,9 +302,10 @@ def test_point_charge_calc():
     # Methane single point using a point charge with a unit positive charge
     # located at (10, 10, 10)
 
+    mol = methane()
     calc = Calculation(
         name="methane_point_charge",
-        molecule=test_mol,
+        molecule=mol,
         method=method,
         keywords=sp_keywords,
         point_charges=[PointCharge(charge=1.0, x=10.0, y=10.0, z=10.0)],
@@ -323,14 +327,14 @@ def test_point_charge_calc():
             assert float(z) == 10.0
             assert float(charge) == 1.0
 
-    assert -40.428 < calc.get_energy() < -40.427
+    assert -40.428 < mol.energy < -40.427
 
     # Gaussian needs x-matrix and nosymm in the input line to run optimisations
     # with point charges..
     for opt_keyword in ["Opt", "Opt=Tight", "Opt=(Tight)"]:
         calc = Calculation(
             name="methane_point_charge_o",
-            molecule=test_mol,
+            molecule=methane(),
             method=method,
             keywords=OptKeywords(["PBE1PBE/Def2SVP", opt_keyword]),
             point_charges=[PointCharge(charge=1.0, x=3.0, y=3.0, z=3.0)],
@@ -417,5 +421,5 @@ def test_xtb_optts():
     calc.run()
 
     # Even though a Hessian is not requested it should be added
-    assert calc.get_hessian() is not None
-    assert np.isclose(calc.get_energy().to("Ha"), -13.1297380, atol=1e-5)
+    assert orca_ts.hessian is not None
+    assert np.isclose(orca_ts.energy.to("Ha"), -13.1297380, atol=1e-5)

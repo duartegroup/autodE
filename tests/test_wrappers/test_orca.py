@@ -238,7 +238,7 @@ def test_gradients():
 
     calc.run()
 
-    diff = calc.get_gradients()[1, 0] - grad  # Ha A^-1
+    diff = h2.gradient[1, 0] - grad  # Ha A^-1
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(diff) < 1e-3
@@ -247,15 +247,16 @@ def test_gradients():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_mp2_numerical_gradients():
 
+    mol = Molecule("tmp_orca.xyz", charge=-1)
     calc = Calculation(
         name="tmp",
-        molecule=Molecule(atoms=xyz_file_to_atoms("tmp_orca.xyz"), charge=-1),
+        molecule=mol,
         method=method,
         keywords=method.keywords.grad,
     )
     calc.set_output_filename(filename="tmp_orca.out")
 
-    gradients = calc.get_gradients()
+    gradients = mol.gradient
     assert len(gradients) == 6
     expected = (
         np.array([-0.00971201, -0.00773534, -0.02473580]) / Constants.a0_to_ang
@@ -266,7 +267,7 @@ def test_mp2_numerical_gradients():
     calc.set_output_filename(filename="numerical_orca.out")
     assert calc.output.filename == "numerical_orca.out"
 
-    gradients = calc.get_gradients()
+    gradients = mol.gradient
     assert len(gradients) == 6
     expected = (
         np.array([0.012397372, 0.071726232, -0.070942743])
@@ -323,14 +324,13 @@ def test_keyword_setting():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_hessian_extraction():
 
+    h2o = Molecule(smiles="O")
     calc = Calculation(
         name="tmp",
-        molecule=Molecule(smiles="O"),
+        molecule=h2o,
         method=method,
         keywords=method.keywords.hess,
     )
-
-    calc.output.filename = "H2O_hess_orca.out"
 
     with open("H2O_hess_orca.xyz", "w") as xyz_file:
         print(
@@ -342,7 +342,9 @@ def test_hessian_extraction():
             file=xyz_file,
         )
 
-    hessian = calc.get_hessian()
+    calc.set_output_filename("H2O_hess_orca.out")
+
+    hessian = h2o.hessian
     assert hessian.shape == (9, 9)
     # should not have any very large values
     assert np.sum(np.abs(hessian)) < 100
@@ -364,12 +366,10 @@ def test_charges_from_v5_output_file():
         method=method,
         keywords=method.keywords.sp,
     )
-    calc.output.filename = "h2o_orca_v5_charges.out"
-
+    calc.set_output_filename("h2o_orca_v5_charges.out")
     assert calc.output.exists
-
-    #                                       q_O        q_H       q_H
-    assert calc.get_atomic_charges() == [-0.313189, 0.156594, 0.156594]
+    #                                   q_O        q_H       q_H
+    assert water.partial_charges == [-0.313189, 0.156594, 0.156594]
 
 
 def test_unsupported_freq_scaling():

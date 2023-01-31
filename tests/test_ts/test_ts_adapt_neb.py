@@ -43,8 +43,9 @@ def test_ts_from_neb_optimised_after_adapt():
 
     rxn = _sn2_reaction()
     neb = NEB.from_file("dOr2Us_ll_ad_0-5_0-1_path.xyz")
+
     assert len(neb.images) > 0
-    assert neb.images[0].species.solvent is not None
+    assert neb.images[0].solvent is not None
 
     def get_ts_guess():
         return _get_ts_neb_from_adaptive_path(

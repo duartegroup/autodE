@@ -9,6 +9,7 @@ from autode.path.adaptive import pruned_active_bonds
 from autode.bonds import FormingBond, BreakingBond
 from autode.species import Species, Molecule
 from autode.units import Unit, KcalMol
+from . import testutils
 
 test_species = Species(name="tmp", charge=0, mult=1, atoms=[Atom("He")])
 test_mol = Molecule(smiles="O")
@@ -179,6 +180,7 @@ def test_products_made():
     assert not path.products_made(product=diff_mol)
 
 
+@testutils.requires_with_working_xtb_install
 def test_adaptive_path():
 
     species_no_atoms = Species(name="tmp", charge=0, mult=1, atoms=[])

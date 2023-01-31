@@ -356,9 +356,8 @@ def _get_ts_neb_from_adaptive_path(
     )
 
     if neb.images.contains_peak:
-        peak_idx = neb.images.peak_idx
         ts_guess = TSguess(
-            atoms=neb.images[peak_idx].species.atoms,
+            atoms=neb.peak_species.atoms,
             reactant=reactant,
             product=product,
             bond_rearr=bond_rearr,
