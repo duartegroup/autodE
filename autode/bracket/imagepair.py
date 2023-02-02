@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Optional, List, Tuple
 import numpy as np
 
@@ -178,7 +178,7 @@ class BaseImagePair(ABC):
             isinstance(value, np.ndarray)
             and value.flatten().shape[0] == 3 * self.n_atoms
         ):
-            self._right_history.append(CartesianCoordinates(value))
+            self._left_history.append(CartesianCoordinates(value))
         else:
             raise ValueError
         self._left_image.coordinates = self._left_history[-1]
