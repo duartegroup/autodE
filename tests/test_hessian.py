@@ -243,6 +243,7 @@ def assert_correct_co2_frequencies(hessian, expected=(666, 1415, 2517)):
     """Ensure the projected frequencies of CO2 are roughly right"""
     nu_1, nu_2, nu_3 = expected
 
+    print(hessian.frequencies_proj)
     assert sum(freq == 0.0 for freq in hessian.frequencies_proj) == 5
 
     # Should have a degenerate bending mode for CO2 with ν = 666 cm-1
@@ -599,6 +600,8 @@ def test_nwchem_hessian_co2():
         keywords=ade.HessianKeywords(),
     )
     calc.set_output_filename("CO2_hess_nwchem.out")
+    print(co2.hessian)
+    print(co2.hessian._mass_weighted)
     assert_correct_co2_frequencies(
         hessian=co2.hessian, expected=(659.76, 1406.83, 2495.73)
     )

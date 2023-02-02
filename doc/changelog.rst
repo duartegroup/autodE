@@ -8,12 +8,12 @@ Changelog
 
 Usability improvements/Changes
 ******************************
-*
+- :code:`autode.value.ValueArray.to()` now defaults to copying the object rather than inplace modification
 
 
 Functionality improvements
 **************************
--
+- Adds a :code:`to_` method to :code:`autode.value.ValueArray` for explicit inplace modification of the array
 
 
 Bug Fixes
@@ -21,6 +21,7 @@ Bug Fixes
 - Fixes :code:`ERROR` logging level being ignored from environment variable :code:`AUTODE_LOG_LEVEL`
 - Fixes :code:`autode.values.Value` instances generating items with units on division, and throw a warning if multiplying
 - Fixes :code:`Hessian` instances changing units when normal modes are calculated
+- Fixes an incorrect alias for :code:`ev_per_ang`
 
 
 1.3.4

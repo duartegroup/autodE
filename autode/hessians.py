@@ -79,6 +79,25 @@ class Hessian(ValueArray):
 
         return arr
 
+    def to(self, units) -> Any:
+        """
+        Convert this hessian to a new unit, returning a copy of the array while
+        maintaining the atoms and functional properties
+
+        -----------------------------------------------------------------------
+        Arguments:
+            units (autode.units.Unit | str):
+
+        Returns:
+            (autode.values.ValueArray):
+
+        Raises:
+            (TypeError):
+        """
+        h = super().to(units)
+        h.atoms, h.functional = self.atoms, self.functional
+        return h
+
     @cached_property
     def n_tr(self) -> int:
         """
@@ -227,16 +246,16 @@ class Hessian(ValueArray):
         if self.atoms is None:
             raise ValueError("Could not calculate frequencies. Atoms not set")
 
-        H = self.copy().to("J ang^-2")
+        H = self.to("J ang^-2")
         mass_array = np.repeat(
             [atom.mass.to("kg") for atom in self.atoms],
             repeats=3,
             axis=np.newaxis,
         )
 
-        return Hessian(
-            H / np.sqrt(np.outer(mass_array, mass_array)), units="J m^-2 kg^-1"
-        )
+        return np.array(
+            H / np.sqrt(np.outer(mass_array, mass_array))
+        )  # J Å^-2 kg^-1
 
     @cached_property
     def _proj_mass_weighted(self) -> np.ndarray:

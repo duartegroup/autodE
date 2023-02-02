@@ -37,7 +37,9 @@ from autode.units import (
 )
 
 
-def _to(value: Union["Value", "ValueArray"], units: Union[Unit, str]):
+def _to(
+    value: Union["Value", "ValueArray"], units: Union[Unit, str], inplace: bool
+) -> Any:
     """
     Convert a value or value array to a new unit and return a copy
 
@@ -72,9 +74,12 @@ def _to(value: Union["Value", "ValueArray"], units: Union[Unit, str]):
         return value.__class__(float(value) * c, units=units)
 
     elif isinstance(value, ValueArray):
-        value[:] = np.array(value, copy=True) * c
-        value.units = units
-        return value
+        if inplace:
+            value *= c
+            value.units = units
+            return None
+        else:
+            return value.__class__(np.array(value, copy=True) * c, units=units)
 
     else:
         raise ValueError(
@@ -269,7 +274,7 @@ class Value(ABC, float):
         Raises:
             (TypeError):
         """
-        return _to(self, units)
+        return _to(self, units, inplace=False)
 
 
 class Energy(Value):
@@ -652,7 +657,21 @@ class ValueArray(ABC, np.ndarray):
         Raises:
             (TypeError):
         """
-        return _to(self, units)
+        return _to(self, units, inplace=False)
+
+    def to_(self, units) -> None:
+        """
+        Convert this array into a set of new units, inplace. This will not copy
+        the array
+
+        -----------------------------------------------------------------------
+        Returns:
+            (None)
+
+        Raises:
+            (TypeError):
+        """
+        _to(self, units, inplace=True)
 
     def __array_finalize__(self, obj):
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
