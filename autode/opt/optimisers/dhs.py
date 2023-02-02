@@ -269,7 +269,7 @@ class DistanceConstrainedImagePair:
             img = self._right_image
         else:
             raise Exception
-
+        # todo use coord.h instead of img.hessian
         assert img.hessian is not None
         h_matrix = np.array(img.hessian.to("ha/ang^2"))
         constr_hessians = self.get_one_sided_hessians_of_constraints(side=side)
@@ -494,7 +494,7 @@ class DHS:
                 else:
                     side = "right"
                 self._take_one_sided_step(side)
-                self._update_one_side_grad_hess(side)
+                self._update_one_side_mol_engrad_hess(side)
                 # in gradient update step, update hessian as well
                 # no need to update hessian in prfo step
                 if self._exceeded_maximum_iteration:
@@ -511,16 +511,23 @@ class DHS:
         hess = self.imgpair.get_one_sided_lagrangian_hessian(side)
         self._prfo_step(side, grad, hess)
 
+    def _update_one_side_mol_engrad_hess(self, side: str):
+        self.imgpair.update_one_side_molecular_engrad(side)
+        # todo interpolate hessian by Bofill
+        #self.imgpair.update_one_side_molecular_hessian(side)
+
     def _initialise_run(self):
         # todo this func is empty
         # todo is it really necessary to parallelise in DHS?
-        self.imgpair.update_both_side_molecular_engrad()
-        self.imgpair.update_both_side_molecular_hessian()
+        self.imgpair.update_one_side_molecular_engrad('left')
+        self.imgpair.update_one_side_molecular_hessian('left')
+        self.imgpair.update_one_side_molecular_engrad('right')
+        self.imgpair.update_one_side_molecular_hessian('right')
         pass
 
-    def _prfo_step(self, side: str, grad, hess):
-        b, u = np.linalg.eigh(self._hess)
-        f = u.T.dot(self._grad)
+    def _prfo_step(self, side: str, grad: np.ndarray, hess:np.ndarray):
+        b, u = np.linalg.eigh(hess)
+        f = u.T.dot(grad)
 
         delta_s = np.zeros(shape=(self.imgpair.n_atoms,))
 
@@ -539,6 +546,7 @@ class DHS:
         aug_h_max[1, 0] = f_max
         aug_h_max[0, 1] = f_max
         lambda_p = np.linalg.eigvalsh(aug_h_max)[-1]
+
         delta_s -= f_max * u_max / (b_max - lambda_p)
 
         u_min = np.delete(u, constr_mode, axis=1)
