@@ -23,6 +23,8 @@ class DHS:
         maxiter: int = 10,
         reduction_factor: float = 0.05,
         dist_tol: float = 0.05,
+        init_trust: Distance = Distance(0.05, "ang"),
+        max_trust: Distance = Distance(0.2, "ang"),
     ):
         self.imgpair = DistanceConstrainedImagePair(
             initial_species, final_species
@@ -43,6 +45,9 @@ class DHS:
 
         self._grad = None
         self._hess = None
+
+        self._trust = init_trust.to("ang")
+        self._max_trust = max_trust.to("ang")
 
         # todo have a history where store the optimised points after each macroiter
 
@@ -100,8 +105,7 @@ class DHS:
                     side = "right"
                 self._take_one_sided_step(side)
                 self._update_one_side_mol_engrad_hess(side)
-                # in gradient update step, update hessian as well
-                # no need to update hessian in prfo step
+
                 if self._exceeded_maximum_iteration:
                     # error message
                     maxiter_reached = True
@@ -113,22 +117,19 @@ class DHS:
 
     def _take_one_sided_step(self, side: str):
         grad = self.imgpair.get_one_img_lagrangian_gradient(side)
-        hess = self.imgpair.get_one_sided_lagrangian_hessian(side)
+        hess = self.imgpair.get_one_img_lagrangian_hessian(side)
         self._prfo_step(side, grad, hess)
 
     def _update_one_side_mol_engrad_hess(self, side: str):
         self.imgpair.update_one_img_molecular_engrad(side)
-        # todo interpolate hessian by Bofill
-        # self.imgpair.update_one_side_molecular_hessian(side)
+        self.imgpair.update_one_img_molecular_hessian_by_formula(side)
 
     def _initialise_run(self):
-        # todo this func is empty
-        # todo is it really necessary to parallelise in DHS?
         self.imgpair.update_one_img_molecular_engrad("left")
         self.imgpair.update_one_img_molecular_hessian_by_calc("left")
         self.imgpair.update_one_img_molecular_engrad("right")
         self.imgpair.update_one_img_molecular_hessian_by_calc("right")
-        pass
+        return None
 
     def _prfo_step(self, side: str, grad: np.ndarray, hess: np.ndarray):
         b, u = np.linalg.eigh(hess)
@@ -172,8 +173,26 @@ class DHS:
         for i in range(m):
             delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
 
-        self.take_step_within_trust_radius(side, delta_s)
+        self._take_step_within_trust_radius(side, delta_s)
 
-    def take_step_within_trust_radius(self, side, delta_s):
+    def _take_step_within_trust_radius(self, side, delta_s: np.ndarray):
         # set the coords to one side
+        step_length = np.linalg.norm(delta_s)
+        if step_length > self._trust:
+            factor = float(self._trust / step_length)
+            delta_s = delta_s * factor
+
+        if side == "left":
+            new_coord = self.imgpair.left_coord + delta_s
+            self.imgpair.left_coord = new_coord
+        elif side == "right":
+            new_coord = self.imgpair.right_coord + delta_s
+            self.imgpair.right_coord = new_coord
+        else:
+            raise Exception
+
+        return None
+
+    def _update_trust_radius(self):
+        # todo
         pass

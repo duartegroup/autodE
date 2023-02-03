@@ -162,9 +162,14 @@ class BaseImagePair:
         return None
 
     @property
-    def n_atoms(self):
+    def n_atoms(self) -> int:
         """Number of atoms"""
         return self._left_image.n_atoms
+
+    @property
+    def total_iters(self) -> int:
+        """Total number of iterations done on this image pair"""
+        return len(self._left_history) + len(self._right_history) - 2
 
     @property
     def left_coord(self) -> Optional[CartesianCoordinates]:
@@ -228,7 +233,7 @@ class BaseImagePair:
 
     def _get_img_by_side(
         self, side: str
-    ) -> Tuple[autode.Species, CartesianCoordinates, float]:
+    ) -> Tuple[autode.Species, CartesianCoordinates, _OptimiserHistory, float]:
         """
         Access an image and some properties by a string that
         represents side. Returns a tuple of the species, the
@@ -239,20 +244,22 @@ class BaseImagePair:
             side (str): 'left' or 'right'
 
         Returns:
-            tuple(autode.Species, CartesianCoordinates, float):
+            (tuple) : tuple(image, current coord, history, fac)
         """
         if side == "left":
             img = self._left_image
             coord = self.left_coord
+            hist = self._left_history
             fac = 1.0
         elif side == "right":
             img = self._right_image
             coord = self.right_coord
+            hist = self._right_history
             fac = -1.0
         else:
             raise Exception
 
-        return img, coord, fac
+        return img, coord, hist, fac
 
     def update_one_img_molecular_engrad(self, side: str) -> None:
         """
@@ -264,7 +271,7 @@ class BaseImagePair:
         """
         assert self._engrad_method is not None
         assert self._n_cores is not None
-        img, coord, _ = self._get_img_by_side(side)
+        img, coord, _, _ = self._get_img_by_side(side)
 
         en, grad = _calculate_engrad_for_species(
             species=img.copy(),
@@ -291,7 +298,7 @@ class BaseImagePair:
         """
         assert self._hess_method is not None
         assert self._n_cores is not None
-        img, coord, _ = self._get_img_by_side(side)
+        img, coord, _, _ = self._get_img_by_side(side)
 
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
@@ -301,8 +308,24 @@ class BaseImagePair:
         return None
 
     def update_one_img_molecular_hessian_by_formula(self, side: str) -> None:
-        img, coord, _ = self._get_img_by_side(side)
-        # todo
+        img, coord, hist, _ = self._get_img_by_side(side)
+        assert len(hist) > 1, "Hessian update not possible!"
+        assert coord.h is None, "Hessian already exists!"
+        last_coord = hist.penultimate
+        for update_type in self._hessian_update_types:
+            updater = update_type(
+                h=last_coord.h,
+                s=coord.raw - last_coord.raw,
+                y=coord.g - last_coord.g,
+                subspace_idxs=coord.indexes,
+            )
+            if not updater.conditions_met:
+                continue
+
+            coord.update_h_from_cart_h(updater.updated_h)
+            break
+
+        return None
 
 
 class DistanceConstrainedImagePair(BaseImagePair):
@@ -344,7 +367,7 @@ class DistanceConstrainedImagePair(BaseImagePair):
             (np.ndarray): An (n_atoms, 1) shaped matrix,
                           in units of Hartree/angs
         """
-        _, _, fac = self._get_img_by_side(side)
+        _, _, _, fac = self._get_img_by_side(side)
         # 1st column is derivatives of C_E (if exists)
         # 2nd column is derivatives of C_d
         dist_vec = np.array(self.left_coord - self.right_coord)
@@ -367,15 +390,10 @@ class DistanceConstrainedImagePair(BaseImagePair):
         Returns:
             (np.ndarray): The gradient of Lagrangian (L) in a flat array
         """
-        if side == "left":
-            img = self._left_image
-        elif side == "right":
-            img = self._right_image
-        else:
-            raise Exception
-        assert img.gradient is not None
+        _, coord, _, _ = self._get_img_by_side(side)
+        assert coord.g is not None
 
-        grad = np.array(img.gradient.to("ha/ang")).flatten().reshape(-1, 1)
+        grad = coord.g.reshape(-1, 1)
         # g_con = g - A @ lambda  <= lambda is a column matrix of multipliers
         lmda_col = np.array([self._lambda_dist]).reshape(-1, 1)
         constr_func_col = np.array([-self.C_d]).reshape(-1, 1)
@@ -383,49 +401,35 @@ class DistanceConstrainedImagePair(BaseImagePair):
         grad_con = grad - (a_matrix @ lmda_col)
 
         # grad(L) = [[grad_con, -C_d]]
-        grad_L = np.vstack((grad_con, constr_func_col))
-        return grad_L.flatten()
+        grad_l = np.vstack((grad_con, constr_func_col))
+        return grad_l.flatten()
 
-    def get_one_sided_hessians_of_constraints(
-        self, side: str
-    ) -> List[np.ndarray]:
+    def get_one_img_hessian_of_constraint(self, side: str) -> np.ndarray:
         """
-        Obtain the Hessians of the constraint functions C_E and C_d
+        Obtain the Hessians of the distance constraint function
 
         Args:
             side: 'left' or 'right'
 
         Returns:
-            (List[np.ndarray]): Hessian of distance constraint
+            (np.ndarray): Hessian of distance constraint
         """
         # A list is returned so that this class can be subclassed
         # for energy constraints
-        if side == "left":
-            img = self._left_image
-            fac = 1.0
-        elif side == "right":
-            img = self._right_image
-            fac = -1.0
-        else:
-            raise Exception
+        _, _, _, fac = self._get_img_by_side(side)
 
-        hess_list = []
         # hess(d - d_i) = hess(d)
-        dist_vec = np.array(
-            self._left_image.coordinates.to("ang").flatten()
-            - self._right_image.coordinates.to("ang").flatten()
-        )
+        dist_vec = np.array(self.left_coord - self.right_coord)
         grad_d = (
             float(1 / self.euclid_dist) * fac * dist_vec.reshape(-1, 1)
         )  # column vector
         hess_d = float(1 / self.euclid_dist) * (
             np.identity(self.n_atoms) - (grad_d @ grad_d.T)
         )
-        hess_list.append(hess_d)
 
-        return hess_list
+        return hess_d
 
-    def get_one_sided_lagrangian_hessian(self, side: str) -> np.ndarray:
+    def get_one_img_lagrangian_hessian(self, side: str) -> np.ndarray:
         if side == "left":
             img = self._left_image
         elif side == "right":
@@ -435,14 +439,14 @@ class DistanceConstrainedImagePair(BaseImagePair):
         # todo use coord.h instead of img.hessian
         assert img.hessian is not None
         h_matrix = np.array(img.hessian.to("ha/ang^2"))
-        constr_hessians = self.get_one_sided_hessians_of_constraints(side=side)
+        constr_hessian = self.get_one_img_hessian_of_constraint(side=side)
         a_matrix = self.get_one_img_jacobian_of_constraints(side=side)
-        return self._form_lagrange_hessian(h_matrix, constr_hessians, a_matrix)
+        return self._form_lagrange_hessian(h_matrix, constr_hessian, a_matrix)
 
     def _form_lagrange_hessian(
         self,
         h_matrix: np.ndarray,
-        constr_hessians: List[np.ndarray],
+        constr_hessian: np.ndarray,
         a_matrix: np.ndarray,
     ):
         """
@@ -450,14 +454,14 @@ class DistanceConstrainedImagePair(BaseImagePair):
 
         Args:
             h_matrix: Unconstrained hessian of system
-            constr_hessians: Hessians of constraint functions
-            a_matrix: Jacobian of constraint functions
+            constr_hessian: Hessian of distance constraint func
+            a_matrix: Jacobian of constraint function
 
         Returns:
             (np.ndarray): Hessian of Lagrangian. Square matrix with
                           dimensions of (n_atoms + n_constraints)
         """
-        w_matrix = h_matrix - self._lambda_dist * constr_hessians[0]
+        w_matrix = h_matrix - self._lambda_dist * constr_hessian
 
         end_zero = np.zeros((self.n_constraints, self.n_constraints))
         # hess(L) = [[W, -A],
