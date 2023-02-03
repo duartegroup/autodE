@@ -330,6 +330,9 @@ class _ConfigClass:
         # Force constant used for harmonic restraints in constrained
         # optimisations (Ha/a0)
         force_constant = 2
+        #
+        # Electronic temperature for all calculations (Kelvin)
+        etemp = 300.0
 
     class MOPAC:
         # ---------------------------------------------------------------------
