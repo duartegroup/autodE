@@ -216,6 +216,7 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
             implicit_solvation_type=None,
             keywords_set=XTB().keywords,
         )
+        self.etemp = XTB().etemp
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
         return XTB._energy_from(self, calc)
