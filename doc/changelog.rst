@@ -13,7 +13,7 @@ Usability improvements/Changes
 
 Functionality improvements
 **************************
--
+- Adds the option to modify electronic temperature for xTB calculations
 
 
 Bug Fixes
