@@ -4,6 +4,7 @@ import numpy as np
 
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
+from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
 
@@ -55,7 +56,7 @@ def _calculate_hessian_for_species(
     return species.hessian.to("ha/ang^2")
 
 
-class BaseImagePair(ABC):
+class BaseImagePair:
     """
     Base class for a pair of images (e.g., reactant and product) of
     the same species. The images are called 'left' and 'right' to
@@ -85,9 +86,11 @@ class BaseImagePair(ABC):
         self._engrad_method = None
         self._hess_method = None
         self._n_cores = None
+        self._hessian_update_types = [BofillUpdate]
 
         self._left_history = _OptimiserHistory()
         self._right_history = _OptimiserHistory()
+        # push the first coordinates into history
         self.left_coord = self._left_image.coordinates.to("ang").flatten()
         self.right_coord = self._right_image.coordinates.to("ang").flatten()
 
@@ -131,7 +134,16 @@ class BaseImagePair(ABC):
         engrad_method: autode.wrappers.methods.Method,
         hess_method: autode.wrappers.methods.Method,
         n_cores: int,
-    ):
+    ) -> None:
+        """
+        Sets the methods for engrad and hessian calculation, and the
+        total number of cores used for any calculation in this image pair
+
+        Args:
+            engrad_method (autode.wrappers.methods.Method):
+            hess_method (autode.wrappers.methods.Method):
+            n_cores (int):
+        """
         if not isinstance(engrad_method, autode.wrappers.methods.Method):
             raise ValueError(
                 f"The engrad_method needs to be of type autode."
@@ -147,6 +159,7 @@ class BaseImagePair(ABC):
             )
         self._hess_method = hess_method
         self._n_cores = int(n_cores)
+        return None
 
     @property
     def n_atoms(self):
@@ -213,17 +226,45 @@ class BaseImagePair(ABC):
             raise ValueError
         self._right_image.coordinates = self._right_history[-1]
 
-    def update_one_side_molecular_engrad(self, side: str):
-        assert self._engrad_method is not None
-        assert self._n_cores is not None
+    def _get_img_by_side(
+        self, side: str
+    ) -> Tuple[autode.Species, CartesianCoordinates, float]:
+        """
+        Access an image and some properties by a string that
+        represents side. Returns a tuple of the species, the
+        current coordinate object, and a factor that is necessary
+        for calculation
+
+        Args:
+            side (str): 'left' or 'right'
+
+        Returns:
+            tuple(autode.Species, CartesianCoordinates, float):
+        """
         if side == "left":
             img = self._left_image
             coord = self.left_coord
+            fac = 1.0
         elif side == "right":
             img = self._right_image
             coord = self.right_coord
+            fac = -1.0
         else:
             raise Exception
+
+        return img, coord, fac
+
+    def update_one_img_molecular_engrad(self, side: str) -> None:
+        """
+        Update the molecular energy and gradient using the supplied
+        engrad_method for one image only
+
+        Args:
+            side (str): 'left' or 'right'
+        """
+        assert self._engrad_method is not None
+        assert self._n_cores is not None
+        img, coord, _ = self._get_img_by_side(side)
 
         en, grad = _calculate_engrad_for_species(
             species=img.copy(),
@@ -233,21 +274,24 @@ class BaseImagePair(ABC):
         # update both species and coord
         img.energy = en
         img.gradient = grad.copy()
-        coord.e = en
+        coord.e = en.copy()
         coord.update_g_from_cart_g(grad)
         return None
 
-    def update_one_side_molecular_hessian(self, side: str) -> None:
+    def update_one_img_molecular_hessian_by_calc(self, side: str) -> None:
+        """
+        Updates the molecular hessian using supplied hess_method
+        for one image only
+
+        Args:
+            side (str): 'left' or 'right'
+
+        Returns:
+
+        """
         assert self._hess_method is not None
         assert self._n_cores is not None
-        if side == "left":
-            img = self._left_image
-            coord = self.left_coord
-        elif side == "right":
-            img = self._right_image
-            coord = self.right_coord
-        else:
-            raise Exception
+        img, coord, _ = self._get_img_by_side(side)
 
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
@@ -255,6 +299,10 @@ class BaseImagePair(ABC):
         img.hessian = hess
         coord.update_h_from_cart_h(hess)
         return None
+
+    def update_one_img_molecular_hessian_by_formula(self, side: str) -> None:
+        img, coord, _ = self._get_img_by_side(side)
+        # todo
 
 
 class DistanceConstrainedImagePair(BaseImagePair):
@@ -284,48 +332,37 @@ class DistanceConstrainedImagePair(BaseImagePair):
         self._d_i = None
         self._lambda_dist = 0  # dist. constraint lagrange multiplier
 
-    def get_one_sided_jacobian_of_constraints(self, side: str) -> np.ndarray:
+    def get_one_img_jacobian_of_constraints(self, side: str) -> np.ndarray:
         """
         Obtains the Jacobian (first derivative) of the constraints
-        on one side of the image pair (i.e. only one side considered)
+        on one image of the image pair (i.e. only one side considered)
 
         Args:
-            side: 'left' or 'right'
+            side (str): 'left' or 'right'
 
         Returns:
-            (np.ndarray): An (n_atoms * n_constraints) shaped matrix,
+            (np.ndarray): An (n_atoms, 1) shaped matrix,
                           in units of Hartree/angs
         """
-        if side == "left":
-            img = self._left_image
-            fac = 1.0
-        elif side == "right":
-            img = self._right_image
-            fac = -1.0
-        else:
-            raise Exception
+        _, _, fac = self._get_img_by_side(side)
         # 1st column is derivatives of C_E (if exists)
         # 2nd column is derivatives of C_d
-        dist_vec = np.array(
-            self._left_image.coordinates.to("ang").flatten()
-            - self._right_image.coordinates.to("ang").flatten()
-        )
+        dist_vec = np.array(self.left_coord - self.right_coord)
         # grad(d - d_i) = grad(d)
         # grad_1(d) = (1/d) (r_1 - r_2)
         # grad_2(d) = (1/d) (r_2 - r_1) = - (1/d) (r_1 - r_2)
-        dist_constr_grad = (
+        a_matrix = (
             float(1 / self.euclid_dist) * fac * dist_vec.reshape(-1, 1)
-        )  # column vector
-        a_matrix = dist_constr_grad
+        )  # column vector, gradient of distance constraint
 
         return a_matrix
 
-    def get_one_sided_lagrangian_gradient(self, side: str) -> np.ndarray:
+    def get_one_img_lagrangian_gradient(self, side: str) -> np.ndarray:
         """
-        Get the gradient of the Lagrangian, for one side only
+        Build the gradient of the Lagrangian, for one image only
 
         Args:
-            side: 'left' or 'right'
+            side (str): 'left' or 'right'
 
         Returns:
             (np.ndarray): The gradient of Lagrangian (L) in a flat array
@@ -342,7 +379,7 @@ class DistanceConstrainedImagePair(BaseImagePair):
         # g_con = g - A @ lambda  <= lambda is a column matrix of multipliers
         lmda_col = np.array([self._lambda_dist]).reshape(-1, 1)
         constr_func_col = np.array([-self.C_d]).reshape(-1, 1)
-        a_matrix = self.get_one_sided_jacobian_of_constraints(side=side)
+        a_matrix = self.get_one_img_jacobian_of_constraints(side=side)
         grad_con = grad - (a_matrix @ lmda_col)
 
         # grad(L) = [[grad_con, -C_d]]
@@ -399,7 +436,7 @@ class DistanceConstrainedImagePair(BaseImagePair):
         assert img.hessian is not None
         h_matrix = np.array(img.hessian.to("ha/ang^2"))
         constr_hessians = self.get_one_sided_hessians_of_constraints(side=side)
-        a_matrix = self.get_one_sided_jacobian_of_constraints(side=side)
+        a_matrix = self.get_one_img_jacobian_of_constraints(side=side)
         return self._form_lagrange_hessian(h_matrix, constr_hessians, a_matrix)
 
     def _form_lagrange_hessian(
@@ -423,7 +460,8 @@ class DistanceConstrainedImagePair(BaseImagePair):
         w_matrix = h_matrix - self._lambda_dist * constr_hessians[0]
 
         end_zero = np.zeros((self.n_constraints, self.n_constraints))
-        # hess(L) = [[W, -A],[-A.T, 0]]
+        # hess(L) = [[W, -A],
+        #            [-A.T, 0]]
         lagrange_hess = np.vstack(
             (
                 np.hstack((w_matrix, -a_matrix)),
@@ -466,17 +504,6 @@ class DistanceConstrainedImagePair(BaseImagePair):
         return Distance(np.linalg.norm(dist_vec), units="ang")
 
     @property
-    def C_E(self) -> float:
-        """
-        Returns the current value of the energy constraint function
-        (E_1 - E_2) in Hartree
-        """
-        return float(
-            self._left_image.energy.to("Ha")
-            - self._right_image.energy.to("Ha")
-        )
-
-    @property
     def C_d(self) -> float:
         """
         Returns the current value of the dustance constraint function
@@ -484,7 +511,7 @@ class DistanceConstrainedImagePair(BaseImagePair):
         """
         return float(self.euclid_dist.to("ang") - self.target_dist.to("ang"))
 
-    def update_lagrangian_multipliers(self, num):
+    def update_lagrangian_multiplier(self, num: float):
         """
         Updates the Lagrangian multiplier lambda_dist
         """

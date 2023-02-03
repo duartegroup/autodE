@@ -112,22 +112,22 @@ class DHS:
         pass
 
     def _take_one_sided_step(self, side: str):
-        grad = self.imgpair.get_one_sided_lagrangian_gradient(side)
+        grad = self.imgpair.get_one_img_lagrangian_gradient(side)
         hess = self.imgpair.get_one_sided_lagrangian_hessian(side)
         self._prfo_step(side, grad, hess)
 
     def _update_one_side_mol_engrad_hess(self, side: str):
-        self.imgpair.update_one_side_molecular_engrad(side)
+        self.imgpair.update_one_img_molecular_engrad(side)
         # todo interpolate hessian by Bofill
         # self.imgpair.update_one_side_molecular_hessian(side)
 
     def _initialise_run(self):
         # todo this func is empty
         # todo is it really necessary to parallelise in DHS?
-        self.imgpair.update_one_side_molecular_engrad("left")
-        self.imgpair.update_one_side_molecular_hessian("left")
-        self.imgpair.update_one_side_molecular_engrad("right")
-        self.imgpair.update_one_side_molecular_hessian("right")
+        self.imgpair.update_one_img_molecular_engrad("left")
+        self.imgpair.update_one_img_molecular_hessian_by_calc("left")
+        self.imgpair.update_one_img_molecular_engrad("right")
+        self.imgpair.update_one_img_molecular_hessian_by_calc("right")
         pass
 
     def _prfo_step(self, side: str, grad: np.ndarray, hess: np.ndarray):
