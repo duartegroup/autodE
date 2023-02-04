@@ -195,6 +195,7 @@ class DHS:
         hess: np.ndarray,
     ):
         # set the coords to one side
+        # todo fix predicted e change
         delta_s = delta_s.flatten()
         step_length = np.linalg.norm(delta_s)
 
@@ -210,8 +211,9 @@ class DHS:
         )
 
         if side == "left":
-            new_coord = self.imgpair.left_coord + delta_s
+            new_coord = self.imgpair.left_coord + delta_s[:-1]
             self.imgpair.left_coord = new_coord
+            # todo need to update lagrangian multiplier
             self._left_pred_delta_e = pred_delta_e
         elif side == "right":
             new_coord = self.imgpair.right_coord + delta_s
@@ -225,7 +227,7 @@ class DHS:
     def _update_trust_radius(self, side: str) -> None:
         if not self._trust_update:
             return None
-        # need lagrangian value
+        # todo should this consider lagrangian or just the molecule
+        _, _, hist, _ = self.imgpair._get_img_by_side()
 
-        # todo
         pass
