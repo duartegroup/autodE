@@ -23,7 +23,7 @@ class DHS:
         maxiter: int = 10,
         reduction_factor: float = 0.05,
         dist_tol: float = 0.05,
-        init_trust: Distance = Distance(0.05, "ang"),
+        init_trust: Distance = Distance(-0.08, "ang"),
         max_trust: Distance = Distance(0.2, "ang"),
     ):
         self.imgpair = DistanceConstrainedImagePair(
@@ -46,8 +46,15 @@ class DHS:
         self._grad = None
         self._hess = None
 
-        self._trust = init_trust.to("ang")
+        self._left_trust = init_trust.to("ang")
+        self._right_trust = init_trust.to("ang")
+        if init_trust < 0:
+            self._trust_update = False
+        else:
+            self._trust_update = True
         self._max_trust = max_trust.to("ang")
+        self._left_pred_delta_e = None
+        self._right_pred_delta_e = None
 
         # todo have a history where store the optimised points after each macroiter
 
@@ -62,6 +69,10 @@ class DHS:
     def microiter_converged(self):
         # gtol and dist_tol
         pass
+
+    @property
+    def iteration(self) -> int:
+        return self.imgpair.total_iters
 
     @property
     def _exceeded_maximum_iteration(self) -> bool:
@@ -105,6 +116,7 @@ class DHS:
                     side = "right"
                 self._take_one_sided_step(side)
                 self._update_one_side_mol_engrad_hess(side)
+                self._update_trust_radius(side)
 
                 if self._exceeded_maximum_iteration:
                     # error message
@@ -173,26 +185,47 @@ class DHS:
         for i in range(m):
             delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
 
-        self._take_step_within_trust_radius(side, delta_s)
+        self._take_step_within_trust_radius(side, delta_s, grad, hess)
 
-    def _take_step_within_trust_radius(self, side, delta_s: np.ndarray):
+    def _take_step_within_trust_radius(
+        self,
+        side: str,
+        delta_s: np.ndarray,
+        grad: np.ndarray,
+        hess: np.ndarray,
+    ):
         # set the coords to one side
+        delta_s = delta_s.flatten()
         step_length = np.linalg.norm(delta_s)
-        if step_length > self._trust:
-            factor = float(self._trust / step_length)
+
+        trust = self._left_trust if side == "left" else self._right_trust
+
+        if step_length > trust:
+            factor = float(trust / step_length)
             delta_s = delta_s * factor
+
+        pred_delta_e = float(np.dot(grad, delta_s))
+        pred_delta_e += 0.5 * float(
+            delta_s.reshape(1, -1) @ hess @ delta_s.reshape(-1, 1)
+        )
 
         if side == "left":
             new_coord = self.imgpair.left_coord + delta_s
             self.imgpair.left_coord = new_coord
+            self._left_pred_delta_e = pred_delta_e
         elif side == "right":
             new_coord = self.imgpair.right_coord + delta_s
             self.imgpair.right_coord = new_coord
+            self._right_pred_delta_e = pred_delta_e
         else:
             raise Exception
 
         return None
 
-    def _update_trust_radius(self):
+    def _update_trust_radius(self, side: str) -> None:
+        if not self._trust_update:
+            return None
+        # need lagrangian value
+
         # todo
         pass

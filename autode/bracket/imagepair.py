@@ -353,7 +353,21 @@ class DistanceConstrainedImagePair(BaseImagePair):
 
         # C_d = (d - d_i)
         self._d_i = None
-        self._lambda_dist = 0  # dist. constraint lagrange multiplier
+        self._lambda_dist = 0.0  # dist. constraint lagrange multiplier
+
+    def get_one_img_lagrangian_func(self, side: str) -> float:
+        """
+        Obtain the current value of the Lagrangian function
+        (L = E - lambda_dist * C_d)
+
+        Args:
+            side: 'left' or 'right'
+
+        Returns:
+            (float):
+        """
+        _, coord, _, _ = self._get_img_by_side(side)
+        return float(coord.e) - self._lambda_dist * self.C_d
 
     def get_one_img_jacobian_of_constraints(self, side: str) -> np.ndarray:
         """
@@ -364,7 +378,7 @@ class DistanceConstrainedImagePair(BaseImagePair):
             side (str): 'left' or 'right'
 
         Returns:
-            (np.ndarray): An (n_atoms, 1) shaped matrix,
+            (np.ndarray): An (n_atoms, 1) shaped column matrix,
                           in units of Hartree/angs
         """
         _, _, _, fac = self._get_img_by_side(side)
