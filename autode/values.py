@@ -41,7 +41,8 @@ def _to(
     value: Union["Value", "ValueArray"], units: Union[Unit, str], inplace: bool
 ) -> Any:
     """
-    Convert a value or value array to a new unit and return a copy
+    Convert a value or value array to a new unit and return a copy if
+    inplace=False
 
     ---------------------------------------------------------------------------
     Arguments:
@@ -67,25 +68,20 @@ def _to(
             f"No viable unit conversion from {value.units} -> {units}"
         )
 
-    # Convert to the base unit, then to the new units
-    c = float(units.conversion / value.units.conversion)
-
-    if isinstance(value, Value):
-        return value.__class__(float(value) * c, units=units)
-
-    elif isinstance(value, ValueArray):
-        if inplace:
-            value *= c
-            value.units = units
-            return None
-        else:
-            return value.__class__(np.array(value, copy=True) * c, units=units)
-
-    else:
+    if not (isinstance(value, Value) or isinstance(value, ValueArray)):
         raise ValueError(
             f"Cannot convert {value} to new units. Must be one of"
             f" Value of ValueArray"
         )
+
+    # Convert to the base unit, then to the new units
+    c = float(units.conversion / value.units.conversion)
+
+    new_value = value if inplace else value.copy()
+    new_value *= c
+    new_value.units = units
+
+    return None if inplace else new_value
 
 
 def _units_init(value, units: Union[Unit, str, None]):

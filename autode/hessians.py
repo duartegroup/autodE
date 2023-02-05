@@ -79,25 +79,6 @@ class Hessian(ValueArray):
 
         return arr
 
-    def to(self, units) -> Any:
-        """
-        Convert this hessian to a new unit, returning a copy of the array while
-        maintaining the atoms and functional properties
-
-        -----------------------------------------------------------------------
-        Arguments:
-            units (autode.units.Unit | str):
-
-        Returns:
-            (autode.values.ValueArray):
-
-        Raises:
-            (TypeError):
-        """
-        h = super().to(units)
-        h.atoms, h.functional = self.atoms, self.functional
-        return h
-
     @cached_property
     def n_tr(self) -> int:
         """
