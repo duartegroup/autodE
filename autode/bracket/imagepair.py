@@ -262,6 +262,11 @@ class BaseImagePair:
             raise ValueError
         self._right_image.coordinates = self._right_history[-1]
 
+    def get_coord_by_side(self, side: str) -> CartesianCoordinates:
+        """For external usage, supplies only the coordinate object"""
+        _, coord, _, _ = self._get_img_by_side(side)
+        return coord
+
     def _get_img_by_side(
         self, side: str
     ) -> Tuple[autode.Species, CartesianCoordinates, _OptimiserHistory, float]:

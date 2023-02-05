@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import Optional, Callable
 import numpy as np
 
 from autode.values import Distance, PotentialEnergy, Gradient
@@ -14,6 +14,36 @@ import autode.wrappers.methods
 
 
 _optional_method = Optional[autode.wrappers.methods.Method]
+
+
+class ScaledQNROptimiser:
+    def __init__(
+        self,
+        fn: Callable,
+        x0,
+        maxiter: int,
+        gtol: float = 1e-3,
+        init_trust: float = 0.06,
+        max_trust: float = 0.1
+    ):
+        self._fn = fn
+        self._x0 = np.array(x0).flatten()
+        self._gtol = gtol
+        self._maxiter = int(maxiter)
+        self._trust = float(init_trust)
+        self._max_trust = float(max_trust)
+
+        self.en = None
+        self.grad = None
+        self.hess = None
+
+    def run(self):
+        x = self._x0
+        dim = len(x)  # dimension of problem
+        en, grad = self._fn(x)
+
+        for i in range(self._maxiter):
+            pass
 
 
 class DHSImagePair(BaseImagePair):
@@ -42,6 +72,28 @@ class DHSImagePair(BaseImagePair):
 
         return perp_grad
 
+    @property
+    def euclid_dist(self):
+        dist_vec = np.array(self.left_coord - self.right_coord)
+        return Distance(np.linalg.norm(dist_vec), 'Ang')
+
+def _set_one_img_coord_and_get_engrad(
+        coord: np.array,
+        side: str,
+        imgpair: DHSImagePair):
+    if side == 'left':
+        imgpair.left_coord = np.array(coord).flatten()
+    elif side == 'right':
+        imgpair.right_coord = np.array(coord).flatten()
+    else:
+        raise Exception
+
+    imgpair.update_one_img_molecular_engrad(side)
+    new_coord = imgpair.get_coord_by_side(side)
+    en = float(new_coord.e.to('Ha'))
+    grad = new_coord.g
+    return en, grad
+
 
 class DHS:
     def __init__(
@@ -50,13 +102,28 @@ class DHS:
         final_species: autode.species.Species,
         maxiter: int = 100,
         reduction_factor: float = 0.05,
-        dist_tol: float = 0.05,
+        dist_tol: Distance = Distance(0.5, 'ang'),
     ):
         self.imgpair = DHSImagePair(initial_species, final_species)
         self._reduction_fac = float(reduction_factor)
 
-        self._maxiter = (maxiter,)
-        self._dist_tol = dist_tol
+        self._maxiter = int(maxiter)
+        self._dist_tol = Distance(dist_tol, 'ang')
+
+    @property
+    def converged(self):
+        if self.imgpair.euclid_dist < self._dist_tol:
+            return True
+        else:
+            return False
+
+    def calculate(self):
+        while not self.converged:
+            pass
+        # get the energies, then call scipy.minimize
+
+
+
 
 
 class DHS_old:
