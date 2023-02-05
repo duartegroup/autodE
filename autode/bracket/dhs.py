@@ -3,6 +3,7 @@ import numpy as np
 
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.bracket.imagepair import DistanceConstrainedImagePair
+from autode.bracket.imagepair import BaseImagePair
 
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
@@ -15,7 +16,50 @@ import autode.wrappers.methods
 _optional_method = Optional[autode.wrappers.methods.Method]
 
 
+class DHSImagePair(BaseImagePair):
+    def __init__(
+        self,
+        left_image: autode.species.Species,
+        right_image: autode.species.Species,
+    ):
+        super().__init__(left_image, right_image)
+
+    def get_one_img_perp_grad(self, side: str):
+        """
+        Get the gradient perpendicular to the distance vector
+        between the two images of the image-pair, for one
+        image
+
+        Returns:
+
+        """
+        dist_vec = np.array(self.left_coord - self.right_coord)
+        _, coord, _, _ = self._get_img_by_side(side)
+        # project the gradient towards the distance vector
+        proj_grad = dist_vec * coord.g.dot(dist_vec) / dist_vec.dot(dist_vec)
+        # gradient component perpendicular to distance vector
+        perp_grad = coord.g - proj_grad
+
+        return perp_grad
+
+
 class DHS:
+    def __init__(
+        self,
+        initial_species: autode.species.Species,
+        final_species: autode.species.Species,
+        maxiter: int = 100,
+        reduction_factor: float = 0.05,
+        dist_tol: float = 0.05,
+    ):
+        self.imgpair = DHSImagePair(initial_species, final_species)
+        self._reduction_fac = float(reduction_factor)
+
+        self._maxiter = (maxiter,)
+        self._dist_tol = dist_tol
+
+
+class DHS_old:
     def __init__(
         self,
         initial_species: autode.species.Species,

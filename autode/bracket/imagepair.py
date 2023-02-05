@@ -3,10 +3,12 @@ from typing import Optional, List, Tuple
 import numpy as np
 
 from autode.values import Distance, PotentialEnergy, Gradient
+from autode.geom import get_rot_mat_kabsch
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
+from autode.log import logger
 
 import autode.species.species
 import autode.wrappers.methods
@@ -81,6 +83,7 @@ class BaseImagePair:
         self._left_image = left_image.new_species(name="left_image")
         self._right_image = right_image.new_species(name="right_image")
         self._sanity_check()
+        self._align_species()
 
         # separate methods for engrad and hessian calc
         self._engrad_method = None
@@ -128,6 +131,34 @@ class BaseImagePair:
                 )
 
         return None
+
+    def _align_species(self) -> None:
+        """
+        Translates both molecules to origin and then performs
+        a Kabsch rotation to orient the molecules as close as
+        possible against each other
+        """
+        # first translate the molecules to the origin
+        logger.error(
+            "Translating initial_species (reactant) "
+            "and final_species (product) to origin"
+        )
+        p_mat = self._left_image.coordinates.copy()
+        p_mat -= np.average(p_mat, axis=0)
+        self._left_image.coordinates = p_mat
+
+        q_mat = self._right_image.coordinates.copy()
+        q_mat -= np.average(q_mat, axis=0)
+        self._right_image.coordinates = q_mat
+
+        logger.error(
+            "Rotating initial_species (reactant) "
+            "to align with final_species (product) "
+            "as much as possible"
+        )
+        rot_mat = get_rot_mat_kabsch(p_mat, q_mat)
+        rotated_p_mat = np.dot(rot_mat, p_mat.T).T
+        self._left_image.coordinates = rotated_p_mat
 
     def set_method_and_n_cores(
         self,
