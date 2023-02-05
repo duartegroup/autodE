@@ -1,25 +1,25 @@
 Changelog
 =========
 
-1.3.5
+1.4.0
 --------
 ----------
+
+Functionality improvements
+**************************
+- Adds :code:`temporary_config()` context manager for temporary configuration changes
+- Adds the option to modify electronic temperature for xTB calculations
 
 
 Usability improvements/Changes
 ******************************
-*
-
-
-Functionality improvements
-**************************
-- Adds the option to modify electronic temperature for xTB calculations
+- Adds full usability of autodE on Windows, including parallelisation with :code:`loky`
+- Optional timeout for graph isomorphism test in Windows, turned on by :code:`Config.use_experimental_timeout=True` (default behaviour kept for Linux/macOS)
 
 
 Bug Fixes
 *********
-- Fixes :code:`ERROR` logging level being ignored from environment variable :code:`AUTODE_LOG_LEVEL`
-- Fixes :code:`autode.values.Value` instances generating items with units on division, and throw a warning if multiplying
+- Fixes pickling issue with :code:`autode.config.Config` on Windows and in multiprocessing spawn for Linux/macOS
 
 
 1.3.4

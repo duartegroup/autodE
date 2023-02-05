@@ -18,6 +18,10 @@ def autouse_fixture():
     # Frequencies are all with unity scaling
     ade.Config.freq_scale_factor = 1.0
 
-    yield  # test happens here
+    # Use bad quality plots for speed
+    ade.Config.high_quality_plots = False
+
+    with ade.utils.temporary_config():
+        yield  # test happens here
 
     # Teardown

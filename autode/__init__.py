@@ -21,6 +21,7 @@ from autode.wrappers.keywords import (
     Keywords,
     GradientKeywords,
 )
+from autode.utils import temporary_config
 
 """
 Bumping the version number requires following the release proceedure:
@@ -39,7 +40,7 @@ Bumping the version number requires following the release proceedure:
   - Merge when tests pass
 """
 
-__version__ = "1.3.5"
+__version__ = "1.4.0"
 
 
 __all__ = [

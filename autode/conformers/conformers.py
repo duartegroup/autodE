@@ -1,6 +1,5 @@
 import numpy as np
 from typing import Optional, Union
-from multiprocessing import Pool
 from rdkit import Chem
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
@@ -8,6 +7,7 @@ from autode.config import Config
 from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
+from autode.utils import ProcessPool
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -254,18 +254,21 @@ class Conformers(list):
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
-        with Pool(processes=Config.n_cores // n_cores_pp) as pool:
-            results = [
-                pool.apply_async(
+        with ProcessPool(max_workers=Config.n_cores // n_cores_pp) as pool:
+            jobs = [
+                pool.submit(
                     _calc_conformer,
-                    args=(conf, calc_type, method, keywords),
-                    kwds={"n_cores": n_cores_pp},
+                    conf,
+                    calc_type,
+                    method,
+                    keywords,
+                    n_cores=n_cores_pp,
                 )
                 for conf in self
             ]
 
-            for idx, res in enumerate(results):
-                self[idx] = res.get(timeout=None)
+            for idx, res in enumerate(jobs):
+                self[idx] = res.result()
 
         return None
 
