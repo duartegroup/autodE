@@ -98,7 +98,7 @@ def _set_one_img_coord_and_get_engrad(
     imgpair.update_one_img_molecular_engrad(side)
     new_coord = imgpair.get_coord_by_side(side)
     en = float(new_coord.e.to('Ha'))
-    grad = new_coord.g
+    grad = imgpair.get_one_img_perp_grad(side)
     return en, grad
 
 
@@ -129,7 +129,7 @@ class DHS:
             return False
 
     def calculate(self, method, n_cores):
-        self.imgpair.set_method_and_n_cores(method, None, n_cores)
+        self.imgpair.set_method_and_n_cores(method, n_cores)
         self.imgpair.update_one_img_molecular_engrad('left')
         self.imgpair.update_one_img_molecular_engrad('right')
         logger.error("Starting DHS optimisation")
@@ -150,8 +150,21 @@ class DHS:
                 method='CG',
                 options={'gtol': 0.001, 'disp': True}
             )
-            hist.append(self.imgpair.get_coord_by_side(side))
+            new_coord = self.imgpair.get_coord_by_side(side)
+            rms_grad = np.sqrt(np.mean(np.square(new_coord.g)))
+            if res['success']:
+                logger.error("Successful optimization after DHS step, final"
+                             f" RMS gradient = {rms_grad} Ha/angstrom")
+            hist.append(new_coord.copy())
             self._log_convergence()
+
+    @property
+    def macro_iter(self):
+        return (
+            len(self._initial_species_hist)
+            + len(self._final_species_hist)
+            - 2
+        )
 
     def _step(self, side: str):
         # take a DHS step by minimizing the distance by factor
@@ -171,7 +184,12 @@ class DHS:
         assert self.imgpair.euclid_dist == new_dist
 
     def _log_convergence(self):
-        pass
+        logger.error(
+            f"Macro-iteration #{self.macro_iter}: Distance = "
+            f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
+            f"{self.imgpair.left_coord.e}; Energy (final species) = "
+            f"{self.imgpair.right_coord.e}"
+        )
 
 
 class DHS_old:
@@ -252,11 +270,7 @@ class DHS_old:
         hess_method = method_or_default_lmethod(hess_method)
         if n_cores is None:
             n_cores = Config.n_cores
-        self.imgpair.set_method_and_n_cores(
-            engrad_method=engrad_method,
-            hess_method=hess_method,
-            n_cores=n_cores,
-        )
+        self.imgpair.set_method_and_n_cores(engrad_method=engrad_method, n_cores=n_cores, hess_method=hess_method)
 
         self._initialise_run()
 
