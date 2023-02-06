@@ -172,6 +172,11 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
+    def _like_self_from_float(self, value: float) -> "Value":
+        new_value = self.__class__(value, units=self.units)
+        new_value.__dict__.update(self.__dict__)
+        return new_value
+
     def __eq__(self, other) -> bool:
         """Equality of two values, which may be in different units"""
 
@@ -211,8 +216,8 @@ class Value(ABC, float):
         if isinstance(other, np.ndarray):
             return other + float(self)
 
-        return self.__class__(
-            float(self) + self._other_same_units(other), units=self.units
+        return self._like_self_from_float(
+            float(self) + self._other_same_units(other)
         )
 
     def __mul__(self, other) -> Union[float, "Value"]:
@@ -226,8 +231,8 @@ class Value(ABC, float):
             )
             return float(self) * self._other_same_units(other)
 
-        return self.__class__(
-            float(self) * self._other_same_units(other), units=self.units
+        return self._like_self_from_float(
+            float(self) * self._other_same_units(other)
         )
 
     def __rmul__(self, other) -> Union[float, "Value"]:
@@ -241,17 +246,11 @@ class Value(ABC, float):
 
     def __floordiv__(self, other) -> Union[float, "Value"]:
         x = float(self) // self._other_same_units(other)
-        if isinstance(other, Value):
-            return x
-
-        return self.__class__(x, units=self.units)
+        return x if isinstance(other, Value) else self._like_self_from_float(x)
 
     def __truediv__(self, other) -> Union[float, "Value"]:
         x = float(self) / self._other_same_units(other)
-        if isinstance(other, Value):
-            return x
-
-        return self.__class__(x, units=self.units)
+        return x if isinstance(other, Value) else self._like_self_from_float(x)
 
     def __abs__(self) -> "Value":
         """Absolute value"""
