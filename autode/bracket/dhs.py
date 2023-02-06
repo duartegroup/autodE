@@ -1,9 +1,11 @@
 from typing import Optional, Callable
 import numpy as np
+from scipy.optimize import minimize as scipy_minimize
 
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.bracket.imagepair import DistanceConstrainedImagePair
 from autode.bracket.imagepair import BaseImagePair
+from autode.opt.optimisers.base import _OptimiserHistory
 
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
@@ -54,6 +56,11 @@ class DHSImagePair(BaseImagePair):
     ):
         super().__init__(left_image, right_image)
 
+    @property
+    def dist_vec(self) -> np.ndarray:
+        """The distance vector pointing to right_image from left_image"""
+        return np.array(self.left_coord - self.right_coord)
+
     def get_one_img_perp_grad(self, side: str):
         """
         Get the gradient perpendicular to the distance vector
@@ -63,7 +70,7 @@ class DHSImagePair(BaseImagePair):
         Returns:
 
         """
-        dist_vec = np.array(self.left_coord - self.right_coord)
+        dist_vec = self.dist_vec
         _, coord, _, _ = self._get_img_by_side(side)
         # project the gradient towards the distance vector
         proj_grad = dist_vec * coord.g.dot(dist_vec) / dist_vec.dot(dist_vec)
@@ -74,8 +81,8 @@ class DHSImagePair(BaseImagePair):
 
     @property
     def euclid_dist(self):
-        dist_vec = np.array(self.left_coord - self.right_coord)
-        return Distance(np.linalg.norm(dist_vec), 'Ang')
+        return Distance(np.linalg.norm(self.dist_vec), 'Ang')
+
 
 def _set_one_img_coord_and_get_engrad(
         coord: np.array,
@@ -110,6 +117,10 @@ class DHS:
         self._maxiter = int(maxiter)
         self._dist_tol = Distance(dist_tol, 'ang')
 
+        # these only hold the coords after optimisation
+        self._initial_species_hist = _OptimiserHistory()
+        self._final_species_hist = _OptimiserHistory()
+
     @property
     def converged(self):
         if self.imgpair.euclid_dist < self._dist_tol:
@@ -117,13 +128,50 @@ class DHS:
         else:
             return False
 
-    def calculate(self):
+    def calculate(self, method, n_cores):
+        self.imgpair.set_method_and_n_cores(method, None, n_cores)
+        self.imgpair.update_one_img_molecular_engrad('left')
+        self.imgpair.update_one_img_molecular_engrad('right')
+        logger.error("Starting DHS optimisation")
         while not self.converged:
-            pass
-        # get the energies, then call scipy.minimize
+            if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
+                side = 'left'
+                hist = self._initial_species_hist
+            else:
+                side = 'right'
+                hist = self._final_species_hist
+            self._step(side)
+            coord0 = self.imgpair.get_coord_by_side(side)
+            res = scipy_minimize(
+                fun=_set_one_img_coord_and_get_engrad,
+                jac=True,
+                x0=coord0,
+                args=(side, self.imgpair),
+                method='CG',
+                options={'gtol': 0.001, 'disp': True}
+            )
+            hist.append(self.imgpair.get_coord_by_side(side))
+            self._log_convergence()
 
+    def _step(self, side: str):
+        # take a DHS step by minimizing the distance by factor
+        new_dist = (1 - self._reduction_fac) * self.imgpair.euclid_dist
+        dist_vec = self.imgpair.dist_vec
+        step = dist_vec * self._reduction_fac  # ??
 
+        if side == 'left':
+            new_coord = self.imgpair.left_coord - step
+            self.imgpair.left_coord = new_coord
+        elif side == 'right':
+            new_coord = self.imgpair.right_coord + step
+            self.imgpair.right_coord = new_coord
 
+        logger.error(f"DHS step: target distance = {new_dist}")
+
+        assert self.imgpair.euclid_dist == new_dist
+
+    def _log_convergence(self):
+        pass
 
 
 class DHS_old:

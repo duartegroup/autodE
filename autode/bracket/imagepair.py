@@ -182,7 +182,9 @@ class BaseImagePair:
                 f"{type(engrad_method)} was supplied."
             )
         self._engrad_method = engrad_method
-        if not isinstance(hess_method, autode.wrappers.methods.Method):
+        if hess_method is None:
+            pass
+        elif not isinstance(hess_method, autode.wrappers.methods.Method):
             raise ValueError(
                 f"The hess_method needs to be of type autode."
                 f"wrappers.method.Method, But "
