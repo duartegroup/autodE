@@ -163,8 +163,8 @@ class BaseImagePair:
     def set_method_and_n_cores(
         self,
         engrad_method: autode.wrappers.methods.Method,
-        hess_method: autode.wrappers.methods.Method,
         n_cores: int,
+        hess_method: Optional[autode.wrappers.methods.Method] = None,
     ) -> None:
         """
         Sets the methods for engrad and hessian calculation, and the
@@ -172,8 +172,8 @@ class BaseImagePair:
 
         Args:
             engrad_method (autode.wrappers.methods.Method):
-            hess_method (autode.wrappers.methods.Method):
             n_cores (int):
+            hess_method (autode.wrappers.methods.Method|None):
         """
         if not isinstance(engrad_method, autode.wrappers.methods.Method):
             raise ValueError(
@@ -182,7 +182,9 @@ class BaseImagePair:
                 f"{type(engrad_method)} was supplied."
             )
         self._engrad_method = engrad_method
-        if not isinstance(hess_method, autode.wrappers.methods.Method):
+        if hess_method is None:
+            pass
+        elif not isinstance(hess_method, autode.wrappers.methods.Method):
             raise ValueError(
                 f"The hess_method needs to be of type autode."
                 f"wrappers.method.Method, But "
@@ -309,6 +311,8 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
+        logger.error(f"Calculating engrad for {side} side"
+                     f" with {self._engrad_method}")
         en, grad = _calculate_engrad_for_species(
             species=img.copy(),
             method=self._engrad_method,
@@ -336,6 +340,8 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
+        logger.error(f"Calculating Hessian for {side} side"
+                     f" with {self._hess_method}")
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
         )
