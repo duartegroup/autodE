@@ -20,7 +20,7 @@ class ScaledQNROptimiser:
     def __init__(
         self,
         fn: Callable,
-        x0,
+        x0: np.ndarray,
         maxiter: int,
         gtol: float = 1e-3,
         init_trust: float = 0.06,
@@ -32,18 +32,50 @@ class ScaledQNROptimiser:
         self._maxiter = int(maxiter)
         self._trust = float(init_trust)
         self._max_trust = float(max_trust)
+        self._iter = 1
 
-        self.en = None
-        self.grad = None
-        self.hess = None
+        self._x = None
+        self._last_x = None
+        self._en = None
+        self._last_en = None
+        self._grad = None
+        self._last_grad = None
+        self._hess = None
+        self._pred_de = None
 
     def run(self):
-        x = self._x0
-        dim = len(x)  # dimension of problem
-        en, grad = self._fn(x)
+        self._x = self._x0
+        dim = self._x.shape[0]  # dimension of problem
 
         for i in range(self._maxiter):
-            pass
+            self._last_en, self._last_grad = self._en, self._grad
+            self._en, self._grad = self._fn(self._x)
+            self._hess = self._get_hessian()
+            assert self._grad.shape[0] == dim
+            self._qnr_restricted_step()
+
+    def _get_hessian(self):
+        if self._iter == 1:
+            return np.eye(self._x.shape[0])
+        # todo update hessian here
+        # todo make hessian positive definite
+
+    def _qnr_restricted_step(self):
+        self._update_trust_radius()
+        grad = self._grad.reshape(-1, 1)
+        inv_hess = np.linalg.inv(self._hess)
+        step = (inv_hess @ grad)
+        step_size = np.linalg.norm(step)
+        if step_size > self._trust:
+            step = step * (self._trust / step_size)
+
+        self._pred_de = grad.T @ step + 0.5 * (step.T @ self._hess @ step)
+        self._last_x = self._x.copy()
+        self._x = self._x + step.flatten()
+
+    def _update_trust_radius(self):
+        pass
+
 
 
 class DHSImagePair(BaseImagePair):
@@ -76,6 +108,7 @@ class DHSImagePair(BaseImagePair):
     def euclid_dist(self):
         dist_vec = np.array(self.left_coord - self.right_coord)
         return Distance(np.linalg.norm(dist_vec), 'Ang')
+
 
 def _set_one_img_coord_and_get_engrad(
         coord: np.array,
