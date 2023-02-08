@@ -57,6 +57,7 @@ class ScaledQNROptimiser:
             self._qnr_restricted_step()
 
     def _get_hessian(self):
+        # at first iteration, use a unit matrix
         if self._iter == 1:
             return np.eye(self._x.shape[0])
         # todo update hessian here
