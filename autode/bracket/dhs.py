@@ -20,7 +20,7 @@ import autode.wrappers.methods
 _optional_method = Optional[autode.wrappers.methods.Method]
 
 
-class ScaledQNROptimiser:
+class ScaledQNRMinimiser:
     def __init__(
         self,
         fn: Callable,
@@ -30,7 +30,7 @@ class ScaledQNROptimiser:
         init_trust: float = 0.06,
         max_trust: float = 0.1
     ):
-        self._fn = fn
+        self._fn = fn  # must provide both value and gradient
         self._x0 = np.array(x0).flatten()
         self._gtol = gtol
         self._maxiter = int(maxiter)
@@ -48,19 +48,25 @@ class ScaledQNROptimiser:
         self._pred_de = None
         self._hess_updaters = [BFGSPDUpdate, NullUpdate]
 
-    def run(self):
+    def minimise(self) -> np.ndarray:
         self._x = self._x0
         dim = self._x.shape[0]  # dimension of problem
 
         for i in range(self._maxiter):
             self._last_en, self._last_grad = self._en, self._grad
             self._en, self._grad = self._fn(self._x)
-            if np.sqrt(np.mean(np.square(self._grad))) < self._gtol:
+            assert self._grad.shape[0] == dim
+            rms_grad = np.sqrt(np.mean(np.square(self._grad)))
+            if rms_grad < self._gtol:
                 break
             self._hess = self._get_hessian()
-            assert self._grad.shape[0] == dim
             self._qnr_restricted_step()
+            print(self._x, self._trust, self._en)
 
+        print(f"Finished in {i} iterations, "
+                    f"final RMS grad = {rms_grad}")
+        print(f"Final x = {self._x}")
+        return self._x
 
     def _get_hessian(self) -> np.ndarray:
         # at first iteration, use a unit matrix
@@ -86,18 +92,29 @@ class ScaledQNROptimiser:
         self._update_trust_radius()
         grad = self._grad.reshape(-1, 1)
         inv_hess = np.linalg.inv(self._hess)
-        step = (inv_hess @ grad)
+        step = -(inv_hess @ grad)
         step_size = np.linalg.norm(step)
         if step_size > self._trust:
             step = step * (self._trust / step_size)
 
         self._pred_de = grad.T @ step + 0.5 * (step.T @ self._hess @ step)
         self._last_x = self._x.copy()
-        self._x = self._x + step.flatten()
+        self._x = self._x + step.flatten()  # take the step
 
     def _update_trust_radius(self):
-        pass
+        if self._last_en is None:
+            return
+        actual_de = self._en - self._last_en
+        ratio = actual_de / self._pred_de
 
+        if ratio < 0.25:
+            self._trust = max((2/3) * self._trust, 0.001)  # set a lower bound
+        elif (ratio > 0.75) and (ratio < 1.25):
+            self._trust = min(1.2 * self._trust, self._max_trust)
+        elif ratio > 1.75:
+            self._trust = max((2/3) * self._trust, 0.001)
+        print(ratio)
+        return None
 
 
 class DHSImagePair(BaseImagePair):
