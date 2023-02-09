@@ -154,7 +154,6 @@ class DHSImagePair(BaseImagePair):
         return Distance(np.linalg.norm(self.dist_vec), 'Ang')
 
 
-
 def _set_one_img_coord_and_get_engrad(
         coord: np.array,
         side: str,
