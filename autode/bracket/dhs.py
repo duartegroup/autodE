@@ -6,6 +6,8 @@ from autode.values import Distance, PotentialEnergy, Gradient
 from autode.bracket.imagepair import DistanceConstrainedImagePair
 from autode.bracket.imagepair import BaseImagePair
 from autode.opt.optimisers.base import _OptimiserHistory
+from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
+from autode.opt.coordinates.base import _ensure_positive_definite
 
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
@@ -44,6 +46,7 @@ class ScaledQNROptimiser:
         self._last_grad = None
         self._hess = None
         self._pred_de = None
+        self._hess_updaters = [BFGSPDUpdate, NullUpdate]
 
     def run(self):
         self._x = self._x0
@@ -52,16 +55,32 @@ class ScaledQNROptimiser:
         for i in range(self._maxiter):
             self._last_en, self._last_grad = self._en, self._grad
             self._en, self._grad = self._fn(self._x)
+            if np.sqrt(np.mean(np.square(self._grad))) < self._gtol:
+                break
             self._hess = self._get_hessian()
             assert self._grad.shape[0] == dim
             self._qnr_restricted_step()
 
-    def _get_hessian(self):
+
+    def _get_hessian(self) -> np.ndarray:
         # at first iteration, use a unit matrix
         if self._iter == 1:
             return np.eye(self._x.shape[0])
-        # todo update hessian here
-        # todo make hessian positive definite
+
+        for hess_upd in self._hess_updaters:
+            updater = hess_upd(
+                h=self._hess,
+                s=self._x - self._last_x,
+                y=self._grad - self._last_grad
+            )
+            if not hess_upd.conditions_met:
+                continue
+
+            new_hess = updater.updated_h
+            break
+
+        new_hess = _ensure_positive_definite(new_hess, 1.0e-6)
+        return new_hess
 
     def _qnr_restricted_step(self):
         self._update_trust_radius()
