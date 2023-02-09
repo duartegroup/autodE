@@ -79,9 +79,9 @@ class ScaledQNRMinimiser:
                 s=self._x - self._last_x,
                 y=self._grad - self._last_grad
             )
-            if not hess_upd.conditions_met:
+            if not updater.conditions_met:
                 continue
-
+            print(f"Updating with {updater}")
             new_hess = updater.updated_h
             break
 
@@ -100,12 +100,13 @@ class ScaledQNRMinimiser:
         self._pred_de = grad.T @ step + 0.5 * (step.T @ self._hess @ step)
         self._last_x = self._x.copy()
         self._x = self._x + step.flatten()  # take the step
+        self._iter += 1
 
     def _update_trust_radius(self):
         if self._last_en is None:
             return
         actual_de = self._en - self._last_en
-        ratio = actual_de / self._pred_de
+        ratio = float(actual_de / self._pred_de)
 
         if ratio < 0.25:
             self._trust = max((2/3) * self._trust, 0.001)  # set a lower bound
