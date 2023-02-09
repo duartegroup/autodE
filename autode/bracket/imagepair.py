@@ -5,7 +5,7 @@ import numpy as np
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.geom import get_rot_mat_kabsch
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
-from autode.opt.optimisers.hessian_update import BofillUpdate
+from autode.opt.optimisers.hessian_update import BofillUpdate, NullUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
@@ -72,7 +72,8 @@ class BaseImagePair:
         right_image: autode.species.species.Species,
     ):
         """
-        Initialize the image pair, does not set methods/n_cores!
+        Initialize the image pair, does not set methods/n_cores or
+        hessian update types!
 
         Args:
             left_image: One molecule of the pair
@@ -89,7 +90,8 @@ class BaseImagePair:
         self._engrad_method = None
         self._hess_method = None
         self._n_cores = None
-        self._hessian_update_types = [BofillUpdate]
+        # Bofill has no conditions, so kept as default
+        self._hessian_update_types = [BofillUpdate, NullUpdate]
 
         self._left_history = _OptimiserHistory()
         self._right_history = _OptimiserHistory()

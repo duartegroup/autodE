@@ -121,12 +121,6 @@ class ScaledQNRMinimiser:
 
 
 class DHSImagePair(BaseImagePair):
-    def __init__(
-        self,
-        left_image: autode.species.Species,
-        right_image: autode.species.Species,
-    ):
-        super().__init__(left_image, right_image)
 
     @property
     def dist_vec(self) -> np.ndarray:
