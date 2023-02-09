@@ -1,3 +1,4 @@
+import os.path
 from typing import Optional, Callable
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
@@ -8,6 +9,7 @@ from autode.bracket.imagepair import BaseImagePair
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
 from autode.opt.coordinates.base import _ensure_positive_definite
+from autode.input_output import atoms_to_xyz_file
 
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
@@ -182,6 +184,7 @@ class DHS:
         dist_tol: Distance = Distance(0.5, 'ang'),
     ):
         self.imgpair = DHSImagePair(initial_species, final_species)
+        self._species = initial_species.copy()  # just hold the species
         self._reduction_fac = float(reduction_factor)
 
         self._maxiter = int(maxiter)
@@ -189,7 +192,9 @@ class DHS:
 
         # these only hold the coords after optimisation
         self._initial_species_hist = _OptimiserHistory()
+        self._initial_species_hist.append(self.imgpair.left_coord)
         self._final_species_hist = _OptimiserHistory()
+        self._final_species_hist.append(self.imgpair.right_coord)
 
     @property
     def converged(self):
@@ -212,19 +217,22 @@ class DHS:
                 hist = self._final_species_hist
             self._step(side)
             coord0 = self.imgpair.get_coord_by_side(side)
+            curr_maxiter = self._maxiter - self.imgpair.total_iters
             res = scipy_minimize(
                 fun=_set_one_img_coord_and_get_engrad,
                 jac=True,
                 x0=coord0,
                 args=(side, self.imgpair),
                 method='CG',
-                options={'gtol': 0.001, 'disp': True}
-            )
+                options={'gtol': 0.001, 'disp': True, 'maxiter': curr_maxiter}
+            )  # is conjugate gradients good enough?
             new_coord = self.imgpair.get_coord_by_side(side)
             rms_grad = np.sqrt(np.mean(np.square(new_coord.g)))
             if res['success']:
                 logger.error("Successful optimization after DHS step, final"
                              f" RMS gradient = {rms_grad} Ha/angstrom")
+            else:
+                break
             hist.append(new_coord.copy())
             self._log_convergence()
 
@@ -260,6 +268,54 @@ class DHS:
             f"{self.imgpair.left_coord.e}; Energy (final species) = "
             f"{self.imgpair.right_coord.e}"
         )
+
+    def write_trajectories(self):
+
+        if os.path.isfile('initial_species.trj.xyz'):
+            logger.error("File: initial_species.trj.xyz already "
+                         "exists, cannot write trajectory")
+        else:
+            self._write_trj_from_history(
+                'initial_species.trj.xyz',
+                self._initial_species_hist
+            )
+
+        if os.path.isfile('final_species.trj.xyz'):
+            logger.error("File: final_species.trj.xyz already "
+                         "exists, cannot write trajectory")
+        else:
+            self._write_trj_from_history(
+                'final_species.trj.xyz',
+                self._final_species_hist
+            )
+
+        if os.path.isfile('total_dhs.trj.xyz'):
+            logger.error("File: total_dhs.trj.xyz already "
+                         "exists, cannot write trajectory")
+        else:
+            total_hist = (self._initial_species_hist
+                          + self._final_species_hist[::-1])
+            self._write_trj_from_history(
+                'total_dhs.trj.xyz',
+                total_hist
+            )
+
+    def _write_trj_from_history(self,
+                                filename: str,
+                                hist: _OptimiserHistory):
+        tmp_spc = self._species.copy()
+
+        for coord in hist:
+            tmp_spc.coordinates = coord
+            atoms_to_xyz_file(
+                atoms=tmp_spc.atoms,
+                filename=filename,
+                title_line=f"DHS image E={coord.e:.6f} Ha",
+                append=True
+            )
+
+    def plot_energies(self):
+        pass
 
 
 class DHS_old:
