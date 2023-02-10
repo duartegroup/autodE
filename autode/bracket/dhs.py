@@ -1,17 +1,14 @@
 import os
-from typing import Optional, Callable, Tuple
+from typing import Tuple
 import numpy as np
-from scipy.optimize import minimize as scipy_minimize
 from matplotlib import pyplot as plt
+from scipy.optimize import minimize as scipy_minimize
 
-from autode.values import Distance, PotentialEnergy, Gradient, Energy
+from autode.values import Distance
 from autode.bracket.imagepair import BaseImagePair
 from autode.opt.optimisers.base import _OptimiserHistory
-from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
-from autode.opt.coordinates.base import _ensure_positive_definite
 from autode.input_output import atoms_to_xyz_file
 
-from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
 from autode.config import Config
 
@@ -173,15 +170,17 @@ class DHS:
                 x0=coord0,
                 args=(side, self.imgpair),
                 method='CG',
-                options={'gtol': 0.001, 'disp': True, 'maxiter': curr_maxiter}
+                options={'gtol': 5.0e-4, 'disp': True, 'maxiter': curr_maxiter}
             )  # is conjugate gradients good enough?
-            new_coord = self.imgpair.get_coord_by_side(side)
-            rms_grad = np.sqrt(np.mean(np.square(new_coord.g)))
+            perp_grad = self.imgpair.get_one_img_perp_grad(side)
+            rms_grad = np.sqrt(np.mean(np.square(perp_grad)))
             if res['success']:
                 logger.error("Successful optimization after DHS step, final"
-                             f" RMS gradient = {rms_grad} Ha/angstrom")
+                             f" RMS of projected gradient = {rms_grad}"
+                             f" Ha/angstrom")
             else:
                 break
+            new_coord = self.imgpair.get_coord_by_side(side)
             hist.append(new_coord.copy())
             self._log_convergence()
 
@@ -194,7 +193,14 @@ class DHS:
             - 2
         )
 
-    def _step(self, side: str):
+    def _step(self, side: str) -> None:
+        """
+        Take a DHS step, on the side requested, along the distance
+        vector between the two images
+
+        Args:
+            side (str):
+        """
         # take a DHS step by minimizing the distance by factor
         new_dist = (1 - self._reduction_fac) * self.imgpair.euclid_dist
         dist_vec = self.imgpair.dist_vec
@@ -211,7 +217,10 @@ class DHS:
 
         assert self.imgpair.euclid_dist == new_dist
 
+        return None
+
     def _log_convergence(self):
+        """Log the convergence of the DHS method"""
         logger.error(
             f"Macro-iteration #{self.macro_iter}: Distance = "
             f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
@@ -219,7 +228,19 @@ class DHS:
             f"{self.imgpair.right_coord.e}"
         )
 
-    def write_trajectories(self):
+    def get_peak_species(self) -> autode.species.species.Species:
+        """Obtain the highest energy point in the DHS energy path"""
+        total_hist = (self._initial_species_hist
+                      + self._final_species_hist[::-1])
+        energies = [coord.e for coord in total_hist]
+        assert all(energy is not None for energy in energies)
+        max_idx = np.argmax(energies)
+        tmp_spc = self._species.new_species('peak')
+        tmp_spc.coordinates = total_hist[max_idx]
+        tmp_spc.energy = total_hist[max_idx].e
+        return tmp_spc
+
+    def write_trajectories(self) -> None:
 
         if os.path.isfile('initial_species.trj.xyz'):
             logger.error("File: initial_species.trj.xyz already "
@@ -279,6 +300,7 @@ class DHS:
         energies = []
         for coord in total_hist:
             dist = float(np.linalg.norm(coord - initial_coord))
+            assert coord.e is not None
             en = float(coord.e.to('Ha'))
             distances.append(dist)
             energies.append(en)
