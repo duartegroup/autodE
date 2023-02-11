@@ -34,7 +34,6 @@ Feature additions.
 Usability improvements/Changes
 ******************************
 * Throw useful exception for invalid :code:`ade.Config.ts_template_folder_path`
-* Adds the reaction temperature to the unique reaction hash
 
 
 Functionality improvements
@@ -46,7 +45,7 @@ Functionality improvements
 
 Bug Fixes
 *********
--
+- Fixes calculation :code:`clean_up()` failing with a null filename
 
 
 1.3.3
