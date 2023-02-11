@@ -307,6 +307,7 @@ class DHS:
                 dist_list.append(dist)
                 assert coord.e is not None
                 en_list.append(float(coord.e.to('kcalmol-1')))
+                # todo make energies relative
 
         put_dist_en_in_lists(distances_init,
                              energies_init,
