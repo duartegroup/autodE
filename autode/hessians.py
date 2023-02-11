@@ -234,9 +234,9 @@ class Hessian(ValueArray):
             axis=np.newaxis,
         )
 
-        return Hessian(
-            H / np.sqrt(np.outer(mass_array, mass_array)), units="J m^-2 kg^-1"
-        )
+        return np.array(
+            H / np.sqrt(np.outer(mass_array, mass_array))
+        )  # J Å^-2 kg^-1
 
     @cached_property
     def _proj_mass_weighted(self) -> np.ndarray:
