@@ -3,6 +3,7 @@ import numpy as np
 from autode.constants import Constants
 from autode.units import ha, kjmol, kcalmol, ev, ang, a0, nm, pm, m, rad, deg
 from autode.values import (
+    _to,
     Value,
     Distance,
     MWDistance,
@@ -293,3 +294,10 @@ def test_operations_maintain_other_attrs():
 
     a = e * 2
     assert a.is_estimated and e.units == ev
+
+
+def test_inplace_value_modification_raises():
+
+    e = Energy(1, units="Ha")
+    with pytest.raises(ValueError):  # floats are immutable
+        _to(e, units="eV", inplace=True)

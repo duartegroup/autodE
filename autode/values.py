@@ -74,6 +74,11 @@ def _to(
             f" Value of ValueArray"
         )
 
+    if isinstance(value, Value) and inplace:
+        raise ValueError(
+            "Cannot modify a value inplace as floats are immutable"
+        )
+
     # Convert to the base unit, then to the new units
     c = float(units.conversion / value.units.conversion)
 
