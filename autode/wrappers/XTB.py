@@ -50,29 +50,31 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         if molecule.constraints.cartesian is None:
             return None
 
-        constrained_atom_idxs = [i + 1 for i in molecule.constraints.cartesian]
-        list_of_ranges, used_atoms = [], []
+        atom_idxs = list(
+            sorted(int(i) + 1 for i in molecule.constraints.cartesian)
+        )
+        list_of_ranges = []
 
-        for i in constrained_atom_idxs:
-            atom_range = []
-            if i not in used_atoms:
-                while i in constrained_atom_idxs:
-                    used_atoms.append(i)
-                    atom_range.append(i)
-                    i += 1
-                if len(atom_range) in (1, 2):
-                    list_of_ranges += str(atom_range)
-                else:
-                    list_of_ranges.append(f"{atom_range[0]}-{atom_range[-1]}")
+        for atom_idx in atom_idxs:
+            last_range = (
+                list_of_ranges[-1] if len(list_of_ranges) > 0 else None
+            )
+            if last_range is not None and atom_idx - 1 == last_range[-1]:
+                last_range.append(atom_idx)
+            else:
+                list_of_ranges.append([atom_idx])
 
+        list_of_ranges_str = [
+            f"{idxs[0]}-{idxs[-1]}" if len(idxs) > 1 else str(idxs[0])
+            for idxs in list_of_ranges
+        ]
         print(
             f"$constrain\n"
             f"force constant={self.force_constant}\n"
-            f'atoms: {",".join(list_of_ranges)}\n'
+            f'atoms: {",".join(list_of_ranges_str)}\n'
             f"$",
             file=inp_file,
         )
-
         return None
 
     @staticmethod

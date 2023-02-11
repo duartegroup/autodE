@@ -302,6 +302,11 @@ def test_xtb_opt_non_contiguous_range_cart_constraints():
     )
     calc.run()
 
+    assert len(calc.input.additional_filenames) > 0
+    xcontrol_lines = open(calc.input.additional_filenames[-1], "r").readlines()
+    expected_range = "1-3,6"
+    assert sum(expected_range in line for line in xcontrol_lines) == 1
+
     assert calc.optimiser.converged
     assert mol.energy is not None
 
@@ -362,3 +367,23 @@ def test_ade_opt_rerun_with_different_input_skip_saved_opt():
     run_calc(mol)
 
     assert mol.energy != unconstrained_energy
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_cartesian_constrained_opt():
+
+    init_r = 0.9
+    h2 = Molecule(atoms=[Atom("H"), Atom("H", x=init_r)])
+
+    h2_unconstrained = h2.new_species(name="unconstrained_h2")
+    h2_unconstrained.optimise(method=XTB())
+    # expected minimum for H2 is ~0.77 Å
+    assert abs(h2_unconstrained.distance(0, 1) - init_r) > 0.1
+
+    h2.constraints.cartesian = [0, 1]
+    h2.optimise(method=XTB())
+
+    # if the coordinates are constrained then the distance should be
+    # close to the initial
+    assert abs(h2.distance(0, 1) - init_r) < 0.1

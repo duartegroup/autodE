@@ -20,6 +20,7 @@ Bug Fixes
 *********
 - Fixes :code:`ERROR` logging level being ignored from environment variable :code:`AUTODE_LOG_LEVEL`
 - Fixes :code:`autode.values.Value` instances generating items with units on division, and throw a warning if multiplying
+- Fixes the printing of cartesian constraints in XTB input files, meaning they are no longer ignored
 
 
 1.3.4
