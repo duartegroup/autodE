@@ -215,8 +215,8 @@ class DHS:
             new_coord = self.imgpair.right_coord + step
             self.imgpair.right_coord = new_coord
 
-        logger.error(f"DHS step: target distance = {new_dist}")
-
+        logger.error(f"DHS step on {side} image:"
+                     f" setting distance to {new_dist:.4f}")
         assert self.imgpair.euclid_dist == new_dist
 
         return None
