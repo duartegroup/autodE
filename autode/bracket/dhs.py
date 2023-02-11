@@ -27,6 +27,11 @@ class DHSImagePair(BaseImagePair):
         """The distance vector pointing to right_image from left_image"""
         return np.array(self.left_coord - self.right_coord)
 
+    @property
+    def euclid_dist(self):
+        """The Euclidean distance between the images"""
+        return Distance(np.linalg.norm(self.dist_vec), 'Ang')
+
     def get_one_img_perp_grad(self, side: str):
         """
         Get the gradient perpendicular to the distance vector
@@ -41,14 +46,9 @@ class DHSImagePair(BaseImagePair):
         # project the gradient towards the distance vector
         proj_grad = dist_vec * coord.g.dot(dist_vec) / dist_vec.dot(dist_vec)
         # gradient component perpendicular to distance vector
-        perp_grad = coord.g - proj_grad
+        perp_grad = np.array(coord.g - proj_grad).flatten()
 
         return perp_grad
-
-    @property
-    def euclid_dist(self):
-        """The Euclidean distance between the images"""
-        return Distance(np.linalg.norm(self.dist_vec), 'Ang')
 
 
 def _set_one_img_coord_and_get_engrad(
@@ -67,7 +67,7 @@ def _set_one_img_coord_and_get_engrad(
         imgpair: The imagepair object (DHS)
 
     Returns:
-
+        (tuple[float, ndarray]): energy, gradient in flat array
     """
     if side == 'left':
         imgpair.left_coord = np.array(coord).flatten()
@@ -161,7 +161,7 @@ class DHS:
                 side = 'right'
                 hist = self._final_species_hist
             self._step(side)
-            coord0 = self.imgpair.get_coord_by_side(side)
+            coord0 = np.array(self.imgpair.get_coord_by_side(side))
             curr_maxiter = self._maxiter - self.imgpair.total_iters
             # scipy does micro-iterations
             res = scipy_minimize(
@@ -169,16 +169,18 @@ class DHS:
                 jac=True,
                 x0=coord0,
                 args=(side, self.imgpair),
-                method='CG',
-                options={'gtol': 5.0e-4, 'disp': True, 'maxiter': curr_maxiter}
+                method='L-BFGS-B',
+                options={'gtol': 5.0e-4, 'maxiter': curr_maxiter}
             )  # is conjugate gradients good enough?
+            # todo deal with minimizer problems
             perp_grad = self.imgpair.get_one_img_perp_grad(side)
             rms_grad = np.sqrt(np.mean(np.square(perp_grad)))
             if res['success']:
                 logger.error("Successful optimization after DHS step, final"
-                             f" RMS of projected gradient = {rms_grad}"
+                             f" RMS of projected gradient = {rms_grad:.6f}"
                              f" Ha/angstrom")
             else:
+                # todo accept step if rmsd_grad < 1e-3?
                 break
             new_coord = self.imgpair.get_coord_by_side(side)
             hist.append(new_coord.copy())
@@ -224,8 +226,8 @@ class DHS:
         logger.error(
             f"Macro-iteration #{self.macro_iter}: Distance = "
             f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
-            f"{self.imgpair.left_coord.e}; Energy (final species) = "
-            f"{self.imgpair.right_coord.e}"
+            f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
+            f"{self.imgpair.right_coord.e:.6f}"
         )
 
     def get_peak_species(self) -> autode.species.species.Species:
@@ -292,22 +294,31 @@ class DHS:
                          f"cannot write energy plot")
             return
 
-        total_hist = (self._initial_species_hist
-                      + self._final_species_hist[::-1])
-        # starting coordinate of the reactant
-        initial_coord = total_hist[-1]
-        distances = []
-        energies = []
-        for coord in total_hist:
-            dist = float(np.linalg.norm(coord - initial_coord))
-            assert coord.e is not None
-            en = float(coord.e.to('Ha'))
-            distances.append(dist)
-            energies.append(en)
+        distances_init = []
+        distances_fin = []
+        energies_init = []
+        energies_fin = []
+        # starting coordinates
+        init_coord = self._initial_species_hist[0]
+
+        def put_dist_en_in_lists(dist_list, en_list, history):
+            for coord in history:
+                dist = float(np.linalg.norm(coord - init_coord))
+                dist_list.append(dist)
+                assert coord.e is not None
+                en_list.append(float(coord.e.to('kcalmol-1')))
+
+        put_dist_en_in_lists(distances_init,
+                             energies_init,
+                             self._initial_species_hist)
+        put_dist_en_in_lists(distances_fin,
+                             energies_fin,
+                             self._final_species_hist)
 
         # get the pyplot axes
         fig, ax = plt.subplots()
-        ax.plot(distances, energies)
+        ax.plot(distances_init, energies_init, 'bo-')
+        ax.plot(distances_fin, energies_fin, 'go-')
         # todo beautify
         dpi = 400 if Config.high_quality_plots else 200
         fig.savefig(plot_name, dpi=dpi, bbox_inches='tight')
