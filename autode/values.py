@@ -37,9 +37,12 @@ from autode.units import (
 )
 
 
-def _to(value: Union["Value", "ValueArray"], units: Union[Unit, str]):
+def _to(
+    value: Union["Value", "ValueArray"], units: Union[Unit, str], inplace: bool
+) -> Any:
     """
-    Convert a value or value array to a new unit and return a copy
+    Convert a value or value array to a new unit and return a copy if
+    inplace=False
 
     ---------------------------------------------------------------------------
     Arguments:
@@ -62,25 +65,28 @@ def _to(value: Union["Value", "ValueArray"], units: Union[Unit, str]):
 
     except StopIteration:
         raise TypeError(
-            f"No viable unit conversion from {value.units} " f"-> {units}"
+            f"No viable unit conversion from {value.units} -> {units}"
+        )
+
+    if not (isinstance(value, Value) or isinstance(value, ValueArray)):
+        raise ValueError(
+            f"Cannot convert {value} to new units. Must be one of"
+            f" Value of ValueArray"
+        )
+
+    if isinstance(value, Value) and inplace:
+        raise ValueError(
+            "Cannot modify a value inplace as floats are immutable"
         )
 
     # Convert to the base unit, then to the new units
     c = float(units.conversion / value.units.conversion)
 
-    if isinstance(value, Value):
-        return value.__class__(float(value) * c, units=units)
+    new_value = value if inplace else value.copy()
+    new_value *= c
+    new_value.units = units
 
-    elif isinstance(value, ValueArray):
-        value[:] = np.array(value, copy=True) * c
-        value.units = units
-        return value
-
-    else:
-        raise ValueError(
-            f"Cannot convert {value} to new units. Must be one of"
-            f" Value of ValueArray"
-        )
+    return None if inplace else new_value
 
 
 def _units_init(value, units: Union[Unit, str, None]):
@@ -171,6 +177,11 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
+    def _like_self_from_float(self, value: float) -> "Value":
+        new_value = self.__class__(value, units=self.units)
+        new_value.__dict__.update(self.__dict__)
+        return new_value
+
     def __eq__(self, other) -> bool:
         """Equality of two values, which may be in different units"""
 
@@ -210,20 +221,26 @@ class Value(ABC, float):
         if isinstance(other, np.ndarray):
             return other + float(self)
 
-        return self.__class__(
-            float(self) + self._other_same_units(other), units=self.units
+        return self._like_self_from_float(
+            float(self) + self._other_same_units(other)
         )
 
-    def __mul__(self, other) -> "Value":
+    def __mul__(self, other) -> Union[float, "Value"]:
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
 
-        return self.__class__(
-            float(self) * self._other_same_units(other), units=self.units
+        if isinstance(other, Value):
+            logger.warning(
+                "Multiplying autode.Value returns a float with no units"
+            )
+            return float(self) * self._other_same_units(other)
+
+        return self._like_self_from_float(
+            float(self) * self._other_same_units(other)
         )
 
-    def __rmul__(self, other) -> "Value":
+    def __rmul__(self, other) -> Union[float, "Value"]:
         return self.__mul__(other)
 
     def __radd__(self, other) -> "Value":
@@ -232,16 +249,13 @@ class Value(ABC, float):
     def __sub__(self, other) -> "Value":
         return self.__add__(-other)
 
-    def __floordiv__(self, other):
-        raise NotImplementedError(
-            "Integer division is not supported by " "autode.values.Value"
-        )
+    def __floordiv__(self, other) -> Union[float, "Value"]:
+        x = float(self) // self._other_same_units(other)
+        return x if isinstance(other, Value) else self._like_self_from_float(x)
 
-    def __truediv__(self, other) -> "Value":
-        return self.__class__(
-            float(self) / float(self._other_same_units(other)),
-            units=self.units,
-        )
+    def __truediv__(self, other) -> Union[float, "Value"]:
+        x = float(self) / self._other_same_units(other)
+        return x if isinstance(other, Value) else self._like_self_from_float(x)
 
     def __abs__(self) -> "Value":
         """Absolute value"""
@@ -260,7 +274,7 @@ class Value(ABC, float):
         Raises:
             (TypeError):
         """
-        return _to(self, units)
+        return _to(self, units, inplace=False)
 
 
 class Energy(Value):
@@ -643,7 +657,21 @@ class ValueArray(ABC, np.ndarray):
         Raises:
             (TypeError):
         """
-        return _to(self, units)
+        return _to(self, units, inplace=False)
+
+    def to_(self, units) -> None:
+        """
+        Convert this array into a set of new units, inplace. This will not copy
+        the array
+
+        -----------------------------------------------------------------------
+        Returns:
+            (None)
+
+        Raises:
+            (TypeError):
+        """
+        _to(self, units, inplace=True)
 
     def __array_finalize__(self, obj):
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""

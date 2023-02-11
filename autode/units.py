@@ -211,15 +211,15 @@ kg_m_sq = CompositeUnit(kg, m, m, name="kg m^2")
 
 
 ha_per_ang = CompositeUnit(
-    ha, per=[ang], aliases=["ha Å-1", "ha Å^-1", "ha/ang"]
+    ha, per=[ang], aliases=["ha / Å", "ha Å-1", "ha Å^-1", "ha/ang"]
 )
 
 ha_per_a0 = CompositeUnit(
-    ha, per=[a0], aliases=["ha a0-1", "ha a0^-1", "ha/bohr"]
+    ha, per=[a0], aliases=["ha / a0", "ha a0-1", "ha a0^-1", "ha/bohr"]
 )
 
 ev_per_ang = CompositeUnit(
-    ev, per=[ang], aliases=["ha a0-1", "ev Å^-1", "ev/ang"]
+    ev, per=[ang], aliases=["ev / Å", "ev Å^-1", "ev/ang"]
 )
 
 kcalmol_per_ang = CompositeUnit(

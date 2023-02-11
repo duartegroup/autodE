@@ -158,17 +158,24 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
                 "Non-optimisation calculation performed - no change"
                 " to geometry"
             )
-            return calc.molecule.atoms
+            return calc.molecule.coordinates
+
+        if calc.molecule.n_atoms == 1:
+            # Coordinate of a single atom will not change
+            return calc.molecule.coordinates
 
         coords = []
 
         for i, line in enumerate(calc.output.file_lines):
 
-            if "Coordinates (Angstroms)" not in line:
+            if "Coordinates (Angstroms)" in line:
+                start_idx = i + 2
+            elif "Standard Nuclear Orientation (Angstroms)" in line:
+                start_idx = i + 3
+            else:
                 continue
 
-            """e.g.
-            
+            """e.g.            
                                Coordinates (Angstroms)
              ATOM                X               Y               Z
               1  O         0.0003489977   -0.1403224128    0.0000000000
@@ -177,7 +184,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             Point Group: cs    Number of degrees of freedom:     3
             """
 
-            start_idx = i + 2
             end_idx = start_idx + calc.molecule.n_atoms
             coords = []
             for cline in calc.output.file_lines[start_idx:end_idx]:

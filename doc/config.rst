@@ -136,7 +136,7 @@ to see all the options.
 Logging
 -------
 
-To set the logging level to one of {INFO, WARNING, ERROR} set the :code:`AUTODE_LOG_LEVEL`
+To set the logging level to one of {DEBUG, INFO, WARNING, ERROR} set the :code:`AUTODE_LOG_LEVEL`
 environment variable, in bash::
 
     $ export AUTODE_LOG_LEVEL=INFO

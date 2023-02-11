@@ -14,6 +14,9 @@ def test_log_level():
     os.environ["AUTODE_LOG_LEVEL"] = "DEBUG"
     assert log.get_log_level() == log.logging.DEBUG
 
+    os.environ["AUTODE_LOG_LEVEL"] = "ERROR"
+    assert log.get_log_level() == log.logging.ERROR
+
     os.environ["AUTODE_LOG_LEVEL"] = "WARNING"
     assert log.get_log_level() == log.logging.WARNING
 
