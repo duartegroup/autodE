@@ -95,6 +95,7 @@ class DHS:
         maxiter: int = 300,
         reduction_factor: float = 0.05,
         dist_tol: Distance = Distance(0.6, 'ang'),
+        optimiser: str = 'BFGS',
     ):
         """
         Dewar-Healy-Stewart method to find transition state.
@@ -129,6 +130,14 @@ class DHS:
         self._initial_species_hist.append(self.imgpair.left_coord)
         self._final_species_hist = _OptimiserHistory()
         self._final_species_hist.append(self.imgpair.right_coord)
+
+        optimiser = optimiser.upper().strip()
+        if optimiser == 'BFGS' or optimiser == 'CG':
+            self._opt_driver = optimiser
+        else:
+            logger.warning("Optimiser can either be BFGS or"
+                           " CG (conjugate gradients)")
+            self._opt_driver = 'BFGS'
 
     @property
     def converged(self):
@@ -169,7 +178,7 @@ class DHS:
                 jac=True,
                 x0=coord0,
                 args=(side, self.imgpair),
-                method='L-BFGS-B',
+                method=self._opt_driver,
                 options={'gtol': 5.0e-4, 'maxiter': curr_maxiter}
             )  # is conjugate gradients good enough?
             # todo deal with minimizer problems
@@ -180,8 +189,13 @@ class DHS:
                              f" RMS of projected gradient = {rms_grad:.6f}"
                              f" Ha/angstrom")
             else:
-                # todo accept step if rmsd_grad < 1e-3?
-                break
+                if rms_grad < 1.0e-3:
+                    logger.error("Optimization not converged completely,"
+                                 " but accepted on the basis of RMS"
+                                 f" gradient = {rms_grad:.6f} Ha/angstrom"
+                                 f" being low enough")
+                else:
+                    break
             new_coord = self.imgpair.get_coord_by_side(side)
             hist.append(new_coord.copy())
             self._log_convergence()
