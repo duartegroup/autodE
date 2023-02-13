@@ -3,6 +3,7 @@ from typing import Optional, List, Tuple
 import numpy as np
 
 from autode.values import Distance, PotentialEnergy, Gradient
+from autode.hessians import Hessian
 from autode.geom import get_rot_mat_kabsch
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate, NullUpdate
@@ -18,7 +19,7 @@ def _calculate_engrad_for_species(
     species: autode.species.species.Species,
     method: autode.wrappers.methods.Method,
     n_cores: int,
-):
+) -> Tuple[PotentialEnergy, Gradient]:
     from autode.calculations import Calculation
 
     engrad_calc = Calculation(
@@ -30,14 +31,14 @@ def _calculate_engrad_for_species(
     )
     engrad_calc.run()
     engrad_calc.clean_up(force=True, everything=True)
-    return species.energy.to("Ha"), species.gradient.to("Ha/ang")
+    return species.energy, species.gradient
 
 
 def _calculate_energy_for_species(
     species: autode.species.species.Species,
     method: autode.wrappers.methods.Method,
     n_cores: int,
-):
+) -> PotentialEnergy:
     from autode.calculations import Calculation
 
     sp_calc = Calculation(
@@ -49,7 +50,7 @@ def _calculate_energy_for_species(
     )
     sp_calc.run()
     sp_calc.clean_up(force=True, everything=True)
-    return species.energy.to('Ha')
+    return species.energy
 
 
 @work_in_tmp_dir()
@@ -57,7 +58,7 @@ def _calculate_hessian_for_species(
     species: autode.species.species.Species,
     method: autode.wrappers.methods.Method,
     n_cores: int,
-):
+) -> Hessian:
     """
     Convenience function for calculating the Hessian for a
     molecule; removes all input and output files for the
@@ -74,7 +75,7 @@ def _calculate_hessian_for_species(
     )
     hess_calc.run()
     hess_calc.clean_up(force=True, everything=True)
-    return species.hessian.to("ha/ang^2")
+    return species.hessian
 
 
 class BaseImagePair:
@@ -254,6 +255,7 @@ class BaseImagePair:
         else:
             raise ValueError
         self._left_image.coordinates = self._left_history[-1]
+        # todo should we remove old hessians that are not needed?
 
     @property
     def right_coord(self) -> Optional[CartesianCoordinates]:
@@ -320,6 +322,30 @@ class BaseImagePair:
 
         return img, coord, hist, fac
 
+    def update_one_img_molecular_energy(self, side: str) -> None:
+        """
+        Update only the molecular energy for one side using the
+        supplied engrad_method for one image only
+
+        Args:
+            side (str): 'left' or 'right'
+        """
+        assert self._engrad_method is not None
+        assert self._n_cores is not None
+        img, coord, _, _ = self._get_img_by_side(side)
+
+        logger.info(f"Calculating energy for {side} side"
+                    f" with {self._engrad_method}")
+
+        en = _calculate_energy_for_species(
+            species=img.copy(),
+            method=self._engrad_method,
+            n_cores=self._n_cores,
+        )
+        # update both species and coord
+        img.energy = en.to('Ha')
+        coord.e = en.to('Ha')
+
     def update_one_img_molecular_engrad(self, side: str) -> None:
         """
         Update the molecular energy and gradient using the supplied
@@ -340,10 +366,10 @@ class BaseImagePair:
             n_cores=self._n_cores,
         )
         # update both species and coord
-        img.energy = en
-        img.gradient = grad.copy()
-        coord.e = en.copy()
-        coord.update_g_from_cart_g(grad)
+        img.energy = en.to('Ha')
+        img.gradient = grad.to('Ha/ang')
+        coord.e = en.to('Ha')
+        coord.update_g_from_cart_g(grad.to('Ha/ang'))
         return None
 
     def update_one_img_molecular_hessian_by_calc(self, side: str) -> None:
@@ -353,9 +379,6 @@ class BaseImagePair:
 
         Args:
             side (str): 'left' or 'right'
-
-        Returns:
-
         """
         assert self._hess_method is not None
         assert self._n_cores is not None
@@ -366,11 +389,19 @@ class BaseImagePair:
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
         )
-        img.hessian = hess
+        img.hessian = hess.to('Ha/ang^2')
         coord.update_h_from_cart_h(hess)
         return None
 
     def update_one_img_molecular_hessian_by_formula(self, side: str) -> None:
+        """
+        Updates the molecular hessian of one side by using Hessian
+        update formula; requires the gradient and hessian for the
+        last coordinates, and gradient for the current coordinates
+
+        Args:
+            side (str): 'left' or 'right'
+        """
         img, coord, hist, _ = self._get_img_by_side(side)
         assert len(hist) > 1, "Hessian update not possible!"
         assert coord.h is None, "Hessian already exists!"
