@@ -117,7 +117,7 @@ class DHS:
             dist_tol: The distance tolerance at which DHS will
                       stop, values <0.5 Angstrom are not recommended!
             optimiser: The optimiser to use for minimising after
-                       after the DHS step, either 'CG' (conjugate
+                       the DHS step, either 'CG' (conjugate
                        gradients) or 'BFGS'
         """
         self.imgpair = DHSImagePair(initial_species, final_species)
