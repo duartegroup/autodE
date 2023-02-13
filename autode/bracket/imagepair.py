@@ -228,7 +228,7 @@ class BaseImagePair:
     @property
     def left_coord(self) -> Optional[CartesianCoordinates]:
         """The coordinates of the left image"""
-        if len(self._left_history) == 0:
+        if len(self._left_history) == 0:  # todo redundant?
             return None
         return self._left_history[-1]
 
