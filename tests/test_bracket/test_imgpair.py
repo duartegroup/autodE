@@ -49,8 +49,3 @@ def test_imgpair_sanity_check():
     mol1.mult = 1
 
     # different atom order should also raise Error
-
-
-
-
-

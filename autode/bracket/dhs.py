@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from scipy.optimize import minimize as scipy_minimize
 
 from autode.values import Distance
+from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.input_output import atoms_to_xyz_file
@@ -139,7 +140,8 @@ class DHS:
             self._opt_driver = optimiser
         else:
             logger.warning("Optimiser can either be BFGS or"
-                           " CG (conjugate gradients)")
+                           " CG (conjugate gradients), setting to"
+                           " the default BFGS")
             self._opt_driver = 'BFGS'
 
     @property
@@ -260,22 +262,30 @@ class DHS:
         return tmp_spc
 
     def write_trajectories(self) -> None:
+        """
+        Writes .xyz trajectories for the DHS procedure;
+        "initial_species_dhs.trj.xyz" for the initial_species
+        supplied, "final_species_dhs.trj.xyz" for the final_species
+        supplied, and "total_dhs.trj.xyz" which is a concatenated
+        version with the trajectory of the final species reversed
+        (i.e. the MEP predicted by DHS)
+        """
 
-        if os.path.isfile('initial_species.trj.xyz'):
-            logger.error("File: initial_species.trj.xyz already "
+        if os.path.isfile('initial_species_dhs.trj.xyz'):
+            logger.error("File: initial_species_dhs.trj.xyz already "
                          "exists, cannot write trajectory")
         else:
             self._write_trj_from_history(
-                'initial_species.trj.xyz',
+                'initial_species_dhs.trj.xyz',
                 self._initial_species_hist
             )
 
-        if os.path.isfile('final_species.trj.xyz'):
-            logger.error("File: final_species.trj.xyz already "
+        if os.path.isfile('final_species_dhs.trj.xyz'):
+            logger.error("File: final_species_dhs.trj.xyz already "
                          "exists, cannot write trajectory")
         else:
             self._write_trj_from_history(
-                'final_species.trj.xyz',
+                'final_species_dhs.trj.xyz',
                 self._final_species_hist
             )
 
@@ -290,9 +300,12 @@ class DHS:
                 total_hist
             )
 
+        return None
+
     def _write_trj_from_history(self,
                                 filename: str,
-                                hist: _OptimiserHistory):
+                                hist: _OptimiserHistory) -> None:
+        """Convenience function to write trajectory from coord history"""
         tmp_spc = self._species.copy()
 
         for coord in hist:
@@ -305,7 +318,16 @@ class DHS:
             )
 
     def plot_energies(self):
+        """
+        Plot the energies along the MEP path as obtained by the DHS
+        procedure. The points arising from the initial_species are
+        shown in blue, which those from final species are shown in red.
+        The x-axis shows euclidean distance of each MEP point from
+        the initial_species geometry supplied, and the y-axis shows
+        the energies in kcal/mol
+        """
         plot_name = "DHS_MEP_path.pdf"
+
         if os.path.isfile(plot_name):
             logger.error(f"File: {plot_name} already exists, "
                          f"cannot write energy plot")
@@ -337,6 +359,8 @@ class DHS:
         fig, ax = plt.subplots()
         ax.plot(distances_init, energies_init, 'bo-')
         ax.plot(distances_fin, energies_fin, 'go-')
+        ax.xlabel(f"Distance from initial_species ({angstrom.plot_name})")
+        ax.ylabel("Energy (kcal/mol)")
         # todo beautify
         dpi = 400 if Config.high_quality_plots else 200
         fig.savefig(plot_name, dpi=dpi, bbox_inches='tight')
