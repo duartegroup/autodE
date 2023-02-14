@@ -31,7 +31,7 @@ class AdaptiveBFGSMinimiser:
         x0: np.ndarray,
         maxiter: int,
         gtol: float = 1e-3,
-        min_step: float = 0.06,
+        min_step: float = 0.01,
         max_step: float = 0.15
     ):
         self._fn = fn  # must provide both value and gradient
@@ -40,6 +40,8 @@ class AdaptiveBFGSMinimiser:
         self._maxiter = int(maxiter)
         self._min_step = float(min_step)
         self._max_step = float(max_step)
+        # todo deal with max step, is min step required?
+        # todo hessian determinant
         self._iter = 1
 
         self._x = None
