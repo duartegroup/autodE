@@ -8,7 +8,7 @@ from autode.geom import get_rot_mat_kabsch
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate, NullUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
 
 import autode.species.species
@@ -345,6 +345,7 @@ class BaseImagePair:
         # update both species and coord
         img.energy = en.to('Ha')
         coord.e = en.to('Ha')
+        return None
 
     def update_one_img_molecular_engrad(self, side: str) -> None:
         """
@@ -420,3 +421,73 @@ class BaseImagePair:
             break
 
         return None
+
+
+class TwoSidedImagePair(BaseImagePair):
+    """
+    Derived from BaseImagePair, with the capability of doing
+    engrad and Hessian calculations parallely for both
+    images at the same time
+    """
+
+    def update_both_img_molecular_engrad(self):
+        """
+        Update the molecular energy and gradient using the supplied
+        engrad_method for both images in parallel (if possible)
+
+        Args:
+            side (str): 'left' or 'right'
+        """
+        assert self._engrad_method is not None
+        assert self._n_cores is not None
+
+        logger.error(f"Calculating engrad for both sides"
+                     f" with {self._engrad_method}")
+
+        if self._n_cores == 1:  # no need for parallel
+            self.update_one_img_molecular_engrad('left')
+            self.update_one_img_molecular_engrad('right')
+            return None
+
+        n_cores_per_pp = self._n_cores // 2
+        with ProcessPool(max_workers=2) as pool:
+            engrad_jobs = [
+                pool.submit(
+                    _calculate_engrad_for_species,
+                    speices=img.copy(),
+                    method=self._engrad_method,
+                    n_cores=n_cores_per_pp,
+                )
+                for img in [self._left_image, self._right_image]
+            ]
+            left_en, left_grad = engrad_jobs[0].result()
+            right_en, right_grad = engrad_jobs[1].result()
+
+        # cast into units
+        right_en, right_grad = right_en.to('Ha'), right_grad.to('Ha/ang')
+        left_en, left_grad = left_en.to('Ha'), left_grad.to('Ha/ang')
+
+        # update both species and coord
+        self._left_image.energy = left_en
+        self._left_image.gradient = left_grad
+        self.left_coord.e = left_en
+        self.left_coord.update_g_from_cart_g(left_en)
+
+        self._right_image.energy = right_en
+        self._right_image.gradient = right_grad
+        self.right_coord.e = right_en
+        self.right_coord.update_g_from_cart_g(right_grad)
+
+        return None
+
+    def update_both_img_molecular_hessian_by_calc(self, side: str) -> None:
+        """
+        Updates the molecular hessian using supplied hess_method
+        for both images in parallel (if possible)
+
+        Args:
+            side (str): 'left' or 'right'
+        """
+        assert self._hess_method is not None
+        assert self._n_cores is not None
+
