@@ -17,6 +17,13 @@ import autode.species.species
 import autode.wrappers.methods
 
 
+class RestrictedBFGSMinimiser:
+    """
+    Restricted-step, line-search free BFGS minimiser. Based
+    on https://doi.org/10.48550/arXiv.1612.06965
+    """
+
+
 class DHSImagePair(BaseImagePair):
     """
     An image-pair that defined the distance between two
