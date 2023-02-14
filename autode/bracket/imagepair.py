@@ -491,3 +491,37 @@ class TwoSidedImagePair(BaseImagePair):
         assert self._hess_method is not None
         assert self._n_cores is not None
 
+        logger.error("Calculating Hessian for both sides"
+                     f" with {self._hess_method}")
+
+        if self._n_cores == 1:
+            self.update_one_img_molecular_hessian_by_calc('left')
+            self.update_one_img_molecular_hessian_by_calc('right')
+            return None
+
+        n_cores_per_pp = self._n_cores // 2
+        with ProcessPool(max_workers=2) as pool:
+            hess_jobs = [
+                pool.submit(
+                    _calculate_hessian_for_species,
+                    speices=img.copy(),
+                    method=self._hess_method,
+                    n_cores=n_cores_per_pp,
+                )
+                for img in [self._left_image, self._right_image]
+            ]
+            left_hess = hess_jobs[0].result()
+            right_hess = hess_jobs[1].result()
+
+        # cast into base units
+        left_hess = left_hess.to('Ha/ang^2')
+        right_hess = right_hess.to('Ha/ang^2')
+
+        # update both species and coordinates
+        self._left_image.hessian = left_hess
+        self.left_coord.update_h_from_cart_h(left_hess)
+
+        self._right_image.hessian = right_hess
+        self.right_coord.update_h_from_cart_h(right_hess)
+
+        return None
