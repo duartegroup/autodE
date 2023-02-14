@@ -1,13 +1,21 @@
+import os
+
 import numpy as np
 import pytest
 
 from autode.bracket.imagepair import BaseImagePair
 from autode import Molecule
 from autode.utils import work_in
-from ..testutils import requires_with_working_xtb_install
+from autode import methods
+from ..testutils import (requires_with_working_xtb_install,
+                         work_in_zipped_dir)
+
+here = os.path.dirname(os.path.abspath(__file__))
+datadir = os.path.join(here, "data")
+# todo replace with zip later
 
 
-@work_in("data")
+@work_in(datadir)
 def test_imgpair_alignment():
     # with same molecule, alignment should produce same coordinates
     mol1 = Molecule('da_reactant.xyz')
@@ -27,7 +35,7 @@ def test_imgpair_alignment():
     assert abs(bond_new - bond_orig) < 0.001
 
 
-@work_in("data")
+@work_in(datadir)
 def test_imgpair_sanity_check():
     mol1 = Molecule('da_reactant.xyz')
     mol2 = Molecule('da_reactant_rotated.xyz')
@@ -35,26 +43,68 @@ def test_imgpair_sanity_check():
     mol4 = Molecule('da_reactant_shuffled.xyz')
 
     # different mol would raise Error
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='same number of atoms'):
         _ = BaseImagePair(mol1, mol3)
 
     # different charge would raise Error
     mol1.charge = -2
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Charge/multiplicity'):
         _ = BaseImagePair(mol1, mol2)
     mol1.charge = 0
 
     # different multiplicity would also raise Error
     mol1.mult = 3
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='Charge/multiplicity'):
         _ = BaseImagePair(mol1, mol2)
     mol1.mult = 1
 
     # different atom order should also raise Error
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='order of atoms'):
         _ = BaseImagePair(mol1, mol4)
 
 
 @requires_with_working_xtb_install
-def test_set_energy_gradient():
-    pass
+@work_in(datadir)
+def test_set_energy_and_engrad():
+    mol1 = Molecule('da_reactant.xyz')
+    mol2 = Molecule('da_product.xyz')
+
+    imgpair = BaseImagePair(left_image=mol1, right_image=mol2)
+    # without setting method, assert will be set off
+    with pytest.raises(AssertionError):
+        imgpair.update_one_img_molecular_energy('left')
+
+    imgpair.set_method_and_n_cores(
+        engrad_method=methods.XTB(),
+        n_cores=1
+    )
+    imgpair.update_one_img_molecular_energy('left')
+    # only energy should be updated
+    assert imgpair.left_coord.e is not None
+    assert imgpair.right_coord.e is None
+    # units should be forced to Hartree
+    assert str(imgpair.left_coord.e.units) == 'Unit(Ha)'
+
+    imgpair.update_one_img_molecular_engrad('right')
+    # energy and gradient of right side would be updated
+    assert imgpair.right_coord.e is not None
+    assert imgpair.right_coord.g is not None
+    assert str(imgpair.right_coord.e.units) == 'Unit(Ha)'
+    assert str(imgpair._right_image.gradient.units) == 'Unit(Ha(Å)^-1)'
+    assert imgpair.left_coord.g is None
+
+    # since imgpair takes a copy of initial species they
+    # should not be affected
+    assert mol1.energy is None
+    assert mol2.energy is None
+    assert mol1.gradient is None
+    assert mol2.gradient is None
+
+
+@requires_with_working_xtb_install
+@work_in(datadir)
+def test_set_hessian():
+    mol1 = Molecule('da_reactant.xyz')
+    mol2 = Molecule('da_product.xyz')
+
+
