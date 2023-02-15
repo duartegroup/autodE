@@ -51,7 +51,7 @@ class AdaptiveBFGSMinimiser:
         self._hess = None
         self._hess_updaters = [BFGSPDUpdate, BFGSUpdate, NullUpdate]
 
-    def _run(self) -> Optional[np.ndarray]:
+    def minimise(self) -> Optional[np.ndarray]:
         self._x = self._x0
         dim = self._x.shape[0]  # dimension of problem
 
@@ -75,10 +75,6 @@ class AdaptiveBFGSMinimiser:
                     f"final RMS grad = {rms_grad}")
         print(f"Final x = {self._x}")
         return self._x
-
-    @classmethod
-    def minimise(cls, fun, jac, x0, options):
-        pass
 
     def _get_hessian(self) -> np.ndarray:
         # at first iteration, use a unit matrix
