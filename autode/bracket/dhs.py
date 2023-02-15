@@ -265,8 +265,8 @@ class DHS:
 
         """
         self.imgpair.set_method_and_n_cores(method, n_cores)
-        self.imgpair.update_one_img_molecular_engrad('left')
-        self.imgpair.update_one_img_molecular_engrad('right')
+        self.imgpair.update_one_img_molecular_energy('left')
+        self.imgpair.update_one_img_molecular_energy('right')
         logger.error("Starting DHS optimisation")
         while not self.converged:
             if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
