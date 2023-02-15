@@ -1,3 +1,9 @@
+"""
+Dewar-Healy-Stewart Method for finding transition states
+
+As described in J. Chem. Soc. Farady Trans. 2, 1984, 80, 227-233
+"""
+
 import os
 from typing import Tuple, Callable, Optional, Union
 import numpy as np
@@ -455,14 +461,17 @@ class DHS:
         energies_fin = []
         # starting coordinates
         init_coord = self._initial_species_hist[0]
+        lowest_en = float(min(
+            coord.e.to('kcalmol-1') for coord in
+            (self._initial_species_hist + self._final_species_hist)
+        ))
 
         def put_dist_en_in_lists(dist_list, en_list, history):
             for coord in history:
                 dist = float(np.linalg.norm(coord - init_coord))
                 dist_list.append(dist)
                 assert coord.e is not None
-                en_list.append(float(coord.e.to('kcalmol-1')))
-                # todo make energies relative
+                en_list.append(float(coord.e.to('kcalmol-1')) - lowest_en)
 
         put_dist_en_in_lists(distances_init,
                              energies_init,
@@ -470,13 +479,14 @@ class DHS:
         put_dist_en_in_lists(distances_fin,
                              energies_fin,
                              self._final_species_hist)
+        lowest_en = min(energies_init + energies_fin)
 
         # get the pyplot axes
         fig, ax = plt.subplots()
         ax.plot(distances_init, energies_init, 'bo-')
         ax.plot(distances_fin, energies_fin, 'go-')
-        ax.xlabel(f"Distance from initial_species ({angstrom.plot_name})")
-        ax.ylabel("Energy (kcal/mol)")
+        ax.set_xlabel(f"Distance from initial_species ({angstrom.plot_name})")
+        ax.set_ylabel("Relative electronic energy (kcal/mol)")
         # todo beautify
         dpi = 400 if Config.high_quality_plots else 200
         fig.savefig(plot_name, dpi=dpi, bbox_inches='tight')
