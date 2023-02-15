@@ -27,14 +27,14 @@ class AdaptiveBFGSMinimiser:
     """
     def __init__(
         self,
-        fn: Callable,
+        fun: Callable,
         x0: np.ndarray,
-        maxiter: int,
-        gtol: float = 1e-3,
+        maxiter: int = 100,
+        gtol: float = 1.e-3,
         min_step: float = 0.001,
         max_step: float = 0.15
     ):
-        self._fn = fn  # must provide both value and gradient
+        self._fn = fun  # must provide both value and gradient
         self._x0 = np.array(x0, dtype=float).flatten()
         self._gtol = gtol
         self._maxiter = int(maxiter)
@@ -51,9 +51,11 @@ class AdaptiveBFGSMinimiser:
         self._hess = None
         self._hess_updaters = [BFGSPDUpdate, BFGSUpdate, NullUpdate]
 
-    def minimise(self) -> Optional[np.ndarray]:
+    def minimise(self) -> Optional[dict]:
         self._x = self._x0
         dim = self._x.shape[0]  # dimension of problem
+        rms_grad = 0.0
+        i = 0
 
         if self._maxiter < 1:
             return None
@@ -73,8 +75,16 @@ class AdaptiveBFGSMinimiser:
 
         print(f"Finished in {i} iterations, "
                     f"final RMS grad = {rms_grad}")
-        print(f"Final x = {self._x}")
-        return self._x
+        print(f"Final x = {self._x}")  # todo remove print messages when debug done
+        # return a dict similar to scipy OptimizeResult
+        return {
+            'x': self._x,
+            'success': rms_grad < self._gtol,
+            'fun': self._en,
+            'jac': self._grad,
+            'hess': self._hess,
+            'nit': i
+        }
 
     def _get_hessian(self) -> np.ndarray:
         # at first iteration, use a unit matrix
