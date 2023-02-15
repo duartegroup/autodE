@@ -135,10 +135,11 @@ class BaseImagePair:
         if (
             self._left_image.charge != self._right_image.charge
             or self._left_image.mult != self._right_image.mult
+            or self._left_image.solvent != self._right_image.solvent
         ):
             raise ValueError(
-                "Charge/multiplicity of initial_species and "
-                "final_species supplied are not the same"
+                "Charge/multiplicity/solvent of initial_species "
+                "and final_species supplied are not the same"
             )
 
         for idx in range(len(self._left_image.atoms)):

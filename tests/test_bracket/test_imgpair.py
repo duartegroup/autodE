@@ -48,15 +48,21 @@ def test_imgpair_sanity_check():
 
     # different charge would raise Error
     mol1.charge = -2
-    with pytest.raises(ValueError, match='Charge/multiplicity'):
+    with pytest.raises(ValueError, match='Charge/multiplicity/solvent'):
         _ = BaseImagePair(mol1, mol2)
     mol1.charge = 0
 
     # different multiplicity would also raise Error
     mol1.mult = 3
-    with pytest.raises(ValueError, match='Charge/multiplicity'):
+    with pytest.raises(ValueError, match='Charge/multiplicity/solvent'):
         _ = BaseImagePair(mol1, mol2)
     mol1.mult = 1
+
+    # different solvents would raise
+    mol1.solvent = 'water'
+    with pytest.raises(ValueError, match='Charge/multiplicity/solvent'):
+        _ = BaseImagePair(mol1, mol2)
+    mol1.solvent = None
 
     # different atom order should also raise Error
     with pytest.raises(ValueError, match='order of atoms'):

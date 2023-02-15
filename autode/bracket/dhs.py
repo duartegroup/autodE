@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Callable, Optional
+from typing import Tuple, Callable, Optional, Union
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize as scipy_minimize
@@ -196,7 +196,7 @@ class DHS:
         final_species: autode.species.Species,
         maxiter: int = 300,
         reduction_factor: float = 0.05,
-        dist_tol: Distance = Distance(0.6, 'ang'),
+        dist_tol: Union[Distance, float] = Distance(0.6, 'ang'),
         optimiser: str = 'BFGS',
     ):
         """
@@ -217,7 +217,8 @@ class DHS:
             reduction_factor: The factor by which the distance is
                               decreased in each DHS step
             dist_tol: The distance tolerance at which DHS will
-                      stop, values <0.5 Angstrom are not recommended!
+                      stop, values less than 0.5 Angstrom are not
+                      recommended.
             optimiser: The optimiser to use for minimising after
                        the DHS step, either 'CG' (conjugate
                        gradients) or 'BFGS'
