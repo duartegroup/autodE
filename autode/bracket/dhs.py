@@ -1,5 +1,5 @@
 import os
-from typing import Tuple
+from typing import Tuple, Callable
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize as scipy_minimize
@@ -7,7 +7,10 @@ from scipy.optimize import minimize as scipy_minimize
 from autode.values import Distance
 from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair
+from autode.opt.coordinates.base import _ensure_positive_definite
 from autode.opt.optimisers.base import _OptimiserHistory
+from autode.opt.optimisers.hessian_update import (BFGSPDUpdate, BFGSUpdate,
+                                                  NullUpdate)
 from autode.input_output import atoms_to_xyz_file
 
 from autode.log import logger
@@ -17,11 +20,96 @@ import autode.species.species
 import autode.wrappers.methods
 
 
-class RestrictedBFGSMinimiser:
+class AdaptiveBFGSMinimiser:
     """
-    Restricted-step, line-search free BFGS minimiser. Based
+    Adaptive-step, line-search free BFGS minimiser. Based
     on https://doi.org/10.48550/arXiv.1612.06965
     """
+    def __init__(
+        self,
+        fn: Callable,
+        x0: np.ndarray,
+        maxiter: int,
+        gtol: float = 1e-3,
+        min_step: float = 0.01,
+        max_step: float = 0.15
+    ):
+        self._fn = fn  # must provide both value and gradient
+        self._x0 = np.array(x0).flatten()
+        self._gtol = gtol
+        self._maxiter = int(maxiter)
+        self._min_step = float(min_step)
+        self._max_step = float(max_step)
+        # todo deal with max step, is min step required?
+        # todo hessian determinant
+        self._iter = 1
+
+        self._x = None
+        self._last_x = None
+        self._en = None
+        self._grad = None
+        self._last_grad = None
+        self._hess = None
+        self._hess_updaters = [BFGSPDUpdate, BFGSUpdate, NullUpdate]
+
+    def minimise(self) -> np.ndarray:
+        self._x = self._x0
+        dim = self._x.shape[0]  # dimension of problem
+
+        for i in range(self._maxiter):
+            self._last_grad = self._grad
+            self._en, self._grad = self._fn(self._x)
+            assert self._grad.shape[0] == dim
+            rms_grad = np.sqrt(np.mean(np.square(self._grad)))
+            if rms_grad < self._gtol:
+                break
+            self._hess = self._get_hessian()
+            self._qnr_adaptive_step()
+            print(self._x, self._en)
+
+        print(f"Finished in {i} iterations, "
+                    f"final RMS grad = {rms_grad}")
+        print(f"Final x = {self._x}")
+        return self._x
+
+    def _get_hessian(self) -> np.ndarray:
+        # at first iteration, use a unit matrix
+        if self._iter == 1:
+            return np.eye(self._x.shape[0])
+
+        for hess_upd in self._hess_updaters:
+            updater = hess_upd(
+                h=self._hess,
+                s=self._x - self._last_x,
+                y=self._grad - self._last_grad
+            )
+            if not updater.conditions_met:
+                continue
+            print(f"Updating with {updater}")
+            new_hess = updater.updated_h
+            break
+
+        new_hess = _ensure_positive_definite(new_hess, 1.0e-6)
+        return new_hess
+
+    def _qnr_adaptive_step(self):
+        grad = self._grad.reshape(-1, 1)
+        inv_hess = np.linalg.inv(self._hess)
+        step = -(inv_hess @ grad)
+
+        del_k = np.linalg.norm(step)
+        rho_k = float(grad.T @ inv_hess @ grad)
+        t_k = rho_k/((rho_k + del_k) * del_k)
+        # if step size t_k is larger than search direction vector
+        # ignore, otherwise take a step of step size
+        if t_k > del_k:
+            pass
+        else:
+            step = step * (t_k / del_k)
+
+        self._last_x = self._x.copy()
+        self._x = self._x + step.flatten()  # take the step
+        self._iter += 1
 
 
 class DHSImagePair(BaseImagePair):
