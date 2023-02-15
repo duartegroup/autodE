@@ -295,10 +295,23 @@ class DHS:
                                  f" gradient = {rms_grad:.6f} Ha/angstrom"
                                  f" being low enough")
                 else:
+                    logger.error("Micro-iterations (optimisation) after a"
+                                 " DHS step did not converge, exiting")
                     break
             new_coord = self.imgpair.get_coord_by_side(side)
             hist.append(new_coord.copy())
-            self._log_convergence()
+            logger.error(
+                f"Macro-iteration #{self.macro_iter}: Distance = "
+                f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
+                f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
+                f"{self.imgpair.right_coord.e:.6f}"
+            )
+        # exited loop
+        logger.error(f"Finished DHS procedure in {self.macro_iter} macro-"
+                     f"iterations consisting of {self.imgpair.total_iters}"
+                     f" micro-iterations (optimiser steps). DHS is "
+                     f"{'converged' if self.converged else 'not converged'}")
+        return
 
     @property
     def macro_iter(self):
@@ -334,15 +347,6 @@ class DHS:
         assert self.imgpair.euclid_dist == new_dist
 
         return None
-
-    def _log_convergence(self):
-        """Log the convergence of the DHS method"""
-        logger.error(
-            f"Macro-iteration #{self.macro_iter}: Distance = "
-            f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
-            f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
-            f"{self.imgpair.right_coord.e:.6f}"
-        )
 
     def get_peak_species(self) -> autode.species.species.Species:
         """Obtain the highest energy point in the DHS energy path"""
