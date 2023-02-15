@@ -105,6 +105,7 @@ class BaseImagePair:
         self._right_image = right_image.new_species(name="right_image")
         self._sanity_check()
         self._align_species()
+        # todo do you need to update the grad and hess of the species?
 
         # separate methods for engrad and hessian calc
         self._engrad_method = None

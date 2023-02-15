@@ -65,7 +65,7 @@ def test_imgpair_sanity_check():
 
 @requires_with_working_xtb_install
 @work_in(datadir)
-def test_set_energy_and_engrad():
+def test_calc_energy_and_engrad():
     mol1 = Molecule('da_reactant.xyz')
     mol2 = Molecule('da_product.xyz')
 
@@ -95,6 +95,7 @@ def test_set_energy_and_engrad():
 
     # since imgpair takes a copy of initial species they
     # should not be affected
+    # todo change if species grad is not changed
     assert mol1.energy is None
     assert mol2.energy is None
     assert mol1.gradient is None
@@ -103,8 +104,39 @@ def test_set_energy_and_engrad():
 
 @requires_with_working_xtb_install
 @work_in(datadir)
-def test_set_hessian():
+def test_calc_hessian():
     mol1 = Molecule('da_reactant.xyz')
     mol2 = Molecule('da_product.xyz')
+
+    imgpair = BaseImagePair(left_image=mol1, right_image=mol2)
+    imgpair.set_method_and_n_cores(
+        engrad_method=methods.XTB(),
+        n_cores=1
+    )
+    # without setting hessian method, assert will be set off
+    with pytest.raises(AssertionError):
+        imgpair.update_one_img_molecular_hessian_by_calc('left')
+
+    imgpair.set_method_and_n_cores(
+        engrad_method=methods.XTB(),
+        hess_method=methods.XTB(),
+        n_cores=1
+    )
+    imgpair.update_one_img_molecular_hessian_by_calc('left')
+    # only hessian of left image should be updated
+    assert imgpair.left_coord.h is not None
+    assert imgpair.left_coord.e is None
+    assert imgpair.left_coord.g is None
+    # right image should be unchanged
+    assert imgpair.right_coord.e is None
+    assert imgpair.right_coord.g is None
+    assert imgpair.right_coord.h is None
+
+
+def test_hessian_update():
+    mol1 = Molecule(smiles='N#N')
+    mol2 = Molecule(smiles='N#N')
+
+
 
 

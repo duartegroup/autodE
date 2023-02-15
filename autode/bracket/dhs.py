@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Optional
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize as scipy_minimize
@@ -31,18 +31,17 @@ class AdaptiveBFGSMinimiser:
         x0: np.ndarray,
         maxiter: int,
         gtol: float = 1e-3,
-        min_step: float = 0.01,
+        min_step: float = 0.001,
         max_step: float = 0.15
     ):
         self._fn = fn  # must provide both value and gradient
-        self._x0 = np.array(x0).flatten()
+        self._x0 = np.array(x0, dtype=float).flatten()
         self._gtol = gtol
         self._maxiter = int(maxiter)
         self._min_step = float(min_step)
         self._max_step = float(max_step)
         # todo deal with max step, is min step required?
         # todo hessian determinant
-        self._iter = 1
 
         self._x = None
         self._last_x = None
@@ -52,17 +51,22 @@ class AdaptiveBFGSMinimiser:
         self._hess = None
         self._hess_updaters = [BFGSPDUpdate, BFGSUpdate, NullUpdate]
 
-    def minimise(self) -> np.ndarray:
+    def _run(self) -> Optional[np.ndarray]:
         self._x = self._x0
         dim = self._x.shape[0]  # dimension of problem
+
+        if self._maxiter < 1:
+            return None
 
         for i in range(self._maxiter):
             self._last_grad = self._grad
             self._en, self._grad = self._fn(self._x)
+
             assert self._grad.shape[0] == dim
             rms_grad = np.sqrt(np.mean(np.square(self._grad)))
             if rms_grad < self._gtol:
                 break
+            print(f'En = {self._en}, grad = {rms_grad}')
             self._hess = self._get_hessian()
             self._qnr_adaptive_step()
             print(self._x, self._en)
@@ -72,10 +76,16 @@ class AdaptiveBFGSMinimiser:
         print(f"Final x = {self._x}")
         return self._x
 
+    @classmethod
+    def minimise(cls, fun, jac, x0, options):
+        pass
+
     def _get_hessian(self) -> np.ndarray:
         # at first iteration, use a unit matrix
-        if self._iter == 1:
+        if self._hess is None:
             return np.eye(self._x.shape[0])
+
+        print("condition no.",np.linalg.cond(self._hess))
 
         for hess_upd in self._hess_updaters:
             updater = hess_upd(
@@ -89,7 +99,7 @@ class AdaptiveBFGSMinimiser:
             new_hess = updater.updated_h
             break
 
-        new_hess = _ensure_positive_definite(new_hess, 1.0e-6)
+        new_hess = _ensure_positive_definite(new_hess, 1.e-10)
         return new_hess
 
     def _qnr_adaptive_step(self):
@@ -100,6 +110,7 @@ class AdaptiveBFGSMinimiser:
         del_k = np.linalg.norm(step)
         rho_k = float(grad.T @ inv_hess @ grad)
         t_k = rho_k/((rho_k + del_k) * del_k)
+        print('step:', t_k)
         # if step size t_k is larger than search direction vector
         # ignore, otherwise take a step of step size
         if t_k > del_k:
@@ -109,7 +120,6 @@ class AdaptiveBFGSMinimiser:
 
         self._last_x = self._x.copy()
         self._x = self._x + step.flatten()  # take the step
-        self._iter += 1
 
 
 class DHSImagePair(BaseImagePair):
