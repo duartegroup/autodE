@@ -18,8 +18,7 @@ def test_adaptive_bfgs_paraboloid_minim():
     minim = AdaptiveBFGSMinimiser(
         fun=paraboloid_fn,
         x0=np.array([3.0, 4.0]),
-        maxiter=200,
-        gtol=1.0e-6,
+        options={'maxiter':200, 'gtol':1.0e-6}
     )
     res = minim.minimise()
     assert res['success']

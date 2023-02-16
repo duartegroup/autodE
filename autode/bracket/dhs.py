@@ -8,7 +8,6 @@ import os
 from typing import Tuple, Callable, Optional, Union
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.optimize import minimize as scipy_minimize
 
 from autode.values import Distance
 from autode.units import ang as angstrom
@@ -29,25 +28,29 @@ import autode.wrappers.methods
 class AdaptiveBFGSMinimiser:
     """
     Adaptive-step, line-search free BFGS minimiser. Based
-    on https://doi.org/10.48550/arXiv.1612.06965
+    on https://doi.org/10.48550/arXiv.1612.06965. The interface
+    is similar to scipy for consistency
     """
+
     def __init__(
-        self,
-        fun: Callable,
-        x0: np.ndarray,
-        maxiter: int = 100,
-        gtol: float = 1.e-3,
-        min_step: float = 0.001,
-        max_step: float = 0.15
+            self,
+            fun: Callable,
+            x0: np.ndarray,
+            args: tuple = (),
+            options: Optional[dict] = None,
     ):
+
         self._fn = fun  # must provide both value and gradient
         self._x0 = np.array(x0, dtype=float).flatten()
-        self._gtol = gtol
-        self._maxiter = int(maxiter)
-        self._min_step = float(min_step)
-        self._max_step = float(max_step)
-        # todo deal with max step, is min step required?
-        # todo hessian determinant
+        if isinstance(args, list):  # try to cast into tuple
+            args = tuple(args)
+        elif not isinstance(args, tuple):
+            args = (args,)
+        self._args = args
+
+        self._gtol = float(options.get('gtol', 1.e-4))
+        self._maxiter = int(options.get('maxiter', 100))
+        self._max_step = float(options.get('maxstep', 0.2))
 
         self._x = None
         self._last_x = None
@@ -57,18 +60,22 @@ class AdaptiveBFGSMinimiser:
         self._hess = None
         self._hess_updaters = [BFGSPDUpdate, BFGSUpdate, NullUpdate]
 
-    def minimise(self) -> Optional[dict]:
+    def minimise(self) -> dict:
         self._x = self._x0
         dim = self._x.shape[0]  # dimension of problem
         rms_grad = 0.0
         i = 0
 
         if self._maxiter < 1:
-            return None
+            return {
+                'x': self._x,
+                'success': True,
+                'nit': 0
+            }
 
         for i in range(self._maxiter):
             self._last_grad = self._grad
-            self._en, self._grad = self._fn(self._x)
+            self._en, self._grad = self._fn(self._x, *self._args)
 
             assert self._grad.shape[0] == dim
             rms_grad = np.sqrt(np.mean(np.square(self._grad)))
@@ -80,7 +87,7 @@ class AdaptiveBFGSMinimiser:
             print(self._x, self._en)
 
         print(f"Finished in {i} iterations, "
-                    f"final RMS grad = {rms_grad}")
+              f"final RMS grad = {rms_grad}")
         print(f"Final x = {self._x}")  # todo remove print messages when debug done
         # return a dict similar to scipy OptimizeResult
         return {
@@ -97,7 +104,11 @@ class AdaptiveBFGSMinimiser:
         if self._hess is None:
             return np.eye(self._x.shape[0])
 
-        print("condition no.",np.linalg.cond(self._hess))
+        # if Hessian is nearly singular, regenerate
+        if np.linalg.cond(self._hess) > 1.0e12:
+            return np.eye(self._x.shape[0])
+
+        new_hess = None
 
         for hess_upd in self._hess_updaters:
             updater = hess_upd(
@@ -121,8 +132,9 @@ class AdaptiveBFGSMinimiser:
 
         del_k = np.linalg.norm(step)
         rho_k = float(grad.T @ inv_hess @ grad)
-        t_k = rho_k/((rho_k + del_k) * del_k)
+        t_k = rho_k / ((rho_k + del_k) * del_k)
         print('step:', t_k)
+        t_k = min(t_k, self._max_step)
         # if step size t_k is larger than search direction vector
         # ignore, otherwise take a step of step size
         if t_k > del_k:
@@ -140,6 +152,7 @@ class DHSImagePair(BaseImagePair):
     images as the Euclidean distance (square of root of
     sum of the squares of deviations in Cartesian)
     """
+
     @property
     def dist_vec(self) -> np.ndarray:
         """The distance vector pointing to right_image from left_image"""
@@ -201,19 +214,58 @@ def _set_one_img_coord_and_get_engrad(
     return en, grad
 
 
+def _minimise(
+        fun: Callable,
+        x0: np.ndarray,
+        method: str,
+        args: tuple = (),
+        options: Optional[dict] = None) -> dict:
+    """
+    Interface to call both scipy and adaptive BFGS.
+
+    Args:
+        fun: Must provide both energy (value) and gradient
+        x0: Initial value
+        method:'adaptBFGS', 'BFGS' or 'CG'
+        args: tuple of arguments
+        options: dict of options, only 'gtol', 'maxstep', 'maxiter'
+    """
+    from scipy.optimize import minimize as scipy_minimize
+    if method == 'BFGS' or method == 'CG':
+        scipy_options = options.copy()
+        scipy_options.pop('maxstep', None)
+        # scipy does not allow step size control
+        return scipy_minimize(
+            fun=fun,
+            x0=x0,
+            args=args,
+            jac=True,
+            options=scipy_options
+        )
+    elif method == 'adaptBFGS':
+        minimiser = AdaptiveBFGSMinimiser(
+            fun=fun,
+            x0=x0,
+            args=args,
+            options=options
+        )
+        return minimiser.minimise()
+
+
 class DHS:
     """
     Dewar-Healy-Stewart method for finding transition states,
     from the reactant and product structures
     """
+
     def __init__(
-        self,
-        initial_species: autode.species.Species,
-        final_species: autode.species.Species,
-        maxiter: int = 300,
-        reduction_factor: float = 0.05,
-        dist_tol: Union[Distance, float] = Distance(0.6, 'ang'),
-        optimiser: str = 'BFGS',
+            self,
+            initial_species: autode.species.Species,
+            final_species: autode.species.Species,
+            maxiter: int = 300,
+            reduction_factor: float = 0.05,
+            dist_tol: Union[Distance, float] = Distance(0.6, 'ang'),
+            optimiser: str = 'BFGS',
     ):
         """
         Dewar-Healy-Stewart method to find transition state.
@@ -256,11 +308,13 @@ class DHS:
         optimiser = optimiser.upper().strip()
         if optimiser == 'BFGS' or optimiser == 'CG':
             self._opt_driver = optimiser
+        elif optimiser == 'ADAPTBFGS':
+            self._opt_driver = 'adaptBFGS'
         else:
-            logger.warning("Optimiser can either be BFGS or"
-                           " CG (conjugate gradients), setting to"
-                           " the default BFGS")
-            self._opt_driver = 'BFGS'
+            logger.warning("Optimiser can either be adaptBFGS or scipy's"
+                           " CG (conjugate gradients), or BFGS. Setting to"
+                           " the default adaptBFGS")
+            self._opt_driver = 'adaptBFGS'
 
     @property
     def converged(self):
@@ -296,14 +350,13 @@ class DHS:
             coord0 = np.array(self.imgpair.get_coord_by_side(side))
             curr_maxiter = self._maxiter - self.imgpair.total_iters
             # scipy does micro-iterations
-            res = scipy_minimize(
+            res = _minimise(
                 fun=_set_one_img_coord_and_get_engrad,
-                jac=True,
                 x0=coord0,
                 args=(side, self.imgpair),
                 method=self._opt_driver,
-                options={'gtol': 5.0e-4, 'maxiter': curr_maxiter}
-            )  # is conjugate gradients good enough?
+                options={'gtol': 5.0e-4, 'maxiter': curr_maxiter, 'maxstep': 0.2}
+            )
             # todo deal with minimizer problems
             perp_grad = self.imgpair.get_one_img_perp_grad(side)
             rms_grad = np.sqrt(np.mean(np.square(perp_grad)))
@@ -340,9 +393,9 @@ class DHS:
     def macro_iter(self):
         """Total number of DHS steps taken so far"""
         return (
-            len(self._initial_species_hist)
-            + len(self._final_species_hist)
-            - 2
+                len(self._initial_species_hist)
+                + len(self._final_species_hist)
+                - 2
         )
 
     def _step(self, side: str) -> None:
@@ -490,4 +543,3 @@ class DHS:
         # todo beautify
         dpi = 400 if Config.high_quality_plots else 200
         fig.savefig(plot_name, dpi=dpi, bbox_inches='tight')
-
