@@ -4,6 +4,8 @@ import pytest
 from autode.bracket.dhs import DHSImagePair
 from autode.bracket.dhs import AdaptiveBFGSMinimiser, _minimise
 
+# start of tests for optimiser =>
+
 
 def paraboloid_fn(arr):
     # z = (x-1.5)^2 / 5.0 + (y+2.0)^2 / 6.0
@@ -38,3 +40,8 @@ def test_common_minimise_interface(method):
     assert res['success']
     assert np.allclose(res['x'], [1.5, -2.0])
 
+# <= end of tests for optimisers
+
+
+def test_dhs():
+    pass
