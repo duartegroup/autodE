@@ -247,13 +247,11 @@ class BaseImagePair:
         """
         if value is None:
             return
-        elif isinstance(value, CartesianCoordinates):
-            self._left_history.append(value.copy())
         elif (
             isinstance(value, np.ndarray)
             and value.flatten().shape[0] == 3 * self.n_atoms
         ):
-            self._left_history.append(CartesianCoordinates(value))
+            self._left_history.append(CartesianCoordinates(value.copy()))
         else:
             raise ValueError
         self._left_image.coordinates = self._left_history[-1]
@@ -278,13 +276,11 @@ class BaseImagePair:
         """
         if value is None:
             return
-        elif isinstance(value, CartesianCoordinates):
-            self._right_history.append(value.copy())
         elif (
             isinstance(value, np.ndarray)
             and value.flatten().shape[0] == 3 * self.n_atoms
         ):
-            self._right_history.append(CartesianCoordinates(value))
+            self._right_history.append(CartesianCoordinates(value.copy()))
         else:
             raise ValueError
         self._right_image.coordinates = self._right_history[-1]
@@ -407,6 +403,7 @@ class BaseImagePair:
         img, coord, hist, _ = self._get_img_by_side(side)
         assert len(hist) > 1, "Hessian update not possible!"
         assert coord.h is None, "Hessian already exists!"
+        assert coord.g is not None, "Gradient should be present!"
         last_coord = hist.penultimate
         for update_type in self._hessian_update_types:
             updater = update_type(

@@ -139,9 +139,32 @@ def test_calc_hessian():
     assert imgpair.right_coord.h is None
 
 
+@requires_with_working_xtb_install
 def test_hessian_update():
     mol1 = Molecule(smiles='N#N')
     mol2 = Molecule(smiles='N#N')
+
+    imgpair = BaseImagePair(mol1, mol2)
+
+    imgpair.update_one_img_molecular_engrad('left')
+    imgpair.update_one_img_molecular_hessian_by_calc('left')
+    assert imgpair.left_coord.h is not None
+
+    coord = imgpair.left_coord.copy()
+    coord[2] += 0.2
+
+    imgpair.left_coord = coord
+    with pytest.raises(AssertionError, match='Gradient should'):
+        imgpair.update_one_img_molecular_hessian_by_formula('left')
+
+    assert imgpair.left_coord.h is None
+    imgpair.update_one_img_molecular_engrad('left')
+    imgpair.update_one_img_molecular_hessian_by_formula('left')
+    assert imgpair.left_coord.h is not None
+    assert imgpair.right_coord.h is None  # check that it modified current side
+
+    # todo check the hessian is better?
+
 
 
 
