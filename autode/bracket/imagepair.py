@@ -163,7 +163,7 @@ class BaseImagePair:
         possible against each other
         """
         # first translate the molecules to the origin
-        logger.error(
+        logger.info(
             "Translating initial_species (reactant) "
             "and final_species (product) to origin"
         )
@@ -175,7 +175,7 @@ class BaseImagePair:
         q_mat -= np.average(q_mat, axis=0)
         self._right_image.coordinates = q_mat
 
-        logger.error(
+        logger.info(
             "Rotating initial_species (reactant) "
             "to align with final_species (product) "
             "as much as possible"
@@ -356,7 +356,7 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.error(f"Calculating engrad for {side} side"
+        logger.info(f"Calculating engrad for {side} side"
                      f" with {self._engrad_method}")
         en, grad = _calculate_engrad_for_species(
             species=img.copy(),
@@ -382,7 +382,7 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.error(f"Calculating Hessian for {side} side"
+        logger.info(f"Calculating Hessian for {side} side"
                      f" with {self._hess_method}")
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores

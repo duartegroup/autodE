@@ -13,10 +13,10 @@ from autode.values import Distance
 from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair
 from autode.methods import get_hmethod
-from autode.opt.coordinates.base import _ensure_positive_definite
+from autode.opt.coordinates.base import (OptCoordinates,
+                                         _ensure_positive_definite)
 from autode.opt.optimisers.base import _OptimiserHistory
-from autode.opt.optimisers.hessian_update import (BFGSPDUpdate, BFGSUpdate,
-                                                  NullUpdate)
+from autode.opt.optimisers.hessian_update import BFGSPDUpdate
 from autode.input_output import atoms_to_xyz_file
 
 from autode.log import logger
@@ -59,7 +59,7 @@ class AdaptiveBFGSMinimiser:
         self._grad = None
         self._last_grad = None
         self._hess = None
-        self._hess_updaters = [BFGSPDUpdate, BFGSUpdate, NullUpdate]
+        self._hess_updaters = [BFGSPDUpdate]
 
     def minimise(self) -> dict:
         self._x = self._x0
@@ -82,14 +82,13 @@ class AdaptiveBFGSMinimiser:
             rms_grad = np.sqrt(np.mean(np.square(self._grad)))
             if rms_grad < self._gtol:
                 break
-            print(f'En = {self._en}, grad = {rms_grad}')
+            logger.debug(f'En = {self._en}, grad = {rms_grad}')
             self._hess = self._get_hessian()
             self._qnr_adaptive_step()
-            print(self._x, self._en)
 
-        print(f"Finished in {i} iterations, "
-              f"final RMS grad = {rms_grad}")
-        print(f"Final x = {self._x}")  # todo remove print messages when debug done
+        logger.debug(f"Finished in {i} iterations, "
+                     f"final RMS grad = {rms_grad}")
+        logger.debug(f"Final x = {self._x}")  # todo remove print messages when debug done
         # return a dict similar to scipy OptimizeResult
         return {
             'x': self._x,
@@ -119,9 +118,13 @@ class AdaptiveBFGSMinimiser:
             )
             if not updater.conditions_met:
                 continue
-            print(f"Updating with {updater}")
+            logger.debug(f"Updating with {updater}")
             new_hess = updater.updated_h
             break
+
+        if new_hess is None:
+            # if BFGS positive definite does not work, regenerate
+            new_hess = np.eye(self._x.shape[0])
 
         new_hess = _ensure_positive_definite(new_hess, 1.e-10)
         return new_hess
@@ -134,8 +137,8 @@ class AdaptiveBFGSMinimiser:
         del_k = np.linalg.norm(step)
         rho_k = float(grad.T @ inv_hess @ grad)
         t_k = rho_k / ((rho_k + del_k) * del_k)
-        print('step:', t_k)
         t_k = min(t_k, self._max_step)
+        logger.debug('step size:', t_k)
         # if step size t_k is larger than search direction vector
         # ignore, otherwise take a step of step size
         if t_k > del_k:
@@ -357,7 +360,7 @@ class DHS:
                 x0=coord0,
                 args=(side, self.imgpair),
                 method=self._opt_driver,
-                options={'gtol': 5.0e-4, 'maxiter': curr_maxiter, 'maxstep': 0.2}
+                options={'gtol': 5.0e-4, 'maxiter': curr_maxiter, 'maxstep': 0.16}
             )
             # todo deal with minimizer problems
             perp_grad = self.imgpair.get_one_img_perp_grad(side)
@@ -436,6 +439,28 @@ class DHS:
         assert self.imgpair.euclid_dist == new_dist
 
         return None
+
+    def _has_jumped_over_barrier(self,
+                                 coord: OptCoordinates,
+                                 side: 'str'):
+        """
+        Determines if the provided image after micro-iteration
+        optimisation has jumped over the barrier towards the
+        other species.
+        """
+        if side == 'left':
+            last_coord = self._initial_species_hist[-2]
+            other_image = self._final_species_hist[-1]
+        elif side == 'right':
+            last_coord = self._final_species_hist[-2]
+            other_image = self._initial_species_hist[-1]
+
+        # if one image jumps over the barrier, then it must
+        # cross the other image, which means the distance vector
+        # will be reversed (or near-reversed) in direction
+
+        # todo or is it distance from the starting point is greater
+        # than the product
 
     def get_peak_species(self) -> autode.species.species.Species:
         """Obtain the highest energy point in the DHS energy path"""
@@ -517,8 +542,7 @@ class DHS:
         the initial_species geometry supplied, and the y-axis shows
         the energies in kcal/mol
         """
-        if (len(self._initial_species_hist) < 2
-                or len(self._final_species_hist) < 2):
+        if self.macro_iter < 2:
             logger.warning('Cannot plot energies, not enough points')
             return None
 
@@ -557,8 +581,10 @@ class DHS:
 
         # get the pyplot axes
         fig, ax = plt.subplots()
-        ax.plot(distances_init, energies_init, 'bo-')
-        ax.plot(distances_fin, energies_fin, 'go-')
+        if len(distances_init) > 0:
+            ax.plot(distances_init, energies_init, 'bo-')
+        if len(distances_fin) > 0:
+            ax.plot(distances_fin, energies_fin, 'go-')
         ax.set_xlabel(f"Distance from initial image ({angstrom.plot_name})")
         ax.set_ylabel("Relative electronic energy (kcal/mol)")
         # todo beautify
