@@ -1,6 +1,8 @@
 import numpy as np
+import pytest
+
 from autode.bracket.dhs import DHSImagePair
-from autode.bracket.dhs import AdaptiveBFGSMinimiser
+from autode.bracket.dhs import AdaptiveBFGSMinimiser, _minimise
 
 
 def paraboloid_fn(arr):
@@ -25,4 +27,14 @@ def test_adaptive_bfgs_paraboloid_minim():
     assert np.allclose(res['x'], [1.5, -2.0])
 
 
+@pytest.mark.parametrize('method', ['adaptBFGS', 'BFGS', 'CG'])
+def test_common_minimise_interface(method):
+    res = _minimise(
+        fun=paraboloid_fn,
+        x0=np.array([3.0, 4.0]),
+        method=method,
+        options={'maxiter': 200, 'gtol': 1.0e-6}
+    )
+    assert res['success']
+    assert np.allclose(res['x'], [1.5, -2.0])
 

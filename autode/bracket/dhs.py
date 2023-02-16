@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 from autode.values import Distance
 from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair
+from autode.methods import get_hmethod
 from autode.opt.coordinates.base import _ensure_positive_definite
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.opt.optimisers.hessian_update import (BFGSPDUpdate, BFGSUpdate,
@@ -265,7 +266,7 @@ class DHS:
             maxiter: int = 300,
             reduction_factor: float = 0.05,
             dist_tol: Union[Distance, float] = Distance(0.6, 'ang'),
-            optimiser: str = 'BFGS',
+            optimiser: str = 'adaptBFGS',
     ):
         """
         Dewar-Healy-Stewart method to find transition state.
@@ -288,7 +289,8 @@ class DHS:
                       stop, values less than 0.5 Angstrom are not
                       recommended.
             optimiser: The optimiser to use for minimising after
-                       the DHS step, either 'CG' (conjugate
+                       the DHS step, choose from 'adaptBFGS' (own
+                       implementation) or, scipy's 'CG' (conjugate
                        gradients) or 'BFGS'
         """
         self.imgpair = DHSImagePair(initial_species, final_species)
@@ -326,7 +328,7 @@ class DHS:
 
     def calculate(self, method, n_cores):
         """
-        Run the DHS calculation. Can only be called once!
+        Run the DHS calculation. Should only be called once!
 
         Args:
             method:
@@ -389,6 +391,17 @@ class DHS:
                      f"{'converged' if self.converged else 'not converged'}")
         return
 
+    def run(self):
+        """
+        Runs the DHS calculation with the high-level method,
+        and the number of cores from currently set Config,
+        then writes the trajectories and energy plot
+        """
+        hmethod = get_hmethod()
+        self.calculate(method=hmethod, n_cores=Config.n_cores)
+        self.write_trajectories()
+        self.plot_energies()
+
     @property
     def macro_iter(self):
         """Total number of DHS steps taken so far"""
@@ -443,8 +456,11 @@ class DHS:
         supplied, "final_species_dhs.trj.xyz" for the final_species
         supplied, and "total_dhs.trj.xyz" which is a concatenated
         version with the trajectory of the final species reversed
-        (i.e. the MEP predicted by DHS)
+        (i.e. the MEP calculated by DHS)
         """
+        if self.macro_iter < 2:
+            logger.warning("Cannot write trajectory, not enough DHS points")
+            return None
 
         if os.path.isfile('initial_species_dhs.trj.xyz'):
             logger.error("File: initial_species_dhs.trj.xyz already "
@@ -496,11 +512,16 @@ class DHS:
         """
         Plot the energies along the MEP path as obtained by the DHS
         procedure. The points arising from the initial_species are
-        shown in blue, which those from final species are shown in red.
+        shown in blue, which those from final species are shown in green.
         The x-axis shows euclidean distance of each MEP point from
         the initial_species geometry supplied, and the y-axis shows
         the energies in kcal/mol
         """
+        if (len(self._initial_species_hist) < 2
+                or len(self._final_species_hist) < 2):
+            logger.warning('Cannot plot energies, not enough points')
+            return None
+
         plot_name = "DHS_MEP_path.pdf"
 
         if os.path.isfile(plot_name):
@@ -538,7 +559,7 @@ class DHS:
         fig, ax = plt.subplots()
         ax.plot(distances_init, energies_init, 'bo-')
         ax.plot(distances_fin, energies_fin, 'go-')
-        ax.set_xlabel(f"Distance from initial_species ({angstrom.plot_name})")
+        ax.set_xlabel(f"Distance from initial image ({angstrom.plot_name})")
         ax.set_ylabel("Relative electronic energy (kcal/mol)")
         # todo beautify
         dpi = 400 if Config.high_quality_plots else 200
