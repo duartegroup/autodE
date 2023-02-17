@@ -88,7 +88,7 @@ class AdaptiveBFGSMinimiser:
 
         logger.debug(f"Finished in {i} iterations, "
                      f"final RMS grad = {rms_grad}")
-        logger.debug(f"Final x = {self._x}")  # todo remove print messages when debug done
+        logger.debug(f"Final x = {self._x}")
         # return a dict similar to scipy OptimizeResult
         return {
             'x': self._x,
@@ -269,7 +269,7 @@ class DHS:
             maxiter: int = 300,
             reduction_factor: float = 0.05,
             dist_tol: Union[Distance, float] = Distance(0.6, 'ang'),
-            optimiser: str = 'adaptBFGS',
+            optimiser: str = 'BFGS',
     ):
         """
         Dewar-Healy-Stewart method to find transition state.
@@ -296,6 +296,7 @@ class DHS:
                        implementation) or, scipy's 'CG' (conjugate
                        gradients) or 'BFGS'
         """
+        # todo fix the problems with adaptBFGS
         self.imgpair = DHSImagePair(initial_species, final_species)
         self._species = initial_species.copy()  # just hold the species
         self._reduction_fac = float(reduction_factor)
@@ -318,8 +319,8 @@ class DHS:
         else:
             logger.warning("Optimiser can either be adaptBFGS or scipy's"
                            " CG (conjugate gradients), or BFGS. Setting to"
-                           " the default adaptBFGS")
-            self._opt_driver = 'adaptBFGS'
+                           " the default")
+            self._opt_driver = 'BFGS'
 
     @property
     def converged(self):
@@ -366,32 +367,41 @@ class DHS:
             perp_grad = self.imgpair.get_one_img_perp_grad(side)
             rms_grad = np.sqrt(np.mean(np.square(perp_grad)))
             if res['success']:
-                logger.error("Successful optimization after DHS step, final"
-                             f" RMS of projected gradient = {rms_grad:.6f}"
-                             f" Ha/angstrom")
+                logger.info("Successful optimization after DHS step, final"
+                            f" RMS of projected gradient = {rms_grad:.6f}"
+                            f" Ha/angstrom")
             else:
                 if rms_grad < 1.0e-3:
-                    logger.error("Optimization not converged completely,"
-                                 " but accepted on the basis of RMS"
-                                 f" gradient = {rms_grad:.6f} Ha/angstrom"
-                                 f" being low enough")
+                    logger.info("Optimization not converged completely,"
+                                " but accepted on the basis of RMS"
+                                f" gradient = {rms_grad:.6f} Ha/angstrom"
+                                f" being low enough")
                 else:
                     logger.error("Micro-iterations (optimisation) after a"
                                  " DHS step did not converge, exiting")
                     break
             new_coord = self.imgpair.get_coord_by_side(side)
-            hist.append(new_coord.copy())
-            logger.error(
+            if self._has_jumped_over_barrier(new_coord, side):
+                logger.warning("One image has jumped over the other image"
+                               " while running DHS optimisation. This"
+                               " indicates that the distance between images"
+                               " is quite close, so DHS is converged even if"
+                               " the distance tolerance criteria is not met")
+            else:
+                # otherwise put the coordinate into appropriate history
+                hist.append(new_coord.copy())
+
+            logger.info(
                 f"Macro-iteration #{self.macro_iter}: Distance = "
                 f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
                 f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
                 f"{self.imgpair.right_coord.e:.6f}"
             )
         # exited loop
-        logger.error(f"Finished DHS procedure in {self.macro_iter} macro-"
-                     f"iterations consisting of {self.imgpair.total_iters}"
-                     f" micro-iterations (optimiser steps). DHS is "
-                     f"{'converged' if self.converged else 'not converged'}")
+        logger.info(f"Finished DHS procedure in {self.macro_iter} macro-"
+                    f"iterations consisting of {self.imgpair.total_iters}"
+                    f" micro-iterations (optimiser steps). DHS is "
+                    f"{'converged' if self.converged else 'not converged'}")
         return
 
     def run(self):
@@ -449,18 +459,25 @@ class DHS:
         other species.
         """
         if side == 'left':
-            last_coord = self._initial_species_hist[-2]
+            last_coord = self._initial_species_hist[-1]
             other_image = self._final_species_hist[-1]
         elif side == 'right':
-            last_coord = self._final_species_hist[-2]
+            last_coord = self._final_species_hist[-1]
             other_image = self._initial_species_hist[-1]
+        else:
+            raise Exception
 
-        # if one image jumps over the barrier, then it must
-        # cross the other image, which means the distance vector
-        # will be reversed (or near-reversed) in direction
+        # DHS assumes the next point will lie between the
+        # last two images on both side. If the current coord
+        # is further from last coord on the same side than the
+        # opposite image, then it has jumped over
+        dist_to_last = np.linalg.norm(coord - last_coord)
+        dist_before_step = np.linalg.norm(other_image - last_coord)
 
-        # todo or is it distance from the starting point is greater
-        # than the product
+        if dist_to_last > dist_before_step:
+            return True
+        else:
+            return False
 
     def get_peak_species(self) -> autode.species.species.Species:
         """Obtain the highest energy point in the DHS energy path"""
