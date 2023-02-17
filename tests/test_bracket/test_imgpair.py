@@ -48,15 +48,21 @@ def test_imgpair_sanity_check():
 
     # different charge would raise Error
     mol1.charge = -2
-    with pytest.raises(ValueError, match='Charge/multiplicity'):
+    with pytest.raises(ValueError, match='Charge/multiplicity/solvent'):
         _ = BaseImagePair(mol1, mol2)
     mol1.charge = 0
 
     # different multiplicity would also raise Error
     mol1.mult = 3
-    with pytest.raises(ValueError, match='Charge/multiplicity'):
+    with pytest.raises(ValueError, match='Charge/multiplicity/solvent'):
         _ = BaseImagePair(mol1, mol2)
     mol1.mult = 1
+
+    # different solvents would raise
+    mol1.solvent = 'water'
+    with pytest.raises(ValueError, match='Charge/multiplicity/solvent'):
+        _ = BaseImagePair(mol1, mol2)
+    mol1.solvent = None
 
     # different atom order should also raise Error
     with pytest.raises(ValueError, match='order of atoms'):
@@ -65,7 +71,7 @@ def test_imgpair_sanity_check():
 
 @requires_with_working_xtb_install
 @work_in(datadir)
-def test_set_energy_and_engrad():
+def test_calc_energy_and_engrad():
     mol1 = Molecule('da_reactant.xyz')
     mol2 = Molecule('da_product.xyz')
 
@@ -95,6 +101,7 @@ def test_set_energy_and_engrad():
 
     # since imgpair takes a copy of initial species they
     # should not be affected
+    # todo change if species grad is not changed
     assert mol1.energy is None
     assert mol2.energy is None
     assert mol1.gradient is None
@@ -103,8 +110,62 @@ def test_set_energy_and_engrad():
 
 @requires_with_working_xtb_install
 @work_in(datadir)
-def test_set_hessian():
+def test_calc_hessian():
     mol1 = Molecule('da_reactant.xyz')
     mol2 = Molecule('da_product.xyz')
+
+    imgpair = BaseImagePair(left_image=mol1, right_image=mol2)
+    imgpair.set_method_and_n_cores(
+        engrad_method=methods.XTB(),
+        n_cores=1
+    )
+    # without setting hessian method, assert will be set off
+    with pytest.raises(AssertionError):
+        imgpair.update_one_img_molecular_hessian_by_calc('left')
+
+    imgpair.set_method_and_n_cores(
+        engrad_method=methods.XTB(),
+        hess_method=methods.XTB(),
+        n_cores=1
+    )
+    imgpair.update_one_img_molecular_hessian_by_calc('left')
+    # only hessian of left image should be updated
+    assert imgpair.left_coord.h is not None
+    assert imgpair.left_coord.e is None
+    assert imgpair.left_coord.g is None
+    # right image should be unchanged
+    assert imgpair.right_coord.e is None
+    assert imgpair.right_coord.g is None
+    assert imgpair.right_coord.h is None
+
+
+@requires_with_working_xtb_install
+def test_hessian_update():
+    mol1 = Molecule(smiles='N#N')
+    mol2 = Molecule(smiles='N#N')
+
+    imgpair = BaseImagePair(mol1, mol2)
+
+    imgpair.update_one_img_molecular_engrad('left')
+    imgpair.update_one_img_molecular_hessian_by_calc('left')
+    assert imgpair.left_coord.h is not None
+
+    coord = imgpair.left_coord.copy()
+    coord[2] += 0.2
+
+    imgpair.left_coord = coord
+    with pytest.raises(AssertionError, match='Gradient should'):
+        imgpair.update_one_img_molecular_hessian_by_formula('left')
+
+    assert imgpair.left_coord.h is None
+    imgpair.update_one_img_molecular_engrad('left')
+    imgpair.update_one_img_molecular_hessian_by_formula('left')
+    assert imgpair.left_coord.h is not None
+    assert imgpair.right_coord.h is None  # check that it modified current side
+
+    # todo check the hessian is better?
+
+
+
 
 

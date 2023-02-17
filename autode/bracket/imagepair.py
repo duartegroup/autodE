@@ -105,6 +105,7 @@ class BaseImagePair:
         self._right_image = right_image.new_species(name="right_image")
         self._sanity_check()
         self._align_species()
+        # todo do you need to update the grad and hess of the species?
 
         # separate methods for engrad and hessian calc
         self._engrad_method = None
@@ -134,10 +135,11 @@ class BaseImagePair:
         if (
             self._left_image.charge != self._right_image.charge
             or self._left_image.mult != self._right_image.mult
+            or self._left_image.solvent != self._right_image.solvent
         ):
             raise ValueError(
-                "Charge/multiplicity of initial_species and "
-                "final_species supplied are not the same"
+                "Charge/multiplicity/solvent of initial_species "
+                "and final_species supplied are not the same"
             )
 
         for idx in range(len(self._left_image.atoms)):
@@ -161,7 +163,7 @@ class BaseImagePair:
         possible against each other
         """
         # first translate the molecules to the origin
-        logger.error(
+        logger.info(
             "Translating initial_species (reactant) "
             "and final_species (product) to origin"
         )
@@ -173,7 +175,7 @@ class BaseImagePair:
         q_mat -= np.average(q_mat, axis=0)
         self._right_image.coordinates = q_mat
 
-        logger.error(
+        logger.info(
             "Rotating initial_species (reactant) "
             "to align with final_species (product) "
             "as much as possible"
@@ -245,13 +247,11 @@ class BaseImagePair:
         """
         if value is None:
             return
-        elif isinstance(value, CartesianCoordinates):
-            self._left_history.append(value.copy())
         elif (
             isinstance(value, np.ndarray)
             and value.flatten().shape[0] == 3 * self.n_atoms
         ):
-            self._left_history.append(CartesianCoordinates(value))
+            self._left_history.append(CartesianCoordinates(value.copy()))
         else:
             raise ValueError
         self._left_image.coordinates = self._left_history[-1]
@@ -276,13 +276,11 @@ class BaseImagePair:
         """
         if value is None:
             return
-        elif isinstance(value, CartesianCoordinates):
-            self._right_history.append(value.copy())
         elif (
             isinstance(value, np.ndarray)
             and value.flatten().shape[0] == 3 * self.n_atoms
         ):
-            self._right_history.append(CartesianCoordinates(value))
+            self._right_history.append(CartesianCoordinates(value.copy()))
         else:
             raise ValueError
         self._right_image.coordinates = self._right_history[-1]
@@ -359,7 +357,7 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.error(f"Calculating engrad for {side} side"
+        logger.info(f"Calculating engrad for {side} side"
                      f" with {self._engrad_method}")
         en, grad = _calculate_engrad_for_species(
             species=img.copy(),
@@ -385,7 +383,7 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.error(f"Calculating Hessian for {side} side"
+        logger.info(f"Calculating Hessian for {side} side"
                      f" with {self._hess_method}")
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
@@ -406,6 +404,7 @@ class BaseImagePair:
         img, coord, hist, _ = self._get_img_by_side(side)
         assert len(hist) > 1, "Hessian update not possible!"
         assert coord.h is None, "Hessian already exists!"
+        assert coord.g is not None, "Gradient should be present!"
         last_coord = hist.penultimate
         for update_type in self._hessian_update_types:
             updater = update_type(
