@@ -126,25 +126,27 @@ class AdaptiveBFGSMinimiser:
             # if BFGS positive definite does not work, regenerate
             new_hess = np.eye(self._x.shape[0])
 
-        new_hess = _ensure_positive_definite(new_hess, 1.e-10)
+        # new_hess = _ensure_positive_definite(new_hess, 1.e-10)
         return new_hess
 
     def _qnr_adaptive_step(self):
         grad = self._grad.reshape(-1, 1)
         inv_hess = np.linalg.inv(self._hess)
-        step = -(inv_hess @ grad)
+        d_k = -(inv_hess @ grad)  # search direction
 
-        del_k = np.linalg.norm(step)
+        del_k = np.linalg.norm(d_k)
         rho_k = float(grad.T @ inv_hess @ grad)
         t_k = rho_k / ((rho_k + del_k) * del_k)
-        t_k = min(t_k, self._max_step)
-        logger.debug('step size:', t_k)
-        # if step size t_k is larger than search direction vector
-        # ignore, otherwise take a step of step size
-        if t_k > del_k:
+        step = t_k * d_k
+        step_size = np.linalg.norm(step)
+
+        logger.debug('step size:', step_size)
+        # if step size is larger than the maximum step
+        # then scale it back
+        if step_size <= self._max_step:
             pass
         else:
-            step = step * (t_k / del_k)
+            step = step * float(self._max_step / step_size)
 
         self._last_x = self._x.copy()
         self._x = self._x + step.flatten()  # take the step
