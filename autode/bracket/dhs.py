@@ -508,40 +508,36 @@ class DHS:
         version with the trajectory of the final species reversed
         (i.e. the MEP calculated by DHS)
         """
+        init_trj = "initial_species_dhs.trj.xyz"
+        fin_trj = "final_species_dhs.trj.xyz"
+        total_trj = "total_dhs.trj.xyz"
         if self.macro_iter < 2:
             logger.warning("Cannot write trajectory, not enough DHS points")
             return None
 
-        if os.path.isfile("initial_species_dhs.trj.xyz"):
-            logger.error(
-                "File: initial_species_dhs.trj.xyz already "
-                "exists, cannot write trajectory"
-            )
+        if _rename_if_old_file_present(init_trj):
+            self._write_trj_from_history(init_trj, self._initial_species_hist)
         else:
-            self._write_trj_from_history(
-                "initial_species_dhs.trj.xyz", self._initial_species_hist
+            logger.error(
+                f"File: {init_trj} already exists, cannot write trajectory"
             )
 
-        if os.path.isfile("final_species_dhs.trj.xyz"):
-            logger.error(
-                "File: final_species_dhs.trj.xyz already "
-                "exists, cannot write trajectory"
-            )
+        if _rename_if_old_file_present(fin_trj):
+            self._write_trj_from_history(fin_trj, self._final_species_hist)
         else:
-            self._write_trj_from_history(
-                "final_species_dhs.trj.xyz", self._final_species_hist
+            logger.error(
+                f"File: {fin_trj} already exists, cannot write trajectory"
             )
 
-        if os.path.isfile("total_dhs.trj.xyz"):
-            logger.error(
-                "File: total_dhs.trj.xyz already "
-                "exists, cannot write trajectory"
-            )
-        else:
+        if _rename_if_old_file_present(total_trj):
             total_hist = (
                 self._initial_species_hist + self._final_species_hist[::-1]
             )
-            self._write_trj_from_history("total_dhs.trj.xyz", total_hist)
+            self._write_trj_from_history(total_trj, total_hist)
+        else:
+            logger.error(
+                f"File: {total_trj} already exists, cannot write trajectory"
+            )
 
         return None
 
@@ -575,7 +571,7 @@ class DHS:
 
         plot_name = "DHS_MEP_path.pdf"
 
-        if os.path.isfile(plot_name):
+        if not _rename_if_old_file_present(plot_name):
             logger.error(
                 f"File: {plot_name} already exists, "
                 f"cannot write energy plot"
@@ -620,3 +616,29 @@ class DHS:
         # todo beautify
         dpi = 400 if Config.high_quality_plots else 200
         fig.savefig(plot_name, dpi=dpi, bbox_inches="tight")
+
+
+def _rename_if_old_file_present(filename: str) -> bool:
+    """
+    Renames the file if it is present in the current
+    directory
+
+    Args:
+        filename:
+
+    Returns:
+        (bool): True if succeeded in renaming (or did not exist),
+                False otherwise
+    """
+    rename_success = False
+    if os.path.isfile(filename):
+        for i in range(100):
+            new_filename = filename + f"_old_{i}"
+            if os.path.isfile(new_filename):
+                continue
+            os.rename(filename, new_filename)
+            rename_success = True
+            break
+        if not rename_success:
+            return False
+    return True
