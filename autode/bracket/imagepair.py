@@ -1,12 +1,16 @@
-from abc import ABC, abstractmethod
-from typing import Optional, List, Tuple
+"""
+Base classes for implementing all bracketing methods
+that require a pair of images
+"""
+
+from typing import Optional, Tuple
 import numpy as np
 
-from autode.values import Distance, PotentialEnergy, Gradient
+from autode.values import PotentialEnergy, Gradient
 from autode.hessians import Hessian
 from autode.geom import get_rot_mat_kabsch
-from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
-from autode.opt.optimisers.hessian_update import BofillUpdate, NullUpdate
+from autode.opt.coordinates import CartesianCoordinates
+from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
 from autode.log import logger
@@ -332,8 +336,10 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.debug(f"Calculating energy for {side} side"
-                     f" with {self._engrad_method}")
+        logger.debug(
+            f"Calculating energy for {side} side"
+            f" with {self._engrad_method}"
+        )
 
         en = _calculate_energy_for_species(
             species=img.copy(),
@@ -341,8 +347,8 @@ class BaseImagePair:
             n_cores=self._n_cores,
         )
         # update both species and coord
-        img.energy = en.to('Ha')
-        coord.e = en.to('Ha')
+        img.energy = en.to("Ha")
+        coord.e = en.to("Ha")
 
     def update_one_img_molecular_engrad(self, side: str) -> None:
         """
@@ -356,18 +362,20 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.debug(f"Calculating engrad for {side} side"
-                     f" with {self._engrad_method}")
+        logger.debug(
+            f"Calculating engrad for {side} side"
+            f" with {self._engrad_method}"
+        )
         en, grad = _calculate_engrad_for_species(
             species=img.copy(),
             method=self._engrad_method,
             n_cores=self._n_cores,
         )
         # update both species and coord
-        img.energy = en.to('Ha')
-        img.gradient = grad.to('Ha/ang')
-        coord.e = en.to('Ha')
-        coord.update_g_from_cart_g(grad.to('Ha/ang'))
+        img.energy = en.to("Ha")
+        img.gradient = grad.to("Ha/ang")
+        coord.e = en.to("Ha")
+        coord.update_g_from_cart_g(grad.to("Ha/ang"))
         return None
 
     def update_one_img_molecular_hessian_by_calc(self, side: str) -> None:
@@ -382,12 +390,13 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.debug(f"Calculating Hessian for {side} side"
-                     f" with {self._hess_method}")
+        logger.debug(
+            f"Calculating Hessian for {side} side" f" with {self._hess_method}"
+        )
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
         )
-        img.hessian = hess.to('Ha/ang^2')
+        img.hessian = hess.to("Ha/ang^2")
         coord.update_h_from_cart_h(hess)
         return None
 
