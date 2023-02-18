@@ -48,7 +48,6 @@ class AdaptiveBFGSMinimiser:
         elif not isinstance(args, tuple):
             args = (args,)
         self._args = args
-
         self._gtol = float(options.get("gtol", 1.0e-4))
         self._maxiter = int(options.get("maxiter", 100))
         self._max_step = float(options.get("maxstep", 0.2))
