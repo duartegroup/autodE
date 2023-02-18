@@ -52,7 +52,11 @@ def requires_with_working_xtb_install(func):
 
     @wraps(func)
     def wrapped_function(*args, **kwargs):
-        if not shutil.which("xtb") or not shutil.which("xtb").endswith("xtb"):
+        if not shutil.which("xtb"):
+            return
+
+        xtb_path = shutil.which("xtb").lower()
+        if not (xtb_path.endswith("xtb") or xtb_path.endswith("xtb.exe")):
             return
 
         return func(*args, **kwargs)
