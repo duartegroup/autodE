@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 from autode.values import Distance
 from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair
-from autode.methods import get_hmethod
+from autode.methods import get_lmethod
 from autode.opt.coordinates.base import (OptCoordinates,
                                          _ensure_positive_definite)
 from autode.opt.optimisers.base import _OptimiserHistory
@@ -140,7 +140,7 @@ class AdaptiveBFGSMinimiser:
         step = t_k * d_k
         step_size = np.linalg.norm(step)
 
-        logger.debug('step size:', step_size)
+        logger.debug('adaptive step size:', step_size)
         # if step size is larger than the maximum step
         # then scale it back
         if step_size <= self._max_step:
@@ -408,12 +408,12 @@ class DHS:
 
     def run(self):
         """
-        Runs the DHS calculation with the high-level method,
-        and the number of cores from currently set Config,
+        Runs the DHS calculation with the default low-level
+        method, and the number of cores from currently set Config,
         then writes the trajectories and energy plot
         """
-        hmethod = get_hmethod()
-        self.calculate(method=hmethod, n_cores=Config.n_cores)
+        lmethod = get_lmethod()
+        self.calculate(method=lmethod, n_cores=Config.n_cores)
         self.write_trajectories()
         self.plot_energies()
 
