@@ -13,8 +13,7 @@ from autode.values import Distance
 from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair
 from autode.methods import get_lmethod
-from autode.opt.coordinates.base import (OptCoordinates,
-                                         _ensure_positive_definite)
+from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.opt.optimisers.hessian_update import BFGSPDUpdate
 from autode.input_output import atoms_to_xyz_file
@@ -346,7 +345,7 @@ class DHS:
         self.imgpair.set_method_and_n_cores(method, n_cores)
         self.imgpair.update_one_img_molecular_energy('left')
         self.imgpair.update_one_img_molecular_energy('right')
-        logger.error("Starting DHS optimisation")
+        logger.info("Starting DHS optimisation")
         while not self.converged:
             if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
                 side = 'left'
@@ -387,8 +386,9 @@ class DHS:
                 logger.warning("One image has jumped over the other image"
                                " while running DHS optimisation. This"
                                " indicates that the distance between images"
-                               " is quite close, so DHS is converged even if"
-                               " the distance tolerance criteria is not met")
+                               " is quite close, so DHS cannot proceed even"
+                               " though the distance criteria is not met")
+                break
             else:
                 # otherwise put the coordinate into appropriate history
                 hist.append(new_coord.copy())
@@ -446,8 +446,8 @@ class DHS:
             new_coord = self.imgpair.right_coord + step
             self.imgpair.right_coord = new_coord
 
-        logger.error(f"DHS step on {side} image:"
-                     f" setting distance to {new_dist:.4f}")
+        logger.info(f"DHS step on {side} image:"
+                    f" setting distance to {new_dist:.4f}")
         assert self.imgpair.euclid_dist == new_dist
 
         return None

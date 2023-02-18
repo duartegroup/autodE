@@ -145,6 +145,9 @@ def test_hessian_update():
     mol2 = Molecule(smiles='N#N')
 
     imgpair = BaseImagePair(mol1, mol2)
+    imgpair.set_method_and_n_cores(engrad_method=methods.XTB(),
+                                   n_cores=1,
+                                   hess_method=methods.XTB())
 
     imgpair.update_one_img_molecular_engrad('left')
     imgpair.update_one_img_molecular_hessian_by_calc('left')
@@ -163,9 +166,6 @@ def test_hessian_update():
     assert imgpair.left_coord.h is not None
     assert imgpair.right_coord.h is None  # check that it modified current side
 
-    # todo check the hessian is better?
-
-
-
-
-
+    # calling Hessian update again will raise exception
+    with pytest.raises(AssertionError):
+        imgpair.update_one_img_molecular_hessian_by_formula('left')

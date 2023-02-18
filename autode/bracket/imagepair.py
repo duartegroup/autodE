@@ -122,7 +122,7 @@ class BaseImagePair:
 
     def _sanity_check(self) -> None:
         """
-        Check if the two supplied images have the same
+        Check if the two supplied images have the same solvent,
         charge, multiplicity and the same atoms in the same order
         """
 
@@ -332,8 +332,8 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.info(f"Calculating energy for {side} side"
-                    f" with {self._engrad_method}")
+        logger.debug(f"Calculating energy for {side} side"
+                     f" with {self._engrad_method}")
 
         en = _calculate_energy_for_species(
             species=img.copy(),
@@ -356,7 +356,7 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.info(f"Calculating engrad for {side} side"
+        logger.debug(f"Calculating engrad for {side} side"
                      f" with {self._engrad_method}")
         en, grad = _calculate_engrad_for_species(
             species=img.copy(),
@@ -382,7 +382,7 @@ class BaseImagePair:
         assert self._n_cores is not None
         img, coord, _, _ = self._get_img_by_side(side)
 
-        logger.info(f"Calculating Hessian for {side} side"
+        logger.debug(f"Calculating Hessian for {side} side"
                      f" with {self._hess_method}")
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
