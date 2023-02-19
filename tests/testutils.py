@@ -55,8 +55,7 @@ def requires_with_working_xtb_install(func):
         if not shutil.which("xtb"):
             return
 
-        xtb_path = shutil.which("xtb").lower()
-        if not (xtb_path.endswith("xtb") or xtb_path.endswith("xtb.exe")):
+        if not shutil.which("xtb").lower().endswith(("xtb", "xtb.exe")):
             return
 
         return func(*args, **kwargs)
