@@ -128,15 +128,15 @@ class DHS:
                       stop, values less than 1.0 Angstrom are not
                       recommended.
             optimiser: The optimiser to use for minimising after
-                       the DHS step, choose from 'adaptBFGS' (own
-                       implementation) or, scipy's 'CG' (conjugate
-                       gradients) or 'BFGS'
+                       the DHS step, choose scipy's 'CG' (conjugate
+                       gradients) or 'BFGS' (or maybe 'L-BFGS-B')
         """
         self.imgpair = DHSImagePair(initial_species, final_species)
         self._species = initial_species.copy()  # just hold the species
-        self._reduction_fac = float(reduction_factor)
+        self._reduction_fac = abs(float(reduction_factor))
+        assert self._reduction_fac < 1.0
 
-        self._maxiter = int(maxiter)
+        self._maxiter = abs(int(maxiter))
         self._dist_tol = Distance(dist_tol, "ang")
         self._opt_driver = str(optimiser)
 
@@ -179,6 +179,8 @@ class DHS:
             self._step(side)
             coord0 = np.array(self.imgpair.get_coord_by_side(side))
             curr_maxiter = self._maxiter - self.imgpair.total_iters
+            if curr_maxiter == 0:
+                break
             # scipy does micro-iterations
             res = minimize(
                 fun=_set_one_img_coord_and_get_engrad,
