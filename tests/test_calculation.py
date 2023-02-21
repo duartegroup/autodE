@@ -310,14 +310,11 @@ def test_exec_too_much_memory_requested_above_py39():
     # Normal external run should be fine
     run_external(["whoami"], output_filename="tmp.txt")
 
-    curr_max_core = deepcopy(Config.max_core)
     Config.max_core = 10000000000000
 
     # But if there is not enough physical memory it should raise an exception
     with pytest.raises(RuntimeError):
         run_external(["whoami"], output_filename="tmp.txt")
-
-    Config.max_core = curr_max_core
 
 
 @requires_with_working_xtb_install

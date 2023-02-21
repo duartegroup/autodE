@@ -106,4 +106,22 @@ class InvalidValue(float):
 def test_to_unsupported():
 
     with pytest.raises(ValueError):
-        _ = _to(InvalidValue(), Unit())
+        _ = _to(InvalidValue(), Unit(), inplace=True)
+
+
+def test_inplace_modification():
+
+    x = Gradient([[1.0, 1.0, 1.0]], units="Ha / Å")
+    return_value = x.to_("eV / Å")
+    assert return_value is None
+
+    assert not np.allclose(x, np.ones(shape=(1, 3)))
+
+
+def test_copy_conversion():
+
+    x = Gradient([[1.0, 1.0, 1.0]], units="Ha / Å")
+    y = x.to("eV / Å")
+
+    assert not np.allclose(x, y)
+    assert np.allclose(x, np.ones(shape=(1, 3)))

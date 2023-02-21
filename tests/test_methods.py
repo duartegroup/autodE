@@ -10,6 +10,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_get_hmethod():
+
     Config.hcode = None
     Config.ORCA.path = here  # A path that exists
 
@@ -51,9 +52,6 @@ def test_get_lmethod():
 
     method4 = methods.get_lmethod()
     assert method4.name == "mopac"
-
-    # Back to default
-    Config.lcode = None
 
 
 def test_method_unavailable():

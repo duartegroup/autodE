@@ -21,6 +21,30 @@ Bug Fixes
 - Fixes pickling issue with :code:`autode.config.Config` on Windows and in multiprocessing spawn for Linux/macOS
 
 
+1.3.5
+--------
+----------
+
+
+Usability improvements/Changes
+******************************
+- :code:`autode.value.ValueArray.to()` now defaults to copying the object rather than inplace modification
+
+
+Functionality improvements
+**************************
+- Adds a :code:`to_` method to :code:`autode.value.ValueArray` for explicit inplace modification of the array
+
+
+Bug Fixes
+*********
+- Fixes :code:`ERROR` logging level being ignored from environment variable :code:`AUTODE_LOG_LEVEL`
+- Fixes :code:`autode.values.Value` instances generating items with units on division, and throw a warning if multiplying
+- Fixes the printing of cartesian constraints in XTB input files, meaning they are no longer ignored
+- Fixes :code:`Hessian` instances changing units when normal modes are calculated
+- Fixes an incorrect alias for :code:`ev_per_ang`
+
+
 1.3.4
 --------
 ----------
@@ -30,7 +54,6 @@ Feature additions.
 Usability improvements/Changes
 ******************************
 * Throw useful exception for invalid :code:`ade.Config.ts_template_folder_path`
-* Adds the reaction temperature to the unique reaction hash
 
 
 Functionality improvements
@@ -42,7 +65,7 @@ Functionality improvements
 
 Bug Fixes
 *********
--
+- Fixes calculation :code:`clean_up()` failing with a null filename
 
 
 1.3.3
