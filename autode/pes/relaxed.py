@@ -2,7 +2,8 @@ import numpy as np
 import itertools as it
 from typing import Tuple, List, Type
 from autode.log import logger
-from autode.utils import hashable, ProcessPool
+from autode.utils import hashable
+from multiprocessing.pool import Pool
 from autode.pes.reactive import ReactivePESnD
 from autode.calculations import Calculation
 from autode.exceptions import CalculationException
@@ -25,22 +26,24 @@ class RelaxedPESnD(ReactivePESnD):
                 f"{n_cores_pp} cores per process"
             )
 
-            with ProcessPool(max_workers=self._n_cores) as pool:
+            with Pool(processes=self._n_cores) as pool:
 
+                results = []
                 func = hashable("_single_energy_coordinates", self)
 
-                jobs = [
-                    pool.submit(
-                        func, self._species_at(point), n_cores=n_cores_pp
+                for point in points:
+                    res = pool.apply_async(
+                        func=func,
+                        args=(self._species_at(point),),
+                        kwds={"n_cores": n_cores_pp},
                     )
-                    for point in points
-                ]
+                    results.append(res)
 
                 for i, point in enumerate(points):
                     (
                         self._energies[point],
                         self._coordinates[point],
-                    ) = jobs[i].result()
+                    ) = results[i].get(timeout=None)
 
         return None
 

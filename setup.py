@@ -1,14 +1,6 @@
 from setuptools import setup
 from setuptools.extension import Extension
 from Cython.Build import cythonize
-import platform
-
-if platform.system() == "Windows":  # compile with Visual C/C++
-    cpp_compile_args = ["-permissive-", "-O2"]
-    cpp_link_args = []
-else:  # on Linux or MacOS
-    cpp_compile_args = ["-std=c++11", "-Wno-missing-braces", "-O3"]
-    cpp_link_args = ["-std=c++11"]
 
 extensions = [
     Extension("cconf_gen", ["autode/conformers/cconf_gen.pyx"]),
@@ -17,22 +9,22 @@ extensions = [
         sources=["autode/ext/ade_dihedrals.pyx"],
         include_dirs=["autode/ext/include"],
         language="c++",
-        extra_compile_args=cpp_compile_args,
-        extra_link_args=cpp_link_args,
+        extra_compile_args=["-std=c++11", "-Wno-missing-braces", "-O3"],
+        extra_link_args=["-std=c++11"],
     ),
     Extension(
         "ade_rb_opt",
         sources=["autode/ext/ade_rb_opt.pyx"],
         include_dirs=["autode/ext/include"],
         language="c++",
-        extra_compile_args=cpp_compile_args,
-        extra_link_args=cpp_link_args,
+        extra_compile_args=["-std=c++11", "-Wno-missing-braces", "-O3"],
+        extra_link_args=["-std=c++11"],
     ),
 ]
 
 setup(
     name="autode",
-    version="1.4.0",
+    version="1.3.5",
     python_requires=">3.7",
     packages=[
         "autode",

@@ -94,7 +94,7 @@ class Constraints:
         return len(self._cartesian)
 
     @property
-    def any(self) -> bool:
+    def any(self):
         """Are there any constraints?"""
         return self.distance is not None or self.cartesian is not None
 

@@ -13,6 +13,7 @@ import numpy as np
 import os
 
 here = os.path.dirname(os.path.abspath(__file__))
+Config.n_cores = 1
 
 butane = Molecule(
     name="butane",

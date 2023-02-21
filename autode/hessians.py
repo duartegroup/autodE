@@ -12,7 +12,7 @@ from autode.log import logger
 from autode.config import Config
 from autode.constants import Constants
 from autode.values import ValueArray, Frequency, Coordinates, Distance
-from autode.utils import work_in, hashable, ProcessPool
+from autode.utils import work_in, hashable
 from autode.units import (
     Unit,
     wavenumber,
@@ -446,22 +446,21 @@ class NumericalHessianCalculator:
             logger.info("Calculating gradient at current point")
             self._init_gradient = self._gradient(species=self._species)
 
-        # if run in a child process, do serial calculation
-        if mp.parent_process() is not None:
+        if mp.current_process().daemon:
             return self._calculate_in_serial()
 
         # Although n_rows may be < n_cores there will not be > n_rows processes
-        with ProcessPool(max_workers=self._n_total_cores) as pool:
+        with mp.pool.Pool(processes=self._n_total_cores) as pool:
 
             func_name = "_cdiff_row" if self._do_c_diff else "_diff_row"
 
-            jobs = [
-                pool.submit(hashable(func_name, self), i, k)
+            res = [
+                pool.apply_async(hashable(func_name, self), args=(i, k))
                 for (i, k) in self._idxs_to_calculate()
             ]
 
-            for row_idx, row in enumerate(jobs):
-                self._hessian[row_idx, :] = row.result()
+            for row_idx, row in enumerate(res):
+                self._hessian[row_idx, :] = row.get(timeout=None)
 
         return None
 

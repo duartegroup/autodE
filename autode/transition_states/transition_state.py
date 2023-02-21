@@ -1,4 +1,5 @@
 from typing import Optional, List
+from multiprocessing import Pool
 from autode.values import Frequency
 from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
@@ -12,7 +13,7 @@ from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.methods import get_hmethod
 from autode.mol_graphs import get_truncated_active_mol_graph
-from autode.utils import requires_atoms, requires_graph, ProcessPool
+from autode.utils import requires_atoms, requires_graph
 
 
 class TransitionState(TSbase):
@@ -138,13 +139,15 @@ class TransitionState(TSbase):
 
         distance_consts = self.active_bond_constraints
 
-        with ProcessPool(max_workers=Config.n_cores) as pool:
+        with Pool(processes=Config.n_cores) as pool:
             results = [
-                pool.submit(get_simanl_conformer, self, distance_consts, i)
+                pool.apply_async(
+                    get_simanl_conformer, args=(self, distance_consts, i)
+                )
                 for i in range(n_confs)
             ]
 
-            self.conformers = [res.result() for res in results]
+            self.conformers = [res.get(timeout=None) for res in results]
 
         self.conformers.prune(e_tol=1e-6)
         return None

@@ -6,13 +6,11 @@ from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.conformers import Conformer
 from autode.input_output import xyz_file_to_atoms
-from autode.config import Config
 from . import testutils
 import networkx as nx
 import numpy as np
 import pytest
 import os
-import platform
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -291,9 +289,6 @@ def test_isomorphic_no_active():
 
 def test_timeout():
 
-    if platform.system() == "Windows":
-        Config.use_experimental_timeout = True
-
     # Generate a large-ish graph
     graph = mol_graphs.MolecularGraph()
     for i in range(10000):
@@ -313,9 +308,6 @@ def test_timeout():
     # With a short timeout this should return False - not sure this is the
     # optimal behavior
     assert not mol_graphs.is_isomorphic(graph, isomorphic_graph)
-
-    if platform.system() == "Windows":
-        Config.use_experimental_timeout = False
 
 
 def test_species_conformers_isomorphic():

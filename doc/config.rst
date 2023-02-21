@@ -82,59 +82,6 @@ basis set for optimisations:
 
 ------------
 
-Temporary configuration
-**********************
-
-It is also possible to change configuration temporarily, by using the context
-manager:
-
-.. code-block:: python
-
-    >>> ade.Config.ORCA.keywords.opt.functional
-    Functional(pbe0)
-    >>> ade.Config.n_cores = 4
-    >>> mol = ade.Molecule(smiles='CCO')
-    >>> with ade.temporary_config():
-    >>>     ade.Config.n_cores = 9
-    >>>     ade.Config.ORCA.keywords.opt.funcitonal = 'B3LYP'
-    >>>     # this calculation will run with 9 cores and B3LYP functional
-    >>>     mol.optimise(method=ade.methods.ORCA())
-    >>> # when context manager returns previous state of Config is restored
-    >>> ade.Config.n_cores
-    4
-    >>> ade.Config.ORCA.keywords.opt.functional
-    Functional(pbe0)
-
-When the context manager exits, the previous state of the configuration is
-restored.
-
-.. warning::
-    Note that the context manager works by saving the state of the Config
-    when it is called and restoring the state when it exits. The way Python
-    handles object references means that any references taken before or inside
-    the context manager will become useless after it exits. Please see the example
-    below for details.
-
-.. code-block:: python
-
-    >>> kwds = ade.Config.ORCA.keywords  # kwds refers to an object inside Config.ORCA
-    >>> with temporary_config():
-    ...     kwds.opt.functional = 'B3LYP'
-    ...     mol.optimise(method=ade.method.ORCA())
-    ...     # this works successfully
-    >>> # when context manager exits, all variables in Config are restored, including Config.ORCA
-    >>> # But kwds still refers to an object from old Config.ORCA
-    >>> kwds.opt.functional
-    Functional(B3LYP)
-    >>> ade.Config.ORCA.opt.functional  # current config
-    Functional(pbe0)
-
-As seen from the above example, the variable :code:`kwds` is useless once the
-context manager exits, and changes to :code:`kwds` no longer affects autodE. It is
-best to always modify :code:`Config` directly.
-
-------------
-
 XTB as a hmethod
 ****************
 
@@ -205,12 +152,3 @@ To log with timestamps and colours::
 
 To set the logging level permanently add the above export statements to
 your *bash_profile*.
-
-In case of Windows command prompt, use the set command to set environment
-variables::
-
-    > set AUTODE_LOG_LEVEL=INFO
-
-For powershell, use :code:`$env`::
-
-    > $env:AUTODE_LOG_FILE = 'INFO'

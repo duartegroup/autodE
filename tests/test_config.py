@@ -1,11 +1,10 @@
 import numpy as np
 import pytest
 from copy import deepcopy
-from autode.config import Config, _instantiate_config_opts, _ConfigClass
+from autode.config import Config
 from autode.values import Allocation, Distance
 from autode.wrappers.keywords import KeywordsSet
-from autode.wrappers.keywords import Keywords, Functional, BasisSet
-from autode.utils import _copy_into_current_config
+from autode.wrappers.keywords import Keywords
 from autode.transition_states.templates import get_ts_template_folder_path
 
 
@@ -78,39 +77,6 @@ def test_step_size_setter():
     # Setting in Bohr should convert to angstroms
     _config.max_step_size = Distance(0.2, units="a0")
     assert np.isclose(_config.max_step_size.to("ang"), 0.1, atol=0.02)
-
-
-def test_config_simple_copy():
-    _config = deepcopy(Config)
-    _config_restore = deepcopy(Config)
-
-    _config.n_cores = 31
-    _config.ORCA.keywords.low_sp.basis_set = "aug-cc-pVTZ"
-    _config.NWChem.keywords.opt.functional = "B3LYP"
-
-    assert Config.n_cores != 31
-    assert Config.ORCA.keywords.low_sp.basis_set != BasisSet("aug-cc-pVTZ")
-    assert Config.NWChem.keywords.opt.functional != Functional("B3LYP")
-
-    _copy_into_current_config(_config)
-
-    assert Config.n_cores == 31
-    assert Config.ORCA.keywords.low_sp.basis_set == BasisSet("aug-cc-pVTZ")
-    assert Config.NWChem.keywords.opt.functional == Functional("B3LYP")
-
-    # restore original config
-    _copy_into_current_config(_config_restore)
-
-
-def test_exc_if_not_class_in_config_instantiate_func():
-
-    # passing instance should raise exception
-    with pytest.raises(ValueError):
-        _instantiate_config_opts(_ConfigClass())
-
-    # when passed class it should work
-    test_config = _instantiate_config_opts(_ConfigClass)
-    assert test_config is not None
 
 
 def test_invalid_get_ts_template_folder_path():

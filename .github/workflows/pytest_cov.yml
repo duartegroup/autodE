@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "windows-latest"]
+        os: ["ubuntu-latest"]
         python-version: ["3.10"]
 
     defaults:
@@ -43,7 +43,7 @@ jobs:
         conda activate test
         conda install --file requirements.txt
         conda install --file tests/requirements.txt
-        source .github/scripts/install_xtb_ci.sh
+        conda install xtb
         python -m pip install . --no-deps
 
     - name: Test
