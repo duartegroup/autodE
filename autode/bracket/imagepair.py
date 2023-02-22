@@ -82,6 +82,16 @@ def _calculate_hessian_for_species(
     return species.hessian
 
 
+class ImgPairSideError(ValueError):
+    """
+    Error if side is neither 'left' nor 'right', used only for internal
+    consistency, as the functions should not be called by user
+    """
+
+    def __init__(self):
+        super().__init__("Side supplied must be either 'left' or 'right'")
+
+
 class BaseImagePair:
     """
     Base class for a pair of images (e.g., reactant and product) of
@@ -246,8 +256,8 @@ class BaseImagePair:
         the coordinates of the species
 
         Args:
-            value (np.ndarray|CartesianCoordinates): flat or (n_atoms, 3) array
-                                                     of coordinates
+            value (np.ndarray|CartesianCoordinates): flat or (n_atoms, 3)
+                                                    array of coordinates
         """
         if value is None:
             return
@@ -320,7 +330,7 @@ class BaseImagePair:
             hist = self._right_history
             fac = -1.0
         else:
-            raise Exception
+            raise ImgPairSideError()
 
         return img, coord, hist, fac
 

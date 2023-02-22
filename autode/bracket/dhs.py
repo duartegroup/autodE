@@ -12,7 +12,7 @@ from scipy.optimize import minimize
 
 from autode.values import Distance
 from autode.units import ang as angstrom
-from autode.bracket.imagepair import BaseImagePair
+from autode.bracket.imagepair import BaseImagePair, ImgPairSideError
 from autode.methods import get_lmethod
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.base import _OptimiserHistory
@@ -27,9 +27,9 @@ import autode.wrappers.methods
 
 class DHSImagePair(BaseImagePair):
     """
-    An image-pair that defined the distance between two
-    images as the Euclidean distance (square of root of
-    sum of the squares of deviations in Cartesian)
+    An image-pair that defines the distance between two images
+    as the Euclidean distance (square of root of sum of the
+    squares of deviations in Cartesian coordinates)
     """
 
     @property
@@ -38,11 +38,11 @@ class DHSImagePair(BaseImagePair):
         return np.array(self.left_coord - self.right_coord)
 
     @property
-    def euclid_dist(self):
+    def euclid_dist(self) -> Distance:
         """The Euclidean distance between the images"""
         return Distance(np.linalg.norm(self.dist_vec), "ang")
 
-    def get_one_img_perp_grad(self, side: str):
+    def get_one_img_perp_grad(self, side: str) -> np.ndarray:
         """
         Get the gradient perpendicular to the distance vector
         between the two images of the image-pair, for one
@@ -62,7 +62,9 @@ class DHSImagePair(BaseImagePair):
 
 
 def _set_one_img_coord_and_get_engrad(
-    coord: np.array, side: str, imgpair: DHSImagePair
+    coord: np.array,
+    side: str,
+    imgpair: DHSImagePair,
 ) -> Tuple[float, np.ndarray]:
     """
     Convenience function that allows setting coordinates
@@ -83,7 +85,7 @@ def _set_one_img_coord_and_get_engrad(
     elif side == "right":
         imgpair.right_coord = np.array(coord).flatten()
     else:
-        raise Exception
+        raise ImgPairSideError()
 
     imgpair.update_one_img_molecular_engrad(side)
     new_coord = imgpair.get_coord_by_side(side)
@@ -280,6 +282,8 @@ class DHS:
         elif side == "right":
             new_coord = self.imgpair.right_coord + step
             self.imgpair.right_coord = new_coord
+        else:
+            raise ImgPairSideError()
 
         logger.info(
             f"DHS step on {side} image:" f" setting distance to {new_dist:.4f}"
@@ -301,7 +305,7 @@ class DHS:
             last_coord = self._final_species_hist[-1]
             other_image = self._initial_species_hist[-1]
         else:
-            raise Exception
+            raise ImgPairSideError()
 
         # DHS assumes the next point will lie between the
         # last two images on both side. If the current coord
