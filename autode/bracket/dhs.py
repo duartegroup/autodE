@@ -110,25 +110,29 @@ class DHS:
         optimiser: str = "BFGS",
     ):
         """
-        Dewar-Healy-Stewart method to find transition state.
-        1) The order of initial_species/final_species
-        does not matter and can be interchanged; 2) The
-        reduction_factor is 0.05 or 5% by default, which is
-        quite conservative, so may want to increase that
-        if convergence is slow; 3) The distance tolerance
-        should not be lowered any more than 1.0 Angstrom
-        as DHS is unstable when the distance is low, and has
-        a tendency for one image to jump over the barrier
+        Dewar-Healy-Stewart method to find transition states.
+        1) The order of initial_species/final_species does not matter
+        and can be interchanged; 2) The reduction_factor is 0.05 or 5%
+        by default, which is quite conservative, so may want to increase
+        that if convergence is slow; 3) The distance tolerance should
+        not be lowered any more than 1.0 Angstrom as DHS is unstable when
+        the distance is low, and has a tendency for one image to jump
+        over the barrier
 
         Args:
             initial_species: The "reactant" species
+
             final_species: The "product" species
+
             maxiter: Maximum number of en/grad evaluations
+
             reduction_factor: The factor by which the distance is
                               decreased in each DHS step
+
             dist_tol: The distance tolerance at which DHS will
                       stop, values less than 1.0 Angstrom are not
                       recommended.
+
             optimiser: The optimiser to use for minimising after
                        the DHS step, choose scipy's 'CG' (conjugate
                        gradients) or 'BFGS' (or maybe 'L-BFGS-B')
@@ -150,12 +154,21 @@ class DHS:
         self._final_species_hist.append(self.imgpair.right_coord)
 
     @property
-    def converged(self):
+    def converged(self) -> bool:
         """Is DHS converged to the desired distance tolerance?"""
         if self.imgpair.euclid_dist < self._dist_tol:
             return True
         else:
             return False
+
+    def _initialise_run(self) -> None:
+        """
+        Initialise everything needed for the first DHS macro-iteration
+        (Only energies are needed)
+        """
+        self.imgpair.update_one_img_molecular_energy("left")
+        self.imgpair.update_one_img_molecular_energy("right")
+        return None
 
     def calculate(
         self, method: autode.wrappers.methods.Method, n_cores: int
@@ -168,18 +181,24 @@ class DHS:
             n_cores: Number of cores to use for calculation
         """
         self.imgpair.set_method_and_n_cores(method, n_cores)
-        self.imgpair.update_one_img_molecular_energy("left")
-        self.imgpair.update_one_img_molecular_energy("right")
+        self._initialise_run()
+
         logger.info("Starting DHS optimisation")
+
         while not self.converged:
+
             if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
                 side = "left"
                 hist = self._initial_species_hist
             else:
                 side = "right"
                 hist = self._final_species_hist
+
+            # take a step on the side with lower energy
             self._step(side)
             coord0 = np.array(self.imgpair.get_coord_by_side(side))
+
+            # calculate the number of remaining maxiter to feed into scipy
             curr_maxiter = self._maxiter - self.imgpair.total_iters
             if curr_maxiter == 0:
                 break
@@ -193,6 +212,7 @@ class DHS:
                 options={"gtol": 5.0e-4, "maxiter": curr_maxiter},
             )
 
+            # parse the scipy results and log output
             perp_grad = self.imgpair.get_one_img_perp_grad(side)
             rms_grad = np.sqrt(np.mean(np.square(perp_grad)))
 
@@ -203,6 +223,7 @@ class DHS:
                     f" Ha/angstrom"
                 )
             else:
+                # step may be accepted if rms gradient is low enough
                 if rms_grad < 1.0e-3:
                     logger.info(
                         "Optimization not converged completely,"
@@ -216,7 +237,10 @@ class DHS:
                         " DHS step did not converge, exiting"
                     )
                     break
+
+            # if scipy succeeded
             new_coord = self.imgpair.get_coord_by_side(side)
+            # check if it has jumped over the barrier
             if self._has_jumped_over_barrier(new_coord, side):
                 logger.warning(
                     "One image has jumped over the other image"
@@ -226,35 +250,46 @@ class DHS:
                     " though the distance criteria is not met"
                 )
                 break
+
             else:
                 # otherwise put the coordinate into appropriate history
                 hist.append(new_coord.copy())
 
-            logger.info(
-                f"Macro-iteration #{self.macro_iter}: Distance = "
-                f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
-                f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
-                f"{self.imgpair.right_coord.e:.6f}"
-            )
-        # exited loop
+            self._log_convergence()
+
+        # exited loop, print final message
         logger.info(
             f"Finished DHS procedure in {self.macro_iter} macro-"
             f"iterations consisting of {self.imgpair.total_iters}"
             f" micro-iterations (optimiser steps). DHS is "
             f"{'converged' if self.converged else 'not converged'}"
         )
-        return
 
-    def run(self):
+        return None
+
+    def _log_convergence(self) -> None:
+        logger.info(
+            f"Macro-iteration #{self.macro_iter}: Distance = "
+            f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
+            f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
+            f"{self.imgpair.right_coord.e:.6f}"
+        )
+        return None
+
+    def run(self) -> None:
         """
         Runs the DHS calculation with the default low-level
         method, and the number of cores from currently set Config,
-        then writes the trajectories and energy plot
+        then writes the trajectories and energy plot, then prints
+        the highest energy point as xyz file
         """
         lmethod = get_lmethod()
         self.calculate(method=lmethod, n_cores=Config.n_cores)
         self.write_trajectories()
         self.plot_energies()
+        self.get_peak_species().print_xyz_file("DHS_peak.xyz")
+
+        return None
 
     @property
     def macro_iter(self):
@@ -314,7 +349,7 @@ class DHS:
         dist_to_last = np.linalg.norm(coord - last_coord)
         dist_before_step = np.linalg.norm(other_image - last_coord)
 
-        if dist_to_last > dist_before_step:
+        if dist_to_last >= dist_before_step:
             return True
         else:
             return False
@@ -389,6 +424,8 @@ class DHS:
                 append=True,
             )
 
+        return None
+
     def plot_energies(self):
         """
         Plot the energies along the MEP path as obtained by the DHS
@@ -409,7 +446,7 @@ class DHS:
                 f"File: {plot_name} already exists, "
                 f"cannot write energy plot"
             )
-            return
+            return None
 
         distances_init = []
         distances_fin = []
