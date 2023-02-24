@@ -77,17 +77,17 @@ def test_calc_energy_and_engrad():
     imgpair = BaseImagePair(left_image=mol1, right_image=mol2)
     # without setting method, assert will be set off
     with pytest.raises(AssertionError):
-        imgpair.update_one_img_molecular_energy("left")
+        imgpair.update_one_img_mol_energy("left")
 
     imgpair.set_method_and_n_cores(engrad_method=methods.XTB(), n_cores=1)
-    imgpair.update_one_img_molecular_energy("left")
+    imgpair.update_one_img_mol_energy("left")
     # only energy should be updated
     assert imgpair.left_coord.e is not None
     assert imgpair.right_coord.e is None
     # units should be forced to Hartree
     assert str(imgpair.left_coord.e.units) == "Unit(Ha)"
 
-    imgpair.update_one_img_molecular_engrad("right")
+    imgpair.update_one_img_mol_engrad("right")
     # energy and gradient of right side would be updated
     assert imgpair.right_coord.e is not None
     assert imgpair.right_coord.g is not None
@@ -114,12 +114,12 @@ def test_calc_hessian():
     imgpair.set_method_and_n_cores(engrad_method=methods.XTB(), n_cores=1)
     # without setting hessian method, assert will be set off
     with pytest.raises(AssertionError):
-        imgpair.update_one_img_molecular_hessian_by_calc("left")
+        imgpair.update_one_img_mol_hess_by_calc("left")
 
     imgpair.set_method_and_n_cores(
         engrad_method=methods.XTB(), hess_method=methods.XTB(), n_cores=1
     )
-    imgpair.update_one_img_molecular_hessian_by_calc("left")
+    imgpair.update_one_img_mol_hess_by_calc("left")
     # only hessian of left image should be updated
     assert imgpair.left_coord.h is not None
     assert imgpair.left_coord.e is None
@@ -140,8 +140,8 @@ def test_hessian_update():
         engrad_method=methods.XTB(), n_cores=1, hess_method=methods.XTB()
     )
 
-    imgpair.update_one_img_molecular_engrad("left")
-    imgpair.update_one_img_molecular_hessian_by_calc("left")
+    imgpair.update_one_img_mol_engrad("left")
+    imgpair.update_one_img_mol_hess_by_calc("left")
     assert imgpair.left_coord.h is not None
 
     coord = imgpair.left_coord.copy()
@@ -149,14 +149,14 @@ def test_hessian_update():
 
     imgpair.left_coord = coord
     with pytest.raises(AssertionError, match="Gradient should"):
-        imgpair.update_one_img_molecular_hessian_by_formula("left")
+        imgpair.update_one_img_mol_hess_by_formula("left")
 
     assert imgpair.left_coord.h is None
-    imgpair.update_one_img_molecular_engrad("left")
-    imgpair.update_one_img_molecular_hessian_by_formula("left")
+    imgpair.update_one_img_mol_engrad("left")
+    imgpair.update_one_img_mol_hess_by_formula("left")
     assert imgpair.left_coord.h is not None
     assert imgpair.right_coord.h is None  # check that it modified current side
 
     # calling Hessian update again will raise exception
     with pytest.raises(AssertionError):
-        imgpair.update_one_img_molecular_hessian_by_formula("left")
+        imgpair.update_one_img_mol_hess_by_formula("left")

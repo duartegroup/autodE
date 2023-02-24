@@ -9,7 +9,7 @@ import numpy as np
 from autode.values import PotentialEnergy, Gradient
 from autode.hessians import Hessian
 from autode.geom import get_rot_mat_kabsch
-from autode.opt.coordinates import CartesianCoordinates
+from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
@@ -243,70 +243,70 @@ class BaseImagePair:
         return len(self._left_history) + len(self._right_history) - 2
 
     @property
-    def left_coord(self) -> Optional[CartesianCoordinates]:
+    def left_coord(self) -> Optional[OptCoordinates]:
         """The coordinates of the left image"""
-        if len(self._left_history) == 0:  # todo redundant?
+        if len(self._left_history) == 0:
             return None
         return self._left_history[-1]
 
     @left_coord.setter
-    def left_coord(self, value):
+    def left_coord(self, value: Optional[OptCoordinates]):
         """
         Sets the coordinates of the left image, also updates
         the coordinates of the species
 
         Args:
-            value (np.ndarray|CartesianCoordinates): flat or (n_atoms, 3)
-                                                    array of coordinates
+            value (OptCoordinates|None): new set of coordinates
+
+        Raises:
+            (TypeError): On invalid input
         """
         if value is None:
             return
-        elif (
-            isinstance(value, np.ndarray)
-            and value.flatten().shape[0] == 3 * self.n_atoms
-        ):
-            self._left_history.append(CartesianCoordinates(value.copy()))
+        elif isinstance(value, OptCoordinates):
+            self._left_history.append(value.copy())
         else:
-            raise ValueError
-        self._left_image.coordinates = self._left_history[-1]
+            raise TypeError
+
+        self._left_image.coordinates = value.to("cart")
         # todo should we remove old hessians that are not needed?
 
     @property
-    def right_coord(self) -> Optional[CartesianCoordinates]:
+    def right_coord(self) -> Optional[OptCoordinates]:
         """The coordinates of the right image"""
         if len(self._right_history) == 0:
             return None
         return self._right_history[-1]
 
     @right_coord.setter
-    def right_coord(self, value):
+    def right_coord(self, value: Optional[OptCoordinates]):
         """
-        Sets the coordinates of the left image, also updates
+        Sets the coordinates of the right image, also updates
         the coordinates of the species
 
         Args:
-            value (np.ndarray|CartesianCoordinates): flat or (n_atoms, 3) array
-                                                     of coordinates
+            value (OptCoordinates|None): new set of coordinates
+
+        Raises:
+            (TypeError): On invalid input
         """
         if value is None:
             return
-        elif (
-            isinstance(value, np.ndarray)
-            and value.flatten().shape[0] == 3 * self.n_atoms
-        ):
-            self._right_history.append(CartesianCoordinates(value.copy()))
+        elif isinstance(value, OptCoordinates):
+            self._right_history.append(value.copy())
         else:
-            raise ValueError
-        self._right_image.coordinates = self._right_history[-1]
+            raise TypeError
 
-    def get_coord_by_side(self, side: str) -> CartesianCoordinates:
+        self._right_image.coordinates = value.to("cart")
+
+    def get_coord_by_side(self, side: str) -> OptCoordinates:
         """For external usage, supplies only the coordinate object"""
         _, coord, _, _ = self._get_img_by_side(side)
         return coord
 
     def _get_img_by_side(
         self, side: str
-    ) -> Tuple[autode.Species, CartesianCoordinates, _OptimiserHistory, float]:
+    ) -> Tuple[autode.Species, OptCoordinates, _OptimiserHistory, float]:
         """
         Access an image and some properties by a string that
         represents side. Returns a tuple of the species, the
@@ -334,10 +334,10 @@ class BaseImagePair:
 
         return img, coord, hist, fac
 
-    def update_one_img_molecular_energy(self, side: str) -> None:
+    def update_one_img_mol_energy(self, side: str) -> None:
         """
-        Update only the molecular energy for one side using the
-        supplied engrad_method for one image only
+        Update only the molecular energy using the supplied
+        engrad_method for one image only
 
         Args:
             side (str): 'left' or 'right'
@@ -356,11 +356,10 @@ class BaseImagePair:
             method=self._engrad_method,
             n_cores=self._n_cores,
         )
-        # update both species and coord
-        img.energy = en.to("Ha")
+        # update coord
         coord.e = en.to("Ha")
 
-    def update_one_img_molecular_engrad(self, side: str) -> None:
+    def update_one_img_mol_engrad(self, side: str) -> None:
         """
         Update the molecular energy and gradient using the supplied
         engrad_method for one image only
@@ -381,14 +380,12 @@ class BaseImagePair:
             method=self._engrad_method,
             n_cores=self._n_cores,
         )
-        # update both species and coord
-        img.energy = en.to("Ha")
-        img.gradient = grad.to("Ha/ang")
+        # update coord
         coord.e = en.to("Ha")
         coord.update_g_from_cart_g(grad.to("Ha/ang"))
         return None
 
-    def update_one_img_molecular_hessian_by_calc(self, side: str) -> None:
+    def update_one_img_mol_hess_by_calc(self, side: str) -> None:
         """
         Updates the molecular hessian using supplied hess_method
         for one image only
@@ -406,11 +403,11 @@ class BaseImagePair:
         hess = _calculate_hessian_for_species(
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
         )
-        img.hessian = hess.to("Ha/ang^2")
+        # update coord
         coord.update_h_from_cart_h(hess)
         return None
 
-    def update_one_img_molecular_hessian_by_formula(self, side: str) -> None:
+    def update_one_img_mol_hess_by_formula(self, side: str) -> None:
         """
         Updates the molecular hessian of one side by using Hessian
         update formula; requires the gradient and hessian for the
@@ -427,6 +424,7 @@ class BaseImagePair:
         for update_type in self._hessian_update_types:
             updater = update_type(
                 h=last_coord.h,
+                h_inv=last_coord.h_inv,
                 s=coord.raw - last_coord.raw,
                 y=coord.g - last_coord.g,
                 subspace_idxs=coord.indexes,
@@ -434,7 +432,9 @@ class BaseImagePair:
             if not updater.conditions_met:
                 continue
 
-            coord.update_h_from_cart_h(updater.updated_h)
+            coord.h = updater.updated_h
             break
+
+        assert coord.h is not None, "Hessian update failed!"
 
         return None

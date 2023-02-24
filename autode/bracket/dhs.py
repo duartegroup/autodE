@@ -87,7 +87,7 @@ def _set_one_img_coord_and_get_engrad(
     else:
         raise ImgPairSideError()
 
-    imgpair.update_one_img_molecular_engrad(side)
+    imgpair.update_one_img_mol_engrad(side)
     new_coord = imgpair.get_coord_by_side(side)
     en = float(new_coord.e.to("Ha"))
     grad = imgpair.get_one_img_perp_grad(side)
@@ -166,8 +166,8 @@ class DHS:
         Initialise everything needed for the first DHS macro-iteration
         (Only energies are needed)
         """
-        self.imgpair.update_one_img_molecular_energy("left")
-        self.imgpair.update_one_img_molecular_energy("right")
+        self.imgpair.update_one_img_mol_energy("left")
+        self.imgpair.update_one_img_mol_energy("right")
         return None
 
     def calculate(
