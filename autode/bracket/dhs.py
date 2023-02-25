@@ -14,7 +14,7 @@ from autode.values import Distance
 from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair, ImgPairSideError
 from autode.methods import get_lmethod
-from autode.opt.coordinates.base import OptCoordinates
+from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.input_output import atoms_to_xyz_file
 
@@ -34,12 +34,22 @@ class DHSImagePair(BaseImagePair):
 
     @property
     def dist_vec(self) -> np.ndarray:
-        """The distance vector pointing to right_image from left_image"""
-        return np.array(self.left_coord - self.right_coord)
+        """
+        The distance vector in Cartesian coordinates, pointing
+        to right_image from left_image
+        """
+        return np.array(
+            self.left_coord.to("cart") - self.right_coord.to("cart")
+        )
 
     @property
     def euclid_dist(self) -> Distance:
-        """The Euclidean distance between the images"""
+        """
+        The Euclidean distance in Cartesian coordinates between the images
+
+        Returns:
+            (Distance): Distance in angstrom
+        """
         return Distance(np.linalg.norm(self.dist_vec), "ang")
 
     def get_one_img_perp_grad(self, side: str) -> np.ndarray:
@@ -52,13 +62,27 @@ class DHSImagePair(BaseImagePair):
             (np.ndarray): The perpendicular component
         """
         dist_vec = self.dist_vec
+        # get unit vector in that direction
+        unit_dist_vec = dist_vec / np.linalg.norm(dist_vec)
         _, coord, _, _ = self._get_img_by_side(side)
-        # project the gradient towards the distance vector
-        proj_grad = dist_vec * coord.g.dot(dist_vec) / dist_vec.dot(dist_vec)
+        # project the cartesian gradient towards the distance vector
+        proj_cart_grad = unit_dist_vec * coord.to("cart").g.dot(unit_dist_vec)
         # gradient component perpendicular to distance vector
-        perp_grad = np.array(coord.g - proj_grad).flatten()
+        perp_cart_grad = np.array(coord.to("cart").g - proj_cart_grad)
 
-        return perp_grad
+        if isinstance(coord, CartesianCoordinates):
+            # no need to convert for cartesian coords
+            return perp_cart_grad
+
+        # Hack to convert the projected grad into internal coordinate
+        cart_g = coord.to("cart").g.copy()  # hold a copy
+        coord.update_g_from_cart_g(perp_cart_grad)  # use the grad component
+        perp_int_grad = coord.g.copy()
+        coord.update_g_from_cart_g(cart_g)  # restore original
+
+        return perp_int_grad
+
+    # todo Hessian component
 
 
 def _set_one_img_coord_and_get_engrad(

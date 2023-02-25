@@ -9,10 +9,11 @@ import numpy as np
 from autode.values import PotentialEnergy, Gradient
 from autode.hessians import Hessian
 from autode.geom import get_rot_mat_kabsch
-from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
+from autode.opt.coordinates import CartesianCoordinates, OptCoordinates, DIC
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir
+from autode.exceptions import CalculationException
 from autode.log import logger
 
 import autode.species.species
@@ -35,6 +36,9 @@ def _calculate_engrad_for_species(
     )
     engrad_calc.run()
     engrad_calc.clean_up(force=True, everything=True)
+    if species.energy is None or species.gradient is None:
+        raise CalculationException("Energy/gradient calculation failed")
+
     return species.energy, species.gradient
 
 
@@ -54,6 +58,9 @@ def _calculate_energy_for_species(
     )
     sp_calc.run()
     sp_calc.clean_up(force=True, everything=True)
+    if species.energy is None:
+        raise CalculationException("Energy calculation failed")
+
     return species.energy
 
 
@@ -79,6 +86,9 @@ def _calculate_hessian_for_species(
     )
     hess_calc.run()
     hess_calc.clean_up(force=True, everything=True)
+    if species.hessian is None:
+        raise CalculationException("Hessian calculation failed")
+
     return species.hessian
 
 
@@ -104,6 +114,7 @@ class BaseImagePair:
         self,
         left_image: autode.species.species.Species,
         right_image: autode.species.species.Species,
+        coord_type: str = "cart",
     ):
         """
         Initialize the image pair, does not set methods/n_cores or
@@ -112,6 +123,8 @@ class BaseImagePair:
         Args:
             left_image: One molecule of the pair
             right_image: Another molecule of the pair
+            coord_type: Type of coordinate to use "cart" for cartesian
+                       or "DIC" for delocalised internal coordinates
         """
         assert isinstance(left_image, autode.species.species.Species)
         assert isinstance(right_image, autode.species.species.Species)
@@ -119,7 +132,6 @@ class BaseImagePair:
         self._right_image = right_image.new_species(name="right_image")
         self._sanity_check()
         self._align_species()
-        # todo do you need to update the grad and hess of the species?
 
         # separate methods for engrad and hessian calc
         self._engrad_method = None
@@ -131,8 +143,19 @@ class BaseImagePair:
         self._left_history = _OptimiserHistory()
         self._right_history = _OptimiserHistory()
         # push the first coordinates into history
-        self.left_coord = self._left_image.coordinates.to("ang").flatten()
-        self.right_coord = self._right_image.coordinates.to("ang").flatten()
+        if not coord_type.lower() in ["dic", "cart", "cartesian"]:
+            raise ValueError("Coordinate type must be 'cart' or 'dic'")
+        if coord_type.lower() == "dic":
+            self._coord_type = DIC
+        elif coord_type.lower() in ["cart", "cartesian"]:
+            self._coord_type = CartesianCoordinates
+
+        self.left_coord = CartesianCoordinates(
+            self._left_image.coordinates.to("ang")
+        ).to(coord_type)
+        self.right_coord = CartesianCoordinates(
+            self._right_image.coordinates.to("ang")
+        ).to(coord_type)
 
     def _sanity_check(self) -> None:
         """
@@ -214,21 +237,23 @@ class BaseImagePair:
             hess_method (autode.wrappers.methods.Method|None):
         """
         if not isinstance(engrad_method, autode.wrappers.methods.Method):
-            raise ValueError(
+            raise TypeError(
                 f"The engrad_method needs to be of type autode."
                 f"wrappers.method.Method, But "
                 f"{type(engrad_method)} was supplied."
             )
         self._engrad_method = engrad_method
+
         if hess_method is None:
             pass
         elif not isinstance(hess_method, autode.wrappers.methods.Method):
-            raise ValueError(
+            raise TypeError(
                 f"The hess_method needs to be of type autode."
                 f"wrappers.method.Method, But "
                 f"{type(hess_method)} was supplied."
             )
         self._hess_method = hess_method
+
         self._n_cores = int(n_cores)
         return None
 
@@ -263,7 +288,8 @@ class BaseImagePair:
         """
         if value is None:
             return
-        elif isinstance(value, OptCoordinates):
+        # force the chosen coordinate type
+        elif isinstance(value, self._coord_type):
             self._left_history.append(value.copy())
         else:
             raise TypeError
@@ -292,7 +318,7 @@ class BaseImagePair:
         """
         if value is None:
             return
-        elif isinstance(value, OptCoordinates):
+        elif isinstance(value, self._coord_type):
             self._right_history.append(value.copy())
         else:
             raise TypeError
@@ -404,7 +430,7 @@ class BaseImagePair:
             species=img.copy(), method=self._hess_method, n_cores=self._n_cores
         )
         # update coord
-        coord.update_h_from_cart_h(hess)
+        coord.update_h_from_cart_h(hess.to("Ha/ang^2"))
         return None
 
     def update_one_img_mol_hess_by_formula(self, side: str) -> None:
@@ -424,7 +450,6 @@ class BaseImagePair:
         for update_type in self._hessian_update_types:
             updater = update_type(
                 h=last_coord.h,
-                h_inv=last_coord.h_inv,
                 s=coord.raw - last_coord.raw,
                 y=coord.g - last_coord.g,
                 subspace_idxs=coord.indexes,
