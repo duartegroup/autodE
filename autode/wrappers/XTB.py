@@ -24,6 +24,8 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         )
 
         self.force_constant = Config.XTB.force_constant
+        self.etemp = Config.XTB.etemp
+        self.gfn_ver = Config.XTB.gfn_ver
 
     def __repr__(self):
         return f"XTB(available = {self.is_available})"
@@ -166,6 +168,10 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             "--uhf",
             str(calc.molecule.mult - 1),
         ]
+        if self.etemp is not None:
+            flags.extend(["--etemp", str(float(self.etemp))])
+        if self.gfn_ver is not None:
+            flags.extend(["--gfn", str(self.gfn_ver)])
 
         if isinstance(calc.input.keywords, OptKeywords):
             if calc.input.keywords.max_opt_cycles is not None:

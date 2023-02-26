@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pytest
 
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, temporary_config
 from autode.atoms import Atom
 from autode.wrappers.XTB import XTB
 from autode.calculations import Calculation
@@ -216,6 +216,8 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
             implicit_solvation_type=None,
             keywords_set=XTB().keywords,
         )
+        self.etemp = XTB().etemp
+        self.gfn_ver = XTB().gfn_ver
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
         return XTB._energy_from(self, calc)
@@ -387,3 +389,33 @@ def test_xtb_cartesian_constrained_opt():
     # if the coordinates are constrained then the distance should be
     # close to the initial
     assert abs(h2.distance(0, 1) - init_r) < 0.1
+
+
+@testutils.requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_temp_var_params():
+
+    # test that the etemp and gfn_ver Config params are recognised
+
+    mol = Molecule(smiles="O")
+    with temporary_config():
+        Config.XTB.gfn_ver = 1
+        Config.XTB.etemp = 1200.1
+
+        calc = Calculation(
+            name="water",
+            molecule=mol,
+            method=XTB(),
+            keywords=XTB().keywords.sp,
+        )
+        calc.run()
+
+    assert calc.output.filename is not None
+    with open(calc.output.filename, "r") as fh:
+        output = fh.read()
+
+    # xTB command line flags should be printed in the output
+    assert output.find("--gfn 1") != -1
+    assert output.find("GFN1-XTB") != -1
+    etemp_str = str(float(1200.1))  # string repr may be different
+    assert output.find(f"--etemp {etemp_str}") != -1
