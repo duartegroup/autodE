@@ -20,3 +20,4 @@ tests/*.xyz
 *.inp
 *.pyc
 .autode_calculations
+tests/initial_path/*
