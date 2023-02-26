@@ -105,9 +105,9 @@ def _set_one_img_coord_and_get_engrad(
         (tuple[float, ndarray]): energy, gradient in flat array
     """
     if side == "left":
-        imgpair.left_coord = np.array(coord).flatten()
+        imgpair.left_coord = CartesianCoordinates(coord)
     elif side == "right":
-        imgpair.right_coord = np.array(coord).flatten()
+        imgpair.right_coord = CartesianCoordinates(coord)
     else:
         raise ImgPairSideError()
 
