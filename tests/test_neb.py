@@ -65,6 +65,10 @@ def test_image_properties():
     assert images != 0
     assert images == images
 
+    image = Image(Molecule(smiles="CC"), k=ForceConstant(1.0), name="tmp")
+    with pytest.raises(Exception):
+        image._generate_conformers()
+
 
 def test_contains_peak():
 
