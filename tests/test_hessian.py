@@ -13,7 +13,7 @@ from autode.calculations import Calculation
 from autode.species import Molecule
 from autode.values import Frequency
 from autode.geom import calc_rmsd
-from autode.units import wavenumber
+from autode.units import wavenumber, ha_per_ang_sq
 from autode.exceptions import CalculationException
 from autode.wrappers.keywords import pbe0
 from autode.transition_states.base import displaced_species_along_mode
@@ -243,6 +243,7 @@ def assert_correct_co2_frequencies(hessian, expected=(666, 1415, 2517)):
     """Ensure the projected frequencies of CO2 are roughly right"""
     nu_1, nu_2, nu_3 = expected
 
+    print(hessian.frequencies_proj)
     assert sum(freq == 0.0 for freq in hessian.frequencies_proj) == 5
 
     # Should have a degenerate bending mode for CO2 with ν = 666 cm-1
@@ -419,6 +420,7 @@ def test_hessian_modes():
 
     h2o = Molecule("H2O_hess_orca.xyz")
     h2o.hessian = h2o_hessian_arr
+    assert h2o.hessian.units == ha_per_ang_sq
 
     # The structure is a minimum, thus there should be no imaginary frequencies
     assert h2o.imaginary_frequencies is None
@@ -440,6 +442,9 @@ def test_hessian_modes():
         assert np.allclose(
             vib_mode, h2o.hessian.normal_modes[6 + i], atol=0.1
         ) or np.allclose(vib_mode, -h2o.hessian.normal_modes[6 + i], atol=0.1)
+
+    # Hessian units should be retained
+    assert h2o.hessian.units == ha_per_ang_sq
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
@@ -595,6 +600,8 @@ def test_nwchem_hessian_co2():
         keywords=ade.HessianKeywords(),
     )
     calc.set_output_filename("CO2_hess_nwchem.out")
+    print(co2.hessian)
+    print(co2.hessian._mass_weighted)
     assert_correct_co2_frequencies(
         hessian=co2.hessian, expected=(659.76, 1406.83, 2495.73)
     )
