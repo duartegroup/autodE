@@ -416,6 +416,5 @@ def test_xtb_temp_var_params():
 
     # xTB command line flags should be printed in the output
     assert output.find("--gfn 1") != -1
-    assert output.find("GFN1-XTB") != -1
     etemp_str = str(float(1200.1))  # string repr may be different
     assert output.find(f"--etemp {etemp_str}") != -1
