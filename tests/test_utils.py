@@ -456,9 +456,8 @@ def test_requires_xtb_install():
     if xtbpath is None:
         return
 
-    if not xtbpath.lower().endswith(("xtb", "xtb.exe")):
-        return
-    else:
-        tmp_function()
+    assert xtbpath.lower().endswith(("xtb", "xtb.exe"))
+
+    tmp_function()
 
     assert len(test_list) == 1
