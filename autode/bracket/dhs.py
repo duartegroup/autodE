@@ -74,13 +74,8 @@ class DHSImagePair(BaseImagePair):
             # no need to convert for cartesian coords
             return perp_cart_grad
 
-        # Hack to convert the projected grad into internal coordinate
-        cart_g = coord.to("cart").g.copy()  # hold a copy
-        coord.update_g_from_cart_g(perp_cart_grad)  # use the grad component
-        perp_int_grad = coord.g.copy()
-        coord.update_g_from_cart_g(cart_g)  # restore original
-
-        return perp_int_grad
+        else:
+            raise NotImplementedError("Please use Cartesian coordinates!")
 
     # todo Hessian component
 
@@ -161,7 +156,8 @@ class DHS:
                        the DHS step, choose scipy's 'CG' (conjugate
                        gradients) or 'BFGS' (or maybe 'L-BFGS-B')
         """
-        self.imgpair = DHSImagePair(initial_species, final_species)
+        # it is ok to use cartesian coordinates for storage
+        self.imgpair = DHSImagePair(initial_species, final_species, "cart")
         self._species = initial_species.copy()  # just hold the species
         self._reduction_fac = abs(float(reduction_factor))
         assert self._reduction_fac < 1.0
