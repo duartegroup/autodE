@@ -330,6 +330,7 @@ class DHS:
         Args:
             side (str):
         """
+        # todo coord system -- ditch internals?
         # take a DHS step by minimizing the distance by factor
         new_dist = (1 - self._reduction_fac) * self.imgpair.euclid_dist
         dist_vec = self.imgpair.dist_vec
