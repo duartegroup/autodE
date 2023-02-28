@@ -6,6 +6,7 @@ Geometry Optimisation by Energy-represented DIIS (GEDIIS)
 
 """
 import numpy as np
+
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.opt.coordinates import OptCoordinates
 
@@ -18,7 +19,7 @@ class GDIIS:
         history: _OptimiserHistory,
         max_vecs=5,
         use_last_hessian=True,
-        check_ref_qnr_step=True,
+        check_stability=True,
         trust=None,
     ):
 
@@ -42,19 +43,24 @@ class GDIIS:
         else:
             self._H = None
 
+        self._check_stable = bool(check_stability)
+        self._trust = trust
+
     def calculate(self):
         n = len(self._space)
 
         if self._H is None:
             self._H = np.eye(n)
 
-        err_vecs = [-np.matmul(self._H, coord.g) for coord in self._space]
-        err_vecs = err_vecs[::-1]  # reverse to get the latest first
+        orig_err_vecs = [-np.matmul(self._H, coord.g) for coord in self._space]
+        orig_err_vecs = orig_err_vecs[::-1]  # reverse to get the latest first
 
         # rescale error vectors by dividing by the smallest error vector norm
         # criteria (d), page 13, Phys. Chem. Chem. Phys., 2002, 4, 11–15
-        scale_fac = min([np.linalg.norm(err_vec) for err_vec in err_vecs])
-        err_vecs = [err_vec / scale_fac for err_vec in err_vecs]
+        scale_fac = min(
+            [np.linalg.norm(err_vec) for err_vec in orig_err_vecs]
+        )
+        err_vecs = [err_vec / scale_fac for err_vec in orig_err_vecs]
 
         gdiis_coeffs = None
         for num_vec in range(2, min(self._max_vec, n) + 1):
@@ -69,3 +75,19 @@ class GDIIS:
                 coeffs = np.linalg.solve(a_mat, np.ones(num_vec))
             except np.linalg.LinAlgError:
                 break
+            # check for singularity of A matrix nonetheless
+            coeff_size = np.linalg.norm(coeffs)
+            if coeff_size >= 1.0e8:
+                break
+            # eq (9) coeffs = c/|r|^2, so sum(coeffs) = 1/|r|^2 as sum(c) = 1
+            scaled_coeffs = coeffs / np.sum(coeffs)
+            if not self._check_stable:
+                gdiis_coeffs = scaled_coeffs
+                continue
+
+            is_angle_valid = self._check_against_ref_step()
+
+
+
+
+
