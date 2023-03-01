@@ -42,6 +42,8 @@ class Conformer(Species):
 
         self.constraints.update(distance=dist_consts)
 
+        self.boltzmann_weight = None
+
     def __repr__(self):
         """Representation of"""
         return self._repr(prefix="Conformer")

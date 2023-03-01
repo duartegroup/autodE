@@ -8,6 +8,9 @@ from autode.config import Config
 from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
+from autode.units import ha 
+from math import exp 
+from scipy.constants import Boltzmann
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -303,6 +306,63 @@ class Conformers(list):
 
     def copy(self) -> "Conformers":
         return Conformers([conformer.copy() for conformer in self])
+
+    def prune_with_boltzmann(
+            self,
+            temperature: float = 298.15, 
+            threshold: float = 0.9
+        ) -> None:
+        """
+        Keep the lowest energy conformers whose cumulative weights are up to
+        the threshold (default 90%). Conformer energies must be in Ha. 
+        -----------------------------------------------------------------------
+
+        Arguments:
+            threshold (float): Cumlative weight threshold
+            temperature (float): Temperature in K 
+        """
+        assert threshold <= 1.0, 'The treshold must be below 1.0'
+
+        hartrees_to_joules = 4.35974417 * 10**-18
+        normalisation_constant = 0.0
+        minimum_energy = self.lowest_energy.energy
+        # self.lowest_energy().energy
+
+        for conf in self:
+            assert conf.energy.units == ha, 'Conformer energy must be in Ha'
+
+            normalised_energy = conf.energy - minimum_energy 
+            energy_joules = normalised_energy * hartrees_to_joules
+            conf.boltzmann_weight = exp(-energy_joules / (temperature * Boltzmann))
+            normalisation_constant += conf.boltzmann_weight
+
+        # Sort conformers in descending order by Boltzmann weight
+        self.sort(key=lambda conf: conf.boltzmann_weight, 
+               reverse=True)
+
+        cumulative_weight = 0
+
+        for idx in reversed(range(len(self))):
+
+            conf = self[idx]
+
+            conf.boltzmann_weight = conf.boltzmann_weight / normalisation_constant
+            cumulative_weight += conf.boltzmann_weight 
+
+            # Remove from the highest idx
+            if cumulative_weight <= 1 - threshold:
+             
+                logger.info(
+                    f"Conformer {idx} was above the Boltzmann threshold "
+                    f"- removing"
+                )
+
+                del self[idx]
+
+        logger.info(f"Pruned to {len(self)} conformer(s) below a Boltzmann "
+                    f"threshold of {threshold} at {temperature} K")
+
+        return None
 
 
 def atoms_from_rdkit_mol(rdkit_mol_obj: Chem.Mol, conf_id: int = 0) -> Atoms:
