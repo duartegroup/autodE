@@ -34,7 +34,7 @@ class RFOptimiser(NDOptimiser):
         """RFO step"""
         logger.info("Taking a RFO step")
 
-        self._coords.h_inv = self._updated_h_inv()
+        self._coords.h = self._updated_h()
 
         h_n, _ = self._coords.h.shape
 

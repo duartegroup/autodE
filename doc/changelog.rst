@@ -19,6 +19,7 @@ Usability improvements/Changes
 Bug Fixes
 *********
 - Fixes pickling issue with :code:`autode.config.Config` on Windows and in multiprocessing spawn for Linux/macOS
+- Fixes RFO Hessian update bug
 
 
 1.3.5
