@@ -41,7 +41,6 @@ class Conformer(Species):
             self.atoms = Atoms(atoms)
 
         self.constraints.update(distance=dist_consts)
-
         self.boltzmann_weight = None
 
     def __repr__(self):
