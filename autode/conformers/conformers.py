@@ -245,6 +245,13 @@ class Conformers(list):
             normalised_energy = conf.energy.to("J") - min_energy
             conf._boltzmann_weight = np.exp(-normalised_energy / (temp * k_b))
 
+        normalisation_constant = sum(conf._boltzmann_weight for conf in self)
+
+        for conf in self:
+            conf._boltzmann_weight = (
+                conf._boltzmann_weight / normalisation_constant
+            )
+
         return None
 
     def prune_with_boltzmann(
@@ -263,30 +270,34 @@ class Conformers(list):
 
         self._set_boltzmann_weight(temp)
 
-        normalisation_constant = sum(conf._boltzmann_weight for conf in self)
-
-        # Sort conformers in ascending order by Boltzmann weight
-        self.sort(key=lambda conf: conf.boltzmann_weight)
+        # List of conformers in reverse order by Boltzmann weight
+        sorted_by_weight = sorted(
+            self, key=lambda conf: conf.boltzmann_weight, reverse=True
+        )
 
         cumulative_weight = 0
 
-        for idx, conf in enumerate(self):
+        for conf in self:
+            print(conf)
 
-            conf._boltzmann_weight = (
-                conf._boltzmann_weight / normalisation_constant
-            )
+        # Delete from the end of the list to preserve the order when deleting
+        for idx in reversed(range(len(sorted_by_weight))):
+
+            conf = sorted_by_weight[idx]
+            conf_n = conf.name.split("conf")[1]
+
             cumulative_weight += conf._boltzmann_weight
 
-            # Confs in ascending order by Boltzmann weight
-            # hence remove those (1 - threshold)
+            # Remove confs over threshold (confs in reverse order
+            # i.e. we start at lowest weight)
             if cumulative_weight <= 1 - threshold:
 
+                self.remove(conf)
+
                 logger.info(
-                    f"Conformer {idx} was above the Boltzmann threshold "
+                    f"Conformer {conf_n} was above the Boltzmann threshold "
                     f"- removing"
                 )
-
-                del self[idx]
 
         logger.info(
             f"Pruned to {len(self)} conformer(s) below a Boltzmann "
