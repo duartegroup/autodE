@@ -8,9 +8,6 @@ from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.utils import ProcessPool
-from autode.units import ha
-from math import exp
-from scipy.constants import Boltzmann
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -237,8 +234,21 @@ class Conformers(list):
         logger.info(f"Pruned on connectivity {n_prev_confs} -> {len(self)}")
         return None
 
+    def _set_boltzmann_weight(self, temp: float) -> None:
+        """Sets self._boltzmann_weight for each conformer"""
+
+        min_energy = self.lowest_energy.energy.to("J")
+        k_b = 1.380649 * 10**-23  # Units: J/K
+
+        for conf in self:
+
+            normalised_energy = conf.energy.to("J") - min_energy
+            conf._boltzmann_weight = np.exp(-normalised_energy / (temp * k_b))
+
+        return None
+
     def prune_with_boltzmann(
-        self, temperature: float = 298.15, threshold: float = 0.9
+        self, temp: float = 298.15, threshold: float = 0.9
     ) -> None:
         """
         Keep the lowest energy conformers whose cumulative weights are up to
@@ -247,39 +257,28 @@ class Conformers(list):
 
         Arguments:
             threshold (float): Cumlative weight threshold.
-            temperature (float): Temperature in K.
+            temp (float): Temperature in K.
         """
         assert threshold <= 1.0, "The treshold must be below 1.0"
 
-        hartrees_to_joules = 4.35974417 * 10**-18
-        normalisation_constant = 0.0
-        minimum_energy = self.lowest_energy.energy
+        self._set_boltzmann_weight(temp)
 
-        for conf in self:
-            assert conf.energy.units == ha, "Conformer energy must be in Ha"
+        normalisation_constant = sum(conf._boltzmann_weight for conf in self)
 
-            normalised_energy = conf.energy - minimum_energy
-            energy_joules = normalised_energy * hartrees_to_joules
-            conf.boltzmann_weight = exp(
-                -energy_joules / (temperature * Boltzmann)
-            )
-            normalisation_constant += conf.boltzmann_weight
-
-        # Sort conformers in descending order by Boltzmann weight
-        self.sort(key=lambda conf: conf.boltzmann_weight, reverse=True)
+        # Sort conformers in ascending order by Boltzmann weight
+        self.sort(key=lambda conf: conf.boltzmann_weight)
 
         cumulative_weight = 0
 
-        for idx in reversed(range(len(self))):
+        for idx, conf in enumerate(self):
 
-            conf = self[idx]
-
-            conf.boltzmann_weight = (
-                conf.boltzmann_weight / normalisation_constant
+            conf._boltzmann_weight = (
+                conf._boltzmann_weight / normalisation_constant
             )
-            cumulative_weight += conf.boltzmann_weight
+            cumulative_weight += conf._boltzmann_weight
 
-            # Removing from the highest idx so need (1 - threshold)
+            # Confs in ascending order by Boltzmann weight
+            # hence remove those (1 - threshold)
             if cumulative_weight <= 1 - threshold:
 
                 logger.info(
@@ -291,7 +290,7 @@ class Conformers(list):
 
         logger.info(
             f"Pruned to {len(self)} conformer(s) below a Boltzmann "
-            f"threshold of {threshold} at {temperature} K"
+            f"threshold of {threshold} at {temp} K"
         )
 
         return None

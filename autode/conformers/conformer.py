@@ -41,7 +41,7 @@ class Conformer(Species):
             self.atoms = Atoms(atoms)
 
         self.constraints.update(distance=dist_consts)
-        self.boltzmann_weight = None
+        self._boltzmann_weight = None
 
     def __repr__(self):
         """Representation of a conformer"""
@@ -49,6 +49,12 @@ class Conformer(Species):
 
     def __eq__(self, other):
         return super().__eq__(other)
+
+    @property
+    def boltzmann_weight(self) -> Optional[float]:
+        """The Boltzmann weight of a given conformer as calculated by
+        autode.conformers.Conformers._set_boltzmann_weights()."""
+        return self._boltzmann_weight
 
     def single_point(
         self,
