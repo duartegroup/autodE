@@ -453,11 +453,7 @@ def test_requires_xtb_install():
 
     # if XTB is in $PATH, the function should execute
     xtbpath = shutil.which("xtb")
-    if xtbpath is None:
-        return
-
-    assert xtbpath.lower().endswith(("xtb", "xtb.exe"))
-
-    tmp_function()
-
-    assert len(test_list) == 1
+    if xtbpath is not None:
+         assert xtbpath.lower().endswith(("xtb", "xtb.exe"))
+         tmp_function()
+         assert len(test_list) == 1
