@@ -125,7 +125,6 @@ class Conformers(list):
             idxs_with_energy = [j for j in idxs_with_energy if j < len(self)]
 
             if np.abs(conf.energy - avg_e) / std_dev_e > n_sigma:
-
                 logger.warning(
                     f"Conformer {idx} had an energy >{n_sigma}σ "
                     f"from the average - removing"
@@ -142,7 +141,6 @@ class Conformers(list):
                 for o_idx in idxs_with_energy
                 if o_idx != idx
             ):
-
                 logger.info(f"Conformer {idx} had a non unique energy")
                 del self[idx]
                 continue
@@ -187,7 +185,6 @@ class Conformers(list):
         # Only enumerate up to but not including the final index, as at
         # least one of the conformers must be unique in geometry
         for idx in reversed(range(len(self) - 1)):
-
             conf = self[idx]
 
             if any(
@@ -195,7 +192,6 @@ class Conformers(list):
                 for o_idx, other in enumerate(self)
                 if o_idx != idx
             ):
-
                 logger.info(
                     f"Conformer {idx} was close in geometry to at "
                     f"least one other - removing"
@@ -241,9 +237,19 @@ class Conformers(list):
         k_b = 1.380649 * 10**-23  # Units: J/K
 
         for conf in self:
+            conf_n = conf.name.split("conf")[1]
 
-            normalised_energy = conf.energy.to("J") - min_energy
-            conf._boltzmann_weight = np.exp(-normalised_energy / (temp * k_b))
+            if conf.energy is not None:
+                normalised_energy = conf.energy.to("J") - min_energy
+                conf._boltzmann_weight = np.exp(
+                    -normalised_energy / (temp * k_b)
+                )
+            else:
+                self.remove(conf)
+
+                logger.warning(
+                    f"Conformer {conf_n} had no energy " f"- removing"
+                )
 
         normalisation_constant = sum(conf._boltzmann_weight for conf in self)
 
@@ -277,12 +283,8 @@ class Conformers(list):
 
         cumulative_weight = 0
 
-        for conf in self:
-            print(conf)
-
         # Delete from the end of the list to preserve the order when deleting
         for idx in reversed(range(len(sorted_by_weight))):
-
             conf = sorted_by_weight[idx]
             conf_n = conf.name.split("conf")[1]
 
@@ -291,7 +293,6 @@ class Conformers(list):
             # Remove confs over threshold (confs in reverse order
             # i.e. we start at lowest weight)
             if cumulative_weight <= 1 - threshold:
-
                 self.remove(conf)
 
                 logger.info(
