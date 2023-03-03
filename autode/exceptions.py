@@ -128,3 +128,7 @@ class CouldNotPlotSmoothProfile(AutodeException):
 
 class TemplateLoadingFailed(AutodeException):
     """A template file was not in the correct format"""
+
+
+class OptimiserStepError(AutodeException):
+    """Unable to calculate a valid Optimiser step"""
