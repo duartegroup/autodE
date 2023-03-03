@@ -41,7 +41,7 @@ class RobustOptimiser(RFOptimiser):
 
         else:
             try:
-                qa_lmda = _get_qa_minimise_step(
+                qa_lmda = _get_qa_minimise_lambda(
                     self._coords.h, self._coords.g, self.alpha
                 )
                 h_eff = self._coords.h - qa_lmda * np.eye(h_n)
@@ -108,7 +108,7 @@ def _get_rfo_minimise_lambda(
     return lmda
 
 
-def _get_qa_minimise_step(
+def _get_qa_minimise_lambda(
     hessian: np.ndarray, gradient: np.ndarray, trust: float
 ) -> float:
     """
