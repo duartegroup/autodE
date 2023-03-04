@@ -3,6 +3,7 @@ Climbing image (CI) nudged elastic band implementation from
 https://doi.org/10.1063/1.1329672
 """
 import numpy as np
+from scipy.optimize import OptimizeResult
 from typing import Optional
 from autode.neb.original import NEB, Images, Image
 from autode.log import logger
@@ -100,9 +101,7 @@ class CINEB(NEB):
 
         self.images = CImages(self.images)
 
-    def _minimise(
-        self, method, n_cores, etol, max_n=30
-    ) -> "scipy.optimize.OptimizeResult":
+    def _minimise(self, method, n_cores, etol, max_n=30) -> OptimizeResult:
         """Minimise th energy of every image in the NEB"""
         logger.info(f"Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates")
         result = super()._minimise(method, n_cores, etol, max_n)

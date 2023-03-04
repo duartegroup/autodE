@@ -407,3 +407,17 @@ def test_init_from_file_sets_force_constant_no_energies():
     neb = NEB.from_file("tmp.xyz")
     # Estimated value should be reasonable even without energies
     assert 0.001 < neb.init_k < 0.2
+
+
+def test_neb_constructor_with_kwargs_raises():
+
+    with pytest.raises(Exception):
+        _ = NEB(init_k=ForceConstant(0.1), another_arg="a string")
+
+
+def test_constructing_neb_from_endpoints_with_different_atoms_raises():
+
+    with pytest.raises(Exception):
+        _ = NEB.from_end_points(
+            Molecule(smiles="O"), Molecule(smiles="C"), num=4
+        )

@@ -272,9 +272,6 @@ class Image(Species):
     def gradient(self, value: Optional[np.ndarray]):
         self._grad = None if value is None else value.flatten()
 
-    def _clear_energies_gradient_hessian(self) -> None:
-        """Skip any clearing energies"""
-
 
 class Images(Path):
     def __init__(
@@ -300,6 +297,9 @@ class Images(Path):
         self.init_k = init_k
         self.min_k = init_k / 10 if min_k is None else min_k
         self.max_k = 2 * init_k if max_k is None else max_k
+        assert (
+            self.max_k > self.min_k
+        ), "Can't set the min force constant above the max"
 
     def __eq__(self, other):
         """Equality od two climbing image NEB paths"""
@@ -400,6 +400,7 @@ class NEB:
     def __init__(
         self,
         init_k: ForceConstant = ForceConstant(0.1, units="Ha / Å^2"),
+        **kwargs,
     ):
         """
         Nudged elastic band (NEB)
@@ -411,6 +412,7 @@ class NEB:
         Arguments:
             init_k: Initial force constant between each image
         """
+        self._raise_exception_if_any(kwargs)
         self._init_k = init_k
         self.images = Images(init_k=init_k)
 
@@ -509,6 +511,11 @@ class NEB:
           Returns:
               (NEB):
         """
+
+        if initial.sorted_atomic_symbols != final.sorted_atomic_symbols:
+            raise ValueError(
+                "Cannot construct a NEB from species with different atoms"
+            )
 
         neb = cls.from_list(
             species_list=cls._interpolated_species(initial, final, n=num),
@@ -750,3 +757,22 @@ class NEB:
     @property
     def max_atom_distance_between_images(self) -> Distance:
         return self._max_atom_distance_between_images(idxs=None)
+
+    @staticmethod
+    def _raise_exception_if_any(kwargs: dict) -> None:
+
+        if len(kwargs) == 0:
+            return
+        elif any(
+            arg in kwargs
+            for arg in ("initial_species", "final_species", "num")
+        ):
+            raise ValueError(
+                "Cannot construct a NEB. Please use NEB.from_endpoints()"
+            )
+        elif "species_list" in kwargs:
+            raise ValueError(
+                "Cannot construct a NEB from a species list. Please use NEB.from_list()"
+            )
+        else:
+            raise ValueError("Unrecognised keyword argument")
