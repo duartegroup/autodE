@@ -863,7 +863,7 @@ def test_partial_water_num_hess():
     partial_hess = calculator.hessian
     """
     Partial Hessian should have structure
-    
+
          (   A    B  )
     H =  (           )
          (   B    C  )

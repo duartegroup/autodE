@@ -12,4 +12,4 @@ oxir [O-]C(C)=O.C1CO1>>[O-]CCOC(C)=O water
 Ocope C=CCOC=C>>O=CCCC=C
 SO2loss O=S1(CC=CC1)=O>>C=CC=C.O=S=O
 aldol CC(C)=O.C=C([O-])C>>CC([O-])(CC(C)=O)C water
-dipolar [N-]=[N+]=NC.C#CC>>CC1=CN(C)N=N1 
+dipolar [N-]=[N+]=NC.C#CC>>CC1=CN(C)N=N1

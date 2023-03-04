@@ -667,10 +667,10 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         r"""
         For a block with the format:
-        
+
         ...[C*(O1C1O1)]\NImag=0\\H_x1x1, H_y1x1, ...\\
         F_x1, F_y1, ...\\\@
-        
+
         get the elements of the Hessian, noting that the lines have been
         parsed backwards, hence the [::-1]
         """

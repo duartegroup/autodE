@@ -329,7 +329,7 @@ def test_calculations_have_unique_names():
     mol.single_point(method=xtb)
     mol.single_point(method=xtb)  # calculation should be skipped
 
-    """For some insane reason the following code works if executed in python 
+    """For some insane reason the following code works if executed in python
     directly but not if run within pytest"""
     # neutral_energy = mol.energy.copy()
     #

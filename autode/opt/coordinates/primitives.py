@@ -1,7 +1,10 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from autode.opt.coordinates import CartesianCoordinates, CartesianComponent
 
 
 class Primitive(ABC):
@@ -14,17 +17,15 @@ class Primitive(ABC):
         self._atom_indexes = atom_indexes
 
     @abstractmethod
-    def __call__(
-        self, x: "autode.opt.coordinates.CartesianCoordinates"
-    ) -> float:
+    def __call__(self, x: "CartesianCoordinates") -> float:
         """Return the value of this PIC given a set of cartesian coordinates"""
 
     @abstractmethod
     def derivative(
         self,
         i: int,
-        component: "autode.opt.coordinates.CartesianComponent",
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        component: "CartesianComponent",
+        x: "CartesianCoordinates",
     ) -> float:
         r"""
         Calculate the derivative with respect to a cartesian coordinate
@@ -73,7 +74,7 @@ class ConstrainedPrimitive(Primitive, ABC):
 
     def is_satisfied(
         self,
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        x: "CartesianCoordinates",
         tol: float = 1e-4,
     ) -> bool:
         """Is this constraint satisfied to within an absolute tolerance"""
@@ -81,7 +82,7 @@ class ConstrainedPrimitive(Primitive, ABC):
 
     def delta(
         self,
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        x: "CartesianCoordinates",
     ) -> float:
         """Difference between the observed and required value"""
         return self(x) - self._value
@@ -132,8 +133,8 @@ class InverseDistance(_DistanceFunction):
     def derivative(
         self,
         i: int,
-        component: "autode.opt.coordinates.CartesianComponent",
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        component: "CartesianComponent",
+        x: "CartesianCoordinates",
     ) -> float:
         """
         Derivative with respect to Cartesian displacement
@@ -155,9 +156,7 @@ class InverseDistance(_DistanceFunction):
         else:  # i == self.idx_j:
             return (_x[self.i, k] - _x[self.j, k]) * self(x) ** 3
 
-    def __call__(
-        self, x: "autode.opt.coordinates.CartesianCoordinates"
-    ) -> float:
+    def __call__(self, x: "CartesianCoordinates") -> float:
         """1 / |x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return 1.0 / np.linalg.norm(_x[self.i] - _x[self.j])
@@ -175,8 +174,8 @@ class Distance(_DistanceFunction):
     def derivative(
         self,
         i: int,
-        component: "autode.opt.coordinates.CartesianComponent",
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        component: "CartesianComponent",
+        x: "CartesianCoordinates",
     ) -> float:
         """
         Derivative with respect to Cartesian displacement
@@ -195,9 +194,7 @@ class Distance(_DistanceFunction):
 
         return val if i == self.i else -val
 
-    def __call__(
-        self, x: "autode.opt.coordinates.CartesianCoordinates"
-    ) -> float:
+    def __call__(self, x: "CartesianCoordinates") -> float:
         """|x_i - x_j|"""
         _x = x.reshape((-1, 3))
         return np.linalg.norm(_x[self.i] - _x[self.j])
@@ -250,9 +247,7 @@ class BondAngle(Primitive):
             and other._ordered_idxs == self._ordered_idxs
         )
 
-    def __call__(
-        self, x: "autode.opt.coordinates.CartesianCoordinates"
-    ) -> float:
+    def __call__(self, x: "CartesianCoordinates") -> float:
 
         _x = x.reshape((-1, 3))
         u = _x[self.m, :] - _x[self.o, :]
@@ -264,8 +259,8 @@ class BondAngle(Primitive):
     def derivative(
         self,
         i: int,
-        component: "autode.opt.coordinates.CartesianComponent",
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        component: "CartesianComponent",
+        x: "CartesianCoordinates",
     ) -> float:
 
         if i not in (self.o, self.m, self.n):
@@ -338,7 +333,7 @@ class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
     def __repr__(self):
         return f"ConstrainedCAngle({self.m}-{self.o}-{self.n})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: "ConstrainedBondAngle"):
         return super().__eq__(other) and np.isclose(
             self._theta0, other._theta0
         )
@@ -354,17 +349,15 @@ class DihedralAngle(Primitive):
         self.p = p
         self.n = n
 
-    def __call__(
-        self, x: "autode.opt.coordinates.CartesianCoordinates"
-    ) -> float:
+    def __call__(self, x: "CartesianCoordinates") -> float:
         """Value of the dihedral"""
         return self._value(x, return_derivative=False)
 
     def derivative(
         self,
         i: int,
-        component: "autode.opt.coordinates.CartesianComponent",
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        component: "CartesianComponent",
+        x: "CartesianCoordinates",
     ) -> float:
         return self._value(x, i=i, component=component, return_derivative=True)
 

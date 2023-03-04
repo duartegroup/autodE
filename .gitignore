@@ -21,3 +21,4 @@ tests/*.xyz
 *.pyc
 .autode_calculations
 tests/initial_path/*
+.mypy_cache

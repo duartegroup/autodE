@@ -131,7 +131,7 @@ kcalmol = KcalMol = Unit(
 J = Unit(name="J", conversion=Constants.ha_to_J, aliases=["joule"])
 
 
-def energy_unit_from_name(name: str) -> "autode.units.Unit":
+def energy_unit_from_name(name: str) -> "Unit":
     """
     Generate an energy unit given a name
 

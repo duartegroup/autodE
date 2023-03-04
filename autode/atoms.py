@@ -1107,8 +1107,8 @@ class AtomCollection:
             vec /= norm
 
         """
-        Dihedral angles are defined as from the IUPAC gold book: "the torsion 
-        angle between groups A and D is then considered to be positive if 
+        Dihedral angles are defined as from the IUPAC gold book: "the torsion
+        angle between groups A and D is then considered to be positive if
         the bond A-B is rotated in a clockwise direction through less than
         180 degrees"
         """
@@ -1638,7 +1638,7 @@ vdw_radii = {
 }
 
 """
-Although a π-bond may not be well defined, it is useful to have a notion of 
+Although a π-bond may not be well defined, it is useful to have a notion of
 a bond about which there is restricted rotation. The below sets are used to
 define which atoms may be π-bonded to another
 """

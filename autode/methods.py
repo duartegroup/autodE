@@ -11,9 +11,9 @@ from autode.config import Config
 from autode.exceptions import MethodUnavailable
 
 """
-Functions to get the high and low level electronic structure methods to use 
-for example high-level methods would be orca and Gaussian09 which can perform 
-DFT/WF theory calculations, low level methods are, for example, xtb and mopac 
+Functions to get the high and low level electronic structure methods to use
+for example high-level methods would be orca and Gaussian09 which can perform
+DFT/WF theory calculations, low level methods are, for example, xtb and mopac
 which are fast non ab-initio methods
 """
 

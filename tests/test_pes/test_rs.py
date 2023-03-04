@@ -180,9 +180,9 @@ def test_mesh():
        ----------------------
        | (0, 0)   (0, 1)  ..
        | (1, 0)     .
-    r1 |   .        . 
+    r1 |   .        .
        |
-       
+
     """
     assert np.allclose(pes.r1[0, 1], 0.1, atol=1e-10)
     assert np.allclose(pes.r2[0, 1], 0.2, atol=1e-10)

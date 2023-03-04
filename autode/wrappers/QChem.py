@@ -175,7 +175,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             else:
                 continue
 
-            """e.g.            
+            """e.g.
                                Coordinates (Angstroms)
              ATOM                X               Y               Z
               1  O         0.0003489977   -0.1403224128    0.0000000000

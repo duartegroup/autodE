@@ -4,7 +4,7 @@ from scipy.spatial import distance_matrix
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from autode.neb.original import Images, Image
+    from autode.neb.original import Image, Images
 
 
 class IDPP:
@@ -94,7 +94,7 @@ class IDPP:
         -----------------------------------------------------------------------
         x = x.reshape((-1, 3))
         grad = np.zeros_like(x)
-        
+
         for i in range(n_atoms):
             for j in range(n_atoms):
 

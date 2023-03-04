@@ -129,7 +129,7 @@ def pruned_active_bonds(
         )
         """
         Counterintuitively, this is possible e.g. metallocyclobutate formation
-        from a metalocyclopropane and a alkylidene (due to the way bonds are 
+        from a metalocyclopropane and a alkylidene (due to the way bonds are
         defined)
         """
         bbonds = [bond for bond in bbonds if bond.dr > 0]
