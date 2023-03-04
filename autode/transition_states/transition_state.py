@@ -361,9 +361,7 @@ class TransitionState(TSbase):
         return None
 
     @classmethod
-    def from_species(
-        cls, species: "autode.species.Species"
-    ) -> "TransitionState":
+    def from_species(cls, species: "Species") -> "TransitionState":
         """
         Generate a TS from a species. Note this does not set the bond rearrangement
         thus mode checking will not work from this species.

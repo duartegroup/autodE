@@ -146,7 +146,7 @@ class TSguess(TSbase):
     """Transition state guess"""
 
     @classmethod
-    def from_species(cls, species: "autode.species.Species") -> "TSguess":
+    def from_species(cls, species: "Species") -> "TSguess":
         """
         Generate a TS guess from a species
 
@@ -231,7 +231,7 @@ class TSguess(TSbase):
         method: Optional[
             "autode.wrappers.base.ElectronicStructureMethod"
         ] = None,
-        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        keywords: Optional["Keywords"] = None,
     ):
         """Get a TS guess from a constrained optimisation with the active atoms
         fixed at values defined in distance_consts

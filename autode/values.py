@@ -609,7 +609,7 @@ class ValueArray(ABC, np.ndarray):
         cls,
         input_array: Union[np.ndarray, Sequence],
         units: Union[Unit, str, None] = None,
-    ):
+    ) -> Any:
         """
         Initialise a ValueArray from a numpy array, or another ValueArray
 
@@ -731,7 +731,7 @@ class Coordinates(ValueArray):
     def __repr__(self):
         return f"Coordinates({np.ndarray.__str__(self)} {self.units.name})"
 
-    def __new__(cls, input_array, units=ang):
+    def __new__(cls, input_array, units=ang) -> "Coordinates":
         return super().__new__(
             cls, np.asarray(input_array).reshape(-1, 3), units
         )

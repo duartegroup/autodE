@@ -365,7 +365,7 @@ def _get_coords_no_init_structure(atoms, species, d0, constrained_bonds):
 
 @log_time(prefix="Generated RR atoms in:", units="s")
 def get_simanl_atoms(
-    species: "autode.species.Species",
+    species: "Species",
     dist_consts: Optional[Dict] = None,
     conf_n: int = 0,
     save_xyz: bool = True,
@@ -484,7 +484,7 @@ def get_simanl_atoms(
 
 
 def get_simanl_conformer(
-    species: "autode.species.Species",
+    species: "Species",
     dist_consts: Optional[Dict] = None,
     conf_n: int = 0,
     save_xyz: bool = True,

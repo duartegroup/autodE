@@ -29,9 +29,9 @@ class CalculationExecutor:
     def __init__(
         self,
         name: str,
-        molecule: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
-        keywords: "autode.wrappers.keywords.Keywords",
+        molecule: "Species",
+        method: "Method",
+        keywords: "Keywords",
         n_cores: int = 1,
         point_charges: Optional[List[PointCharge]] = None,
     ):
@@ -508,5 +508,5 @@ def _string_without_leading_hyphen(s: str) -> str:
     return s if not s.startswith("-") else f"_{s}"
 
 
-def _active_bonds(molecule: "autode.species.Species") -> List[Tuple[int, int]]:
+def _active_bonds(molecule: "Species") -> List[Tuple[int, int]]:
     return [] if molecule.graph is None else molecule.graph.active_bonds

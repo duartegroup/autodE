@@ -23,7 +23,7 @@ class PESnD(ABC):
 
     def __init__(
         self,
-        species: Optional["autode.species.Species"] = None,
+        species: Optional["Species"] = None,
         rs: Optional[_rs_type] = None,
         allow_rounding: bool = True,
     ):
@@ -57,9 +57,9 @@ class PESnD(ABC):
 
         # Attributes set in calculate()
         self._coordinates: Optional[np.ndarray] = None
-        self._method: Optional["autode.wrappers.methods.Method"] = None
+        self._method: Optional["Method"] = None
         self._n_cores: int = Config.n_cores
-        self._keywords: Optional["autode.wrappers.keywords.Keywords"] = None
+        self._keywords: Optional["Keywords"] = None
 
     @property
     def shape(self) -> Tuple[int, ...]:

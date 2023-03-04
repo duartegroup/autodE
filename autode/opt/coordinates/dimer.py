@@ -67,8 +67,8 @@ class DimerCoordinates(OptCoordinates):
     @classmethod
     def from_species(
         cls,
-        species1: "autode.species.Species",
-        species2: "autode.species.Species",
+        species1: "Species",
+        species2: "Species",
     ) -> "DimerCoordinates":
         """
         Initialise a set of DimerCoordinates from two species, i.e. those

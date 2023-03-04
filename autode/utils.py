@@ -453,7 +453,7 @@ def requires_output(func: Callable) -> Callable:
     return wrapped_function
 
 
-def requires_output_to_exist(func) -> Callable:
+def requires_output_to_exist(func: Callable) -> Callable:
     """Calculation method requiring the output filename to be set"""
 
     @wraps(func)

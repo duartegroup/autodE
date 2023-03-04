@@ -52,7 +52,7 @@ class Conformer(Species):
     def single_point(
         self,
         method: "autode.wrappers.base.ElectronicStructureMethod",
-        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        keywords: Optional["Keywords"] = None,
         n_cores: Optional[int] = None,
     ):
         """
@@ -77,7 +77,7 @@ class Conformer(Species):
         ] = None,
         reset_graph: bool = False,
         calc: Optional["autode.calculation.Calculation"] = None,
-        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        keywords: Optional["Keywords"] = None,
         n_cores: Optional[int] = None,
     ):
         """

@@ -11,7 +11,7 @@ xtb = XTB()
 
 def has_single_imag_freq_at_xtb_level(mol: Molecule) -> bool:
     mol.calc_hessian(method=xtb)
-
+    assert mol.imaginary_frequencies is not None
     return len(mol.imaginary_frequencies) == 1
 
 

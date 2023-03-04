@@ -50,7 +50,7 @@ class RelaxedPESnD(ReactivePESnD):
 
         return OptKeywords
 
-    def _species_at(self, point: Tuple) -> "autode.species.Species":
+    def _species_at(self, point: Tuple) -> "Species":
         """
         Generate a species on the PES at a defined point. Attributes are
         obtained from the internal species (molecule at the origin in the PES)
@@ -73,7 +73,7 @@ class RelaxedPESnD(ReactivePESnD):
         return species
 
     def _single_energy_coordinates(
-        self, species: "autode.species.Species", **kwargs
+        self, species: "Species", **kwargs
     ) -> Tuple[float, np.ndarray]:
         """
         Calculate a single energy and set of coordinates on this surface

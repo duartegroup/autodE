@@ -15,7 +15,7 @@ from autode.pes.mep import peak_point
 class ReactivePESnD(PESnD, ABC):
     def __init__(
         self,
-        species: "autode.species.Species",
+        species: "Species",
         rs: Dict[Tuple[int, int], Union[Tuple, np.ndarray]],
         allow_rounding: bool = True,
     ):
@@ -42,7 +42,7 @@ class ReactivePESnD(PESnD, ABC):
 
     def ts_guesses(
         self,
-        product: Optional["autode.species.Species"] = None,
+        product: Optional["Species"] = None,
         min_separation: Distance = Distance(0.5, units="Å"),
     ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
         """
@@ -165,7 +165,7 @@ class ReactivePESnD(PESnD, ABC):
         return sorted(self._saddle_points(), key=lambda p: self._energies[p])
 
     def _mep_ts_guess(
-        self, product: "autode.species.Species"
+        self, product: "Species"
     ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
         """
         Find a TS guess by traversing the minimum energy pathway (MEP) on a
@@ -211,7 +211,7 @@ class ReactivePESnD(PESnD, ABC):
         yield TSguess.from_species(species)
 
     def _point_with_isomorphic_graph_to(
-        self, species: "autode.species.Species"
+        self, species: "Species"
     ) -> Optional[Tuple]:
         """
         Find a point on this surface that is graph-isomorphic to a particular

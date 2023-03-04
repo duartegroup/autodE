@@ -8,7 +8,7 @@ from autode.point_charges import PointCharge
 class CalculationInput:
     def __init__(
         self,
-        keywords: "autode.wrappers.keywords.Keywords",
+        keywords: "Keywords",
         added_internals: Optional[list] = None,
         point_charges: Optional[List[PointCharge]] = None,
     ):

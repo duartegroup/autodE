@@ -43,7 +43,7 @@ class UnRelaxedPES1D(ReactivePESnD):
 
         return SinglePointKeywords
 
-    def _species_at(self, point: Tuple) -> "autode.species.Species":
+    def _species_at(self, point: Tuple) -> "Species":
         """
         Shift this structure to a point in the surface
 
@@ -109,9 +109,7 @@ class UnRelaxedPES1D(ReactivePESnD):
         """
         return method.keywords.sp
 
-    def _single_energy(
-        self, species: "autode.species.Species", n_cores: int
-    ) -> float:
+    def _single_energy(self, species: "Species", n_cores: int) -> float:
         """
         Evaluate the energy using a single point calculation
 

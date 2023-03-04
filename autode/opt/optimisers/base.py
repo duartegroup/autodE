@@ -2,7 +2,8 @@ import os.path
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Union, Optional, Callable, Any
+from typing import Union, Optional, Callable, Any, TYPE_CHECKING
+
 from autode.log import logger
 from autode.utils import NumericStringDict
 from autode.config import Config
@@ -10,6 +11,12 @@ from autode.values import GradientRMS, PotentialEnergy, method_string
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
 from autode.exceptions import CalculationException
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
+    from autode.opt.coordinates import OptCoordinates
+    from autode.opt.optimisers.hessian_update import HessianUpdater
 
 
 class BaseOptimiser(ABC):
@@ -32,7 +39,7 @@ class Optimiser(BaseOptimiser, ABC):
     def __init__(
         self,
         maxiter: int,
-        coords: Optional["autode.opt.OptCoordinates"] = None,
+        coords: Optional["OptCoordinates"] = None,
         callback: Optional[Callable] = None,
         callback_kwargs: Optional[dict] = None,
     ):
@@ -69,15 +76,15 @@ class Optimiser(BaseOptimiser, ABC):
         self._history = _OptimiserHistory()
 
         self._coords = coords
-        self._species: Optional["autode.species.Species"] = None
-        self._method: Optional["autode.wrappers.methods.Method"] = None
+        self._species: Optional["Species"] = None
+        self._method: Optional["Method"] = None
 
     @classmethod
     @abstractmethod
     def optimise(
         cls,
-        species: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
+        species: "Species",
+        method: "Method",
         n_cores: Optional[int] = None,
         coords: Optional[OptCoordinates] = None,
         **kwargs,
@@ -94,8 +101,8 @@ class Optimiser(BaseOptimiser, ABC):
 
     def run(
         self,
-        species: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
+        species: "Species",
+        method: "Method",
         n_cores: Optional[int] = None,
     ) -> None:
         """
@@ -155,8 +162,8 @@ class Optimiser(BaseOptimiser, ABC):
 
     def _initialise_species_and_method(
         self,
-        species: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
+        species: "Species",
+        method: "Method",
     ) -> None:
         """
         Initialise the internal species and method. They be the correct types
@@ -360,7 +367,7 @@ class Optimiser(BaseOptimiser, ABC):
         return PotentialEnergy(np.inf)
 
     @property
-    def final_coordinates(self) -> Optional["autode.opt.OptCoordinates"]:
+    def final_coordinates(self) -> Optional["OptCoordinates"]:
         return None if len(self._history) == 0 else self._history.final
 
     def _log_convergence(self) -> None:
@@ -489,13 +496,11 @@ class NDOptimiser(Optimiser, ABC):
     @classmethod
     def optimise(
         cls,
-        species: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
+        species: "Species",
+        method: "Method",
         maxiter: int = 100,
-        gtol: Union[float, GradientRMS] = GradientRMS(1e-3, units="Ha Å-1"),
-        etol: Union[float, PotentialEnergy] = PotentialEnergy(
-            1e-4, units="Ha"
-        ),
+        gtol: Any = GradientRMS(1e-3, units="Ha Å-1"),
+        etol: Any = PotentialEnergy(1e-4, units="Ha"),
         coords: Optional[OptCoordinates] = None,
         n_cores: Optional[int] = None,
         **kwargs,
@@ -505,7 +510,7 @@ class NDOptimiser(Optimiser, ABC):
 
         ----------------------------------------------------------------------
         Arguments:
-            species (autode.species.Species):
+            species (Species):
 
             method (autode.methods.Method):
 
@@ -517,6 +522,11 @@ class NDOptimiser(Optimiser, ABC):
 
             etol (float | autode.values.PotentialEnergy): Tolerance on |∆E|
                  between two consecutive iterations of the optimiser
+
+            coords (OptCoordinates | None): Coordinates to optimise in
+
+            n_cores (int | None): Number of cores to run energy/gradient/hessian
+                                  evaluations. If None then use ade.Config.n_cores
 
             kwargs (Any): Additional keyword arguments to pass to the
                           constructor
@@ -780,7 +790,7 @@ class _OptimiserHistory(list):
 
         -----------------------------------------------------------------------
         Returns:
-            (autode.opt.OptCoordinates):
+            (OptCoordinates):
         """
         if len(self) < 2:
             raise IndexError(
@@ -797,7 +807,7 @@ class _OptimiserHistory(list):
 
         -----------------------------------------------------------------------
         Returns:
-            (autode.opt.OptCoordinates):
+            (OptCoordinates):
         """
         if len(self) < 1:
             raise IndexError(
@@ -814,7 +824,7 @@ class _OptimiserHistory(list):
 
         -----------------------------------------------------------------------
         Returns:
-            (autode.opt.OptCoordinates):
+            (OptCoordinates):
         """
         if len(self) == 0:
             raise IndexError("No minimum with no history")
