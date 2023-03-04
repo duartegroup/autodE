@@ -2,7 +2,7 @@ import numpy as np
 import autode.values as val
 from copy import deepcopy
 from datetime import date
-from typing import Optional, Union, List, Sequence, Any
+from typing import Optional, Union, List, Sequence, Any, TYPE_CHECKING
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode import methods
@@ -34,6 +34,11 @@ from autode.wrappers.keywords import (
     GradientKeywords,
     SinglePointKeywords,
 )
+
+if TYPE_CHECKING:
+    from autode.solvent.solvents import Solvent
+    from autode.conformers import Conformer, Conformers
+    from autode.wrappers.methods import Method
 
 
 class Species(AtomCollection):
@@ -180,7 +185,7 @@ class Species(AtomCollection):
         self._mult = int(value)
 
     @property
-    def solvent(self) -> Optional["autode.solvent.solvents.Solvent"]:
+    def solvent(self) -> Optional["Solvent"]:
         """
         Solvent which this species is immersed in
 
@@ -192,9 +197,7 @@ class Species(AtomCollection):
         return self._solvent
 
     @solvent.setter
-    def solvent(
-        self, value: Union["autode.solvent.solvents.Solvent", str, None]
-    ):
+    def solvent(self, value: Union["Solvent", str, None]):
         """
         Set the solvent for this species. For a species in the gas phase
         set mol.solvent = None
@@ -828,18 +831,14 @@ class Species(AtomCollection):
         return 0 if self.conformers is None else len(self.conformers)
 
     @property
-    def conformers(self) -> "autode.conformers.Conformers":
+    def conformers(self) -> "Conformers":
         """Conformers of this species"""
         return self._conformers
 
     @conformers.setter
     def conformers(
         self,
-        value: Union[
-            List["autode.conformers.Conformer"],
-            "autode.conformers.Conformers",
-            None,
-        ],
+        value: Union[List["Conformer"], "Conformers", None],
     ) -> None:
         """
         Set conformers of this species
@@ -1177,7 +1176,7 @@ class Species(AtomCollection):
     @requires_atoms
     def optimise(
         self,
-        method: Optional["ElectronicStructureMethod"] = None,
+        method: Optional["Method"] = None,
         reset_graph: bool = False,
         calc: Optional[Calculation] = None,
         keywords: Union[Sequence[str], str, None] = None,
@@ -1231,7 +1230,7 @@ class Species(AtomCollection):
     @requires_atoms
     def calc_thermo(
         self,
-        method: Optional["ElectronicStructureMethod"] = None,
+        method: Optional["Method"] = None,
         calc: Optional[Calculation] = None,
         temp: float = 298.15,
         keywords: Union[Sequence[str], str, None] = None,
@@ -1323,7 +1322,7 @@ class Species(AtomCollection):
     @requires_atoms
     def single_point(
         self,
-        method: "ElectronicStructureMethod",
+        method: "Method",
         keywords: Union[Sequence[str], str, None] = None,
         n_cores: Optional[int] = None,
     ) -> None:
@@ -1365,8 +1364,8 @@ class Species(AtomCollection):
     @work_in("conformers")
     def find_lowest_energy_conformer(
         self,
-        lmethod: Optional["ElectronicStructureMethod"] = None,
-        hmethod: Optional["ElectronicStructureMethod"] = None,
+        lmethod: Optional["Method"] = None,
+        hmethod: Optional["Method"] = None,
         allow_connectivity_changes: bool = False,
     ) -> None:
         """
@@ -1460,7 +1459,11 @@ class Species(AtomCollection):
         elif isinstance(solvent, str):
             self.solvent = get_solvent(solvent, kind="explicit", num=num)
 
-        elif solvent is None and self.solvent.is_implicit:
+        elif (
+            solvent is None
+            and self.solvent.is_implicit
+            and self.solvent is not None
+        ):
             self.solvent = self.solvent.to_explicit(num=num)
 
         else:
@@ -1479,7 +1482,7 @@ class Species(AtomCollection):
 
     def calc_hessian(
         self,
-        method: "ElectronicStructureMethod",
+        method: "Method",
         keywords: Union[Sequence[str], str, None] = None,
         numerical: bool = False,
         use_central_differences: bool = False,

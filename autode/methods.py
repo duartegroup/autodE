@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
 from autode.wrappers.G09 import G09
 from autode.wrappers.G16 import G16
 from autode.wrappers.NWChem import NWChem
@@ -9,6 +10,9 @@ from autode.wrappers.XTB import XTB
 from autode.log import logger
 from autode.config import Config
 from autode.exceptions import MethodUnavailable
+
+if TYPE_CHECKING:
+    from autode.wrappers.methods import Method
 
 """
 Functions to get the high and low level electronic structure methods to use
@@ -22,7 +26,7 @@ low_level_method_names = ["xtb", "mopac"]
 
 
 def method_or_default_lmethod(
-    method: Optional["autode.wrappers.methods.Method"],
+    method: Optional["Method"],
 ):
     """
     Return a method if one is defined but default to a low-level method if
@@ -43,7 +47,7 @@ def method_or_default_lmethod(
 
 
 def method_or_default_hmethod(
-    method: Optional["autode.wrappers.methods.Method"],
+    method: Optional["Method"],
 ):
     """
     Return a method if one is defined but default to a high-level method if
@@ -63,12 +67,12 @@ def method_or_default_hmethod(
     return method
 
 
-def get_hmethod() -> "autode.wrappers.methods.Method":
+def get_hmethod() -> "Method":
     """Get the 'high-level' electronic structure theory method to use
 
     ---------------------------------------------------------------------------
     Returns:
-        (autode.wrappers.methods.Method): High-level method
+        (Method): High-level method
     """
 
     h_methods = [ORCA(), G09(), NWChem(), G16(), QChem()]
@@ -79,11 +83,11 @@ def get_hmethod() -> "autode.wrappers.methods.Method":
         return get_first_available_method(h_methods)
 
 
-def get_lmethod() -> "autode.wrappers.methods.Method":
+def get_lmethod() -> "Method":
     """Get the 'low-level' electronic structure theory method to use
 
     Returns:
-        (autode.wrappers.methods.Method): Low-level method
+        (Method): Low-level method
     """
 
     all_methods = [XTB(), MOPAC(), ORCA(), G16(), G09(), NWChem(), QChem()]
@@ -96,7 +100,7 @@ def get_lmethod() -> "autode.wrappers.methods.Method":
 
 def get_first_available_method(
     possibilities,
-) -> "autode.wrappers.methods.Method":
+) -> "Method":
     """
     Get the first electronic structure method that is available in a list of
     possibilities.
@@ -106,7 +110,7 @@ def get_first_available_method(
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.methods.Method): Method
+        (Method): Method
 
     Raises:
         (autode.exceptions.MethodUnavailable):
@@ -119,9 +123,7 @@ def get_first_available_method(
     raise MethodUnavailable("No electronic structure methods available")
 
 
-def get_defined_method(
-    name, possibilities
-) -> "autode.wrappers.methods.Method":
+def get_defined_method(name, possibilities) -> "Method":
     """
     Get an electronic structure method defined by it's name.
 
@@ -131,7 +133,7 @@ def get_defined_method(
         possibilities (list(autode.wrappers.base.ElectronicStructureMethod)):
 
     Returns:
-        (autode.wrappers.methods.Method): Method
+        (Method): Method
 
     Raises:
         (autode.exceptions.MethodUnavailable):

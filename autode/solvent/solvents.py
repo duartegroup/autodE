@@ -8,7 +8,7 @@ from autode.exceptions import SolventNotFound
 
 
 def get_solvent(
-    solvent_name: str, kind: str, num: Optional[int] = None
+    solvent_name: Optional[str], kind: str, num: Optional[int] = None
 ) -> Optional["Solvent"]:
     """
     For a named solvent return the Solvent which matches one of the aliases

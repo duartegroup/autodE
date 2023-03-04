@@ -333,9 +333,11 @@ class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
     def __repr__(self):
         return f"ConstrainedCAngle({self.m}-{self.o}-{self.n})"
 
-    def __eq__(self, other: "ConstrainedBondAngle"):
-        return super().__eq__(other) and np.isclose(
-            self._theta0, other._theta0
+    def __eq__(self, other: object):
+        return (
+            super().__eq__(other)
+            and isinstance(other, ConstrainedBondAngle)
+            and np.isclose(self._theta0, other._theta0)
         )
 
 
