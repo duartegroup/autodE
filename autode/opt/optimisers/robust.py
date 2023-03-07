@@ -122,64 +122,75 @@ class RobustOptimiser(RFOptimiser):
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
 
         def get_int_step_size_and_deriv(lmda):
-            """Get the step size and the derivative
-             for the given lambda"""
+            """Get the step, step size and the derivative
+            for the given lambda"""
             shifted_h = self._coords.h - lmda * np.eye(h_n)
             inv_shifted_h = np.linalg.inv(shifted_h)
             step = -inv_shifted_h @ self._coords.g
             size = np.linalg.norm(step)
-            deriv = np.linalg.multi_dot(step, inv_shifted_h, step)
-            deriv /= size
-            return size, deriv
+            deriv = -np.linalg.multi_dot(step, inv_shifted_h, step)
+            deriv = float(deriv) / size
+            return size, deriv, step
 
-        def optimise_lambda_for_int_step(int_step_size, lmda_guess=None):
+        def optimise_lambda_for_int_step(int_size, lmda_guess=None):
+            """Given a step length in internal coords, get the
+            value of lambda that will give that step"""
             if lmda_guess is None:
                 lmda_guess = first_b - 1.0
-            size, der = get_int_step_size_and_deriv(lmda_guess)
-            if abs(size - int_step_size)/int_step_size < 0.001:
-                pass
+            for _ in range(100):
+                size, der, _ = get_int_step_size_and_deriv(lmda_guess)
+                if abs(size - int_size) / int_size < 0.001:
+                    break
+                lmda_guess += (1 - size / int_size) * (size / der)
+                print("size=", size, "deriv=", der, "lambda=", lmda_guess)
+            else:
+                raise OptimiserStepError("Failed in optimising step size")
+            return lmda_guess
 
-        def cart_step_length_error(int_step_size):
+        last_lmda = None
 
-            pass
-
-        def step_length_error(lmda):
-            shifted_h = self._coords.h - lmda * np.eye(h_n)
-            inv_shifted_h = np.linalg.inv(shifted_h)
-            step = -inv_shifted_h @ self._coords.g
+        def cart_step_length_error(int_size):
+            nonlocal last_lmda
+            last_lmda = optimise_lambda_for_int_step(int_size, last_lmda)
+            _, _, step = get_int_step_size_and_deriv(last_lmda)
             step_size = self._get_cart_step_size_from_step(step)
             return step_size - self.alpha
 
         # The value of shift parameter lambda must lie within (-infinity, first_b)
-        # Need to find the roots of the 1D function step_length_error
-        l_plus = 1.0
-        for _ in range(1000):
-            err = step_length_error(first_b - l_plus)
-            if err > 0.0:  # found location where f(x) > 0
-                break
-            l_plus *= 0.5
-        else:  # if loop didn't break
-            raise OptimiserStepError("Unable to find lambda where error > 0")
+        # Need to find the roots of the 1D function cart_step_length_error
+        int_step_size = self.alpha  # starting guess, so ok to use cartesian
+        fac = 1.0
+        size_min_bound = None
+        size_max_bound = None
 
-        l_minus = l_plus + 1.0
-        for _ in range(1000):
-            err = step_length_error(first_b - l_minus)
-            if err < 0.0:  # found location where f(x) < 0
+        for _ in range(100):
+            int_step_size = int_step_size * fac
+            err = cart_step_length_error(int_step_size)
+            if err < 0:  # found where error is < 0
+                fac = 1.5  # increase the step size
+                size_min_bound = int_step_size
+            else:  # found where error is >= 0
+                fac = 0.7  # decrease the step size
+                size_max_bound = int_step_size
+            if (size_max_bound is not None) and (size_min_bound is not None):
                 break
-            l_minus += 1.0  # reduce lambda by 1.0
         else:
-            raise OptimiserStepError("Unable to find lambda where error < 0")
+            raise OptimiserStepError(
+                "Unable to find bracket range for" "root finding"
+            )
 
         # Use scipy's root finder
         res = root_scalar(
-            step_length_error,
+            cart_step_length_error,
             method="brentq",
-            bracket=[first_b - l_minus, first_b - l_plus],
-            maxiter=200,
+            bracket=[size_min_bound, size_max_bound],
+            maxiter=100,  # todo adjust tolerance to be 10%
         )
 
         if not res.converged:
             raise OptimiserStepError("Unable to find root of error function")
 
+        final_lmda = optimise_lambda_for_int_step(res.root)
+
         # use the final lambda to construct level-shifted Hessian
-        return self._coords.h - res.root * np.eye(h_n)
+        return self._coords.h - final_lmda * np.eye(h_n)
