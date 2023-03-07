@@ -121,6 +121,28 @@ class RobustOptimiser(RFOptimiser):
         first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
 
+        def get_int_step_size_and_deriv(lmda):
+            """Get the step size and the derivative
+             for the given lambda"""
+            shifted_h = self._coords.h - lmda * np.eye(h_n)
+            inv_shifted_h = np.linalg.inv(shifted_h)
+            step = -inv_shifted_h @ self._coords.g
+            size = np.linalg.norm(step)
+            deriv = np.linalg.multi_dot(step, inv_shifted_h, step)
+            deriv /= size
+            return size, deriv
+
+        def optimise_lambda_for_int_step(int_step_size, lmda_guess=None):
+            if lmda_guess is None:
+                lmda_guess = first_b - 1.0
+            size, der = get_int_step_size_and_deriv(lmda_guess)
+            if abs(size - int_step_size)/int_step_size < 0.001:
+                pass
+
+        def cart_step_length_error(int_step_size):
+
+            pass
+
         def step_length_error(lmda):
             shifted_h = self._coords.h - lmda * np.eye(h_n)
             inv_shifted_h = np.linalg.inv(shifted_h)
