@@ -106,8 +106,8 @@ class RobustOptimiser(RFOptimiser):
     def _get_qa_minimise_h_eff(self) -> np.ndarray:
         """
         Using current Hessian and gradient, get the level-shifted Hessian
-        for a minimising step, whose magnitude (norm) is equal to the
-        trust radius (Quadratic Approximation step).
+        for a minimising step, whose magnitude (norm) is approximately
+        equal to the trust radius (Quadratic Approximation step).
         Described in J. Golab, D. L. Yeager, Chem. Phys., 78, 1983, 175-199
 
         Returns:
@@ -122,9 +122,7 @@ class RobustOptimiser(RFOptimiser):
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
 
         def step_length_error(lmda):
-            shifted_h = self._coords.h - lmda * np.eye(
-                h_n
-            )  # level-shifted hessian
+            shifted_h = self._coords.h - lmda * np.eye(h_n)
             inv_shifted_h = np.linalg.inv(shifted_h)
             step = -inv_shifted_h @ self._coords.g
             step_size = self._get_cart_step_size_from_step(step)
