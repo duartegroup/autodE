@@ -393,6 +393,29 @@ class Optimiser(BaseOptimiser, ABC):
         else:
             return False
 
+    def draw_optimiser_plot(self, energy=True, rms_grad=True) -> None:
+        """
+        Draw the plot of the energies and/or rms_gradients of
+        the optimisation so far
+
+        ----------------------------------------------------------------------
+        Args:
+            energy (bool): Whether to plot energy
+            rms_grad (bool): Whether to plot RMS of gradient
+        """
+        if not self.converged:
+            logger.warning(
+                "Optimisation is not converged, drawing a plot "
+                "of optimiser profile until current iteration"
+            )
+        if self.iteration < 2:
+            logger.warning(
+                "Less than 2 points, cannot draw optimisation plot"
+            )
+            return None
+
+        pass
+
 
 class NullOptimiser(BaseOptimiser):
     """An optimiser that does nothing"""
