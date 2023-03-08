@@ -415,6 +415,7 @@ def plot_optimiser_profile(
 
     import matplotlib.pyplot as plt
 
+    x_axis = [i + 1 for i in range(len(history))]  # starts at 0
     energies = []
     rms_grads = []
     for coord in history:
@@ -432,7 +433,9 @@ def plot_optimiser_profile(
     fig, ax = plt.subplots()
 
     if plot_energy:
-        ax.plot(energies, "o-", color="C0", label="Electronic energy")  # blue
+        ax.plot(
+            x_axis, energies, "o-", color="C0", label="Electronic energy"
+        )  # blue
         ax.set_xlabel("Optimiser step")
         ax.set_ylabel("Electronic energy / Ha")
 
@@ -441,7 +444,9 @@ def plot_optimiser_profile(
             ax2 = ax
         else:
             ax2 = ax.twinx()  # plot on a different axis in same fig
-        ax2.plot(rms_grads, "o:", color="C3", label="RMS gradient")  # red
+        ax2.plot(
+            x_axis, rms_grads, "o:", color="C3", label="RMS gradient"
+        )  # red
         ax2.set_ylabel("RMS of gradient / Ha(Å)^-1")
 
     fig.legend(
