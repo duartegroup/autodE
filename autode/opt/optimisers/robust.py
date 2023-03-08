@@ -128,7 +128,7 @@ class RobustOptimiser(RFOptimiser):
             inv_shifted_h = np.linalg.inv(shifted_h)
             step = -inv_shifted_h @ self._coords.g
             size = np.linalg.norm(step)
-            deriv = -np.linalg.multi_dot(step, inv_shifted_h, step)
+            deriv = -np.linalg.multi_dot((step, inv_shifted_h, step))
             deriv = float(deriv) / size
             return size, deriv, step
 
@@ -141,7 +141,7 @@ class RobustOptimiser(RFOptimiser):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
                 if abs(size - int_size) / int_size < 0.001:
                     break
-                lmda_guess += (1 - size / int_size) * (size / der)
+                lmda_guess -= (1 - size / int_size) * (size / der)
                 print("size=", size, "deriv=", der, "lambda=", lmda_guess)
             else:
                 raise OptimiserStepError("Failed in optimising step size")
@@ -167,30 +167,33 @@ class RobustOptimiser(RFOptimiser):
             int_step_size = int_step_size * fac
             err = cart_step_length_error(int_step_size)
             if err < 0:  # found where error is < 0
-                fac = 1.5  # increase the step size
+                fac = 2.0  # increase the step size
                 size_min_bound = int_step_size
             else:  # found where error is >= 0
-                fac = 0.7  # decrease the step size
+                fac = 0.5  # decrease the step size
                 size_max_bound = int_step_size
             if (size_max_bound is not None) and (size_min_bound is not None):
                 break
         else:
             raise OptimiserStepError(
-                "Unable to find bracket range for" "root finding"
+                "Unable to find bracket range for root finding"
             )
-
+        print("Starting Brent's procedure to find root")
         # Use scipy's root finder
         res = root_scalar(
             cart_step_length_error,
             method="brentq",
             bracket=[size_min_bound, size_max_bound],
-            maxiter=100,  # todo adjust tolerance to be 10%
+            maxiter=100,
+            rtol=0.01,
         )
+        print("obtained int step size = ", res.root)
 
         if not res.converged:
             raise OptimiserStepError("Unable to find root of error function")
 
         final_lmda = optimise_lambda_for_int_step(res.root)
 
+        print("final lambda=", final_lmda, "last lambda = ", last_lmda)
         # use the final lambda to construct level-shifted Hessian
         return self._coords.h - final_lmda * np.eye(h_n)
