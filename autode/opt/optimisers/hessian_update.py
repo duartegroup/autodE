@@ -451,5 +451,43 @@ class BofillUpdate(HessianUpdater):
         return True
 
 
+class FlowchartUpdate(HessianUpdater):
+    """
+    A hybrid update scheme combining BFGS, SR1 and PSB Hessian update
+    formulae. Proposed in  A. B. Birkholz and H. B. Schlegel in
+    Theor. Chem. Acc., 135 (84), 2016
+    """
+
+    def __repr__(self):
+        return "Flowchart"
+
+    @property
+    def _updated_h(self) -> np.ndarray:
+        """
+        Flowchart (or FlowPSB) Hessian update scheme, that dynamically
+        switches between BFGS and SR1 depending on some criteria.
+        Alternatively switches to PSB update as a fallback if none of
+        the criteria are satisfied. Notation follows A. B. Birkholz,
+        H. B. Schlegel, Theor. Chem. Acc., 135 (84), 2016.
+
+        Returns:
+            (np.ndarray): H
+        """
+        z = self.y - np.matmul(self.h, self.s)
+        sr1_criteria = np.dot(z, self.s) / (
+            np.linalg.norm(z) * np.linalg.norm(self.s)
+        )
+        bfgs_criteria = np.dot(self.y, self.s) / (
+            np.linalg.norm(self.y) * np.linalg.norm(self.s)
+        )
+        if sr1_criteria < -0.1:
+            h_new = self.h + np.outer(z, z) / np.dot(z, self.s)
+            return h_new
+        elif bfgs_criteria > 0.1:
+            pass
+        else:
+            pass
+
+
 def _ensure_hermitian(matrix: np.ndarray) -> np.ndarray:
     return (matrix + matrix.T) / 2.0
