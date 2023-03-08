@@ -10,6 +10,7 @@ from autode.values import GradientRMS, PotentialEnergy, method_string
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
 from autode.exceptions import CalculationException
+from autode.plotting import plot_optimiser_profile
 
 
 class BaseOptimiser(ABC):
@@ -393,15 +394,18 @@ class Optimiser(BaseOptimiser, ABC):
         else:
             return False
 
-    def draw_optimiser_plot(self, energy=True, rms_grad=True) -> None:
+    def draw_optimiser_plot(
+        self, filename=None, plot_energy=True, plot_rms_grad=True
+    ) -> None:
         """
         Draw the plot of the energies and/or rms_gradients of
         the optimisation so far
 
         ----------------------------------------------------------------------
         Args:
-            energy (bool): Whether to plot energy
-            rms_grad (bool): Whether to plot RMS of gradient
+            filename (str): Name of the file to plot
+            plot_energy (bool): Whether to plot energy
+            plot_rms_grad (bool): Whether to plot RMS of gradient
         """
         if not self.converged:
             logger.warning(
@@ -409,12 +413,20 @@ class Optimiser(BaseOptimiser, ABC):
                 "of optimiser profile until current iteration"
             )
         if self.iteration < 2:
-            logger.warning(
-                "Less than 2 points, cannot draw optimisation plot"
-            )
+            logger.warning("Less than 2 points, cannot draw optimisation plot")
             return None
+        filename = (
+            f"{self._species.name}_opt_plot.pdf"
+            if filename is None
+            else filename
+        )
 
-        pass
+        plot_optimiser_profile(
+            self._history,
+            filename=filename,
+            plot_energy=plot_energy,
+            plot_rms_grad=plot_rms_grad,
+        )
 
 
 class NullOptimiser(BaseOptimiser):
