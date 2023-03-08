@@ -11,17 +11,25 @@ from autode.log import logger
 
 if TYPE_CHECKING:
     from autode.opt.optimisers.base import _OptimiserHistory
+    from matplotlib.figure import Figure
 
 
-def save_plot(plot, filename):
-    """Save a plot"""
+def save_plot(figure: "Figure", filename: str):
+    """
+    Save a pyplot figure
+
+    Args:
+        figure (matplotlib.figure.Figure): The matplotlib figure object
+        filename (str): Name of the file to plot
+    """
+    import matplotlib.pyplot as plt
 
     if os.path.exists(filename):
         logger.warning("Plot already exists. Overriding..")
         os.remove(filename)
 
-    plot.savefig(filename, dpi=400 if Config.high_quality_plots else 100)
-    plot.close()
+    figure.savefig(filename, dpi=400 if Config.high_quality_plots else 100)
+    plt.close(figure)
 
     return None
 
@@ -100,7 +108,7 @@ def plot_reaction_profile(
     )
 
     prefix = "" if name == "reaction" else f"{name}_"
-    return save_plot(plt, filename=f"{prefix}reaction_profile.pdf")
+    return save_plot(fig, filename=f"{prefix}reaction_profile.pdf")
 
 
 def plot_smooth_profile(zi_s, energies, ax):
@@ -398,6 +406,13 @@ def plot_optimiser_profile(
         plot_rms_grad (bool): Whether to plot rms grad or not
         filename (str): Name of plotted file
     """
+    if not (plot_energy or plot_rms_grad):
+        logger.error(
+            "Must plot either energies or RMS gradients for an"
+            "optimiser profile"
+        )
+        return None
+
     import matplotlib.pyplot as plt
 
     energies = []
@@ -417,14 +432,20 @@ def plot_optimiser_profile(
     fig, ax = plt.subplots()
 
     if plot_energy:
-        ax.plot(energies, 'bo-')
+        ax.plot(energies, "o-", color="C0", label="Electronic energy")  # blue
+        ax.set_xlabel("Optimiser step")
+        ax.set_ylabel("Electronic energy / Ha")
 
     if plot_rms_grad:
-        ax.plot(rms_grads, 'ro-')
+        if not plot_energy:
+            ax2 = ax
+        else:
+            ax2 = ax.twinx()  # plot on a different axis in same fig
+        ax2.plot(rms_grads, "o:", color="C3", label="RMS gradient")  # red
+        ax2.set_ylabel("RMS of gradient / Ha(Å)^-1")
 
-    # todo different unit axes
-    # todo check that either energy or gradient is plotted
+    fig.legend(
+        loc="upper right", bbox_to_anchor=(1, 1), bbox_transform=ax.transAxes
+    )
 
-
-
-
+    save_plot(fig, filename)
