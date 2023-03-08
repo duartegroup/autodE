@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from typing import Sequence, Union
+from typing import Sequence, Union, TYPE_CHECKING
 from scipy import interpolate
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
@@ -8,6 +8,9 @@ from scipy.optimize import minimize
 from autode.config import Config
 from autode.units import energy_unit_from_name
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.opt.optimisers.base import _OptimiserHistory
 
 
 def save_plot(plot, filename):
@@ -376,3 +379,52 @@ def error_on_stationary_points(x, energies):
     energy_difference = energies - np.array(energies_at_stationary_points)
 
     return np.sum(np.square(energy_difference))
+
+
+def plot_optimiser_profile(
+    history: "_OptimiserHistory",
+    plot_energy: bool,
+    plot_rms_grad: bool,
+    filename: str,
+):
+    """
+    Plot the energy and RMS gradient profile from an optimiser history.
+    Skips plotting of points where energy/grad is not available
+
+    -------------------------------------------------------------------------
+    Args:
+        history (_OptimiserHistory): History (list) of coordinate objects
+        plot_energy (bool): Whether to plot energy or not
+        plot_rms_grad (bool): Whether to plot rms grad or not
+        filename (str): Name of plotted file
+    """
+    import matplotlib.pyplot as plt
+
+    energies = []
+    rms_grads = []
+    for coord in history:
+        if coord.e is not None:
+            energies.append(coord.e.to("Ha"))
+        else:
+            energies.append(np.nan)
+
+        if coord.g is not None:
+            rms = np.sqrt(np.average(np.square(coord.g)))
+            rms_grads.append(rms)
+        else:
+            rms_grads.append(np.nan)
+
+    fig, ax = plt.subplots()
+
+    if plot_energy:
+        ax.plot(energies, 'bo-')
+
+    if plot_rms_grad:
+        ax.plot(rms_grads, 'ro-')
+
+    # todo different unit axes
+    # todo check that either energy or gradient is plotted
+
+
+
+
