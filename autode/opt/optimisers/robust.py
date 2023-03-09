@@ -7,15 +7,23 @@ Only minimiser, not a TS search/constrained optimiser
 """
 import numpy as np
 
-from autode.opt.optimisers import RFOptimiser
+from autode.opt.coordinates import CartesianCoordinates, DIC
+from autode.opt.coordinates.primitives import Distance
+from autode.opt.optimisers import CRFOptimiser
+from autode.opt.optimisers.hessian_update import FlowchartUpdate
 from autode.exceptions import OptimiserStepError
+from autode.values import GradientRMS
+from autode.log import logger
+from itertools import combinations
 
 
-class RobustOptimiser(RFOptimiser):
+class RobustOptimiser(CRFOptimiser):
     def __init__(
         self,
         *args,
+        coord_type: str = "dic",
         init_trust: float = 0.1,
+        update_trust: bool = True,
         min_trust: float = 0.01,
         max_trust: float = 0.3,
         **kwargs,
@@ -24,13 +32,64 @@ class RobustOptimiser(RFOptimiser):
 
         self._max_alpha = float(max_trust)
         self._min_alpha = float(min_trust)
+        self._upd_alpha = bool(update_trust)
 
-        self._last_pred_e_change = None
+        if coord_type.lower() in ["cart", "cartesian"]:
+            self._coord_type = "cart"
+        elif coord_type.lower() in ["dic"]:
+            self._coord_type = "dic"
+        else:
+            raise ValueError("Coordinate type must be either 'cart' or 'dic'")
+        # todo stop if any constraints detected
+        # todo damp if required
+        self._last_damp_iter = None
+
+        self._hessian_update_types = [FlowchartUpdate]
+
+    @property
+    def converged(self) -> bool:
+        if self._species is not None and self._species.n_atoms == 1:
+            return True  # Optimisation 0 DOF is always converged
+
+        # both gradient and energy must be converged!!
+        return self._abs_delta_e < self.etol and self._g_norm < self.gtol
+
+    def _initialise_run(self) -> None:
+        self._build_coordinates()
+        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
+        self._update_gradient_and_energy()
+
+    def _build_coordinates(self) -> None:
+        """Initialise the optimisation"""
+        cart_coords = CartesianCoordinates(self._species.coordinates)
+        if self._coord_type == "cart":
+            self._coords = cart_coords
+
+        else:
+            primitives = self._primitives
+            if len(primitives) < cart_coords.expected_number_of_dof:
+                logger.info(
+                    "Had an incomplete set of primitives. Adding "
+                    "additional distances"
+                )
+                for i, j in combinations(range(self._species.n_atoms), 2):
+                    primitives.append(Distance(i, j))
+            self._coords = DIC.from_cartesian(
+                x=cart_coords, primitives=primitives
+            )
+
+        return None
+
+    @property
+    def _g_norm(self) -> GradientRMS:
+        """Calculate the RMS gradient norm in Cartesian coordinates"""
+        grad = self._coords.to("cart").g
+        return GradientRMS(np.sqrt(np.average(np.square(grad))))
 
     def _step(self) -> None:
 
         self._coords.h = self._updated_h()
-        h_n = self._coords.h.shape[0]
+        self._update_trust_radius()
 
         rfo_h_eff = self._get_rfo_minimise_h_eff()
         rfo_step = -np.linalg.inv(rfo_h_eff) @ self._coords.g
@@ -108,7 +167,9 @@ class RobustOptimiser(RFOptimiser):
         Using current Hessian and gradient, get the level-shifted Hessian
         for a minimising step, whose magnitude (norm) is approximately
         equal to the trust radius (Quadratic Approximation step).
-        Described in J. Golab, D. L. Yeager, Chem. Phys., 78, 1983, 175-199
+
+        Described in J. Golab, D. L. Yeager, and P. Jorgensen,
+        Chem. Phys., 78, 1983, 175-199
 
         Returns:
             (np.ndarray): The level-shifted Hessian for QA step
@@ -137,14 +198,14 @@ class RobustOptimiser(RFOptimiser):
             value of lambda that will give that step"""
             if lmda_guess is None:
                 lmda_guess = first_b - 1.0
-            for _ in range(100):
+            for _ in range(20):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
                 if abs(size - int_size) / int_size < 0.001:
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
                 print("size=", size, "deriv=", der, "lambda=", lmda_guess)
             else:
-                raise OptimiserStepError("Failed in optimising step size")
+                raise OptimiserStepError("Failed in optimising internal step")
             return lmda_guess
 
         last_lmda = None
@@ -163,7 +224,7 @@ class RobustOptimiser(RFOptimiser):
         size_min_bound = None
         size_max_bound = None
 
-        for _ in range(100):
+        for _ in range(10):
             int_step_size = int_step_size * fac
             err = cart_step_length_error(int_step_size)
             if err < 0:  # found where error is < 0
@@ -184,16 +245,59 @@ class RobustOptimiser(RFOptimiser):
             cart_step_length_error,
             method="brentq",
             bracket=[size_min_bound, size_max_bound],
-            maxiter=100,
-            rtol=0.01,
+            maxiter=20,
+            rtol=0.01,  # 1% margin of error
         )
         print("obtained int step size = ", res.root)
 
         if not res.converged:
-            raise OptimiserStepError("Unable to find root of error function")
+            raise OptimiserStepError("Unable to find optimal lambda for step")
 
         final_lmda = optimise_lambda_for_int_step(res.root)
 
         print("final lambda=", final_lmda, "last lambda = ", last_lmda)
         # use the final lambda to construct level-shifted Hessian
         return self._coords.h - final_lmda * np.eye(h_n)
+
+    def _update_trust_radius(self):
+        """
+        Updates the trust radius before a geometry step
+        """
+        # skip on first iteration
+        if self.iteration < 1:
+            return None
+
+        if not self._upd_alpha:
+            return None
+
+        # current coord must have en, grad
+        assert self._coords.g is not None
+        assert np.isfinite(self.last_energy_change)
+
+        coords_l, coords_k = self._history.final, self._history.penultimate
+        step = coords_l.raw - coords_k.raw
+        cart_step = coords_l.to("cart") - coords_k.to("cart")
+        cart_step_size = np.linalg.norm(cart_step)
+
+        pred_energy_change = np.dot(
+            coords_k.g, step
+        ) + 0.5 * np.linalg.multi_dot((step, coords_k.h, step))
+
+        # ratio between actual deltaE and predicted deltaE
+        ratio = self.last_energy_change / pred_energy_change
+
+        if ratio < 0.25:
+            self.alpha = max(self.alpha / 2, self._min_alpha)
+        elif 0.25 < ratio < 0.75:
+            pass
+        elif 0.75 < ratio < 1.25:
+            # if step taken is within 5% of the trust radius
+            if abs(cart_step_size - self.alpha) / self.alpha < 0.05:
+                self.alpha = min(self.alpha * 1.414, self._max_alpha)
+        else:  # ratio > 1.25
+            # also decrease if ratio too high
+            self.alpha = max(self.alpha / 2, self._min_alpha)
+
+        print(f"Ratio = {ratio}, Current trust radius = {self.alpha} Angstrom")
+
+        return None
