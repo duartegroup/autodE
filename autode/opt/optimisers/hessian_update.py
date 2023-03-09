@@ -484,9 +484,48 @@ class FlowchartUpdate(HessianUpdater):
             h_new = self.h + np.outer(z, z) / np.dot(z, self.s)
             return h_new
         elif bfgs_criteria > 0.1:
-            pass
+            bfgs_delta_h = np.outer(self.y, self.y) / np.dot(self.y, self.s)
+            bfgs_delta_h -= np.linalg.multi_dot(
+                (self.h, self.s.reshape(-1, 1), self.s.reshape(1, -1), self.h)
+            ) / np.linalg.multi_dot(
+                (self.s.flatten(), self.h, self.s.flatten())
+            )
+            h_new = self.h + bfgs_delta_h
+            return h_new
         else:
-            pass
+            # Copied from Bofill update
+            G_i_1 = self.h  # G_{i-1}
+            dE_i = self.y - np.dot(G_i_1, self.s)  # ΔE_i = Δg_i - G_{i-1}Δx_i
+            dxTdg = np.dot(self.s, self.y)
+            G_i_PSB = (
+                G_i_1
+                + (
+                    (np.outer(dE_i, self.s) + np.outer(self.s, dE_i))
+                    / np.dot(self.s, self.s)
+                )
+                - (
+                    (
+                        (dxTdg - np.linalg.multi_dot((self.s, G_i_1, self.s)))
+                        * np.outer(self.s, self.s)
+                    )
+                    / np.dot(self.s, self.s) ** 2
+                )
+            )
+            return G_i_PSB
+
+    @property
+    def _updated_h_inv(self) -> np.ndarray:
+        """Flowchart update is only available for Hessian"""
+        return np.linalg.inv(self._updated_h)
+
+    @property
+    def conditions_met(self) -> bool:
+        """
+        Flowchart update does not have any conditions, as
+        update scheme is dynamically selected
+        """
+        # The paper does not mention any condition?
+        return True
 
 
 def _ensure_hermitian(matrix: np.ndarray) -> np.ndarray:
