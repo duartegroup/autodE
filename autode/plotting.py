@@ -14,13 +14,16 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
 
-def save_plot(figure: "Figure", filename: str):
+def save_plot(figure: "Figure", filename: str, **kwargs):
     """
     Save a pyplot figure
 
     Args:
         figure (matplotlib.figure.Figure): The matplotlib figure object
         filename (str): Name of the file to plot
+        **kwargs : Other keyword arguments for matplotlib which
+                   are passed onto figure.savefig()
+
     """
     import matplotlib.pyplot as plt
 
@@ -28,7 +31,8 @@ def save_plot(figure: "Figure", filename: str):
         logger.warning("Plot already exists. Overriding..")
         os.remove(filename)
 
-    figure.savefig(filename, dpi=400 if Config.high_quality_plots else 100)
+    dpi = 400 if Config.high_quality_plots else 100
+    figure.savefig(filename, dpi=dpi, **kwargs)
     plt.close(figure)
 
     return None
@@ -414,6 +418,7 @@ def plot_optimiser_profile(
         return None
 
     import matplotlib.pyplot as plt
+    from matplotlib.ticker import MaxNLocator
 
     x_axis = [i + 1 for i in range(len(history))]  # starts at 0
     energies = []
@@ -425,7 +430,7 @@ def plot_optimiser_profile(
             energies.append(np.nan)
 
         if coord.g is not None:
-            rms = np.sqrt(np.average(np.square(coord.g)))
+            rms = np.sqrt(np.average(np.square(coord.to("cart").g)))
             rms_grads.append(rms)
         else:
             rms_grads.append(np.nan)
@@ -438,6 +443,11 @@ def plot_optimiser_profile(
         )  # blue
         ax.set_xlabel("Optimiser step")
         ax.set_ylabel("Electronic energy / Ha")
+
+    ax.set_xlim(left=0.5)
+    ax.xaxis.set_major_locator(
+        MaxNLocator(nbins="auto", steps=[1, 2, 2.5, 5, 10], integer=True)
+    )
 
     if plot_rms_grad:
         if not plot_energy:
@@ -453,4 +463,4 @@ def plot_optimiser_profile(
         loc="upper right", bbox_to_anchor=(1, 1), bbox_transform=ax.transAxes
     )
 
-    save_plot(fig, filename)
+    save_plot(fig, filename, bbox_inches="tight")
