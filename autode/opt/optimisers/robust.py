@@ -40,9 +40,9 @@ class RobustOptimiser(CRFOptimiser):
             self._coord_type = "dic"
         else:
             raise ValueError("Coordinate type must be either 'cart' or 'dic'")
-        # todo stop if any constraints detected
+        # todo stop if any constraints detected -> is this needed
         # todo damp if required
-        self._last_damp_iter = None
+        self._last_damp_iter = 0
 
         self._hessian_update_types = [FlowchartUpdate]
 
@@ -91,6 +91,10 @@ class RobustOptimiser(CRFOptimiser):
         self._coords.h = self._updated_h()
         self._update_trust_radius()
 
+        # damping sets coords so return early
+        if self._damp_if_required():
+            return None
+
         rfo_h_eff = self._get_rfo_minimise_h_eff()
         rfo_step = -np.linalg.inv(rfo_h_eff) @ self._coords.g
         rfo_step_size = self._get_cart_step_size_from_step(rfo_step)
@@ -109,7 +113,10 @@ class RobustOptimiser(CRFOptimiser):
                 )
                 self._coords = self._coords + qa_step
 
-            except OptimiserStepError:
+            except OptimiserStepError as exc:
+                logger.debug(
+                    f"QA step failed: {str(exc)}"
+                )
                 # if QA failed, take scaled RFO step
                 scaled_step = rfo_step * (self.alpha / rfo_step_size)
                 # step size is in Cartesian but scaling should work
@@ -203,12 +210,11 @@ class RobustOptimiser(CRFOptimiser):
                 if abs(size - int_size) / int_size < 0.001:
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
-                print("size=", size, "deriv=", der, "lambda=", lmda_guess)
             else:
                 raise OptimiserStepError("Failed in optimising internal step")
             return lmda_guess
 
-        last_lmda = None
+        last_lmda = None  # non-local variable
 
         def cart_step_length_error(int_size):
             nonlocal last_lmda
@@ -239,7 +245,7 @@ class RobustOptimiser(CRFOptimiser):
             raise OptimiserStepError(
                 "Unable to find bracket range for root finding"
             )
-        print("Starting Brent's procedure to find root")
+
         # Use scipy's root finder
         res = root_scalar(
             cart_step_length_error,
@@ -248,16 +254,17 @@ class RobustOptimiser(CRFOptimiser):
             maxiter=20,
             rtol=0.01,  # 1% margin of error
         )
-        print("obtained int step size = ", res.root)
 
         if not res.converged:
             raise OptimiserStepError("Unable to find optimal lambda for step")
 
-        final_lmda = optimise_lambda_for_int_step(res.root)
+        assert abs(
+            get_int_step_size_and_deriv(last_lmda)[2] - res.root
+        ) < 1.0e-3
 
-        print("final lambda=", final_lmda, "last lambda = ", last_lmda)
+        logger.info(f"Optimised lambda for QA step: {last_lmda}")
         # use the final lambda to construct level-shifted Hessian
-        return self._coords.h - final_lmda * np.eye(h_n)
+        return self._coords.h - last_lmda * np.eye(h_n)
 
     def _update_trust_radius(self):
         """
@@ -298,6 +305,55 @@ class RobustOptimiser(CRFOptimiser):
             # also decrease if ratio too high
             self.alpha = max(self.alpha / 2, self._min_alpha)
 
-        print(f"Ratio = {ratio}, Current trust radius = {self.alpha} Angstrom")
+        logger.info(f"Current trust radius = {self.alpha} Å")
 
         return None
+
+    def _damp_if_required(self) -> bool:
+        """
+        If the energy and gradient norm are oscillating in the last three
+        iterations, then interpolate between the last two coordinates
+        (must skip the quasi-NR step)
+
+        Returns:
+            (bool): True if damped, False otherwise
+        """
+        # allow the optimiser 3 free iterations after damping once
+        if self.iteration - self._last_damp_iter < 3:
+            return False
+
+        # get last three coordinates
+        coords_0, coords_1, coords_2 = self._history[-3:]
+
+        # if sign of energy change flips between last three iters
+        is_e_oscillating = (
+            (coords_1.e - coords_0.e) * (coords_2.e - coords_1.e)
+        ) < 0
+
+        # if sign of gradient norm change flips between last three iters
+        g_change_0_1 = (
+            np.linalg.norm(coords_1.to("cart").g)
+            - np.linalg.norm(coords_0.to("cart").g)
+        )
+        g_change_1_2 = (
+            np.linalg.norm(coords_2.to("cart").g)
+            - np.linalg.norm(coords_1.to("cart").g)
+        )
+
+        is_g_oscillating = (g_change_0_1 * g_change_1_2) < 0
+
+        # todo energy represented interpolation ?
+
+        if is_e_oscillating and is_g_oscillating:
+            logger.info("Oscillation detected in optimiser, damping")
+
+            # is halfway interpolation good?
+            new_coord = (coords_1.raw + coords_2.raw) / 2.0
+            step = new_coord.raw - coords_2.raw
+            self._coords = self._coords + step
+
+            self._last_damp_iter = self.iteration
+            return True
+
+        return False
+
