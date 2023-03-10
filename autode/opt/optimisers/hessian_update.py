@@ -493,7 +493,7 @@ class FlowchartUpdate(HessianUpdater):
             h_new = self.h + bfgs_delta_h
             return h_new
         else:
-            # Copied from Bofill update
+            # Notation copied from Bofill update
             G_i_1 = self.h  # G_{i-1}
             dE_i = self.y - np.dot(G_i_1, self.s)  # ΔE_i = Δg_i - G_{i-1}Δx_i
             dxTdg = np.dot(self.s, self.y)
