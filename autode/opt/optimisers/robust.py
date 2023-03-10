@@ -359,4 +359,3 @@ class RobustOptimiser(CRFOptimiser):
             return True
 
         return False
-

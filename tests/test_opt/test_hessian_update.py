@@ -8,6 +8,7 @@ from autode.opt.optimisers.hessian_update import (
     SR1Update,
     NullUpdate,
     BofillUpdate,
+    FlowchartUpdate
 )
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -190,7 +191,7 @@ def test_bfgs_pd_update(eigval, expected):
 
 
 @work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
-def test_bfgs_update_water():
+def test_bfgs_and_flowchart_update_water():
 
     h = np.loadtxt("water_cart_hessian0.txt")
 
@@ -230,16 +231,25 @@ def test_bfgs_update_water():
         -2.3462735918607574e-17,
     ]
 
-    updater = BFGSUpdate(
-        h=h, s=np.array(x1) - np.array(x0), y=np.array(g1) - np.array(g0)
-    )
+    for update_type in [BFGSUpdate, FlowchartUpdate]:
+        updater = update_type(
+            h=h, s=np.array(x1) - np.array(x0), y=np.array(g1) - np.array(g0)
+        )
 
-    new_bfgs_h = updater.updated_h
-    new_true_h = np.loadtxt("water_cart_hessian1.txt")
+        new_updated_h = updater.updated_h
+        new_true_h = np.loadtxt("water_cart_hessian1.txt")
 
-    assert np.sum(np.abs(new_bfgs_h - new_true_h)) < np.sum(
-        np.abs(h - new_true_h)
-    )
+        assert np.sum(np.abs(new_updated_h - new_true_h)) < np.sum(
+            np.abs(h - new_true_h)
+        )
+
+
+def test_flowchart_update_all_components():
+    h = np.array([[1.0, 0.01], [0.01, 1.0]])
+    y = np.array([0.01, 0.03])
+    s = np.array([0.02, 0.06])
+
+    updater = FlowchartUpdate(h=h, s=s, y=y)
 
 
 def test_hessian_requires_at_least_one_index():
