@@ -26,6 +26,7 @@ class RobustOptimiser(CRFOptimiser):
         update_trust: bool = True,
         min_trust: float = 0.01,
         max_trust: float = 0.3,
+        damp: bool = True,
         **kwargs,
     ):
         super().__init__(*args, init_alpha=init_trust, **kwargs)
@@ -41,7 +42,7 @@ class RobustOptimiser(CRFOptimiser):
         else:
             raise ValueError("Coordinate type must be either 'cart' or 'dic'")
         # todo stop if any constraints detected -> is this needed
-        # todo damp if required
+        self._should_damp = bool(damp)
         self._last_damp_iter = 0
 
         self._hessian_update_types = [FlowchartUpdate]
@@ -114,9 +115,7 @@ class RobustOptimiser(CRFOptimiser):
                 self._coords = self._coords + qa_step
 
             except OptimiserStepError as exc:
-                logger.debug(
-                    f"QA step failed: {str(exc)}"
-                )
+                logger.debug(f"QA step failed: {str(exc)}")
                 # if QA failed, take scaled RFO step
                 scaled_step = rfo_step * (self.alpha / rfo_step_size)
                 # step size is in Cartesian but scaling should work
@@ -312,12 +311,16 @@ class RobustOptimiser(CRFOptimiser):
     def _damp_if_required(self) -> bool:
         """
         If the energy and gradient norm are oscillating in the last three
-        iterations, then interpolate between the last two coordinates
-        (must skip the quasi-NR step)
+        iterations, then interpolate between the last two coordinates to
+        damp the oscillation (must skip the quasi-NR step)
 
         Returns:
             (bool): True if damped, False otherwise
         """
+        # if user does not want, no damping
+        if not self._should_damp:
+            return False
+
         # allow the optimiser 3 free iterations after damping once
         if self.iteration - self._last_damp_iter < 3:
             return False
