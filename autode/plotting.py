@@ -23,7 +23,6 @@ def save_plot(figure: "Figure", filename: str, **kwargs):
         filename (str): Name of the file to plot
         **kwargs : Other keyword arguments for matplotlib which
                    are passed onto figure.savefig()
-
     """
     import matplotlib.pyplot as plt
 
