@@ -10,7 +10,7 @@ import numpy as np
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.coordinates.primitives import Distance
 from autode.opt.optimisers import CRFOptimiser
-from autode.opt.optimisers.hessian_update import FlowchartUpdate
+from autode.opt.optimisers.hessian_update import FlowchartUpdate, BFGSUpdate
 from autode.exceptions import OptimiserStepError
 from autode.values import GradientRMS
 from autode.log import logger
@@ -45,7 +45,7 @@ class RobustOptimiser(CRFOptimiser):
         self._should_damp = bool(damp)
         self._last_damp_iter = 0
 
-        self._hessian_update_types = [FlowchartUpdate]
+        self._hessian_update_types = [BFGSUpdate, FlowchartUpdate]
 
     @property
     def converged(self) -> bool:
@@ -204,9 +204,9 @@ class RobustOptimiser(CRFOptimiser):
             value of lambda that will give that step"""
             if lmda_guess is None:
                 lmda_guess = first_b - 1.0
-            for _ in range(20):
+            for _ in range(50):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
-                if abs(size - int_size) / int_size < 0.001:
+                if abs(size - int_size) / int_size < 0.0001:
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
             else:
@@ -232,12 +232,15 @@ class RobustOptimiser(CRFOptimiser):
         for _ in range(10):
             int_step_size = int_step_size * fac
             err = cart_step_length_error(int_step_size)
-            if err < 0:  # found where error is < 0
+            if err < -1.0e-6:  # found where error is < 0
                 fac = 2.0  # increase the step size
                 size_min_bound = int_step_size
-            else:  # found where error is >= 0
+            elif err > 1.0e-6:  # found where error is > 0
                 fac = 0.5  # decrease the step size
                 size_max_bound = int_step_size
+            else:  # found err = 0 already!, no need for Brent's method
+                return self._coords.h - last_lmda * np.eye(h_n)
+
             if (size_max_bound is not None) and (size_min_bound is not None):
                 break
         else:
@@ -257,9 +260,14 @@ class RobustOptimiser(CRFOptimiser):
         if not res.converged:
             raise OptimiserStepError("Unable to find optimal lambda for step")
 
-        assert abs(
-            get_int_step_size_and_deriv(last_lmda)[2] - res.root
-        ) < 1.0e-3
+        assert (
+            abs(
+                np.linalg.norm(get_int_step_size_and_deriv(last_lmda)[2])
+                - res.root
+            )
+            / res.root
+            < 1.0e-2
+        )
 
         logger.info(f"Optimised lambda for QA step: {last_lmda}")
         # use the final lambda to construct level-shifted Hessian
@@ -334,25 +342,24 @@ class RobustOptimiser(CRFOptimiser):
         ) < 0
 
         # if sign of gradient norm change flips between last three iters
-        g_change_0_1 = (
-            np.linalg.norm(coords_1.to("cart").g)
-            - np.linalg.norm(coords_0.to("cart").g)
+        g_change_0_1 = np.linalg.norm(coords_1.to("cart").g) - np.linalg.norm(
+            coords_0.to("cart").g
         )
-        g_change_1_2 = (
-            np.linalg.norm(coords_2.to("cart").g)
-            - np.linalg.norm(coords_1.to("cart").g)
+        g_change_1_2 = np.linalg.norm(coords_2.to("cart").g) - np.linalg.norm(
+            coords_1.to("cart").g
         )
 
         is_g_oscillating = (g_change_0_1 * g_change_1_2) < 0
 
         # todo energy represented interpolation ?
+        # todo have three iters
 
         if is_e_oscillating and is_g_oscillating:
             logger.info("Oscillation detected in optimiser, damping")
 
             # is halfway interpolation good?
-            new_coord = (coords_1.raw + coords_2.raw) / 2.0
-            step = new_coord.raw - coords_2.raw
+            new_coord_raw = (coords_1.raw + coords_2.raw) / 2.0
+            step = new_coord_raw - coords_2.raw
             self._coords = self._coords + step
 
             self._last_damp_iter = self.iteration
