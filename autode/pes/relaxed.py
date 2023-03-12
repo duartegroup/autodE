@@ -1,11 +1,18 @@
 import numpy as np
 import itertools as it
-from typing import Tuple, List, Type
+
+from typing import Tuple, List, Type, TYPE_CHECKING
+
 from autode.log import logger
 from autode.utils import hashable, ProcessPool
 from autode.pes.reactive import ReactivePESnD
 from autode.calculations import Calculation
 from autode.exceptions import CalculationException
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.keywords import Keywords
+    from autode.wrappers.methods import Method
 
 
 class RelaxedPESnD(ReactivePESnD):
@@ -45,7 +52,7 @@ class RelaxedPESnD(ReactivePESnD):
         return None
 
     @property
-    def _default_keyword_type(self) -> Type["autode.wrappers.Keywords"]:
+    def _default_keyword_type(self) -> Type["Keywords"]:
         from autode.wrappers.keywords import OptKeywords
 
         return OptKeywords
@@ -103,9 +110,7 @@ class RelaxedPESnD(ReactivePESnD):
             logger.error(f"Optimisation failed for: {species.name}")
             return np.nan, np.zeros(shape=(species.n_atoms, 3))
 
-    def _default_keywords(
-        self, method: "autode.wrapper.ElectronicStructureMethod"
-    ) -> "autode.wrappers.Keywords":
+    def _default_keywords(self, method: "Method") -> "Keywords":
         """Default keywords"""
         return method.keywords.opt
 

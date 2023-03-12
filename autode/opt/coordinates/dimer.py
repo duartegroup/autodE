@@ -3,12 +3,20 @@ Coordinates for dimer optimisations. Notation follows:
 [1] https://aip.scitation.org/doi/pdf/10.1063/1.2815812
 """
 import numpy as np
+
 from enum import IntEnum, unique
-from typing import Union, Sequence, Optional
+from typing import Union, Sequence, Optional, TYPE_CHECKING
+
 from autode.opt.coordinates.base import OptCoordinates
 from autode.log import logger
 from autode.values import Angle, MWDistance
 from autode.units import ang_amu_half
+
+if TYPE_CHECKING:
+    from autode.units import Unit
+    from autode.species.species import Species
+    from autode.hessians import Hessian
+    from autode.values import Gradient
 
 
 @unique
@@ -29,7 +37,7 @@ class DimerCoordinates(OptCoordinates):
     def __new__(
         cls,
         input_array: Union[Sequence, np.ndarray],
-        units: Union[str, "autode.units.Unit"] = "Å amu^1/2",
+        units: Union[str, "Unit"] = "Å amu^1/2",
     ) -> "OptCoordinates":
         """New instance of these coordinates"""
 
@@ -102,16 +110,12 @@ class DimerCoordinates(OptCoordinates):
 
         return coords
 
-    def _update_g_from_cart_g(
-        self, arr: Optional["autode.values.Gradient"]
-    ) -> None:
+    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         raise NotImplementedError(
             "Cannot update the gradient - indeterminate " "point in the dimer"
         )
 
-    def _update_h_from_cart_h(
-        self, arr: Optional["autode.values.Hessian"]
-    ) -> None:
+    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         logger.warning("Dimer does not require Hessians - skipping")
         return None
 

@@ -6,13 +6,30 @@ surface and connecting minima and saddle points
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
+
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Union, Optional, Sequence, Iterable, Type
+from typing import (
+    Dict,
+    Tuple,
+    Union,
+    Optional,
+    Sequence,
+    Iterable,
+    Type,
+    TYPE_CHECKING,
+)
 from scipy.interpolate import RectBivariateSpline
+
 from autode.config import Config
 from autode.log import logger
 from autode.values import ValueArray, Energy, Distance, EnergyArray
 from autode.units import energy_unit_from_name, ang
+
+if TYPE_CHECKING:
+    import scipy
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords import Keywords
 
 # Type is a dictionary keyed with tuples and has a set of floats* as a value
 _rs_type = Dict[Tuple[int, int], Union[Tuple, np.ndarray]]
@@ -107,7 +124,7 @@ class PESnD(ABC):
 
     def calculate(
         self,
-        method: "autode.wrappers.ElectronicStructureMethod",
+        method: "Method",
         keywords: Union[Sequence[str], str, None] = None,
         n_cores: Optional[int] = None,
     ) -> None:
@@ -290,9 +307,7 @@ class PESnD(ABC):
         return pes
 
     @abstractmethod
-    def _default_keywords(
-        self, method: "autode.wrappers.ElectronicStructureMethod"
-    ) -> "autode.wrappers.Keywords":
+    def _default_keywords(self, method: "Method") -> "Keywords":
         """
         Default keywords to use for this type of PES e.g. opt or sp
 
@@ -306,7 +321,7 @@ class PESnD(ABC):
 
     @property
     @abstractmethod
-    def _default_keyword_type(self) -> Type["autode.wrappers.Keywords"]:
+    def _default_keyword_type(self) -> Type["Keywords"]:
         """Default keyword type e.g. OptKeywords for a relaxed PES"""
 
     @abstractmethod

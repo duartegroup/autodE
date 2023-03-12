@@ -24,8 +24,8 @@ def save_plot(plot, filename):
 
 
 def plot_reaction_profile(
-    reactions: Sequence["autode.reactions.Reaction"],
-    units: Union["autode.units.Unit", str],
+    reactions: Sequence["Reaction"],
+    units: Union["Unit", str],
     name: str,
     free_energy: bool = False,
     enthalpy: bool = False,

@@ -4,9 +4,11 @@ https://doi.org/10.1063/1.1329672
 """
 import numpy as np
 from scipy.optimize import OptimizeResult
-from typing import Optional
+from typing import Optional, Any
+
 from autode.neb.original import NEB, Images, Image
 from autode.log import logger
+from autode.values import ForceConstant
 
 
 class CImage(Image):
@@ -31,6 +33,8 @@ class CImage(Image):
             im_l (autode.neb.Image): Left image (i-1)
             im_r (autode.neb.Image): Right image (i+1)
         """
+        assert self.gradient, "Image force requires an evaluated gradient"
+
         # τ,  x_i-1,  x_i,   x_i+1
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)
 
@@ -43,7 +47,7 @@ class CImages(Images):
         self,
         images: Images,
         wait_iterations: int = 4,
-        init_k: Optional[float] = None,
+        init_k: Optional[ForceConstant] = None,
     ):
         """
         Initialise a set of images
@@ -96,10 +100,10 @@ class CINEB(NEB):
 
     _images_type = CImages
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
 
-        self.images = CImages(self.images)
+        self.images: CImages = CImages(self.images)
 
     def _minimise(self, method, n_cores, etol, max_n=30) -> OptimizeResult:
         """Minimise th energy of every image in the NEB"""

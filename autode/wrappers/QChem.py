@@ -1,7 +1,8 @@
 import numpy as np
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
-from typing import List
+from typing import List, TYPE_CHECKING
+
 from autode.config import Config
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.log import logger
@@ -13,6 +14,10 @@ from autode.exceptions import (
     NotImplementedInMethod,
     UnsupportedCalculationInput,
 )
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 
 class QChem(autode.wrappers.methods.ExternalMethodOEGH):
@@ -146,9 +151,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
         return True if calc_started else False
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return QChemOptimiser(output_lines=calc.output.file_lines)
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:

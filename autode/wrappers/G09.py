@@ -2,7 +2,7 @@ import numpy as np
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from copy import deepcopy
 from autode.constants import Constants
 from autode.utils import run_external
@@ -15,6 +15,10 @@ from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.log import logger
 from autode.constraints import Constraints
 from autode.utils import work_in_tmp_dir
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 
 def _add_opt_option(keywords, new_option):
@@ -546,9 +550,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         raise CouldNotGetProperty(name="energy")
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return G09Optimiser(output_lines=calc.output.file_lines)
 
     def coordinates_from(

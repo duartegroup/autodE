@@ -2,7 +2,8 @@ import numpy as np
 import os
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
-from typing import List
+from typing import List, TYPE_CHECKING
+
 from autode.utils import run_external
 from autode.hessians import Hessian
 from autode.opt.optimisers.base import ExternalOptimiser
@@ -18,6 +19,10 @@ from autode.exceptions import (
     XYZfileWrongFormat,
     AtomsNotFound,
 )
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 vdw_gaussian_solvent_dict = {
     "water": "Water",
@@ -168,25 +173,25 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         return f"ORCA(available = {self.is_available})"
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
-        molecule = calc.molecule
+        assert calc.input.filename is not None
 
-        keywords = self.get_keywords(calc.input, molecule)
+        keywords = self.get_keywords(calc.input, calc.molecule)
 
         with open(calc.input.filename, "w") as inp_file:
             print("!", *keywords, file=inp_file)
 
-            self.print_solvent(inp_file, molecule, keywords)
+            self.print_solvent(inp_file, calc.molecule, keywords)
             print_added_internals(inp_file, calc.input)
-            print_distance_constraints(inp_file, molecule)
-            print_cartesian_constraints(inp_file, molecule)
-            print_num_optimisation_steps(inp_file, molecule, calc.input)
+            print_distance_constraints(inp_file, calc.molecule)
+            print_cartesian_constraints(inp_file, calc.molecule)
+            print_num_optimisation_steps(inp_file, calc.molecule, calc.input)
             print_point_charges(inp_file, calc.input)
             print_default_params(inp_file)
 
             if calc.n_cores > 1:
                 print(f"%pal nprocs {calc.n_cores}\nend", file=inp_file)
 
-            print_coordinates(inp_file, molecule)
+            print_coordinates(inp_file, calc.molecule)
 
         return None
 
@@ -225,9 +230,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         execute_orca()
         return None
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return ORCAOptimiser(output_lines=calc.output.file_lines)
 
     def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:

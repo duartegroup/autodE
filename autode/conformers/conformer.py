@@ -1,4 +1,6 @@
-from typing import Optional
+import numpy as np
+
+from typing import Optional, TYPE_CHECKING
 
 from autode.atoms import Atoms
 from autode.values import Coordinates
@@ -6,12 +8,17 @@ from autode.exceptions import AtomsNotFound
 from autode.log import logger
 from autode.species.species import Species
 
+if TYPE_CHECKING:
+    from autode.calculations.calculation import Calculation
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords import Keywords
+
 
 class Conformer(Species):
     def __init__(
         self,
         name: str = "conf",
-        atoms: Optional["autode.atoms.Atoms"] = None,
+        atoms: Optional["Atoms"] = None,
         solvent_name: Optional[str] = None,
         charge: int = 0,
         mult: int = 1,
@@ -51,7 +58,7 @@ class Conformer(Species):
 
     def single_point(
         self,
-        method: "autode.wrappers.base.ElectronicStructureMethod",
+        method: "Method",
         keywords: Optional["Keywords"] = None,
         n_cores: Optional[int] = None,
     ):
@@ -72,11 +79,9 @@ class Conformer(Species):
 
     def optimise(
         self,
-        method: Optional[
-            "autode.wrappers.base.ElectronicStructureMethod"
-        ] = None,
+        method: Optional["Method"] = None,
         reset_graph: bool = False,
-        calc: Optional["autode.calculation.Calculation"] = None,
+        calc: Optional["Calculation"] = None,
         keywords: Optional["Keywords"] = None,
         n_cores: Optional[int] = None,
     ):
@@ -116,7 +121,7 @@ class Conformer(Species):
         return self._coordinates
 
     @coordinates.setter
-    def coordinates(self, value: "numpy.ndarray"):
+    def coordinates(self, value: np.ndarray):
         """Set the coordinates of this conformer"""
         if self._parent_atoms is None:
             raise ValueError(

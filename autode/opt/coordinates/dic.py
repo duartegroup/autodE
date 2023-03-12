@@ -16,7 +16,8 @@ summarised below:
 """
 import numpy as np
 from time import time
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
 from autode.geom import proj
 from autode.log import logger
 from autode.opt.coordinates.internals import (
@@ -24,6 +25,12 @@ from autode.opt.coordinates.internals import (
     InverseDistances,
     InternalCoordinates,
 )
+
+if TYPE_CHECKING:
+    from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
+    from autode.values import Gradient
+    from autode.hessians import Hessian
+
 
 _max_back_transform_iterations = 20
 
@@ -82,9 +89,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
     @classmethod
     def from_cartesian(
         cls,
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        x: "CartesianCoordinates",
         primitives: Optional[PIC] = None,
-    ) -> "autode.opt.coordinates.dic.DIC":
+    ) -> "DIC":
         """
         Convert cartesian coordinates to primitives then to delocalised
         internal coordinates (DICs), of which there should be 3N-6 for a
@@ -127,9 +134,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         logger.info(f"Transformed in      ...{time() - start_time:.4f} s")
         return dic
 
-    def _update_g_from_cart_g(
-        self, arr: Optional["autode.values.Gradient"]
-    ) -> None:
+    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient
 
@@ -146,9 +151,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         return None
 
-    def _update_h_from_cart_h(
-        self, arr: Optional["autode.values.Hessian"]
-    ) -> None:
+    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
         Update the DIC Hessian matrix from a Cartesian one
 
@@ -168,7 +171,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         return None
 
-    def to(self, value: str) -> "autode.opt.coordinates.base.OptCoordinates":
+    def to(self, value: str) -> "OptCoordinates":
         """
         Convert these DICs to another type of coordinate
 
@@ -185,9 +188,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         raise ValueError(f"Unknown conversion to {value}")
 
-    def iadd(
-        self, value: np.ndarray
-    ) -> "autode.opt.coordidnates.base.OptCoordinates":
+    def iadd(self, value: np.ndarray) -> "OptCoordinates":
 
         """
         Set some new internal coordinates and update the Cartesian coordinates
@@ -347,9 +348,7 @@ class DICWithConstraints(DIC):
 
         return [i for i in range(n + m) if i not in self.inactive_indexes]
 
-    def _update_g_from_cart_g(
-        self, arr: Optional["autode.values.Gradient"]
-    ) -> None:
+    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         r"""
         Updates the gradient from a calculated Cartesian gradient, where
         the gradient is that of the Lagrangian. Includes dL/d_λi terms where
@@ -382,9 +381,7 @@ class DICWithConstraints(DIC):
 
         return None
 
-    def _update_h_from_cart_h(
-        self, arr: Optional["autode.values.Hessian"]
-    ) -> None:
+    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
         Update the DIC Hessian matrix from a Cartesian one
 

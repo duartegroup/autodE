@@ -4,12 +4,26 @@ and transition state guess finding
 """
 import numpy as np
 from abc import ABC
-from typing import Iterator, Tuple, Optional, Dict, Union, Sequence
+
+from typing import (
+    Iterator,
+    Tuple,
+    Optional,
+    Dict,
+    Union,
+    Sequence,
+    TYPE_CHECKING,
+)
+
 from autode.pes.pes_nd import PESnD
 from autode.log import logger
 from autode.values import Distance
 from autode.transition_states.ts_guess import TSguess
 from autode.pes.mep import peak_point
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.transition_states.ts_guess import TSguess
 
 
 class ReactivePESnD(PESnD, ABC):
@@ -164,9 +178,7 @@ class ReactivePESnD(PESnD, ABC):
         """
         return sorted(self._saddle_points(), key=lambda p: self._energies[p])
 
-    def _mep_ts_guess(
-        self, product: "Species"
-    ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
+    def _mep_ts_guess(self, product: "Species") -> Iterator["TSguess"]:
         """
         Find a TS guess by traversing the minimum energy pathway (MEP) on a
         discreet potential energy surface between the initial species

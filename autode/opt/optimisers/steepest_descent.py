@@ -30,6 +30,9 @@ class SteepestDescent(NDOptimiser, ABC):
 
         where :math:`\alpha` is the step size.
         """
+        assert self._coords is not None, "A step requires set coordinates"
+        assert self._coords.g is not None, "A step requires a defined gradient"
+
         self._coords = self._coords - self.alpha * self._coords.g
 
 
@@ -41,6 +44,7 @@ class CartesianSDOptimiser(SteepestDescent):
         Initialise a set of cartesian coordinates. As a species' coordinates
         are already Cartesian there is nothing special to do
         """
+        assert self._species is not None
         self._coords = CartesianCoordinates(self._species.coordinates)
         self._update_gradient_and_energy()
 
@@ -50,6 +54,8 @@ class DIC_SD_Optimiser(SteepestDescent):
 
     def _initialise_run(self) -> None:
         """Initialise the delocalised internal coordinates"""
+        assert self._species is not None
+
         self._coords = CartesianCoordinates(self._species.coordinates).to(
             "dic"
         )

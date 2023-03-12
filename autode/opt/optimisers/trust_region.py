@@ -71,9 +71,9 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         method: "Method",
         n_cores: Optional[int] = None,
         coords: Optional["OptCoordinates"] = None,
+        maxiter: int = 5,
         gtol: GradientRMS = GradientRMS(1e-3, "Ha Å-1"),
         etol: PotentialEnergy = PotentialEnergy(1e-4, "Ha"),
-        maxiter: int = 5,
         trust_radius: float = 0.2,
         **kwargs,
     ) -> None:

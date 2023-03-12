@@ -2,7 +2,7 @@ import os.path
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Union, Optional, Callable, Any, TYPE_CHECKING
+from typing import Type, List, Union, Optional, Callable, Any, TYPE_CHECKING
 
 from autode.log import logger
 from autode.utils import NumericStringDict
@@ -88,7 +88,7 @@ class Optimiser(BaseOptimiser, ABC):
         n_cores: Optional[int] = None,
         coords: Optional[OptCoordinates] = None,
         **kwargs,
-    ):
+    ) -> None:
         """
         Optimise a species using a method
 
@@ -96,7 +96,7 @@ class Optimiser(BaseOptimiser, ABC):
 
           >>> import autode as ade
           >>> mol = ade.Molecule(smiles='C')
-          >>> Optimiser.optimise(mol, method=ade.methods.ORCA())
+          >>> Optimiser.optimise(mol,method=ade.methods.ORCA())
         """
 
     def run(
@@ -446,7 +446,7 @@ class NDOptimiser(Optimiser, ABC):
         self.etol = etol
         self.gtol = gtol
 
-        self._hessian_update_types = [NullUpdate]
+        self._hessian_update_types: List[Type[HessianUpdater]] = [NullUpdate]
 
     @property
     def gtol(self) -> GradientRMS:
@@ -498,11 +498,11 @@ class NDOptimiser(Optimiser, ABC):
         cls,
         species: "Species",
         method: "Method",
+        n_cores: Optional[int] = None,
+        coords: Optional[OptCoordinates] = None,
         maxiter: int = 100,
         gtol: Any = GradientRMS(1e-3, units="Ha Å-1"),
         etol: Any = PotentialEnergy(1e-4, units="Ha"),
-        coords: Optional[OptCoordinates] = None,
-        n_cores: Optional[int] = None,
         **kwargs,
     ) -> None:
         """

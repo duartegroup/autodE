@@ -3,6 +3,8 @@ import shutil
 import numpy as np
 import autode.wrappers.methods
 
+from typing import TYPE_CHECKING
+
 from autode.values import Coordinates, Gradient, PotentialEnergy
 from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
@@ -11,6 +13,10 @@ from autode.opt.optimisers.base import ExternalOptimiser
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.utils import work_in_tmp_dir, run_in_tmp_environment
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 
 class XTB(autode.wrappers.methods.ExternalMethodOEG):
@@ -244,9 +250,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
         return False
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return XTBOptimiser(converged=self.converged_line_in_output(calc))
 
     @staticmethod

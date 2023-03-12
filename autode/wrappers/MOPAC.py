@@ -2,7 +2,9 @@ import os
 import numpy as np
 import autode.wrappers.keywords as kwds
 import autode.wrappers.methods
-from typing import List
+
+from typing import List, TYPE_CHECKING
+
 from autode.opt.optimisers.base import ExternalOptimiser
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.utils import run_external
@@ -13,6 +15,11 @@ from autode.exceptions import UnsupportedCalculationInput
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from autode.exceptions import CouldNotGetProperty
+
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 
 def get_keywords(calc_input, molecule):
@@ -295,9 +302,7 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
 
         raise CouldNotGetProperty(name="energy")
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
 
         is_converged = any(
             "GRADIENT" in l and "IS LESS THAN CUTOFF" in l

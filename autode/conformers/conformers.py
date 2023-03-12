@@ -1,6 +1,8 @@
 import numpy as np
-from typing import Optional, Union
+
+from typing import Optional, Union, TYPE_CHECKING
 from rdkit import Chem
+
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
 from autode.config import Config
@@ -8,6 +10,13 @@ from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.utils import ProcessPool
+
+
+if TYPE_CHECKING:
+    from autode.conformers.conformer import Conformer
+    from autode.wrappers.methods import Method
+    from autode.mol_graphs import MolecularGraph
+    from autode.wrappers.keywords import Keywords
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -20,7 +29,7 @@ def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
 
 class Conformers(list):
     @property
-    def lowest_energy(self) -> Optional["autode.conformers.Conformer"]:
+    def lowest_energy(self) -> Optional["Conformer"]:
         """
         Return the lowest energy conformer state from this set. If no
         conformers have an energy then return None
@@ -206,9 +215,7 @@ class Conformers(list):
         logger.info(f"Pruned to {len(self)} unique conformer(s) on RMSD")
         return None
 
-    def prune_diff_graph(
-        self, graph: "autode.mol_graphs.MolecularGraph"
-    ) -> None:
+    def prune_diff_graph(self, graph: "MolecularGraph") -> None:
         """
         Remove conformers with a different molecular graph to a defined
         reference. Although all conformers should have the same molecular
@@ -274,8 +281,8 @@ class Conformers(list):
 
     def optimise(
         self,
-        method: "autode.wrappers.base.ElectronicStructureMethod",
-        keywords: Optional["autode.wrappers.Keywords"] = None,
+        method: "Method",
+        keywords: Optional["Keywords"] = None,
     ) -> None:
         """
         Optimise a set of conformers in parallel
@@ -290,8 +297,8 @@ class Conformers(list):
 
     def single_point(
         self,
-        method: "autode.wrappers.base.ElectronicStructureMethod",
-        keywords: Optional["autode.wrappers.Keywords"] = None,
+        method: "Method",
+        keywords: Optional["Keywords"] = None,
     ) -> None:
         """
         Evaluate single point energies for a set of conformers in parallel

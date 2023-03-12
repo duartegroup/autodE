@@ -5,11 +5,18 @@ a search direction. See e.g.
 https://www.numerical.rl.ac.uk/people/nimg/oumsc/lectures/uepart2.2.pdf
 """
 import numpy as np
+
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Any, TYPE_CHECKING
+
 from autode.log import logger
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.optimisers.base import Optimiser
+
+if TYPE_CHECKING:
+    from autode.opt.coordinates import OptCoordinates
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
 
 
 class LineSearchOptimiser(Optimiser, ABC):
@@ -19,7 +26,7 @@ class LineSearchOptimiser(Optimiser, ABC):
         self,
         maxiter: int = 10,
         direction: Optional[np.ndarray] = None,
-        coords: Optional["autode.opt.OptCoordinates"] = None,
+        coords: Optional["OptCoordinates"] = None,
         init_alpha: float = 1.0,
     ):
         """
@@ -49,10 +56,11 @@ class LineSearchOptimiser(Optimiser, ABC):
         cls,
         species: "Species",
         method: "Method",
-        coords: Optional["autode.opt.OptCoordinates"] = None,
+        n_cores: Optional[int] = None,
+        coords: Optional["OptCoordinates"] = None,
         direction: Optional[np.ndarray] = None,
         maxiter: int = 5,
-        n_cores: Optional[int] = None,
+        **kwargs: Any,
     ) -> None:
         """
         Optimise a species along a single direction. If the direction is
@@ -82,23 +90,26 @@ class LineSearchOptimiser(Optimiser, ABC):
                 "Line search optimiser was initialised without a "
                 "search direction. Using steepest decent direction"
             )
+            assert self._coords is not None
             if self._coords.g is None:
                 self._update_gradient_and_energy()
 
+            assert self._coords.g is not None, "Gradient must be set"
             self.p = -self._coords.g
+
         return None
 
     @property
     def minimum_e_coords(
         self,
-    ) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
+    ) -> Optional["OptCoordinates"]:
         """Minimum energy coordinates"""
         return None if len(self._history) == 0 else self._history.minimum
 
     @property
     def _init_coords(
         self,
-    ) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
+    ) -> Optional["OptCoordinates"]:
         """
         Initial coordinates from which this line search was initialised from
 
@@ -117,7 +128,7 @@ class ArmijoLineSearch(LineSearchOptimiser):
         beta: float = 0.1,
         tau: float = 0.5,
         init_alpha: float = 1.0,
-        coords: Optional["autode.opt.OptCoordinates"] = None,
+        coords: Optional["OptCoordinates"] = None,
     ):
         """
         Backtracking line search by Armijo. Reduces the step size iteratively
@@ -148,6 +159,7 @@ class ArmijoLineSearch(LineSearchOptimiser):
 
     def _step(self) -> None:
         """Take a step in the line search"""
+        assert self._coords is not None and self.p is not None
 
         self.alpha *= self.tau
         self._coords = self._init_coords + self.alpha * self.p
@@ -157,12 +169,14 @@ class ArmijoLineSearch(LineSearchOptimiser):
     def _initialise_coordinates(self) -> None:
         """Initialise the coordinates if they are not defined already.
         Defaults to CartesianCoordinates"""
+        assert self._species is not None
         self._coords = CartesianCoordinates(self._species.coordinates)
         return None
 
     @property
     def _satisfies_wolfe1(self) -> bool:
         """First Wolfe condition:"""
+        assert self._coords and self._init_coords and self.p  # all not None
 
         term_2 = self.alpha * self.beta * np.dot(self._init_coords.g, self.p)
         return self._coords.e < self._init_coords.e + term_2
@@ -225,6 +239,8 @@ class SArmijoLineSearch(ArmijoLineSearch):
         where :math:`\tau > 1`. But as soon as the energy rises then switch to
         :math:`\tau_{k+1} = 1/\tau_{k}`
         """
+        assert self._init_coords is not None and self.p is not None
+
         func = min if self._history.contains_energy_rise else max
 
         self.tau = func(self.tau, 1 / self.tau)
@@ -254,14 +270,15 @@ class NullLineSearch(LineSearchOptimiser):
     @property
     def minimum_e_coords(
         self,
-    ) -> Optional["autode.opt.coordinates.base.OptCoordinates"]:
+    ) -> Optional["OptCoordinates"]:
         """
         Minimum energy coordinates are defined to be the true step
 
         -----------------------------------------------------------------------
         Returns:
-            (autode.opt.coordinates.base.OptCoordinates): Coordinates
+            (OptCoordinates): Coordinates
         """
+        assert self._init_coords is not None and self.p is not None
         return self._init_coords + self.alpha * self.p
 
     @property

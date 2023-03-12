@@ -108,7 +108,7 @@ class Value(ABC, float):
     x = Value(0.0)
     """
 
-    implemented_units = []
+    implemented_units: Sequence[Unit] = []
 
     def __init__(self, x: Any, units: Union[Unit, str, None] = None):
         """

@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
@@ -15,10 +16,16 @@ from autode.mol_graphs import (
     get_truncated_active_mol_graph,
 )
 
+if TYPE_CHECKING:
+    from autode.species import ReactantComplex, ProductComplex, Species
+    from autode.bond_rearrangement import BondRearrangement
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords import Keywords
+
 
 def has_matching_ts_templates(
-    reactant: "autode.species.ReactantComplex",
-    bond_rearr: "autode.bond_rearrangement.BondRearrangement",
+    reactant: "ReactantComplex",
+    bond_rearr: "BondRearrangement",
 ):
     """
     See if there are any templates suitable to get a TS guess from a template
@@ -51,11 +58,11 @@ def has_matching_ts_templates(
 
 
 def get_template_ts_guess(
-    reactant: "autode.species.ReactantComplex",
-    product: "autode.species.ProductComplex",
-    bond_rearr: "autode.bond_rearrangement.BondRearrangement",
+    reactant: "ReactantComplex",
+    product: "ProductComplex",
+    bond_rearr: "BondRearrangement",
     name: str,
-    method: "autode.wrappers.base.ElectronicStructureMethod",
+    method: "Method",
 ):
     """
     Get a transition state guess object by searching though the stored TS
@@ -228,9 +235,7 @@ class TSguess(TSbase):
         self,
         name: str,
         distance_consts: Optional[dict] = None,
-        method: Optional[
-            "autode.wrappers.base.ElectronicStructureMethod"
-        ] = None,
+        method: Optional["Method"] = None,
         keywords: Optional["Keywords"] = None,
     ):
         """Get a TS guess from a constrained optimisation with the active atoms
@@ -241,8 +246,6 @@ class TSguess(TSbase):
             name (str):
 
             keywords (autode.wrappers.keywords.Keywords):
-
-        Keyword Arguments:
 
             distance_consts (dict): Distance constraints to use, if None
                                     then use self.constraints

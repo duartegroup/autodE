@@ -17,9 +17,9 @@ class Atom:
     def __init__(
         self,
         atomic_symbol: str,
-        x: float = 0.0,
-        y: float = 0.0,
-        z: float = 0.0,
+        x: Any = 0.0,
+        y: Any = 0.0,
+        z: Any = 0.0,
         atom_class: Optional[int] = None,
         partial_charge: Optional[float] = None,
     ):

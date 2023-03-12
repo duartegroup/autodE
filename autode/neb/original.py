@@ -5,7 +5,7 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 import numpy as np
 import matplotlib.pyplot as plt
 
-from typing import Optional, Sequence, List, Any, TYPE_CHECKING
+from typing import Optional, Sequence, List, Any, TYPE_CHECKING, Union, Type
 from copy import deepcopy
 
 from autode.log import logger
@@ -18,10 +18,11 @@ from autode.utils import work_in, ProcessPool
 from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
-from autode.values import Distance, PotentialEnergy, ForceConstant, Gradient
+from autode.values import Distance, PotentialEnergy, ForceConstant
 
 if TYPE_CHECKING:
     from autode.wrappers.methods import Method
+    from autode.neb.ci import CImages
 
 
 def energy_gradient(image, method, n_cores):
@@ -194,6 +195,9 @@ class Image(Species):
         Returns:
             (np.ndarray, np.ndarray, np.ndarray, np.ndarray)
         """
+        assert self.energy, "Energy must be set to calculate tau_xl_x_xr"
+        assert im_r.energy, "Left image energy must be set"
+        assert im_l.energy, "Right image energy must be set"
 
         # ΔV_i^max
         dv_max = max(
@@ -250,6 +254,8 @@ class Image(Species):
             im_l (autode.neb.Image): Left image (i-1)
             im_r (autode.neb.Image): Right image (i+1)
         """
+        assert self.gradient, "Gradient must be set to calculate the force"
+
         # τ,  x_i-1,  x_i,   x_i+1
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)
 
@@ -395,7 +401,7 @@ class Images(Path):
 
 class NEB:
 
-    _images_type = Images
+    _images_type: Union[Type[Images], Type["CImages"]] = Images
 
     def __init__(
         self,
