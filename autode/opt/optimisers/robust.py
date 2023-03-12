@@ -31,21 +31,22 @@ class RobustOptimiser(CRFOptimiser):
     ):
         super().__init__(*args, init_alpha=init_trust, **kwargs)
 
+        assert 0.0 < min_trust < max_trust
         self._max_alpha = float(max_trust)
         self._min_alpha = float(min_trust)
         self._upd_alpha = bool(update_trust)
 
         if coord_type.lower() in ["cart", "cartesian"]:
             self._coord_type = "cart"
-        elif coord_type.lower() in ["dic"]:
+        elif coord_type.lower() == "dic":
             self._coord_type = "dic"
         else:
-            raise ValueError("Coordinate type must be either 'cart' or 'dic'")
+            raise ValueError("Coordinate type must be either 'cart' or 'DIC'")
         # todo stop if any constraints detected -> is this needed
         self._should_damp = bool(damp)
         self._last_damp_iter = 0
 
-        self._hessian_update_types = [BFGSUpdate, FlowchartUpdate]
+        self._hessian_update_types = [FlowchartUpdate]
 
     @property
     def converged(self) -> bool:
@@ -204,9 +205,9 @@ class RobustOptimiser(CRFOptimiser):
             value of lambda that will give that step"""
             if lmda_guess is None:
                 lmda_guess = first_b - 1.0
-            for _ in range(50):
+            for _ in range(20):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
-                if abs(size - int_size) / int_size < 0.0001:
+                if abs(size - int_size) / int_size < 0.001:
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
             else:
@@ -232,13 +233,16 @@ class RobustOptimiser(CRFOptimiser):
         for _ in range(10):
             int_step_size = int_step_size * fac
             err = cart_step_length_error(int_step_size)
-            if err < -1.0e-6:  # found where error is < 0
+
+            if err < -1.0e-8:  # found where error is < 0
                 fac = 2.0  # increase the step size
                 size_min_bound = int_step_size
-            elif err > 1.0e-6:  # found where error is > 0
+
+            elif err > 1.0e-8:  # found where error is > 0
                 fac = 0.5  # decrease the step size
                 size_max_bound = int_step_size
-            else:  # found err = 0 already!, no need for Brent's method
+
+            else:  # found err ~ 0 already!, no need for Brent's method
                 return self._coords.h - last_lmda * np.eye(h_n)
 
             if (size_max_bound is not None) and (size_min_bound is not None):
@@ -249,25 +253,32 @@ class RobustOptimiser(CRFOptimiser):
             )
 
         # Use scipy's root finder
-        res = root_scalar(
-            cart_step_length_error,
-            method="brentq",
-            bracket=[size_min_bound, size_max_bound],
-            maxiter=20,
-            rtol=0.01,  # 1% margin of error
-        )
+        try:
+            res = root_scalar(
+                cart_step_length_error,
+                method="brentq",
+                bracket=[size_min_bound, size_max_bound],
+                maxiter=20,
+                rtol=0.01,  # 1% margin of error
+            )
+        except ValueError as exc:
+            if str(exc).lower().find("have different signs") != -1:
+                raise OptimiserStepError("Brent's procedure could not start")
+            else:
+                raise
 
         if not res.converged:
             raise OptimiserStepError("Unable to find optimal lambda for step")
 
-        assert (
+        if not (
             abs(
                 np.linalg.norm(get_int_step_size_and_deriv(last_lmda)[2])
                 - res.root
             )
             / res.root
             < 1.0e-2
-        )
+        ):
+            raise OptimiserStepError("Unknown error in Brent's method")
 
         logger.info(f"Optimised lambda for QA step: {last_lmda}")
         # use the final lambda to construct level-shifted Hessian

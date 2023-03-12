@@ -29,13 +29,17 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
         for attr in ("_x", "primitives"):
             setattr(arr, attr, getattr(input_array, attr, None))
 
+        arr.allow_unconverged_back_transform = getattr(
+            input_array, "allow_unconverged_back_transform", True
+        )  # flag to allow un-converged iterated back-transform
+
         return arr
 
     def __array_finalize__(self, obj: "OptCoordinates") -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
         OptCoordinates.__array_finalize__(self, obj)
 
-        for attr in ("_x", "primitives"):
+        for attr in ("_x", "primitives", "allow_unconverged_back_transform"):
             setattr(self, attr, getattr(obj, attr, None))
 
         return
