@@ -294,12 +294,6 @@ def test_xtb_opt_with_two_distance_constraint():
         assert np.isclose(water.distance(*pair).to("Å"), 1.0, atol=1e-2)
 
 
-class DICEnsureBackTransform(DICWithConstraints):
-    @property
-    def _allow_unconverged_back_transform(self) -> bool:
-        raise RuntimeError("Must converge back transformation")
-
-
 def test_step_with_180degree_dihedrals():
 
     ethane = Molecule(
@@ -338,7 +332,7 @@ def test_step_with_180degree_dihedrals():
 
     # Should be able to take a step without any warnings
     dic = crfo_coords(ethane)
-    dic.__class__ = DICEnsureBackTransform  # oh so hacky
+    dic.allow_unconverged_back_transform = False
     dic += ds
 
 
