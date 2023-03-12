@@ -1,34 +1,77 @@
 """
-A more robust geometry optimiser, uses features from
+Robust geometry optimisers, uses features from
 multiple optimisation methods. (Similar to those
 implemented in common QM packages)
 
-Only minimiser, not a TS search/constrained optimiser
+Only minimisers, these are not TS search/constrained optimiser
 """
 import numpy as np
 
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.coordinates.primitives import Distance
-from autode.opt.optimisers import CRFOptimiser
-from autode.opt.optimisers.hessian_update import FlowchartUpdate, BFGSUpdate
+from autode.opt.optimisers import CRFOptimiser, NDOptimiser
+from autode.opt.optimisers.hessian_update import FlowchartUpdate
 from autode.exceptions import OptimiserStepError
-from autode.values import GradientRMS
+from autode.values import GradientRMS, PotentialEnergy
 from autode.log import logger
 from itertools import combinations
 
 
-class RobustOptimiser(CRFOptimiser):
+class HybridTRIMOptimiser(CRFOptimiser):
+    """
+    A hybrid of RFO and TRIM/QA optimiser, with dynamic trust
+    radius. If the RFO step is smaller in magnitude than trust radius,
+    then the step-length is controlled by using the Trust-Radius Image
+    Minimisation method (TRIM), also known as Quadratic Approximation
+    (QA). It falls-back on simple scalar scaling of RFO step, if the
+    TRIM/QA method fails to converge to the required step-size. The
+    trust radius is updated by a modification of Fletcher's method.
+
+    See References:
+
+    [1] P. Culot et. al, Theor. Chim. Acta, 82, 1992, 189-205
+
+    [2] T. Helgaker, Chem. Phys. Lett., 182(5), 1991, 503-510
+
+    [3] J. T. Golab et al., Chem. Phys., 78, 1983, 175-199
+    """
+
     def __init__(
         self,
-        *args,
         coord_type: str = "dic",
         init_trust: float = 0.1,
         update_trust: bool = True,
         min_trust: float = 0.01,
         max_trust: float = 0.3,
         damp: bool = True,
+        *args,
         **kwargs,
     ):
+        """
+        Hybrid RFO and TRIM/QA optimiser with dynamic trust radius (and
+        optional damping if oscillation in energy and gradient is detected)
+
+        ---------------------------------------------------------------------
+        Args:
+            coord_type: 'DIC' for delocalised internal coordinates, 'cart'
+                               for Cartesian coordinates
+            init_trust: Initial value of trust radius in Angstrom
+            update_trust: Whether to update the trust radius or not
+            min_trust: Minimum bound for trust radius (only for trust update)
+            max_trust: Maximum bound for trust radius (only for trust update)
+            damp: Whether to apply damping if oscillation is detected
+            *args: Additional arguments for ``NDOptimiser``
+            **kwargs: Additional keyword arguments for ``NDOptimiser``
+
+        Keyword Args:
+            maxiter (int): Maximum number of iterations (from ``NDOptimiser``)
+            gtol (GradientRMS): Tolerance on RMS(|∇E|) (from ``NDOptimiser``)
+            etol (PotentialEnergy): Tolerance on |E_i+1 - E_i|
+                                    (from ``NDOptimiser``)
+
+        See Also:
+            :py:meth:`NDOptimiser <NDOptimiser.__init__>`
+        """
         super().__init__(*args, init_alpha=init_trust, **kwargs)
 
         assert 0.0 < min_trust < max_trust
@@ -49,9 +92,23 @@ class RobustOptimiser(CRFOptimiser):
         self._hessian_update_types = [FlowchartUpdate]
 
     @property
+    def _g_norm(self) -> GradientRMS:
+        """Calculate the RMS gradient norm in Cartesian coordinates"""
+        grad = self._coords.to("cart").g
+        return GradientRMS(np.sqrt(np.average(np.square(grad))))
+
+    @property
     def converged(self) -> bool:
         if self._species is not None and self._species.n_atoms == 1:
             return True  # Optimisation 0 DOF is always converged
+
+        # gradient is better indicator of stationary point
+        if self._g_norm < self.gtol / 10:
+            logger.warning(
+                f"Gradient norm criteria overachieved. "
+                f"{self._gtol.to('Ha/ang')/10:.3f} Ha/Å. "
+                f"Signalling convergence"
+            )
 
         # both gradient and energy must be converged!!
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
@@ -62,7 +119,7 @@ class RobustOptimiser(CRFOptimiser):
         self._update_gradient_and_energy()
 
     def _build_coordinates(self) -> None:
-        """Initialise the optimisation"""
+        """Build delocalised internal coordinates"""
         cart_coords = CartesianCoordinates(self._species.coordinates)
         if self._coord_type == "cart":
             self._coords = cart_coords
@@ -82,12 +139,6 @@ class RobustOptimiser(CRFOptimiser):
 
         return None
 
-    @property
-    def _g_norm(self) -> GradientRMS:
-        """Calculate the RMS gradient norm in Cartesian coordinates"""
-        grad = self._coords.to("cart").g
-        return GradientRMS(np.sqrt(np.average(np.square(grad))))
-
     def _step(self) -> None:
 
         self._coords.h = self._updated_h()
@@ -102,30 +153,29 @@ class RobustOptimiser(CRFOptimiser):
         rfo_step_size = self._get_cart_step_size_from_step(rfo_step)
 
         if rfo_step_size < self.alpha:
-            print(f"Taking a pure RFO step of size: {rfo_step_size:.3f}")
-            self._coords = self._coords + rfo_step
-
+            logger.info("Taking a pure RFO step")
+            step = rfo_step
         else:
             try:
-                qa_h_eff = self._get_qa_minimise_h_eff()
+                qa_h_eff = self._get_trim_minimise_h_eff()
                 qa_step = -np.linalg.inv(qa_h_eff) @ self._coords.g
-                print(
-                    f"Taking a QA step exactly at trust"
-                    f" radius: {self.alpha}"
-                )
-                self._coords = self._coords + qa_step
+                logger.info("Taking a QA step optimised to trust radius")
+                step = qa_step
 
             except OptimiserStepError as exc:
                 logger.debug(f"QA step failed: {str(exc)}")
                 # if QA failed, take scaled RFO step
                 scaled_step = rfo_step * (self.alpha / rfo_step_size)
-                # step size is in Cartesian but scaling should work
-                step_size = self._get_cart_step_size_from_step(scaled_step)
-                print(
-                    f"Taking a scaled RFO step approximately within "
-                    f"trust radius: {step_size:.3f}"
+
+                logger.info(
+                    "Taking a scaled RFO step approximately within "
+                    "trust radius"
                 )
-                self._coords = self._coords + scaled_step
+                step = scaled_step
+
+        step_size = self._get_cart_step_size_from_step(step)
+        self._coords = self._coords + step  # finally, take the step!
+        logger.info(f"Size of step taken = {step_size:.3f} Å")
 
         return None
 
@@ -169,11 +219,11 @@ class RobustOptimiser(CRFOptimiser):
         # effective hessian = H - lambda * I
         return self._coords.h - lmda * np.eye(h_n)
 
-    def _get_qa_minimise_h_eff(self) -> np.ndarray:
+    def _get_trim_minimise_h_eff(self) -> np.ndarray:
         """
         Using current Hessian and gradient, get the level-shifted Hessian
         for a minimising step, whose magnitude (norm) is approximately
-        equal to the trust radius (Quadratic Approximation step).
+        equal to the trust radius (TRIM or QA step).
 
         Described in J. Golab, D. L. Yeager, and P. Jorgensen,
         Chem. Phys., 78, 1983, 175-199
@@ -207,7 +257,7 @@ class RobustOptimiser(CRFOptimiser):
                 lmda_guess = first_b - 1.0
             for _ in range(20):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
-                if abs(size - int_size) / int_size < 0.001:
+                if abs(size - int_size) / int_size < 0.001:  # 0.1% error
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
             else:
@@ -217,6 +267,8 @@ class RobustOptimiser(CRFOptimiser):
         last_lmda = None  # non-local variable
 
         def cart_step_length_error(int_size):
+            """Deviation for trust radius given step-size
+            in internal coordinates"""
             nonlocal last_lmda
             last_lmda = optimise_lambda_for_int_step(int_size, last_lmda)
             _, _, step = get_int_step_size_and_deriv(last_lmda)
@@ -242,7 +294,7 @@ class RobustOptimiser(CRFOptimiser):
                 fac = 0.5  # decrease the step size
                 size_max_bound = int_step_size
 
-            else:  # found err ~ 0 already!, no need for Brent's method
+            else:  # found err ~ 0 already!, no need for root finding
                 return self._coords.h - last_lmda * np.eye(h_n)
 
             if (size_max_bound is not None) and (size_min_bound is not None):
@@ -252,35 +304,24 @@ class RobustOptimiser(CRFOptimiser):
                 "Unable to find bracket range for root finding"
             )
 
-        # Use scipy's root finder
-        try:
-            res = root_scalar(
-                cart_step_length_error,
-                method="brentq",
-                bracket=[size_min_bound, size_max_bound],
-                maxiter=20,
-                rtol=0.01,  # 1% margin of error
-            )
-        except ValueError as exc:
-            if str(exc).lower().find("have different signs") != -1:
-                raise OptimiserStepError("Brent's procedure could not start")
-            else:
-                raise
+        logger.debug("Using secant method to find root")
+        # Use scipy's root finder with secant method
+        res = root_scalar(
+            cart_step_length_error,
+            method="secant",
+            x0=size_min_bound,
+            x1=size_max_bound,
+            maxiter=20,
+            rtol=0.01,  # 1% margin of error
+        )
 
         if not res.converged:
-            raise OptimiserStepError("Unable to find optimal lambda for step")
+            raise OptimiserStepError("Unable to converge step to trust radius")
 
-        if not (
-            abs(
-                np.linalg.norm(get_int_step_size_and_deriv(last_lmda)[2])
-                - res.root
-            )
-            / res.root
-            < 1.0e-2
-        ):
-            raise OptimiserStepError("Unknown error in Brent's method")
+        if not last_lmda < first_b:
+            raise OptimiserStepError("Unknown error in finding optimal lambda")
 
-        logger.info(f"Optimised lambda for QA step: {last_lmda}")
+        logger.debug(f"Optimised lambda for QA step: {last_lmda}")
         # use the final lambda to construct level-shifted Hessian
         return self._coords.h - last_lmda * np.eye(h_n)
 
@@ -331,7 +372,7 @@ class RobustOptimiser(CRFOptimiser):
         """
         If the energy and gradient norm are oscillating in the last three
         iterations, then interpolate between the last two coordinates to
-        damp the oscillation (must skip the quasi-NR step)
+        damp the oscillation (must skip the quasi-NR step afterwards)
 
         Returns:
             (bool): True if damped, False otherwise
@@ -340,30 +381,38 @@ class RobustOptimiser(CRFOptimiser):
         if not self._should_damp:
             return False
 
-        # allow the optimiser 3 free iterations after damping once
+        # allow the optimiser 3 free iterations before damping again
         if self.iteration - self._last_damp_iter < 3:
             return False
 
         # get last three coordinates
-        coords_0, coords_1, coords_2 = self._history[-3:]
+        coords_0, coords_1, coords_2, coords_3 = self._history[-4:]
 
-        # if sign of energy change flips between last three iters
+        # energy changes in last three iters
+        e_change_0_1 = coords_1.e - coords_0.e
+        e_change_1_2 = coords_2.e - coords_1.e
+        e_change_2_3 = coords_3.e - coords_2.e
+
         is_e_oscillating = (
-            (coords_1.e - coords_0.e) * (coords_2.e - coords_1.e)
-        ) < 0
+            e_change_0_1 * e_change_1_2 < 0.0
+        ) and (  # different sign
+            e_change_1_2 * e_change_2_3 < 0.0
+        )  # different sign
 
-        # if sign of gradient norm change flips between last three iters
+        # the sign of gradient norm change must also flip
         g_change_0_1 = np.linalg.norm(coords_1.to("cart").g) - np.linalg.norm(
             coords_0.to("cart").g
         )
         g_change_1_2 = np.linalg.norm(coords_2.to("cart").g) - np.linalg.norm(
             coords_1.to("cart").g
         )
+        g_change_2_3 = np.linalg.norm(coords_3.to("cart").g) - np.linalg.norm(
+            coords_2.to("cart").g
+        )
 
-        is_g_oscillating = (g_change_0_1 * g_change_1_2) < 0
-
-        # todo energy represented interpolation ?
-        # todo have three iters
+        is_g_oscillating = (g_change_0_1 * g_change_1_2 < 0.0) and (
+            g_change_1_2 * g_change_2_3 < 0.0
+        )
 
         if is_e_oscillating and is_g_oscillating:
             logger.info("Oscillation detected in optimiser, damping")
