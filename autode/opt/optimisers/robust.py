@@ -146,7 +146,10 @@ class HybridTRIMOptimiser(CRFOptimiser):
 
         # damping sets coords so return early
         if self._damp_if_required():
+            logger.info("Skipping quasi-NR step after damping")
             return None
+
+        self._coords.allow_unconverged_back_transform = True
 
         rfo_h_eff = self._get_rfo_minimise_h_eff()
         rfo_step = -np.linalg.inv(rfo_h_eff) @ self._coords.g
@@ -174,8 +177,9 @@ class HybridTRIMOptimiser(CRFOptimiser):
                 step = scaled_step
 
         step_size = self._get_cart_step_size_from_step(step)
+        self._coords.allow_unconverged_back_transform = False
         self._coords = self._coords + step  # finally, take the step!
-        logger.info(f"Size of step taken = {step_size:.3f} Å")
+        logger.info(f"Size of step taken (in Cartesian) = {step_size:.3f} Å")
 
         return None
 
@@ -364,7 +368,8 @@ class HybridTRIMOptimiser(CRFOptimiser):
             # also decrease if ratio too high
             self.alpha = max(self.alpha / 2, self._min_alpha)
 
-        logger.info(f"Current trust radius = {self.alpha} Å")
+        logger.info(f"Current trust radius = {self.alpha:.3f} Å")
+        # todo make consistent with geomeTRIC
 
         return None
 
@@ -418,8 +423,8 @@ class HybridTRIMOptimiser(CRFOptimiser):
             logger.info("Oscillation detected in optimiser, damping")
 
             # is halfway interpolation good?
-            new_coord_raw = (coords_1.raw + coords_2.raw) / 2.0
-            step = new_coord_raw - coords_2.raw
+            new_coords_raw = (coords_2.raw + coords_3.raw) / 2.0
+            step = new_coords_raw - self._coords.raw
             self._coords = self._coords + step
 
             self._last_damp_iter = self.iteration
