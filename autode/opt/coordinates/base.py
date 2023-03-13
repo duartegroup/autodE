@@ -46,19 +46,15 @@ class OptCoordinates(ValueArray, ABC):
     def __array_finalize__(self, obj: "OptCoordinates") -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
+        # fmt: off
         for attr in (
-            "units",
-            "_e",
-            "_g",
-            "_h",
-            "_h_inv",
-            "U",
-            "B",
-            "B_T_inv",
+            "units",    "_e",   "_g",   "_h",
+            "_h_inv",   "U",    "B",    "B_T_inv",
             "allow_unconverged_back_transform",
         ):
             self.__dict__[attr] = getattr(obj, attr, None)
 
+        # fmt: on
         return None
 
     @property
