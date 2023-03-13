@@ -349,12 +349,11 @@ class HybridTRIMOptimiser(CRFOptimiser):
         cart_step = coords_l.to("cart") - coords_k.to("cart")
         cart_step_size = np.linalg.norm(cart_step)
 
-        pred_energy_change = np.dot(
-            coords_k.g, step
-        ) + 0.5 * np.linalg.multi_dot((step, coords_k.h, step))
+        pred_e_change = np.dot(coords_k.g, step)
+        pred_e_change += 0.5 * np.linalg.multi_dot((step, coords_k.h, step))
 
         # ratio between actual deltaE and predicted deltaE
-        ratio = self.last_energy_change / pred_energy_change
+        ratio = self.last_energy_change / float(pred_e_change)
 
         if ratio < 0.25:
             set_trust = 0.5 * min(self.alpha, cart_step_size)
