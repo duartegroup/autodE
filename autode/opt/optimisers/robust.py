@@ -244,8 +244,8 @@ class HybridTRIMOptimiser(CRFOptimiser):
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
 
         def get_int_step_size_and_deriv(lmda):
-            """Get the step, step size and the derivative
-            for the given lambda"""
+            """Get the internal coordinate step, step size and
+            the derivative for the given lambda"""
             shifted_h = self._coords.h - lmda * np.eye(h_n)
             inv_shifted_h = np.linalg.inv(shifted_h)
             step = -inv_shifted_h @ self._coords.g
@@ -254,11 +254,10 @@ class HybridTRIMOptimiser(CRFOptimiser):
             deriv = float(deriv) / size
             return size, deriv, step
 
-        def optimise_lambda_for_int_step(int_size, lmda_guess=None):
+        def optimise_lambda_for_int_step(int_size, lmda_guess):
             """Given a step length in internal coords, get the
             value of lambda that will give that step"""
-            if lmda_guess is None:
-                lmda_guess = first_b - 1.0
+            # from geomeTRIC
             for _ in range(20):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
                 if abs(size - int_size) / int_size < 0.001:  # 0.1% error
@@ -268,7 +267,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
                 raise OptimiserStepError("Failed in optimising internal step")
             return lmda_guess
 
-        last_lmda = None  # non-local variable
+        last_lmda = first_b - 1.0  # starting guess
 
         def cart_step_length_error(int_size):
             """Deviation for trust radius given step-size
@@ -322,7 +321,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
         if not res.converged:
             raise OptimiserStepError("Unable to converge step to trust radius")
 
-        if not last_lmda < first_b:
+        if not last_lmda < min(0, first_b):
             raise OptimiserStepError("Unknown error in finding optimal lambda")
 
         logger.debug(f"Optimised lambda for QA step: {last_lmda}")
