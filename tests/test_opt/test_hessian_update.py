@@ -8,7 +8,7 @@ from autode.opt.optimisers.hessian_update import (
     SR1Update,
     NullUpdate,
     BofillUpdate,
-    FlowchartUpdate
+    FlowchartUpdate,
 )
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -244,7 +244,7 @@ def test_bfgs_and_flowchart_update_water():
         )
 
 
-def test_flowchart_update_all_components():
+def test_flowchart_update_all_components_work():
     # fictitious data
     h = np.array([[1.0, 0.01], [0.01, 1.0]])
     y = np.array([0.01, 0.03])
@@ -270,8 +270,19 @@ def test_flowchart_update_all_components():
     z = z.reshape(-1, 1)
     s = s.reshape(-1, 1)  # cast into column forms
     delta_psb = (s @ z.T + z @ s.T) / (s.T @ s)
-    delta_psb -= (s.T @ z) * (s @ s.T)/ (s.T @ s)**2
+    delta_psb -= (s.T @ z) * (s @ s.T) / (s.T @ s) ** 2
     assert np.allclose(h_new, h + delta_psb)
+
+    h = np.array([[1.0, 0.1], [0.1, 1.0]])
+    s = np.array([-0.02, -0.06])
+    z = y - h @ s
+    updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    # not BFGS
+    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) < 0.1
+    # this uses SR1 update
+    sr1_updater = SR1Update(h=h, y=y, s=s)
+    assert np.allclose(h_new, sr1_updater.updated_h)
 
 
 def test_hessian_requires_at_least_one_index():

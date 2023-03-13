@@ -263,6 +263,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
                 if abs(size - int_size) / int_size < 0.001:  # 0.1% error
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
+                # todo fix this
             else:
                 raise OptimiserStepError("Failed in optimising internal step")
             return lmda_guess
@@ -289,11 +290,11 @@ class HybridTRIMOptimiser(CRFOptimiser):
             int_step_size = int_step_size * fac
             err = cart_step_length_error(int_step_size)
 
-            if err < -1.0e-8:  # found where error is < 0
+            if err < -1.0e-6:  # found where error is < 0
                 fac = 2.0  # increase the step size
                 size_min_bound = int_step_size
 
-            elif err > 1.0e-8:  # found where error is > 0
+            elif err > 1.0e-6:  # found where error is > 0
                 fac = 0.5  # decrease the step size
                 size_max_bound = int_step_size
 
@@ -306,6 +307,9 @@ class HybridTRIMOptimiser(CRFOptimiser):
             raise OptimiserStepError(
                 "Unable to find bracket range for root finding"
             )
+        # NOTE: The secant method does not need bracketing, however
+        # the bracketing is done to ensure better convergence, as
+        # the guesses for secant method should be closer to root
 
         logger.debug("Using secant method to find root")
         # Use scipy's root finder with secant method
@@ -321,7 +325,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
         if not res.converged:
             raise OptimiserStepError("Unable to converge step to trust radius")
 
-        if not last_lmda < min(0, first_b):
+        if not last_lmda < first_b:
             raise OptimiserStepError("Unknown error in finding optimal lambda")
 
         logger.debug(f"Optimised lambda for QA step: {last_lmda}")
@@ -414,7 +418,9 @@ class HybridTRIMOptimiser(CRFOptimiser):
             coords_2.to("cart").g
         )
 
-        is_g_oscillating = (g_change_0_1 * g_change_1_2 < 0.0) and (
+        is_g_oscillating = (
+            g_change_0_1 * g_change_1_2 < 0.0
+        ) and (  # different sign
             g_change_1_2 * g_change_2_3 < 0.0
         )
 
