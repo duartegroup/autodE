@@ -254,14 +254,24 @@ def test_flowchart_update_all_components():
     updater = FlowchartUpdate(h=h, s=s, y=y)
     h_new = updater.updated_h
     bfgs_updater = BFGSUpdate(h=h, s=s, y=y)
+    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) > 0.1
     assert np.allclose(h_new, bfgs_updater.updated_h)
 
     h = np.array([[-1.0, 0.1], [0.01, -1.0]])
     s = np.array([-0.02, -0.06])
+    z = y - h @ s
     updater = FlowchartUpdate(h=h, s=s, y=y)
     h_new = updater.updated_h
-    # this gives Powell Symmetric Broyden update!!
-
+    # not BFGS
+    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) < 0.1
+    # not SR1
+    assert np.dot(z, s) / (np.linalg.norm(z) * np.linalg.norm(s)) > -0.1
+    # this gives Powell Symmetric Broyden update
+    z = z.reshape(-1, 1)
+    s = s.reshape(-1, 1)  # cast into column forms
+    delta_psb = (s @ z.T + z @ s.T) / (s.T @ s)
+    delta_psb -= (s.T @ z) * (s @ s.T)/ (s.T @ s)**2
+    assert np.allclose(h_new, h + delta_psb)
 
 
 def test_hessian_requires_at_least_one_index():
