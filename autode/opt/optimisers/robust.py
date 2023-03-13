@@ -357,19 +357,20 @@ class HybridTRIMOptimiser(CRFOptimiser):
         ratio = self.last_energy_change / pred_energy_change
 
         if ratio < 0.25:
-            self.alpha = max(self.alpha / 2, self._min_alpha)
+            set_trust = 0.5 * min(self.alpha, cart_step_size)
+            self.alpha = max(set_trust, self._max_alpha)
         elif 0.25 < ratio < 0.75:
             pass
-        elif 0.75 < ratio < 1.25:
+        elif ratio > 0.75:
             # if step taken is within 5% of the trust radius
             if abs(cart_step_size - self.alpha) / self.alpha < 0.05:
                 self.alpha = min(self.alpha * 1.414, self._max_alpha)
-        else:  # ratio > 1.25
-            # also decrease if ratio too high
-            self.alpha = max(self.alpha / 2, self._min_alpha)
+        # NOTE: for TS optimisation, the trust radius is decreased if
+        # the ratio is too large (e.g., > 1.5), but for minimisation
+        # this is probably not needed (because larger energy lowering
+        # is better?)
 
         logger.info(f"Current trust radius = {self.alpha:.3f} Å")
-        # todo make consistent with geomeTRIC
 
         return None
 
