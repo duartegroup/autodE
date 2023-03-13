@@ -245,11 +245,23 @@ def test_bfgs_and_flowchart_update_water():
 
 
 def test_flowchart_update_all_components():
+    # fictitious data
     h = np.array([[1.0, 0.01], [0.01, 1.0]])
     y = np.array([0.01, 0.03])
     s = np.array([0.02, 0.06])
+    # this gives bfgs criteria = 0.998 > 0.1
 
     updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    bfgs_updater = BFGSUpdate(h=h, s=s, y=y)
+    assert np.allclose(h_new, bfgs_updater.updated_h)
+
+    h = np.array([[-1.0, 0.1], [0.01, -1.0]])
+    s = np.array([-0.02, -0.06])
+    updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    # this gives Powell Symmetric Broyden update!!
+
 
 
 def test_hessian_requires_at_least_one_index():
