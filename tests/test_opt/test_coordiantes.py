@@ -719,11 +719,17 @@ def test_dic_large_step_allowed_unconverged_back_transform():
     x = CartesianCoordinates(water_mol().coordinates)
     dic = DIC.from_cartesian(x)
 
-    dic += 1.0 * np.ones(shape=(len(dic),))
-    new_x = dic.to("cartesian")
+    dic.allow_unconverged_back_transform = True
+    dic_unconverged = dic + 1.0 * np.ones(shape=(len(dic),))
+    new_x = dic_unconverged.to("cartesian")
 
     # DIC transform should have moved the cartesian coordinates
     assert not np.allclose(new_x, x)
+
+    # should raise RuntimeError if unconverged IBT is disallowed
+    dic.allow_unconverged_back_transform = False
+    with pytest.raises(RuntimeError):
+        _ = dic + 1.0 * np.ones(shape=(len(dic),))
 
 
 def test_constrained_angle_delta():
