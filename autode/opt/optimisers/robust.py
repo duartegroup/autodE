@@ -251,13 +251,13 @@ class HybridTRIMOptimiser(CRFOptimiser):
             step = -inv_shifted_h @ self._coords.g
             size = np.linalg.norm(step)
             deriv = -np.linalg.multi_dot((step, inv_shifted_h, step))
-            # todo fix deriv formula
             deriv = float(deriv) / size
             return size, deriv, step
 
         def optimise_lambda_for_int_step(int_size, lmda_guess):
             """Given a step length in internal coords, get the
             value of lambda that will give that step"""
+            # from pyberny and geomeTRIC
             d = 1.0  # use bisection to ensure lambda < first_b
             for _ in range(20):
                 size, _, _ = get_int_step_size_and_deriv(first_b - d)
@@ -369,17 +369,18 @@ class HybridTRIMOptimiser(CRFOptimiser):
 
         if ratio < 0.25:
             set_trust = 0.5 * min(self.alpha, cart_step_size)
-            self.alpha = max(set_trust, self._max_alpha)
+            self.alpha = max(set_trust, self._min_alpha)
         elif 0.25 < ratio < 0.75:
             pass
-        elif ratio > 0.75:
+        elif 0.75 < ratio < 1.25:
             # if step taken is within 5% of the trust radius
             if abs(cart_step_size - self.alpha) / self.alpha < 0.05:
                 self.alpha = min(self.alpha * 1.414, self._max_alpha)
-        # NOTE: for TS optimisation, the trust radius is decreased if
-        # the ratio is too large (e.g., > 1.5), but for minimisation
-        # this is probably not needed (because larger energy lowering
-        # is better?)
+        elif 1.25 < ratio < 1.5:
+            pass
+        else:  # ratio > 1.5
+            # if ratio is too high, scale down trust by a small amount
+            self.alpha = max(self.alpha * 2 / 3, self._min_alpha)
 
         logger.info(f"Current trust radius = {self.alpha:.3f} Å")
 

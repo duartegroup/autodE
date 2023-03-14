@@ -4,9 +4,10 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.values import Gradient
 from autode.hessians import Hessian
+from autode.utils import work_in_tmp_dir
+from ..test_utils import requires_with_working_xtb_install
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.robust import HybridTRIMOptimiser
-from autode.opt.coordinates import CartesianCoordinates
 
 
 def test_trim_step():
@@ -156,5 +157,44 @@ def test_trim_step():
     step = -np.linalg.inv(h_eff) @ opt._coords.g  # in Cartesian
     step_size = np.linalg.norm(step)
 
-    # for Cartesian, the step size should be perfectly at trust radius
-    assert np.isclose(step_size, opt.alpha, rtol=0.01)  # 1% error margin
+    # for Cartesian, the step size should be 0.1% of trust radius
+    assert np.isclose(step_size, opt.alpha, rtol=0.001)
+
+
+def test_damping_in_hybridtrim_optimiser():
+    coord1 = CartesianCoordinates([1.0, -2.0, 1.0, 3.0, 1.1, 1.2])
+    coord1.e = 0.14
+    coord1.g = np.array([0.2, 0.3, 0.1, -0.2])
+    coord2 = CartesianCoordinates([1.1, -1.9, 1.1, 3.1, 1.2, 1.3])
+    coord2.e = 0.10
+    coord2.g = np.array([0.1, 0.3, 0.01, -0.1])
+    opt = HybridTRIMOptimiser(coord_type="cart", maxiter=2, gtol=0.1, etol=0.1)
+
+    # simulate an oscillation happening
+    opt._coords = coord1
+    opt._coords = coord2
+    opt._coords = coord1
+    opt._coords = coord2
+
+    assert opt._damp_if_required()  # should damp
+    # 50% mixing
+    avg_coord = (coord1 + coord2) / 2.0
+    assert np.allclose(avg_coord, opt._coords)
+
+
+@work_in_tmp_dir()
+@requires_with_working_xtb_install
+def test_trim_molecular_opt():
+
+    mol = Molecule(smiles="O")
+    assert [atom.label for atom in mol.atoms] == ["O", "H", "H"]
+
+    HybridTRIMOptimiser.optimise(mol, method=XTB())
+
+    # Check optimised distances are similar to running the optimiser in XTB
+    for oh_atom_idx_pair in [(0, 1), (0, 2)]:
+        assert np.isclose(
+            mol.distance(*oh_atom_idx_pair).to("Å"), 0.9595, atol=1e-2
+        )
+
+    assert np.isclose(mol.distance(1, 2), 1.5438, atol=1e-2)
