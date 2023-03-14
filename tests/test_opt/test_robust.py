@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from autode.species import Molecule
 from autode.atoms import Atom
@@ -198,3 +199,15 @@ def test_trim_molecular_opt():
         )
 
     assert np.isclose(mol.distance(1, 2), 1.5438, atol=1e-2)
+
+
+@work_in_tmp_dir()
+@requires_with_working_xtb_install
+def test_optimiser_plotting():
+    mol = Molecule(smiles="O")
+
+    opt = HybridTRIMOptimiser(maxiter=100, gtol=1e-3, etol=1e-3)
+    opt.run(mol, method=XTB())
+
+    opt.draw_optimiser_plot()
+    assert os.path.isfile(f"{mol.name}_opt_plot.pdf")

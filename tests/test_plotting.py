@@ -11,6 +11,9 @@ from autode.reactions.reaction import Reaction
 from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.ts_guess import TSguess
 from autode.units import KjMol, KcalMol
+from autode.utils import work_in_tmp_dir
+from autode.opt.optimisers.base import _OptimiserHistory
+from autode.opt.coordinates import CartesianCoordinates
 from autode.config import Config
 from copy import deepcopy
 from scipy.optimize import minimize
@@ -225,3 +228,21 @@ def test_energy():
     assert new_energy == 10
 
     assert "energy" in repr(energy).lower()
+
+
+@work_in_tmp_dir()
+def test_optimiser_plot():
+    hist = _OptimiserHistory()
+    x = CartesianCoordinates(np.arange(6))
+    x.e = -1.45
+    x.g = np.array([1.0, 0.9, 1.2, 0.4, 3.4, 0.3])
+    x2 = x.copy()
+    hist.append(x)
+    hist.append(x2)
+    plotting.plot_optimiser_profile(
+        history=hist,
+        plot_energy=True,
+        plot_rms_grad=True,
+        filename="this_file.pdf",
+    )
+    assert os.path.isfile("this_file.pdf")
