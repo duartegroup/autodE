@@ -261,7 +261,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
             d = 1.0  # use bisection to ensure lambda < first_b
             for _ in range(20):
                 size, _, _ = get_int_step_size_and_deriv(first_b - d)
-                # f(x) > 0, so going downhill has no risk of jumping over
+                # find f(x) > 0, so going downhill has no risk of jumping over
                 if size > int_size:
                     break
                 d = d / 2.0
@@ -272,8 +272,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
                 if abs(size - int_size) / int_size < 0.001:  # 0.1% error
                     break
-                lmda_guess -= size / der  # newton's root finding
-                # todo fix this
+                lmda_guess -= (1 - size / int_size) * (size / der)
             else:
                 raise OptimiserStepError("Failed in optimising internal step")
             return lmda_guess
