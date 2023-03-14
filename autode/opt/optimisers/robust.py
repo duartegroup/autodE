@@ -254,7 +254,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
             deriv = float(deriv) / size
             return size, deriv, step
 
-        def optimise_lambda_for_int_step(int_size, lmda_guess):
+        def optimise_lambda_for_int_step(int_size):
             """Given a step length in internal coords, get the
             value of lambda that will give that step"""
             # from pyberny and geomeTRIC
@@ -277,13 +277,13 @@ class HybridTRIMOptimiser(CRFOptimiser):
                 raise OptimiserStepError("Failed in optimising internal step")
             return lmda_guess
 
-        last_lmda = first_b - 1.0  # starting guess
+        last_lmda = 0.0  # initialize non-local var
 
         def cart_step_length_error(int_size):
             """Deviation for trust radius given step-size
             in internal coordinates"""
             nonlocal last_lmda
-            last_lmda = optimise_lambda_for_int_step(int_size, last_lmda)
+            last_lmda = optimise_lambda_for_int_step(int_size)
             _, _, step = get_int_step_size_and_deriv(last_lmda)
             step_size = self._get_cart_step_size_from_step(step)
             return step_size - self.alpha
