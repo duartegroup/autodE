@@ -216,8 +216,8 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
             implicit_solvation_type=None,
             keywords_set=XTB().keywords,
         )
-        self.etemp = XTB().etemp
-        self.gfn_ver = XTB().gfn_ver
+        self.electronic_temp = XTB().electronic_temp
+        self.gfn_version = XTB().gfn_version
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
         return XTB._energy_from(self, calc)
@@ -391,16 +391,17 @@ def test_xtb_cartesian_constrained_opt():
     assert abs(h2.distance(0, 1) - init_r) < 0.1
 
 
+@pytest.mark.parametrize("gfn_ver,etemp", [(1, 300.0), (2, 1200.1)])
 @testutils.requires_with_working_xtb_install
 @work_in_tmp_dir()
-def test_xtb_temp_var_params():
+def test_xtb_etemp_and_gfn_var_params_recognised(gfn_ver, etemp):
 
-    # test that the etemp and gfn_ver Config params are recognised
+    # test that the electronic_temp and gfn_version Config params are recognised
 
     mol = Molecule(smiles="O")
     with temporary_config():
-        Config.XTB.gfn_ver = 1
-        Config.XTB.etemp = 1200.1
+        Config.XTB.gfn_version = gfn_ver
+        Config.XTB.electronic_temp = etemp
 
         calc = Calculation(
             name="water",
@@ -411,10 +412,9 @@ def test_xtb_temp_var_params():
         calc.run()
 
     assert calc.output.filename is not None
-    with open(calc.output.filename, "r") as fh:
-        output = fh.read()
+    output = "".join(calc.output.file_lines)
 
     # xTB command line flags should be printed in the output
-    assert output.find("--gfn 1") != -1
-    etemp_str = str(float(1200.1))  # string repr may be different
-    assert output.find(f"--etemp {etemp_str}") != -1
+    assert f"--gfn {gfn_ver}" in output
+    etemp_str = str(float(etemp))  # string repr may be different
+    assert f"--etemp {etemp_str}" in output

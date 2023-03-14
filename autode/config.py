@@ -340,12 +340,12 @@ class _ConfigClass:
         #
         # Electronic temperature for all calculations (Kelvin)
         # None means unset (default), set to 300.0 to have 300K for example
-        etemp = None
+        electronic_temp = None
         #
         # Version of xTB hamiltonian parameterisation: 0,1 or 2
         # corresponding to GFN0-xTB, GFN1-xTB, GFN2-xTB respectively
         # When unset, uses the default
-        gfn_ver = None
+        gfn_version = None
 
     class MOPAC:
         # ---------------------------------------------------------------------
