@@ -251,18 +251,28 @@ class HybridTRIMOptimiser(CRFOptimiser):
             step = -inv_shifted_h @ self._coords.g
             size = np.linalg.norm(step)
             deriv = -np.linalg.multi_dot((step, inv_shifted_h, step))
+            # todo fix deriv formula
             deriv = float(deriv) / size
             return size, deriv, step
 
         def optimise_lambda_for_int_step(int_size, lmda_guess):
             """Given a step length in internal coords, get the
             value of lambda that will give that step"""
-            # from geomeTRIC
+            d = 1.0  # use bisection to ensure lambda < first_b
             for _ in range(20):
+                size, _, _ = get_int_step_size_and_deriv(first_b - d)
+                # f(x) > 0, so going downhill has no risk of jumping over
+                if size > int_size:
+                    break
+                d = d / 2.0
+            else:
+                raise OptimiserStepError("Failed to find f(x) > 0")
+            lmda_guess = first_b - d
+            for _ in range(50):
                 size, der, _ = get_int_step_size_and_deriv(lmda_guess)
                 if abs(size - int_size) / int_size < 0.001:  # 0.1% error
                     break
-                lmda_guess -= (1 - size / int_size) * (size / der)
+                lmda_guess -= size / der  # newton's root finding
                 # todo fix this
             else:
                 raise OptimiserStepError("Failed in optimising internal step")
