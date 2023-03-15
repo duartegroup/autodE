@@ -108,7 +108,6 @@ class RFOptimiser(NDOptimiser):
         if len(delta_s) == 0:  # No need to sanitise a null step
             return 0.0
 
-        self._coords.allow_unconverged_back_transform = True
         step = factor * delta_s
         new_coords = self._coords + step
         cartesian_delta = new_coords.to("cart") - self._coords.to("cart")
@@ -127,4 +126,5 @@ class RFOptimiser(NDOptimiser):
 
         self._coords.allow_unconverged_back_transform = False
         self._coords = self._coords + step
+        self._coords.allow_unconverged_back_transform = True
         return factor

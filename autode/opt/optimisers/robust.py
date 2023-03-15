@@ -149,8 +149,6 @@ class HybridTRIMOptimiser(CRFOptimiser):
             logger.info("Skipping quasi-NR step after damping")
             return None
 
-        self._coords.allow_unconverged_back_transform = True
-
         rfo_h_eff = self._get_rfo_minimise_h_eff()
         rfo_step = -np.linalg.inv(rfo_h_eff) @ self._coords.g
         rfo_step_size = self._get_cart_step_size_from_step(rfo_step)
@@ -179,6 +177,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
         step_size = self._get_cart_step_size_from_step(step)
         self._coords.allow_unconverged_back_transform = False
         self._coords = self._coords + step  # finally, take the step!
+        self._coords.allow_unconverged_back_transform = True
         logger.info(f"Size of step taken (in Cartesian) = {step_size:.3f} Å")
 
         return None

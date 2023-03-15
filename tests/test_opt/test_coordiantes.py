@@ -719,7 +719,7 @@ def test_dic_large_step_allowed_unconverged_back_transform():
     x = CartesianCoordinates(water_mol().coordinates)
     dic = DIC.from_cartesian(x)
 
-    dic.allow_unconverged_back_transform = True
+    # unconverged IBT is allowed by default
     dic_unconverged = dic + 1.0 * np.ones(shape=(len(dic),))
     new_x = dic_unconverged.to("cartesian")
 

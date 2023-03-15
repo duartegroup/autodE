@@ -39,7 +39,7 @@ class OptCoordinates(ValueArray, ABC):
         arr.B = None  # Wilson B matrix
         arr.B_T_inv = None  # Generalised inverse of B
         arr.U = np.eye(len(arr))  # Transform matrix
-        arr.allow_unconverged_back_transform = False  # for internal coords
+        arr.allow_unconverged_back_transform = True  # for internal coords
 
         return arr
 
