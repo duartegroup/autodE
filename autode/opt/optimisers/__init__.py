@@ -17,5 +17,5 @@ __all__ = [
     "CRFOptimiser",
     "CartesianSDOptimiser",
     "DIC_SD_Optimiser",
-    "HybridTRIMOptimiser"
+    "HybridTRIMOptimiser",
 ]
