@@ -87,7 +87,9 @@ class DistanceConstrainedOptimiser(NDOptimiser):
 
     def _step(self) -> None:
         if self.iteration > 1 and self._do_line_search:
-            ip_coords, ip_grad = self._line_search_on_sphere()
+            coords, grad = self._line_search_on_sphere()
+        else:
+            coords, grad = self._coords, self._coords.g
 
     def _line_search_on_sphere(
         self,
