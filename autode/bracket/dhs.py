@@ -89,7 +89,9 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         if self.iteration > 1 and self._do_line_search:
             ip_coords, ip_grad = self._line_search_on_sphere()
 
-    def _line_search_on_sphere(self):
+    def _line_search_on_sphere(
+        self,
+    ) -> Tuple[CartesianCoordinates, np.ndarray]:
         """
         Line search on a hypersphere of radius equal to the target
         distance.
