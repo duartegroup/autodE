@@ -383,12 +383,16 @@ class HybridTRIMOptimiser(CRFOptimiser):
 
         if ratio < -1.0:
             # if ratio too low, discard the last point
-            logger.warning("Energy increased by large amount,"
-                           "rejecting last geometry step")
+            logger.warning(
+                "Energy increased by large amount,"
+                "rejecting last geometry step"
+            )
             # copy the previous geometry into current one
             self._history[-1] = self._history[-2].copy()
 
-        logger.info(f"Current trust radius = {self.alpha:.3f} Å")
+        logger.info(
+            f"Ratio = {ratio:.3f}, Current trust radius = {self.alpha:.3f} Å"
+        )
 
         return None
 
