@@ -99,9 +99,33 @@ class DistanceConstrainedOptimiser(NDOptimiser):
                 print("Performed linear search on surface of a hypersphere")
         else:
             coords, grad = self._coords, self._coords.g
+
+        step = self._get_lagrangian_step(coords, grad)
+        # todo is there any need to have trust radius? how
+        # have trust radius
+
+        # the step is on the interpolated coordinates (if done)
+        self._coords = coords + step
+
         # todo read GAMESS code and check ACUT parameter
 
-    def _get_lagrangian_multiplier(self, coords, grad):
+    def _get_lagrangian_step(self, coords, grad) -> np.ndarray:
+        """
+        Obtain the step that will minimise the gradient tangent to
+        the distance vector from pivot point, while maintaining the
+        same distance from pivot point
+
+        Args:
+            coords: Previous coordinate (either from quasi-NR step
+                    or from linear search)
+            grad: Previous gradient (either from quasi-NR or linear
+                  search)
+
+        Returns:
+            (np.ndarray): Step in cartesian (or mw-cartesian)
+        """
+
+        from scipy.optimize import root_scalar
         # adapted from pysisyphus
         h_eigvals, h_vecs = np.linalg.eigh(self._coords.h)
         non_zero = np.abs(h_eigvals) > 1.0e-8  # get non-zero eigenvalues
@@ -110,7 +134,9 @@ class DistanceConstrainedOptimiser(NDOptimiser):
 
         # project the grad and p vector onto hessian eigenvectors
         grad_bar = grad.dot(selected_vecs)
-        p_bar = self.dist_vec.dot(selected_vecs)
+        # use interpolated coords if interpolation done
+        p_vec = np.array(coords - self._pivot)
+        p_bar = p_vec.dot(selected_vecs)
         # todo fix error
 
         def delta_x_h_bas(lmda):
@@ -129,15 +155,40 @@ class DistanceConstrainedOptimiser(NDOptimiser):
             """
             # convert to cartesian
             delta_x_cart = selected_vecs.dot(delta_x_h_bas(lmda))
-            p_new = self.dist_vec + delta_x_cart
+            p_new = p_vec + delta_x_cart
             return np.linalg.norm(p_new) - self._target_dist
 
         # lambda must be in (-infinity, first_b) bracket for a minimising step
         first_b = selected_eigvals[0]
+        lmda_guess = first_b - 1.0
         range_min = None
         range_max = None
         for _ in range(100):
-            pass
+            if constraint_error(lmda_guess) > 0:
+                range_max = lmda_guess
+                lmda_guess -= 1.0
+            elif constraint_error(lmda_guess) < 0:
+                range_min = lmda_guess
+                lmda_guess += 1.0
+            if range_max is not None and range_min is not None:
+                break
+        else:
+            raise RuntimeError("Unable to find bracket for root-finding")
+
+        # Brent's search to get root
+        res = root_scalar(
+            f=constraint_error,
+            method="brentq",
+            bracket=[range_min, range_max],
+            maxiter=200,
+        )
+
+        if not res.converged:
+            raise RuntimeError("Unable to find lambda for quasi-NR step")
+
+        final_step_cart = selected_vecs.dot(delta_x_h_bas(res.root))
+
+        return final_step_cart
 
     def _line_search_on_sphere(
         self,
