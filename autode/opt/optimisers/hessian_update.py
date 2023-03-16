@@ -541,7 +541,7 @@ class BFGSSR1Update(HessianUpdater):
     """
 
     def __repr__(self):
-        return "BFGS-SR1-hybrid"
+        return "BFGS-SR1"
 
     @property
     def _updated_h(self) -> np.ndarray:
