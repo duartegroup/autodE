@@ -169,7 +169,7 @@ class DistanceConstrainedOptimiser(NDOptimiser):
                 lmda_guess -= 1.0
             elif constraint_error(lmda_guess) < 0:
                 range_min = lmda_guess
-                lmda_guess += 1.0
+                lmda_guess += 0.3
             if range_max is not None and range_min is not None:
                 break
         else:
