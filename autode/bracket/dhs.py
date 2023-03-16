@@ -43,9 +43,9 @@ class DistanceConstrainedOptimiser(NDOptimiser):
 
     def __init__(
         self,
-        init_trust: float,
         pivot_point: CartesianCoordinates,
         target_dist: Distance,
+        init_trust: float = 0.2,
         line_search: bool = True,
         *args,
         **kwargs,
@@ -57,13 +57,13 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         it does not always work.
 
         Args:
-            init_trust: Initial trust radius
+            init_trust: Initial trust radius in Angstrom
             pivot_point: Coordinates of the pivot point
             line_search: Whether to use linear search
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = init_trust
+        self.alpha = float(init_trust)
 
         if not isinstance(pivot_point, CartesianCoordinates):
             raise NotImplementedError(
@@ -73,6 +73,7 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         self._pivot = pivot_point
         self._do_line_search = bool(line_search)
         self._target_dist = Distance(target_dist, units="ang")
+        self._hessian_update_types = [BofillUpdate]
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -86,10 +87,57 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         return np.array(self._coords - self._pivot)
 
     def _step(self) -> None:
+
+        self._coords.h = self._updated_h()
+
         if self.iteration > 1 and self._do_line_search:
             coords, grad = self._line_search_on_sphere()
+            # ensure line search does not exceed trust radius
+            if np.linalg.norm(coords - self._coords) > self.alpha:
+                coords, grad = self._coords, self._coords.g
+            else:
+                print("Performed linear search on surface of a hypersphere")
         else:
             coords, grad = self._coords, self._coords.g
+        # todo read GAMESS code and check ACUT parameter
+
+    def _get_lagrangian_multiplier(self, coords, grad):
+        # adapted from pysisyphus
+        h_eigvals, h_vecs = np.linalg.eigh(self._coords.h)
+        non_zero = np.abs(h_eigvals) > 1.0e-8  # get non-zero eigenvalues
+        selected_eigvals = h_eigvals[non_zero]
+        selected_vecs = h_vecs[:, non_zero]
+
+        # project the grad and p vector onto hessian eigenvectors
+        grad_bar = grad.dot(selected_vecs)
+        p_bar = self.dist_vec.dot(selected_vecs)
+        # todo fix error
+
+        def delta_x_h_bas(lmda):
+            """
+            Get step in the basis of Hessian eigenvectors, given
+            a shift parameter lambda
+            """
+            return -(grad_bar - lmda * p_bar) / (selected_eigvals - lmda)
+
+        # todo test the above expression fulfills the equation
+
+        def constraint_error(lmda):
+            """
+            Given a shift parameter lambda, gets the error w.r.t.
+            fulfilling the distance constraint
+            """
+            # convert to cartesian
+            delta_x_cart = selected_vecs.dot(delta_x_h_bas(lmda))
+            p_new = self.dist_vec + delta_x_cart
+            return np.linalg.norm(p_new) - self._target_dist
+
+        # lambda must be in (-infinity, first_b) bracket for a minimising step
+        first_b = selected_eigvals[0]
+        range_min = None
+        range_max = None
+        for _ in range(100):
+            pass
 
     def _line_search_on_sphere(
         self,
