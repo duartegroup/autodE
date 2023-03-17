@@ -5,12 +5,12 @@ As described in J. Chem. Soc. Farady Trans. 2, 1984, 80, 227-233
 """
 
 import os
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize
 
-from autode.values import Distance
+from autode.values import Distance, Angle
 from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair, ImgPairSideError
 from autode.methods import get_lmethod
@@ -42,10 +42,11 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
     def __init__(
         self,
-        pivot_point: CartesianCoordinates,
+        pivot_point: Optional[CartesianCoordinates],
         target_dist: Distance,
         init_trust: float = 0.2,
         line_search: bool = True,
+        angle_thresh: Angle = Angle(5, units="deg"),
         *args,
         **kwargs,
     ):
@@ -59,6 +60,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             init_trust: Initial trust radius in Angstrom
             pivot_point: Coordinates of the pivot point
             line_search: Whether to use linear search
+            angle_thresh: An angle threshold above which linear search
+                          will be rejected (in Degrees)
         """
         super().__init__(*args, **kwargs)
 
@@ -72,6 +75,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._pivot = pivot_point
         self._do_line_search = bool(line_search)
         self._target_dist = Distance(target_dist, units="ang")
+        self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
         self._hessian_update_types = [BofillUpdate]
         # todo test reasonableness of Bofill update
 
@@ -114,15 +118,11 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
     def _step(self) -> None:
 
+        print(f"Distance between coords = {np.linalg.norm(self.dist_vec)}")
         self._coords.h = self._updated_h()
 
         if self.iteration > 1 and self._do_line_search:
             coords, grad = self._line_search_on_sphere()
-            # ensure line search does not exceed trust radius
-            if np.linalg.norm(coords - self._coords) > self.alpha:
-                coords, grad = self._coords, self._coords.g
-            else:
-                print("Performed linear search on surface of a hypersphere")
         else:
             coords, grad = self._coords, self._coords.g
 
@@ -134,8 +134,6 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
         # the step is on the interpolated coordinates (if done)
         self._coords = coords + step
-
-        # todo read GAMESS code and check ACUT parameter
 
     def _get_lagrangian_step(self, coords, grad) -> np.ndarray:
         """
@@ -154,6 +152,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         """
 
         from scipy.optimize import root_scalar
+
         # adapted from pysisyphus
         h_eigvals, h_vecs = np.linalg.eigh(self._coords.h)
         non_zero = np.abs(h_eigvals) > 1.0e-8  # get non-zero eigenvalues
@@ -224,7 +223,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
     def _line_search_on_sphere(
         self,
-    ) -> Tuple[CartesianCoordinates, np.ndarray]:
+    ) -> Tuple[Optional[CartesianCoordinates], Optional[np.ndarray]]:
         """
         Linear search on a hypersphere of radius equal to the target
         distance.
@@ -240,19 +239,32 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         g_prime_per = self._coords.g - p_prime * (
             np.dot(self._coords.g, p_prime) / np.dot(p_prime, p_prime)
         )
+        g_prime_per = np.linalg.norm(g_prime_per)
         p_prime_prime = np.array(last_coords - self._pivot)
         g_prime_prime_per = last_coords.g - p_prime_prime * (
             np.dot(last_coords.g, p_prime_prime)
             / np.dot(p_prime_prime, p_prime_prime)
         )
+        g_prime_prime_per = np.linalg.norm(g_prime_prime_per)
         cos_theta_prime = np.dot(p_prime, p_prime_prime) / (
             np.linalg.norm(p_prime) * np.linalg.norm(p_prime_prime)
         )
+        assert -1 < cos_theta_prime < 1
         theta_prime = np.arccos(cos_theta_prime)
-
         theta = (g_prime_prime_per * theta_prime) / (
             g_prime_prime_per - g_prime_per
         )
+        angle_change = abs(theta_prime - theta)
+        if (
+            angle_change > self._angle_thresh
+            and abs(theta) > self._angle_thresh
+        ) or (
+            theta < 0  # extrapolating instead of interpolating
+            and theta_prime < self._angle_thresh
+        ):
+            print("Linear interpolation step is unstable, skipping")
+            return self._coords, self._coords.g
+
         p_interp = p_prime_prime * (
             np.cos(theta)
             - np.sin(theta) * np.cos(theta_prime) / np.sin(theta_prime)
@@ -456,33 +468,37 @@ class DHS:
             if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
                 side = "left"
                 hist = self._initial_species_hist
+                pivot = self.imgpair.right_coord
             else:
                 side = "right"
                 hist = self._final_species_hist
+                pivot = self.imgpair.left_coord
 
             # take a step on the side with lower energy
             self._step(side)
+            dist = self.imgpair.euclid_dist
             coord0 = np.array(self.imgpair.get_coord_by_side(side))
 
             # calculate the number of remaining maxiter to feed into scipy
             curr_maxiter = self._maxiter - self.imgpair.total_iters
             if curr_maxiter == 0:
                 break
-            # scipy does micro-iterations
-            res = minimize(
-                fun=_set_one_img_coord_and_get_engrad,
-                x0=coord0,
-                jac=True,
-                args=(side, self.imgpair),
-                method=self._opt_driver,
-                options={"gtol": 5.0e-4, "maxiter": curr_maxiter},
+
+            opt = DistanceConstrainedOptimiser(
+                maxiter=200,
+                gtol=1e-3,
+                etol=1e-3,
+                pivot_point=pivot,
+                target_dist=dist,
             )
+            self._species.coordinates = coord0
+            opt.run(self._species, method)
 
             # parse the scipy results and log output
             perp_grad = self.imgpair.get_one_img_perp_grad(side)
             rms_grad = np.sqrt(np.mean(np.square(perp_grad)))
 
-            if res["success"]:
+            if opt.converged:
                 logger.info(
                     "Successful optimization after DHS step, final"
                     f" RMS of projected gradient = {rms_grad:.6f}"
