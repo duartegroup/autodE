@@ -17,7 +17,6 @@ from autode.methods import get_lmethod
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
-from autode.opt.optimisers import NDOptimiser
 from autode.input_output import atoms_to_xyz_file
 from autode.opt.optimisers import RFOptimiser
 
@@ -28,7 +27,7 @@ import autode.species.species
 import autode.wrappers.methods
 
 
-class DistanceConstrainedOptimiser(NDOptimiser):
+class DistanceConstrainedOptimiser(RFOptimiser):
     """
     Constrained optimisation of a molecule, with the Euclidean
     distance being kept constrained to a fixed value. The
@@ -74,6 +73,33 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         self._do_line_search = bool(line_search)
         self._target_dist = Distance(target_dist, units="ang")
         self._hessian_update_types = [BofillUpdate]
+        # todo test reasonableness of Bofill update
+
+    def _initialise_run(self) -> None:
+        self._coords = CartesianCoordinates(self._species.coordinates)
+        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
+        # todo do we need to make hessian positive definite
+        self._update_gradient_and_energy()
+
+    @property
+    def converged(self) -> bool:
+        if self.rms_tangent_grad < self.gtol:
+            return True
+        else:
+            return False
+        # todo also check energy change
+
+    @property
+    def rms_tangent_grad(self):
+        """
+        Obtain the RMS of the gradient tangent to the distance
+        vector between current coords and pivot point
+        """
+        grad = self._coords.g
+        # unit vector in the direction of distance vector
+        d_hat = self.dist_vec / np.linalg.norm(self.dist_vec)
+        tangent_grad = grad - (grad.dot(d_hat)) * d_hat
+        return np.sqrt(np.mean(np.square(tangent_grad)))
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -103,6 +129,8 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         step = self._get_lagrangian_step(coords, grad)
         # todo is there any need to have trust radius? how
         # have trust radius
+        step_size = np.linalg.norm(step)
+        print(f"Taking a quasi-Newton step: {step_size:.3f} Angstrom")
 
         # the step is on the interpolated coordinates (if done)
         self._coords = coords + step
@@ -137,7 +165,6 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         # use interpolated coords if interpolation done
         p_vec = np.array(coords - self._pivot)
         p_bar = p_vec.dot(selected_vecs)
-        # todo fix error
 
         def delta_x_h_bas(lmda):
             """
@@ -160,30 +187,35 @@ class DistanceConstrainedOptimiser(NDOptimiser):
 
         # lambda must be in (-infinity, first_b) bracket for a minimising step
         first_b = selected_eigvals[0]
-        lmda_guess = first_b - 1.0
-        range_min = None
-        range_max = None
+        d = 1.0
+        # use bisection to find where f(x) > 0
         for _ in range(100):
+            lmda_guess = first_b - d
             if constraint_error(lmda_guess) > 0:
                 range_max = lmda_guess
-                lmda_guess -= 1.0
-            elif constraint_error(lmda_guess) < 0:
-                range_min = lmda_guess
-                lmda_guess += 0.3
-            if range_max is not None and range_min is not None:
                 break
+            d = d / 2.0
         else:
-            raise RuntimeError("Unable to find bracket for root-finding")
+            raise RuntimeError("Unable to find f(x) > 0")
+
+        for _ in range(100):
+            lmda_guess = first_b - d
+            if constraint_error(lmda_guess) < 0:
+                range_min = lmda_guess
+                break
+            d = d * 2.0
+        else:
+            raise RuntimeError("Unable to find f(x) < 0")
 
         # Brent's search to get root
         res = root_scalar(
             f=constraint_error,
             method="brentq",
-            bracket=[range_min, range_max],
+            bracket=[range_max, range_min],
             maxiter=200,
         )
 
-        if not res.converged:
+        if (not res.converged) or (res.root > first_b):
             raise RuntimeError("Unable to find lambda for quasi-NR step")
 
         final_step_cart = selected_vecs.dot(delta_x_h_bas(res.root))
@@ -194,7 +226,7 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         self,
     ) -> Tuple[CartesianCoordinates, np.ndarray]:
         """
-        Line search on a hypersphere of radius equal to the target
+        Linear search on a hypersphere of radius equal to the target
         distance.
 
         Returns:
@@ -231,6 +263,9 @@ class DistanceConstrainedOptimiser(NDOptimiser):
         g_interp += self._coords.g * (theta / theta_prime)
 
         x_interp = self._pivot + p_interp
+
+        step_size = np.linalg.norm(x_interp - self._coords)
+        print(f"Linear interpolation - step size: {step_size:.3f} Angstrom")
 
         return x_interp, g_interp
 
