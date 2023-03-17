@@ -323,69 +323,6 @@ class DHSImagePair(BaseImagePair):
             raise NotImplementedError("Please use Cartesian coordinates!")
         # todo remove once coordinates are sorted
 
-    # todo Hessian component
-
-
-class DHSRFOptimiser(RFOptimiser):
-    def __init__(
-        self,
-        *args,
-        opt_coord: CartesianCoordinates,
-        other_coord: CartesianCoordinates,
-        **kwargs,
-    ):
-        super().__init__(*args, **kwargs)
-
-        self._coords = opt_coord.to("dic")
-        # todo make the coordinate a choice of user from DHS
-        self._other_cart_coord = other_coord.to("cart")  # must be Cartesian
-
-        self._hessian_update_types = [BFGSDampedUpdate, BofillUpdate]
-
-    def _initialise_run(self) -> None:
-        """
-        Initialise energy, gradient and Hessian for DHS
-        """
-        super()._update_gradient_and_energy()
-
-        cart_grad = self._coords.to("cart").g.copy()
-        cart_hess = self._low_level_cart_hessian
-
-        # do calc
-
-        pass
-
-    def _update_gradient_and_energy(self) -> None:
-        super()._update_gradient_and_energy()
-
-        # replace with projected gradient
-        proj_grad = self._get_projected_grad(self._coords.to("cart").g)
-        self._coords.update_g_from_cart_g(proj_grad)
-
-    def _get_project_hess(self, hess: np.ndarray) -> np.ndarray:
-        pass
-
-    def _get_projected_grad(self, grad: np.ndarray) -> np.ndarray:
-        """
-        Removes the component of the gradient that is parallel to
-        the distance vector given, and returns the remaining
-        component
-
-        Args:
-            grad: Cartesian gradient (flat array)
-
-        Returns:
-            (np.ndarray): Projected gradient in Cartesian format
-        """
-        # distance vector
-        dist_vec = np.array(self._coords.to("cart") - self._other_cart_coord)
-
-        # unit vector along dist_vec
-        d_hat = dist_vec / np.linalg.norm(dist_vec)
-
-        # component parallel to d_hat = (grad . d_hat) d_hat
-        return grad - grad.dot(d_hat) * d_hat
-
 
 def _set_one_img_coord_and_get_engrad(
     coord: np.array,
