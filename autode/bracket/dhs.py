@@ -463,8 +463,8 @@ class DHS:
                        the DHS step, choose scipy's 'CG' (conjugate
                        gradients) or 'BFGS' (or maybe 'L-BFGS-B')
         """
-        # it is ok to use cartesian coordinates for storage
-        self.imgpair = DHSImagePair(initial_species, final_species, "cart")
+        # imgpair is only used for storing the points here
+        self.imgpair = DHSImagePair(initial_species, final_species)
         self._species = initial_species.copy()  # just hold the species
         self._reduction_fac = abs(float(reduction_factor))
         assert self._reduction_fac < 1.0
@@ -480,6 +480,7 @@ class DHS:
         self._final_species_hist = _OptimiserHistory()
         self._final_species_hist.append(self.imgpair.right_coord)
         # todo clean up imgpair and remove coord stuff
+        # todo remove this when GS2 corrector is done
 
     @property
     def converged(self) -> bool:
