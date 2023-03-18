@@ -1,5 +1,5 @@
 import pytest
-from autode.constraints import Constraints
+from autode.constraints import Constraints, DistanceConstraints
 
 
 def test_base_properties():
@@ -110,3 +110,12 @@ def test_clear():
 
     consts.update(cartesian=[0])
     assert len(consts.cartesian) == 1
+
+
+def test_copy():
+
+    constraints = DistanceConstraints({(0, 1): 1.0})
+    copied_constraints = constraints.copy()
+    constraints[(0, 1)] = 1.1
+
+    assert abs(copied_constraints[(0, 1)] - 1.0) < 1e-10

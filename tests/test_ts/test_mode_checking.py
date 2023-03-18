@@ -45,28 +45,24 @@ def test_imag_modes():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mode_checking.zip"))
 def test_graph_no_other_bonds():
 
-    reac = Reactant(
-        name="r",
+    ts = TSbase(
         atoms=xyz_file_to_atoms("h_shift_correct_ts_mode.xyz"),
         mult=2,
+        bond_rearr=BondRearrangement(
+            breaking_bonds=[(1, 10)], forming_bonds=[(5, 10)]
+        ),
     )
 
     calc = Calculation(
         name="h_shift",
-        molecule=reac,
+        molecule=ts,
         method=orca,
         keywords=orca.keywords.opt_ts,
         n_cores=1,
     )
     calc.set_output_filename("h_shift_correct_ts_mode.out")
 
-    ts = TSbase(
-        atoms=calc.get_final_atoms(),
-        bond_rearr=BondRearrangement(
-            breaking_bonds=[(1, 10)], forming_bonds=[(5, 10)]
-        ),
-    )
-    ts.hessian = calc.get_hessian()
+    assert ts.hessian is not None
 
     f_ts = displaced_species_along_mode(ts, mode_number=6, disp_factor=1.0)
     b_ts = displaced_species_along_mode(ts, mode_number=6, disp_factor=-1.0)
@@ -85,7 +81,8 @@ def has_correct_mode(name, fbonds, bbonds):
         keywords=orca.keywords.opt_ts,
         n_cores=1,
     )
-    calc.molecule = reac = Reactant(
+    # need to bypass the pre-calculation checks on the molecule. e.g. valid spin state
+    calc.molecule = reactant = Reactant(
         name="r", atoms=xyz_file_to_atoms(f"{name}.xyz")
     )
 
@@ -93,11 +90,11 @@ def has_correct_mode(name, fbonds, bbonds):
 
     # Don't require all bonds to be breaking/making in a 'could be ts' function
     ts = TSbase(
-        atoms=reac.atoms,
+        atoms=reactant.atoms,
         bond_rearr=BondRearrangement(
             breaking_bonds=bbonds, forming_bonds=fbonds
         ),
     )
-    ts.hessian = calc.get_hessian()
+    ts.hessian = reactant.hessian
 
     return ts.imag_mode_has_correct_displacement(req_all=False)

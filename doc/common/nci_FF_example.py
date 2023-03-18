@@ -1,8 +1,7 @@
 import autode as ade
-from autode.methods import XTB
-from autode.calculations import Calculation
-from scipy.optimize import minimize
 import numpy as np
+
+from scipy.optimize import minimize
 from scipy.spatial import distance_matrix
 
 ade.Config.max_num_complex_conformers = 10
@@ -85,17 +84,16 @@ def rotation_translation(
 
 def set_charges_vdw(species):
     """Calculate the partial atomic charges to atoms with XTB"""
-    calc = Calculation(
+    calc = ade.Calculation(
         name="tmp",
         molecule=species,
-        method=XTB(),
-        keywords=ade.SinglePointKeywords([]),
+        method=ade.methods.XTB(),
+        keywords=ade.SinglePointKeywords(),
     )
     calc.run()
-    charges = calc.get_atomic_charges()
 
     for i, atom in enumerate(species.atoms):
-        atom.charge = charges[i]
+        atom.charge = atom.partial_charge
         atom.vdw = float(atom.vdw_radius)
 
     return None
