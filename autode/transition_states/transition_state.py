@@ -92,7 +92,7 @@ class TransitionState(TSbase):
         try:
             optts_calc.run()
 
-            if not optts_calc.optimisation_converged():
+            if not optts_calc.optimiser.converged:
                 self._reoptimise(optts_calc, name_ext, method)
 
         except CalculationException:
@@ -100,32 +100,34 @@ class TransitionState(TSbase):
 
         return
 
-    def _reoptimise(self, calc, name_ext, method) -> Calculation:
+    def _reoptimise(
+        self, calc: Calculation, name_ext: str, method: "Method"
+    ) -> Calculation:
         """Rerun a calculation for more steps"""
 
-        if not calc.optimisation_nearly_converged():
+        if calc.optimiser.last_energy_change.to("kcal mol-1") > 0.1:
             self.warnings += f"TS for {self.name} was not fully converged."
             logger.info("Optimisation did not converge")
             return calc
 
         logger.info("Optimisation nearly converged")
-        if self.could_have_correct_imag_mode:
-            logger.info(
-                "Still have correct imaginary mode, trying "
-                "more  optimisation steps"
-            )
+        if not self.could_have_correct_imag_mode:
+            logger.warning("Lost imaginary mode")
+            return calc
 
-            self.atoms = calc.get_final_atoms()
-            calc = Calculation(
-                name=f"{self.name}_{name_ext}_reopt",
-                molecule=self,
-                method=method,
-                n_cores=Config.n_cores,
-                keywords=method.keywords.opt_ts,
-            )
-            calc.run()
-        else:
-            logger.info("Lost imaginary mode")
+        logger.info(
+            "Still have correct imaginary mode, trying "
+            "more  optimisation steps"
+        )
+
+        calc = Calculation(
+            name=f"{self.name}_{name_ext}_reopt",
+            molecule=self,
+            method=method,
+            n_cores=Config.n_cores,
+            keywords=method.keywords.opt_ts,
+        )
+        calc.run()
 
         return calc
 

@@ -1,5 +1,7 @@
 from collections.abc import MutableMapping
 from typing import Optional, Dict, List
+from copy import deepcopy
+
 from autode.values import Distance
 from autode.log import logger
 
@@ -122,6 +124,9 @@ class Constraints:
 
         return None
 
+    def copy(self) -> "Constraints":
+        return deepcopy(self)
+
 
 class DistanceConstraints(MutableMapping):
     def __init__(self, *args, **kwargs):
@@ -178,3 +183,6 @@ class DistanceConstraints(MutableMapping):
             )
 
         self._store[self._key_transform(key)] = Distance(value)
+
+    def copy(self) -> "DistanceConstraints":
+        return deepcopy(self)

@@ -1,21 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Optional
-from autode import mol_graphs
+
+from autode.species import Species
 from autode.input_output import atoms_to_xyz_file
 from autode.log import logger
 from autode.units import KcalMol
 
+from typing import Optional
+
 
 class Path(list):
-    def __init__(self, *args, units=KcalMol):
+    def __init__(self, *args: Species, units=KcalMol):
         """
         Base path class that may be populated with species or nudged elastic
         band images, *must* have .energy attributes
 
         -----------------------------------------------------------------------
         Arguments:
-            args (list(autode.path.PathPoint | autode.neb.Image)):
+            args (autode.species.species.Species):
 
         Keyword Arguments:
             units (autode.units.Unit):
@@ -23,12 +25,7 @@ class Path(list):
         super().__init__()
 
         for arg in args:
-            if not (hasattr(arg, "energy") or hasattr(arg, "species")):
-                raise ValueError(
-                    "A Path must be initialised from a class "
-                    "with both energy and species attributes"
-                )
-
+            assert isinstance(arg, Species)
             self.append(arg)
 
         self.units = units
@@ -95,7 +92,7 @@ class Path(list):
     def contains_peak(self) -> bool:
         return self.peak_idx is not None
 
-    def product_idx(self, product) -> Optional[int]:
+    def product_idx(self, product: "Species") -> Optional[int]:
         """
         Get the index of the point in the path at which products are made.
         If they are not made or they cannot be checked then return None
@@ -112,9 +109,7 @@ class Path(list):
             return None
 
         for i, point in enumerate(self):
-            if mol_graphs.is_isomorphic(
-                graph1=point.species.graph, graph2=product.graph
-            ):
+            if product.graph.is_isomorphic_to(point.graph):
                 logger.info(f"Products made at point {i}")
                 return i
 
@@ -175,20 +170,19 @@ class Path(list):
         open(f"{name}.xyz", "w").close()  # Empty the file
 
         for i, image in enumerate(self):
-            assert image.species is not None
             energy = image.energy if image.energy is not None else "none"
 
             title_line = (
                 f"autodE path point {i}. E = {energy} "
-                f"charge = {image.species.charge} "
-                f"mult = {image.species.mult} "
+                f"charge = {image.charge} "
+                f"mult = {image.mult} "
             )
 
-            if image.species.solvent is not None:
-                title_line += f"solvent = {image.species.solvent.name} "
+            if image.solvent is not None:
+                title_line += f"solvent = {image.solvent.name} "
 
             atoms_to_xyz_file(
-                image.species.atoms,
+                image.atoms,
                 f"{name}.xyz",
                 title_line=title_line,
                 append=True,

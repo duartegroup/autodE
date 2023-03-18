@@ -1,40 +1,24 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Any, Union, Type, Optional, Sequence, Tuple
+from typing import Any, Union, Type, Optional, Sequence, TYPE_CHECKING
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
+
+# fmt: off
 from autode.units import (
-    Unit,
-    ha,
-    kjmol,
-    kcalmol,
-    ev,
-    J,
-    ang,
-    a0,
-    nm,
-    pm,
-    m,
-    ang_amu_half,
-    rad,
-    deg,
-    wavenumber,
-    hz,
-    amu,
-    kg,
-    m_e,
-    amu_ang_sq,
-    kg_m_sq,
-    ha_per_ang,
-    ha_per_a0,
-    ev_per_ang,
-    kcalmol_per_ang,
-    byte,
-    MB,
-    GB,
-    TB,
+    Unit,   ha,      m,           ang_amu_half,  ha_per_a0,       ev_per_ang,
+    kjmol,  kcalmol, rad,         deg,           kcalmol_per_ang, byte,
+    ev,     J,       wavenumber,  hz,            MB,              ha_per_ang,
+    ang,    a0,      amu,         kg,            GB,              kg_m_sq,
+    nm,     pm,      m_e,         amu_ang_sq,    TB,              ha_per_a0_sq,
+    ha_per_ang_sq,   J_per_m_sq,  J_per_ang_sq,  J_per_ang_sq_kg,
 )
+# fmt: on
+
+if TYPE_CHECKING:
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords.keywords import Keywords
 
 
 def _to(
@@ -285,10 +269,10 @@ class Energy(Value):
 
     def __init__(
         self,
-        value,
+        value: Any,
         units: Union[Unit, str] = ha,
-        method: Optional["autode.wrappers.methods.Method"] = None,
-        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        method: Optional["Method"] = None,
+        keywords: Optional["Keywords"] = None,
         estimated: bool = False,
     ):
         """
@@ -340,8 +324,8 @@ class Energy(Value):
 
     def set_method_str(
         self,
-        method: Optional["autode.wrappers.methods.Method"],
-        keywords: Optional["autode.wrappers.keywords.Keywords"],
+        method: Optional["Method"],
+        keywords: Optional["Keywords"],
     ) -> None:
         self.method_str = method_string(method, keywords)
 
@@ -575,6 +559,23 @@ class Mass(Value):
         super().__init__(value, units=units)
 
 
+class ForceConstant(Value):
+
+    implemented_units = [
+        ha_per_ang_sq,
+        ha_per_a0_sq,
+        J_per_m_sq,
+        J_per_ang_sq,
+        J_per_ang_sq_kg,
+    ]
+
+    def __repr__(self):
+        return f"Force constant({round(self, 5)} {self.units.name})"
+
+    def __init__(self, value, units=ha_per_ang_sq):
+        super().__init__(value, units=units)
+
+
 class ValueArray(ABC, np.ndarray):
     """
     Abstract base class for an array of values, e.g. gradients or a Hessian
@@ -782,8 +783,8 @@ class EnergyArray(ValueArray):
 
 
 def method_string(
-    method: Optional["autode.wrappers.methods.Method"],
-    keywords: Optional["autode.wrappers.keywords.Keywords"],
+    method: Optional["Method"],
+    keywords: Optional["Keywords"],
 ) -> str:
     """
     Create a method string for a method and the keywords

@@ -10,3 +10,9 @@ target-version = ['py39']
 omit = [
     "setup.py"
 ]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if\\s+(typing\\.)?TYPE_CHECKING:"
+]
