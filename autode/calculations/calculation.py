@@ -3,12 +3,8 @@ import autode.exceptions as ex
 
 from copy import deepcopy
 from typing import Optional, List
-from autode.utils import deprecated
-from autode.atoms import Atoms
 from autode.point_charges import PointCharge
 from autode.log import logger
-from autode.hessians import Hessian
-from autode.values import PotentialEnergy, Gradient
 from autode.calculations.types import CalculationType
 from autode.calculations.executors import (
     CalculationExecutor,
@@ -304,47 +300,6 @@ class Calculation:
             raise ex.CouldNotGetProperty(name="Hessian")
 
         return None
-
-    # ----------------- Deprecated functions ----------------------
-
-    @deprecated
-    def get_energy(self) -> PotentialEnergy:
-        self._executor.set_properties()
-        return self.molecule.energy
-
-    @deprecated
-    def optimisation_converged(self) -> bool:
-        self._executor.set_properties()
-        return self.optimiser.converged
-
-    @deprecated
-    def optimisation_nearly_converged(self) -> bool:
-        self._executor.set_properties()
-        tol = PotentialEnergy(0.1, units="kcal mol-1")
-        return (
-            not self.optimiser.converged
-            and self.optimiser.last_energy_change < tol
-        )
-
-    @deprecated
-    def get_final_atoms(self) -> Atoms:
-        self._executor.set_properties()
-        return self.molecule.atoms
-
-    @deprecated
-    def get_atomic_charges(self) -> List[float]:
-        self._executor.set_properties()
-        return self.molecule.partial_charges
-
-    @deprecated
-    def get_gradients(self) -> Gradient:
-        self._executor.set_properties()
-        return self.molecule.gradient
-
-    @deprecated
-    def get_hessian(self) -> Hessian:
-        self._executor.set_properties()
-        return self.molecule.hessian
 
 
 def _are_opt(keywords) -> bool:

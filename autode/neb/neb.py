@@ -1,18 +1,25 @@
 import autode.exceptions as ex
+
 from autode.config import Config
 from autode.log import logger
 from autode.neb.ci import CINEB
 from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
 
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
+
 
 def get_ts_guess_neb(
-    reactant: "autode.species.Species",
-    product: "autode.species.Species",
-    method: "autode.wrappers.methods.Method",
+    reactant: "Species",
+    product: "Species",
+    method: "Method",
     name: str = "neb",
     n: int = 10,
-):
+) -> Optional[TSguess]:
     """
     Get a transition state guess using a nudged elastic band calculation. The
     geometry of the reactant is used as the fixed initial point and the final
@@ -37,17 +44,13 @@ def get_ts_guess_neb(
     assert n is not None
     logger.info("Generating a TS guess using a nudged elastic band")
 
-    neb = CINEB(
-        initial_species=reactant.copy(), final_species=product.copy(), num=n
-    )
+    neb = CINEB.from_end_points(reactant, product, num=n)
 
-    # Calculate and generate the TS guess, in a unique directory
+    @work_in(name)
+    def calculate():
+        return neb.calculate(method=method, n_cores=Config.n_cores)
+
     try:
-
-        @work_in(name)
-        def calculate():
-            return neb.calculate(method=method, n_cores=Config.n_cores)
-
         calculate()
 
     except ex.CalculationException:
@@ -55,7 +58,7 @@ def get_ts_guess_neb(
         return None
 
     return TSguess(
-        atoms=neb.get_species_saddle_point().atoms,
+        atoms=neb.peak_species.atoms,
         reactant=reactant,
         product=product,
         name=name,

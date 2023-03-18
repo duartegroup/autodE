@@ -3,13 +3,14 @@ Climbing image (CI) nudged elastic band implementation from
 https://doi.org/10.1063/1.1329672
 """
 import numpy as np
+from scipy.optimize import OptimizeResult
 from typing import Optional
 from autode.neb.original import NEB, Images, Image
 from autode.log import logger
 
 
 class CImage(Image):
-    def __init__(self, image):
+    def __init__(self, image: Image):
         """
         Construct a climbing image from a non-climbing one
 
@@ -17,11 +18,11 @@ class CImage(Image):
         Arguments:
             image (autode.neb.Image):
         """
-        super().__init__(image.name, image.k)
+        super().__init__(species=image, name=image.name, k=image.k)
         # Set all the current attributes from the regular image
         self.__dict__.update(image.__dict__)
 
-    def get_force(self, im_l, im_r) -> np.ndarray:
+    def get_force(self, im_l: Image, im_r: Image) -> np.ndarray:
         """
         Compute F_m
 
@@ -34,14 +35,13 @@ class CImage(Image):
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)
 
         # F_m = ∇V(x_m) + (2∇V(x_m).τ)τ
-        return -self.grad + 2.0 * np.dot(self.grad, hat_tau) * hat_tau
+        return -self.gradient + 2.0 * np.dot(self.gradient, hat_tau) * hat_tau
 
 
 class CImages(Images):
     def __init__(
         self,
         images: Images,
-        num: int = None,
         wait_iterations: int = 4,
         init_k: Optional[float] = None,
     ):
@@ -55,11 +55,10 @@ class CImages(Images):
             wait_iterations (int): Number of iterations to wait before turning
                                   on the climbing image
 
-            init_k: Initial force constant
+            init_k: Initial force constant. Must be defined if the images are empty
         """
         super().__init__(
-            num=num if num is not None else len(images),
-            init_k=init_k if init_k is not None else images[0].k,
+            init_k=init_k if init_k is not None else images.init_k,
         )
 
         self.wait_iteration = wait_iterations
@@ -102,9 +101,7 @@ class CINEB(NEB):
 
         self.images = CImages(self.images)
 
-    def _minimise(
-        self, method, n_cores, etol, max_n=30
-    ) -> "scipy.optimize.OptimizeResult":
+    def _minimise(self, method, n_cores, etol, max_n=30) -> OptimizeResult:
         """Minimise th energy of every image in the NEB"""
         logger.info(f"Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates")
         result = super()._minimise(method, n_cores, etol, max_n)

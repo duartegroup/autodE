@@ -4,11 +4,12 @@ import pytest
 
 from autode.atoms import Atom
 from autode.methods import XTB
-from autode.path import Path, AdaptivePath, PathPoint
+from autode.path import Path, AdaptivePath
 from autode.path.adaptive import pruned_active_bonds
 from autode.bonds import FormingBond, BreakingBond
 from autode.species import Species, Molecule
 from autode.units import Unit, KcalMol
+from . import testutils
 
 test_species = Species(name="tmp", charge=0, mult=1, atoms=[Atom("He")])
 test_mol = Molecule(smiles="O")
@@ -24,7 +25,7 @@ def test_path_properties_empty():
     assert path == Path()  # should be able to compare paths
     assert path != 0
 
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception):
         _ = Path("does not have correct attributes")
 
     # With no species there should be no peak/saddle/energies
@@ -41,16 +42,16 @@ def test_path_properties_empty():
 
 
 def test_path_properties():
-    p1 = PathPoint(test_species.copy(), constraints={})
+    p1 = test_species.copy()
     p1.energy = -3
-    p2 = PathPoint(test_species.copy(), constraints={})
+    p2 = test_species.copy()
     p2.energy = -2
 
     path = Path(p1, p2, units=KcalMol)
     assert all(np.isclose(path.energies, np.array([-3, -2])))
     assert all(np.isclose(path.rel_energies, 627.509 * np.array([0, 1])))
 
-    p3 = PathPoint(test_species.copy(), constraints={})
+    p3 = test_species.copy()
     path = Path(p1, p2, p3)
 
     # There is an energy not set, should not be able to find a peak
@@ -77,20 +78,12 @@ def test_path_properties():
 
 def test_point_properties():
 
-    point = PathPoint(species=test_species.copy(), constraints={})
+    point = test_species.copy()
 
     assert point.energy is None
-    assert point.grad is None
-    assert not point.species.constraints.any
-    assert point.species.name == "tmp"
-
-    point.energy = 1
-    point.grad = np.zeros(shape=(1, 3))
-
-    # Copies should not copy energy or gradients
-    new_point = point.copy()
-    assert new_point.energy is None
-    assert new_point.grad is None
+    assert point.gradient is None
+    assert not point.constraints.any
+    assert point.name == "tmp"
 
 
 def test_pruning_bonds():
@@ -172,7 +165,7 @@ def test_pruning_bonds2():
 
 def test_products_made():
 
-    path = Path(PathPoint(species=test_mol, constraints={}))
+    path = Path(test_mol)
 
     assert not path.products_made(product=None)
     # Species have no graphs
@@ -187,11 +180,20 @@ def test_products_made():
     assert not path.products_made(product=diff_mol)
 
 
+@testutils.requires_with_working_xtb_install
 def test_adaptive_path():
 
     species_no_atoms = Species(name="tmp", charge=0, mult=1, atoms=[])
-    path1 = AdaptivePath(init_species=species_no_atoms, bonds=[], method=XTB())
-    assert len(path1) == 0
+
+    with pytest.raises(Exception):
+        # cannot create a path with a molecule with no atoms
+        _ = AdaptivePath(init_species=species_no_atoms, bonds=[], method=XTB())
+
+    path1 = AdaptivePath(
+        init_species=Molecule(smiles="O"), bonds=[], method=XTB()
+    )
+
+    assert len(path1) == 1
     assert path1.method.name == "xtb"
     assert len(path1.bonds) == 0
 

@@ -273,11 +273,10 @@ class Dimer(Optimiser):
         )
         calc.run()
 
-        self._coords.e = self._species.energy = calc.get_energy()
-        self._species.gradient = calc.get_gradients()
+        self._coords.e = self._species.energy
 
         self._coords.set_g_at(
-            point, calc.get_gradients().flatten(), mass_weighted=False
+            point, self._species.gradient.flatten(), mass_weighted=False
         )
 
         calc.clean_up(force=True, everything=True)

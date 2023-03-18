@@ -53,20 +53,18 @@ def test_orca_opt_calculation():
 
     assert os.path.exists("opt_orca.inp") is True
     assert os.path.exists("opt_orca.out") is True
-    assert len(calc.get_final_atoms()) == 5
-    assert -499.735 < calc.get_energy() < -499.730
+    assert len(methylchloride.atoms) == 5
+    assert -499.735 < methylchloride.energy < -499.730
     assert calc.output.exists
     assert calc.output.file_lines is not None
     assert calc.input.filename == "opt_orca.inp"
     assert calc.output.filename == "opt_orca.out"
     assert calc.terminated_normally
 
-    assert calc.optimisation_converged()
-
-    assert calc.optimisation_nearly_converged() is False
+    assert calc.optimiser.converged
 
     # Should have a partial atomic charge for every atom
-    charges = calc.get_atomic_charges()
+    charges = methylchloride.partial_charges
     assert charges == [-0.006954, -0.147352, 0.052983, 0.052943, 0.053457]
 
     calc = Calculation(
@@ -113,12 +111,11 @@ def test_orca_optts_calculation():
 
     assert ts.normal_mode(mode_number=6) is not None
     assert calc.terminated_normally
-    assert calc.optimisation_converged()
-    assert calc.optimisation_nearly_converged() is False
+    assert calc.optimiser.converged
     assert len(ts.imaginary_frequencies) == 1
 
     # Gradients should be an n_atom x 3 array
-    gradients = calc.get_gradients()
+    gradients = ts.gradient
     assert gradients.shape == (ts.n_atoms, 3)
 
     assert -599.437 < ts.enthalpy < -599.436
@@ -135,10 +132,7 @@ def test_bad_orca_output():
     )
 
     with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_energy()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_final_atoms()
+        calc.set_output_filename("no_output")
 
     calc.output_file_lines = None
     assert calc.terminated_normally is False
@@ -217,7 +211,6 @@ def test_gradients():
         keywords=method.keywords.grad,
     )
     calc.run()
-    h2.energy = calc.get_energy()
 
     delta_r = 1e-8
 
@@ -232,7 +225,6 @@ def test_gradients():
         keywords=method.keywords.grad,
     )
     calc.run()
-    h2_disp.energy = calc.get_energy()
 
     delta_energy = h2_disp.energy - h2.energy  # Ha
     grad = delta_energy / delta_r  # Ha A^-1
@@ -246,7 +238,7 @@ def test_gradients():
 
     calc.run()
 
-    diff = calc.get_gradients()[1, 0] - grad  # Ha A^-1
+    diff = h2.gradient[1, 0] - grad  # Ha A^-1
 
     # Difference between the absolute and finite difference approximation
     assert np.abs(diff) < 1e-3
@@ -255,15 +247,16 @@ def test_gradients():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_mp2_numerical_gradients():
 
+    mol = Molecule("tmp_orca.xyz", charge=-1)
     calc = Calculation(
         name="tmp",
-        molecule=Molecule(atoms=xyz_file_to_atoms("tmp_orca.xyz"), charge=-1),
+        molecule=mol,
         method=method,
         keywords=method.keywords.grad,
     )
     calc.set_output_filename(filename="tmp_orca.out")
 
-    gradients = calc.get_gradients()
+    gradients = mol.gradient
     assert len(gradients) == 6
     expected = (
         np.array([-0.00971201, -0.00773534, -0.02473580]) / Constants.a0_to_ang
@@ -274,7 +267,7 @@ def test_mp2_numerical_gradients():
     calc.set_output_filename(filename="numerical_orca.out")
     assert calc.output.filename == "numerical_orca.out"
 
-    gradients = calc.get_gradients()
+    gradients = mol.gradient
     assert len(gradients) == 6
     expected = (
         np.array([0.012397372, 0.071726232, -0.070942743])
@@ -331,14 +324,13 @@ def test_keyword_setting():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_hessian_extraction():
 
+    h2o = Molecule(smiles="O")
     calc = Calculation(
         name="tmp",
-        molecule=Molecule(smiles="O"),
+        molecule=h2o,
         method=method,
         keywords=method.keywords.hess,
     )
-
-    calc.output.filename = "H2O_hess_orca.out"
 
     with open("H2O_hess_orca.xyz", "w") as xyz_file:
         print(
@@ -350,7 +342,9 @@ def test_hessian_extraction():
             file=xyz_file,
         )
 
-    hessian = calc.get_hessian()
+    calc.set_output_filename("H2O_hess_orca.out")
+
+    hessian = h2o.hessian
     assert hessian.shape == (9, 9)
     # should not have any very large values
     assert np.sum(np.abs(hessian)) < 100
@@ -372,12 +366,10 @@ def test_charges_from_v5_output_file():
         method=method,
         keywords=method.keywords.sp,
     )
-    calc.output.filename = "h2o_orca_v5_charges.out"
-
+    calc.set_output_filename("h2o_orca_v5_charges.out")
     assert calc.output.exists
-
-    #                                       q_O        q_H       q_H
-    assert calc.get_atomic_charges() == [-0.313189, 0.156594, 0.156594]
+    #                                   q_O        q_H       q_H
+    assert water.partial_charges == [-0.313189, 0.156594, 0.156594]
 
 
 def test_unsupported_freq_scaling():

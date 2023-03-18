@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from autode.path import Path
 from autode.neb import NEB, CINEB
-from autode.values import Distance
+from autode.values import Distance, ForceConstant
 from autode.neb.ci import Images, CImages, Image
 from autode.neb.idpp import IDPP
 from autode.species.molecule import Species, Molecule
@@ -40,29 +40,34 @@ def test_neb_properties():
         atoms=[Atom("H"), Atom("H", x=1.3), Atom("H", x=2.0)],
     )
 
-    neb = NEB(initial_species=reac, final_species=prod, num=3)
+    neb = NEB.from_end_points(reac, prod, num=3)
     assert len(neb.images) == 3
-    assert neb.get_species_saddle_point() is None
-    assert not neb.contains_peak()
+    assert neb.peak_species is None
+    assert not neb.images.contains_peak
 
     # Should move monotonically from 0.7 -> 1.3 Angstroms
     for i in range(1, len(neb.images)):
 
-        prev_bb_dist = neb.images[i - 1].species.distance(0, 1)
-        curr_bb_dist = neb.images[i].species.distance(0, 1)
+        prev_bb_dist = neb.images[i - 1].distance(0, 1)
+        curr_bb_dist = neb.images[i].distance(0, 1)
 
         assert curr_bb_dist > prev_bb_dist
 
 
 def test_image_properties():
 
-    images = CImages(images=[Image(name="tmp", k=0.1)])
+    k = ForceConstant(0.1)
+    images = CImages(images=Images(init_k=k))
     assert images != 0
     assert images == images
 
-    images = Images(init_k=0.1, num=1)
+    images = Images(init_k=k)
     assert images != 0
     assert images == images
+
+    image = Image(Molecule(smiles="CC"), k=ForceConstant(1.0), name="tmp")
+    with pytest.raises(Exception):
+        image._generate_conformers()
 
 
 def test_contains_peak():
@@ -90,15 +95,15 @@ def test_contains_peak():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
 def test_full_calc_with_xtb():
 
-    sn2_neb = NEB(
-        initial_species=Species(
+    sn2_neb = NEB.from_end_points(
+        initial=Species(
             name="inital",
             charge=-1,
             mult=1,
             atoms=xyz_file_to_atoms("sn2_init.xyz"),
             solvent_name="water",
         ),
-        final_species=Species(
+        final=Species(
             name="final",
             charge=-1,
             mult=1,
@@ -108,16 +113,10 @@ def test_full_calc_with_xtb():
         num=14,
     )
 
-    sn2_neb.interpolate_geometries()
-
-    xtb = XTB()
-
-    xtb.path = shutil.which("xtb")
-    sn2_neb.calculate(method=xtb, n_cores=2)
+    sn2_neb.calculate(method=XTB(), n_cores=2)
 
     # There should be a peak in this surface
-    peak_species = sn2_neb.get_species_saddle_point()
-    assert peak_species is not None
+    assert sn2_neb.peak_species is not None
 
     assert all(image.energy is not None for image in sn2_neb.images)
 
@@ -174,7 +173,10 @@ def test_get_ts_guess_neb():
 
 def test_climbing_image():
 
-    images = CImages(images=[Image(name="tmp", k=0.1)])
+    k = ForceConstant(0.1)
+    images = CImages(images=Images(init_k=k))
+    images.append_species(Molecule(atoms=[Atom("H")], mult=2))
+
     assert images.peak_idx is None
     assert images[0].iteration == 0
     images[0].iteration = 10
@@ -183,31 +185,35 @@ def test_climbing_image():
 def _simple_h2_images(num, shift, increment):
     """Simple set of images for a n-image NEB for H2"""
 
-    images = Images(num=num, init_k=1.0)
+    images = Images(init_k=ForceConstant(1.0))
 
     for i in range(num):
-        images[i].species = Molecule(
-            atoms=[Atom("H"), Atom("H", x=shift + i * increment)]
-        )
+        mol = Molecule(atoms=[Atom("H"), Atom("H", x=shift + i * increment)])
+        images.append_species(mol)
 
     return images
 
 
 def test_energy_gradient_type():
 
+    k = ForceConstant(1.0)
+    image = Image(species=Molecule(atoms=[Atom("H")], mult=2), name="tmp", k=k)
+
     # Energy and gradient must have a method (EST or IDPP)
     with pytest.raises(ValueError):
-        _ = energy_gradient(image=Image("tmp", k=1.0), method=None, n_cores=1)
+        _ = energy_gradient(image=image, method=None, n_cores=1)
 
 
 def test_iddp_init():
     """IDPP requires at least 2 images"""
 
-    with pytest.raises(ValueError):
-        _ = IDPP(Images(num=0, init_k=0.1))
+    k = ForceConstant(0.1)
 
     with pytest.raises(ValueError):
-        _ = IDPP(Images(num=1, init_k=0.1))
+        _ = IDPP(Images(init_k=k))
+
+    with pytest.raises(ValueError):
+        _ = IDPP(Images(init_k=k))
 
 
 def test_iddp_energy():
@@ -236,7 +242,7 @@ def test_iddp_gradient():
     value = idpp(image)
 
     # and the gradient calculable
-    grad = idpp.grad(image)
+    grad = idpp.grad(image).flatten()
     assert grad is not None
 
     # And the gradient be close to the numerical analogue
@@ -246,9 +252,9 @@ def test_iddp_gradient():
         shift_vec = np.zeros(3)
         shift_vec[k] = h
 
-        image.species.atoms[i].translate(shift_vec)
+        image.atoms[i].translate(shift_vec)
         new_value = idpp(image)
-        image.species.atoms[i].translate(-shift_vec)
+        image.atoms[i].translate(-shift_vec)
 
         return (new_value - value) / h
 
@@ -260,7 +266,7 @@ def test_iddp_gradient():
         assert np.isclose(analytic_value, num_grad(i), atol=1e-5)
 
 
-@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+@work_in_tmp_dir()
 def test_neb_interpolate_and_idpp_relax():
 
     mol = Molecule(
@@ -277,12 +283,10 @@ def test_neb_interpolate_and_idpp_relax():
     rot_mol = mol.copy()
     rot_mol.rotate(axis=[1.0, 0.0, 0.0], theta=1.5)
 
-    neb = NEB(initial_species=mol, final_species=rot_mol, num=10)
-    neb.interpolate_geometries()
-    neb.idpp_relax()
+    neb = NEB.from_end_points(initial=mol, final=rot_mol, num=10)
 
     for image in neb.images:
-        assert are_coords_reasonable(image.species.coordinates)
+        assert are_coords_reasonable(image.coordinates)
 
 
 def test_max_delta_between_images():
@@ -293,12 +297,12 @@ def test_max_delta_between_images():
     ]
 
     assert np.isclose(
-        NEB(species_list=_list).max_atom_distance_between_images, 1.0
+        NEB.from_list(_list).max_atom_distance_between_images, 1.0
     )
 
     _list[0].atoms[1].coord[0] = 1.7  # x coordinate of the second atom
     assert np.isclose(
-        NEB(species_list=_list).max_atom_distance_between_images, 0.0
+        NEB.from_list(_list).max_atom_distance_between_images, 0.0
     )
 
 
@@ -309,7 +313,7 @@ def test_max_delta_between_images_h3():
         Molecule(atoms=[Atom("H"), Atom("H", x=0.70657), Atom("H", x=2.7)]),
     ]
 
-    neb = NEB(species_list=_list)
+    neb = NEB.from_list(_list)
     assert np.isclose(neb.max_atom_distance_between_images, 0.00657)
 
     assert np.isclose(
@@ -327,7 +331,7 @@ def test_partition_max_delta():
         Molecule(atoms=[Atom("H"), Atom("H", x=2.0), Atom("H", x=2.7)]),
     ]
 
-    h2_h = NEB(species_list=_list)
+    h2_h = NEB.from_list(_list)
     max_delta = Distance(0.1, units="Å")
 
     assert (
@@ -343,8 +347,7 @@ def test_partition_max_delta():
         assert (
             np.max(
                 np.linalg.norm(
-                    h2_h.images[i].species.coordinates
-                    - h2_h.images[j].species.coordinates,
+                    h2_h.images[i].coordinates - h2_h.images[j].coordinates,
                     axis=1,
                 )
             )
@@ -373,7 +376,7 @@ def test_init_from_file_sets_force_constant():
         )
 
     # Should be able to set the initial force constant
-    neb = NEB.from_file("tmp.xyz", k=0.234)
+    neb = NEB.from_file("tmp.xyz", init_k=0.234)
     assert len(neb.images) == 3
     assert np.isclose(neb.init_k, 0.234)
 
@@ -404,3 +407,17 @@ def test_init_from_file_sets_force_constant_no_energies():
     neb = NEB.from_file("tmp.xyz")
     # Estimated value should be reasonable even without energies
     assert 0.001 < neb.init_k < 0.2
+
+
+def test_neb_constructor_with_kwargs_raises():
+
+    with pytest.raises(Exception):
+        _ = NEB(init_k=ForceConstant(0.1), another_arg="a string")
+
+
+def test_constructing_neb_from_endpoints_with_different_atoms_raises():
+
+    with pytest.raises(Exception):
+        _ = NEB.from_end_points(
+            Molecule(smiles="O"), Molecule(smiles="C"), num=4
+        )

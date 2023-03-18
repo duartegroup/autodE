@@ -126,21 +126,29 @@ class Species(AtomCollection):
         """Copy this whole species"""
         return deepcopy(self)
 
-    def new_species(self, name="species") -> "Species":
+    def new_species(
+        self, name="species", with_constraints: bool = False
+    ) -> "Species":
         """
         A new version of this species, identical properties without any
         energies, gradients, hessian, conformers or constraints.
 
         -----------------------------------------------------------------------
-        Keyword Arguments:
+        Arguments:
             name (str): Name of the new species
+
+            with_constraints (bool): Should the constraints from this species be copied
+                                    into the new one
 
         Returns:
             (autode.species.Species):
         """
-        species = Species(name, deepcopy(self.atoms), self.charge, self.mult)
+        species = Species(name, self.atoms.copy(), self.charge, self.mult)
         species.graph = None if self.graph is None else self.graph.copy()
         species.solvent = None if self.solvent is None else self.solvent.copy()
+
+        if with_constraints:
+            species.constraints = self.constraints.copy()
 
         return species
 
