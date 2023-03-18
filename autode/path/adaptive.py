@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from autode.species import ReactantComplex, ProductComplex, Species
-    from autode.transition_states import TSguess
     from autode.wrappers.methods import Method
     from autode.bond_rearrangement import BondRearrangement
 
@@ -23,7 +22,7 @@ def get_ts_adaptive_path(
     method: "Method",
     bond_rearr: "BondRearrangement",
     name: str = "adaptive",
-) -> TSguess:
+) -> Optional[TSguess]:
     """
     Generate a TS guess geometry based on an adaptive path along multiple
     breaking and/or forming bonds
