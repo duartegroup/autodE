@@ -15,7 +15,7 @@ from autode.units import ang as angstrom
 from autode.bracket.imagepair import BaseImagePair, ImgPairSideError
 from autode.methods import get_lmethod
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
-from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, BofillUpdate
+from autode.opt.optimisers.hessian_update import BofillUpdate, BFGSUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.input_output import atoms_to_xyz_file
 from autode.opt.optimisers import RFOptimiser
@@ -25,6 +25,36 @@ from autode.config import Config
 
 import autode.species.species
 import autode.wrappers.methods
+
+
+class _TruncatedTaylor:
+    """The truncated taylor surface from current grad and hessian"""
+
+    def __init__(
+        self,
+        centre: OptCoordinates,
+    ):
+        self.centre = centre
+        self.en = centre.e
+        self.grad = centre.g
+        self.hess = centre.h
+
+    def value(self, coords: np.ndarray):
+        # E = E(0) + g^T . dx + 0.5 * dx^T. H. dx
+        dx = coords - self.centre
+        new_e = self.en + np.dot(self.grad, dx)
+        new_e += 0.5 * np.linalg.multi_dot((dx, self.hess, dx))
+        return new_e
+
+    def gradient(self, coords: np.ndarray):
+        # g = g(0) + H . dx
+        dx = coords - self.centre
+        new_g = self.grad + np.matmul(self.hess, dx)
+        return new_g
+
+    def hessian(self, coords: np.ndarray):
+        # hessian is constant in second order expansion
+        return self.hess
 
 
 class DistanceConstrainedOptimiser(RFOptimiser):
@@ -76,7 +106,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._do_line_search = bool(line_search)
         self._target_dist = Distance(target_dist, units="ang")
         self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
-        self._hessian_update_types = [BofillUpdate]
+        self._hessian_update_types = [BFGSUpdate, BofillUpdate]
         # todo test reasonableness of Bofill update
 
     def _initialise_run(self) -> None:
@@ -150,6 +180,39 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         Returns:
             (np.ndarray): Step in cartesian (or mw-cartesian)
         """
+
+        from scipy.optimize import minimize
+
+        taylor_pes = _TruncatedTaylor(self._coords)
+
+        def step_size_constr(x):
+            step = x - self._coords
+            return np.linalg.norm(step) - self.alpha
+
+        def lagrangian_constr(x):
+            p = x - self._pivot
+            return np.linalg.norm(p) - self._target_dist
+
+        const = (
+            {"type": "eq", "fun": step_size_constr},
+            {"type": "eq", "fun": lagrangian_constr},
+        )
+
+        res = minimize(
+            fun=taylor_pes.value,
+            x0=np.array(self._coords),
+            method="trust-constr",
+            jac=taylor_pes.gradient,
+            hess=taylor_pes.hessian,
+            options={"disp": True},
+            constraints=const,
+        )
+        if not res.success:
+            raise RuntimeError
+        if not taylor_pes.value(res.x) < self._coords.e:
+            print("Error")
+        step = res.x - self._coords
+        return step
 
         from scipy.optimize import root_scalar
 
@@ -493,6 +556,10 @@ class DHS:
             )
             self._species.coordinates = coord0
             opt.run(self._species, method)
+            if side == "left":
+                self.imgpair.left_coord = opt.final_coordinates
+            elif side == "right":
+                self.imgpair.right_coord = opt.final_coordinates
 
             # parse the scipy results and log output
             perp_grad = self.imgpair.get_one_img_perp_grad(side)
