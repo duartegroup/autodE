@@ -15,6 +15,7 @@ Usability improvements/Changes
 ******************************
 - Adds full usability of autodE on Windows, including parallelisation with :code:`loky`
 - Optional timeout for graph isomorphism test in Windows, turned on by :code:`Config.use_experimental_timeout=True` (default behaviour kept for Linux/macOS)
+- The electronic temperature and the version of parameterisation for xTB calculations are made configurable
 - A NEB :code:`Image` now derives from a :code:`Species` superclass
 - Modifies NEB :code:`Image` constructor to be formed from an image
 - Defines named constructors (:code:`from_endpoints(...)`, :code:`from_list(...)`) for :code:`NEB`

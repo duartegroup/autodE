@@ -337,6 +337,15 @@ class _ConfigClass:
         # Force constant used for harmonic restraints in constrained
         # optimisations (Ha/a0)
         force_constant = 2
+        #
+        # Electronic temperature for all calculations (Kelvin)
+        # None means unset (default), set to 300.0 to have 300K for example
+        electronic_temp = None
+        #
+        # Version of xTB hamiltonian parameterisation: 0,1 or 2
+        # corresponding to GFN0-xTB, GFN1-xTB, GFN2-xTB respectively
+        # When unset, uses the default
+        gfn_version = None
 
     class MOPAC:
         # ---------------------------------------------------------------------
