@@ -341,39 +341,6 @@ class DHSImagePair(BaseImagePair):
         # todo remove once coordinates are sorted
 
 
-def _set_one_img_coord_and_get_engrad(
-    coord: np.array,
-    side: str,
-    imgpair: DHSImagePair,
-) -> Tuple[float, np.ndarray]:
-    """
-    Convenience function that allows setting coordinates
-    and obtaining energy and gradient at the same time.
-    To be called by the scipy minimizer (or any other
-    minimizer)
-
-    Args:
-        coord: The coordinates in an array
-        side: The side of imagepair that is updated
-        imgpair: The imagepair object (DHS)
-
-    Returns:
-        (tuple[float, ndarray]): energy, gradient in flat array
-    """
-    if side == "left":
-        imgpair.left_coord = CartesianCoordinates(coord)
-    elif side == "right":
-        imgpair.right_coord = CartesianCoordinates(coord)
-    else:
-        raise ImgPairSideError()
-
-    imgpair.update_one_img_mol_engrad(side)
-    new_coord = imgpair.get_coord_by_side(side)
-    en = float(new_coord.e.to("Ha"))
-    grad = imgpair.get_one_img_perp_grad(side)
-    return en, grad
-
-
 class DHS:
     """
     Dewar-Healy-Stewart method for finding transition states,
