@@ -32,12 +32,20 @@ class _TruncatedTaylor:
 
     def __init__(
         self,
-        centre: OptCoordinates,
+        centre: Union[OptCoordinates, np.ndarray],
+        grad: np.ndarray,
+        hess: np.ndarray,
     ):
         self.centre = centre
-        self.en = centre.e
-        self.grad = centre.g
-        self.hess = centre.h
+        if hasattr(centre, "e") and centre.e is not None:
+            self.en = centre.e
+        else:
+            # the energy can be relative and need not be absolute
+            self.en = 0.0
+        self.grad = grad
+        self.hess = hess
+        n_atoms = grad.shape[0]
+        assert hess.shape == (n_atoms, n_atoms)
 
     def value(self, coords: np.ndarray):
         # E = E(0) + g^T . dx + 0.5 * dx^T. H. dx
@@ -65,7 +73,9 @@ class DistanceConstrainedOptimiser(RFOptimiser):
     linear search can be done to speed up convergence.
 
     Same concept as that used in the corrector step of
-    Gonzalez-Schlegel second-order IRC integrator
+    Gonzalez-Schlegel second-order IRC integrator. However,
+    current implementation is modified to take steps within
+    a trust radius.
 
     [1] C. Gonzalez, H. B. Schlegel, J. Chem. Phys., 90, 1989, 2154
     """
@@ -93,9 +103,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             angle_thresh: An angle threshold above which linear search
                           will be rejected (in Degrees)
         """
-        super().__init__(*args, **kwargs)
-
-        self.alpha = float(init_trust)
+        super().__init__(*args, init_alpha=init_trust, **kwargs)
 
         if not isinstance(pivot_point, CartesianCoordinates):
             raise NotImplementedError(
@@ -108,6 +116,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
         self._hessian_update_types = [BFGSUpdate, BofillUpdate]
         # todo test reasonableness of Bofill update
+        # todo replace later with bfgssr1update
 
     def _initialise_run(self) -> None:
         self._coords = CartesianCoordinates(self._species.coordinates)
@@ -157,19 +166,20 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             coords, grad = self._coords, self._coords.g
 
         step = self._get_lagrangian_step(coords, grad)
-        # todo is there any need to have trust radius? how
-        # have trust radius
+
         step_size = np.linalg.norm(step)
         print(f"Taking a quasi-Newton step: {step_size:.3f} Angstrom")
 
         # the step is on the interpolated coordinates (if done)
-        self._coords = coords + step
+        actual_step = (coords + step) - self._coords
+        self._coords = self._coords + actual_step
 
     def _get_lagrangian_step(self, coords, grad) -> np.ndarray:
         """
         Obtain the step that will minimise the gradient tangent to
         the distance vector from pivot point, while maintaining the
-        same distance from pivot point
+        same distance from pivot point. Takes the step within current
+        trust radius.
 
         Args:
             coords: Previous coordinate (either from quasi-NR step
@@ -180,109 +190,41 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         Returns:
             (np.ndarray): Step in cartesian (or mw-cartesian)
         """
-
+        # todo how to deal with line search coordinates
         from scipy.optimize import minimize
 
-        taylor_pes = _TruncatedTaylor(self._coords)
+        taylor_pes = _TruncatedTaylor(coords, grad, self._coords.h)
 
         def step_size_constr(x):
-            step = x - self._coords
-            return np.linalg.norm(step) - self.alpha
+            """step size must be <= trust radius"""
+            step_est = x - self._coords
+            # inequality constraint, should be > 0
+            return self.alpha - np.linalg.norm(step_est)
 
         def lagrangian_constr(x):
             p = x - self._pivot
             return np.linalg.norm(p) - self._target_dist
 
-        const = (
-            {"type": "eq", "fun": step_size_constr},
+        constrs = (
+            {"type": "ineq", "fun": step_size_constr},
             {"type": "eq", "fun": lagrangian_constr},
         )
 
         res = minimize(
             fun=taylor_pes.value,
             x0=np.array(self._coords),
-            method="trust-constr",
+            method="SLSQP",
             jac=taylor_pes.gradient,
             hess=taylor_pes.hessian,
             options={"disp": True},
-            constraints=const,
+            constraints=constrs,
         )
+
         if not res.success:
             raise RuntimeError
-        if not taylor_pes.value(res.x) < self._coords.e:
-            print("Error")
-        step = res.x - self._coords
+
+        step = res.x - coords
         return step
-
-        from scipy.optimize import root_scalar
-
-        # adapted from pysisyphus
-        h_eigvals, h_vecs = np.linalg.eigh(self._coords.h)
-        non_zero = np.abs(h_eigvals) > 1.0e-8  # get non-zero eigenvalues
-        selected_eigvals = h_eigvals[non_zero]
-        selected_vecs = h_vecs[:, non_zero]
-
-        # project the grad and p vector onto hessian eigenvectors
-        grad_bar = grad.dot(selected_vecs)
-        # use interpolated coords if interpolation done
-        p_vec = np.array(coords - self._pivot)
-        p_bar = p_vec.dot(selected_vecs)
-
-        def delta_x_h_bas(lmda):
-            """
-            Get step in the basis of Hessian eigenvectors, given
-            a shift parameter lambda
-            """
-            return -(grad_bar - lmda * p_bar) / (selected_eigvals - lmda)
-
-        # todo test the above expression fulfills the equation
-
-        def constraint_error(lmda):
-            """
-            Given a shift parameter lambda, gets the error w.r.t.
-            fulfilling the distance constraint
-            """
-            # convert to cartesian
-            delta_x_cart = selected_vecs.dot(delta_x_h_bas(lmda))
-            p_new = p_vec + delta_x_cart
-            return np.linalg.norm(p_new) - self._target_dist
-
-        # lambda must be in (-infinity, first_b) bracket for a minimising step
-        first_b = selected_eigvals[0]
-        d = 1.0
-        # use bisection to find where f(x) > 0
-        for _ in range(100):
-            lmda_guess = first_b - d
-            if constraint_error(lmda_guess) > 0:
-                range_max = lmda_guess
-                break
-            d = d / 2.0
-        else:
-            raise RuntimeError("Unable to find f(x) > 0")
-
-        for _ in range(100):
-            lmda_guess = first_b - d
-            if constraint_error(lmda_guess) < 0:
-                range_min = lmda_guess
-                break
-            d = d * 2.0
-        else:
-            raise RuntimeError("Unable to find f(x) < 0")
-
-        # Brent's search to get root
-        res = root_scalar(
-            f=constraint_error,
-            method="brentq",
-            bracket=[range_max, range_min],
-            maxiter=200,
-        )
-
-        if (not res.converged) or (res.root > first_b):
-            raise RuntimeError("Unable to find lambda for quasi-NR step")
-
-        final_step_cart = selected_vecs.dot(delta_x_h_bas(res.root))
-
-        return final_step_cart
 
     def _line_search_on_sphere(
         self,
@@ -530,11 +472,9 @@ class DHS:
 
             if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
                 side = "left"
-                hist = self._initial_species_hist
                 pivot = self.imgpair.right_coord
             else:
                 side = "right"
-                hist = self._final_species_hist
                 pivot = self.imgpair.left_coord
 
             # take a step on the side with lower energy
@@ -548,7 +488,7 @@ class DHS:
                 break
 
             opt = DistanceConstrainedOptimiser(
-                maxiter=200,
+                maxiter=curr_maxiter,
                 gtol=1e-3,
                 etol=1e-3,
                 pivot_point=pivot,
@@ -556,6 +496,14 @@ class DHS:
             )
             self._species.coordinates = coord0
             opt.run(self._species, method)
+
+            if not opt.converged:
+                logger.error(
+                    "Micro-iterations (optimisation) after a"
+                    " DHS step did not converge, exiting"
+                )
+
+            # put results back into imagepair
             if side == "left":
                 self.imgpair.left_coord = opt.final_coordinates
             elif side == "right":
@@ -587,7 +535,7 @@ class DHS:
                     )
                     break
 
-            # if scipy succeeded
+            # if optimisation succeeded
             new_coord = self.imgpair.get_coord_by_side(side)
             # check if it has jumped over the barrier
             if self._has_jumped_over_barrier(new_coord, side):
@@ -599,10 +547,6 @@ class DHS:
                     " though the distance criteria is not met"
                 )
                 break
-
-            else:
-                # otherwise put the coordinate into appropriate history
-                hist.append(new_coord.copy())
 
             self._log_convergence()
 
