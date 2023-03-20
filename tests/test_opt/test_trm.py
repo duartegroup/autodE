@@ -8,7 +8,7 @@ from autode.hessians import Hessian
 from autode.utils import work_in_tmp_dir
 from ..test_utils import requires_with_working_xtb_install
 from autode.opt.coordinates import CartesianCoordinates, DIC
-from autode.opt.optimisers.robust import HybridTRIMOptimiser
+from autode.opt.optimisers.trm import HybridTRMOptimiser
 
 
 def test_trim_step():
@@ -132,7 +132,7 @@ def test_trim_step():
         )
     )
 
-    opt = HybridTRIMOptimiser(coord_type="dic", maxiter=2, gtol=0.1, etol=0.1)
+    opt = HybridTRMOptimiser(coord_type="dic", maxiter=2, gtol=0.1, etol=0.1)
     opt._species = water
     opt._build_coordinates()
     assert isinstance(opt._coords, DIC)
@@ -147,7 +147,7 @@ def test_trim_step():
 
     assert np.isclose(step_size, opt.alpha, rtol=0.01)  # 1% error margin
 
-    opt = HybridTRIMOptimiser(coord_type="cart", maxiter=2, gtol=0.1, etol=0.1)
+    opt = HybridTRMOptimiser(coord_type="cart", maxiter=2, gtol=0.1, etol=0.1)
     opt._species = water
     opt._build_coordinates()
     assert isinstance(opt._coords, CartesianCoordinates)
@@ -169,7 +169,7 @@ def test_damping_in_hybridtrim_optimiser():
     coord2 = CartesianCoordinates([1.1, -1.9, 1.1, 3.1, 1.2, 1.3])
     coord2.e = 0.10
     coord2.g = np.array([0.1, 0.3, 0.01, -0.1])
-    opt = HybridTRIMOptimiser(coord_type="cart", maxiter=2, gtol=0.1, etol=0.1)
+    opt = HybridTRMOptimiser(coord_type="cart", maxiter=2, gtol=0.1, etol=0.1)
 
     # simulate an oscillation happening
     opt._coords = coord1
@@ -190,7 +190,7 @@ def test_trim_molecular_opt():
     mol = Molecule(smiles="O")
     assert [atom.label for atom in mol.atoms] == ["O", "H", "H"]
 
-    HybridTRIMOptimiser.optimise(mol, method=XTB())
+    HybridTRMOptimiser.optimise(mol, method=XTB())
 
     # Check optimised distances are similar to running the optimiser in XTB
     for oh_atom_idx_pair in [(0, 1), (0, 2)]:
@@ -206,8 +206,8 @@ def test_trim_molecular_opt():
 def test_optimiser_plotting():
     mol = Molecule(smiles="O")
 
-    opt = HybridTRIMOptimiser(maxiter=100, gtol=1e-3, etol=1e-3)
+    opt = HybridTRMOptimiser(maxiter=100, gtol=1e-3, etol=1e-3)
     opt.run(mol, method=XTB())
 
-    opt.draw_optimiser_plot()
+    opt.plot_optimisation()
     assert os.path.isfile(f"{mol.name}_opt_plot.pdf")

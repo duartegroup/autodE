@@ -1,7 +1,7 @@
 """
-Robust geometry optimisers, uses features from
-multiple optimisation methods. (Similar to those
-implemented in common QM packages)
+A hybrid RFO (Rational Function Optimisation) and
+Trust Radius Model (TRM) optimiser. Based upon the
+optimisers available in multiple popular QM softwares.
 
 Only minimisers, these are not TS search/constrained optimiser
 """
@@ -17,14 +17,14 @@ from autode.log import logger
 from itertools import combinations
 
 
-class HybridTRIMOptimiser(CRFOptimiser):
+class HybridTRMOptimiser(CRFOptimiser):
     """
-    A hybrid of RFO and TRIM/QA optimiser, with dynamic trust
+    A hybrid of RFO and TRM/QA optimiser, with dynamic trust
     radius. If the RFO step is smaller in magnitude than trust radius,
-    then the step-length is controlled by using the Trust-Radius Image
-    Minimisation method (TRIM), also known as Quadratic Approximation
-    (QA). It falls-back on simple scalar scaling of RFO step, if the
-    TRIM/QA method fails to converge to the required step-size. The
+    then the step-length is controlled by using the Trust-Radius Model
+    (TRM), also sometimes known as Quadratic Approximation (QA).
+    It falls-back on simple scalar scaling of RFO step, if the
+    TRM/QA method fails to converge to the required step-size. The
     trust radius is updated by a modification of Fletcher's method.
 
     See References:
@@ -34,6 +34,8 @@ class HybridTRIMOptimiser(CRFOptimiser):
     [2] T. Helgaker, Chem. Phys. Lett., 182(5), 1991, 503-510
 
     [3] J. T. Golab et al., Chem. Phys., 78, 1983, 175-199
+
+    [4] R. Fletcher, Practical Methods of Optimization, Wiley, Chichester, 1981
     """
 
     def __init__(
@@ -48,7 +50,7 @@ class HybridTRIMOptimiser(CRFOptimiser):
         **kwargs,
     ):
         """
-        Hybrid RFO and TRIM/QA optimiser with dynamic trust radius (and
+        Hybrid RFO and TRM/QA optimiser with dynamic trust radius (and
         optional damping if oscillation in energy and gradient is detected)
 
         ---------------------------------------------------------------------

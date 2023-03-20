@@ -394,8 +394,11 @@ class Optimiser(BaseOptimiser, ABC):
         else:
             return False
 
-    def draw_optimiser_plot(
-        self, filename=None, plot_energy=True, plot_rms_grad=True
+    def plot_optimisation(
+        self,
+        filename: Optional[str] = None,
+        plot_energy: bool = True,
+        plot_rms_grad: bool = True,
     ) -> None:
         """
         Draw the plot of the energies and/or rms_gradients of
@@ -415,6 +418,7 @@ class Optimiser(BaseOptimiser, ABC):
         if self.iteration < 2:
             logger.warning("Less than 2 points, cannot draw optimisation plot")
             return None
+
         filename = (
             f"{self._species.name}_opt_plot.pdf"
             if filename is None
@@ -427,6 +431,7 @@ class Optimiser(BaseOptimiser, ABC):
             plot_energy=plot_energy,
             plot_rms_grad=plot_rms_grad,
         )
+        return None
 
 
 class NullOptimiser(BaseOptimiser):

@@ -3,7 +3,7 @@ from autode.opt.optimisers.bfgs import BFGSOptimiser
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.prfo import PRFOptimiser
 from autode.opt.optimisers.crfo import CRFOptimiser
-from autode.opt.optimisers.robust import HybridTRIMOptimiser
+from autode.opt.optimisers.trm import HybridTRMOptimiser
 from autode.opt.optimisers.steepest_descent import (
     CartesianSDOptimiser,
     DIC_SD_Optimiser,
@@ -17,5 +17,5 @@ __all__ = [
     "CRFOptimiser",
     "CartesianSDOptimiser",
     "DIC_SD_Optimiser",
-    "HybridTRIMOptimiser",
+    "HybridTRMOptimiser",
 ]
