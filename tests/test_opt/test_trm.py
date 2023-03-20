@@ -11,7 +11,7 @@ from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.trm import HybridTRMOptimiser
 
 
-def test_trim_step():
+def test_trm_step():
     water_atoms = [
         Atom("O", -0.0011, 0.3631, -0.0000),
         Atom("H", -0.8250, -0.1819, -0.0000),
@@ -162,7 +162,7 @@ def test_trim_step():
     assert np.isclose(step_size, opt.alpha, rtol=0.001)
 
 
-def test_damping_in_hybridtrim_optimiser():
+def test_damping_in_hybridtrm_optimiser():
     coord1 = CartesianCoordinates([1.0, -2.0, 1.0, 3.0, 1.1, 1.2])
     coord1.e = 0.14
     coord1.g = np.array([0.2, 0.3, 0.1, -0.2])
