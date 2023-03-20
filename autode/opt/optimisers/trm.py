@@ -75,6 +75,7 @@ class HybridTRMOptimiser(CRFOptimiser):
             :py:meth:`NDOptimiser <NDOptimiser.__init__>`
         """
         super().__init__(*args, init_alpha=init_trust, **kwargs)
+        # todo init_alpha could be in **kwargs, would throw error?
 
         assert 0.0 < min_trust < max_trust
         self._max_alpha = float(max_trust)
@@ -146,13 +147,12 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._coords.h = self._updated_h()
         self._update_trust_radius()
 
-        # damping sets coords so return early
         if self._damp_if_required():
             logger.info("Skipping quasi-NR step after damping")
             return None
 
         rfo_h_eff = self._get_rfo_minimise_h_eff()
-        rfo_step = -np.linalg.inv(rfo_h_eff) @ self._coords.g
+        rfo_step = np.matmul(-np.linalg.inv(rfo_h_eff), self._coords.g)
         rfo_step_size = self._get_cart_step_size_from_step(rfo_step)
 
         if rfo_step_size < self.alpha:
@@ -160,14 +160,14 @@ class HybridTRMOptimiser(CRFOptimiser):
             step = rfo_step
         else:
             try:
-                qa_h_eff = self._get_trim_minimise_h_eff()
-                qa_step = -np.linalg.inv(qa_h_eff) @ self._coords.g
-                logger.info("Taking a QA step optimised to trust radius")
+                qa_h_eff = self._get_trm_minimise_h_eff()
+                qa_step = np.matmul(-np.linalg.inv(qa_h_eff), self._coords.g)
+                logger.info("Taking a TRM/QA step optimised to trust radius")
                 step = qa_step
 
             except OptimiserStepError as exc:
-                logger.debug(f"QA step failed: {str(exc)}")
-                # if QA failed, take scaled RFO step
+                logger.debug(f"TRM/QA step failed: {str(exc)}")
+                # if TRM/QA failed, take scaled RFO step
                 scaled_step = rfo_step * (self.alpha / rfo_step_size)
 
                 logger.info(
@@ -176,10 +176,11 @@ class HybridTRMOptimiser(CRFOptimiser):
                 )
                 step = scaled_step
 
-        step_size = self._get_cart_step_size_from_step(step)
         self._coords.allow_unconverged_back_transform = False
         self._coords = self._coords + step  # finally, take the step!
         self._coords.allow_unconverged_back_transform = True
+
+        step_size = self._get_cart_step_size_from_step(step)
         logger.info(f"Size of step taken (in Cartesian) = {step_size:.3f} Å")
 
         return None
@@ -224,17 +225,17 @@ class HybridTRMOptimiser(CRFOptimiser):
         # effective hessian = H - lambda * I
         return self._coords.h - lmda * np.eye(h_n)
 
-    def _get_trim_minimise_h_eff(self) -> np.ndarray:
+    def _get_trm_minimise_h_eff(self) -> np.ndarray:
         """
         Using current Hessian and gradient, get the level-shifted Hessian
         for a minimising step, whose magnitude (norm) is approximately
-        equal to the trust radius (TRIM or QA step).
+        equal to the trust radius (TRM or QA step).
 
         Described in J. Golab, D. L. Yeager, and P. Jorgensen,
         Chem. Phys., 78, 1983, 175-199
 
         Returns:
-            (np.ndarray): The level-shifted Hessian for QA step
+            (np.ndarray): The level-shifted Hessian for TRM/QA step
         """
         # this function is expensive to call
         from scipy.optimize import root_scalar

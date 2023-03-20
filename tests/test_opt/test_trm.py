@@ -139,7 +139,7 @@ def test_trim_step():
     opt._coords.update_g_from_cart_g(gradient)
     opt._coords.update_h_from_cart_h(hessian)
 
-    h_eff = opt._get_trim_minimise_h_eff()
+    h_eff = opt._get_trm_minimise_h_eff()
     step = -np.linalg.inv(h_eff) @ opt._coords.g
     new_coords = opt._coords + step
     cart_step = new_coords.to("cart") - opt._coords.to("cart")
@@ -154,7 +154,7 @@ def test_trim_step():
     opt._coords.update_g_from_cart_g(gradient)
     opt._coords.update_h_from_cart_h(hessian)
 
-    h_eff = opt._get_trim_minimise_h_eff()
+    h_eff = opt._get_trm_minimise_h_eff()
     step = -np.linalg.inv(h_eff) @ opt._coords.g  # in Cartesian
     step_size = np.linalg.norm(step)
 
