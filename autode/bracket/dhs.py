@@ -126,11 +126,13 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
     @property
     def converged(self) -> bool:
-        if self.rms_tangent_grad < self.gtol:
+        if (
+            self.rms_tangent_grad < self.gtol
+            and self.last_energy_change < self.etol
+        ):
             return True
         else:
             return False
-        # todo also check energy change
 
     @property
     def rms_tangent_grad(self):
@@ -449,7 +451,7 @@ class DHS:
             dist = self.imgpair.euclid_dist
             coord0 = np.array(self.imgpair.get_coord_by_side(side))
 
-            # calculate the number of remaining maxiter to feed into scipy
+            # calculate the number of remaining maxiter to feed into optimiser
             curr_maxiter = self._maxiter - self.imgpair.total_iters
             if curr_maxiter == 0:
                 break
@@ -469,42 +471,24 @@ class DHS:
                     "Micro-iterations (optimisation) after a"
                     " DHS step did not converge, exiting"
                 )
+                break
+
+            logger.info(
+                "Successful optimization after DHS step, final RMS of"
+                f" gradient = {opt.rms_tangent_grad:.6f} Ha/angstrom"
+            )
 
             # put results back into imagepair
             if side == "left":
                 self.imgpair.left_coord = opt.final_coordinates
             elif side == "right":
                 self.imgpair.right_coord = opt.final_coordinates
-
-            # parse the scipy results and log output
-            perp_grad = self.imgpair.get_one_img_perp_grad(side)
-            rms_grad = np.sqrt(np.mean(np.square(perp_grad)))
-
-            if opt.converged:
-                logger.info(
-                    "Successful optimization after DHS step, final"
-                    f" RMS of projected gradient = {rms_grad:.6f}"
-                    f" Ha/angstrom"
-                )
-            else:
-                # step may be accepted if rms gradient is low enough
-                if rms_grad < 1.0e-3:
-                    logger.info(
-                        "Optimization not converged completely,"
-                        " but accepted on the basis of RMS"
-                        f" gradient = {rms_grad:.6f} Ha/angstrom"
-                        f" being low enough"
-                    )
-                else:
-                    logger.error(
-                        "Micro-iterations (optimisation) after a"
-                        " DHS step did not converge, exiting"
-                    )
-                    break
+            # todo fix
 
             # if optimisation succeeded
-            new_coord = self.imgpair.get_coord_by_side(side)
+            """new_coord = self.imgpair.get_coord_by_side(side)
             # check if it has jumped over the barrier
+            # todo fix this function
             if self._has_jumped_over_barrier(new_coord, side):
                 logger.warning(
                     "One image has jumped over the other image"
@@ -513,7 +497,7 @@ class DHS:
                     " is quite close, so DHS cannot proceed even"
                     " though the distance criteria is not met"
                 )
-                break
+                break"""
 
             self._log_convergence()
 

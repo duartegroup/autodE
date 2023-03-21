@@ -142,8 +142,12 @@ class BaseImagePair:
         self._left_history = _OptimiserHistory()
         self._right_history = _OptimiserHistory()
         # push the first coordinates into history
-        self.left_coord = self._left_image.coordinates.to("ang")
-        self.right_coord = self._right_image.coordinates.to("ang")
+        self.left_coord = CartesianCoordinates(
+            self._left_image.coordinates.to("ang")
+        )
+        self.right_coord = CartesianCoordinates(
+            self._right_image.coordinates.to("ang")
+        )
 
     def _sanity_check(self) -> None:
         """
@@ -272,20 +276,21 @@ class BaseImagePair:
             value (np.ndarray|None): new set of coordinates
 
         Raises:
-            (TypeError): On invalid input
+            (TypeError): If input is not of type CartesianCoordinates
+            (ValueError): If input does not have correct shape
         """
         if value is None:
             return
-        elif (
-            isinstance(value, np.ndarray)
-            and value.flatten().shape[0] == 3 * self.n_atoms
-        ):
-            self._left_history.append(CartesianCoordinates(value.copy()))
+        if value.shape[0] != 3 * self.n_atoms:
+            raise ValueError(f"Must have {self.n_atoms * 3} entries")
+
+        if isinstance(value, CartesianCoordinates):
+            self._left_history.append(value.copy())
         else:
             raise TypeError
 
         self._left_image.coordinates = self._left_history[-1]
-        # todo should we remove old hessians that are not needed?
+        # todo should we remove old hessians that are not needed to free mem?
 
     @property
     def right_coord(self) -> Optional[OptCoordinates]:
@@ -304,15 +309,16 @@ class BaseImagePair:
             value (np.ndarray|None): new set of coordinates
 
         Raises:
-            (TypeError): On invalid input
+            (TypeError): If input is not of type CartesianCoordinates
+            (ValueError): If input does not have correct shape
         """
         if value is None:
             return
-        elif (
-            isinstance(value, np.ndarray)
-            and value.flatten().shape[0] == 3 * self.n_atoms
-        ):
-            self._right_history.append(CartesianCoordinates(value.copy()))
+        if value.shape[0] != 3 * self.n_atoms:
+            raise ValueError(f"Must have {self.n_atoms * 3} entries")
+
+        if isinstance(value, CartesianCoordinates):
+            self._right_history.append(value.copy())
         else:
             raise TypeError
 
