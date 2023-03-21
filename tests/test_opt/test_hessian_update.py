@@ -161,6 +161,8 @@ def test_repr_and_strings():
         SR1Update,
         NullUpdate,
         BofillUpdate,
+        BFGSSR1Update,
+        FlowchartUpdate,
     ):
 
         assert update_type().__repr__() is not None
@@ -192,7 +194,7 @@ def test_bfgs_pd_update(eigval, expected):
 
 
 @work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
-def test_bfgs_and_flowchart_update_water():
+def test_bfgs_and_bfgssr1_update_water():
 
     h = np.loadtxt("water_cart_hessian0.txt")
 
@@ -232,7 +234,7 @@ def test_bfgs_and_flowchart_update_water():
         -2.3462735918607574e-17,
     ]
 
-    for update_type in [BFGSUpdate, FlowchartUpdate]:
+    for update_type in [BFGSUpdate, BFGSSR1Update]:
         updater = update_type(
             h=h, s=np.array(x1) - np.array(x0), y=np.array(g1) - np.array(g0)
         )
