@@ -561,11 +561,13 @@ class BFGSSR1Update(HessianUpdater):
         y_hs = self.y - np.matmul(self.h, self.s)
         sr1_delta_h = np.outer(y_hs, y_hs) / np.dot(y_hs, self.s)
 
-        phi_bofill = 1.0 - (
-            np.dot(self.s, y_hs) ** 2
-            / (np.dot(self.s, self.s) * np.dot(y_hs, y_hs))
+        # definition according to Farkas, Schlegel, J Chem. Phys., 111, 1999
+        # NOTE: this phi is (1 - original_phi_bofill)
+        phi = np.dot(self.s, y_hs) ** 2 / (
+            np.dot(self.s, self.s) * np.dot(y_hs, y_hs)
         )
-        sqrt_phi = np.sqrt(phi_bofill)
+        sqrt_phi = np.sqrt(phi)
+        logger.info(f"BFGS-SR1 update: ϕ = {sqrt_phi:.4f}")
         return self.h + sqrt_phi * sr1_delta_h + (1 - sqrt_phi) * bfgs_delta_h
 
     @property

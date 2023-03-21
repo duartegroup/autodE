@@ -9,6 +9,7 @@ from autode.opt.optimisers.hessian_update import (
     NullUpdate,
     BofillUpdate,
     FlowchartUpdate,
+    BFGSSR1Update,
 )
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -275,7 +276,6 @@ def test_flowchart_update_all_components_work():
 
     h = np.array([[1.0, 0.1], [0.1, 1.0]])
     s = np.array([-0.02, -0.06])
-    z = y - h @ s
     updater = FlowchartUpdate(h=h, s=s, y=y)
     h_new = updater.updated_h
     # not BFGS
@@ -283,6 +283,30 @@ def test_flowchart_update_all_components_work():
     # this uses SR1 update
     sr1_updater = SR1Update(h=h, y=y, s=s)
     assert np.allclose(h_new, sr1_updater.updated_h)
+
+
+def test_bfgs_sr1_hybrid_update():
+    h = np.array([[1.0, 0.1], [0.1, 1.0]])  # initial approximate Hessian
+
+    y = np.array([0.01, 0.03])
+    s = np.array([-0.02, -0.06])
+
+    updater = BFGSSR1Update(h=h, y=y, s=s)
+    h_new = updater.updated_h
+
+    delta_h = h_new - h
+
+    delta_bfgs_h = BFGSUpdate(h=h, y=y, s=s).updated_h - h
+    delta_sr1_h = SR1Update(h=h, y=y, s=s).updated_h - h
+
+    # definition according to Farkas, Schlegel, J Chem Phys, 111, 1999
+    phi_bofill = np.dot(-y + h @ s, s) ** 2
+    phi_bofill /= np.dot(-y + h @ s, -y + h @ s) * np.dot(s, s)
+    sqrt_phi = np.sqrt(phi_bofill)
+
+    assert np.allclose(
+        delta_h, sqrt_phi * delta_sr1_h + (1 - sqrt_phi) * delta_bfgs_h
+    )
 
 
 def test_hessian_requires_at_least_one_index():
