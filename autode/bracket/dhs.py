@@ -486,11 +486,7 @@ class DHS:
                 raise ImgPairSideError()
             # todo has jumped over the barrier should be on other side
 
-            # if optimisation succeeded
-            """new_coord = self.imgpair.get_coord_by_side(side)
-            # check if it has jumped over the barrier
-            # todo fix this function
-            if self._has_jumped_over_barrier(new_coord, side):
+            if self.imgpair.has_jumped_over_barrier(side):
                 logger.warning(
                     "One image has jumped over the other image"
                     " while running DHS optimisation. This"
@@ -498,7 +494,7 @@ class DHS:
                     " is quite close, so DHS cannot proceed even"
                     " though the distance criteria is not met"
                 )
-                break"""
+                break
 
             self._log_convergence()
 

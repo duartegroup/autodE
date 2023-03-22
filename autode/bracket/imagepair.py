@@ -333,6 +333,13 @@ class BaseImagePair(ABC):
     def dist(self):
         """Distance defined between two images in the image-pair"""
 
+    @abstractmethod
+    def has_jumped_over_barrier(self, side: str) -> bool:
+        """
+        Has the newly added image on the given side jumped
+        over the barrier?
+        """
+
     def get_coord_by_side(self, side: str) -> OptCoordinates:
         """For external usage, supplies only the coordinate object"""
         _, coord, _, _ = self._get_img_by_side(side)
@@ -392,6 +399,43 @@ class ImagePair(BaseImagePair):
             (Distance): Distance in Angstrom
         """
         return Distance(np.linalg.norm(self.dist_vec), units="ang")
+
+    def has_jumped_over_barrier(self, side: str) -> bool:
+        """
+        The simplest test would be to check the distances between
+        the last two points, and the newly added points. If the newly
+        added point does not lie between the last two points (in
+        Euclidean distance) then the point has probably jumped over
+        the barrier (This is not a strict/rigorous test, but very cheap)
+
+        Args:
+            side: side of the newly added point
+
+        Returns:
+            (bool): whether the point has probably jumped over
+        """
+        if side == "left":
+            last_coord = self._left_history[-1]
+            other_coord = self.right_coord
+        elif side == "right":
+            last_coord = self._right_history[-1]
+            other_coord = self.left_coord
+        else:
+            raise ImgPairSideError()
+
+        new_coord = self.get_coord_by_side(side)
+
+        # We assume the next point will lie between the
+        # last two images on both side. If the current coord
+        # is further from last coord on the same side than the
+        # opposite image, then it has jumped over
+        dist_to_last = np.linalg.norm(new_coord - last_coord)
+        dist_before_step = np.linalg.norm(other_coord - last_coord)
+
+        if dist_to_last >= dist_before_step:
+            return True
+        else:
+            return False
 
     def update_one_img_mol_energy(self, side: str) -> None:
         """
