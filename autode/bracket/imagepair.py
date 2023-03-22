@@ -2,11 +2,11 @@
 Base classes for implementing all bracketing methods
 that require a pair of images
 """
-
+from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 import numpy as np
 
-from autode.values import PotentialEnergy, Gradient
+from autode.values import PotentialEnergy, Gradient, Distance
 from autode.hessians import Hessian
 from autode.geom import get_rot_mat_kabsch
 from autode.opt.coordinates import CartesianCoordinates, OptCoordinates, DIC
@@ -102,7 +102,7 @@ class ImgPairSideError(ValueError):
         super().__init__("Side supplied must be either 'left' or 'right'")
 
 
-class BaseImagePair:
+class BaseImagePair(ABC):
     """
     Base class for a pair of images (e.g., reactant and product) of
     the same species. The images are called 'left' and 'right' to
@@ -122,8 +122,6 @@ class BaseImagePair:
         Args:
             left_image: One molecule of the pair
             right_image: Another molecule of the pair
-            coord_type: Type of coordinate to use "cart" for cartesian
-                       or "DIC" for delocalised internal coordinates
         """
         assert isinstance(left_image, autode.species.species.Species)
         assert isinstance(right_image, autode.species.species.Species)
@@ -148,6 +146,7 @@ class BaseImagePair:
         self.right_coord = CartesianCoordinates(
             self._right_image.coordinates.to("ang")
         )
+        # todo replace type hints with optcoordiantes
 
     def _sanity_check(self) -> None:
         """
@@ -267,13 +266,13 @@ class BaseImagePair:
         return self._left_history[-1]
 
     @left_coord.setter
-    def left_coord(self, value: np.ndarray):
+    def left_coord(self, value: Optional[OptCoordinates]):
         """
         Sets the coordinates of the left image, also updates
         the coordinates of the species
 
         Args:
-            value (np.ndarray|None): new set of coordinates
+            value (OptCoordinates|None): new set of coordinates
 
         Raises:
             (TypeError): If input is not of type CartesianCoordinates
@@ -284,12 +283,12 @@ class BaseImagePair:
         if value.shape[0] != 3 * self.n_atoms:
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
-        if isinstance(value, CartesianCoordinates):
+        if isinstance(value, OptCoordinates):
             self._left_history.append(value.copy())
         else:
             raise TypeError
 
-        self._left_image.coordinates = self._left_history[-1]
+        self._left_image.coordinates = self.left_coord.to("cart")
         # todo should we remove old hessians that are not needed to free mem?
 
     @property
@@ -300,13 +299,13 @@ class BaseImagePair:
         return self._right_history[-1]
 
     @right_coord.setter
-    def right_coord(self, value):
+    def right_coord(self, value: Optional[OptCoordinates]):
         """
         Sets the coordinates of the right image, also updates
         the coordinates of the species
 
         Args:
-            value (np.ndarray|None): new set of coordinates
+            value (OptCoordinates|None): new set of coordinates
 
         Raises:
             (TypeError): If input is not of type CartesianCoordinates
@@ -317,12 +316,22 @@ class BaseImagePair:
         if value.shape[0] != 3 * self.n_atoms:
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
-        if isinstance(value, CartesianCoordinates):
+        if isinstance(value, OptCoordinates):
             self._right_history.append(value.copy())
         else:
             raise TypeError
 
-        self._right_image.coordinates = self._right_history[-1]
+        self._right_image.coordinates = self.right_coord.to("cart")
+
+    @property
+    @abstractmethod
+    def dist_vec(self) -> np.ndarray:
+        """Distance vector defined from left to right image"""
+
+    @property
+    @abstractmethod
+    def dist(self):
+        """Distance defined between two images in the image-pair"""
 
     def get_coord_by_side(self, side: str) -> OptCoordinates:
         """For external usage, supplies only the coordinate object"""
@@ -336,7 +345,7 @@ class BaseImagePair:
         Access an image and some properties by a string that
         represents side. Returns a tuple of the species, the
         current coordinate object, and a factor that is necessary
-        for calculation
+        for some calculations
 
         Args:
             side (str): 'left' or 'right'
@@ -358,6 +367,31 @@ class BaseImagePair:
             raise ImgPairSideError()
 
         return img, coord, hist, fac
+
+
+class ImagePair(BaseImagePair):
+    """
+    Image-pair that has the ability to run single-point, en/grad,
+    hessian calculation, and hessian update using gradient using
+    the set methods. The distance between the images is defined as
+    the Euclidean distance.
+    """
+    @property
+    def dist_vec(self):
+        """Distance vector in cartesian coordinates"""
+        return np.array(
+            self.left_coord.to("cart") - self.right_coord.to("cart")
+        )
+
+    @property
+    def dist(self) -> Distance:
+        """
+        Euclidean distance between the images in ImagePair
+
+        Returns:
+            (Distance): Distance in Angstrom
+        """
+        return Distance(np.linalg.norm(self.dist_vec), units="ang")
 
     def update_one_img_mol_energy(self, side: str) -> None:
         """

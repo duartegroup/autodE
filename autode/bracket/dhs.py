@@ -8,11 +8,10 @@ import os
 from typing import Tuple, Union, Optional
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.optimize import minimize
 
-from autode.values import Distance, Angle
+from autode.values import Distance, Angle, GradientRMS
 from autode.units import ang as angstrom
-from autode.bracket.imagepair import BaseImagePair, ImgPairSideError
+from autode.bracket.imagepair import ImagePair, ImgPairSideError
 from autode.methods import get_lmethod
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate, BFGSUpdate
@@ -103,6 +102,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             angle_thresh: An angle threshold above which linear search
                           will be rejected (in Degrees)
         """
+        # todo replace init_alpha with init_trust in RFO later
         super().__init__(*args, init_alpha=init_trust, **kwargs)
 
         if not isinstance(pivot_point, CartesianCoordinates):
@@ -115,13 +115,12 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._target_dist = Distance(target_dist, units="ang")
         self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
         self._hessian_update_types = [BFGSUpdate, BofillUpdate]
-        # todo test reasonableness of Bofill update
-        # todo replace later with bfgssr1update
+        # todo replace later with bfgssr1update?
 
     def _initialise_run(self) -> None:
         self._coords = CartesianCoordinates(self._species.coordinates)
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
-        # todo do we need to make hessian positive definite
+        self._coords.make_hessian_positive_definite()
         self._update_gradient_and_energy()
 
     @property
@@ -135,7 +134,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             return False
 
     @property
-    def rms_tangent_grad(self):
+    def rms_tangent_grad(self) -> GradientRMS:
         """
         Obtain the RMS of the gradient tangent to the distance
         vector between current coords and pivot point
@@ -144,7 +143,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # unit vector in the direction of distance vector
         d_hat = self.dist_vec / np.linalg.norm(self.dist_vec)
         tangent_grad = grad - (grad.dot(d_hat)) * d_hat
-        return np.sqrt(np.mean(np.square(tangent_grad)))
+        rms_grad = np.sqrt(np.mean(np.square(tangent_grad)))
+        return GradientRMS(rms_grad)
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -192,7 +192,6 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         Returns:
             (np.ndarray): Step in cartesian (or mw-cartesian)
         """
-        # todo how to deal with line search coordinates
         from scipy.optimize import minimize
 
         taylor_pes = _TruncatedTaylor(coords, grad, self._coords.h)
@@ -289,12 +288,13 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         return x_interp, g_interp
 
 
-class DHSImagePair(BaseImagePair):
+class DHSImagePair(ImagePair):
     """
     An image-pair that defines the distance between two images
     as the Euclidean distance (square of root of sum of the
     squares of deviations in Cartesian coordinates)
     """
+    # todo remove this once done
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -356,7 +356,7 @@ class DHS:
         maxiter: int = 300,
         reduction_factor: float = 0.05,
         dist_tol: Union[Distance, float] = Distance(1.0, "ang"),
-        optimiser: str = "BFGS",
+        gtol: Optional[GradientRMS] = GradientRMS(1.e-3, "ha/ang"),
     ):
         """
         Dewar-Healy-Stewart method to find transition states.
@@ -382,19 +382,18 @@ class DHS:
                       stop, values less than 1.0 Angstrom are not
                       recommended.
 
-            optimiser: The optimiser to use for minimising after
-                       the DHS step, choose scipy's 'CG' (conjugate
-                       gradients) or 'BFGS' (or maybe 'L-BFGS-B')
+            gtol: Gradient tolerance for the optimiser micro-iterations
+                  in DHS
         """
         # imgpair is only used for storing the points here
-        self.imgpair = DHSImagePair(initial_species, final_species)
+        self.imgpair = ImagePair(initial_species, final_species)
         self._species = initial_species.copy()  # just hold the species
         self._reduction_fac = abs(float(reduction_factor))
         assert self._reduction_fac < 1.0
 
         self._maxiter = abs(int(maxiter))
         self._dist_tol = Distance(dist_tol, "ang")
-        self._opt_driver = str(optimiser)
+        self._gtol = GradientRMS(gtol, "ha/ang")
 
         # these only hold the coords after finishing optimisation
         # for each DHS step. Put the initial coordinates here
@@ -408,7 +407,7 @@ class DHS:
     @property
     def converged(self) -> bool:
         """Is DHS converged to the desired distance tolerance?"""
-        if self.imgpair.euclid_dist < self._dist_tol:
+        if self.imgpair.dist < self._dist_tol:
             return True
         else:
             return False
@@ -448,7 +447,7 @@ class DHS:
 
             # take a step on the side with lower energy
             self._step(side)
-            dist = self.imgpair.euclid_dist
+            dist = self.imgpair.dist
             coord0 = np.array(self.imgpair.get_coord_by_side(side))
 
             # calculate the number of remaining maxiter to feed into optimiser
@@ -483,7 +482,9 @@ class DHS:
                 self.imgpair.left_coord = opt.final_coordinates
             elif side == "right":
                 self.imgpair.right_coord = opt.final_coordinates
-            # todo fix
+            else:
+                raise ImgPairSideError()
+            # todo has jumped over the barrier should be on other side
 
             # if optimisation succeeded
             """new_coord = self.imgpair.get_coord_by_side(side)
@@ -514,7 +515,7 @@ class DHS:
     def _log_convergence(self) -> None:
         logger.info(
             f"Macro-iteration #{self.macro_iter}: Distance = "
-            f"{self.imgpair.euclid_dist:.4f}; Energy (initial species) = "
+            f"{self.imgpair.dist:.4f}; Energy (initial species) = "
             f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
             f"{self.imgpair.right_coord.e:.6f}"
         )
@@ -552,7 +553,7 @@ class DHS:
         """
         # todo coord system -- ditch internals?
         # take a DHS step by minimizing the distance by factor
-        new_dist = (1 - self._reduction_fac) * self.imgpair.euclid_dist
+        new_dist = (1 - self._reduction_fac) * self.imgpair.dist
         dist_vec = self.imgpair.dist_vec
         step = dist_vec * self._reduction_fac  # ??
 
@@ -568,7 +569,7 @@ class DHS:
         logger.info(
             f"DHS step on {side} image:" f" setting distance to {new_dist:.4f}"
         )
-        assert self.imgpair.euclid_dist == new_dist
+        assert self.imgpair.dist == new_dist
 
         return None
 
