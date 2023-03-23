@@ -3,26 +3,28 @@ Base classes for implementing all bracketing methods
 that require a pair of images
 """
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
 from autode.values import PotentialEnergy, Gradient, Distance
 from autode.hessians import Hessian
 from autode.geom import get_rot_mat_kabsch
-from autode.opt.coordinates import CartesianCoordinates, OptCoordinates, DIC
+from autode.neb import CINEB
+from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.exceptions import CalculationException
 from autode.log import logger
 
-import autode.species.species
-import autode.wrappers.methods
+if TYPE_CHECKING:
+    from autode.species import Species
+    from autode.wrappers.methods import Method
 
 
 def _calculate_engrad_for_species(
-    species: autode.species.species.Species,
-    method: autode.wrappers.methods.Method,
+    species: "Species",
+    method: "Method",
     n_cores: int,
 ) -> Tuple[PotentialEnergy, Gradient]:
     from autode.calculations import Calculation
@@ -43,8 +45,8 @@ def _calculate_engrad_for_species(
 
 
 def _calculate_energy_for_species(
-    species: autode.species.species.Species,
-    method: autode.wrappers.methods.Method,
+    species: "Species",
+    method: "Method",
     n_cores: int,
 ) -> PotentialEnergy:
     from autode.calculations import Calculation
@@ -66,8 +68,8 @@ def _calculate_energy_for_species(
 
 @work_in_tmp_dir()
 def _calculate_hessian_for_species(
-    species: autode.species.species.Species,
-    method: autode.wrappers.methods.Method,
+    species: "Species",
+    method: "Method",
     n_cores: int,
 ) -> Hessian:
     """
@@ -112,8 +114,8 @@ class BaseImagePair(ABC):
 
     def __init__(
         self,
-        left_image: autode.species.species.Species,
-        right_image: autode.species.species.Species,
+        left_image: "Species",
+        right_image: "Species",
     ):
         """
         Initialize the image pair, does not set methods/n_cores or
@@ -123,8 +125,10 @@ class BaseImagePair(ABC):
             left_image: One molecule of the pair
             right_image: Another molecule of the pair
         """
-        assert isinstance(left_image, autode.species.species.Species)
-        assert isinstance(right_image, autode.species.species.Species)
+        from autode.species.species import Species
+
+        assert isinstance(left_image, Species)
+        assert isinstance(right_image, Species)
         self._left_image = left_image.new_species(name="left_image")
         self._right_image = right_image.new_species(name="right_image")
         self._sanity_check()
@@ -134,6 +138,7 @@ class BaseImagePair(ABC):
         self._engrad_method = None
         self._hess_method = None
         self._n_cores = None
+
         # Bofill has no conditions, so kept as default
         self._hessian_update_types = [BofillUpdate]
 
@@ -147,6 +152,10 @@ class BaseImagePair(ABC):
             self._right_image.coordinates.to("ang")
         )
         # todo replace type hints with optcoordiantes
+
+        # final CINEB calculation to get close to TS, if done
+        self._cineb = None
+        self._ci_coords = None
 
     def _sanity_check(self) -> None:
         """
@@ -214,20 +223,22 @@ class BaseImagePair(ABC):
 
     def set_method_and_n_cores(
         self,
-        engrad_method: autode.wrappers.methods.Method,
+        engrad_method: "Method",
         n_cores: int,
-        hess_method: Optional[autode.wrappers.methods.Method] = None,
+        hess_method: Optional["Method"] = None,
     ) -> None:
         """
         Sets the methods for engrad and hessian calculation, and the
         total number of cores used for any calculation in this image pair
 
         Args:
-            engrad_method (autode.wrappers.methods.Method):
+            engrad_method (Method):
             n_cores (int):
-            hess_method (autode.wrappers.methods.Method|None):
+            hess_method (Method|None):
         """
-        if not isinstance(engrad_method, autode.wrappers.methods.Method):
+        from autode.wrappers.methods import Method
+
+        if not isinstance(engrad_method, Method):
             raise TypeError(
                 f"The engrad_method needs to be of type autode."
                 f"wrappers.method.Method, But "
@@ -237,7 +248,7 @@ class BaseImagePair(ABC):
 
         if hess_method is None:
             pass
-        elif not isinstance(hess_method, autode.wrappers.methods.Method):
+        elif not isinstance(hess_method, Method):
             raise TypeError(
                 f"The hess_method needs to be of type autode."
                 f"wrappers.method.Method, But "
@@ -325,6 +336,19 @@ class BaseImagePair(ABC):
 
     @property
     @abstractmethod
+    def _total_history(self) -> _OptimiserHistory:
+        """
+        The total history of the image-pair, including any CI run
+        from the endpoints
+        """
+
+    @property
+    @abstractmethod
+    def peak_species(self) -> Optional["Species"]:
+        """Highest energy (TS guess) species for this image-pair"""
+
+    @property
+    @abstractmethod
     def dist_vec(self) -> np.ndarray:
         """Distance vector defined from left to right image"""
 
@@ -347,7 +371,7 @@ class BaseImagePair(ABC):
 
     def _get_img_by_side(
         self, side: str
-    ) -> Tuple[autode.Species, OptCoordinates, _OptimiserHistory, float]:
+    ) -> Tuple["Species", OptCoordinates, _OptimiserHistory, float]:
         """
         Access an image and some properties by a string that
         represents side. Returns a tuple of the species, the
@@ -381,8 +405,10 @@ class ImagePair(BaseImagePair):
     Image-pair that has the ability to run single-point, en/grad,
     hessian calculation, and hessian update using gradient using
     the set methods. The distance between the images is defined as
-    the Euclidean distance.
+    the Euclidean distance. It can also run CI-NEB calculation from
+    the final endpoints
     """
+
     @property
     def dist_vec(self):
         """Distance vector in cartesian coordinates"""
@@ -539,4 +565,25 @@ class ImagePair(BaseImagePair):
 
         assert coord.h is not None, "Hessian update failed!"
 
+        return None
+
+    def run_cineb_from_endpoints(self) -> None:
+        if self.dist > 2.0:
+            logger.warning(
+                "The distance between the images in image-pair is"
+                "quite large, bracketing method may not have "
+                "converged completely; please check carefully"
+            )
+
+        self._cineb = CINEB.from_end_points(
+            self._left_image, self._right_image, num=3
+        )
+        self._cineb.calculate(
+            method=self._engrad_method, n_cores=self._n_cores
+        )
+
+        self._ci_coords = CartesianCoordinates(
+            self._cineb.peak_species.coordinates.to("ang")
+        )
+        # todo rename coord to coords
         return None

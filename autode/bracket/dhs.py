@@ -294,6 +294,7 @@ class DHSImagePair(ImagePair):
     as the Euclidean distance (square of root of sum of the
     squares of deviations in Cartesian coordinates)
     """
+
     # todo remove this once done
 
     @property
@@ -356,7 +357,7 @@ class DHS:
         maxiter: int = 300,
         reduction_factor: float = 0.05,
         dist_tol: Union[Distance, float] = Distance(1.0, "ang"),
-        gtol: Optional[GradientRMS] = GradientRMS(1.e-3, "ha/ang"),
+        gtol: Optional[GradientRMS] = GradientRMS(1.0e-3, "ha/ang"),
     ):
         """
         Dewar-Healy-Stewart method to find transition states.
@@ -457,8 +458,8 @@ class DHS:
 
             opt = DistanceConstrainedOptimiser(
                 maxiter=curr_maxiter,
-                gtol=1e-3,
-                etol=1e-3,
+                gtol=self._gtol,
+                etol=1.0e-3,  # seems like a reasonable etol
                 pivot_point=pivot,
                 target_dist=dist,
             )
@@ -484,7 +485,6 @@ class DHS:
                 self.imgpair.right_coord = opt.final_coordinates
             else:
                 raise ImgPairSideError()
-            # todo has jumped over the barrier should be on other side
 
             if self.imgpair.has_jumped_over_barrier(side):
                 logger.warning(
@@ -524,6 +524,7 @@ class DHS:
         then writes the trajectories and energy plot, then prints
         the highest energy point as xyz file
         """
+        # todo change it to hmethod?
         lmethod = get_lmethod()
         self.calculate(method=lmethod, n_cores=Config.n_cores)
         self.write_trajectories()
