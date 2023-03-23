@@ -153,10 +153,6 @@ class BaseImagePair(ABC):
         )
         # todo replace type hints with optcoordiantes
 
-        # final CINEB calculation to get close to TS, if done
-        self._cineb = None
-        self._ci_coords = None
-
     def _sanity_check(self) -> None:
         """
         Check if the two supplied images have the same solvent,
@@ -567,23 +563,30 @@ class ImagePair(BaseImagePair):
 
         return None
 
-    def run_cineb_from_endpoints(self) -> None:
+    def run_cineb_and_get_final_coords(self) -> CartesianCoordinates:
+        """
+        Runs a CI-NEB calculation from the end-points of the image-pair
+        and then returns the coordinates of the peak point obtained
+        from the CI-NEB run
+
+        Returns:
+            (CartesianCoordinates): Coordinates of the peak species obtained
+                                    from the CI-NEB run
+        """
         if self.dist > 2.0:
             logger.warning(
                 "The distance between the images in image-pair is"
                 "quite large, bracketing method may not have "
-                "converged completely; please check carefully"
+                "converged completely."
             )
 
-        self._cineb = CINEB.from_end_points(
+        cineb = CINEB.from_end_points(
             self._left_image, self._right_image, num=3
         )
-        self._cineb.calculate(
-            method=self._engrad_method, n_cores=self._n_cores
+        cineb.calculate(method=self._engrad_method, n_cores=self._n_cores)
+
+        ci_coords = CartesianCoordinates(
+            cineb.peak_species.coordinates.to("ang")
         )
 
-        self._ci_coords = CartesianCoordinates(
-            self._cineb.peak_species.coordinates.to("ang")
-        )
-        # todo rename coord to coords
-        return None
+        return ci_coords
