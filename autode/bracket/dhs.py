@@ -290,58 +290,39 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
 class DHSImagePair(ImagePair):
     """
-    An image-pair that defines the distance between two images
-    as the Euclidean distance (square of root of sum of the
-    squares of deviations in Cartesian coordinates)
+    Image-pair used for Dewar-Healy-Stewart (DHS) method to
+    find transition states
     """
 
-    # todo remove this once done
-
     @property
-    def dist_vec(self) -> np.ndarray:
+    def ts_guess(self) -> Optional["Species"]:
         """
-        The distance vector in Cartesian coordinates, pointing
-        to right_image from left_image
+        In DHS method, the images can only rise in energy; therefore,
+        the highest energy image is the ts_guess. If CI-NEB is run,
+        then we can return CI-NEB as the final result.
         """
-        return np.array(
-            self.left_coord.to("cart") - self.right_coord.to("cart")
-        )
+        tmp_spc = self._left_image.new_species(name="peak")
 
-    @property
-    def euclid_dist(self) -> Distance:
-        """
-        The Euclidean distance in Cartesian coordinates between the images
+        if self._cineb_coords is not None:
+            assert self._cineb_coords.e is not None
+            tmp_spc.coordinates = self._cineb_coords
+            return tmp_spc
 
-        Returns:
-            (Distance): Distance in angstrom
-        """
-        return Distance(np.linalg.norm(self.dist_vec), "ang")
+        # NOTE: Even though the final points are probably the highest
+        # this is not guaranteed, due to the probability of one end
+        # jumping over the barrier. So we iterate through all coords
 
-    def get_one_img_perp_grad(self, side: str) -> np.ndarray:
-        """
-        Get the gradient perpendicular to the distance vector
-        between the two images of the image-pair, for one
-        image
-
-        Returns:
-            (np.ndarray): The perpendicular component
-        """
-        dist_vec = self.dist_vec
-        # get unit vector in that direction
-        unit_dist_vec = dist_vec / np.linalg.norm(dist_vec)
-        _, coord, _, _ = self._get_img_by_side(side)
-        # project the cartesian gradient towards the distance vector
-        proj_cart_grad = unit_dist_vec * coord.to("cart").g.dot(unit_dist_vec)
-        # gradient component perpendicular to distance vector
-        perp_cart_grad = np.array(coord.to("cart").g - proj_cart_grad)
-
-        if isinstance(coord, CartesianCoordinates):
-            # no need to convert for cartesian coords
-            return perp_cart_grad
-
-        else:
-            raise NotImplementedError("Please use Cartesian coordinates!")
-        # todo remove once coordinates are sorted
+        energies = []
+        for coord in self._total_history:
+            energies.append(coord.e.to("Ha"))
+        if any(x is None for x in energies):
+            logger.error(
+                "Energy values are missing in the trajectory of this"
+                " image-pair. Unable to obtain transition state guess"
+            )
+            return None
+        peak_idx = np.argmax(energies)
+        tmp_spc.coordinates = self._total_history[peak_idx]
 
 
 class DHS:

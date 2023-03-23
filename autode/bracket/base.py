@@ -110,13 +110,5 @@ class BaseBracketMethod(ABC):
         the CI-NEB calculation is stored as coordinates.
         """
         # todo put all in imagepair, and then remove func,check in calculate()
-        if self._ci_coords is not None:
-            logger.warning("CI-NEB calculation was already run before")
 
-        if not self.converged:
-            logger.warning(
-                "The bracketing method has not converged, please check"
-                "the results of CI-NEB carefully"
-            )
-
-        self._ci_coords = self.imgpair.run_cineb_and_get_final_coords()
+        pass

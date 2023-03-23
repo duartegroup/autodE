@@ -153,6 +153,9 @@ class BaseImagePair(ABC):
         )
         # todo replace type hints with optcoordiantes
 
+        # Store coords from CI-NEB
+        self._cineb_coords = None
+
     def _sanity_check(self) -> None:
         """
         Check if the two supplied images have the same solvent,
@@ -332,16 +335,8 @@ class BaseImagePair(ABC):
 
     @property
     @abstractmethod
-    def _total_history(self) -> _OptimiserHistory:
-        """
-        The total history of the image-pair, including any CI run
-        from the endpoints
-        """
-
-    @property
-    @abstractmethod
-    def peak_species(self) -> Optional["Species"]:
-        """Highest energy (TS guess) species for this image-pair"""
+    def ts_guess(self) -> Optional["Species"]:
+        """TS guess species for this image-pair"""
 
     @property
     @abstractmethod
@@ -395,14 +390,65 @@ class BaseImagePair(ABC):
 
         return img, coord, hist, fac
 
+    @property
+    def _total_history(self) -> _OptimiserHistory:
+        """
+        The total history of the image-pair, including any CI run
+        from the endpoints
+        """
+        history = _OptimiserHistory()
+        history.extend(self._left_history)
+        history.append(self._cineb_coords)
+        history.extend(self._right_history)
+        return history
 
-class ImagePair(BaseImagePair):
+    def run_cineb_from_end_points(self) -> None:
+        """
+        Runs a CI-NEB calculation from the end-points of the image-pair
+        and then returns the coordinates of the peak point obtained
+        from the CI-NEB run
+
+        Returns:
+            (CartesianCoordinates): Coordinates of the peak species obtained
+                                    from the CI-NEB run
+        """
+        if self.dist > 2.0:
+            logger.warning(
+                "The distance between the images in image-pair is"
+                "quite large, bracketing method may not have "
+                "converged completely."
+            )
+
+        cineb = CINEB.from_end_points(
+            self._left_image, self._right_image, num=3
+        )
+        cineb.calculate(method=self._engrad_method, n_cores=self._n_cores)
+
+        ci_coords = CartesianCoordinates(
+            cineb.peak_species.coordinates.to("ang")
+        )
+        ci_coords.e = cineb.peak_species.energy
+        ci_coords.update_g_from_cart_g(cineb.peak_species.gradient)
+
+        self._cineb_coords = ci_coords
+
+        return None
+
+    def write_trajectories(self) -> None:
+        """
+        Write trajectories as *.xyz files, one for the initial species,
+        one for final species, and one for the whole trajectory, including
+        any CI-NEB run from the final end points
+        """
+        pass
+
+
+class ImagePair(BaseImagePair, ABC):
     """
-    Image-pair that has the ability to run single-point, en/grad,
-    hessian calculation, and hessian update using gradient using
-    the set methods. The distance between the images is defined as
-    the Euclidean distance. It can also run CI-NEB calculation from
-    the final endpoints
+    Image-pair that defines the distance between the images as
+    the Euclidean distance. Single-point, en/grad, and hessian
+    calculation can be run, and hessian update cna be done
+    using gradient information
     """
 
     @property
@@ -562,31 +608,3 @@ class ImagePair(BaseImagePair):
         assert coord.h is not None, "Hessian update failed!"
 
         return None
-
-    def run_cineb_and_get_final_coords(self) -> CartesianCoordinates:
-        """
-        Runs a CI-NEB calculation from the end-points of the image-pair
-        and then returns the coordinates of the peak point obtained
-        from the CI-NEB run
-
-        Returns:
-            (CartesianCoordinates): Coordinates of the peak species obtained
-                                    from the CI-NEB run
-        """
-        if self.dist > 2.0:
-            logger.warning(
-                "The distance between the images in image-pair is"
-                "quite large, bracketing method may not have "
-                "converged completely."
-            )
-
-        cineb = CINEB.from_end_points(
-            self._left_image, self._right_image, num=3
-        )
-        cineb.calculate(method=self._engrad_method, n_cores=self._n_cores)
-
-        ci_coords = CartesianCoordinates(
-            cineb.peak_species.coordinates.to("ang")
-        )
-
-        return ci_coords
