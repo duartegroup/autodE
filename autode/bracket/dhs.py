@@ -190,7 +190,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
                   search)
 
         Returns:
-            (np.ndarray): Step in cartesian (or mw-cartesian)
+            (np.ndarray): Step in cartesian (or mw-cartesian) coordinates
         """
         from scipy.optimize import minimize
 
@@ -432,6 +432,7 @@ class DHS:
             dist = self.imgpair.dist
             coord0 = np.array(self.imgpair.get_coord_by_side(side))
 
+            # todo have to fix the total_iters
             # calculate the number of remaining maxiter to feed into optimiser
             curr_maxiter = self._maxiter - self.imgpair.total_iters
             if curr_maxiter == 0:

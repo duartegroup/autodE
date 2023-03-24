@@ -2,6 +2,7 @@
 Base classes for implementing all bracketing methods
 that require a pair of images
 """
+import os
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING
 import numpy as np
@@ -92,6 +93,14 @@ def _calculate_hessian_for_species(
         raise CalculationException("Hessian calculation failed")
 
     return species.hessian
+
+
+def _remove_file_with_warning(filename: str) -> None:
+    """Removes a file if it is present, and warns the user"""
+    if os.path.isfile(filename):
+        logger.warning(f"{filename} exists, overwriting...")
+        os.remove(filename)
+    return None
 
 
 class ImgPairSideError(ValueError):
@@ -405,7 +414,7 @@ class BaseImagePair(ABC):
     def run_cineb_from_end_points(self) -> None:
         """
         Runs a CI-NEB calculation from the end-points of the image-pair
-        and then returns the coordinates of the peak point obtained
+        and then stores the coordinates of the peak point obtained
         from the CI-NEB run
 
         Returns:
@@ -434,20 +443,59 @@ class BaseImagePair(ABC):
 
         return None
 
-    def write_trajectories(self) -> None:
+    def write_trajectories(
+        self,
+        init_trj_filename,
+        final_trj_filename,
+        total_trj_filename,
+    ) -> None:
         """
         Write trajectories as *.xyz files, one for the initial species,
         one for final species, and one for the whole trajectory, including
         any CI-NEB run from the final end points
         """
-        pass
+        if self.total_iters < 2:
+            logger.warning("Cannot write trajectory, not enough points")
+            return None
+
+        _remove_file_with_warning(init_trj_filename)
+        self._write_trj_from_history(self._left_history, init_trj_filename)
+
+        _remove_file_with_warning(final_trj_filename)
+        self._write_trj_from_history(self._right_history, final_trj_filename)
+
+        _remove_file_with_warning(total_trj_filename)
+        self._write_trj_from_history(self._total_history, total_trj_filename)
+
+        return None
+
+    def _write_trj_from_history(
+        self,
+        history: _OptimiserHistory,
+        filename: str,
+    ) -> None:
+        """
+        Convenience function to write an *.xyz trajectory from a
+        coordinate history, using the Species
+
+        Args:
+            history (_OptimiserHistory): History of coordinate objects
+            filename (str): Name of the file to store the coordinates
+        """
+        tmp_spc = self._left_image.copy()
+        for coord in history:
+            tmp_spc.coordinates = coord
+            tmp_spc.energy = coord.e
+            tmp_spc.print_xyz_file(filename=filename, append=True)
+
+        return None
 
 
 class ImagePair(BaseImagePair, ABC):
     """
     Image-pair that defines the distance between the images as
     the Euclidean distance. Single-point, en/grad, and hessian
-    calculation can be run, and hessian update cna be done
+    calculation can be run, and hessian update can be done
     using gradient information
     """
 

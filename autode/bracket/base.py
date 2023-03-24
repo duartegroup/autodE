@@ -56,6 +56,13 @@ class BaseBracketMethod(ABC):
 
     @property
     def converged(self) -> bool:
+        """Whether the bracketing method has converged or not"""
+
+        # NOTE: In bracketing methods, usually the geometry
+        # optimisation is done in separate microiterations,
+        # which means that the gradient tolerance is checked
+        # elsewhere, and only distance criteria is checked here
+
         if self.imgpair.dist <= self._dist_tol:
             return True
         else:
@@ -89,17 +96,27 @@ class BaseBracketMethod(ABC):
         self.write_trajectories()
         self.plot_energies()
 
-    def write_trajectories(self) -> None:
+    @abstractmethod
+    def write_trajectories(
+        self,
+        init_trj_filename="initial_species.trj.xyz",
+        final_trj_filename="final_species.trj.xyz",
+        total_trj_filename="total.trj.xyz",
+    ) -> None:
         """
         Write trajectories as *.xyz files, one for the initial species,
         one for final species, and one for the whole trajectory, including
-        any CI-NEB run from the final end points
+        any CI-NEB run from the final end points. The default names for
+        the trajectories must be set in individual subclasses
         """
-        # todo write in imagepair, and then make imagepair private
-        pass
 
-    def plot_energies(self) -> None:
-        pass
+    @abstractmethod
+    def plot_energies(self, filename: str = "bracket-path.pdf") -> None:
+        """
+        Plot the energies along the path taken by the bracketing
+        method run, also containing the final coordinates from a
+        CI-NEB run, if present
+        """
 
     def run_cineb(self) -> None:
         """
