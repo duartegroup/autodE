@@ -79,7 +79,6 @@ class DistanceConstrainedOptimiser(RFOptimiser):
     def __init__(
         self,
         pivot_point: Optional[CartesianCoordinates],
-        target_dist: Distance,
         init_trust: float = 0.2,
         line_search: bool = True,
         angle_thresh: Angle = Angle(5, units="deg"),
@@ -109,7 +108,6 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             )
         self._pivot = pivot_point
         self._do_line_search = bool(line_search)
-        self._target_dist = Distance(target_dist, units="ang")
         self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
         self._hessian_update_types = [BFGSUpdate, BofillUpdate]
         # todo replace later with bfgssr1update?
@@ -153,6 +151,10 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             (np.ndarray):
         """
         return np.array(self._coords - self._pivot)
+
+    @property
+    def _target_dist(self):
+        return np.linalg.norm(self.dist_vec)
 
     def _step(self) -> None:
 
@@ -211,7 +213,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         res = minimize(
             fun=taylor_pes.value,
             x0=np.array(self._coords),
-            method="SLSQP",
+            method="slsqp",
             jac=taylor_pes.gradient,
             hess=taylor_pes.hessian,
             options={"disp": True},
@@ -416,7 +418,6 @@ class DHS(BaseBracketMethod):
 
             # take a step on the side with lower energy
             new_coord = self._dhs_step(side)
-            dist = self.imgpair.dist
 
             # todo have to fix the total_iters
             # calculate the number of remaining maxiter to feed into optimiser
@@ -429,7 +430,6 @@ class DHS(BaseBracketMethod):
                 gtol=self._gtol,
                 etol=1.0e-3,  # seems like a reasonable etol
                 pivot_point=pivot,
-                target_dist=dist,
             )
             tmp_spc = self._species.copy()
             tmp_spc.coordinates = new_coord
