@@ -58,7 +58,6 @@ class BaseBracketMethod(ABC):
     def method_name(self):
         """Name of the current method"""
 
-
     @property
     def converged(self) -> bool:
         """Whether the bracketing method has converged or not"""

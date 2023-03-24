@@ -511,7 +511,7 @@ class BaseImagePair(ABC):
         if self.total_iters < 2:
             logger.warning("Cannot plot energies, not enough points")
 
-        # todo write the function in plotting.py
+
 
 
 class ImagePair(BaseImagePair, ABC):
