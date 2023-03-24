@@ -17,7 +17,6 @@ class BaseBracketMethod(ABC):
     """
     Base class for all bracketing methods
     """
-
     def __init__(
         self,
         initial_species: "Species",
@@ -53,6 +52,12 @@ class BaseBracketMethod(ABC):
 
         self._end_cineb = bool(cineb_at_conv)
         self._ci_coords = None  # to hold the CI-NEB coordinates
+
+    @property
+    @abstractmethod
+    def method_name(self):
+        """Name of the current method"""
+
 
     @property
     def converged(self) -> bool:
@@ -96,12 +101,11 @@ class BaseBracketMethod(ABC):
         self.write_trajectories()
         self.plot_energies()
 
-    @abstractmethod
     def write_trajectories(
         self,
-        init_trj_filename="initial_species.trj.xyz",
-        final_trj_filename="final_species.trj.xyz",
-        total_trj_filename="total.trj.xyz",
+        init_trj_filename: Optional[str] = None,
+        final_trj_filename: Optional[str] = None,
+        total_trj_filename: Optional[str] = None,
     ) -> None:
         """
         Write trajectories as *.xyz files, one for the initial species,
@@ -109,15 +113,52 @@ class BaseBracketMethod(ABC):
         any CI-NEB run from the final end points. The default names for
         the trajectories must be set in individual subclasses
         """
-        # todo use method_name property and then put the names here
+        init_trj_filename = (
+            init_trj_filename if init_trj_filename is not None
+            else f"initial_species_{self.method_name}.trj.xyz"
+        )
+        final_trj_filename = (
+            final_trj_filename if final_trj_filename is not None
+            else f"final_species_{self.method_name}.trj.xyz"
+        )
+        total_trj_filename = (
+            total_trj_filename if total_trj_filename is not None
+            else f"total_trajectory_{self.method_name}.trj.xyz"
+        )
+        self.imgpair.write_trajectories(
+            init_trj_filename,
+            final_trj_filename,
+            total_trj_filename
+        )
 
-    @abstractmethod
-    def plot_energies(self, filename: str = "bracket-path.pdf") -> None:
+        return None
+
+    def plot_energies(
+        self,
+        filename: Optional[str] = None,
+        distance_metric: Optional[str] = None,
+    ) -> None:
         """
-        Plot the energies along the path taken by the bracketing
-        method run, also containing the final coordinates from a
-        CI-NEB run, if present
+        Plot the energies of the bracket method run, taking
+        into account any CI-NEB interpolation that may have been
+        done.
+
+        The distance metric chooses what the x-axis means;
+        "relative" means that the points will be plotted in the order
+        in which they appear in the total history, and the x-axis
+        numbers will represent the relative distances between two
+        adjacent points (giving an approximate reaction coordinate).
+        "from_start" will calculate the distance of each point from
+        the starting reactant structure and use that as the x-axis
+        position. If distance metric is not supplied (i.e. set to None)
+        then the x-axis will simply be integer numbers representing
+        each point in order
+
+        Args:
+            filename (str): Name of the file
+            distance_metric (str): "relative" or "from_start" (or None)
         """
+
 
     def run_cineb(self) -> None:
         """

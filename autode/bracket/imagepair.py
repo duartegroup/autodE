@@ -490,8 +490,28 @@ class BaseImagePair(ABC):
 
         return None
 
-    def plot_energies(self):
-        pass
+    def plot_energies(
+        self,
+        filename: str,
+        distance_metric: Optional[str],
+    ):
+        """
+        Plots the energies of the image-pair, including any CI-NEB
+        calculation done at the end. The distance metric argument
+        determines how the x-axis values are plotted and their
+        meaning (Described in more detail in BaseBracketMethod)
+
+        Args:
+            filename: name of the plot file to save
+            distance_metric: "relative" or "from_start" or None
+
+        See Also:
+            :py:meth:`BaseBracketMethod <autode.bracket.base.BaseBracketMethod.plot_energies>`
+        """
+        if self.total_iters < 2:
+            logger.warning("Cannot plot energies, not enough points")
+
+        # todo write the function in plotting.py
 
 
 class ImagePair(BaseImagePair, ABC):
