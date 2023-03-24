@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from typing import Sequence, Union
+from typing import Sequence, Union, List
 from scipy import interpolate
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
@@ -21,6 +21,33 @@ def save_plot(plot, filename):
     plot.close()
 
     return None
+
+
+def plot_bracket_method_energy_profile(
+    left_points: List[tuple],
+    cineb_point: tuple,
+    right_points: List[tuple]
+):
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+
+    left_x = [point[0] for point in left_points]
+    left_y = [point[1] for point in right_points]
+    ax.plot(left_x, left_y, "bo-")
+
+    right_x = [point[0] for point in right_points]
+    right_y = [point[1] for point in right_points]
+    ax.plot(right_x, right_y, "go-")
+
+    # plot the CI-NEB point and join it to the ends
+    ax.plot(
+        [cineb_point[0],],
+        [cineb_point[1]],
+        "ro-"
+        # todo finish this
+    )
+
 
 
 def plot_reaction_profile(

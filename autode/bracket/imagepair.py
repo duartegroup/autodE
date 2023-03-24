@@ -16,6 +16,7 @@ from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import _OptimiserHistory
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.exceptions import CalculationException
+from autode.plotting import plot_bracket_method_energy_profile
 from autode.log import logger
 
 if TYPE_CHECKING:
@@ -407,7 +408,8 @@ class BaseImagePair(ABC):
         """
         history = _OptimiserHistory()
         history.extend(self._left_history)
-        history.append(self._cineb_coords)
+        if self._cineb_coords is not None:
+            history.append(self._cineb_coords)
         history.extend(self._right_history)
         return history
 
@@ -511,6 +513,38 @@ class BaseImagePair(ABC):
         if self.total_iters < 2:
             logger.warning("Cannot plot energies, not enough points")
 
+        num_left_points = len(self._left_history)
+        num_right_points = len(self._right_history)
+        first_point = self._left_history[0]
+        points = []  # list of tuples
+
+        if distance_metric not in ["relative", "from_start", None]:
+            raise ValueError(
+                "The distance metric must be 'relative', 'from_start' or None"
+            )
+
+        for idx, coord in enumerate(self._total_history):
+            en = coord.e
+            if en is None:
+                en = np.nan
+            else:
+                en = float(en.to("kcalmol"))
+            if distance_metric == "relative":
+                if idx == 0:
+                    x = 0
+                else:
+                    x = np.linalg.norm(coord - self._total_history[idx-1])
+                    x += points[idx-1]
+            elif distance_metric == "from_start":
+                x = np.linalg.norm(coord - first_point)
+            else:
+                x = idx
+            points.append((x, en))
+
+        left_points = points[:num_left_points]
+        if self._cineb_coords is not None:
+            ci_point = points[num_left_points]
+        right_points = points[-num_right_points:]
 
 
 
