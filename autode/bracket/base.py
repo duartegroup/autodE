@@ -2,7 +2,6 @@ from typing import Union, Optional, TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 from autode.values import Distance, GradientRMS
-from autode.neb import CINEB
 from autode.bracket.imagepair import ImagePair
 from autode.methods import get_hmethod
 from autode.log import logger
@@ -17,6 +16,7 @@ class BaseBracketMethod(ABC):
     """
     Base class for all bracketing methods
     """
+
     def __init__(
         self,
         initial_species: "Species",
@@ -43,20 +43,19 @@ class BaseBracketMethod(ABC):
             gtol: Gradient tolerance for optimisation steps in the method
             cineb_at_conv: Whether to run a CI-NEB with from the final points
         """
-        self.imgpair = ImagePair(initial_species, final_species)
+        self.imgpair: Optional["ImagePair"] = None  # must be set by subclass
         self._species: "Species" = initial_species.copy()
 
         self._maxiter = int(maxiter)
         self._dist_tol = Distance(dist_tol, units="ang")
         self._gtol = GradientRMS(gtol, units="Ha/ang")
 
-        self._end_cineb = bool(cineb_at_conv)
-        self._ci_coords = None  # to hold the CI-NEB coordinates
+        self._should_run_cineb = bool(cineb_at_conv)
 
     @property
-    @abstractmethod
-    def method_name(self):
-        """Name of the current method"""
+    def ts_guess(self) -> Optional["Species"]:
+        """Get the TS guess from image-pair"""
+        return self.imgpair.ts_guess
 
     @property
     def converged(self) -> bool:
@@ -72,6 +71,16 @@ class BaseBracketMethod(ABC):
         else:
             return False
 
+    @property
+    @abstractmethod
+    def _method_name(self):
+        """Name of the current method"""
+
+    @property
+    @abstractmethod
+    def macro_iter(self) -> int:
+        """The number of macro-iterations run with this method"""
+
     @abstractmethod
     def _initialise_run(self) -> None:
         """Initialise the bracketing method run"""
@@ -84,7 +93,8 @@ class BaseBracketMethod(ABC):
     ) -> None:
         """
         Run the bracketing method calculation using the method for
-        energy/gradient calculation, with n_cores.
+        energy/gradient calculation, with n_cores. Does not run
+        CI-NEB calculation
         """
 
     def run(self) -> None:
@@ -97,8 +107,14 @@ class BaseBracketMethod(ABC):
         method = get_hmethod()
         n_cores = Config.n_cores
         self.calculate(method=method, n_cores=n_cores)
+        if self._should_run_cineb:
+            self.run_cineb()
         self.write_trajectories()
         self.plot_energies()
+        self.imgpair.ts_guess.print_xyz_file(
+            f"{self._method_name}_ts_guess.xyz"
+        )
+        return None
 
     def write_trajectories(
         self,
@@ -113,21 +129,22 @@ class BaseBracketMethod(ABC):
         the trajectories must be set in individual subclasses
         """
         init_trj_filename = (
-            init_trj_filename if init_trj_filename is not None
-            else f"initial_species_{self.method_name}.trj.xyz"
+            init_trj_filename
+            if init_trj_filename is not None
+            else f"initial_species_{self._method_name}.trj.xyz"
         )
         final_trj_filename = (
-            final_trj_filename if final_trj_filename is not None
-            else f"final_species_{self.method_name}.trj.xyz"
+            final_trj_filename
+            if final_trj_filename is not None
+            else f"final_species_{self._method_name}.trj.xyz"
         )
         total_trj_filename = (
-            total_trj_filename if total_trj_filename is not None
-            else f"total_trajectory_{self.method_name}.trj.xyz"
+            total_trj_filename
+            if total_trj_filename is not None
+            else f"total_trajectory_{self._method_name}.trj.xyz"
         )
         self.imgpair.write_trajectories(
-            init_trj_filename,
-            final_trj_filename,
-            total_trj_filename
+            init_trj_filename, final_trj_filename, total_trj_filename
         )
 
         return None
@@ -157,7 +174,13 @@ class BaseBracketMethod(ABC):
             filename (str): Name of the file
             distance_metric (str): "relative" or "from_start" (or None)
         """
-
+        filename = (
+            filename
+            if filename is not None
+            else f"{self._method_name}_path_energy_plot.pdf"
+        )
+        self.imgpair.plot_energies(filename, distance_metric)
+        return None
 
     def run_cineb(self) -> None:
         """
@@ -167,6 +190,10 @@ class BaseBracketMethod(ABC):
         should bring the ends very close to the TS). The result from
         the CI-NEB calculation is stored as coordinates.
         """
-        # todo put all in imagepair, and then remove func,check in calculate()
-
-        pass
+        if not self.converged:
+            logger.warning(
+                "Bracketing method has not converged, running a"
+                " CI-NEB calculation now may not be efficient. Please"
+                " check results carefully."
+            )
+        self.imgpair.run_cineb_from_end_points()

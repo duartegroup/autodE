@@ -513,28 +513,31 @@ class BaseImagePair(ABC):
         if self.total_iters < 2:
             logger.warning("Cannot plot energies, not enough points")
 
+        if distance_metric not in ["relative", "from_start", None]:
+            raise ValueError(
+                "The distance metric must be 'relative', 'from_start' or None"
+            )
+
         num_left_points = len(self._left_history)
         num_right_points = len(self._right_history)
         first_point = self._left_history[0]
         points = []  # list of tuples
 
-        if distance_metric not in ["relative", "from_start", None]:
-            raise ValueError(
-                "The distance metric must be 'relative', 'from_start' or None"
-            )
+        lowest_en = min(coord.e for coord in self._total_history)
 
         for idx, coord in enumerate(self._total_history):
             en = coord.e
             if en is None:
                 en = np.nan
             else:
+                en = en - lowest_en
                 en = float(en.to("kcalmol"))
             if distance_metric == "relative":
                 if idx == 0:
                     x = 0
                 else:
-                    x = np.linalg.norm(coord - self._total_history[idx-1])
-                    x += points[idx-1]
+                    x = np.linalg.norm(coord - self._total_history[idx - 1])
+                    x += points[idx - 1]
             elif distance_metric == "from_start":
                 x = np.linalg.norm(coord - first_point)
             else:
@@ -543,9 +546,20 @@ class BaseImagePair(ABC):
 
         left_points = points[:num_left_points]
         if self._cineb_coords is not None:
-            ci_point = points[num_left_points]
+            cineb_point = points[num_left_points]
+        else:
+            cineb_point = None
         right_points = points[-num_right_points:]
+        if distance_metric == "relative":
+            x_axis_title = "Change in Euclidean Distance (Å)"
+        elif distance_metric == "from_start":
+            x_axis_title = "Euclidean Distance from Reactant Structure (Å)"
+        else:
+            x_axis_title = "Point in Reaction Path"
 
+        plot_bracket_method_energy_profile(
+            filename, left_points, cineb_point, right_points, x_axis_title
+        )
 
 
 class ImagePair(BaseImagePair, ABC):

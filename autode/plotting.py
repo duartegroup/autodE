@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from typing import Sequence, Union, List
+from typing import Sequence, Union, List, Optional
 from scipy import interpolate
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
@@ -24,9 +24,11 @@ def save_plot(plot, filename):
 
 
 def plot_bracket_method_energy_profile(
+    filename: str,
     left_points: List[tuple],
-    cineb_point: tuple,
-    right_points: List[tuple]
+    cineb_point: Optional[tuple],
+    right_points: List[tuple],
+    x_title: str,
 ):
     import matplotlib.pyplot as plt
 
@@ -41,13 +43,20 @@ def plot_bracket_method_energy_profile(
     ax.plot(right_x, right_y, "go-")
 
     # plot the CI-NEB point and join it to the ends
-    ax.plot(
-        [cineb_point[0],],
-        [cineb_point[1]],
-        "ro-"
-        # todo finish this
-    )
+    if cineb_point is not None:
+        ax.plot(
+            [left_x[-1], cineb_point[0], right_x[0]],
+            [left_y[-1], cineb_point[1], right_y[0]],
+            "ro-",
+        )
 
+    # the data should be in kcal/mol
+    kcalmol = energy_unit_from_name("kcalmol")
+
+    ax.set_xlabel(x_title)
+    ax.set_ylabel(f"Electronic energy / {kcalmol.plot_name}")
+    save_plot(plt, filename=filename)
+    # todo must replace this when the interface is changed in optimiser PR
 
 
 def plot_reaction_profile(
