@@ -490,6 +490,9 @@ class BaseImagePair(ABC):
 
         return None
 
+    def plot_energies(self):
+        pass
+
 
 class ImagePair(BaseImagePair, ABC):
     """

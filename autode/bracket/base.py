@@ -59,7 +59,7 @@ class BaseBracketMethod(ABC):
         """Whether the bracketing method has converged or not"""
 
         # NOTE: In bracketing methods, usually the geometry
-        # optimisation is done in separate microiterations,
+        # optimisation is done in separate micro-iterations,
         # which means that the gradient tolerance is checked
         # elsewhere, and only distance criteria is checked here
 
@@ -109,6 +109,7 @@ class BaseBracketMethod(ABC):
         any CI-NEB run from the final end points. The default names for
         the trajectories must be set in individual subclasses
         """
+        # todo use method_name property and then put the names here
 
     @abstractmethod
     def plot_energies(self, filename: str = "bracket-path.pdf") -> None:
