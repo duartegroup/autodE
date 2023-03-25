@@ -13,7 +13,6 @@ from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate, BFGSUpdate
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
-
 from autode.log import logger
 
 if TYPE_CHECKING:
@@ -30,6 +29,14 @@ class _TruncatedTaylor:
         grad: np.ndarray,
         hess: np.ndarray,
     ):
+        """
+        Second-order Taylor expansion around a point
+
+        Args:
+            centre (OptCoordinates|np.ndarray): The coordinate point
+            grad (np.ndarray): Gradient at that point
+            hess (np.ndarray): Hessian at that point
+        """
         self.centre = centre
         if hasattr(centre, "e") and centre.e is not None:
             self.en = centre.e
@@ -42,19 +49,22 @@ class _TruncatedTaylor:
         assert hess.shape == (n_atoms, n_atoms)
 
     def value(self, coords: np.ndarray):
+        """Energy (or relative energy if point did not have energy)"""
         # E = E(0) + g^T . dx + 0.5 * dx^T. H. dx
-        dx = coords - self.centre
+        dx = (coords - self.centre).flatten()
         new_e = self.en + np.dot(self.grad, dx)
         new_e += 0.5 * np.linalg.multi_dot((dx, self.hess, dx))
         return new_e
 
     def gradient(self, coords: np.ndarray):
+        """Gradient at supplied coordinate"""
         # g = g(0) + H . dx
-        dx = coords - self.centre
+        dx = (coords - self.centre).flatten()
         new_g = self.grad + np.matmul(self.hess, dx)
         return new_g
 
     def hessian(self, coords: np.ndarray):
+        """Hessian at supplied coordinates"""
         # hessian is constant in second order expansion
         return self.hess
 
@@ -113,6 +123,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # todo replace later with bfgssr1update?
 
     def _initialise_run(self) -> None:
+        """Initialise self._coords, gradient and hessian"""
         self._coords = CartesianCoordinates(self._species.coordinates)
         self._target_dist = np.linalg.norm(self.dist_vec)
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
@@ -121,6 +132,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
     @property
     def converged(self) -> bool:
+        """Has the optimisation converged"""
+        # The tangential gradient should be close to zero
         if (
             self.rms_tangent_grad < self.gtol
             and self.last_energy_change < self.etol
@@ -190,6 +203,10 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         """
         from scipy.optimize import minimize
 
+        # NOTE: Since the linear interpolation should produce a point
+        # in the vicinity of the last two points, it seems reasonable to
+        # also use the hessian from the last point in the case of linear
+        # interpolation being done
         taylor_pes = _TruncatedTaylor(coords, grad, self._coords.h)
 
         def step_size_constr(x):
@@ -295,7 +312,7 @@ class DHSImagePair(ImagePair):
         """
         In DHS method, the images can only rise in energy; therefore,
         the highest energy image is the ts_guess. If CI-NEB is run,
-        then we can return CI-NEB as the final result.
+        then that result is returned instead
         """
         tmp_spc = self._left_image.new_species(name="peak")
 
@@ -336,13 +353,12 @@ class DHS(BaseBracketMethod):
     ):
         """
         Dewar-Healy-Stewart method to find transition states.
-        1) The order of initial_species/final_species does not matter
-        and can be interchanged; 2) The reduction_factor is 0.05 or 5%
-        by default, which is quite conservative, so may want to increase
-        that if convergence is slow; 3) The distance tolerance should
-        not be lowered any more than 1.0 Angstrom as DHS is unstable when
-        the distance is low, and has a tendency for one image to jump
-        over the barrier
+
+        1) The step size is 0.1 which is quite conservative, so may want
+        to increase that if convergence is slow; 2) The distance tolerance
+        should not be lowered any more than 1.0 Angstrom as DHS is unstable
+        when the distance is low, and there is a tendency for one image to
+        jump over the barrier
 
         Args:
             initial_species: The "reactant" species
@@ -363,6 +379,9 @@ class DHS(BaseBracketMethod):
 
             gtol: Gradient tolerance for the optimiser micro-iterations
                   in DHS (Hartree/angstrom)
+
+            cineb_at_conv: Whether to run CI-NEB calculation from the end
+                           points after the DHS is converged
         """
         super().__init__(initial_species, final_species, **kwargs)
 
@@ -418,7 +437,7 @@ class DHS(BaseBracketMethod):
 
             # calculate the number of remaining maxiter to feed into optimiser
             curr_maxiter = self._maxiter - self._current_microiters
-            if curr_maxiter == 0:
+            if curr_maxiter <= 0:
                 break
 
             opt = DistanceConstrainedOptimiser(
