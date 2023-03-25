@@ -107,11 +107,14 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._pivot = pivot_point
         self._do_line_search = bool(line_search)
         self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
+        self._target_dist = None
+
         self._hessian_update_types = [BFGSUpdate, BofillUpdate]
         # todo replace later with bfgssr1update?
 
     def _initialise_run(self) -> None:
         self._coords = CartesianCoordinates(self._species.coordinates)
+        self._target_dist = np.linalg.norm(self.dist_vec)
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._coords.make_hessian_positive_definite()
         self._update_gradient_and_energy()
@@ -149,10 +152,6 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             (np.ndarray):
         """
         return np.array(self._coords - self._pivot)
-
-    @property
-    def _target_dist(self):
-        return np.linalg.norm(self.dist_vec)
 
     def _step(self) -> None:
 
@@ -213,7 +212,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             x0=np.array(self._coords),
             method="slsqp",
             jac=taylor_pes.gradient,
-            hess=taylor_pes.hessian,
+            # hess=taylor_pes.hessian,
             options={"maxiter": 2000},
             constraints=constrs,
         )
@@ -332,7 +331,7 @@ class DHS(BaseBracketMethod):
         self,
         initial_species: "Species",
         final_species: "Species",
-        reduction_factor: float = 0.05,
+        step_size: Distance = Distance(0.1, "ang"),
         **kwargs,
     ):
         """
@@ -350,8 +349,9 @@ class DHS(BaseBracketMethod):
 
             final_species: The "product" species
 
-            reduction_factor: The factor by which the distance is
-                              decreased in each DHS step
+            step_size: The size of the DHS step taken along
+                        the linear path between reactant and
+                        product
 
         Keyword Args:
 
@@ -368,8 +368,9 @@ class DHS(BaseBracketMethod):
 
         # imgpair is only used for storing the points here
         self.imgpair = DHSImagePair(initial_species, final_species)
-        self._reduction_fac = abs(float(reduction_factor))
-        assert self._reduction_fac < 1.0
+
+        self._step_size = Distance(abs(step_size), "ang")
+        assert self._step_size < self.imgpair.dist
 
         # NOTE: In DHS the micro-iterations are done separately, in
         # an optimiser, so to keep track of the actual number of
@@ -415,7 +416,7 @@ class DHS(BaseBracketMethod):
                 pivot = self.imgpair.left_coord
 
             # take a step on the side with lower energy
-            new_coord = self._dhs_step(side)
+            new_coord = self._get_dhs_step(side)
 
             # todo have to fix the total_iters
             # calculate the number of remaining maxiter to feed into optimiser
@@ -492,10 +493,11 @@ class DHS(BaseBracketMethod):
         # is equal to the number of macro-iterations (DHS steps)
         return self.imgpair.total_iters
 
-    def _dhs_step(self, side: str) -> CartesianCoordinates:
+    def _get_dhs_step(self, side: str) -> CartesianCoordinates:
         """
         Take a DHS step, on the side requested, along the distance
-        vector between the two images
+        vector between the two images, and return the new coordinates
+        after taking the step
 
         Args:
             side (str):
@@ -503,19 +505,20 @@ class DHS(BaseBracketMethod):
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
         """
-        # take a DHS step by minimizing the distance by factor
-        new_dist = (1 - self._reduction_fac) * self.imgpair.dist
+        # take a DHS step of the size given
+
         dist_vec = self.imgpair.dist_vec
-        step = dist_vec * self._reduction_fac  # ??
+        dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
 
         if side == "left":
-            new_coord = self.imgpair.left_coord - step
+            new_coord = self.imgpair.left_coord - dhs_step
         elif side == "right":
-            new_coord = self.imgpair.right_coord + step
+            new_coord = self.imgpair.right_coord + dhs_step
         else:
             raise ImgPairSideError()
 
         logger.info(
-            f"DHS step on {side} image: setting distance to {new_dist:.4f}"
+            f"DHS step on {side} image: taking a step of"
+            f" size {self._step_size:.4f}"
         )
         return new_coord
