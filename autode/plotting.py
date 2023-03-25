@@ -35,7 +35,7 @@ def plot_bracket_method_energy_profile(
     fig, ax = plt.subplots()
 
     left_x = [point[0] for point in left_points]
-    left_y = [point[1] for point in right_points]
+    left_y = [point[1] for point in left_points]
     ax.plot(left_x, left_y, "bo-")
 
     right_x = [point[0] for point in right_points]

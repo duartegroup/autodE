@@ -78,7 +78,7 @@ class BaseBracketMethod(ABC):
 
     @property
     @abstractmethod
-    def macro_iter(self) -> int:
+    def _macro_iter(self) -> int:
         """The number of macro-iterations run with this method"""
 
     @abstractmethod
@@ -192,8 +192,13 @@ class BaseBracketMethod(ABC):
         """
         if not self.converged:
             logger.warning(
-                "Bracketing method has not converged, running a"
+                f"{self._method_name} method has not converged, running a"
                 " CI-NEB calculation now may not be efficient. Please"
                 " check results carefully."
             )
+        logger.info(
+            f"{self._method_name} has converged, running CI-NEB"
+            f" calculation from the end points"
+        )
         self.imgpair.run_cineb_from_end_points()
+        return None

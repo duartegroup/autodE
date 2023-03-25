@@ -410,7 +410,7 @@ class BaseImagePair(ABC):
         history.extend(self._left_history)
         if self._cineb_coords is not None:
             history.append(self._cineb_coords)
-        history.extend(self._right_history)
+        history.extend(self._right_history[::-1])  # reverse order
         return history
 
     def run_cineb_from_end_points(self) -> None:

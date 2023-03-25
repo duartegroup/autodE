@@ -11,12 +11,10 @@ from autode.values import Distance, Angle, GradientRMS
 from autode.bracket.imagepair import ImagePair, ImgPairSideError
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate, BFGSUpdate
-from autode.opt.optimisers.base import _OptimiserHistory
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
 
 from autode.log import logger
-from autode.config import Config
 
 if TYPE_CHECKING:
     from autode.species.species import Species
@@ -216,7 +214,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             method="slsqp",
             jac=taylor_pes.gradient,
             hess=taylor_pes.hessian,
-            options={"disp": True},
+            options={"maxiter": 2000},
             constraints=constrs,
         )
 
@@ -377,7 +375,7 @@ class DHS(BaseBracketMethod):
         # an optimiser, so to keep track of the actual number of
         # en/grad calls, this local variable is used
 
-        self._current_iters: int = 0
+        self._current_microiters: int = 0
 
         # todo replace reduction factor with something else
 
@@ -405,7 +403,7 @@ class DHS(BaseBracketMethod):
         self.imgpair.set_method_and_n_cores(method, n_cores)
         self._initialise_run()
 
-        logger.info("Starting DHS optimisation")
+        logger.info("Starting DHS method to find transition state")
 
         while not self.converged:
 
@@ -421,7 +419,7 @@ class DHS(BaseBracketMethod):
 
             # todo have to fix the total_iters
             # calculate the number of remaining maxiter to feed into optimiser
-            curr_maxiter = self._maxiter - self._current_iters
+            curr_maxiter = self._maxiter - self._current_microiters
             if curr_maxiter == 0:
                 break
 
@@ -434,7 +432,7 @@ class DHS(BaseBracketMethod):
             tmp_spc = self._species.copy()
             tmp_spc.coordinates = new_coord
             opt.run(tmp_spc, method)
-            self._current_iters += opt.iteration
+            self._current_microiters += opt.iteration
 
             if not opt.converged:
                 logger.error(
@@ -470,8 +468,8 @@ class DHS(BaseBracketMethod):
 
         # exited loop, print final message
         logger.info(
-            f"Finished DHS procedure in {self.macro_iter} macro-"
-            f"iterations consisting of {self.imgpair.total_iters}"
+            f"Finished DHS procedure in {self._macro_iter} macro-"
+            f"iterations consisting of {self._current_microiters}"
             f" micro-iterations (optimiser steps). DHS is "
             f"{'converged' if self.converged else 'not converged'}"
         )
@@ -480,7 +478,7 @@ class DHS(BaseBracketMethod):
 
     def _log_convergence(self) -> None:
         logger.info(
-            f"Macro-iteration #{self.macro_iter}: Distance = "
+            f"Macro-iteration #{self._macro_iter}: Distance = "
             f"{self.imgpair.dist:.4f}; Energy (initial species) = "
             f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
             f"{self.imgpair.right_coord.e:.6f}"
@@ -488,7 +486,7 @@ class DHS(BaseBracketMethod):
         return None
 
     @property
-    def macro_iter(self):
+    def _macro_iter(self):
         """Total number of DHS steps taken so far"""
         # ImagePair only stores the converged coordinates, which
         # is equal to the number of macro-iterations (DHS steps)
@@ -505,7 +503,6 @@ class DHS(BaseBracketMethod):
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
         """
-        # todo coord system -- ditch internals?
         # take a DHS step by minimizing the distance by factor
         new_dist = (1 - self._reduction_fac) * self.imgpair.dist
         dist_vec = self.imgpair.dist_vec
