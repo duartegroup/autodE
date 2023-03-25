@@ -495,7 +495,7 @@ class BaseImagePair(ABC):
     def plot_energies(
         self,
         filename: str,
-        distance_metric: Optional[str],
+        distance_metric: str,
     ):
         """
         Plots the energies of the image-pair, including any CI-NEB
@@ -505,7 +505,7 @@ class BaseImagePair(ABC):
 
         Args:
             filename: name of the plot file to save
-            distance_metric: "relative" or "from_start" or None
+            distance_metric: "relative" or "from_start" or "index"
 
         See Also:
             :py:meth:`BaseBracketMethod <autode.bracket.base.BaseBracketMethod.plot_energies>`
@@ -513,9 +513,9 @@ class BaseImagePair(ABC):
         if self.total_iters < 2:
             logger.warning("Cannot plot energies, not enough points")
 
-        if distance_metric not in ["relative", "from_start", None]:
+        if distance_metric not in ["relative", "from_start", "index"]:
             raise ValueError(
-                "The distance metric must be 'relative', 'from_start' or None"
+                "The distance metric must be 'relative', 'from_start' or 'index'"
             )
 
         num_left_points = len(self._left_history)

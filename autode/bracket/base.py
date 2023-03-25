@@ -152,7 +152,7 @@ class BaseBracketMethod(ABC):
     def plot_energies(
         self,
         filename: Optional[str] = None,
-        distance_metric: Optional[str] = None,
+        distance_metric: str = "from_start",
     ) -> None:
         """
         Plot the energies of the bracket method run, taking
@@ -166,9 +166,9 @@ class BaseBracketMethod(ABC):
         adjacent points (giving an approximate reaction coordinate).
         "from_start" will calculate the distance of each point from
         the starting reactant structure and use that as the x-axis
-        position. If distance metric is not supplied (i.e. set to None)
-        then the x-axis will simply be integer numbers representing
-        each point in order
+        position. If distance metric is set to "index", then the x-axis
+        will simply be integer numbers representing each point in order
+
 
         Args:
             filename (str): Name of the file

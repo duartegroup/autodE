@@ -378,8 +378,6 @@ class DHS(BaseBracketMethod):
 
         self._current_microiters: int = 0
 
-        # todo replace reduction factor with something else
-
     @property
     def _method_name(self):
         return "DHS"
@@ -418,7 +416,6 @@ class DHS(BaseBracketMethod):
             # take a step on the side with lower energy
             new_coord = self._get_dhs_step(side)
 
-            # todo have to fix the total_iters
             # calculate the number of remaining maxiter to feed into optimiser
             curr_maxiter = self._maxiter - self._current_microiters
             if curr_maxiter == 0:
