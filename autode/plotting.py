@@ -449,10 +449,8 @@ def plot_optimiser_profile(
     )
 
     if plot_rms_grad:
-        if not plot_energy:
-            ax2 = ax
-        else:
-            ax2 = ax.twinx()  # plot on a different axis in same fig
+        # plot on a different axis if both are present
+        ax2 = ax.twinx() if plot_energy else ax
         ax2.plot(
             x_axis, rms_grads, "o:", color="C3", label="RMS gradient"
         )  # red

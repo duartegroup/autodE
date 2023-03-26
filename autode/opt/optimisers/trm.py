@@ -330,14 +330,14 @@ class HybridTRMOptimiser(CRFOptimiser):
         if not res.converged:
             raise OptimiserStepError("Unable to converge step to trust radius")
 
-        if not last_lmda < first_b:
+        if last_lmda > first_b:
             raise OptimiserStepError("Unknown error in finding optimal lambda")
 
         logger.debug(f"Optimised lambda for QA step: {last_lmda}")
         # use the final lambda to construct level-shifted Hessian
         return self._coords.h - last_lmda * np.eye(h_n)
 
-    def _update_trust_radius(self):
+    def _update_trust_radius(self) -> None:
         """
         Updates the trust radius before a geometry step
         """
@@ -348,8 +348,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         if not self._upd_alpha:
             return None
 
-        # current coord must have en, grad
-        assert self._coords.g is not None
+        # current coord must have energy
+        assert self._coords.e is not None
         assert np.isfinite(self.last_energy_change)
 
         coords_l, coords_k = self._history.final, self._history.penultimate
@@ -379,7 +379,6 @@ class HybridTRMOptimiser(CRFOptimiser):
             self.alpha = max(set_trust, self._min_alpha)
 
         if (ratio < -1.0) or (ratio > 2.0):
-            # if ratio too low or too high, discard the last point
             logger.warning(
                 "Energy increased/decreased by large amount,"
                 "rejecting last geometry step"
