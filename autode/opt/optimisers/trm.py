@@ -6,7 +6,8 @@ optimisers available in multiple popular QM softwares.
 Only minimisers, these are not TS search/constrained optimiser
 """
 import numpy as np
-
+from scipy.optimize import root_scalar
+from itertools import combinations
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.coordinates.primitives import Distance
 from autode.opt.optimisers import CRFOptimiser
@@ -14,7 +15,6 @@ from autode.opt.optimisers.hessian_update import FlowchartUpdate
 from autode.exceptions import OptimiserStepError
 from autode.values import GradientRMS, PotentialEnergy
 from autode.log import logger
-from itertools import combinations
 
 
 class HybridTRMOptimiser(CRFOptimiser):
@@ -142,6 +142,8 @@ class HybridTRMOptimiser(CRFOptimiser):
             logger.info("Skipping quasi-NR step after damping")
             return None
 
+        self._coords.allow_unconverged_back_transform = True
+
         rfo_h_eff = self._get_rfo_minimise_h_eff()
         rfo_step = np.matmul(-np.linalg.inv(rfo_h_eff), self._coords.g)
         rfo_step_size = self._get_cart_step_size_from_step(rfo_step)
@@ -169,11 +171,9 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         self._coords.allow_unconverged_back_transform = False
         self._coords = self._coords + step  # finally, take the step!
-        self._coords.allow_unconverged_back_transform = True
 
         step_size = self._get_cart_step_size_from_step(step)
         logger.info(f"Size of step taken (in Cartesian) = {step_size:.3f} Å")
-
         return None
 
     def _get_cart_step_size_from_step(self, step: np.ndarray) -> float:
@@ -229,14 +229,13 @@ class HybridTRMOptimiser(CRFOptimiser):
             (np.ndarray): The level-shifted Hessian for TRM/QA step
         """
         # this function is expensive to call
-        from scipy.optimize import root_scalar
 
         h_n = self._coords.h.shape[0]
         h_eigvals = np.linalg.eigvalsh(self._coords.h)
         first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
 
-        def get_int_step_size_and_deriv(lmda):
+        def get_internal_step_size_and_deriv(lmda):
             """Get the internal coordinate step, step size and
             the derivative for the given lambda"""
             shifted_h = self._coords.h - lmda * np.eye(h_n)
@@ -248,21 +247,25 @@ class HybridTRMOptimiser(CRFOptimiser):
             return size, deriv, step
 
         def optimise_lambda_for_int_step(int_size):
-            """Given a step length in internal coords, get the
-            value of lambda that will give that step"""
-            # from pyberny and geomeTRIC
-            d = 1.0  # use bisection to ensure lambda < first_b
+            """
+            Given a step length in internal coords, get the
+            value of lambda that will give that step.
+            Here f(λ) represents the internal coords step size
+            as a function of lambda.
+            """
+            # use bisection to ensure lambda < first_b
+            d = 1.0
             for _ in range(20):
-                size, _, _ = get_int_step_size_and_deriv(first_b - d)
+                size, _, _ = get_internal_step_size_and_deriv(first_b - d)
                 # find f(x) > 0, so going downhill has no risk of jumping over
                 if size > int_size:
                     break
                 d = d / 2.0
             else:
-                raise OptimiserStepError("Failed to find f(x) > 0")
+                raise OptimiserStepError("Failed to find f(λ) > 0")
             lmda_guess = first_b - d
             for _ in range(50):
-                size, der, _ = get_int_step_size_and_deriv(lmda_guess)
+                size, der, _ = get_internal_step_size_and_deriv(lmda_guess)
                 if abs(size - int_size) / int_size < 0.001:  # 0.1% error
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
@@ -277,7 +280,7 @@ class HybridTRMOptimiser(CRFOptimiser):
             in internal coordinates"""
             nonlocal last_lmda
             last_lmda = optimise_lambda_for_int_step(int_size)
-            _, _, step = get_int_step_size_and_deriv(last_lmda)
+            _, _, step = get_internal_step_size_and_deriv(last_lmda)
             step_size = self._get_cart_step_size_from_step(step)
             return step_size - self.alpha
 
@@ -387,7 +390,6 @@ class HybridTRMOptimiser(CRFOptimiser):
         logger.info(
             f"Ratio = {ratio:.3f}, Current trust radius = {self.alpha:.3f} Å"
         )
-
         return None
 
     def _damp_if_required(self) -> bool:
