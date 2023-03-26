@@ -466,9 +466,7 @@ class FlowchartUpdate(HessianUpdater):
     def _updated_h(self) -> np.ndarray:
         """
         Flowchart (or FlowPSB) Hessian update scheme, that dynamically
-        switches between BFGS and SR1 depending on some criteria. This
-        implementation favours BFGS over SR1 (compared to the original
-        publication) for better minimisation.
+        switches between BFGS and SR1 depending on some criteria.
 
         Alternatively switches to PSB update as a fallback if none of
         the criteria are satisfied. Notation follows A. B. Birkholz,
@@ -484,8 +482,10 @@ class FlowchartUpdate(HessianUpdater):
         bfgs_criteria = np.dot(self.y, self.s) / (
             np.linalg.norm(self.y) * np.linalg.norm(self.s)
         )
-
-        if bfgs_criteria > 0.1:
+        if sr1_criteria < -0.1:
+            h_new = self.h + np.outer(z, z) / np.dot(z, self.s)
+            return h_new
+        elif bfgs_criteria > 0.1:
             bfgs_delta_h = np.outer(self.y, self.y) / np.dot(self.y, self.s)
             bfgs_delta_h -= np.linalg.multi_dot(
                 (self.h, self.s.reshape(-1, 1), self.s.reshape(1, -1), self.h)
@@ -493,9 +493,6 @@ class FlowchartUpdate(HessianUpdater):
                 (self.s.flatten(), self.h, self.s.flatten())
             )
             h_new = self.h + bfgs_delta_h
-            return h_new
-        elif sr1_criteria < -0.1:
-            h_new = self.h + np.outer(z, z) / np.dot(z, self.s)
             return h_new
         else:
             # Notation copied from Bofill update

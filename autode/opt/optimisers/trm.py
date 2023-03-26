@@ -9,7 +9,7 @@ import numpy as np
 
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.coordinates.primitives import Distance
-from autode.opt.optimisers import CRFOptimiser, NDOptimiser
+from autode.opt.optimisers import CRFOptimiser
 from autode.opt.optimisers.hessian_update import FlowchartUpdate
 from autode.exceptions import OptimiserStepError
 from autode.values import GradientRMS, PotentialEnergy
@@ -40,7 +40,6 @@ class HybridTRMOptimiser(CRFOptimiser):
 
     def __init__(
         self,
-        coord_type: str = "dic",
         init_trust: float = 0.1,
         update_trust: bool = True,
         min_trust: float = 0.01,
@@ -82,13 +81,6 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._min_alpha = float(min_trust)
         self._upd_alpha = bool(update_trust)
 
-        if coord_type.lower() in ["cart", "cartesian"]:
-            self._coord_type = "cart"
-        elif coord_type.lower() == "dic":
-            self._coord_type = "dic"
-        else:
-            raise ValueError("Coordinate type must be either 'cart' or 'DIC'")
-        # todo stop if any constraints detected -> is this needed
         self._should_damp = bool(damp)
         self._last_damp_iter = 0
 
@@ -124,25 +116,24 @@ class HybridTRMOptimiser(CRFOptimiser):
     def _build_coordinates(self) -> None:
         """Build delocalised internal coordinates"""
         cart_coords = CartesianCoordinates(self._species.coordinates)
-        if self._coord_type == "cart":
-            self._coords = cart_coords
-
-        else:
-            primitives = self._primitives
-            if len(primitives) < cart_coords.expected_number_of_dof:
-                logger.info(
-                    "Had an incomplete set of primitives. Adding "
-                    "additional distances"
-                )
-                for i, j in combinations(range(self._species.n_atoms), 2):
-                    primitives.append(Distance(i, j))
-            self._coords = DIC.from_cartesian(
-                x=cart_coords, primitives=primitives
+        primitives = self._primitives
+        if len(primitives) < cart_coords.expected_number_of_dof:
+            logger.info(
+                "Had an incomplete set of primitives. Adding "
+                "additional distances"
             )
-
+            for i, j in combinations(range(self._species.n_atoms), 2):
+                primitives.append(Distance(i, j))
+        self._coords = DIC.from_cartesian(x=cart_coords, primitives=primitives)
         return None
 
     def _step(self) -> None:
+        """
+        Hybrid RFO/TRM step; if the RFO step is larger than the trust
+        radius, it switches to TRM model to get the best step within
+        the trust radius, if that calculation fails, it simply scales
+        back the RFO step to lie within trust radius
+        """
 
         self._coords.h = self._updated_h()
         self._update_trust_radius()
@@ -459,3 +450,10 @@ class HybridTRMOptimiser(CRFOptimiser):
             return True
 
         return False
+
+
+class CartesianHybridTRMOptimiser(HybridTRMOptimiser):
+    def _build_coordinates(self) -> None:
+        """Use only the Cartesian coordinates"""
+        self._coords = CartesianCoordinates(self._species.coordinates)
+        return None
