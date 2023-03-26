@@ -82,7 +82,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._upd_alpha = bool(update_trust)
 
         self._should_damp = bool(damp)
-        self._last_damp_iter = 0
+        self._last_damp_iteration = 0
 
         self._hessian_update_types = [FlowchartUpdate]
 
@@ -405,7 +405,7 @@ class HybridTRMOptimiser(CRFOptimiser):
             return False
 
         # allow the optimiser 3 free iterations before damping again
-        if self.iteration - self._last_damp_iter < 3:
+        if self.iteration - self._last_damp_iteration < 3:
             return False
 
         # get last three coordinates
@@ -447,7 +447,7 @@ class HybridTRMOptimiser(CRFOptimiser):
             step = new_coords_raw - self._coords.raw
             self._coords = self._coords + step
 
-            self._last_damp_iter = self.iteration
+            self._last_damp_iteration = self.iteration
             return True
 
         return False
