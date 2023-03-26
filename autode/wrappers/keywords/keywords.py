@@ -75,7 +75,7 @@ class KeywordsSet:
         str_methods = ",\n".join(str(c) for c in self._list if c is not None)
         return f"KeywordsSet({str_methods})"
 
-    def __getitem__(self, item: int) -> "Keywords":
+    def __getitem__(self, item: int) -> Optional["Keywords"]:
         return self._list[item]
 
     def __eq__(self, other: object) -> bool:
@@ -83,7 +83,7 @@ class KeywordsSet:
         return isinstance(other, KeywordsSet) and self._list == other._list
 
     @property
-    def low_opt(self) -> "OptKeywords":
+    def low_opt(self) -> Optional["OptKeywords"]:
         return self._low_opt
 
     @low_opt.setter
@@ -91,7 +91,7 @@ class KeywordsSet:
         self._low_opt = OptKeywords(value)
 
     @property
-    def opt(self) -> "OptKeywords":
+    def opt(self) -> Optional["OptKeywords"]:
         return self._opt
 
     @opt.setter
@@ -99,15 +99,15 @@ class KeywordsSet:
         self._opt = OptKeywords(value)
 
     @property
-    def opt_ts(self) -> "OptTSKeywords":
+    def opt_ts(self) -> Optional["OptTSKeywords"]:
         return self._opt_ts
 
     @opt_ts.setter
     def opt_ts(self, value: Optional[Sequence[str]]):
-        self._opt_ts = OptKeywords(value)
+        self._opt_ts = OptTSKeywords(value)
 
     @property
-    def grad(self) -> "GradientKeywords":
+    def grad(self) -> Optional["GradientKeywords"]:
         return self._grad
 
     @grad.setter
@@ -115,7 +115,7 @@ class KeywordsSet:
         self._grad = GradientKeywords(value)
 
     @property
-    def hess(self) -> "HessianKeywords":
+    def hess(self) -> Optional["HessianKeywords"]:
         return self._hess
 
     @hess.setter
@@ -131,7 +131,7 @@ class KeywordsSet:
         self._low_sp = value if value is None else SinglePointKeywords(value)
 
     @property
-    def sp(self) -> "SinglePointKeywords":
+    def sp(self) -> Optional["SinglePointKeywords"]:
         return self._sp
 
     @sp.setter
@@ -139,7 +139,7 @@ class KeywordsSet:
         self._sp = SinglePointKeywords(value)
 
     @property
-    def _list(self) -> List["Keywords"]:
+    def _list(self) -> List[Optional["Keywords"]]:
         """List of all the keywords in this set"""
         return [
             self._low_opt,
@@ -167,7 +167,7 @@ class KeywordsSet:
 
     def set_functional(self, functional: Union["Functional", str]):
         """Set the functional for all calculation types"""
-        for keywords in self:
+        for keywords in self._list:
             keywords.functional = functional
 
         return None
@@ -191,7 +191,9 @@ class KeywordsSet:
 
 
 class Keywords(ABC):
-    def __init__(self, keyword_list: Union[Sequence, str, None] = None):
+    def __init__(
+        self, keyword_list: Union["_KEYWORDS_TYPE", str, None] = None
+    ):
         """
         List of keywords used in an electronic structure calculation
 

@@ -4,12 +4,16 @@ import numpy as np
 
 from copy import deepcopy
 from networkx.algorithms import isomorphism
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, TYPE_CHECKING
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
 from autode.atoms import Atom, metals
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.values import Distance
+    from autode.species.species import Species
 
 
 class MolecularGraph(nx.Graph):
@@ -68,7 +72,7 @@ class MolecularGraph(nx.Graph):
 
         return matrix
 
-    def _covalent_radius(self, i) -> "autode.values.Distance":
+    def _covalent_radius(self, i) -> "Distance":
         """Covalent radius of a node in the graph"""
         return Atom(self.nodes[i]["atom_label"]).covalent_radius.to("Å")
 
@@ -113,7 +117,7 @@ class MolecularGraph(nx.Graph):
 
 
 def make_graph(
-    species: "autode.Species",
+    species: "Species",
     rel_tolerance: float = 0.3,
     bond_list: Optional[List[tuple]] = None,
     allow_invalid_valancies: bool = False,
@@ -352,13 +356,13 @@ def species_are_isomorphic(species1, species2):
 
     # Check on all the pairwise combinations of species conformers looking for
     #  an isomorphism
-    def conformers_or_self(species):
+    def conformers_or_self(_species):
         """If there are no conformers for this species return itself otherwise
         the list of conformers"""
-        if species.n_conformers == 0:
-            return [species]
+        if _species.n_conformers == 0:
+            return [_species]
 
-        return species.conformers
+        return _species.conformers
 
     # Check on all pairs of conformers between the two species
     for conformer1 in conformers_or_self(species1):

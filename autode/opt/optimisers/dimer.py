@@ -274,6 +274,7 @@ class Dimer(Optimiser):
             self._coords is not None
             and self._species is not None
             and self._method is not None
+            and self._method.keywords.grad is not None
         )
         i = int(point)
 
