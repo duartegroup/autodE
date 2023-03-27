@@ -377,8 +377,12 @@ class DHSImagePair(ImagePair):
         else:
             return False
 
-    def get_last_step_by_side(self, side: str) -> CartesianCoordinates:
+    def get_last_step_by_side(
+        self, side: str
+    ) -> Optional[CartesianCoordinates]:
         _, _, hist, _ = self._get_img_by_side(side)
+        if len(hist) < 2:
+            return None
         return hist[-1] - hist[-2]
 
 
@@ -584,7 +588,7 @@ class DHS(BaseBracketMethod):
         return new_coord
 
 
-class HybridGSDHS(DHS):
+class DHSGS(DHS):
     """
     Dewar-Healy-Stewart method, augmented with Growing String (GS)
     method. The DHS step (stepping along the linear interpolated
@@ -595,6 +599,7 @@ class HybridGSDHS(DHS):
     Proposed by J. Kilmes, D. R. Bowler, A. Michaelides,
     J. Phys.: Condens. Matter, 2010, 22(7), 074203
     """
+
     def __init__(self, *args, gs_mix: float = 0.5, **kwargs):
         """
         Keyword Args:
@@ -626,18 +631,25 @@ class HybridGSDHS(DHS):
         dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
 
         gs_step = self.imgpair.get_last_step_by_side(side)
+        if gs_step is None:
+            gs_step = np.zeros_like(dhs_step)
+            # hack to ensure the first step is 100% DHS (as GS is not possible)
+            dhs_step = dhs_step / (1 - self._gs_mix)
+
         old_coord = self.imgpair.get_coord_by_side(side)
 
         # todo should I rescale the growing string step?
         if side == "left":
             new_coord = (
                 self.imgpair.left_coord
-                - (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
+                - (1 - self._gs_mix) * dhs_step
+                + self._gs_mix * gs_step
             )
         elif side == "right":
             new_coord = (
                 self.imgpair.right_coord
-                + (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
+                + (1 - self._gs_mix) * dhs_step
+                + self._gs_mix * gs_step
             )
         else:
             raise ImgPairSideError()
