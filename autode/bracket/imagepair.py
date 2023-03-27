@@ -361,6 +361,7 @@ class BaseImagePair(ABC):
     def get_coord_by_side(self, side: str) -> OptCoordinates:
         """For external usage, supplies only the coordinate object"""
         _, coord, _, _ = self._get_img_by_side(side)
+        # todo put these functions in DHS if not needed in base
         return coord
 
     def _get_img_by_side(

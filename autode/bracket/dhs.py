@@ -377,6 +377,10 @@ class DHSImagePair(ImagePair):
         else:
             return False
 
+    def get_last_step_by_side(self, side: str) -> CartesianCoordinates:
+        _, _, hist, _ = self._get_img_by_side(side)
+        return hist[-1] - hist[-2]
+
 
 class DHS(BaseBracketMethod):
     """
@@ -562,7 +566,6 @@ class DHS(BaseBracketMethod):
             (CartesianCoordinates): New predicted coordinates for that side
         """
         # take a DHS step of the size given
-
         dist_vec = self.imgpair.dist_vec
         dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
 
@@ -570,6 +573,7 @@ class DHS(BaseBracketMethod):
             new_coord = self.imgpair.left_coord - dhs_step
         elif side == "right":
             new_coord = self.imgpair.right_coord + dhs_step
+            # todo make a function that will put into side
         else:
             raise ImgPairSideError()
 
@@ -577,4 +581,71 @@ class DHS(BaseBracketMethod):
             f"DHS step on {side} image: taking a step of"
             f" size {self._step_size:.4f}"
         )
+        return new_coord
+
+
+class HybridGSDHS(DHS):
+    """
+    Dewar-Healy-Stewart method, augmented with Growing String (GS)
+    method. The DHS step (stepping along the linear interpolated
+    path between the two images) is mixed with a GS step (linear
+    interpolation along last and current position of one image)
+    in a fixed ratio.
+
+    Proposed by J. Kilmes, D. R. Bowler, A. Michaelides,
+    J. Phys.: Condens. Matter, 2010, 22(7), 074203
+    """
+    def __init__(self, *args, gs_mix: float = 0.5, **kwargs):
+        """
+        Keyword Args:
+            gs_mix (float): Represents the percentage of mixing of the
+                            Growing String step with the DHS step. 0.3
+                            means 0.3 * GS_step + (1-0.3) * DHS_step
+                            It is recommended to set this to any fraction
+                            lower than 0.5
+        """
+        super().__init__(*args, **kwargs)
+
+        self._gs_mix = float(gs_mix)
+        assert 0.0 < self._gs_mix < 1.0, "Mixing factor must be 0 < fac < 1"
+
+    def _get_dhs_step(self, side: str) -> CartesianCoordinates:
+        """
+        Take a mixed DHS and GS step (interpolates between the two
+        vectors) in the given ratio, and then return the new
+        coordinates after taking the step
+
+        Args:
+            side (str):
+
+        Returns:
+            (CartesianCoordinates): New predicted coordinates for that side
+        """
+        # obtain the DHS step
+        dist_vec = self.imgpair.dist_vec
+        dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
+
+        gs_step = self.imgpair.get_last_step_by_side(side)
+        old_coord = self.imgpair.get_coord_by_side(side)
+
+        # todo should I rescale the growing string step?
+        if side == "left":
+            new_coord = (
+                self.imgpair.left_coord
+                - (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
+            )
+        elif side == "right":
+            new_coord = (
+                self.imgpair.right_coord
+                + (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
+            )
+        else:
+            raise ImgPairSideError()
+
+        step_size = np.linalg.norm(new_coord - old_coord)
+        logger.info(
+            f"DHS-GS step on {side} image: taking a step "
+            f"of size {step_size:.4f}"
+        )
+
         return new_coord

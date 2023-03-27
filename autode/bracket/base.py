@@ -190,15 +190,23 @@ class BaseBracketMethod(ABC):
         should bring the ends very close to the TS). The result from
         the CI-NEB calculation is stored as coordinates.
         """
+        if not self._macro_iter > 0:
+            logger.error(
+                f"Must run {self._method_name} calculation before"
+                f"running the CI-NEB calculation"
+            )
+            return None
+
         if not self.converged:
             logger.warning(
                 f"{self._method_name} method has not converged, running a"
                 " CI-NEB calculation now may not be efficient. Please"
                 " check results carefully."
             )
-        logger.info(
-            f"{self._method_name} has converged, running CI-NEB"
-            f" calculation from the end points"
-        )
+        else:
+            logger.info(
+                f"{self._method_name} has converged, running CI-NEB"
+                f" calculation from the end points"
+            )
         self.imgpair.run_cineb_from_end_points()
         return None
