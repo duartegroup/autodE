@@ -334,8 +334,11 @@ class DHSImagePair(ImagePair):
                 " image-pair. Unable to obtain transition state guess"
             )
             return None
-        peak_idx = np.argmax(energies)
-        tmp_spc.coordinates = self._total_history[peak_idx]
+        peak_coords = self._total_history[np.argmax(energies)]
+        tmp_spc.coordinates = peak_coords
+        tmp_spc.energy = peak_coords.e
+        tmp_spc.gradient = peak_coords.g
+        return tmp_spc
 
     def has_jumped_over_barrier(self, side: str) -> bool:
         """
