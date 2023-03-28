@@ -10,7 +10,7 @@ from typing import Tuple, Union, Optional, TYPE_CHECKING
 import numpy as np
 
 from autode.values import Distance, Angle, GradientRMS
-from autode.bracket.imagepair import ImagePair, ImgPairSideError
+from autode.bracket.imagepair import EuclideanImagePair, ImgPairSideError
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate, BFGSUpdate
 from autode.bracket.base import BaseBracketMethod
@@ -319,7 +319,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         return x_interp, g_interp
 
 
-class DHSImagePair(ImagePair):
+class DHSImagePair(EuclideanImagePair):
     """
     Image-pair used for Dewar-Healy-Stewart (DHS) method to
     find transition states. In this method, only one side is

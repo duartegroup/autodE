@@ -2,7 +2,7 @@ from typing import Union, Optional, TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 from autode.values import Distance, GradientRMS
-from autode.bracket.imagepair import ImagePair
+from autode.bracket.imagepair import EuclideanImagePair
 from autode.methods import get_hmethod
 from autode.log import logger
 from autode import Config
@@ -43,7 +43,7 @@ class BaseBracketMethod(ABC):
             gtol: Gradient tolerance for optimisation steps in the method
             cineb_at_conv: Whether to run a CI-NEB with from the final points
         """
-        self.imgpair: Optional["ImagePair"] = None  # must be set by subclass
+        self.imgpair: Optional["EuclideanImagePair"] = None  # must be set by subclass
         self._species: "Species" = initial_species.copy()
 
         self._maxiter = int(maxiter)

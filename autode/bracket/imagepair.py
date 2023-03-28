@@ -523,12 +523,10 @@ class BaseImagePair(ABC):
         )
 
 
-class ImagePair(BaseImagePair, ABC):
+class EuclideanImagePair(BaseImagePair, ABC):
     """
     Image-pair that defines the distance between the images as
-    the Euclidean distance. Single-point, en/grad, and hessian
-    calculation can be run, and hessian update can be done
-    using gradient information
+    the Euclidean distance
     """
 
     @property
@@ -541,7 +539,7 @@ class ImagePair(BaseImagePair, ABC):
     @property
     def dist(self) -> Distance:
         """
-        Euclidean distance between the images in ImagePair
+        Euclidean distance between the images in image-pair
 
         Returns:
             (Distance): Distance in Angstrom
