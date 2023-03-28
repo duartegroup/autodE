@@ -1,7 +1,9 @@
 """
 Dewar-Healy-Stewart Method for finding transition states
 
-As described in J. Chem. Soc. Farady Trans. 2, 1984, 80, 227-233
+Also implements DHS-GS, CI-DHS and CI-DHS-GS methods
+
+[1] M. J. S. Dewar, E. Healy, J. Chem. Soc. Farady Trans. 2, 1984, 80, 227-233
 """
 
 from typing import Tuple, Union, Optional, TYPE_CHECKING
@@ -169,6 +171,13 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         return np.array(self._coords - self._pivot)
 
     def _step(self) -> None:
+        """
+        A step that maintains the distance of the coordinate from
+        the pivot point. A line search is done if it is not the first
+        iteration (and it has not been turned off), and then a
+        quasi-Newton step with a Lagrangian constraint for the distance
+        is taken
+        """
 
         print(f"Distance between coords = {np.linalg.norm(self.dist_vec)}")
         self._coords.h = self._updated_h()
@@ -218,6 +227,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             return self.alpha - np.linalg.norm(step_est)
 
         def lagrangian_constr(x):
+            """step must maintain same distance from pivot"""
             p = x - self._pivot
             return np.linalg.norm(p) - self._target_dist
 
@@ -225,19 +235,25 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             {"type": "ineq", "fun": step_size_constr},
             {"type": "eq", "fun": lagrangian_constr},
         )
+        # NOTE: The Lagrangian constraint should be ideally calculated using
+        # a multiplier which can be found by a 1-D root search, however, it
+        # seems to produce really large steps. So instead the constraint
+        # and the trust radius are both enforced by doing a constrained
+        # optimisation on the truncated Taylor surface, which should give
+        # a quadratic step that follows the constraint and is within trust
+        # radius
 
         res = minimize(
             fun=taylor_pes.value,
             x0=np.array(self._coords),
             method="slsqp",
             jac=taylor_pes.gradient,
-            # hess=taylor_pes.hessian,
             options={"maxiter": 2000},
             constraints=constrs,
         )
 
         if not res.success:
-            raise RuntimeError
+            raise RuntimeError("Unable to obtain distance-constrained step")
 
         step = res.x - coords
         return step
@@ -344,54 +360,86 @@ class DHSImagePair(ImagePair):
         tmp_spc.gradient = peak_coords.g
         return tmp_spc
 
-    def get_coord_by_side(self, side: str) -> OptCoordinates:
-        """For external usage, supplies only the coordinate object"""
-        _, coord, _, _ = self._get_img_by_side(side)
-        # todo put these functions in DHS if not needed in base
-        return coord
-
     def _get_img_by_side(
         self, side: str
-    ) -> Tuple["Species", OptCoordinates, "_OptimiserHistory", float]:
+    ) -> Tuple["Species", OptCoordinates, "_OptimiserHistory"]:
         """
         Access an image and some properties by a string that
         represents side. Returns a tuple of the species, the
-        current coordinate object, and a factor that is necessary
-        for some calculations
+        current coordinate object, and the history of that side
 
         Args:
             side (str): 'left' or 'right'
 
         Returns:
-            (tuple) : tuple(image, current coord, history, fac)
+            (tuple) : tuple(image, current coord, history)
         """
         if side == "left":
             img = self._left_image
             coord = self.left_coord
             hist = self._left_history
-            fac = 1.0
         elif side == "right":
             img = self._right_image
             coord = self.right_coord
             hist = self._right_history
-            fac = -1.0
             # todo fix this
         else:
             raise ImgPairSideError()
 
-        return img, coord, hist, fac
+        return img, coord, hist
+
+    def get_coord_by_side(self, side: str) -> OptCoordinates:
+        """For external usage, supplies only the coordinate object"""
+        _, coord, _ = self._get_img_by_side(side)
+        return coord
+
+    def put_coord_by_side(
+        self,
+        new_coord: Optional[OptCoordinates],
+        side: str
+    ) -> None:
+        """For external usage, put the new coordinate in appropriate side"""
+        if side == "left":
+            self.left_coord = new_coord
+        elif side == "right":
+            self.right_coord = new_coord
+        else:
+            raise ImgPairSideError()
+        return None
+
+    def get_last_step_by_side(
+        self, side: str
+    ) -> Optional[CartesianCoordinates]:
+        _, _, hist = self._get_img_by_side(side)
+        if len(hist) < 2:
+            return None
+        return hist[-1] - hist[-2]
+
+    @staticmethod
+    def get_dhs_step_sign_by_side(side: str) -> float:
+        """
+        The DHS step needs different sign for different sides since
+        the distance vector is defined from right -> left image
+        """
+        if side == "left":
+            return -1.0
+        elif side == "right":
+            return 1.0
+        else:
+            raise ImgPairSideError()
 
     def update_one_img_mol_energy(self, side: str) -> None:
         """
         Update only the molecular energy using the supplied
-        engrad_method for one image only
+        engrad_method for one image only, required for the
+        initial step of DHS
 
         Args:
             side (str): 'left' or 'right'
         """
         assert self._engrad_method is not None
         assert self._n_cores is not None
-        img, coord, _, _ = self._get_img_by_side(side)
+        img, coord, _ = self._get_img_by_side(side)
 
         logger.debug(
             f"Calculating energy for {side} side"
@@ -444,7 +492,7 @@ class DHSImagePair(ImagePair):
 
         # We assume the next point will lie between the
         # last two images on both side. If the current coord
-        # is further from last coord on the same side than the
+        # is further from last coord on the same side, than the
         # opposite image, then it has jumped over
         dist_to_last = np.linalg.norm(new_coord - last_coord)
         dist_before_step = np.linalg.norm(other_coord - last_coord)
@@ -453,14 +501,6 @@ class DHSImagePair(ImagePair):
             return True
         else:
             return False
-
-    def get_last_step_by_side(
-        self, side: str
-    ) -> Optional[CartesianCoordinates]:
-        _, _, hist, _ = self._get_img_by_side(side)
-        if len(hist) < 2:
-            return None
-        return hist[-1] - hist[-2]
 
 
 class DHS(BaseBracketMethod):
@@ -584,17 +624,13 @@ class DHS(BaseBracketMethod):
                 break
 
             logger.info(
-                "Successful optimization after DHS step, final RMS of"
-                f" gradient = {opt.rms_tangent_grad:.6f} Ha/angstrom"
+                "Successful optimization after DHS step, final RMS of "
+                f"tangential gradient = {opt.rms_tangent_grad:.6f} "
+                f"Ha/angstrom"
             )
 
             # put results back into imagepair
-            if side == "left":
-                self.imgpair.left_coord = opt.final_coordinates
-            elif side == "right":
-                self.imgpair.right_coord = opt.final_coordinates
-            else:
-                raise ImgPairSideError()
+            self.imgpair.put_coord_by_side(opt.final_coordinates, side)
 
             if self.imgpair.has_jumped_over_barrier(side):
                 logger.warning(
@@ -649,14 +685,10 @@ class DHS(BaseBracketMethod):
         # take a DHS step of the size given
         dist_vec = self.imgpair.dist_vec
         dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
+        dhs_step *= self.imgpair.get_dhs_step_sign_by_side(side)
 
-        if side == "left":
-            new_coord = self.imgpair.left_coord - dhs_step
-        elif side == "right":
-            new_coord = self.imgpair.right_coord + dhs_step
-            # todo make a function that will put into side
-        else:
-            raise ImgPairSideError()
+        old_coord = self.imgpair.get_coord_by_side(side)
+        new_coord = old_coord + dhs_step
 
         logger.info(
             f"DHS step on {side} image: taking a step of"
@@ -706,6 +738,7 @@ class DHSGS(DHS):
         # obtain the DHS step
         dist_vec = self.imgpair.dist_vec
         dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
+        dhs_step *= self.imgpair.get_dhs_step_sign_by_side(side)
 
         gs_step = self.imgpair.get_last_step_by_side(side)
         if gs_step is None:
@@ -714,22 +747,11 @@ class DHSGS(DHS):
             dhs_step = dhs_step / (1 - self._gs_mix)
 
         old_coord = self.imgpair.get_coord_by_side(side)
-
+        new_coord = (
+            old_coord
+            + (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
+        )
         # todo should I rescale the growing string step?
-        if side == "left":
-            new_coord = (
-                self.imgpair.left_coord
-                - (1 - self._gs_mix) * dhs_step
-                + self._gs_mix * gs_step
-            )
-        elif side == "right":
-            new_coord = (
-                self.imgpair.right_coord
-                + (1 - self._gs_mix) * dhs_step
-                + self._gs_mix * gs_step
-            )
-        else:
-            raise ImgPairSideError()
 
         step_size = np.linalg.norm(new_coord - old_coord)
         logger.info(
