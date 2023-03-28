@@ -13,11 +13,13 @@ from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate, BFGSUpdate
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
+from autode.exceptions import CalculationException
 from autode.log import logger
 
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
+    from autode.opt.optimisers.base import _OptimiserHistory
 
 
 class _TruncatedTaylor:
@@ -304,7 +306,9 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 class DHSImagePair(ImagePair):
     """
     Image-pair used for Dewar-Healy-Stewart (DHS) method to
-    find transition states
+    find transition states. In this method, only one side is
+    modified in a step, so functions to work with only one
+    side is present here
     """
 
     @property
@@ -340,6 +344,78 @@ class DHSImagePair(ImagePair):
         tmp_spc.gradient = peak_coords.g
         return tmp_spc
 
+    def get_coord_by_side(self, side: str) -> OptCoordinates:
+        """For external usage, supplies only the coordinate object"""
+        _, coord, _, _ = self._get_img_by_side(side)
+        # todo put these functions in DHS if not needed in base
+        return coord
+
+    def _get_img_by_side(
+        self, side: str
+    ) -> Tuple["Species", OptCoordinates, "_OptimiserHistory", float]:
+        """
+        Access an image and some properties by a string that
+        represents side. Returns a tuple of the species, the
+        current coordinate object, and a factor that is necessary
+        for some calculations
+
+        Args:
+            side (str): 'left' or 'right'
+
+        Returns:
+            (tuple) : tuple(image, current coord, history, fac)
+        """
+        if side == "left":
+            img = self._left_image
+            coord = self.left_coord
+            hist = self._left_history
+            fac = 1.0
+        elif side == "right":
+            img = self._right_image
+            coord = self.right_coord
+            hist = self._right_history
+            fac = -1.0
+            # todo fix this
+        else:
+            raise ImgPairSideError()
+
+        return img, coord, hist, fac
+
+    def update_one_img_mol_energy(self, side: str) -> None:
+        """
+        Update only the molecular energy using the supplied
+        engrad_method for one image only
+
+        Args:
+            side (str): 'left' or 'right'
+        """
+        assert self._engrad_method is not None
+        assert self._n_cores is not None
+        img, coord, _, _ = self._get_img_by_side(side)
+
+        logger.debug(
+            f"Calculating energy for {side} side"
+            f" with {self._engrad_method}"
+        )
+
+        from autode.calculations import Calculation
+
+        sp_calc = Calculation(
+            name=f"{img.name}_sp",
+            molecule=img,
+            method=self._engrad_method,
+            keywords=self._engrad_method.keywords.sp,
+            n_cores=self._n_cores,
+        )
+        sp_calc.run()
+        sp_calc.clean_up(force=True, everything=True)
+
+        if img.energy is None:
+            raise CalculationException("Energy calculation failed")
+
+        # update coord
+        coord.e = img.energy.to("Ha")
+
     def has_jumped_over_barrier(self, side: str) -> bool:
         """
         The simplest test would be to check the distances between
@@ -355,11 +431,12 @@ class DHSImagePair(ImagePair):
             (bool): whether the point has probably jumped over
         """
         if side == "left":
-            last_coord = self._left_history[-1]
+            last_coord = self._left_history[-2]
             other_coord = self.right_coord
         elif side == "right":
-            last_coord = self._right_history[-1]
+            last_coord = self._right_history[-2]
             other_coord = self.left_coord
+            # todo check this function carefully
         else:
             raise ImgPairSideError()
 
