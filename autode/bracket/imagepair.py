@@ -355,8 +355,13 @@ class BaseImagePair(ABC):
 
     @property
     @abstractmethod
-    def dist(self):
+    def dist(self) -> Distance:
         """Distance defined between two images in the image-pair"""
+
+    @property
+    @abstractmethod
+    def has_jumped_over_barrier(self) -> bool:
+        """Whether one image has jumped over the barrier on the other side"""
 
     @property
     def _total_history(self) -> _OptimiserHistory:
@@ -531,7 +536,10 @@ class EuclideanImagePair(BaseImagePair, ABC):
 
     @property
     def dist_vec(self) -> np.ndarray:
-        """Distance vector in cartesian coordinates"""
+        """
+        Distance vector in cartesian coordinates, it is defined here to
+        go from right to left image (i.e. right -> left)
+        """
         return np.array(
             self.left_coord.to("cart") - self.right_coord.to("cart")
         )
@@ -545,3 +553,34 @@ class EuclideanImagePair(BaseImagePair, ABC):
             (Distance): Distance in Angstrom
         """
         return Distance(np.linalg.norm(self.dist_vec), units="ang")
+
+    @property
+    def has_jumped_over_barrier(self) -> bool:
+        """
+        A quick test of whether the images are still separated by a barrier
+        is to check whether the gradient vectors are pointing outwards
+        compared to the linear path connecting the two images.
+
+        This is a slightly modified version of the method proposed in ref:
+        Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
+        https://doi.org/10.1021/acs.jctc.3c00151
+        """
+        # NOTE: The angle between the force vector on right image
+        # and the distance vector must be more than 90 degrees. Similarly
+        # for left image it must be less than 90 degrees. This would mean
+        # that the parallel component of the forces on each image are
+        # pointing away from each other. (force is negative gradient).
+        # Also note that this method will not work if there are multiple
+        # barriers in the way (i.e. multi-step reaction)
+
+        left_cos_theta = np.dot(-self.left_coord.g, self.dist_vec)
+        right_cos_theta = np.dot(-self.right_coord.g, self.dist_vec)
+
+        assert -1.0 < left_cos_theta < 1.0
+        assert -1.0 < right_cos_theta < 1.0
+
+        # cos(theta) < 0.0 means angle > 90 degrees and vice versa
+        if right_cos_theta < 0.0 < left_cos_theta:
+            return False
+        else:
+            return True

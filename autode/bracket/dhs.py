@@ -394,9 +394,7 @@ class DHSImagePair(EuclideanImagePair):
         return coord
 
     def put_coord_by_side(
-        self,
-        new_coord: Optional[OptCoordinates],
-        side: str
+        self, new_coord: Optional[OptCoordinates], side: str
     ) -> None:
         """For external usage, put the new coordinate in appropriate side"""
         if side == "left":
@@ -463,44 +461,6 @@ class DHSImagePair(EuclideanImagePair):
 
         # update coord
         coord.e = img.energy.to("Ha")
-
-    def has_jumped_over_barrier(self, side: str) -> bool:
-        """
-        The simplest test would be to check the distances between
-        the last two points, and the newly added points. If the newly
-        added point does not lie between the last two points (in
-        Euclidean distance) then the point has probably jumped over
-        the barrier (This is not a strict/rigorous test, but very cheap)
-
-        Args:
-            side: side of the newly added point
-
-        Returns:
-            (bool): whether the point has probably jumped over
-        """
-        if side == "left":
-            last_coord = self._left_history[-2]
-            other_coord = self.right_coord
-        elif side == "right":
-            last_coord = self._right_history[-2]
-            other_coord = self.left_coord
-            # todo check this function carefully
-        else:
-            raise ImgPairSideError()
-
-        new_coord = self.get_coord_by_side(side)
-
-        # We assume the next point will lie between the
-        # last two images on both side. If the current coord
-        # is further from last coord on the same side, than the
-        # opposite image, then it has jumped over
-        dist_to_last = np.linalg.norm(new_coord - last_coord)
-        dist_before_step = np.linalg.norm(other_coord - last_coord)
-
-        if dist_to_last >= dist_before_step:
-            return True
-        else:
-            return False
 
 
 class DHS(BaseBracketMethod):
@@ -632,7 +592,7 @@ class DHS(BaseBracketMethod):
             # put results back into imagepair
             self.imgpair.put_coord_by_side(opt.final_coordinates, side)
 
-            if self.imgpair.has_jumped_over_barrier(side):
+            if self.imgpair.has_jumped_over_barrier:
                 logger.warning(
                     "One image has jumped over the other image"
                     " while running DHS optimisation. This"
@@ -748,8 +708,7 @@ class DHSGS(DHS):
 
         old_coord = self.imgpair.get_coord_by_side(side)
         new_coord = (
-            old_coord
-            + (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
+            old_coord + (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
         )
         # todo should I rescale the growing string step?
 
