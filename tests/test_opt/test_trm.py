@@ -8,7 +8,8 @@ from autode.hessians import Hessian
 from autode.utils import work_in_tmp_dir
 from ..test_utils import requires_with_working_xtb_install
 from autode.opt.coordinates import CartesianCoordinates, DIC
-from autode.opt.optimisers.trm import HybridTRMOptimiser
+from autode.opt.optimisers.trm import (HybridTRMOptimiser,
+                                       CartesianHybridTRMOptimiser)
 
 
 def test_trm_step():
@@ -132,7 +133,7 @@ def test_trm_step():
         )
     )
 
-    opt = HybridTRMOptimiser(coord_type="dic", maxiter=2, gtol=0.1, etol=0.1)
+    opt = HybridTRMOptimiser(maxiter=2, gtol=0.1, etol=0.1)
     opt._species = water
     opt._build_coordinates()
     assert isinstance(opt._coords, DIC)
@@ -147,7 +148,7 @@ def test_trm_step():
 
     assert np.isclose(step_size, opt.alpha, rtol=0.01)  # 1% error margin
 
-    opt = HybridTRMOptimiser(coord_type="cart", maxiter=2, gtol=0.1, etol=0.1)
+    opt = CartesianHybridTRMOptimiser(maxiter=2, gtol=0.1, etol=0.1)
     opt._species = water
     opt._build_coordinates()
     assert isinstance(opt._coords, CartesianCoordinates)
@@ -164,20 +165,25 @@ def test_trm_step():
 
 def test_damping_in_hybridtrm_optimiser():
     coord1 = CartesianCoordinates([1.0, -2.0, 1.0, 3.0, 1.1, 1.2])
-    coord1.e = 0.14
-    coord1.g = np.array([0.2, 0.3, 0.1, -0.2])
+    coord1.e = 0.10
+    coord1.g = np.array([0.2, 0.3, 0.1, 0.2, 0.3, 0.4])
+    coord1.h = np.eye(6)
     coord2 = CartesianCoordinates([1.1, -1.9, 1.1, 3.1, 1.2, 1.3])
-    coord2.e = 0.10
-    coord2.g = np.array([0.1, 0.3, 0.01, -0.1])
-    opt = HybridTRMOptimiser(coord_type="cart", maxiter=2, gtol=0.1, etol=0.1)
+    coord2.e = 0.14
+    coord2.g = np.array([0.1, 0.2, 0.01, 0.1, 0.2, 0.3])
+    coord2.h = np.eye(6)
+    opt = CartesianHybridTRMOptimiser(maxiter=2, gtol=0.1, etol=0.1)
 
     # simulate an oscillation happening
     opt._coords = coord1
     opt._coords = coord2
     opt._coords = coord1
     opt._coords = coord2
+    opt._coords = coord1
+    opt._coords = coord2
 
-    assert opt._damp_if_required()  # should damp
+    assert opt._is_oscillating()  # should register as oscillation
+    opt._step()  # should take damped step
     # 50% mixing
     avg_coord = (coord1 + coord2) / 2.0
     assert np.allclose(avg_coord, opt._coords)

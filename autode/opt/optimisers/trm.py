@@ -3,7 +3,7 @@ A hybrid RFO (Rational Function Optimisation) and
 Trust Radius Model (TRM) optimiser. Based upon the
 optimisers available in multiple popular QM softwares.
 
-Only minimisers, these are not TS search/constrained optimiser
+Only minimiser, this is not TS search/constrained optimiser
 """
 import numpy as np
 from scipy.optimize import root_scalar
@@ -54,8 +54,6 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         ---------------------------------------------------------------------
         Args:
-            coord_type: 'DIC' for delocalised internal coordinates, 'cart'
-                               for Cartesian coordinates
             init_trust: Initial value of trust radius in Angstrom
             update_trust: Whether to update the trust radius or not
             min_trust: Minimum bound for trust radius (only for trust update)
@@ -65,10 +63,9 @@ class HybridTRMOptimiser(CRFOptimiser):
             **kwargs: Additional keyword arguments for ``NDOptimiser``
 
         Keyword Args:
-            maxiter (int): Maximum number of iterations (from ``NDOptimiser``)
-            gtol (GradientRMS): Tolerance on RMS(|∇E|) (from ``NDOptimiser``)
+            maxiter (int): Maximum number of iterations
+            gtol (GradientRMS): Tolerance on RMS(|∇E|)
             etol (PotentialEnergy): Tolerance on |E_i+1 - E_i|
-                                    (from ``NDOptimiser``)
 
         See Also:
             :py:meth:`NDOptimiser <NDOptimiser.__init__>`
@@ -81,7 +78,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._min_alpha = float(min_trust)
         self._upd_alpha = bool(update_trust)
 
-        self._should_damp = bool(damp)
+        self._damping_on = bool(damp)
         self._last_damp_iteration = 0
 
         self._hessian_update_types = [FlowchartUpdate]
@@ -112,6 +109,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._build_coordinates()
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._update_gradient_and_energy()
+        return None
 
     def _build_coordinates(self) -> None:
         """Build delocalised internal coordinates"""
@@ -138,7 +136,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._coords.h = self._updated_h()
         self._update_trust_radius()
 
-        if self._damp_if_required():
+        if self._damping_on and self._is_oscillating():
+            self._damped_step()
             logger.info("Skipping quasi-NR step after damping")
             return None
 
@@ -391,66 +390,49 @@ class HybridTRMOptimiser(CRFOptimiser):
         )
         return None
 
-    def _damp_if_required(self) -> bool:
+    def _is_oscillating(self) -> bool:
         """
-        If the energy and gradient norm are oscillating in the last three
-        iterations, then interpolate between the last two coordinates to
-        damp the oscillation (must skip the quasi-NR step afterwards)
+        Check whether the optimiser is oscillating instead of converging.
+        If both the energy is oscillating (i.e. up-> down or down->up) in
+        the last two steps, and the energy has not gone below the lowest
+        energy in the last 4 iterations, then it is assumed that the
+        optimiser is oscillating
 
         Returns:
-            (bool): True if damped, False otherwise
+            (bool): True if oscillation is detected, False otherwise
         """
-        # if user does not want, no damping
-        if not self._should_damp:
+        # allow the optimiser 4 free iterations before checking oscillation
+        if self.iteration - self._last_damp_iteration < 4:
             return False
 
-        # allow the optimiser 3 free iterations before damping again
-        if self.iteration - self._last_damp_iteration < 3:
+        # energy change two steps before i.e. -3, -2
+        e_change_before_last = self._history[-2].e - self._history[-3].e
+
+        # sign of changes should be different if E oscillating
+        if not self.last_energy_change * e_change_before_last < 0:
             return False
 
-        # get last three coordinates
-        coords_0, coords_1, coords_2, coords_3 = self._history[-4:]
-
-        # energy changes in last three iters
-        e_change_0_1 = coords_1.e - coords_0.e
-        e_change_1_2 = coords_2.e - coords_1.e
-        e_change_2_3 = coords_3.e - coords_2.e
-
-        is_e_oscillating = (
-            e_change_0_1 * e_change_1_2 < 0.0
-        ) and (  # different sign
-            e_change_1_2 * e_change_2_3 < 0.0
-        )  # different sign
-
-        # the sign of gradient norm change must also flip
-        g_change_0_1 = np.linalg.norm(coords_1.to("cart").g) - np.linalg.norm(
-            coords_0.to("cart").g
-        )
-        g_change_1_2 = np.linalg.norm(coords_2.to("cart").g) - np.linalg.norm(
-            coords_1.to("cart").g
-        )
-        g_change_2_3 = np.linalg.norm(coords_3.to("cart").g) - np.linalg.norm(
-            coords_2.to("cart").g
-        )
-
-        is_g_oscillating = (
-            g_change_0_1 * g_change_1_2 < 0.0
-        ) and (  # different sign
-            g_change_1_2 * g_change_2_3 < 0.0
-        )
-
-        if is_e_oscillating and is_g_oscillating:
-            logger.info("Oscillation detected in optimiser, damping")
-
-            # is halfway interpolation good?
-            new_coords_raw = (coords_2.raw + coords_3.raw) / 2.0
-            step = new_coords_raw - self._coords.raw
-            self._coords = self._coords + step
-
-            self._last_damp_iteration = self.iteration
+        # check if energy has gone down since the last 4 iters
+        min_index = np.argmin([coord.e for coord in self._history])
+        if min_index < (self.iteration - 4):
+            logger.warning("Oscillation detected in optimiser, energy has "
+                           "not decreased in 4 iterations")
             return True
 
         return False
+
+    def _damped_step(self) -> None:
+        """
+        Take a damped step by interpolating between the last two coordinates
+        """
+        logger.info("Taking a damped step...")
+        self._last_damp_iteration = self.iteration
+
+        # is halfway interpolation good?
+        new_coords_raw = (self._coords.raw + self._history[-2].raw)/2
+        damped_step = new_coords_raw - self._coords.raw
+        self._coords = self._coords + damped_step
+        return None
 
 
 class CartesianHybridTRMOptimiser(HybridTRMOptimiser):
