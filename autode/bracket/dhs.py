@@ -671,12 +671,15 @@ class DHSGS(DHS):
 
     def __init__(self, *args, gs_mix: float = 0.5, **kwargs):
         """
+        Arguments and other keyword arguments follow DHS, please
+        see :py:meth:`DHS <autode.bracket.dhs.DHS.__init__>`
+
         Keyword Args:
             gs_mix (float): Represents the percentage of mixing of the
                             Growing String step with the DHS step. 0.3
                             means 0.3 * GS_step + (1-0.3) * DHS_step
-                            It is recommended to set this to any fraction
-                            lower than 0.5
+                            It is not recommended to set this higher
+                            than 0.5
         """
         super().__init__(*args, **kwargs)
 
