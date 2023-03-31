@@ -574,7 +574,7 @@ class DHS(BaseBracketMethod):
             tmp_spc = self._species.copy()
             tmp_spc.coordinates = new_coord
             opt.run(tmp_spc, method)
-            self._current_microiters += opt.iteration
+            self._micro_iter = self._micro_iter + opt.iteration
 
             if not opt.converged:
                 logger.error(
@@ -592,7 +592,7 @@ class DHS(BaseBracketMethod):
             # put results back into imagepair
             self.imgpair.put_coord_by_side(opt.final_coordinates, side)
 
-            if self.imgpair.has_jumped_over_barrier:
+            if self.imgpair.has_jumped_over_barrier():
                 logger.warning(
                     "One image has jumped over the other image"
                     " while running DHS optimisation. This"
@@ -607,7 +607,7 @@ class DHS(BaseBracketMethod):
         # exited loop, print final message
         logger.info(
             f"Finished DHS procedure in {self._macro_iter} macro-"
-            f"iterations consisting of {self._current_microiters}"
+            f"iterations consisting of {self._micro_iter}"
             f" micro-iterations (optimiser steps). DHS is "
             f"{'converged' if self.converged else 'not converged'}"
         )
@@ -629,6 +629,25 @@ class DHS(BaseBracketMethod):
         # ImagePair only stores the converged coordinates, which
         # is equal to the number of macro-iterations (DHS steps)
         return self.imgpair.total_iters
+
+    @property
+    def _micro_iter(self) -> int:
+        """Total number of optimiser steps"""
+        return self._current_microiters
+
+    @_micro_iter.setter
+    def _micro_iter(self, value: int):
+        """
+        For DHS the number of microiters has to be manually
+        set
+
+        Args:
+            value (int):
+        """
+        if value is None:
+            return
+        else:
+            self._current_microiters = int(value)
 
     def _get_dhs_step(self, side: str) -> CartesianCoordinates:
         """

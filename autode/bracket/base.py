@@ -81,6 +81,11 @@ class BaseBracketMethod(ABC):
     def _macro_iter(self) -> int:
         """The number of macro-iterations run with this method"""
 
+    @property
+    @abstractmethod
+    def _micro_iter(self) -> int:
+        """Total number of micro-iterations run with this method"""
+
     @abstractmethod
     def _initialise_run(self) -> None:
         """Initialise the bracketing method run"""

@@ -161,7 +161,6 @@ class BaseImagePair(ABC):
         self.right_coord = CartesianCoordinates(
             self._right_image.coordinates.to("ang")
         )
-        # todo replace type hints with optcoordiantes
 
         # Store coords from CI-NEB
         self._cineb_coords = None
@@ -358,7 +357,6 @@ class BaseImagePair(ABC):
     def dist(self) -> Distance:
         """Distance defined between two images in the image-pair"""
 
-    @property
     @abstractmethod
     def has_jumped_over_barrier(self) -> bool:
         """Whether one image has jumped over the barrier on the other side"""
@@ -462,7 +460,7 @@ class BaseImagePair(ABC):
         self,
         filename: str,
         distance_metric: str,
-    ):
+    ) -> None:
         """
         Plots the energies of the image-pair, including any CI-NEB
         calculation done at the end. The distance metric argument
@@ -478,6 +476,7 @@ class BaseImagePair(ABC):
         """
         if self.total_iters < 2:
             logger.warning("Cannot plot energies, not enough points")
+            return None
 
         if distance_metric not in ["relative", "from_start", "index"]:
             raise ValueError(
@@ -554,7 +553,6 @@ class EuclideanImagePair(BaseImagePair, ABC):
         """
         return Distance(np.linalg.norm(self.dist_vec), units="ang")
 
-    @property
     def has_jumped_over_barrier(self) -> bool:
         """
         A quick test of whether the images are still separated by a barrier
@@ -572,6 +570,8 @@ class EuclideanImagePair(BaseImagePair, ABC):
         # pointing away from each other. (force is negative gradient).
         # Also note that this method will not work if there are multiple
         # barriers in the way (i.e. multi-step reaction)
+
+        # todo call this once every 3 iterations
 
         left_cos_theta = np.dot(-self.left_coord.g, self.dist_vec)
         right_cos_theta = np.dot(-self.right_coord.g, self.dist_vec)
