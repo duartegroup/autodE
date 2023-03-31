@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from autode.opt.optimisers.base import _OptimiserHistory
 
 
-class _TruncatedTaylor:
+class TruncatedTaylor:
     """The truncated taylor surface from current grad and hessian"""
 
     def __init__(
@@ -218,7 +218,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # in the vicinity of the last two points, it seems reasonable to
         # also use the hessian from the last point in the case of linear
         # interpolation being done
-        taylor_pes = _TruncatedTaylor(coords, grad, self._coords.h)
+        taylor_pes = TruncatedTaylor(coords, grad, self._coords.h)
 
         def step_size_constr(x):
             """step size must be <= trust radius"""
