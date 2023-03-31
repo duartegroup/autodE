@@ -398,15 +398,17 @@ class BaseImagePair(ABC):
             self._left_image, self._right_image, num=3
         )
         cineb.calculate(method=self._engrad_method, n_cores=self._n_cores)
+        peak = cineb.peak_species
 
-        ci_coords = CartesianCoordinates(
-            cineb.peak_species.coordinates.to("ang")
-        )
-        ci_coords.e = cineb.peak_species.energy
-        ci_coords.update_g_from_cart_g(cineb.peak_species.gradient)
+        if peak is None:
+            logger.error("CI-NEB failed to find the peak")
+            return None
+
+        ci_coords = CartesianCoordinates(peak.coordinates.to("ang"))
+        ci_coords.e = peak.energy
+        ci_coords.update_g_from_cart_g(peak.gradient)
 
         self._cineb_coords = ci_coords
-
         return None
 
     def write_trajectories(
@@ -468,8 +470,8 @@ class BaseImagePair(ABC):
         meaning (Described in more detail in BaseBracketMethod)
 
         Args:
-            filename: name of the plot file to save
-            distance_metric: "relative" or "from_start" or "index"
+            filename (str): name of the plot file to save
+            distance_metric (str): "relative" or "from_start" or "index"
 
         See Also:
             :py:meth:`BaseBracketMethod <autode.bracket.base.BaseBracketMethod.plot_energies>`
@@ -483,6 +485,13 @@ class BaseImagePair(ABC):
                 "The distance metric must be 'relative', 'from_start' or 'index'"
             )
 
+        if any(coord.e is None for coord in self._total_history):
+            logger.error(
+                "One or more coordinates do not have associated"
+                "energies, unable to produce energy plot!"
+            )
+            return None
+
         num_left_points = len(self._left_history)
         num_right_points = len(self._right_history)
         first_point = self._left_history[0]
@@ -491,18 +500,14 @@ class BaseImagePair(ABC):
         lowest_en = min(coord.e for coord in self._total_history)
 
         for idx, coord in enumerate(self._total_history):
-            en = coord.e
-            if en is None:
-                en = np.nan
-            else:
-                en = en - lowest_en
-                en = float(en.to("kcalmol"))
+            en = coord.e - lowest_en
+            en = float(en.to("kcalmol"))
             if distance_metric == "relative":
                 if idx == 0:
                     x = 0
                 else:
                     x = np.linalg.norm(coord - self._total_history[idx - 1])
-                    x += points[idx - 1]
+                    x += points[idx - 1][0]  # add previous distance
             elif distance_metric == "from_start":
                 x = np.linalg.norm(coord - first_point)
             else:

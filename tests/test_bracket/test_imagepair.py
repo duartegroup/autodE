@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 from autode import Molecule
+from autode.values import Energy
 from autode.utils import work_in, work_in_tmp_dir
 from autode.bracket.imagepair import EuclideanImagePair
 from ..testutils import requires_with_working_xtb_install
@@ -75,11 +76,12 @@ def test_imgpair_sanity_check():
 
 
 @work_in_tmp_dir()
-def test_plotting_trajectory_ignored_if_less_than_two_points():
+def test_energy_plotting_and_trajectory_ignored_if_less_than_three_points():
     mol1 = Molecule(smiles="CCO")
     mol2 = Molecule(smiles="CCO")
     imgpair = TestImagePair(mol1, mol2)
 
+    # file should not be written with only two points
     imgpair.plot_energies(filename="test.pdf", distance_metric="relative")
     assert not os.path.isfile("test.pdf")
 
@@ -90,12 +92,42 @@ def test_plotting_trajectory_ignored_if_less_than_two_points():
 
 
 @work_in_tmp_dir()
-def test_plotting_trajectory():
+def test_imgpair_energy_plotting():
     mol1 = Molecule(smiles="CCO")
     mol2 = Molecule(smiles="CCO")
 
     imgpair = TestImagePair(mol1, mol2)
+    imgpair.left_coord.e = Energy(-3.14)
+    imgpair.right_coord.e = Energy(-2.87)
     # spoof new coordinates
     imgpair.left_coord = imgpair.left_coord * 0.99
     imgpair.right_coord = imgpair.right_coord * 0.99
+    imgpair.left_coord.e = Energy(-1.99)
+    imgpair.right_coord.e = Energy(-2.15)
+    # if CINEB run at the end
+    imgpair._cineb_coords = imgpair.left_coord * 0.99
+    imgpair._cineb_coords.e = Energy(-0.99)
 
+    # test all distance_metrics
+    imgpair.plot_energies(filename="test0.pdf", distance_metric="relative")
+    assert os.path.isfile("test0.pdf")
+    imgpair.plot_energies(filename="test1.pdf", distance_metric="from_start")
+    assert os.path.isfile("test1.pdf")
+    imgpair.plot_energies(filename="test2.pdf", distance_metric="index")
+    assert os.path.isfile("test2.pdf")
+
+
+@work_in_tmp_dir()
+def test_imgpair_trajectory_plotting():
+    mol1 = Molecule(smiles="CCO")
+    mol2 = Molecule(smiles="CCO")
+
+    imgpair = TestImagePair(mol1, mol2)
+    imgpair.left_coord = imgpair.left_coord * 0.99
+    imgpair.right_coord = imgpair.right_coord * 0.99
+    imgpair._cineb_coords = imgpair.left_coord * 0.99
+
+    imgpair.write_trajectories("init.xyz", "fin.xyz", "total.xyz")
+    assert os.path.isfile("init.xyz")
+    assert os.path.isfile("fin.xyz")
+    assert os.path.isfile("total.xyz")
