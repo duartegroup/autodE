@@ -669,6 +669,10 @@ class DHSGS(DHS):
     J. Phys.: Condens. Matter, 2010, 22(7), 074203
     """
 
+    @property
+    def _method_name(self):
+        return "DHS-GS"
+
     def __init__(self, *args, gs_mix: float = 0.5, **kwargs):
         """
         Arguments and other keyword arguments follow DHS, please
