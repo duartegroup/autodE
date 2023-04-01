@@ -8,6 +8,7 @@ Changelog
 Functionality improvements
 **************************
 - Adds :code:`temporary_config()` context manager for temporary configuration changes
+- Adds a more robust hybrid RFO-TRM geometry optimiser with trust radius update and a feature to detect oscillation and damp it
 
 
 Usability improvements/Changes

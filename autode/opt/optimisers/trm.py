@@ -79,7 +79,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._upd_alpha = bool(update_trust)
 
         self._damping_on = bool(damp)
-        self._last_damp_iteration = 0
+        self._last_damped_iteration = 0
 
         self._hessian_update_types = [FlowchartUpdate]
 
@@ -402,7 +402,7 @@ class HybridTRMOptimiser(CRFOptimiser):
             (bool): True if oscillation is detected, False otherwise
         """
         # allow the optimiser 4 free iterations before checking oscillation
-        if self.iteration - self._last_damp_iteration < 4:
+        if self.iteration - self._last_damped_iteration < 4:
             return False
 
         # energy change two steps before i.e. -3, -2
@@ -415,8 +415,10 @@ class HybridTRMOptimiser(CRFOptimiser):
         # check if energy has gone down since the last 4 iters
         min_index = np.argmin([coord.e for coord in self._history])
         if min_index < (self.iteration - 4):
-            logger.warning("Oscillation detected in optimiser, energy has "
-                           "not decreased in 4 iterations")
+            logger.warning(
+                "Oscillation detected in optimiser, energy has "
+                "not decreased in 4 iterations"
+            )
             return True
 
         return False
@@ -426,10 +428,10 @@ class HybridTRMOptimiser(CRFOptimiser):
         Take a damped step by interpolating between the last two coordinates
         """
         logger.info("Taking a damped step...")
-        self._last_damp_iteration = self.iteration
+        self._last_damped_iteration = self.iteration
 
         # is halfway interpolation good?
-        new_coords_raw = (self._coords.raw + self._history[-2].raw)/2
+        new_coords_raw = (self._coords.raw + self._history[-2].raw) / 2
         damped_step = new_coords_raw - self._coords.raw
         self._coords = self._coords + damped_step
         return None

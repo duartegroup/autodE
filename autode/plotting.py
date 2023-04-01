@@ -459,5 +459,5 @@ def plot_optimiser_profile(
     fig.legend(
         loc="upper right", bbox_to_anchor=(1, 1), bbox_transform=ax.transAxes
     )
-
+    # bbox_inches="tight" uses tight bounding box, which prevents labels cutting out
     save_plot(fig, filename, bbox_inches="tight")
