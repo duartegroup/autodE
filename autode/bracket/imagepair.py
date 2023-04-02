@@ -562,7 +562,9 @@ class EuclideanImagePair(BaseImagePair, ABC):
         """
         A quick test of whether the images are still separated by a barrier
         is to check whether the gradient vectors are pointing outwards
-        compared to the linear path connecting the two images.
+        compared to the linear path connecting the two images. In case
+        there are multiple barriers in the way, a distance threshold is
+        also used to guess if it is likely that one image has jumped over.
 
         This is a slightly modified version of the method proposed in ref:
         Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
@@ -573,10 +575,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         # for left image it must be less than 90 degrees. This would mean
         # that the parallel component of the forces on each image are
         # pointing away from each other. (force is negative gradient).
-        # Also note that this method will not work if there are multiple
-        # barriers in the way (i.e. multi-step reaction)
-
-        # todo call this once every 3 iterations
+        # todo skip distance check if requested
 
         left_cos_theta = np.dot(-self.left_coord.g, self.dist_vec)
         right_cos_theta = np.dot(-self.right_coord.g, self.dist_vec)
@@ -587,5 +586,17 @@ class EuclideanImagePair(BaseImagePair, ABC):
         # cos(theta) < 0.0 means angle > 90 degrees and vice versa
         if right_cos_theta < 0.0 < left_cos_theta:
             return False
-        else:
+
+        # However, if there are multiple barriers in the path (i.e. multi-step
+        # reaction), it will identify as having jumped over, even if it didn't.
+        # The distance between the images would be high if there are multiple
+        # barriers. A threshold of 1 angstrom is used as it seems the risk of
+        # jumping over is high (if there is only one barrier) below this.
+        # (according to Kilmes et al., J. Phys.: Condens. Matter, 22 2010, 074203)
+        # This is of course, somewhat arbitrary, and will not work if really
+        # large steps are being OR two barriers are very close in distance
+
+        if self.dist <= Distance(1.0, "ang"):
             return True
+        else:
+            return False

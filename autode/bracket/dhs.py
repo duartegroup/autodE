@@ -360,17 +360,6 @@ class DHSImagePair(EuclideanImagePair):
         tmp_spc.gradient = peak_coords.g.reshape(-1, 3).copy()
         return tmp_spc
 
-    def has_jumped_over_barrier(self) -> bool:
-        """
-        For DHS in the first macro-iteration, there is no gradient
-        information available, so skip the test
-        """
-        # in first DHS iter, gradient is not calculated, so skip test
-        if self.total_iters < 4:
-            return True
-        else:
-            return super().has_jumped_over_barrier()
-
     def _get_img_by_side(
         self, side: str
     ) -> Tuple["Species", OptCoordinates, "_OptimiserHistory"]:
@@ -437,41 +426,43 @@ class DHSImagePair(EuclideanImagePair):
         else:
             raise ImgPairSideError()
 
-    def update_one_img_mol_energy(self, side: str) -> None:
+    def update_one_img_mol_engrad(self, side: str) -> None:
         """
-        Update only the molecular energy using the supplied
+        Update the molecular en/grad using the supplied
         engrad_method for one image only, required for the
         initial step of DHS
 
         Args:
             side (str): 'left' or 'right'
         """
+        # todo is parallelisation worth it here?
         assert self._engrad_method is not None
         assert self._n_cores is not None
         img, coord, _ = self._get_img_by_side(side)
 
         logger.debug(
-            f"Calculating energy for {side} side"
-            f" with {self._engrad_method}"
+            f"Calculating energy/gradient for {side} side of DHS image"
+            f" pair with {self._engrad_method}"
         )
 
         from autode.calculations import Calculation
 
-        sp_calc = Calculation(
-            name=f"{img.name}_sp",
+        engrad_calc = Calculation(
+            name=f"{img.name}_engrad",
             molecule=img,
             method=self._engrad_method,
-            keywords=self._engrad_method.keywords.sp,
+            keywords=self._engrad_method.keywords.grad,
             n_cores=self._n_cores,
         )
-        sp_calc.run()
-        sp_calc.clean_up(force=True, everything=True)
+        engrad_calc.run()
+        engrad_calc.clean_up(force=True, everything=True)
 
         if img.energy is None:
-            raise CalculationException("Energy calculation failed")
+            raise CalculationException("Energy/gradient calculation failed")
 
         # update coord
         coord.e = img.energy.to("Ha")
+        coord.update_g_from_cart_g(img.gradient.to("Ha/ang"))
 
 
 class DHS(BaseBracketMethod):
@@ -523,6 +514,8 @@ class DHS(BaseBracketMethod):
 
         # imgpair is only used for storing the points here
         self.imgpair = DHSImagePair(initial_species, final_species)
+        # DHS needs to keep an extra reference to the calculation method
+        self._method = None
 
         self._step_size = Distance(abs(step_size), "ang")
         assert self._step_size < self.imgpair.dist
@@ -530,7 +523,6 @@ class DHS(BaseBracketMethod):
         # NOTE: In DHS the micro-iterations are done separately, in
         # an optimiser, so to keep track of the actual number of
         # en/grad calls, this local variable is used
-
         self._current_microiters: int = 0
 
     @property
@@ -542,8 +534,8 @@ class DHS(BaseBracketMethod):
         Initialise everything needed for the first DHS macro-iteration
         (Only energies are needed)
         """
-        self.imgpair.update_one_img_mol_energy("left")
-        self.imgpair.update_one_img_mol_energy("right")
+        self.imgpair.update_one_img_mol_engrad("left")
+        self.imgpair.update_one_img_mol_engrad("right")
         return None
 
     def calculate(self, method: "Method", n_cores: int) -> None:
@@ -643,7 +635,7 @@ class DHS(BaseBracketMethod):
 
     @property
     def _micro_iter(self) -> int:
-        """Total number of optimiser steps"""
+        """Total number of optimiser steps in DHS"""
         return self._current_microiters
 
     @_micro_iter.setter
