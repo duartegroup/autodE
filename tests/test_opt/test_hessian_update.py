@@ -252,15 +252,27 @@ def test_flowchart_update_all_components_work():
     h = np.array([[1.0, 0.01], [0.01, 1.0]])
     y = np.array([0.01, 0.03])
     s = np.array([0.02, 0.06])
-    # this gives bfgs criteria = 0.998 > 0.1
+    z = y - h @ s
+    # this fulfils SR1 criteria
+    assert z.dot(s) / (np.linalg.norm(z) * np.linalg.norm(s)) < -0.1
+    updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    sr1_updater = SR1Update(h=h, s=s, y=y)
+    assert np.allclose(h_new, sr1_updater.updated_h)
 
+    y = np.array([0.04, 0.06])
+    z = y - h @ s
+    # not SR1
+    assert z.dot(s) / (np.linalg.norm(z) * np.linalg.norm(s)) > -0.1
+    # fulfils BFGS criteria
+    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) > 0.1
     updater = FlowchartUpdate(h=h, s=s, y=y)
     h_new = updater.updated_h
     bfgs_updater = BFGSUpdate(h=h, s=s, y=y)
-    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) > 0.1
     assert np.allclose(h_new, bfgs_updater.updated_h)
 
     h = np.array([[-1.0, 0.1], [0.01, -1.0]])
+    y = np.array([0.01, 0.03])
     s = np.array([-0.02, -0.06])
     z = y - h @ s
     updater = FlowchartUpdate(h=h, s=s, y=y)

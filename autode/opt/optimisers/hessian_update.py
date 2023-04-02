@@ -544,8 +544,7 @@ class BFGSSR1Update(HessianUpdater):
     def _updated_h(self) -> np.ndarray:
         """
         Hybrid BFGS and SR1 update. The mixing parameter phi is defined
-        as the square root of the original phi_Bofill used in Bofill
-        update.
+        as the square root of the (1 - phi_Bofill) used in Bofill update.
 
         Returns:
             (np.ndarray): The updated hessian

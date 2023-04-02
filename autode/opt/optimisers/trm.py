@@ -95,12 +95,13 @@ class HybridTRMOptimiser(CRFOptimiser):
             return True  # Optimisation 0 DOF is always converged
 
         # gradient is better indicator of stationary point
-        if self._g_norm < self.gtol / 10:
+        if self._g_norm <= self.gtol / 10:
             logger.warning(
                 f"Gradient norm criteria overachieved. "
                 f"{self._gtol.to('Ha/ang')/10:.3f} Ha/Å. "
                 f"Signalling convergence"
             )
+            return True
 
         # both gradient and energy must be converged!!
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
@@ -254,21 +255,26 @@ class HybridTRMOptimiser(CRFOptimiser):
             """
             # use bisection to ensure lambda < first_b
             d = 1.0
+            found_upper_lim = False
             for _ in range(20):
                 size, _, _ = get_internal_step_size_and_deriv(first_b - d)
                 # find f(x) > 0, so going downhill has no risk of jumping over
                 if size > int_size:
+                    found_upper_lim = True
                     break
                 d = d / 2.0
-            else:
+            if not found_upper_lim:
                 raise OptimiserStepError("Failed to find f(λ) > 0")
+
             lmda_guess = first_b - d
+            found_step_size = False
             for _ in range(50):
                 size, der, _ = get_internal_step_size_and_deriv(lmda_guess)
                 if abs(size - int_size) / int_size < 0.001:  # 0.1% error
+                    found_step_size = True
                     break
                 lmda_guess -= (1 - size / int_size) * (size / der)
-            else:
+            if not found_step_size:
                 raise OptimiserStepError("Failed in optimising internal step")
             return lmda_guess
 

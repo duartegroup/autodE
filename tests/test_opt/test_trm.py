@@ -3,13 +3,15 @@ import numpy as np
 from autode.species import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
-from autode.values import Gradient
+from autode.values import Gradient, Energy
 from autode.hessians import Hessian
 from autode.utils import work_in_tmp_dir
 from ..test_utils import requires_with_working_xtb_install
 from autode.opt.coordinates import CartesianCoordinates, DIC
-from autode.opt.optimisers.trm import (HybridTRMOptimiser,
-                                       CartesianHybridTRMOptimiser)
+from autode.opt.optimisers.trm import (
+    HybridTRMOptimiser,
+    CartesianHybridTRMOptimiser,
+)
 
 
 def test_trm_step():
@@ -187,6 +189,26 @@ def test_damping_in_hybridtrm_optimiser():
     # 50% mixing
     avg_coord = (coord1 + coord2) / 2.0
     assert np.allclose(avg_coord, opt._coords)
+
+
+def test_trim_convergence_gtol_overachieved():
+    # if rms grad is <= gtol/10, assumed to be converged, even if
+    # delta E criteria not met
+    opt = CartesianHybridTRMOptimiser(maxiter=3, gtol=0.1, etol=0.01)
+    coord1 = CartesianCoordinates([1.0, -2.0, 1.0, 3.0, 1.1, 1.2])
+    coord1.e = Energy(0.10, "Ha")
+    coord1.g = np.array([0.01, 0.03, 0.01, 0.02, 0.03, 0.04])
+    coord2 = coord1.copy()
+    coord2.e = Energy(0.05, "Ha")
+    coord2.g = coord1.g / 10
+    opt._coords = coord1
+    opt._coords = coord2
+
+    # energy criteria not achieved
+    assert opt._abs_delta_e > opt.etol
+    # grad criteria overachieved
+    assert opt._g_norm <= opt.gtol / 10
+    assert opt.converged
 
 
 @work_in_tmp_dir()
