@@ -8,6 +8,7 @@ from autode.values import (
     Coordinate,
     Coordinates,
     MomentOfInertia,
+    ForceConstant,
     _to,
 )
 
@@ -125,3 +126,12 @@ def test_copy_conversion():
 
     assert not np.allclose(x, y)
     assert np.allclose(x, np.ones(shape=(1, 3)))
+
+
+def test_force_constant():
+
+    fc = ForceConstant(0.1)
+    assert "force" in repr(fc).lower()
+
+    # should be able to convert to Ha/a0^2 without any problems
+    _ = fc.to("Ha/a0^2")

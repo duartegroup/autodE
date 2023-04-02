@@ -5,6 +5,7 @@ from autode import utils
 from autode import neb
 from autode import mol_graphs
 from autode import hessians
+from autode.neb import NEB, CINEB
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.transition_states.transition_state import TransitionState
@@ -61,6 +62,8 @@ __all__ = [
     "NCIComplex",
     "Config",
     "Calculation",
+    "NEB",
+    "CINEB",
     "pes",
     "neb",
     "geom",
