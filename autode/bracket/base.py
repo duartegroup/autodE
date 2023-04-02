@@ -43,7 +43,9 @@ class BaseBracketMethod(ABC):
             gtol: Gradient tolerance for optimisation steps in the method
             cineb_at_conv: Whether to run a CI-NEB with from the final points
         """
-        self.imgpair: Optional["EuclideanImagePair"] = None  # must be set by subclass
+        self.imgpair: Optional[
+            "EuclideanImagePair"
+        ] = None  # must be set by subclass
         self._species: "Species" = initial_species.copy()
 
         self._maxiter = int(maxiter)
@@ -157,7 +159,7 @@ class BaseBracketMethod(ABC):
     def plot_energies(
         self,
         filename: Optional[str] = None,
-        distance_metric: str = "from_start",
+        distance_metric: str = "relative",
     ) -> None:
         """
         Plot the energies of the bracket method run, taking
