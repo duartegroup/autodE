@@ -178,8 +178,6 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         quasi-Newton step with a Lagrangian constraint for the distance
         is taken
         """
-
-        print(f"Distance between coords = {np.linalg.norm(self.dist_vec)}")
         self._coords.h = self._updated_h()
 
         if self.iteration > 1 and self._do_line_search:
@@ -190,7 +188,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         step = self._get_lagrangian_step(coords, grad)
 
         step_size = np.linalg.norm(step)
-        print(f"Taking a quasi-Newton step: {step_size:.3f} Angstrom")
+        logger.info(f"Taking a quasi-Newton step: {step_size:.3f} Å")
 
         # the step is on the interpolated coordinates (if done)
         actual_step = (coords + step) - self._coords
@@ -299,7 +297,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             theta < 0  # extrapolating instead of interpolating
             and theta_prime < self._angle_thresh
         ):
-            print("Linear interpolation step is unstable, skipping")
+            logger.info("Linear interpolation step is unstable, skipping")
             return self._coords, self._coords.g
 
         p_interp = p_prime_prime * (
@@ -314,7 +312,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         x_interp = self._pivot + p_interp
 
         step_size = np.linalg.norm(x_interp - self._coords)
-        print(f"Linear interpolation - step size: {step_size:.3f} Angstrom")
+        logger.info(f"Linear interpolation - step size: {step_size:.3f} Å")
 
         return x_interp, g_interp
 
@@ -339,6 +337,8 @@ class DHSImagePair(EuclideanImagePair):
         if self._cineb_coords is not None:
             assert self._cineb_coords.e is not None
             tmp_spc.coordinates = self._cineb_coords
+            tmp_spc.energy = self._cineb_coords.e
+            tmp_spc.gradient = self._cineb_coords.g.reshape(-1, 3).copy()
             return tmp_spc
 
         # NOTE: Even though the final points are probably the highest
@@ -357,8 +357,19 @@ class DHSImagePair(EuclideanImagePair):
         peak_coords = self._total_history[np.argmax(energies)]
         tmp_spc.coordinates = peak_coords
         tmp_spc.energy = peak_coords.e
-        tmp_spc.gradient = peak_coords.g
+        tmp_spc.gradient = peak_coords.g.reshape(-1, 3).copy()
         return tmp_spc
+
+    def has_jumped_over_barrier(self) -> bool:
+        """
+        For DHS in the first macro-iteration, there is no gradient
+        information available, so skip the test
+        """
+        # in first DHS iter, gradient is not calculated, so skip test
+        if self.total_iters < 4:
+            return True
+        else:
+            return super().has_jumped_over_barrier()
 
     def _get_img_by_side(
         self, side: str
@@ -473,7 +484,7 @@ class DHS(BaseBracketMethod):
         self,
         initial_species: "Species",
         final_species: "Species",
-        step_size: Distance = Distance(0.1, "ang"),
+        step_size: Union[Distance, float] = Distance(0.1, "ang"),
         **kwargs,
     ):
         """
