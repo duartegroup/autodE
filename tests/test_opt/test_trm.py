@@ -255,6 +255,10 @@ def test_trust_update():
     last_cart_step = (
             opt._history[-1].to("cart") - opt._history[-2].to("cart")
     )
+    last_cart_step_size = np.linalg.norm(last_cart_step)
+    last_pred_e = float(last_g.T @ last_step)
+    last_pred_e += 0.5 * (last_step.T @ last_h @ last_step)
+
 
 
 
