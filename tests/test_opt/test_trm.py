@@ -233,6 +233,33 @@ def test_trim_molecular_opt():
 
 @work_in_tmp_dir()
 @requires_with_working_xtb_install
+def test_trust_update():
+    water_atoms = [
+        Atom("O", -0.0011, 0.3631, -0.0000),
+        Atom("H", -0.8250, -0.1819, -0.0000),
+        Atom("H", 0.8261, -0.1812, 0.0000),
+    ]
+    water = Molecule(atoms=water_atoms)
+    opt = HybridTRMOptimiser(maxiter=10, gtol=1.e-3, etol=1.e-4)
+    opt._species = water
+    opt._method = XTB()
+    opt._n_cores = 1
+    opt._initialise_run()
+    # store last grad
+    last_g = opt._coords.g.reshape(-1, 1).copy()
+    last_h = opt._coords.h.copy()
+
+    opt._step()
+    opt._update_gradient_and_energy()
+    last_step = opt._history[-1].raw - opt._history[-2].raw
+    last_cart_step = (
+            opt._history[-1].to("cart") - opt._history[-2].to("cart")
+    )
+
+
+
+@work_in_tmp_dir()
+@requires_with_working_xtb_install
 def test_optimiser_plotting():
     mol = Molecule(smiles="O")
 
