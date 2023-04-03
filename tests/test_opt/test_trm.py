@@ -1,12 +1,10 @@
 import os
 import numpy as np
-import pytest
 from autode.species import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
-from autode.values import Gradient, Energy
+from autode.values import Gradient, Distance, Energy
 from autode.hessians import Hessian
-from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from ..test_utils import requires_with_working_xtb_install
 from autode.opt.coordinates import CartesianCoordinates, DIC
@@ -233,14 +231,17 @@ def test_trim_molecular_opt():
 
 @work_in_tmp_dir()
 @requires_with_working_xtb_install
-def test_trust_update():
+def test_trust_update(caplog):
+    init_trust = 0.05
     water_atoms = [
         Atom("O", -0.0011, 0.3631, -0.0000),
         Atom("H", -0.8250, -0.1819, -0.0000),
         Atom("H", 0.8261, -0.1812, 0.0000),
     ]
     water = Molecule(atoms=water_atoms)
-    opt = HybridTRMOptimiser(maxiter=10, gtol=1.e-3, etol=1.e-4)
+    opt = HybridTRMOptimiser(
+        maxiter=10, gtol=1.0e-3, etol=1.0e-4, init_trust=init_trust
+    )
     opt._species = water
     opt._method = XTB()
     opt._n_cores = 1
@@ -252,14 +253,43 @@ def test_trust_update():
     opt._step()
     opt._update_gradient_and_energy()
     last_step = opt._history[-1].raw - opt._history[-2].raw
-    last_cart_step = (
-            opt._history[-1].to("cart") - opt._history[-2].to("cart")
-    )
-    last_cart_step_size = np.linalg.norm(last_cart_step)
-    last_pred_e = float(last_g.T @ last_step)
-    last_pred_e += 0.5 * (last_step.T @ last_h @ last_step)
+    last_cart_step = opt._history[-1].to("cart") - opt._history[-2].to("cart")
+    cart_step_size = np.linalg.norm(last_cart_step)
+    pred_delta_e = float(last_g.T @ last_step)
+    pred_delta_e += 0.5 * (last_step.T @ last_h @ last_step)
+    # pred_dE should be around -0.0025446056 Ha (may change with different version of xTB)
 
+    def simulate_energy_change_ratio_update_trust(ratio):
+        opt.alpha = init_trust
+        opt._history.final.e = (
+            opt._history.penultimate.e + ratio * pred_delta_e
+        )
+        opt._update_trust_radius()
 
+    simulate_energy_change_ratio_update_trust(0.2)
+    assert np.isclose(opt.alpha, 0.5 * min(init_trust, cart_step_size))
+
+    simulate_energy_change_ratio_update_trust(0.5)
+    assert np.isclose(opt.alpha, init_trust)
+
+    simulate_energy_change_ratio_update_trust(1.0)
+    assert abs(cart_step_size - init_trust) / init_trust < 0.05
+    assert np.isclose(opt.alpha, 1.414 * init_trust)
+
+    simulate_energy_change_ratio_update_trust(1.3)
+    assert np.isclose(opt.alpha, init_trust)
+
+    simulate_energy_change_ratio_update_trust(1.7)
+    assert np.isclose(opt.alpha, 0.5 * min(init_trust, cart_step_size))
+
+    # if energy change too high > 2.0 or too low < -1.0, trust radius
+    # is decreased, and also old coordinates are copied over (i.e. step
+    # rejected)
+    with caplog.at_level("WARNING"):
+        simulate_energy_change_ratio_update_trust(2.2)
+    assert "rejecting last geometry step" in caplog.text
+    assert np.isclose(opt.alpha, 0.5 * min(init_trust, cart_step_size))
+    assert np.allclose(opt._history.penultimate.raw, opt._history.final.raw)
 
 
 @work_in_tmp_dir()

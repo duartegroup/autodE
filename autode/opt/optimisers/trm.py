@@ -70,7 +70,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         See Also:
             :py:meth:`NDOptimiser <NDOptimiser.__init__>`
         """
-        super().__init__(*args, init_alpha=init_trust, **kwargs)
+        super().__init__(init_trust=init_trust, *args, **kwargs)
         # todo init_alpha could be in **kwargs, would throw error?
 
         assert 0.0 < min_trust < max_trust
