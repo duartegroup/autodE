@@ -295,16 +295,16 @@ class HybridTRMOptimiser(CRFOptimiser):
         fac = 1.0
         size_min_bound = None
         size_max_bound = None
-
+        found_bounds = False
         for _ in range(10):
             int_step_size = int_step_size * fac
             err = cart_step_length_error(int_step_size)
 
-            if err < -1.0e-6:  # found where error is < 0
+            if err < -1.0e-3:  # found where error is < 0
                 fac = 2.0  # increase the step size
                 size_min_bound = int_step_size
 
-            elif err > 1.0e-6:  # found where error is > 0
+            elif err > 1.0e-3:  # found where error is > 0
                 fac = 0.5  # decrease the step size
                 size_max_bound = int_step_size
 
@@ -312,8 +312,10 @@ class HybridTRMOptimiser(CRFOptimiser):
                 return self._coords.h - last_lmda * np.eye(h_n)
 
             if (size_max_bound is not None) and (size_min_bound is not None):
+                found_bounds = True
                 break
-        else:
+
+        if not found_bounds:
             raise OptimiserStepError(
                 "Unable to find bracket range for root finding"
             )

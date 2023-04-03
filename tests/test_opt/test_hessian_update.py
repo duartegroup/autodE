@@ -298,6 +298,11 @@ def test_flowchart_update_all_components_work():
     sr1_updater = SR1Update(h=h, y=y, s=s)
     assert np.allclose(h_new, sr1_updater.updated_h)
 
+    # no conditions for Flowchart updates
+    assert updater.conditions_met
+    # inverse should be available from private attribute
+    assert updater._updated_h_inv is not None
+
 
 def test_bfgs_sr1_hybrid_update():
     h = np.array([[1.0, 0.1], [0.1, 1.0]])  # initial approximate Hessian
@@ -321,6 +326,11 @@ def test_bfgs_sr1_hybrid_update():
     assert np.allclose(
         delta_h, sqrt_phi * delta_sr1_h + (1 - sqrt_phi) * delta_bfgs_h
     )
+
+    # no conditions for BFGS-SR1 hybrid
+    assert updater.conditions_met
+    # inverse should be available from private attribute
+    assert updater._updated_h_inv is not None
 
 
 def test_hessian_requires_at_least_one_index():

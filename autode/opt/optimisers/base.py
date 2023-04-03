@@ -410,19 +410,20 @@ class Optimiser(BaseOptimiser, ABC):
             plot_energy (bool): Whether to plot energy
             plot_rms_grad (bool): Whether to plot RMS of gradient
         """
+        if self.iteration < 1:
+            logger.warning("Less than 2 points, cannot draw optimisation plot")
+            return None
+
         if not self.converged:
             logger.warning(
                 "Optimisation is not converged, drawing a plot "
                 "of optimiser profile until current iteration"
             )
-        if self.iteration < 2:
-            logger.warning("Less than 2 points, cannot draw optimisation plot")
-            return None
 
         filename = (
             f"{self._species.name}_opt_plot.pdf"
             if filename is None
-            else filename
+            else str(filename)
         )
 
         plot_optimiser_profile(

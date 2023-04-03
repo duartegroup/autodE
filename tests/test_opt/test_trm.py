@@ -1,10 +1,12 @@
 import os
 import numpy as np
+import pytest
 from autode.species import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
 from autode.values import Gradient, Energy
 from autode.hessians import Hessian
+from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from ..test_utils import requires_with_working_xtb_install
 from autode.opt.coordinates import CartesianCoordinates, DIC
@@ -239,3 +241,30 @@ def test_optimiser_plotting():
 
     opt.plot_optimisation()
     assert os.path.isfile(f"{mol.name}_opt_plot.pdf")
+
+
+@work_in_tmp_dir()
+def test_optimiser_plotting_sanity_checks(caplog):
+    mol = Molecule(smiles="N#N")
+
+    opt = CartesianHybridTRMOptimiser(maxiter=10, gtol=1e-3, etol=1e-3)
+    coord1 = CartesianCoordinates(mol.coordinates)
+    coord1.e = Energy(0.1, "Ha")
+    coord1.update_g_from_cart_g(np.array([0.01, 0.02, 0.05, 0.06, 0.03, 0.07]))
+    opt._coords = coord1
+    assert opt.iteration == 0
+    assert not opt.converged
+    # plotting does not work if less than 2 points
+    with caplog.at_level("WARNING"):
+        opt.plot_optimisation(filename="test_plot0.pdf")
+    assert not os.path.isfile("test_plot0.pdf")
+    assert "Less than 2 points, cannot draw optimisation" in caplog.text
+
+    opt._coords = coord1.copy()
+    # either rms_grad or energy plot has to be requested
+    with caplog.at_level("WARNING"):
+        opt.plot_optimisation("test_plot1.pdf", False, False)
+    assert not os.path.isfile("test_plot1.pdf")
+    assert not opt.converged
+    assert "Must plot either energies or RMS gradients" in caplog.text
+    assert "Optimisation is not converged, drawing a plot" in caplog.text

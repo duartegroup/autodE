@@ -412,7 +412,7 @@ def plot_optimiser_profile(
     if not (plot_energy or plot_rms_grad):
         logger.error(
             "Must plot either energies or RMS gradients for an"
-            "optimiser profile"
+            " optimiser profile"
         )
         return None
 
