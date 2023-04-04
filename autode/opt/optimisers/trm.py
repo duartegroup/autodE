@@ -5,6 +5,7 @@ optimisers available in multiple popular QM softwares.
 
 Only minimiser, this is not TS search/constrained optimiser
 """
+from typing import TYPE_CHECKING
 import numpy as np
 from scipy.optimize import root_scalar
 from itertools import combinations
@@ -15,6 +16,10 @@ from autode.opt.optimisers.hessian_update import FlowchartUpdate
 from autode.exceptions import OptimiserStepError
 from autode.values import GradientRMS, PotentialEnergy
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
 
 
 class HybridTRMOptimiser(CRFOptimiser):
@@ -65,7 +70,7 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         Keyword Args:
             maxiter (int): Maximum number of iterations
-            gtol (GradientRMS): Tolerance on RMS(|∇E|)
+            gtol (GradientRMS): Tolerance on RMS(|∇E|) in Cartesian coordinates
             etol (PotentialEnergy): Tolerance on |E_i+1 - E_i|
 
         See Also:
@@ -108,15 +113,38 @@ class HybridTRMOptimiser(CRFOptimiser):
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
 
     def _initialise_run(self) -> None:
-        self._build_coordinates()
+        """Initialise the optimisation"""
+        self._build_internal_coordinates()
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._update_gradient_and_energy()
         return None
 
-    def _build_coordinates(self) -> None:
-        """Build delocalised internal coordinates"""
+    def _initialise_species_and_method(
+        self,
+        species: "Species",
+        method: "Method",
+    ) -> None:
+        """
+        Initialise species and method while checking that
+        there are no constraints in the species
+        """
+        super()._initialise_species_and_method(species, method)
+        assert (
+            not self._species.constraints.any,
+            "HybridTRMOptimiser cannot work with constraints!",
+        )
+        return None
+
+    def _build_internal_coordinates(self) -> None:
+        """ "Build delocalised internal coordinates"""
+        if self._species is None:
+            raise RuntimeError(
+                "Cannot set initial coordinates. No species set"
+            )
+
         cart_coords = CartesianCoordinates(self._species.coordinates)
         primitives = self._primitives
+
         if len(primitives) < cart_coords.expected_number_of_dof:
             logger.info(
                 "Had an incomplete set of primitives. Adding "
@@ -124,6 +152,7 @@ class HybridTRMOptimiser(CRFOptimiser):
             )
             for i, j in combinations(range(self._species.n_atoms), 2):
                 primitives.append(Distance(i, j))
+
         self._coords = DIC.from_cartesian(x=cart_coords, primitives=primitives)
         return None
 

@@ -3,22 +3,45 @@ import numpy as np
 from autode.species import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
-from autode.values import Gradient, Distance, Energy
-from autode.hessians import Hessian
+from autode.values import Energy
 from autode.utils import work_in_tmp_dir
-from ..test_utils import requires_with_working_xtb_install
+from ..testutils import requires_with_working_xtb_install
+from ..testutils import work_in_zipped_dir
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.trm import (
     HybridTRMOptimiser,
     CartesianHybridTRMOptimiser,
 )
 
+here = os.path.dirname(os.path.abspath(__file__))
+
+
+@work_in_zipped_dir(os.path.join(here, "data", "opt.zip"))
+@requires_with_working_xtb_install
+def test_trm_step1():
+    mol = Molecule("opt-test.xyz")
+    opt = HybridTRMOptimiser(maxiter=10, gtol=0.001, etol=0.001)
+    opt._species = mol
+    opt._build_internal_coordinates()
+    assert isinstance(opt._coords, DIC)
+
+    grad = np.loadtxt("opt-test_grad.txt")
+    hess = np.loadtxt("opt-test_hess.txt")
+    opt._coords.update_g_from_cart_g(grad)
+    opt._coords.update_h_from_cart_h(hess)
+
+    opt._step()
+    step = opt._history.final.to("cart") - opt._history.penultimate.to("cart")
+    step_size = np.linalg.norm(step)
+    assert np.isclose(step_size, opt.alpha, rtol=0.01)  # 1% error margin
+
 
 @work_in_tmp_dir()
 @requires_with_working_xtb_install
-def test_trm_step():
+def test_trm_step2():
     # second test for TRM, for water the root finding would fail
-    # without a careful bisection algorithm
+    # without a careful bisection algorithm (the TRM step is forced
+    # here, without that RFO step would be taken)
     water_atoms = [
         Atom("O", -0.0011, 0.3631, -0.0000),
         Atom("H", -0.8250, -0.1819, -0.0000),
