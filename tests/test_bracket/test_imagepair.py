@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 from autode import Molecule
+from autode.geom import calc_rmsd
 from autode.values import Energy
 from autode.utils import work_in, work_in_tmp_dir
 from autode.bracket.imagepair import EuclideanImagePair
@@ -73,6 +74,16 @@ def test_imgpair_sanity_check():
     # different atom order should also raise Error
     with pytest.raises(ValueError, match="order of atoms"):
         _ = TestImagePair(mol1, mol4)
+
+
+@work_in(datadir)
+def test_imgpair_distance():
+    mol1 = Molecule("da_reactant.xyz")
+    mol2 = Molecule("da_product.xyz")
+    imgpair = TestImagePair(mol1, mol2)
+    rmsd = calc_rmsd(mol1.coordinates, mol2.coordinates)
+    dist = rmsd * np.sqrt(mol1.n_atoms * 3)
+    assert np.isclose(dist, imgpair.dist, rtol=1e-8)
 
 
 @work_in_tmp_dir()

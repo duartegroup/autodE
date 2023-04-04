@@ -734,9 +734,7 @@ class DHSGS(DHS):
             gs_step = np.zeros_like(dhs_step)
             # hack to ensure the first step is 100% DHS (as GS is not possible)
             dhs_step = dhs_step / (1 - self._gs_mix)
-        else:
-            # rescale the gs step to have same step size
-            gs_step = gs_step * self._step_size / np.linalg.norm(gs_step)
+
         old_coord = self.imgpair.get_coord_by_side(side)
         new_coord = (
             old_coord + (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step

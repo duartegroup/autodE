@@ -6,6 +6,7 @@ from autode.methods import XTB
 from autode.utils import work_in
 from autode.geom import calc_rmsd
 from autode.bracket.dhs import DHS
+from autode import Config
 from ..testutils import requires_with_working_xtb_install
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +32,7 @@ def test_dhs_diels_alder():
         dist_tol=set_dist_tol,
     )
 
-    dhs.calculate(method=XTB(), n_cores=1)
+    dhs.calculate(method=XTB(), n_cores=Config.n_cores)
     assert dhs.converged
     peak = dhs.ts_guess
 
@@ -39,8 +40,8 @@ def test_dhs_diels_alder():
     # Euclidean distance = rmsd * sqrt(n_atoms)
     distance = rmsd * np.sqrt(peak.n_atoms)
 
-    # the true TS must be within the last two DHS images,
-    # therefore the distance must be less than the distance
-    # tolerance (assuming fairly linear PES near TS)
+    # the true TS must be within the last two DHS images, therefore
+    # the distance must be less than the distance tolerance
+    # (assuming curvature of PES near TS not being too high)
 
     assert distance < set_dist_tol
