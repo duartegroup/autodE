@@ -478,7 +478,7 @@ class HybridTRMOptimiser(CRFOptimiser):
 
 
 class CartesianHybridTRMOptimiser(HybridTRMOptimiser):
-    def _build_coordinates(self) -> None:
+    def _build_internal_coordinates(self) -> None:
         """Use only the Cartesian coordinates"""
         self._coords = CartesianCoordinates(self._species.coordinates)
         return None
