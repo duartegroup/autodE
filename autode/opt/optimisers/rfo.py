@@ -9,13 +9,13 @@ from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
 class RFOptimiser(NDOptimiser):
     """Rational function optimisation in delocalised internal coordinates"""
 
-    def __init__(self, *args, init_trust: float = 0.1, **kwargs):
+    def __init__(self, *args, init_alpha: float = 0.1, **kwargs):
         """
         Rational function optimiser (RFO) using a maximum step size of alpha
 
         -----------------------------------------------------------------------
         Arguments:
-            init_trust: Maximum step size, which controls the maximum component
+            init_alpha: Maximum step size, which controls the maximum component
                         of the step
 
             args: Additional arguments for ``NDOptimiser``
@@ -27,7 +27,7 @@ class RFOptimiser(NDOptimiser):
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = init_trust
+        self.alpha = init_alpha
         self._hessian_update_types = [BFGSPDUpdate, NullUpdate]
 
     def _step(self) -> None:

@@ -22,20 +22,20 @@ from autode.opt.coordinates.primitives import (
 
 
 class CRFOptimiser(RFOptimiser):
-    def __init__(self, init_trust: float = 0.05, *args, **kwargs):
+    def __init__(self, init_alpha: float = 0.05, *args, **kwargs):
         """
         Constrained rational function optimisation
 
         -----------------------------------------------------------------------
         Arguments:
-            init_trust: Maximum step size
+            init_alpha: Maximum step size
 
         See Also:
             :py:meth:`RFOOptimiser <RFOOptimiser.__init__>`
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = float(init_trust)
+        self.alpha = float(init_alpha)
         self._hessian_update_types = [BFGSDampedUpdate, NullUpdate]
 
     def _step(self) -> None:

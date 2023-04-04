@@ -54,7 +54,8 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         ---------------------------------------------------------------------
         Args:
-            init_trust: Initial value of trust radius in Angstrom
+            init_trust: Initial value of trust radius in Angstrom, this determines
+                        the maximum norm of Cartesian step size
             update_trust: Whether to update the trust radius or not
             min_trust: Minimum bound for trust radius (only for trust update)
             max_trust: Maximum bound for trust radius (only for trust update)
@@ -70,8 +71,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         See Also:
             :py:meth:`NDOptimiser <NDOptimiser.__init__>`
         """
-        super().__init__(init_trust=init_trust, *args, **kwargs)
-        # todo init_alpha could be in **kwargs, would throw error?
+        kwargs.pop("init_alpha", None)
+        super().__init__(init_alpha=init_trust, *args, **kwargs)
 
         assert 0.0 < min_trust < max_trust
         self._max_alpha = float(max_trust)
@@ -172,7 +173,9 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._coords.allow_unconverged_back_transform = False
         self._coords = self._coords + step  # finally, take the step!
 
-        step_size = self._get_cart_step_size_from_step(step)
+        step_size = np.linalg.norm(
+            self._coords.to("cart") - self._history.penultimate.to("cart")
+        )
         logger.info(f"Size of step taken (in Cartesian) = {step_size:.3f} Å")
         return None
 
