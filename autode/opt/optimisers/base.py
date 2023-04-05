@@ -448,6 +448,12 @@ class Optimiser(BaseOptimiser, ABC):
             )
             return None
 
+        if not self.converged:
+            logger.warning(
+                "Optimisation is not converged, writing a trajectory"
+                " up to the last iteration"
+            )
+
         filename = (
             f"{self._species.name}_opt.trj.xyz"
             if filename is None
