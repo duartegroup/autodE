@@ -266,9 +266,6 @@ class HybridTRMOptimiser(CRFOptimiser):
         first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
 
-        if first_b > 0:
-            print("Newton-Raphson possible")
-
         def get_internal_step_size_and_deriv(lmda):
             """Get the internal coordinate step, step size and
             the derivative for the given lambda"""
