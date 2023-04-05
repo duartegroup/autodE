@@ -5,8 +5,7 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.values import Energy
 from autode.utils import work_in_tmp_dir
-from ..testutils import (requires_with_working_xtb_install,
-                         work_in_zipped_dir)
+from ..testutils import requires_with_working_xtb_install, work_in_zipped_dir
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.trm import (
     HybridTRMOptimiser,
@@ -102,7 +101,7 @@ def test_damping_in_hybridtrm_optimiser():
 
 def test_trim_convergence_gtol_overachieved():
     # if rms grad is <= gtol/10, assumed to be converged, even if
-    # delta E criteria not met
+    # delta E criteria is not met
     opt = CartesianHybridTRMOptimiser(maxiter=3, gtol=0.1, etol=0.01)
     coord1 = CartesianCoordinates([1.0, -2.0, 1.0, 3.0, 1.1, 1.2])
     coord1.e = Energy(0.10, "Ha")
@@ -126,7 +125,7 @@ def test_trm_molecular_opt():
     mol = Molecule(smiles="O")
     assert [atom.label for atom in mol.atoms] == ["O", "H", "H"]
 
-    HybridTRMOptimiser.optimise(mol, method=XTB(), gtol=1.e-4)
+    HybridTRMOptimiser.optimise(mol, method=XTB(), gtol=1.0e-4)
 
     # Check optimised distances are similar to running the optimiser in XTB
     for oh_atom_idx_pair in [(0, 1), (0, 2)]:
