@@ -5,8 +5,8 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.values import Energy
 from autode.utils import work_in_tmp_dir
-from ..testutils import requires_with_working_xtb_install
-from ..testutils import work_in_zipped_dir
+from ..testutils import (requires_with_working_xtb_install,
+                         work_in_zipped_dir)
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.trm import (
     HybridTRMOptimiser,
@@ -17,7 +17,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 @work_in_zipped_dir(os.path.join(here, "data", "opt.zip"))
-@requires_with_working_xtb_install
 def test_trm_step1():
     mol = Molecule("opt-test.xyz")
     opt = HybridTRMOptimiser(maxiter=10, gtol=0.001, etol=0.001)
@@ -123,20 +122,19 @@ def test_trim_convergence_gtol_overachieved():
 
 @work_in_tmp_dir()
 @requires_with_working_xtb_install
-def test_trim_molecular_opt():
-
+def test_trm_molecular_opt():
     mol = Molecule(smiles="O")
     assert [atom.label for atom in mol.atoms] == ["O", "H", "H"]
 
-    HybridTRMOptimiser.optimise(mol, method=XTB())
+    HybridTRMOptimiser.optimise(mol, method=XTB(), gtol=1.e-4)
 
     # Check optimised distances are similar to running the optimiser in XTB
     for oh_atom_idx_pair in [(0, 1), (0, 2)]:
         assert np.isclose(
-            mol.distance(*oh_atom_idx_pair).to("Å"), 0.9595, atol=1e-2
+            mol.distance(*oh_atom_idx_pair).to("Å"), 0.9595, atol=1e-3
         )
 
-    assert np.isclose(mol.distance(1, 2), 1.5438, atol=1e-2)
+    assert np.isclose(mol.distance(1, 2), 1.5438, atol=1e-3)
 
 
 @work_in_tmp_dir()
@@ -175,6 +173,12 @@ def test_trust_update(caplog):
             opt._history.penultimate.e + ratio * pred_delta_e
         )
         opt._update_trust_radius()
+
+    # if update is not allowed, there shouldn't be update
+    opt._upd_alpha = False
+    simulate_energy_change_ratio_update_trust(0.2)
+    assert np.isclose(opt.alpha, init_trust)
+    opt._upd_alpha = True
 
     simulate_energy_change_ratio_update_trust(0.2)
     assert np.isclose(opt.alpha, 0.5 * min(init_trust, cart_step_size))
