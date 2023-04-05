@@ -434,6 +434,40 @@ class Optimiser(BaseOptimiser, ABC):
         )
         return None
 
+    def write_xyz_trajectory(self, filename: Optional[str] = None) -> None:
+        """
+        Write the trajectory of the optimiser in .xyz format
+
+        Args:
+            filename: Name of the trajectory file (xyz)
+        """
+        assert self._species is not None
+        if self.iteration < 1:
+            logger.warning(
+                "Optimiser did no steps, not saving .xyz trajectory"
+            )
+            return None
+
+        filename = (
+            f"{self._species.name}_opt.trj.xyz"
+            if filename is None
+            else str(filename)
+        )
+
+        if os.path.isfile(filename):
+            logger.warning(f"File {filename} exists, overwriting...")
+            os.remove(filename)
+        from autode import Species
+        tmp_spc: Species = self._species.copy()
+        for coord in self._history:
+            tmp_spc.coordinates = coord.to("cart")
+            tmp_spc.print_xyz_file(
+                filename=filename,
+                additional_title_line=f"E={coord.e.to('Ha')} Ha",
+                append=True,
+            )
+        return None
+
 
 class NullOptimiser(BaseOptimiser):
     """An optimiser that does nothing"""
