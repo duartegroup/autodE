@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pytest
 from autode.species import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
@@ -215,6 +216,30 @@ def test_optimiser_plotting():
 
     opt.plot_optimisation()
     assert os.path.isfile(f"{mol.name}_opt_plot.pdf")
+
+
+@work_in_tmp_dir()
+def test_optimiser_xyz_trajectory():
+    mol = Molecule(smiles="N#N")
+    opt = CartesianHybridTRMOptimiser(maxiter=10, gtol=1e-3, etol=1e-3)
+    coord1 = CartesianCoordinates(mol.coordinates)
+    opt._coords = coord1
+
+    with pytest.raises(AssertionError):
+        # no species should raise error
+        opt.write_xyz_trajectory()
+
+    opt._species = mol
+    assert opt.iteration == 0
+    # xyz trajectory only if more than 1 coordinates present
+    opt.write_xyz_trajectory()
+    assert not os.path.isfile(f"{mol.name}_opt.trj.xyz")
+
+    coord2 = coord1.copy() * 0.9
+    opt._coords = coord2
+    assert opt.iteration == 1
+    opt.write_xyz_trajectory()
+    assert os.path.isfile(f"{mol.name}_opt.trj.xyz")
 
 
 @work_in_tmp_dir()

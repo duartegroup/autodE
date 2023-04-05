@@ -12,7 +12,7 @@ from itertools import combinations
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.coordinates.primitives import Distance
 from autode.opt.optimisers import CRFOptimiser
-from autode.opt.optimisers.hessian_update import FlowchartUpdate
+from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.exceptions import OptimiserStepError
 from autode.values import GradientRMS, PotentialEnergy
 from autode.log import logger
@@ -87,7 +87,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._damping_on = bool(damp)
         self._last_damped_iteration = 0
 
-        self._hessian_update_types = [FlowchartUpdate]
+        self._hessian_update_types = [BFGSSR1Update]
 
     @property
     def _g_norm(self) -> GradientRMS:
@@ -130,9 +130,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         """
         super()._initialise_species_and_method(species, method)
         assert (
-            not self._species.constraints.any,
-            "HybridTRMOptimiser cannot work with constraints!",
-        )
+            not self._species.constraints.any
+        ), "HybridTRMOptimiser cannot work with constraints!"
         return None
 
     def _build_internal_coordinates(self) -> None:
@@ -266,6 +265,9 @@ class HybridTRMOptimiser(CRFOptimiser):
         h_eigvals = np.linalg.eigvalsh(self._coords.h)
         first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
+
+        if first_b > 0:
+            print("Newton-Raphson possible")
 
         def get_internal_step_size_and_deriv(lmda):
             """Get the internal coordinate step, step size and

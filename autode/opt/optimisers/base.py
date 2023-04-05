@@ -394,86 +394,6 @@ class Optimiser(BaseOptimiser, ABC):
         else:
             return False
 
-    def plot_optimisation(
-        self,
-        filename: Optional[str] = None,
-        plot_energy: bool = True,
-        plot_rms_grad: bool = True,
-    ) -> None:
-        """
-        Draw the plot of the energies and/or rms_gradients of
-        the optimisation so far
-
-        ----------------------------------------------------------------------
-        Args:
-            filename (str): Name of the file to plot
-            plot_energy (bool): Whether to plot energy
-            plot_rms_grad (bool): Whether to plot RMS of gradient
-        """
-        if self.iteration < 1:
-            logger.warning("Less than 2 points, cannot draw optimisation plot")
-            return None
-
-        if not self.converged:
-            logger.warning(
-                "Optimisation is not converged, drawing a plot "
-                "of optimiser profile until current iteration"
-            )
-
-        filename = (
-            f"{self._species.name}_opt_plot.pdf"
-            if filename is None
-            else str(filename)
-        )
-
-        plot_optimiser_profile(
-            self._history,
-            filename=filename,
-            plot_energy=plot_energy,
-            plot_rms_grad=plot_rms_grad,
-        )
-        return None
-
-    def write_xyz_trajectory(self, filename: Optional[str] = None) -> None:
-        """
-        Write the trajectory of the optimiser in .xyz format
-
-        Args:
-            filename: Name of the trajectory file (xyz)
-        """
-        assert self._species is not None
-        if self.iteration < 1:
-            logger.warning(
-                "Optimiser did no steps, not saving .xyz trajectory"
-            )
-            return None
-
-        if not self.converged:
-            logger.warning(
-                "Optimisation is not converged, writing a trajectory"
-                " up to the last iteration"
-            )
-
-        filename = (
-            f"{self._species.name}_opt.trj.xyz"
-            if filename is None
-            else str(filename)
-        )
-
-        if os.path.isfile(filename):
-            logger.warning(f"File {filename} exists, overwriting...")
-            os.remove(filename)
-        from autode import Species
-        tmp_spc: Species = self._species.copy()
-        for coord in self._history:
-            tmp_spc.coordinates = coord.to("cart")
-            tmp_spc.print_xyz_file(
-                filename=filename,
-                additional_title_line=f"E={coord.e.to('Ha')} Ha",
-                append=True,
-            )
-        return None
-
 
 class NullOptimiser(BaseOptimiser):
     """An optimiser that does nothing"""
@@ -849,6 +769,80 @@ class NDOptimiser(Optimiser, ABC):
             "Could not update the inverse Hessian - no "
             "suitable update strategies"
         )
+
+    def plot_optimisation(
+        self,
+        filename: Optional[str] = None,
+        plot_energy: bool = True,
+        plot_rms_grad: bool = True,
+    ) -> None:
+        """
+        Draw the plot of the energies and/or rms_gradients of
+        the optimisation so far
+
+        ----------------------------------------------------------------------
+        Args:
+            filename (str): Name of the file to plot
+            plot_energy (bool): Whether to plot energy
+            plot_rms_grad (bool): Whether to plot RMS of gradient
+        """
+        if self.iteration < 1:
+            logger.warning("Less than 2 points, cannot draw optimisation plot")
+            return None
+
+        if not self.converged:
+            logger.warning(
+                "Optimisation is not converged, drawing a plot "
+                "of optimiser profile until current iteration"
+            )
+
+        filename = (
+            f"{self._species.name}_opt_plot.pdf"
+            if filename is None
+            else str(filename)
+        )
+
+        plot_optimiser_profile(
+            self._history,
+            filename=filename,
+            plot_energy=plot_energy,
+            plot_rms_grad=plot_rms_grad,
+        )
+        return None
+
+    def write_xyz_trajectory(self, filename: Optional[str] = None) -> None:
+        """
+        Write the trajectory of the optimiser in .xyz format
+
+        Args:
+            filename: Name of the trajectory file (xyz)
+        """
+        assert self._species is not None
+        if self.iteration < 1:
+            logger.warning(
+                "Optimiser did no steps, not saving .xyz trajectory"
+            )
+            return None
+
+        filename = (
+            f"{self._species.name}_opt.trj.xyz"
+            if filename is None
+            else str(filename)
+        )
+
+        if os.path.isfile(filename):
+            logger.warning(f"File {filename} exists, overwriting...")
+            os.remove(filename)
+
+        tmp_spc = self._species.new_species()
+        for coord in self._history:
+            tmp_spc.coordinates = coord.to("cart")
+            tmp_spc.energy = coord.e
+            tmp_spc.print_xyz_file(
+                filename=filename,
+                append=True,
+            )
+        return None
 
 
 class _OptimiserHistory(list):
