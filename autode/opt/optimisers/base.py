@@ -2,6 +2,7 @@ import os.path
 import numpy as np
 
 from abc import ABC, abstractmethod
+from collections import UserList
 from typing import Union, Optional, Callable, Any
 from autode.log import logger
 from autode.utils import NumericStringDict
@@ -845,7 +846,7 @@ class NDOptimiser(Optimiser, ABC):
         return None
 
 
-class _OptimiserHistory(list):
+class _OptimiserHistory(UserList):
     """Sequential history of coordinates"""
 
     @property

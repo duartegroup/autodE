@@ -259,8 +259,6 @@ class HybridTRMOptimiser(CRFOptimiser):
         Returns:
             (np.ndarray): The level-shifted Hessian for TRM/QA step
         """
-        # this function is expensive to call
-
         h_n = self._coords.h.shape[0]
         h_eigvals = np.linalg.eigvalsh(self._coords.h)
         first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
