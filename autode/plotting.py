@@ -10,7 +10,7 @@ from autode.units import energy_unit_from_name
 from autode.log import logger
 
 if TYPE_CHECKING:
-    from autode.opt.optimisers.base import _OptimiserHistory
+    from autode.opt.optimisers.base import OptimiserHistory
     from matplotlib.figure import Figure
 
 
@@ -393,7 +393,7 @@ def error_on_stationary_points(x, energies):
 
 
 def plot_optimiser_profile(
-    history: "_OptimiserHistory",
+    history: "OptimiserHistory",
     plot_energy: bool,
     plot_rms_grad: bool,
     filename: str,
@@ -404,7 +404,7 @@ def plot_optimiser_profile(
 
     -------------------------------------------------------------------------
     Args:
-        history (_OptimiserHistory): History (list) of coordinate objects
+        history (OptimiserHistory): History (list) of coordinate objects
         plot_energy (bool): Whether to plot energy or not
         plot_rms_grad (bool): Whether to plot rms grad or not
         filename (str): Name of plotted file

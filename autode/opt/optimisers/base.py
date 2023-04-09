@@ -68,7 +68,7 @@ class Optimiser(BaseOptimiser, ABC):
         self._maxiter = int(maxiter)
         self._n_cores: int = Config.n_cores
 
-        self._history = _OptimiserHistory()
+        self._history = OptimiserHistory()
 
         self._coords = coords
         self._species: Optional["autode.species.Species"] = None
@@ -846,7 +846,7 @@ class NDOptimiser(Optimiser, ABC):
         return None
 
 
-class _OptimiserHistory(UserList):
+class OptimiserHistory(UserList):
     """Sequential history of coordinates"""
 
     @property

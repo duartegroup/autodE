@@ -24,6 +24,7 @@ from autode.opt.coordinates.internals import (
     InverseDistances,
     InternalCoordinates,
 )
+from autode.exceptions import CoordinateTransformFailed
 
 _max_back_transform_iterations = 20
 
@@ -240,8 +241,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                 )
                 x_k = x_1
                 if not self.allow_unconverged_back_transform:
-                    raise RuntimeError(
-                        "Iterative back-transform did not converge"
+                    raise CoordinateTransformFailed(
+                        "DIC->Cart iterative back-transform did not converge"
                     )
 
         s_k = np.matmul(self.U.T, self.primitives(x_k))

@@ -12,7 +12,7 @@ from autode.bond_rearrangement import BondRearrangement
 from autode.transition_states.ts_guess import TSguess
 from autode.units import KjMol, KcalMol
 from autode.utils import work_in_tmp_dir
-from autode.opt.optimisers.base import _OptimiserHistory
+from autode.opt.optimisers.base import OptimiserHistory
 from autode.opt.coordinates import CartesianCoordinates
 from autode.config import Config
 from copy import deepcopy
@@ -232,7 +232,7 @@ def test_energy():
 
 @work_in_tmp_dir()
 def test_optimiser_plot():
-    hist = _OptimiserHistory()
+    hist = OptimiserHistory()
     x = CartesianCoordinates(np.arange(6))
     x.e = -1.45
     x.g = np.array([1.0, 0.9, 1.2, 0.4, 3.4, 0.3])

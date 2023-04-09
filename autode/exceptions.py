@@ -132,3 +132,7 @@ class TemplateLoadingFailed(AutodeException):
 
 class OptimiserStepError(AutodeException):
     """Unable to calculate a valid Optimiser step"""
+
+
+class CoordinateTransformFailed(AutodeException):
+    """Internal coordinate to Cartesian transform failed"""

@@ -10,13 +10,117 @@ the result is 1.2 the minimum is 1.2 times the 0>1 vector or
 it is an interpolation, otherwise (e.g. > 1) extrapolation
 """
 from typing import Tuple, Optional, TYPE_CHECKING
-
 import numpy as np
 from numpy.polynomial import Polynomial
 import scipy
+from autode.exceptions import OptimiserStepError, CoordinateTransformFailed
+from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.opt.coordinates import OptCoordinates
 
 # range within which to search for minima (quintic polynomial can have multiple minima)
-_poly_minim_search_range = [0, 2]
+_poly_minim_search_range = [0, 4]
+
+
+def polynomial_line_search(
+    coord0: OptCoordinates, coord1: OptCoordinates, use_quintic: bool = False
+) -> Optional[OptCoordinates]:
+    """
+    Polynomial fitted 1D line search using two coordinates, requires
+    the energies and gradients for cubic and constrained quartic
+    line search, and hessian for quintic search.
+
+    Args:
+        coord0: Previous coordinate point
+        coord1: Current coordinate point
+        use_quintic: whether to use Hessian information for quintic fit
+
+    Returns:
+        (OptCoordinates): Final coordinate, containing the energy and
+                          gradient from polynomial fit
+    """
+    coord1 = coord1.copy()
+    coord1.allow_unconverged_back_transform = False
+    # generate directional gradients
+    assert coord0.e is not None and coord0.g is not None
+    assert coord1.e is not None and coord1.g is not None
+
+    e0 = coord0.e
+    e1 = coord1.e
+    # if latest point is not lowest in energy, must not extrapolate
+    if e1 > e0:
+        upper_limit = 1
+    else:
+        upper_limit = _poly_minim_search_range[1]
+    step = coord1.raw - coord0.raw  # line along 0->1
+    g0 = float(np.dot(step, coord0.g))
+    g1 = float(np.dot(step, coord1.g))
+
+    def calculate_new_coord(new_x, new_e) -> Tuple[OptCoordinates, float]:
+        """
+        Generate new coordinate and gradient from the fraction representing
+        position of the minimum. new_x is the fractional position and new_e
+        is the interpolated energy
+        """
+        if new_e > coord1.e:
+            raise OptimiserStepError("Unknown error in polynomial fitting")
+        if new_x > upper_limit:
+            raise OptimiserStepError("Polynomial interpolation too large")
+        fitted_step = (new_x - 1) * step
+        fitted_grad = (1 - new_x) * coord0.g + new_x * coord1.g
+        fitted_coord = coord1 + fitted_step
+        fitted_coord.e = new_e
+        fitted_coord.g = fitted_grad
+        step_size = np.linalg.norm(fitted_coord.to("cart") - coord1.to("cart"))
+        return fitted_coord, step_size
+
+    try:
+        if not use_quintic:
+            raise ValueError
+        # try quintic interpolation only if requested, and hessian available
+        assert coord0.h is not None and coord1.h is not None
+        h0 = float(np.linalg.multi_dot((step, coord0.h, step)))
+        h1 = float(np.linalg.multi_dot((step, coord1.h, step)))
+        x, en = quintic_fit_get_minimum(e0, g0, h0, e1, g1, h1)
+        if x is None:
+            raise OptimiserStepError("Quintic interpolation failed")
+        new_coord, size = calculate_new_coord(x, en)
+        logger.info(
+            f"Quintic line search step: {size} Å, predicted E = {en:.6f}"
+        )
+        return new_coord
+
+    except (ValueError, OptimiserStepError, CoordinateTransformFailed):
+        pass
+
+    try:
+        x, en = constrained_quartic_fit_get_minimum(e0, g0, e1, g1)
+        if x is None:
+            raise OptimiserStepError("Quartic interpolation failed")
+        new_coord, size = calculate_new_coord(x, en)
+        logger.info(
+            f"Quartic line search step: {size} Å, predicted E = {en:.6f}"
+        )
+        return new_coord
+
+    except (OptimiserStepError, CoordinateTransformFailed):
+        pass
+
+    try:
+        x, en = cubic_fit_get_minimum(e0, g0, e1, g1)
+        # hard limit on cubic interpolation: step size should be lower than last step
+        if x is None or x > 2:
+            raise OptimiserStepError("Cubic interpolation failed")
+        new_coord, size = calculate_new_coord(x, en)
+        logger.info(
+            f"Cubic line search step: {size} Å, predicted E = {en:.6f}"
+        )
+        return new_coord
+    except (OptimiserStepError, CoordinateTransformFailed):
+        pass
+
+    return None
 
 
 def quintic_fit_get_minimum(
@@ -37,7 +141,7 @@ def quintic_fit_get_minimum(
         h1: projected Hessian(1D) at second point
 
     Returns:
-        (tuple):
+        (tuple): The minimum point, and the predicted energy
     """
     # quintic: f(x) = a + bx + cx^2 + dx^3 + px^4 + qx^5
     # f'(x) = b + 2 c x + 3 d x^2 + 4 p x^3 + 5 q x^4
@@ -61,7 +165,7 @@ def quintic_fit_get_minimum(
 
 
 def constrained_quartic_fit_get_minimum(
-    e0, g0, e1, g1
+    e0: float, g0: float, e1: float, g1: float
 ) -> Tuple[Optional[float], Optional[float]]:
     """
     A linear search (1D) based on two points fitted to a constrained
@@ -192,10 +296,10 @@ def _get_poly_minimum(
                 # strict maximum
                 break
 
-    # get everything in the range (0, 2)
+    # get everything in the range [0, 2]
     minima = np.ndarray(minima)
     u_bound, l_bound = _poly_minim_search_range
-    minima = minima[(minima > l_bound) & (minima < u_bound)]
+    minima = minima[(minima >= l_bound) & (minima <= u_bound)]
 
     if len(minima) == 0:
         return None, None
