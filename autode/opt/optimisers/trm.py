@@ -50,7 +50,6 @@ class HybridTRMOptimiser(CRFOptimiser):
         min_trust: float = 0.01,
         max_trust: float = 0.3,
         damp: bool = True,
-        line_search: bool = True,
         *args,
         **kwargs,
     ):
@@ -87,7 +86,6 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         self._damping_on = bool(damp)
         self._last_damped_iteration = 0
-        self._line_search = bool(line_search)
 
         self._hessian_update_types = [BFGSSR1Update]
 
