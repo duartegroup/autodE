@@ -88,7 +88,6 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._damping_on = bool(damp)
         self._last_damped_iteration = 0
         self._line_search = bool(line_search)
-        self._last_rejected_step = 0
 
         self._hessian_update_types = [BFGSSR1Update]
 
@@ -114,13 +113,6 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         # both gradient and energy must be converged!!
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
-
-    def _initialise_run(self) -> None:
-        """Initialise the optimisation"""
-        self._build_internal_coordinates()
-        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
-        self._update_gradient_and_energy()
-        return None
 
     def _initialise_species_and_method(
         self,
@@ -386,7 +378,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         if not res.converged:
             raise OptimiserStepError("Unable to converge step to trust radius")
 
-        if last_lmda > first_b:
+        if last_lmda > min(0, first_b):
             raise OptimiserStepError("Unknown error in finding optimal lambda")
 
         logger.debug(f"Optimised lambda for QA step: {last_lmda}")
@@ -431,7 +423,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         elif 1.25 < ratio < 1.5:
             pass
         else:  # ratio > 1.5
-            set_trust = 0.7 * min(self.alpha, cart_step_size)
+            set_trust = 0.5 * min(self.alpha, cart_step_size)
             self.alpha = max(set_trust, self._min_alpha)
 
         if (ratio < -1.0) or (ratio > 2.0):
@@ -440,7 +432,6 @@ class HybridTRMOptimiser(CRFOptimiser):
                 "rejecting last geometry step"
             )
             # remove the last geometry from history
-            self._last_rejected_step = self.iteration - 1
             self._history.pop()
 
         logger.info(

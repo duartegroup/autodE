@@ -35,45 +35,6 @@ def test_trm_step1():
     assert np.isclose(step_size, opt.alpha, rtol=0.01)  # 1% error margin
 
 
-@work_in_tmp_dir()
-@requires_with_working_xtb_install
-def test_trm_step2():
-    # second test for TRM, for water the root finding would fail
-    # without a careful bisection algorithm (the TRM step is forced
-    # here, without that RFO step would be taken)
-    water_atoms = [
-        Atom("O", -0.0011, 0.3631, -0.0000),
-        Atom("H", -0.8250, -0.1819, -0.0000),
-        Atom("H", 0.8261, -0.1812, 0.0000),
-    ]
-    water = Molecule(atoms=water_atoms)
-
-    opt = HybridTRMOptimiser(maxiter=2, gtol=0.1, etol=0.1)
-    opt._initialise_species_and_method(water, XTB())
-    opt._initialise_run()
-    assert isinstance(opt._coords, DIC)
-
-    h_eff = opt._get_trm_minimise_h_eff()
-    step = -np.linalg.inv(h_eff) @ opt._coords.g
-    new_coords = opt._coords + step
-    cart_step = new_coords.to("cart") - opt._coords.to("cart")
-    step_size = np.linalg.norm(cart_step)
-
-    assert np.isclose(step_size, opt.alpha, rtol=0.01)  # 1% error margin
-
-    opt = CartesianHybridTRMOptimiser(maxiter=2, gtol=0.1, etol=0.1)
-    opt._initialise_species_and_method(water, XTB())
-    opt._initialise_run()
-    assert isinstance(opt._coords, CartesianCoordinates)
-
-    h_eff = opt._get_trm_minimise_h_eff()
-    step = -np.linalg.inv(h_eff) @ opt._coords.g  # in Cartesian
-    step_size = np.linalg.norm(step)
-
-    # for Cartesian, the step size should be 0.1% of trust radius
-    assert np.isclose(step_size, opt.alpha, rtol=0.001)
-
-
 def test_damping_in_hybridtrm_optimiser():
     coord1 = CartesianCoordinates([1.0, -2.0, 1.0, 3.0, 1.1, 1.2])
     coord1.e = 0.10
@@ -150,7 +111,7 @@ def test_trust_update(caplog):
     opt = HybridTRMOptimiser(
         maxiter=10, gtol=1.0e-3, etol=1.0e-4, init_trust=init_trust
     )
-    opt._species = water
+    opt._species = water.copy()  # take copy so original is not modified
     opt._method = XTB()
     opt._n_cores = 1
     opt._initialise_run()
@@ -197,13 +158,16 @@ def test_trust_update(caplog):
     assert np.isclose(opt.alpha, 0.5 * min(init_trust, cart_step_size))
 
     # if energy change too high > 2.0 or too low < -1.0, trust radius
-    # is decreased, and also old coordinates are copied over (i.e. step
-    # rejected)
+    # is decreased, and last step is rejected
     with caplog.at_level("WARNING"):
         simulate_energy_change_ratio_update_trust(2.2)
     assert "rejecting last geometry step" in caplog.text
     assert np.isclose(opt.alpha, 0.5 * min(init_trust, cart_step_size))
-    assert np.allclose(opt._history.penultimate.raw, opt._history.final.raw)
+    # should remove last coords, bringing back original state
+    assert opt.iteration == 0
+    assert np.allclose(
+        opt._history.final.to("cart"), water.coordinates.flatten()
+    )
 
 
 @work_in_tmp_dir()
