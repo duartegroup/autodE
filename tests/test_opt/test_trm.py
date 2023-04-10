@@ -97,6 +97,17 @@ def test_trm_molecular_opt():
 
     assert np.isclose(mol.distance(1, 2), 1.5438, atol=1e-3)
 
+    mol = Molecule(smiles="O")
+    CartesianHybridTRMOptimiser.optimise(mol, method=XTB(), gtol=1e-4)
+
+    # Same check for Cartesian
+    for oh_atom_idx_pair in [(0, 1), (0, 2)]:
+        assert np.isclose(
+            mol.distance(*oh_atom_idx_pair).to("Å"), 0.9595, atol=1e-3
+        )
+
+    assert np.isclose(mol.distance(1, 2), 1.5438, atol=1e-3)
+
 
 @work_in_tmp_dir()
 @requires_with_working_xtb_install
