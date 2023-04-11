@@ -202,18 +202,18 @@ def test_optimiser_xyz_trajectory():
 
     with pytest.raises(AssertionError):
         # no species should raise error
-        opt.write_xyz_trajectory()
+        opt.print_geometries()
 
     opt._species = mol
     assert opt.iteration == 0
     # xyz trajectory only if more than 1 coordinates present
-    opt.write_xyz_trajectory()
+    opt.print_geometries()
     assert not os.path.isfile(f"{mol.name}_opt.trj.xyz")
 
     coord2 = coord1.copy() * 0.9
     opt._coords = coord2
     assert opt.iteration == 1
-    opt.write_xyz_trajectory()
+    opt.print_geometries()
     assert os.path.isfile(f"{mol.name}_opt.trj.xyz")
 
 

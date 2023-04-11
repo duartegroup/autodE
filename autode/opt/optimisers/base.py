@@ -811,7 +811,7 @@ class NDOptimiser(Optimiser, ABC):
         )
         return None
 
-    def write_xyz_trajectory(self, filename: Optional[str] = None) -> None:
+    def print_geometries(self, filename: Optional[str] = None) -> None:
         """
         Write the trajectory of the optimiser in .xyz format
 

@@ -526,7 +526,6 @@ class FlowchartUpdate(HessianUpdater):
         Flowchart update does not have any conditions, as
         update scheme is dynamically selected
         """
-        # The paper does not mention any condition?
         return True
 
 
