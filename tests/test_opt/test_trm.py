@@ -34,6 +34,19 @@ def test_trm_step1():
     step_size = np.linalg.norm(step)
     assert np.isclose(step_size, opt.alpha, rtol=0.01)  # 1% error margin
 
+    opt = CartesianHybridTRMOptimiser(maxiter=10, gtol=0.001, etol=0.001)
+    opt._species = mol
+    opt._coords = CartesianCoordinates(mol.coordinates)
+
+    opt._coords.update_g_from_cart_g(grad)
+    opt._coords.update_h_from_cart_h(hess)
+
+    opt._step()
+    assert isinstance(opt._coords, CartesianCoordinates)
+    step = opt._history.final.to("cart") - opt._history.penultimate.to("cart")
+    step_size = np.linalg.norm(step)
+    assert np.isclose(step_size, opt.alpha, rtol=0.001)  # 0.1% error margin
+
 
 def test_damping_in_hybridtrm_optimiser():
     coord1 = CartesianCoordinates([1.0, -2.0, 1.0, 3.0, 1.1, 1.2])
