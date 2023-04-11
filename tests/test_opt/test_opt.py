@@ -367,4 +367,4 @@ def test_optimiserhistory_operations_maintain_subclass():
     assert isinstance(add_hist, OptimiserHistory)
 
     hist_slice = hist[:-1]
-    assert isinstance(add_hist, OptimiserHistory)
+    assert isinstance(hist_slice, OptimiserHistory)
