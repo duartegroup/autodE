@@ -21,6 +21,7 @@ Usability improvements/Changes
 - Removes :code:`NEB().contains_peak()` in favour of :code:`NEB().images.contains_peak`
 - Modifies the :code:`CImages` constructor to ensure it's constructed from an :code:`Images` instance
 - Removes :code:`NEB.get_species_saddle_point()` in favour of :code:`NEB.peak_species`
+- Removes :code:`mol_graphs.get_atom_ids_sorted_type()`
 
 Bug Fixes
 *********

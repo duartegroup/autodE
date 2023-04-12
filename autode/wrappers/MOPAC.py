@@ -215,6 +215,7 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
         molecule = calc.molecule
+        assert calc.input.filename, "Filename must be defined"
 
         with open(calc.input.filename, "w") as input_file:
             keywords = get_keywords(calc.input, molecule)

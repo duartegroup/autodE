@@ -1,10 +1,14 @@
 import numpy as np
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Any
 from scipy.spatial import distance_matrix
+
 from autode.geom import get_points_on_sphere, get_rot_mat_euler
 from autode.log import logger
 from autode.atoms import AtomCollection
 from autode.solvent.solvents import Solvent
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
 
 
 class _RandomPointGenerator:
@@ -20,7 +24,7 @@ class _RandomPointGenerator:
 
     """
 
-    def __init__(self, random_state):
+    def __init__(self, random_state: np.random.RandomState):
         """
         Point generator
 
@@ -57,9 +61,9 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
     def __init__(
         self,
-        solvent: "autode.species.species.Species",
+        solvent: "Species",
         num: int,
-        solute: Optional["autode.species.species.Species"] = None,
+        solute: Optional["Species"] = None,
         **kwargs,
     ):
         """
@@ -105,7 +109,7 @@ class ExplicitSolvent(AtomCollection, Solvent):
         if solute is not None:
             self.randomise_around(solute)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Equality between two explicit solvent environments"""
 
         if (
@@ -204,9 +208,7 @@ class ExplicitSolvent(AtomCollection, Solvent):
 
         return min_dist < self.solvent_radius
 
-    def randomise_around(
-        self, solute: "autode.species.species.Species"
-    ) -> None:
+    def randomise_around(self, solute: "Species") -> None:
         r"""
         Randomise the positions of the solvent molecules around the solute,
         for example using a methane solute and water solvent::

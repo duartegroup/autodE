@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Sequence, Union, TYPE_CHECKING
+from typing import Sequence, Union, TYPE_CHECKING, List
 from scipy.spatial.distance import cdist
 from scipy.spatial import distance_matrix
 from autode.log import logger
@@ -232,7 +232,7 @@ def calc_rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
     return np.sqrt(np.average(np.square(fitted_coords - q_mat)))
 
 
-def get_points_on_sphere(n_points: int, r: float = 1) -> Sequence[np.ndarray]:
+def get_points_on_sphere(n_points: int, r: float = 1) -> List[np.ndarray]:
     """
     Find n evenly spaced points on a sphere using the "How to generate
     equidistributed points on the surface of a sphere" by Markus Deserno, 2004.

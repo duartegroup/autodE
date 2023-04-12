@@ -173,38 +173,41 @@ def make_graph(
             i, atom_label=atom.label, stereo=False, atom_class=atom.atom_class
         )
 
-    # If bonds are specified then add edges to the graph and return
     if bond_list is not None:
-        for bond in bond_list:
-            graph.add_edge(bond[0], bond[1], pi=False, active=False)
+        logger.debug(
+            f"Bonds have been specified. Adding {len(bond_list)} edges"
+        )
+        for (i, j) in bond_list:
+            graph.add_edge(i, j, pi=False, active=False)
 
         species.graph = graph
         return None
 
-    else:
-        # Loop over the unique pairs of atoms and add 'bonds'
-        coords = species.coordinates
-        dist_mat = distance_matrix(coords, coords)
+    # Loop over the unique pairs of atoms and add 'bonds'
+    coords = species.coordinates
+    dist_mat = distance_matrix(coords, coords)
 
-        for i in get_atom_ids_sorted_type(species):
+    for i, _ in enumerate(
+        sorted(species.atoms, key=lambda _atom: _atom.weight)
+    ):
 
-            # Iterate through the closest atoms to atom i
-            for j in np.argsort(dist_mat[i]):
+        # Iterate through the closest atoms to atom i
+        for j in np.argsort(dist_mat[i]):
 
-                if i == j:
-                    # Don't bond atoms to themselves
-                    continue
+            if i == j:
+                # Don't bond atoms to themselves
+                continue
 
-                # Get r_avg for this X-Y bond e.g. C-C -> 1.5
-                avg_bond_length = species.atoms.eqm_bond_distance(i, j)
+            # Get r_avg for this X-Y bond e.g. C-C -> 1.5 Å
+            avg_bond_length = species.atoms.eqm_bond_distance(i, j)
 
-                # If the distance between atoms i and j are less or equal to
-                # 1.25x average length add a 'bond'
-                if (
-                    dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance)
-                    and (i, j) not in graph.edges
-                ):
-                    graph.add_edge(i, j, pi=False, active=False)
+            # If the distance between atoms i and j are less or equal to
+            # 1.25x average length add a 'bond'
+            if (
+                dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance)
+                and (i, j) not in graph.edges
+            ):
+                graph.add_edge(i, j, pi=False, active=False)
 
     _set_graph_attributes(graph)
     species.graph = graph
@@ -213,24 +216,6 @@ def make_graph(
         remove_bonds_invalid_valancies(species)
 
     return None
-
-
-def get_atom_ids_sorted_type(species):
-    """
-    Get a list of atom ids sorted by increasing atomic weight, useful for when
-    a molecular graph depends on the order of atoms in what will be considered
-    bonded
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        species (autode.species.Species):
-
-    Returns:
-        (list(int)):
-    """
-    atom_idxs = list(range(species.n_atoms))
-
-    return sorted(atom_idxs, key=lambda idx: species.atoms[idx].weight)
 
 
 def remove_bonds_invalid_valancies(species):

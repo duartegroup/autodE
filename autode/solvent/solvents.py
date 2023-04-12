@@ -1,10 +1,14 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from copy import deepcopy
+
 from autode.log import logger
 from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import SolventNotFound
+
+if TYPE_CHECKING:
+    from autode.solvent.explicit_solvent import ExplicitSolvent
 
 
 def get_solvent(
@@ -161,7 +165,7 @@ class ImplicitSolvent(Solvent):
         """
         return True
 
-    def to_explicit(self, num: int) -> "autode.solvent.ExplicitSolvent":
+    def to_explicit(self, num: int) -> "ExplicitSolvent":
         """
         Convert this implicit solvent into an explicit one
 

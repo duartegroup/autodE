@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Any, Union, Type, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Union, Type, Optional, Sequence, TypeVar, TYPE_CHECKING
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
@@ -19,6 +19,8 @@ from autode.units import (
 if TYPE_CHECKING:
     from autode.wrappers.methods import Method
     from autode.wrappers.keywords.keywords import Keywords
+
+TValue = TypeVar("TValue", bound="Value")
 
 
 def _to(
@@ -161,7 +163,7 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
-    def _like_self_from_float(self, value: float) -> "Value":
+    def _like_self_from_float(self, value: float) -> TValue:
         new_value = self.__class__(value, units=self.units)
         new_value.__dict__.update(self.__dict__)
         return new_value
@@ -200,7 +202,7 @@ class Value(ABC, float):
         """Less than or equal to comparison operator"""
         return self.__gt__(other) or self.__eq__(other)
 
-    def __add__(self, other) -> "Value":
+    def __add__(self, other) -> TValue:
         """Add another value onto this one"""
         if isinstance(other, np.ndarray):
             return other + float(self)
@@ -209,7 +211,7 @@ class Value(ABC, float):
             float(self) + self._other_same_units(other)
         )
 
-    def __mul__(self, other) -> Union[float, "Value"]:
+    def __mul__(self, other) -> Union[float, TValue]:
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
@@ -224,24 +226,24 @@ class Value(ABC, float):
             float(self) * self._other_same_units(other)
         )
 
-    def __rmul__(self, other) -> Union[float, "Value"]:
+    def __rmul__(self, other) -> Union[float, TValue]:
         return self.__mul__(other)
 
-    def __radd__(self, other) -> "Value":
+    def __radd__(self, other) -> TValue:
         return self.__add__(other)
 
-    def __sub__(self, other) -> "Value":
+    def __sub__(self, other) -> TValue:
         return self.__add__(-other)
 
-    def __floordiv__(self, other) -> Union[float, "Value"]:
+    def __floordiv__(self, other) -> Union[float, TValue]:
         x = float(self) // self._other_same_units(other)
         return x if isinstance(other, Value) else self._like_self_from_float(x)
 
-    def __truediv__(self, other) -> Union[float, "Value"]:
+    def __truediv__(self, other) -> Union[float, TValue]:
         x = float(self) / self._other_same_units(other)
         return x if isinstance(other, Value) else self._like_self_from_float(x)
 
-    def __abs__(self) -> "Value":
+    def __abs__(self) -> TValue:
         """Absolute value"""
         return self if self > 0 else self * -1
 
@@ -300,10 +302,10 @@ class Energy(Value):
         self.is_estimated = estimated
         self.method_str = method_string(method, keywords)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Energy({round(self, 5)} {self.units.name})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Is an energy equal to another? Compares only the value, with
         implicit unit conversion"""
         tol_ha = 0.0000159  # 0.01 kcal mol-1
