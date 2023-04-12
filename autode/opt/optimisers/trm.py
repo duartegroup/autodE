@@ -167,7 +167,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._coords.allow_unconverged_back_transform = True
 
         rfo_lmda = self._get_rfo_minimise_lambda(self._coords)
-        rfo_step, rfo_step_size = self._get_step_and_cart_size_from_lambda(self._coords, rfo_lmda)
+        rfo_step, rfo_step_size = self._get_step_and_size_from_lambda(self._coords, rfo_lmda)
 
         if rfo_step_size < self.alpha:
             logger.info("Taking a pure RFO step")
@@ -175,7 +175,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         else:
             try:
                 qa_lmda = self._get_trm_minimise_lambda(self._coords)
-                qa_step, _ = self._get_step_and_cart_size_from_lambda(self._coords, qa_lmda)
+                qa_step, _ = self._get_step_and_size_from_lambda(self._coords, qa_lmda)
                 logger.info("Taking a TRM/QA step optimised to trust radius")
                 step = qa_step
 
@@ -200,8 +200,10 @@ class HybridTRMOptimiser(CRFOptimiser):
         return None
 
     @staticmethod
-    def _get_step_and_cart_size_from_lambda(
-        old_coords: OptCoordinates, lambda_shift: float
+    def _get_step_and_size_from_lambda(
+        old_coords: OptCoordinates,
+        lambda_shift: float,
+        cart_size: bool = True,
     ) -> Tuple[np.ndarray, float]:
         """
         Obtains the Cartesian step size given a step in the current
@@ -210,9 +212,12 @@ class HybridTRMOptimiser(CRFOptimiser):
         Args:
             old_coords (OptCoordinates): previous coordinates
             lambda_shift (float): Hessian shift parameter
+            cart_size (bool): Whether to get the step size in Cartesian
+                              or the current coordinate system (internal)
 
         Returns:
-            (tuple): The step, and the step size in Cartesian
+            (tuple): The step in current coordinate, and the step size
+                     as requested
         """
         b, u = np.linalg.eigh(old_coords.h)
         zero_components = np.where(np.abs(b) < 1.0e-15)
@@ -224,9 +229,13 @@ class HybridTRMOptimiser(CRFOptimiser):
         for i in range(len(b_large)):
             step -= f[i] * u_large[:, i] / (b_large[i] - lambda_shift)
 
-        new_coords = old_coords + step
-        cart_delta = new_coords.to("cart") - old_coords.to("cart")
-        return step, float(np.linalg.norm(cart_delta))
+        if cart_size:
+            new_coords = old_coords + step
+            cart_delta = new_coords.to("cart") - old_coords.to("cart")
+            return step, float(np.linalg.norm(cart_delta))
+
+        else:
+            return step, float(np.linalg.norm(step))
 
     @staticmethod
     def _get_rfo_minimise_lambda(coords) -> float:
@@ -272,17 +281,14 @@ class HybridTRMOptimiser(CRFOptimiser):
         h_eigvals = np.linalg.eigvalsh(coords.h)
         first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
-        # todo change this in terms of Hessian eigenbasis
-        def get_internal_step_size_and_deriv(lmda):
+
+        def get_internal_step_size(lmda):
             """Get the internal coordinate step, step size and
             the derivative for the given lambda"""
-            shifted_h = coords.h - lmda * np.eye(h_n)
-            inv_shifted_h = np.linalg.inv(shifted_h)
-            step = -inv_shifted_h @ coords.g
-            size = np.linalg.norm(step)
-            deriv = -np.linalg.multi_dot((step, inv_shifted_h, step))
-            deriv = float(deriv) / size
-            return size, deriv, step
+            _, size = self._get_step_and_size_from_lambda(
+                coords, lmda, cart_size=False
+            )
+            return size
 
         def optimise_lambda_for_int_step(int_size):
             """
@@ -293,28 +299,39 @@ class HybridTRMOptimiser(CRFOptimiser):
             """
             # use bisection to ensure lambda < first_b
             d = 1.0
-            found_upper_lim = False
+            upper_lim, lower_lim = None, None
             for _ in range(20):
-                size, _, _ = get_internal_step_size_and_deriv(first_b - d)
+                size = get_internal_step_size(first_b - d)
                 # find f(x) > 0, so going downhill has no risk of jumping over
                 if size > int_size:
-                    found_upper_lim = True
+                    upper_lim = first_b - d
                     break
                 d = d / 2.0
-            if not found_upper_lim:
+            if upper_lim is None:
                 raise OptimiserStepError("Failed to find f(λ) > 0")
 
-            lmda_guess = first_b - d
-            found_step_size = False
-            for _ in range(50):
-                size, der, _ = get_internal_step_size_and_deriv(lmda_guess)
-                if abs(size - int_size) / int_size < 0.001:  # 0.1% error
-                    found_step_size = True
+            for _ in range(20):
+                size = get_internal_step_size(first_b - d)
+                # find f(x) < 0
+                if size < int_size:
+                    lower_lim = first_b - d
                     break
-                lmda_guess -= (1 - size / int_size) * (size / der)
-            if not found_step_size:
+                d = d * 2.0
+            if lower_lim is None:
+                raise OptimiserStepError("Failed to find f(λ) < 0")
+
+            result = root_scalar(
+                lambda x: get_internal_step_size(x) - int_size,
+                method="brentq",
+                bracket=[lower_lim, upper_lim],
+                maxiter=20,
+                rtol=0.001,
+            )
+
+            if not result.converged:
                 raise OptimiserStepError("Failed in optimising internal step")
-            return lmda_guess
+
+            return result.root
 
         last_lmda = 0.0  # initialize non-local var
 
@@ -325,9 +342,8 @@ class HybridTRMOptimiser(CRFOptimiser):
             """
             nonlocal last_lmda
             last_lmda = optimise_lambda_for_int_step(int_size)
-            _, _, step = get_internal_step_size_and_deriv(last_lmda)
-            step_size = np.linalg.norm(
-                (coords + step).to("cart") - coords.to("cart")
+            _, step_size = self._get_step_and_size_from_lambda(
+                coords, last_lmda, cart_size=True
             )
             return step_size - self.alpha
 
