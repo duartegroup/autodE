@@ -177,11 +177,14 @@ def test_confs_energy_pruning3():
 
 def test_confs_no_energy_pruning():
     # Check that if energies are unassigned then conformers are removed
+    conf0 = Conformer(atoms=[Atom("H")])
+    conf1 = conf0.copy()
+    conf1.energy = -0.5
 
-    confs = Conformers([Conformer(atoms=[Atom("H")])])
+    confs = Conformers([conf0, conf1])
     confs.prune(remove_no_energy=True)
 
-    assert len(confs) == 0
+    assert len(confs) == 1
 
 
 def test_confs_rmsd_pruning1():
