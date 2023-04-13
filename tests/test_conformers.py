@@ -382,3 +382,21 @@ def test_conformer_coordinate_setting_with_different_atomic_attr():
     # But cannot set atoms with a different label (e.g. atomic symbol)
     with pytest.raises(ValueError):
         conf.atoms = Atoms([Atom("H")])
+
+
+def test_pruning_conformers_without_energy_raises():
+
+    conformers = Conformers(
+        [Conformer(atoms=[Atom("H")]), Conformer(atoms=[Atom("H")])]
+    )
+
+    assert sum(c.energy is None for c in conformers) == 2
+
+    with pytest.raises(Exception):
+        conformers.prune(remove_no_energy=True)
+
+
+def test_pruning_no_energy_with_no_conformers_is_possible():
+
+    conformers = Conformers()
+    conformers.remove_no_energy()
