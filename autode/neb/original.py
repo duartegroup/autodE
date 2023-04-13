@@ -517,6 +517,9 @@ class NEB:
                 "Cannot construct a NEB from species with different atoms"
             )
 
+        if num < 3:
+            raise ValueError("Cannot create a NEB with fewer than 3 images")
+
         neb = cls.from_list(
             species_list=cls._interpolated_species(initial, final, n=num),
             init_k=init_k,
