@@ -243,9 +243,11 @@ class HybridTRMOptimiser(CRFOptimiser):
         aug_h_lmda, aug_h_v = np.linalg.eigh(aug_h)
 
         # RFO step uses the lowest non-zero eigenvalue
-        mode = np.where(np.abs(aug_h_lmda) > 1.0e-15)[0][0]
-        assert mode == 0
-        lmda = aug_h_lmda[mode]
+        if abs(aug_h_lmda[0]) < 1.0e-14:
+            raise OptimiserStepError(
+                "First mode is 0, handling such cases are not implemented"
+            )
+        lmda = aug_h_lmda[0]
 
         # effective hessian = H - lambda * I
         return coords.h - lmda * np.eye(h_n)
@@ -267,8 +269,11 @@ class HybridTRMOptimiser(CRFOptimiser):
         """
         h_n = coords.h.shape[0]
         h_eigvals = np.linalg.eigvalsh(coords.h)
-        first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
-        first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
+        if abs(h_eigvals[0]) < 1.0e-14:
+            raise OptimiserStepError(
+                "First mode is 0, handling such cases are not implemented"
+            )
+        first_b = h_eigvals[0]  # first non-zero eigenvalue of H
 
         def get_internal_step_size_and_deriv(lmda):
             """Get the internal coordinate step, step size and
