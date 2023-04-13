@@ -166,16 +166,20 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         self._coords.allow_unconverged_back_transform = True
 
-        rfo_lmda = self._get_rfo_minimise_lambda(self._coords)
-        rfo_step, rfo_step_size = self._get_step_and_cart_size_from_lambda(self._coords, rfo_lmda)
+        rfo_h_eff = self._get_rfo_minimise_h_eff(self._coords)
+        rfo_step, rfo_step_size = self._get_step_and_cart_size_from_h_eff(
+            self._coords, rfo_h_eff
+        )
 
         if rfo_step_size < self.alpha:
             logger.info("Taking a pure RFO step")
             step = rfo_step
         else:
             try:
-                qa_lmda = self._get_trm_minimise_lambda(self._coords)
-                qa_step, _ = self._get_step_and_cart_size_from_lambda(self._coords, qa_lmda)
+                qa_h_eff = self._get_trm_minimise_h_eff(self._coords)
+                qa_step, _ = self._get_step_and_cart_size_from_h_eff(
+                    self._coords, qa_h_eff
+                )
                 logger.info("Taking a TRM/QA step optimised to trust radius")
                 step = qa_step
 
@@ -200,8 +204,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         return None
 
     @staticmethod
-    def _get_step_and_cart_size_from_lambda(
-        old_coords: OptCoordinates, lambda_shift: float
+    def _get_step_and_cart_size_from_h_eff(
+        old_coords: OptCoordinates, hess_eff: np.ndarray
     ) -> Tuple[np.ndarray, float]:
         """
         Obtains the Cartesian step size given a step in the current
@@ -209,33 +213,24 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         Args:
             old_coords (OptCoordinates): previous coordinates
-            lambda_shift (float): Hessian shift parameter
+            hess_eff (np.ndarray): Effective (shifted) hessian
 
         Returns:
-            (tuple): The step, and the step size in Cartesian
+            (float): The step size in Cartesian
         """
-        b, u = np.linalg.eigh(old_coords.h)
-        zero_components = np.where(np.abs(b) < 1.0e-15)
-        b_large = np.delete(b, zero_components)
-        u_large = np.delete(u, zero_components, 1)
-        f = u_large.T.dot(old_coords.g)
-        step = np.zeros_like(old_coords)
-
-        for i in range(len(b_large)):
-            step -= f[i] * u_large[:, i] / (b_large[i] - lambda_shift)
-
+        step = np.matmul(-np.linalg.inv(hess_eff), old_coords.g)
         new_coords = old_coords + step
         cart_delta = new_coords.to("cart") - old_coords.to("cart")
         return step, float(np.linalg.norm(cart_delta))
 
     @staticmethod
-    def _get_rfo_minimise_lambda(coords) -> float:
+    def _get_rfo_minimise_h_eff(coords) -> np.ndarray:
         """
         Using current Hessian and gradient, obtain the level-shifted
         Hessian that would provide a minimising RFO step
 
         Returns:
-            (float): The level-shift parameter lambda
+            (np.ndarray): The level-shifted effective Hessian
         """
         h_n = coords.h.shape[0]
 
@@ -249,11 +244,13 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         # RFO step uses the lowest non-zero eigenvalue
         mode = np.where(np.abs(aug_h_lmda) > 1.0e-15)[0][0]
+        assert mode == 0
         lmda = aug_h_lmda[mode]
 
-        return lmda
+        # effective hessian = H - lambda * I
+        return coords.h - lmda * np.eye(h_n)
 
-    def _get_trm_minimise_lambda(self, coords) -> float:
+    def _get_trm_minimise_h_eff(self, coords) -> np.ndarray:
         """
         Using current Hessian and gradient, get the level-shifted Hessian
         for a minimising step, whose magnitude (norm) is approximately
@@ -266,13 +263,13 @@ class HybridTRMOptimiser(CRFOptimiser):
             coords (OptCoordinates): current coordinates
 
         Returns:
-            (float): The level-shift parameter lambda
+            (np.ndarray): The level-shifted Hessian for TRM/QA step
         """
         h_n = coords.h.shape[0]
         h_eigvals = np.linalg.eigvalsh(coords.h)
         first_mode = np.where(np.abs(h_eigvals) > 1.0e-15)[0][0]
         first_b = h_eigvals[first_mode]  # first non-zero eigenvalue of H
-        # todo change this in terms of Hessian eigenbasis
+
         def get_internal_step_size_and_deriv(lmda):
             """Get the internal coordinate step, step size and
             the derivative for the given lambda"""
@@ -384,7 +381,7 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         logger.debug(f"Optimised lambda for QA step: {last_lmda}")
         # use the final lambda to construct level-shifted Hessian
-        return last_lmda
+        return coords.h - last_lmda * np.eye(h_n)
 
     def _update_trust_radius(self) -> None:
         """
