@@ -108,7 +108,9 @@ class RFOptimiser(NDOptimiser):
         if len(delta_s) == 0:  # No need to sanitise a null step
             return 0.0
 
-        new_coords = self._coords + factor * delta_s
+        self._coords.allow_unconverged_back_transform = True
+        step = factor * delta_s
+        new_coords = self._coords + step
         cartesian_delta = new_coords.to("cart") - self._coords.to("cart")
         max_component = np.max(np.abs(cartesian_delta))
 
@@ -121,7 +123,8 @@ class RFOptimiser(NDOptimiser):
             # Note because the transformation is not linear this will not
             # generate a step exactly max(∆x) ≡ α, but is empirically close
             factor = self.alpha / max_component
-            new_coords = self._coords + self.alpha / max_component * delta_s
+            step = factor * delta_s
 
-        self._coords = new_coords
+        self._coords.allow_unconverged_back_transform = False
+        self._coords = self._coords + step
         return factor

@@ -99,7 +99,7 @@ class CRFOptimiser(RFOptimiser):
 
     def _initialise_run(self) -> None:
         """Initialise the optimisation"""
-        logger.info("Initialising constrained optimisation")
+        logger.info("Initialising optimisation")
 
         self._build_internal_coordinates()
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)

@@ -8,6 +8,8 @@ from autode.opt.optimisers.hessian_update import (
     SR1Update,
     NullUpdate,
     BofillUpdate,
+    FlowchartUpdate,
+    BFGSSR1Update,
 )
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -159,6 +161,8 @@ def test_repr_and_strings():
         SR1Update,
         NullUpdate,
         BofillUpdate,
+        BFGSSR1Update,
+        FlowchartUpdate,
     ):
 
         assert update_type().__repr__() is not None
@@ -190,7 +194,7 @@ def test_bfgs_pd_update(eigval, expected):
 
 
 @work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
-def test_bfgs_update_water():
+def test_bfgs_and_bfgssr1_update_water():
 
     h = np.loadtxt("water_cart_hessian0.txt")
 
@@ -230,16 +234,103 @@ def test_bfgs_update_water():
         -2.3462735918607574e-17,
     ]
 
-    updater = BFGSUpdate(
-        h=h, s=np.array(x1) - np.array(x0), y=np.array(g1) - np.array(g0)
+    for update_type in [BFGSUpdate, BFGSSR1Update]:
+        updater = update_type(
+            h=h, s=np.array(x1) - np.array(x0), y=np.array(g1) - np.array(g0)
+        )
+
+        new_updated_h = updater.updated_h
+        new_true_h = np.loadtxt("water_cart_hessian1.txt")
+
+        assert np.sum(np.abs(new_updated_h - new_true_h)) < np.sum(
+            np.abs(h - new_true_h)
+        )
+
+
+def test_flowchart_update_all_components_work():
+    # fictitious data
+    h = np.array([[1.0, 0.01], [0.01, 1.0]])
+    y = np.array([0.01, 0.03])
+    s = np.array([0.02, 0.06])
+    z = y - h @ s
+    # this fulfils SR1 criteria
+    assert z.dot(s) / (np.linalg.norm(z) * np.linalg.norm(s)) < -0.1
+    updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    sr1_updater = SR1Update(h=h, s=s, y=y)
+    assert np.allclose(h_new, sr1_updater.updated_h)
+
+    y = np.array([0.04, 0.06])
+    z = y - h @ s
+    # not SR1
+    assert z.dot(s) / (np.linalg.norm(z) * np.linalg.norm(s)) > -0.1
+    # fulfils BFGS criteria
+    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) > 0.1
+    updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    bfgs_updater = BFGSUpdate(h=h, s=s, y=y)
+    assert np.allclose(h_new, bfgs_updater.updated_h)
+
+    h = np.array([[-1.0, 0.1], [0.01, -1.0]])
+    y = np.array([0.01, 0.03])
+    s = np.array([-0.02, -0.06])
+    z = y - h @ s
+    updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    # not BFGS
+    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) < 0.1
+    # not SR1
+    assert np.dot(z, s) / (np.linalg.norm(z) * np.linalg.norm(s)) > -0.1
+    # this gives Powell Symmetric Broyden update
+    z = z.reshape(-1, 1)
+    s = s.reshape(-1, 1)  # cast into column forms
+    delta_psb = (s @ z.T + z @ s.T) / (s.T @ s)
+    delta_psb -= (s.T @ z) * (s @ s.T) / (s.T @ s) ** 2
+    assert np.allclose(h_new, h + delta_psb)
+
+    h = np.array([[1.0, 0.1], [0.1, 1.0]])
+    s = np.array([-0.02, -0.06])
+    updater = FlowchartUpdate(h=h, s=s, y=y)
+    h_new = updater.updated_h
+    # not BFGS
+    assert np.dot(y, s) / (np.linalg.norm(y) * np.linalg.norm(s)) < 0.1
+    # this uses SR1 update
+    sr1_updater = SR1Update(h=h, y=y, s=s)
+    assert np.allclose(h_new, sr1_updater.updated_h)
+
+    # no conditions for Flowchart updates
+    assert updater.conditions_met
+    # inverse should be available from private attribute
+    assert updater._updated_h_inv is not None
+
+
+def test_bfgs_sr1_hybrid_update():
+    h = np.array([[1.0, 0.1], [0.1, 1.0]])  # initial approximate Hessian
+
+    y = np.array([0.01, 0.03])
+    s = np.array([-0.02, -0.06])
+
+    updater = BFGSSR1Update(h=h, y=y, s=s)
+    h_new = updater.updated_h
+
+    delta_h = h_new - h
+
+    delta_bfgs_h = BFGSUpdate(h=h, y=y, s=s).updated_h - h
+    delta_sr1_h = SR1Update(h=h, y=y, s=s).updated_h - h
+
+    # definition according to Farkas, Schlegel, J Chem Phys, 111, 1999
+    phi_bofill = np.dot(-y + h @ s, s) ** 2
+    phi_bofill /= np.dot(-y + h @ s, -y + h @ s) * np.dot(s, s)
+    sqrt_phi = np.sqrt(phi_bofill)
+
+    assert np.allclose(
+        delta_h, sqrt_phi * delta_sr1_h + (1 - sqrt_phi) * delta_bfgs_h
     )
 
-    new_bfgs_h = updater.updated_h
-    new_true_h = np.loadtxt("water_cart_hessian1.txt")
-
-    assert np.sum(np.abs(new_bfgs_h - new_true_h)) < np.sum(
-        np.abs(h - new_true_h)
-    )
+    # no conditions for BFGS-SR1 hybrid
+    assert updater.conditions_met
+    # inverse should be available from private attribute
+    assert updater._updated_h_inv is not None
 
 
 def test_hessian_requires_at_least_one_index():

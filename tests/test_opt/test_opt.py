@@ -1,3 +1,4 @@
+import copy
 import os
 import pytest
 import numpy as np
@@ -11,6 +12,7 @@ from .molecules import h2, methane_mol, h_atom
 from .setup import Method
 from autode.utils import NumericStringDict
 from autode.opt.coordinates import CartesianCoordinates
+from autode.opt.optimisers.base import OptimiserHistory
 from autode.opt.optimisers.steepest_descent import (
     CartesianSDOptimiser,
     DIC_SD_Optimiser,
@@ -343,3 +345,26 @@ def test_multiple_optimiser_saves_overrides_not_append():
     optimiser.save("tmp.traj")
 
     assert n_lines_in_traj_file() == n_init_lines
+
+
+def test_optimiserhistory_operations_maintain_subclass():
+
+    optimiser = CartesianSDOptimiser(
+        maxiter=2,
+        gtol=GradientRMS(0.2),
+        etol=PotentialEnergy(0.1),
+    )
+    coord = CartesianCoordinates(np.arange(6))
+    optimiser._coords = coord
+    optimiser._coords = coord * 0.1
+    hist = optimiser._history
+    assert len(hist) == 2
+
+    new_hist = copy.deepcopy(hist)
+    assert new_hist[0] is not hist[0]  # must be deepcopy
+
+    add_hist = hist + new_hist
+    assert isinstance(add_hist, OptimiserHistory)
+
+    hist_slice = hist[:-1]
+    assert isinstance(hist_slice, OptimiserHistory)
