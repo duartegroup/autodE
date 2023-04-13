@@ -110,7 +110,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             angle_thresh: An angle threshold above which linear search
                           will be rejected (in Degrees)
         """
-        # todo replace init_alpha with init_trust in RFO later
+        kwargs.pop("init_alpha", None)
         super().__init__(*args, init_alpha=init_trust, **kwargs)
 
         if not isinstance(pivot_point, CartesianCoordinates):
@@ -289,16 +289,6 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         theta = (g_prime_prime_per * theta_prime) / (
             g_prime_prime_per - g_prime_per
         )
-        angle_change = abs(theta_prime - theta)
-        if (
-            angle_change > self._angle_thresh
-            and abs(theta) > self._angle_thresh
-        ) or (
-            theta < 0  # extrapolating instead of interpolating
-            and theta_prime < self._angle_thresh
-        ):
-            logger.info("Linear interpolation step is unstable, skipping")
-            return self._coords, self._coords.g
 
         p_interp = p_prime_prime * (
             np.cos(theta)
@@ -312,6 +302,19 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         x_interp = self._pivot + p_interp
 
         step_size = np.linalg.norm(x_interp - self._coords)
+        angle_change = abs(theta_prime - theta)
+        if (
+            angle_change > self._angle_thresh
+            and abs(theta) > self._angle_thresh
+        ) or (
+            theta < 0  # extrapolating instead of interpolating
+            and theta_prime < self._angle_thresh
+        ) or (
+            step_size > self.alpha  # larger than trust radius
+        ):
+            logger.info("Linear interpolation step is unstable, skipping")
+            return self._coords, self._coords.g
+
         logger.info(f"Linear interpolation - step size: {step_size:.3f} Å")
 
         return x_interp, g_interp
