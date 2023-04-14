@@ -421,3 +421,11 @@ def test_constructing_neb_from_endpoints_with_different_atoms_raises():
         _ = NEB.from_end_points(
             Molecule(smiles="O"), Molecule(smiles="C"), num=4
         )
+
+
+def test_neb_from_endpoints_requires_at_least_2_images():
+
+    with pytest.raises(Exception):
+        _ = NEB.from_end_points(
+            Molecule(smiles=r"C\C=C\C"), Molecule(smiles=r"C\C=C/C"), num=1
+        )

@@ -19,7 +19,7 @@ Usability improvements/Changes
 - The electronic temperature and the version of parameterisation for xTB calculations are made configurable
 - A NEB :code:`Image` now derives from a :code:`Species` superclass
 - Modifies NEB :code:`Image` constructor to be formed from an image
-- Defines named constructors (:code:`from_endpoints(...)`, :code:`from_list(...)`) for :code:`NEB`
+- Defines named constructors (:code:`from_end_points(...)`, :code:`from_list(...)`) for :code:`NEB`
 - Removes :code:`NEB().contains_peak()` in favour of :code:`NEB().images.contains_peak`
 - Modifies the :code:`CImages` constructor to ensure it's constructed from an :code:`Images` instance
 - Removes :code:`NEB.get_species_saddle_point()` in favour of :code:`NEB.peak_species`

@@ -517,6 +517,9 @@ class NEB:
                 "Cannot construct a NEB from species with different atoms"
             )
 
+        if num < 2:
+            raise ValueError("Cannot create a NEB with fewer than 2 images")
+
         neb = cls.from_list(
             species_list=cls._interpolated_species(initial, final, n=num),
             init_k=init_k,
@@ -612,6 +615,9 @@ class NEB:
     ) -> List[Species]:
         """Generate simple interpolated coordinates for these set of images
         in Cartesian coordinates"""
+
+        if n == 2:
+            return [initial.copy(), final.copy()]
 
         intermediate_species = []
 
