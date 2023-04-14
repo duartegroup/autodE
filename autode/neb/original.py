@@ -518,7 +518,7 @@ class NEB:
             )
 
         if num < 2:
-            raise ValueError("Cannot create a NEB with fewer than 3 images")
+            raise ValueError("Cannot create a NEB with fewer than 2 images")
 
         neb = cls.from_list(
             species_list=cls._interpolated_species(initial, final, n=num),
