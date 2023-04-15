@@ -1,7 +1,9 @@
-from typing import Union, Optional, Sequence, List, Type, Iterator
+from typing import Union, Optional, Sequence, List, Type, Iterator, TypeVar
 from copy import deepcopy
 from abc import ABC, abstractmethod
 from autode.log import logger
+
+TypeKeywords = TypeVar("TypeKeywords", bound="Keywords")
 
 
 class KeywordsSet:
@@ -399,7 +401,7 @@ class Keywords(ABC):
 
         return not kwds.isdisjoint(w.lower() for w in words)
 
-    def copy(self) -> "Keywords":
+    def copy(self) -> TypeKeywords:
         return deepcopy(self)
 
     def append(self, item: Union["Keyword", str]) -> None:

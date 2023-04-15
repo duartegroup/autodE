@@ -194,8 +194,8 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         final_energy = self._history.final.e
         assert final_energy is not None and penultimate_energy is not None
 
-        true_diff = penultimate_energy - final_energy
-        predicted_diff = penultimate_energy - self.m
+        true_diff: PotentialEnergy = penultimate_energy - final_energy
+        predicted_diff: PotentialEnergy = penultimate_energy - self.m
 
         return true_diff / predicted_diff
 

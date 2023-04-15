@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from autode.wrappers.methods import Method
     from autode.wrappers.keywords.keywords import Keywords
 
-TValue = TypeVar("TValue", bound="Value")
+TypeValue = TypeVar("TypeValue", bound="Value")
 
 
 def _to(
@@ -41,6 +41,9 @@ def _to(
     """
     if value.units == units:
         return value
+
+    if value.units is None:
+        raise RuntimeError("Cannot convert with units=None")
 
     try:
         units = next(
@@ -75,7 +78,7 @@ def _to(
     return None if inplace else new_value
 
 
-def _units_init(value, units: Union[Unit, str, None]):
+def _units_init(value, units: Union[Unit, str, None]) -> Optional[Unit]:
     """Initialise the units of this value
 
     Arguments:
@@ -125,6 +128,7 @@ class Value(ABC, float):
         """
 
         float.__init__(float(x))
+        self.units: Optional[Unit] = None
 
         if isinstance(x, Value):
             self.units = x.units
@@ -163,12 +167,12 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
-    def _like_self_from_float(self, value: float) -> TValue:
+    def _like_self_from_float(self, value: float) -> TypeValue:
         new_value = self.__class__(value, units=self.units)
         new_value.__dict__.update(self.__dict__)
         return new_value
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Equality of two values, which may be in different units"""
 
         if other is None:
@@ -179,10 +183,10 @@ class Value(ABC, float):
 
         return abs(float(self) - float(other)) < 1e-8
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: Any) -> bool:
         """Less than comparison operator"""
 
         if isinstance(other, Value):
@@ -190,19 +194,19 @@ class Value(ABC, float):
 
         return float(self) < other
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: Any) -> bool:
         """Greater than comparison operator"""
         return not self.__lt__(other)
 
-    def __le__(self, other) -> bool:
+    def __le__(self, other: Any) -> bool:
         """Greater than or equal to comparison operator"""
         return self.__lt__(other) or self.__eq__(other)
 
-    def __ge__(self, other) -> bool:
+    def __ge__(self, other: Any) -> bool:
         """Less than or equal to comparison operator"""
         return self.__gt__(other) or self.__eq__(other)
 
-    def __add__(self, other) -> TValue:
+    def __add__(self, other: Any) -> TypeValue:
         """Add another value onto this one"""
         if isinstance(other, np.ndarray):
             return other + float(self)
@@ -211,7 +215,7 @@ class Value(ABC, float):
             float(self) + self._other_same_units(other)
         )
 
-    def __mul__(self, other) -> Union[float, TValue]:
+    def __mul__(self, other) -> Union[float, TypeValue]:
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
@@ -226,24 +230,24 @@ class Value(ABC, float):
             float(self) * self._other_same_units(other)
         )
 
-    def __rmul__(self, other) -> Union[float, TValue]:
+    def __rmul__(self, other) -> Union[float, TypeValue]:
         return self.__mul__(other)
 
-    def __radd__(self, other) -> TValue:
+    def __radd__(self, other) -> TypeValue:
         return self.__add__(other)
 
-    def __sub__(self, other) -> TValue:
+    def __sub__(self, other) -> TypeValue:
         return self.__add__(-other)
 
-    def __floordiv__(self, other) -> Union[float, TValue]:
+    def __floordiv__(self, other) -> Union[float, TypeValue]:
         x = float(self) // self._other_same_units(other)
         return x if isinstance(other, Value) else self._like_self_from_float(x)
 
-    def __truediv__(self, other) -> Union[float, TValue]:
+    def __truediv__(self, other) -> Union[float, TypeValue]:
         x = float(self) / self._other_same_units(other)
         return x if isinstance(other, Value) else self._like_self_from_float(x)
 
-    def __abs__(self) -> TValue:
+    def __abs__(self) -> TypeValue:
         """Absolute value"""
         return self if self > 0 else self * -1
 

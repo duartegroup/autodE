@@ -1,7 +1,7 @@
 import numpy as np
 import itertools as it
 
-from typing import Tuple, List, Type, TYPE_CHECKING
+from typing import Tuple, List, Type, Iterator, TYPE_CHECKING
 
 from autode.log import logger
 from autode.utils import hashable, ProcessPool
@@ -23,6 +23,7 @@ class RelaxedPESnD(ReactivePESnD):
         """
         Calculate the n-dimensional surface
         """
+        assert self._coordinates, "Coordinates must be set"
 
         for points in self._points_generator():
 
@@ -72,6 +73,7 @@ class RelaxedPESnD(ReactivePESnD):
         Returns:
             (autode.species.Species): Species
         """
+        assert self._species
 
         species = self._species.new_species(name=self._point_name(point))
         species.coordinates = self._closest_coordinates(point)
@@ -93,6 +95,7 @@ class RelaxedPESnD(ReactivePESnD):
             n_cores: Number of cores to use for the calculation, if left
                      unassigned then use self._n_cores
         """
+        assert self._keywords and self._method
 
         const_opt = Calculation(
             name=species.name,
@@ -104,14 +107,16 @@ class RelaxedPESnD(ReactivePESnD):
 
         try:
             species.optimise(method=self._method, calc=const_opt)
+            assert species.energy is not None
             return float(species.energy), np.array(species.coordinates)
 
-        except (CalculationException, ValueError, TypeError):
+        except (CalculationException, ValueError, TypeError, AssertionError):
             logger.error(f"Optimisation failed for: {species.name}")
             return np.nan, np.zeros(shape=(species.n_atoms, 3))
 
     def _default_keywords(self, method: "Method") -> "Keywords":
         """Default keywords"""
+        assert method.keywords.opt, "Method must have optimisation kwds"
         return method.keywords.opt
 
     def _closest_coordinates(self, point: Tuple) -> np.ndarray:
@@ -129,6 +134,8 @@ class RelaxedPESnD(ReactivePESnD):
         Returns:
             (np.ndarray): Coordinates. shape = (n_atoms, 3)
         """
+        assert self._coordinates, "Must have set coordinates"
+
         if point == self.origin:
             return self._coordinates[self.origin]
 
@@ -173,7 +180,7 @@ class RelaxedPESnD(ReactivePESnD):
 
         return {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
 
-    def _points_generator(self) -> List[Tuple]:
+    def _points_generator(self) -> Iterator[List[Tuple]]:
         """
         Yield points on this surface that sum to the same total, thus are
         close and should be calculated in a group, in parallel. This *should*
@@ -187,7 +194,7 @@ class RelaxedPESnD(ReactivePESnD):
 
         for i in range(0, sum(self.shape)):
 
-            points = []
+            points: List[tuple] = []
             while all_points:
 
                 # Next point is the next step in the grid

@@ -3,6 +3,7 @@ import autode.values as val
 from copy import deepcopy
 from datetime import date
 from typing import Optional, Union, List, Sequence, Any, TYPE_CHECKING
+
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode import methods
@@ -81,8 +82,8 @@ class Species(AtomCollection):
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()
-        self._grad = None
-        self._hess = None
+        self._grad: Optional[val.Gradient] = None
+        self._hess: Optional[Hessian] = None
 
         self._conformers = Conformers()
 

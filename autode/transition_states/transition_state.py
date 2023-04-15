@@ -1,4 +1,5 @@
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
 from autode.values import Frequency
 from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
@@ -15,13 +16,18 @@ from autode.mol_graphs import get_truncated_active_mol_graph
 from autode.utils import requires_atoms, requires_graph, ProcessPool
 
 
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.keywords import Keywords
+    from autode.wrappers.methods import Method
+    from autode.bond_rearrangement import BondRearrangement
+
+
 class TransitionState(TSbase):
     def __init__(
         self,
         ts_guess: TSbase,
-        bond_rearr: Optional[
-            "autode.bond_rearrangement.BondRearrangement"
-        ] = None,
+        bond_rearr: Optional["BondRearrangement"] = None,
     ):
         """
         Transition State
@@ -63,7 +69,7 @@ class TransitionState(TSbase):
         return super().__eq__(other)
 
     @requires_graph
-    def _update_graph(self):
+    def _update_graph(self) -> None:
         """Update the molecular graph to include all the bonds that are being
         made/broken"""
         if self.bond_rearrangement is None:
@@ -78,7 +84,7 @@ class TransitionState(TSbase):
         logger.info(f"Molecular graph updated with active bonds")
         return None
 
-    def _run_opt_ts_calc(self, method, name_ext):
+    def _run_opt_ts_calc(self, method: Method, name_ext: str) -> None:
         """Run an optts calculation and attempt to set the geometry, energy and
         normal modes"""
 
@@ -98,7 +104,7 @@ class TransitionState(TSbase):
         except CalculationException:
             logger.error("Transition state optimisation calculation failed")
 
-        return
+        return None
 
     def _reoptimise(
         self, calc: Calculation, name_ext: str, method: "Method"
@@ -131,7 +137,7 @@ class TransitionState(TSbase):
 
         return calc
 
-    def _generate_conformers(self, n_confs=None):
+    def _generate_conformers(self, n_confs: Optional[int] = None) -> None:
         """Generate conformers at the TS"""
         from autode.conformers.conf_gen import get_simanl_conformer
 
@@ -165,7 +171,9 @@ class TransitionState(TSbase):
         return self.frequencies[n:] if self.frequencies is not None else None
 
     @requires_atoms
-    def print_imag_vector(self, mode_number=6, name=None):
+    def print_imag_vector(
+        self, mode_number: int = 6, name: Optional[str] = None
+    ) -> None:
         """Print a .xyz file with multiple structures visualising the largest
         magnitude imaginary mode
 
@@ -197,11 +205,11 @@ class TransitionState(TSbase):
     @requires_atoms
     def optimise(
         self,
-        name_ext="optts",
-        method=None,
-        reset_graph=False,
-        calc=None,
-        keywords=None,
+        name_ext: str = "optts",
+        method: Optional[Method] = None,
+        reset_graph: bool = False,
+        calc: Optional[Calculation] = None,
+        keywords: Optional[Keywords] = None,
     ):
         """Optimise this TS to a true TS"""
         logger.info(f"Optimising {self.name} to a transition state")
@@ -315,7 +323,7 @@ class TransitionState(TSbase):
         return None
 
     @property
-    def is_true_ts(self):
+    def is_true_ts(self) -> bool:
         """Is this TS a 'true' TS i.e. has at least on imaginary mode in the
         hessian and is the correct mode"""
 
@@ -332,7 +340,7 @@ class TransitionState(TSbase):
 
         return False
 
-    def save_ts_template(self, folder_path=None):
+    def save_ts_template(self, folder_path: Optional[str] = None) -> None:
         """Save a transition state template containing the active bond lengths,
          solvent and charge in folder_path
 

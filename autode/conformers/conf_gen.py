@@ -2,15 +2,21 @@ import os
 import numpy as np
 import autode as ade
 from copy import deepcopy
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 from itertools import combinations
 from scipy.optimize import minimize
+
 from autode.conformers import Conformer
 import autode.exceptions as ex
 from autode.utils import log_time
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.mol_graphs import split_mol_across_bond
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.keywords import Keywords
+    from autode.wrappers.methods import Method
 
 
 def _get_bond_matrix(n_atoms, bonds, fixed_bonds):
@@ -488,7 +494,7 @@ def get_simanl_conformer(
     dist_consts: Optional[Dict] = None,
     conf_n: int = 0,
     save_xyz: bool = True,
-) -> "autode.conformers.Conformer":
+) -> "Conformer":
     """
     Generate a conformer of a species using randomise+relax with a simple FF
     (see get_simanl_atoms). Example

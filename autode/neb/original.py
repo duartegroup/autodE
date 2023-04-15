@@ -272,7 +272,7 @@ class Image(Species):
 
     @property
     def gradient(self) -> Optional[np.ndarray]:
-        return None if self._grad is None else self._grad.flatten()
+        return None if self._grad is None else self._grad.flatten()  # type: ignore
 
     @gradient.setter
     def gradient(self, value: Optional[np.ndarray]):
@@ -446,7 +446,7 @@ class NEB:
             )
 
             max_de = max(
-                abs(molecules[i].energy - molecules[i + 1].energy)
+                abs(molecules[i].energy - molecules[i + 1].energy)  # type: ignore
                 for i in range(len(molecules) - 1)
             )
 
@@ -464,12 +464,12 @@ class NEB:
         logger.info(
             f"Using k = {init_k:.6f} Ha Å^-1 as the NEB force constant"
         )
-        return cls.from_list(molecules, init_k=init_k)
+        return cls.from_list(molecules, init_k=ForceConstant(init_k))
 
     @classmethod
     def from_list(
         cls,
-        species_list: List[Species],
+        species_list: Sequence[Species],
         init_k: ForceConstant = ForceConstant(0.1, units="Ha / Å^2"),
     ) -> "NEB":
         """
@@ -646,7 +646,7 @@ class NEB:
         method: "Method",
         n_cores: int,
         name_prefix: str = "",
-        etol_per_image: PotentialEnergy = PotentialEnergy(
+        etol_per_image: Union[float, PotentialEnergy] = PotentialEnergy(
             0.6, units="kcal mol-1"
         ),
     ) -> None:
@@ -697,7 +697,11 @@ class NEB:
             logger.warning("Found no peaks in the NEB")
             return None
 
+        assert (
+            self.images.peak_idx is not None
+        ), "Must have a peak index with a peak"
         image = self.images[self.images.peak_idx]
+
         return image.new_species()
 
     def idpp_relax(self) -> None:

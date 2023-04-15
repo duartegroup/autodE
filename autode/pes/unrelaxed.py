@@ -1,11 +1,18 @@
 """Unrelaxed potential energy surfaces"""
 import numpy as np
-from typing import Tuple, Type
+from typing import Tuple, Type, TYPE_CHECKING
+
 from autode.pes.reactive import ReactivePESnD
 from autode.utils import hashable, ProcessPool
 from autode.log import logger
 from autode.mol_graphs import split_mol_across_bond
 from autode.exceptions import CalculationException
+
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.keywords import Keywords
+    from autode.wrappers.methods import Method
 
 
 class UnRelaxedPES1D(ReactivePESnD):
@@ -38,7 +45,7 @@ class UnRelaxedPES1D(ReactivePESnD):
         return None
 
     @property
-    def _default_keyword_type(self) -> Type["autode.wrappers.Keywords"]:
+    def _default_keyword_type(self) -> Type["Keywords"]:
         from autode.wrappers.keywords import SinglePointKeywords
 
         return SinglePointKeywords
@@ -54,6 +61,8 @@ class UnRelaxedPES1D(ReactivePESnD):
         Returns:
             (autode.species.species.Species): New species
         """
+        assert self._coordinates, "Must have set coordinates array"
+        assert self._species, "Must have a base species"
 
         species = self._species.new_species(name=self._point_name(point))
         i, j = self._rs[0].atom_idxs
@@ -84,6 +93,10 @@ class UnRelaxedPES1D(ReactivePESnD):
                 "for >1 dimension surfaces"
             )
 
+        assert (
+            self._species and self._species.graph
+        ), "Unrelaxed PES scan must have a species with a graph"
+
         atom_idxs = self._rs[0].atom_idxs
         if atom_idxs not in self._species.graph.edges:
             raise ValueError(
@@ -93,9 +106,7 @@ class UnRelaxedPES1D(ReactivePESnD):
 
         return None
 
-    def _default_keywords(
-        self, method: "autode.wrappers.ElectronicStructureMethod"
-    ) -> "autode.wrappers.Keywords":
+    def _default_keywords(self, method: "Method") -> "Keywords":
         """
         Default keywords for an unrelaxed scan that uses single point
         evaluations is
@@ -107,6 +118,7 @@ class UnRelaxedPES1D(ReactivePESnD):
         Returns:
             (autode.wrappers.keywords.Keywords):
         """
+        assert method.keywords.sp, "Must have single point energy kwds"
         return method.keywords.sp
 
     def _single_energy(self, species: "Species", n_cores: int) -> float:
@@ -127,9 +139,9 @@ class UnRelaxedPES1D(ReactivePESnD):
             species.single_point(
                 method=self._method, keywords=self._keywords, n_cores=n_cores
             )
-
+            assert species.energy is not None
             return float(species.energy)
 
-        except (CalculationException, ValueError, TypeError):
+        except (CalculationException, ValueError, TypeError, AssertionError):
             logger.error(f"Single point failed for: {species.name}")
             return np.nan

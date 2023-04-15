@@ -3,6 +3,8 @@ import numpy as np
 from scipy.spatial import distance_matrix
 from typing import TYPE_CHECKING
 
+from autode.values import PotentialEnergy
+
 if TYPE_CHECKING:
     from autode.neb.original import Image, Images
 
@@ -34,7 +36,7 @@ class IDPP:
 
         self._set_distance_matrices(images)
 
-    def __call__(self, image: "Image") -> float:
+    def __call__(self, image: "Image") -> PotentialEnergy:
         r"""
         Value of the IDPP objective function for a single image defined by,
 
@@ -55,7 +57,7 @@ class IDPP:
         r_k, r = self._req_distance_matrix(image), self._distance_matrix(image)
         w = self._weight_matrix(image)
 
-        return 0.5 * np.sum(w * (r_k - r) ** 2)
+        return PotentialEnergy(0.5 * np.sum(w * (r_k - r) ** 2))
 
     def grad(self, image: "Image") -> np.ndarray:
         r"""

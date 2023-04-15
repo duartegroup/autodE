@@ -1,6 +1,6 @@
 import os
 
-from typing import Collection, List, Optional, TYPE_CHECKING
+from typing import Collection, Sequence, Optional, TYPE_CHECKING
 
 from autode.atoms import Atom, Atoms
 from autode.exceptions import XYZfileDidNotExist
@@ -93,7 +93,7 @@ def atoms_to_xyz_file(
     return None
 
 
-def xyz_file_to_molecules(filename: str) -> List["Molecule"]:
+def xyz_file_to_molecules(filename: str) -> Sequence["Molecule"]:
     """
     From a .xyz file containing potentially more than a single molecule
     return a list of molecules from it.
