@@ -220,7 +220,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
         def step_size_constr(x):
             """step size must be <= trust radius"""
-            step_est = x - self._coords
+            step_est = x - coords
             # inequality constraint, should be > 0
             return self.alpha - np.linalg.norm(step_est)
 
@@ -304,13 +304,15 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         step_size = np.linalg.norm(x_interp - self._coords)
         angle_change = abs(theta_prime - theta)
         if (
-            angle_change > self._angle_thresh
-            and abs(theta) > self._angle_thresh
-        ) or (
-            theta < 0  # extrapolating instead of interpolating
-            and theta_prime < self._angle_thresh
-        ) or (
-            step_size > self.alpha  # larger than trust radius
+            (
+                angle_change > self._angle_thresh
+                and abs(theta) > self._angle_thresh
+            )
+            or (
+                theta < 0  # extrapolating instead of interpolating
+                and theta_prime < self._angle_thresh
+            )
+            or (step_size > self.alpha)  # larger than trust radius
         ):
             logger.info("Linear interpolation step is unstable, skipping")
             return self._coords, self._coords.g
