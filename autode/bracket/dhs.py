@@ -518,6 +518,7 @@ class DHS(BaseBracketMethod):
 
         # imgpair is only used for storing the points here
         self.imgpair = DHSImagePair(initial_species, final_species)
+
         # DHS needs to keep an extra reference to the calculation method
         self._method = None
 
@@ -542,93 +543,67 @@ class DHS(BaseBracketMethod):
         self.imgpair.update_one_img_mol_engrad("right")
         return None
 
+    def _step(self) -> None:
+        """
+        A DHS step consists of a macro-iteration step, where a step along
+        the linear path between two images is taken, and several micro-iteration
+        steps in the distance-constrained optimiser, to return to the MEP
+        """
+        if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
+            side = "left"
+            pivot = self.imgpair.right_coord
+        else:
+            side = "right"
+            pivot = self.imgpair.left_coord
+
+        # take a step on the side with lower energy
+        new_coord = self._get_dhs_step(side)
+
+        # calculate the number of remaining maxiter to feed into optimiser
+        curr_maxiter = self._maxiter - self._current_microiters
+        if curr_maxiter <= 0:
+            return None
+
+        opt = DistanceConstrainedOptimiser(
+            maxiter=curr_maxiter,
+            gtol=self._gtol,
+            etol=1.0e-3,  # seems like a reasonable etol
+            pivot_point=pivot,
+        )
+        tmp_spc = self._species.copy()
+        tmp_spc.coordinates = new_coord
+        opt.run(tmp_spc, self._method)
+        self._micro_iter = self._micro_iter + opt.iteration
+
+        # not converged can only happen if exceeded maxiter of optimiser
+        if not opt.converged:
+            logger.error(
+                "Micro-iterations (optimisation) after a"
+                " DHS step did not converge, exiting"
+            )
+            return None
+
+        logger.info(
+            "Successful optimization after DHS step, final RMS of "
+            f"tangential gradient = {opt.rms_tangent_grad:.6f} "
+            f"Ha/angstrom"
+        )
+
+        # put results back into imagepair
+        self.imgpair.put_coord_by_side(opt.final_coordinates, side)
+        return None
+
     def calculate(self, method: "Method", n_cores: int) -> None:
         """
-        Run the DHS calculation. Should only be called once!
+        Run the DHS calculation and CI-NEB if requested. Should only
+        be called once!
 
         Args:
             method : Method used for calculating energy/gradients
             n_cores: Number of cores to use for calculation
         """
-        self.imgpair.set_method_and_n_cores(method, n_cores)
-        self._initialise_run()
-
-        logger.info("Starting DHS method to find transition state")
-
-        while not self.converged:
-
-            if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
-                side = "left"
-                pivot = self.imgpair.right_coord
-            else:
-                side = "right"
-                pivot = self.imgpair.left_coord
-
-            # take a step on the side with lower energy
-            new_coord = self._get_dhs_step(side)
-
-            # calculate the number of remaining maxiter to feed into optimiser
-            curr_maxiter = self._maxiter - self._current_microiters
-            if curr_maxiter <= 0:
-                break
-
-            opt = DistanceConstrainedOptimiser(
-                maxiter=curr_maxiter,
-                gtol=self._gtol,
-                etol=1.0e-3,  # seems like a reasonable etol
-                pivot_point=pivot,
-            )
-            tmp_spc = self._species.copy()
-            tmp_spc.coordinates = new_coord
-            opt.run(tmp_spc, method)
-            self._micro_iter = self._micro_iter + opt.iteration
-
-            if not opt.converged:
-                logger.error(
-                    "Micro-iterations (optimisation) after a"
-                    " DHS step did not converge, exiting"
-                )
-                break
-
-            logger.info(
-                "Successful optimization after DHS step, final RMS of "
-                f"tangential gradient = {opt.rms_tangent_grad:.6f} "
-                f"Ha/angstrom"
-            )
-
-            # put results back into imagepair
-            self.imgpair.put_coord_by_side(opt.final_coordinates, side)
-
-            if self.imgpair.has_jumped_over_barrier():
-                logger.warning(
-                    "One image has jumped over the other image"
-                    " while running DHS optimisation. This"
-                    " indicates that the distance between images"
-                    " is quite close, so DHS cannot proceed even"
-                    " though the distance criteria is not met"
-                )
-                break
-
-            self._log_convergence()
-
-        # exited loop, print final message
-        logger.info(
-            f"Finished DHS procedure in {self._macro_iter} macro-"
-            f"iterations consisting of {self._micro_iter}"
-            f" micro-iterations (optimiser steps). DHS is "
-            f"{'converged' if self.converged else 'not converged'}"
-        )
-
-        return None
-
-    def _log_convergence(self) -> None:
-        logger.info(
-            f"Macro-iteration #{self._macro_iter}: Distance = "
-            f"{self.imgpair.dist:.4f}; Energy (initial species) = "
-            f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
-            f"{self.imgpair.right_coord.e:.6f}"
-        )
-        return None
+        self._method = method
+        super().calculate(method, n_cores)
 
     @property
     def _macro_iter(self):

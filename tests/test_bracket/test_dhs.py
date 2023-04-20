@@ -26,15 +26,38 @@ def test_distance_constrained_optimiser():
     # displace product coordinates towards reactant
     dist_vec = prod_coords - rct_coords
     prod_coords = prod_coords - 0.1 * dist_vec
-    new_distance = np.linalg.norm(prod_coords - rct_coords)
+    distance = np.linalg.norm(prod_coords - rct_coords)
     product.coordinates = prod_coords
 
     opt = DistanceConstrainedOptimiser(
         pivot_point=rct_coords,
+        maxiter=1,
+        init_trust=0.2,
+        gtol=1e-3,
+        etol=1e-4,
+    )
+    opt.run(product, method=XTB())
+    assert not opt.converged
+    prod_coords_new = opt.final_coordinates
+
+    # distance should not change
+    new_distance = np.linalg.norm(prod_coords_new - rct_coords)
+    assert np.isclose(new_distance, distance)
+    # step should be less than trust radius
+    step_size = np.linalg.norm(prod_coords_new - prod_coords)
+    assert np.isclose(step_size, 0.2)
+
+    opt = DistanceConstrainedOptimiser(
+        pivot_point=rct_coords,
+        maxiter=50,
+        gtol=1e-3,
+        etol=1e-4,
     )
     opt.run(product, method=XTB())
     assert opt.converged
-    # todo finish
+    prod_coords_new = opt.final_coordinates
+    new_distance = np.linalg.norm(prod_coords_new - rct_coords)
+    assert np.isclose(new_distance, distance)
 
 
 @requires_with_working_xtb_install

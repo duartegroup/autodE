@@ -594,7 +594,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         # jumping over is high (if there is only one barrier) below this.
         # (according to Kilmes et al., J. Phys.: Condens. Matter, 22 2010, 074203)
         # This is of course, somewhat arbitrary, and will not work if really
-        # large steps are being OR two barriers are very close in distance
+        # large steps are taken OR two barriers are very close in distance
 
         if self.dist <= Distance(1.0, "ang"):
             return True

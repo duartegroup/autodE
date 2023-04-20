@@ -25,6 +25,7 @@ class BaseBracketMethod(ABC):
         dist_tol: Union[Distance, float] = Distance(1.0, "ang"),
         gtol: Union[GradientRMS, float] = GradientRMS(1.0e-3, "ha/ang"),
         cineb_at_conv: bool = False,
+        barrier_check: bool = True,
     ):
         """
         Bracketing methods find transition state by using two images, one
@@ -42,10 +43,12 @@ class BaseBracketMethod(ABC):
             dist_tol: The distance tolerance at which the method will stop
             gtol: Gradient tolerance for optimisation steps in the method
             cineb_at_conv: Whether to run a CI-NEB with from the final points
+            barrier_check: Whether to check that one image has jumped over the
+                           barrier. Do not turn this off unless you are
+                           absolutely sure!
         """
-        self.imgpair: Optional[
-            "EuclideanImagePair"
-        ] = None  # must be set by subclass
+        # imgpair type must be set by subclass
+        self.imgpair: Optional["EuclideanImagePair"] = None
         self._species: "Species" = initial_species.copy()
 
         self._maxiter = int(maxiter)
@@ -53,6 +56,7 @@ class BaseBracketMethod(ABC):
         self._gtol = GradientRMS(gtol, units="Ha/ang")
 
         self._should_run_cineb = bool(cineb_at_conv)
+        self._barrier_check = bool(barrier_check)
 
     @property
     def ts_guess(self) -> Optional["Species"]:
@@ -93,6 +97,34 @@ class BaseBracketMethod(ABC):
         """Initialise the bracketing method run"""
 
     @abstractmethod
+    def _step(self) -> None:
+        """
+        One step of the bracket method, with one macro-iteration
+        and multiple micro-iterations. This must also set new
+        coordinates for the next step
+        """
+
+    def _log_convergence(self) -> None:
+        """
+        Log the convergence of the bracket method. Only logs macro-iters,
+        subclasses may implement further logging for micro-iters
+        """
+        logger.info(
+            f"Macro-iteration #{self._macro_iter}: Distance = "
+            f"{self.imgpair.dist:.4f}; Energy (initial species) = "
+            f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
+            f"{self.imgpair.right_coord.e:.6f}"
+        )
+
+    @property
+    def _exceeded_maximum_iteration(self) -> bool:
+        """Whether it has exceeded the number of maximum micro-iterations"""
+        if self._micro_iter >= self._maxiter:
+            return True
+        else:
+            return False
+
+    @abstractmethod
     def calculate(
         self,
         method: "Method",
@@ -100,9 +132,45 @@ class BaseBracketMethod(ABC):
     ) -> None:
         """
         Run the bracketing method calculation using the method for
-        energy/gradient calculation, with n_cores. Does not run
-        CI-NEB calculation
+        energy/gradient calculation, with n_cores. Runs CI-NEB at
+        the end if requested
         """
+        self.imgpair.set_method_and_n_cores(method, n_cores)
+        self._initialise_run()
+
+        logger.info(
+            f"Starting {self._method_name} method to find transition state"
+        )
+
+        while not self.converged:
+            self._step()
+
+            if self.imgpair.has_jumped_over_barrier():
+                logger.warning(
+                    "One image has probably jumped over the barrier, in"
+                    f" {self._method_name} TS search. Please check the"
+                    f" results carefully"
+                )
+                if self._barrier_check:
+                    break
+
+            if self._exceeded_maximum_iteration:
+                break
+
+            self._log_convergence()
+
+        # exited main loop, run CI-NEB if required and bracket converged
+        if self._should_run_cineb and self.converged:
+            self.run_cineb()
+
+        # print final message
+        logger.info(
+            f"Finished {self._method_name} procedure in {self._macro_iter} "
+            f"macro-iterations consisting of {self._micro_iter} micro-"
+            f"iterations (optimiser steps). {self._method_name} is "
+            f"{'converged' if self.converged else 'not converged'}"
+        )
+        return None
 
     def run(self) -> None:
         """
@@ -114,8 +182,6 @@ class BaseBracketMethod(ABC):
         method = get_hmethod()
         n_cores = Config.n_cores
         self.calculate(method=method, n_cores=n_cores)
-        if self._should_run_cineb:
-            self.run_cineb()
         self.write_trajectories()
         self.plot_energies()
         self.imgpair.ts_guess.print_xyz_file(
