@@ -440,7 +440,6 @@ class DHSImagePair(EuclideanImagePair):
         Args:
             side (str): 'left' or 'right'
         """
-        # todo is parallelisation worth it here?
         assert self._engrad_method is not None
         assert self._n_cores is not None
         img, coord, _ = self._get_img_by_side(side)
