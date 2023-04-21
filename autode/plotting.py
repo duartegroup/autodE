@@ -36,11 +36,11 @@ def plot_bracket_method_energy_profile(
 
     left_x = [point[0] for point in left_points]
     left_y = [point[1] for point in left_points]
-    ax.plot(left_x, left_y, "bo-")
+    ax.plot(left_x, left_y, "bo-", label="initial image")
 
     right_x = [point[0] for point in right_points]
     right_y = [point[1] for point in right_points]
-    ax.plot(right_x, right_y, "go-")
+    ax.plot(right_x, right_y, "go-", label="final image")
 
     # plot the CI-NEB point and join it to the ends
     if cineb_point is not None:
@@ -48,6 +48,7 @@ def plot_bracket_method_energy_profile(
             [left_x[-1], cineb_point[0], right_x[0]],
             [left_y[-1], cineb_point[1], right_y[0]],
             "ro-",
+            label="CI-NEB",
         )
 
     # the data should be in kcal/mol

@@ -43,9 +43,9 @@ class BaseBracketMethod(ABC):
             dist_tol: The distance tolerance at which the method will stop
             gtol: Gradient tolerance for optimisation steps in the method
             cineb_at_conv: Whether to run a CI-NEB with from the final points
-            barrier_check: Whether to check that one image has jumped over the
-                           barrier. Do not turn this off unless you are
-                           absolutely sure!
+            barrier_check: Whether to stop the calculation if one image is
+                           detected to have jumped over the barrier. Do not
+                           turn this off unless you are absolutely sure!
         """
         # imgpair type must be set by subclass
         self.imgpair: Optional["EuclideanImagePair"] = None

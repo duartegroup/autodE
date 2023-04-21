@@ -92,6 +92,47 @@ def test_distance_constrained_optimiser():
 
 @requires_with_working_xtb_install
 @work_in(datadir)
+def test_dhs_single_step():
+    step_size = 0.2
+    reactant = Molecule("da_reactant.xyz")
+    product = Molecule("da_product.xyz")
+
+    dhs = DHS(
+        initial_species=reactant,
+        final_species=product,
+        maxiter=2000,
+        step_size=step_size,
+        dist_tol=1.0,
+    )
+
+    dhs.imgpair.set_method_and_n_cores(engrad_method=XTB(), n_cores=1)
+    dhs._method = XTB()
+    dhs._initialise_run()
+
+    imgpair = dhs.imgpair
+    assert imgpair.left_coord.e is not None
+    assert imgpair.right_coord.e is not None
+    old_dist = imgpair.dist
+    if imgpair.left_coord.e < imgpair.right_coord.e:
+        lower_img = "left"
+    else:
+        lower_img = "right"
+    # take a single step
+    dhs._step()
+    # step should be on lower energy image
+    if lower_img == "left":
+        assert len(imgpair._right_history) == 1
+        assert len(imgpair._left_history) == 2
+    else:
+        assert len(imgpair._left_history) == 1
+        assert len(imgpair._right_history) == 2
+    new_dist = imgpair.dist
+    # image should move exactly by step_size
+    assert new_dist - old_dist == step_size
+
+
+@requires_with_working_xtb_install
+@work_in(datadir)
 def test_dhs_diels_alder():
     set_dist_tol = 1.0  # angstrom
 
