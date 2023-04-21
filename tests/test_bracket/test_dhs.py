@@ -1,11 +1,15 @@
 import os
 import numpy as np
-
+from scipy.optimize import minimize
 from autode import Molecule
 from autode.methods import XTB
-from autode.utils import work_in
+from autode.utils import work_in, work_in_tmp_dir
 from autode.geom import calc_rmsd
-from autode.bracket.dhs import DHS, DistanceConstrainedOptimiser
+from autode.bracket.dhs import (
+    DHS,
+    DistanceConstrainedOptimiser,
+    TruncatedTaylor,
+)
 from autode.opt.coordinates import CartesianCoordinates
 from autode import Config
 from ..testutils import requires_with_working_xtb_install
@@ -13,6 +17,32 @@ from ..testutils import requires_with_working_xtb_install
 here = os.path.dirname(os.path.abspath(__file__))
 datadir = os.path.join(here, "data")
 # todo replace with zip later
+
+
+@requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_truncated_taylor_surface():
+    mol = Molecule(smiles="CCO")
+    mol.calc_hessian(method=XTB())
+    coords = CartesianCoordinates(mol.coordinates)
+    coords.update_g_from_cart_g(mol.gradient)
+    coords.update_h_from_cart_h(mol.hessian)
+    coords.make_hessian_positive_definite()
+
+    # for positive definite hessian, minimum of taylor surface would
+    # be a simple Newton step
+    minim = coords - (np.linalg.inv(coords.h) @ coords.g)
+
+    # minimizing surface should give the same result
+    surface = TruncatedTaylor(coords, coords.g, coords.h)
+    res = minimize(
+        fun=surface.value,
+        x0=np.array(coords),
+        jac=surface.gradient,
+    )
+
+    assert res.success
+    assert np.allclose(res.x, minim, rtol=1e-4)
 
 
 @requires_with_working_xtb_install
@@ -67,7 +97,7 @@ def test_dhs_diels_alder():
 
     reactant = Molecule("da_reactant.xyz")
     product = Molecule("da_product.xyz")
-    # optimized with ORCA using xTB method
+    # TS optimized with ORCA using xTB method
     true_ts = Molecule("da_ts_orca_xtb.xyz")
 
     dhs = DHS(
