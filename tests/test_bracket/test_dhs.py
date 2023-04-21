@@ -128,7 +128,7 @@ def test_dhs_single_step():
         assert len(imgpair._right_history) == 2
     new_dist = imgpair.dist
     # image should move exactly by step_size
-    assert new_dist - old_dist == step_size
+    assert np.isclose(new_dist - old_dist, step_size)
 
 
 @requires_with_working_xtb_install
