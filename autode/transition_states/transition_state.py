@@ -72,6 +72,8 @@ class TransitionState(TSbase):
     def _update_graph(self) -> None:
         """Update the molecular graph to include all the bonds that are being
         made/broken"""
+        assert self.graph is not None, "Must have a MolecularGraph"
+
         if self.bond_rearrangement is None:
             logger.warning(
                 "Bond rearrangement not set - molecular graph "
@@ -84,10 +86,10 @@ class TransitionState(TSbase):
         logger.info(f"Molecular graph updated with active bonds")
         return None
 
-    def _run_opt_ts_calc(self, method: Method, name_ext: str) -> None:
+    def _run_opt_ts_calc(self, method: "Method", name_ext: str) -> None:
         """Run an optts calculation and attempt to set the geometry, energy and
         normal modes"""
-
+        assert method.keywords.opt_ts is not None, "Must have OptTS keywords"
         optts_calc = Calculation(
             name=f"{self.name}_{name_ext}",
             molecule=self,
@@ -126,6 +128,8 @@ class TransitionState(TSbase):
             "more  optimisation steps"
         )
 
+        assert method.keywords.opt_ts is not None, "Must have OptTS keywords"
+
         calc = Calculation(
             name=f"{self.name}_{name_ext}_reopt",
             molecule=self,
@@ -142,9 +146,8 @@ class TransitionState(TSbase):
         from autode.conformers.conf_gen import get_simanl_conformer
 
         n_confs = Config.num_conformers if n_confs is None else n_confs
-        self.conformers = []
-
         distance_consts = self.active_bond_constraints
+        self.conformers.clear()
 
         with ProcessPool(max_workers=Config.n_cores) as pool:
             results = [
@@ -152,7 +155,7 @@ class TransitionState(TSbase):
                 for i in range(n_confs)
             ]
 
-            self.conformers = [res.result() for res in results]
+            self.conformers = [res.result() for res in results]  # type: ignore
 
         self.conformers.prune(e_tol=1e-6)
         return None
@@ -206,10 +209,10 @@ class TransitionState(TSbase):
     def optimise(
         self,
         name_ext: str = "optts",
-        method: Optional[Method] = None,
+        method: Optional["Method"] = None,
         reset_graph: bool = False,
         calc: Optional[Calculation] = None,
-        keywords: Optional[Keywords] = None,
+        keywords: Optional["Keywords"] = None,
     ):
         """Optimise this TS to a true TS"""
         logger.info(f"Optimising {self.name} to a transition state")
@@ -225,6 +228,7 @@ class TransitionState(TSbase):
             )
             return
 
+        assert self.imaginary_frequencies is not None
         if len(self.imaginary_frequencies) == 1:
             logger.info("Found a TS with a single imaginary frequency")
             return
@@ -243,7 +247,7 @@ class TransitionState(TSbase):
                 "Displacing along second imaginary mode to try and " "remove"
             )
 
-            disp_ts = self.copy()
+            disp_ts: TransitionState = self.copy()
             disp_ts.atoms = displaced_species_along_mode(
                 self, mode_number=7, disp_factor=disp_magnitude
             ).atoms
@@ -253,7 +257,7 @@ class TransitionState(TSbase):
             )
 
             if (
-                self.has_imaginary_frequencies
+                self.imaginary_frequencies is not None
                 and len(self.imaginary_frequencies) == 1
             ):
                 logger.info(
@@ -269,7 +273,9 @@ class TransitionState(TSbase):
 
         return None
 
-    def find_lowest_energy_ts_conformer(self, rmsd_threshold=None):
+    def find_lowest_energy_ts_conformer(
+        self, rmsd_threshold: Optional[float] = None
+    ):
         """Find the lowest energy transition state conformer by performing
         constrained optimisations"""
         logger.info("Finding lowest energy TS conformer")

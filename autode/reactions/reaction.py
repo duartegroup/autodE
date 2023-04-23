@@ -592,14 +592,16 @@ class Reaction:
         logger.info("Swapping reactants and products")
 
         self.prods, self.reacs = self.reacs, self.prods
-        assert self._reactant_complex, "Must have defined reactant complex"
-        assert self._product_complex, "Must have defined product complex"
 
-        product, reactant = (
-            self._reactant_complex.to_product_complex(),
-            self._product_complex.to_reactant_complex(),
-        )
-        self._product_complex, self._reactant_complex = product, reactant
+        if (
+            self._reactant_complex is not None
+            and self._product_complex is not None
+        ):
+            product, reactant = (
+                self._reactant_complex.to_product_complex(),
+                self._product_complex.to_reactant_complex(),
+            )
+            self._product_complex, self._reactant_complex = product, reactant
         return None
 
     @checkpoint_rxn_profile_step("reactant_product_conformers")

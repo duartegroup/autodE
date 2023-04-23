@@ -10,6 +10,7 @@ from typing import (
     Tuple,
     Optional,
     Dict,
+    List,
     Union,
     Sequence,
     TYPE_CHECKING,
@@ -58,7 +59,7 @@ class ReactivePESnD(PESnD, ABC):
         self,
         product: Optional["Species"] = None,
         min_separation: Distance = Distance(0.5, units="Å"),
-    ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
+    ) -> Iterator["TSguess"]:
         """
         Generate TS guesses from the saddle points in the energy on this
         surface. Only those that are seperated by at least min_separation will
@@ -94,7 +95,10 @@ class ReactivePESnD(PESnD, ABC):
 
             return StopIteration
 
-        yielded_p = []
+        assert self._coordinates is not None, "Must have set coordinates"
+        assert self._species is not None, "Must have set species"
+
+        yielded_p: List[tuple] = []
 
         for idx, point in enumerate(self._sorted_saddle_points()):
 
@@ -160,7 +164,6 @@ class ReactivePESnD(PESnD, ABC):
             (tuple(int)): Indices of a saddle point
         """
         for point in self._stationary_points():
-
             self._set_hessian(point)
 
             if self._is_saddle_point(point, threshold=threshold):
@@ -195,6 +198,9 @@ class ReactivePESnD(PESnD, ABC):
         Returns:
             (StopIteration): If there are no suitable TS guesses
         """
+        assert self._coordinates is not None, "Must have set coordinates"
+        assert self._species is not None, "Must have set species"
+
         reactant = self._species
 
         if reactant.graph is None or product.graph is None:
@@ -236,6 +242,9 @@ class ReactivePESnD(PESnD, ABC):
         Returns:
             (tuple(int, ..) | None):
         """
+        assert self._coordinates is not None, "Must have set coordinates"
+        assert self._species is not None, "Must have set species"
+
         isomorphic_points = []
 
         for point in self._points():

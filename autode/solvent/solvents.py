@@ -9,6 +9,8 @@ from autode.exceptions import SolventNotFound
 
 if TYPE_CHECKING:
     from autode.solvent.explicit_solvent import ExplicitSolvent
+    from autode.species.species import Species
+    from autode.atoms import Atoms
 
 
 def get_solvent(
@@ -125,6 +127,11 @@ class Solvent(ABC):
         return deepcopy(self)
 
     @property
+    @abstractmethod
+    def atoms(self) -> Optional["Atoms"]:
+        """Atoms in this solvent"""
+
+    @property
     def dielectric(self) -> Optional[float]:
         """
         Dielectric constant (ε) of this solvent. Used in implicit solvent
@@ -151,6 +158,12 @@ class Solvent(ABC):
     def is_explicit(self) -> bool:
         """Is this solvent explicit i.e. has atoms in space"""
         return not self.is_implicit
+
+    def randomise_around(self, solute: "Species") -> None:
+        raise RuntimeError("Method may implemented in subclass")
+
+    def to_explicit(self, num: int) -> "ExplicitSolvent":
+        raise RuntimeError("Method may implemented in subclass")
 
 
 class ImplicitSolvent(Solvent):
@@ -199,6 +212,11 @@ class ImplicitSolvent(Solvent):
         return ExplicitSolvent(
             solvent=solvent_mol, num=num, solute=None, aliases=self.aliases
         )
+
+    @property
+    def atoms(self) -> Optional["Atoms"]:
+        logger.warning("Impleicit solvent have no atoms")
+        return None
 
 
 solvents = [

@@ -58,17 +58,15 @@ class KeywordsSet:
              optts_block: String as extra input for a TS optimisation
         """
 
-        self._low_opt: Optional[OptKeywords] = OptKeywords(low_opt)
-        self._opt: Optional[OptKeywords] = OptKeywords(opt)
-        self._opt_ts: Optional[OptTSKeywords] = OptTSKeywords(opt_ts)
+        self._low_opt: OptKeywords = OptKeywords(low_opt)
+        self._opt: OptKeywords = OptKeywords(opt)
+        self._opt_ts: OptTSKeywords = OptTSKeywords(opt_ts)
 
-        self._grad: Optional[GradientKeywords] = GradientKeywords(grad)
-        self._hess: Optional[HessianKeywords] = HessianKeywords(hess)
+        self._grad: GradientKeywords = GradientKeywords(grad)
+        self._hess: HessianKeywords = HessianKeywords(hess)
 
-        self._low_sp: Optional[SinglePointKeywords] = SinglePointKeywords(
-            low_sp
-        )
-        self._sp: Optional[SinglePointKeywords] = SinglePointKeywords(sp)
+        self._low_sp: SinglePointKeywords = SinglePointKeywords(low_sp)
+        self._sp: SinglePointKeywords = SinglePointKeywords(sp)
 
         if ecp is not None:
             self.set_ecp(ecp)
@@ -85,7 +83,7 @@ class KeywordsSet:
         return isinstance(other, KeywordsSet) and self._list == other._list
 
     @property
-    def low_opt(self) -> Optional["OptKeywords"]:
+    def low_opt(self) -> "OptKeywords":
         return self._low_opt
 
     @low_opt.setter
@@ -93,7 +91,7 @@ class KeywordsSet:
         self._low_opt = OptKeywords(value)
 
     @property
-    def opt(self) -> Optional["OptKeywords"]:
+    def opt(self) -> "OptKeywords":
         return self._opt
 
     @opt.setter
@@ -101,7 +99,7 @@ class KeywordsSet:
         self._opt = OptKeywords(value)
 
     @property
-    def opt_ts(self) -> Optional["OptTSKeywords"]:
+    def opt_ts(self) -> "OptTSKeywords":
         return self._opt_ts
 
     @opt_ts.setter
@@ -109,7 +107,7 @@ class KeywordsSet:
         self._opt_ts = OptTSKeywords(value)
 
     @property
-    def grad(self) -> Optional["GradientKeywords"]:
+    def grad(self) -> "GradientKeywords":
         return self._grad
 
     @grad.setter
@@ -117,7 +115,7 @@ class KeywordsSet:
         self._grad = GradientKeywords(value)
 
     @property
-    def hess(self) -> Optional["HessianKeywords"]:
+    def hess(self) -> "HessianKeywords":
         return self._hess
 
     @hess.setter
@@ -125,15 +123,15 @@ class KeywordsSet:
         self._hess = HessianKeywords(value)
 
     @property
-    def low_sp(self) -> Optional["SinglePointKeywords"]:
+    def low_sp(self) -> "SinglePointKeywords":
         return self._low_sp
 
     @low_sp.setter
     def low_sp(self, value: Optional[Sequence[str]]):
-        self._low_sp = value if value is None else SinglePointKeywords(value)
+        self._low_sp = SinglePointKeywords(value)
 
     @property
-    def sp(self) -> Optional["SinglePointKeywords"]:
+    def sp(self) -> "SinglePointKeywords":
         return self._sp
 
     @sp.setter

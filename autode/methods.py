@@ -25,9 +25,7 @@ high_level_method_names = ["orca", "g09", "g16", "nwchem", "qchem"]
 low_level_method_names = ["xtb", "mopac"]
 
 
-def method_or_default_lmethod(
-    method: Optional["Method"],
-):
+def method_or_default_lmethod(method: Optional["Method"]) -> "Method":
     """
     Return a method if one is defined but default to a low-level method if
     if it is None.
@@ -46,9 +44,7 @@ def method_or_default_lmethod(
     return method
 
 
-def method_or_default_hmethod(
-    method: Optional["Method"],
-):
+def method_or_default_hmethod(method: Optional["Method"]) -> "Method":
     """
     Return a method if one is defined but default to a high-level method if
     if it is None.

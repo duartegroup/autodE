@@ -271,6 +271,11 @@ class TSguess(TSbase):
             method = get_hmethod()
         if keywords is None:
             keywords = method.keywords.opt
+            assert (
+                keywords is not None
+            ), "Keywords must be defined to do an opt"
+
+        assert self.constraints.distance, "Must have some distance constraints"
 
         hl_const_opt = Calculation(
             name=f"{name}_constrained_opt",

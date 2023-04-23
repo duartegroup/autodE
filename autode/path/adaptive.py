@@ -200,7 +200,6 @@ class AdaptivePath(Path):
         """
 
         idx = len(self) - 1
-        assert self.method.keywords.low_opt, "Method must have low opt kwds"
         keywords: "OptKeywords" = self.method.keywords.low_opt.copy()
         keywords.max_opt_cycles = 50
 

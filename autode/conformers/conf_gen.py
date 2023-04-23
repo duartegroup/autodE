@@ -427,12 +427,12 @@ def get_simanl_atoms(
     # Add distance constraints across stereocentres e.g. for a Z double bond
     # then modify d0 appropriately
     curr_dist_consts = {} if dist_consts is None else dist_consts
-    dist_consts = _add_dist_consts_for_stereocentres(
+    distance_constraints = _add_dist_consts_for_stereocentres(
         species=species, dist_consts=curr_dist_consts
     )
 
     constrained_bonds = []
-    for bond, length in dist_consts.items():
+    for bond, length in distance_constraints.items():
         i, j = bond
         d0[i, j] = length
         d0[j, i] = length

@@ -625,7 +625,7 @@ class NEB:
         for i in range(1, n - 1):
 
             # Use a copy of the starting point for atoms, charge etc.
-            species = initial.copy()
+            species: Species = initial.copy()
 
             # For all the atoms in the species translate an amount so the
             # spacing is even between the initial and final points

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from autode.wrappers.keywords.keywords import Keywords
 
 TypeValue = TypeVar("TypeValue", bound="Value")
+TypeEnergy = TypeVar("TypeEnergy", bound="Energy")
 
 
 def _to(
@@ -417,7 +418,7 @@ class Energies(list):
         return super().append(other)
 
     @staticmethod
-    def _next(energies, energy_type):
+    def _next(energies: Any, energy_type: Type):
         """Next type of energy in a list of energies"""
         try:
             return next(
@@ -429,7 +430,7 @@ class Energies(list):
         except StopIteration:
             return None
 
-    def last(self, energy_type: Type[Energy]) -> Optional[Energy]:
+    def last(self, energy_type: Type[Energy]) -> Optional[TypeEnergy]:
         """
         Return the last instance of a particular energy type in these list
         of energies
@@ -443,7 +444,7 @@ class Energies(list):
         """
         return self._next(reversed(self), energy_type=energy_type)
 
-    def first(self, energy_type: Type[Energy]) -> Optional[Energy]:
+    def first(self, energy_type: Type[Energy]) -> Optional[TypeEnergy]:
         """
         Return the last instance of a particular energy type in these list
         of energies
