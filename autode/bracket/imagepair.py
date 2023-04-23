@@ -96,14 +96,6 @@ def _calculate_hessian_for_species(
     return species.hessian
 
 
-def _remove_file_with_warning(filename: str) -> None:
-    """Removes a file if it is present, and warns the user"""
-    if os.path.isfile(filename):
-        logger.warning(f"{filename} exists, overwriting...")
-        os.remove(filename)
-    return None
-
-
 class ImgPairSideError(ValueError):
     """
     Error if side is neither 'left' nor 'right', used only for internal
@@ -426,35 +418,15 @@ class BaseImagePair(ABC):
             logger.warning("Cannot write trajectory, not enough points")
             return None
 
-        _remove_file_with_warning(init_trj_filename)
-        self._print_trj_from_history(self._left_history, init_trj_filename)
-
-        _remove_file_with_warning(final_trj_filename)
-        self._print_trj_from_history(self._right_history, final_trj_filename)
-
-        _remove_file_with_warning(total_trj_filename)
-        self._print_trj_from_history(self._total_history, total_trj_filename)
-
-        return None
-
-    def _print_trj_from_history(
-        self,
-        history: OptimiserHistory,
-        filename: str,
-    ) -> None:
-        """
-        Convenience function to write an *.xyz trajectory from a
-        coordinate history, using the Species
-
-        Args:
-            history (_OptimiserHistory): History of coordinate objects
-            filename (str): Name of the file to store the coordinates
-        """
-        tmp_spc = self._left_image.copy()
-        for coord in history:
-            tmp_spc.coordinates = coord
-            tmp_spc.energy = coord.e
-            tmp_spc.print_xyz_file(filename=filename, append=True)
+        self._left_history.print_geometries(
+            species=self._left_image, filename=init_trj_filename
+        )
+        self._right_history.print_geometries(
+            species=self._right_image, filename=final_trj_filename
+        )
+        self._total_history.print_geometries(
+            species=self._left_image, filename=total_trj_filename
+        )
 
         return None
 

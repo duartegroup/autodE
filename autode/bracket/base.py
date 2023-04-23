@@ -182,14 +182,14 @@ class BaseBracketMethod(ABC):
         method = get_hmethod()
         n_cores = Config.n_cores
         self.calculate(method=method, n_cores=n_cores)
-        self.write_trajectories()
+        self.print_geometries()
         self.plot_energies()
         self.imgpair.ts_guess.print_xyz_file(
             f"{self._method_name}_ts_guess.xyz"
         )
         return None
 
-    def write_trajectories(
+    def print_geometries(
         self,
         init_trj_filename: Optional[str] = None,
         final_trj_filename: Optional[str] = None,
