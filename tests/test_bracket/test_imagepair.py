@@ -14,7 +14,7 @@ datazip = os.path.join(here, "data", "geometries.zip")
 
 
 class NullImagePair(EuclideanImagePair):
-    """Use for testing"""
+    """Used for testing"""
 
     @property
     def ts_guess(self):
