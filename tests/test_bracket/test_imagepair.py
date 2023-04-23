@@ -7,14 +7,13 @@ from autode.geom import calc_rmsd
 from autode.values import Energy
 from autode.utils import work_in, work_in_tmp_dir
 from autode.bracket.imagepair import EuclideanImagePair
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
-datadir = os.path.join(here, "data")
-# todo replace with zip when done
+datazip = os.path.join(here, "data", "geometries.zip")
 
 
-class TestImagePair(EuclideanImagePair):
+class NullImagePair(EuclideanImagePair):
     """Use for testing"""
 
     @property
@@ -22,12 +21,12 @@ class TestImagePair(EuclideanImagePair):
         return None
 
 
-@work_in(datadir)
+@work_in_zipped_dir(datazip)
 def test_imgpair_alignment():
     # with same molecule, alignment should produce same coordinates
     mol1 = Molecule("da_reactant.xyz")
     mol2 = Molecule("da_reactant_rotated.xyz")
-    imgpair = TestImagePair(mol1, mol2)
+    imgpair = NullImagePair(mol1, mol2)
 
     # alignment happens on init
     new_mol1, new_mol2 = imgpair._left_image, imgpair._right_image
@@ -42,7 +41,7 @@ def test_imgpair_alignment():
     assert abs(bond_new - bond_orig) < 0.001
 
 
-@work_in(datadir)
+@work_in_zipped_dir(datazip)
 def test_imgpair_sanity_check():
     mol1 = Molecule("da_reactant.xyz")
     mol2 = Molecule("da_reactant_rotated.xyz")
@@ -51,36 +50,36 @@ def test_imgpair_sanity_check():
 
     # different mol would raise Error
     with pytest.raises(ValueError, match="same number of atoms"):
-        _ = TestImagePair(mol1, mol3)
+        _ = NullImagePair(mol1, mol3)
 
     # different charge would raise Error
     mol1.charge = -2
     with pytest.raises(ValueError, match="Charge/multiplicity/solvent"):
-        _ = TestImagePair(mol1, mol2)
+        _ = NullImagePair(mol1, mol2)
     mol1.charge = 0
 
     # different multiplicity would also raise Error
     mol1.mult = 3
     with pytest.raises(ValueError, match="Charge/multiplicity/solvent"):
-        _ = TestImagePair(mol1, mol2)
+        _ = NullImagePair(mol1, mol2)
     mol1.mult = 1
 
     # different solvents would raise
     mol1.solvent = "water"
     with pytest.raises(ValueError, match="Charge/multiplicity/solvent"):
-        _ = TestImagePair(mol1, mol2)
+        _ = NullImagePair(mol1, mol2)
     mol1.solvent = None
 
     # different atom order should also raise Error
     with pytest.raises(ValueError, match="order of atoms"):
-        _ = TestImagePair(mol1, mol4)
+        _ = NullImagePair(mol1, mol4)
 
 
-@work_in(datadir)
+@work_in_zipped_dir(datazip)
 def test_imgpair_distance():
     mol1 = Molecule("da_reactant.xyz")
     mol2 = Molecule("da_product.xyz")
-    imgpair = TestImagePair(mol1, mol2)
+    imgpair = NullImagePair(mol1, mol2)
     rmsd = calc_rmsd(mol1.coordinates, mol2.coordinates)
     dist = rmsd * np.sqrt(mol1.n_atoms * 3)
     assert np.isclose(dist, imgpair.dist, rtol=1e-8)
@@ -90,7 +89,7 @@ def test_imgpair_distance():
 def test_energy_plotting_and_trajectory_ignored_if_less_than_three_points():
     mol1 = Molecule(smiles="CCO")
     mol2 = Molecule(smiles="CCO")
-    imgpair = TestImagePair(mol1, mol2)
+    imgpair = NullImagePair(mol1, mol2)
 
     # file should not be written with only two points
     imgpair.plot_energies(filename="test.pdf", distance_metric="relative")
@@ -107,7 +106,7 @@ def test_imgpair_energy_plotting():
     mol1 = Molecule(smiles="CCO")
     mol2 = Molecule(smiles="CCO")
 
-    imgpair = TestImagePair(mol1, mol2)
+    imgpair = NullImagePair(mol1, mol2)
     imgpair.left_coord.e = Energy(-3.14)
     imgpair.right_coord.e = Energy(-2.87)
     # spoof new coordinates
@@ -133,7 +132,7 @@ def test_imgpair_trajectory_plotting():
     mol1 = Molecule(smiles="CCO")
     mol2 = Molecule(smiles="CCO")
 
-    imgpair = TestImagePair(mol1, mol2)
+    imgpair = NullImagePair(mol1, mol2)
     imgpair.left_coord = imgpair.left_coord * 0.99
     imgpair.right_coord = imgpair.right_coord * 0.99
     imgpair._cineb_coords = imgpair.left_coord * 0.99

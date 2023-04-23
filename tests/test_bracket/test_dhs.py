@@ -3,7 +3,7 @@ import numpy as np
 from scipy.optimize import minimize
 from autode import Molecule
 from autode.methods import XTB
-from autode.utils import work_in, work_in_tmp_dir
+from autode.utils import work_in_tmp_dir
 from autode.geom import calc_rmsd
 from autode.bracket.dhs import (
     DHS,
@@ -13,10 +13,10 @@ from autode.bracket.dhs import (
 )
 from autode.opt.coordinates import CartesianCoordinates
 from autode import Config
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import requires_with_working_xtb_install, work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
-datadir = os.path.join(here, "data")
+datazip = os.path.join(here, "data", "geometries.zip")
 # todo replace with zip later
 
 
@@ -47,7 +47,7 @@ def test_truncated_taylor_surface():
 
 
 @requires_with_working_xtb_install
-@work_in(datadir)
+@work_in_zipped_dir(datazip)
 def test_distance_constrained_optimiser():
     reactant = Molecule("da_reactant.xyz")
     product = Molecule("da_product.xyz")
@@ -92,7 +92,7 @@ def test_distance_constrained_optimiser():
 
 
 @requires_with_working_xtb_install
-@work_in(datadir)
+@work_in_zipped_dir(datazip)
 def test_dhs_dhs_gs_single_step():
     step_size = 0.2
     reactant = Molecule("da_reactant.xyz")
@@ -127,7 +127,7 @@ def test_dhs_dhs_gs_single_step():
 
 
 @requires_with_working_xtb_install
-@work_in(datadir)
+@work_in_zipped_dir(datazip)
 def test_dhs_gs_single_step():
     step_size = 0.2
     reactant = Molecule("da_reactant.xyz")
@@ -164,7 +164,7 @@ def test_dhs_gs_single_step():
 
 
 @requires_with_working_xtb_install
-@work_in(datadir)
+@work_in_zipped_dir(datazip)
 def test_dhs_diels_alder():
     set_dist_tol = 1.0  # angstrom
 
