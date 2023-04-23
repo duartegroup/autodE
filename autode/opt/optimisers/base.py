@@ -822,12 +822,12 @@ class NDOptimiser(Optimiser, ABC):
             filename (str|None): Name of the trajectory file (xyz),
                                  if not given, generates name from species
         """
+        assert self._species is not None
         if self.iteration < 1:
             logger.warning(
                 "Optimiser did no steps, not saving .xyz trajectory"
             )
             return None
-        assert self._species is not None
 
         filename = (
             f"{self._species.name}_opt.trj.xyz"

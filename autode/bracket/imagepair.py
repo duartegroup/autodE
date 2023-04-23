@@ -2,98 +2,22 @@
 Base classes for implementing all bracketing methods
 that require a pair of images
 """
-import os
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 import numpy as np
 
-from autode.values import PotentialEnergy, Gradient, Distance
-from autode.hessians import Hessian
+from autode.values import Distance
 from autode.geom import get_rot_mat_kabsch
 from autode.neb import CINEB
 from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import OptimiserHistory
-from autode.utils import work_in_tmp_dir, ProcessPool
-from autode.exceptions import CalculationException
 from autode.plotting import plot_bracket_method_energy_profile
 from autode.log import logger
 
 if TYPE_CHECKING:
     from autode.species import Species
     from autode.wrappers.methods import Method
-
-
-def _calculate_engrad_for_species(
-    species: "Species",
-    method: "Method",
-    n_cores: int,
-) -> Tuple[PotentialEnergy, Gradient]:
-    from autode.calculations import Calculation
-
-    engrad_calc = Calculation(
-        name=f"{species.name}_engrad",
-        molecule=species,
-        method=method,
-        keywords=method.keywords.grad,
-        n_cores=n_cores,
-    )
-    engrad_calc.run()
-    engrad_calc.clean_up(force=True, everything=True)
-    if species.energy is None or species.gradient is None:
-        raise CalculationException("Energy/gradient calculation failed")
-
-    return species.energy, species.gradient
-
-
-def _calculate_energy_for_species(
-    species: "Species",
-    method: "Method",
-    n_cores: int,
-) -> PotentialEnergy:
-    from autode.calculations import Calculation
-
-    sp_calc = Calculation(
-        name=f"{species.name}_sp",
-        molecule=species,
-        method=method,
-        keywords=method.keywords.sp,
-        n_cores=n_cores,
-    )
-    sp_calc.run()
-    sp_calc.clean_up(force=True, everything=True)
-    if species.energy is None:
-        raise CalculationException("Energy calculation failed")
-
-    return species.energy
-
-
-@work_in_tmp_dir()
-def _calculate_hessian_for_species(
-    species: "Species",
-    method: "Method",
-    n_cores: int,
-) -> Hessian:
-    """
-    Convenience function for calculating the Hessian for a
-    molecule; removes all input and output files for the
-    calculation
-    """
-    from autode.calculations import Calculation
-
-    hess_calc = Calculation(
-        name=f"{species.name}_hess",
-        molecule=species,
-        method=method,
-        keywords=method.keywords.hess,
-        n_cores=n_cores,
-    )
-    hess_calc.run()
-    hess_calc.clean_up(force=True, everything=True)
-    if species.hessian is None:
-        raise CalculationException("Hessian calculation failed")
-
-    return species.hessian
 
 
 class ImgPairSideError(ValueError):

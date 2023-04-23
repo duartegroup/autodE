@@ -7,6 +7,7 @@ from autode.utils import work_in, work_in_tmp_dir
 from autode.geom import calc_rmsd
 from autode.bracket.dhs import (
     DHS,
+    DHSGS,
     DistanceConstrainedOptimiser,
     TruncatedTaylor,
 )
@@ -92,7 +93,7 @@ def test_distance_constrained_optimiser():
 
 @requires_with_working_xtb_install
 @work_in(datadir)
-def test_dhs_single_step():
+def test_dhs_dhs_gs_single_step():
     step_size = 0.2
     reactant = Molecule("da_reactant.xyz")
     product = Molecule("da_product.xyz")
@@ -100,7 +101,7 @@ def test_dhs_single_step():
     dhs = DHS(
         initial_species=reactant,
         final_species=product,
-        maxiter=2000,
+        maxiter=200,
         step_size=step_size,
         dist_tol=1.0,
     )
@@ -113,19 +114,13 @@ def test_dhs_single_step():
     assert imgpair.left_coord.e is not None
     assert imgpair.right_coord.e is not None
     old_dist = imgpair.dist
-    if imgpair.left_coord.e < imgpair.right_coord.e:
-        lower_img = "left"
-    else:
-        lower_img = "right"
+    assert imgpair.left_coord.e > imgpair.right_coord.e
+
     # take a single step
     dhs._step()
     # step should be on lower energy image
-    if lower_img == "left":
-        assert len(imgpair._right_history) == 1
-        assert len(imgpair._left_history) == 2
-    else:
-        assert len(imgpair._left_history) == 1
-        assert len(imgpair._right_history) == 2
+    assert len(imgpair._left_history) == 1
+    assert len(imgpair._right_history) == 2
     new_dist = imgpair.dist
     # image should move exactly by step_size
     assert np.isclose(old_dist - new_dist, step_size)
@@ -133,11 +128,49 @@ def test_dhs_single_step():
 
 @requires_with_working_xtb_install
 @work_in(datadir)
+def test_dhs_gs_single_step():
+    step_size = 0.2
+    reactant = Molecule("da_reactant.xyz")
+    product = Molecule("da_product.xyz")
+
+    # DHS-GS from end point of DHS (first step is always 100% DHS)
+    dhs_gs = DHSGS(
+        initial_species=reactant,
+        final_species=product,
+        maxiter=200,
+        step_size=step_size,
+        dist_tol=1.0,
+        gs_mix=0.5,
+    )
+
+    dhs_gs.imgpair.set_method_and_n_cores(engrad_method=XTB(), n_cores=1)
+    dhs_gs._method = XTB()
+    dhs_gs._initialise_run()
+    # take one steps
+    dhs_gs._step()
+    right_pred = dhs_gs._get_dhs_step("right")  # 50% DHS + 50% GS
+
+    imgpair = dhs_gs.imgpair
+    assert imgpair.left_coord.e > imgpair.right_coord.e
+    assert len(imgpair._left_history) == 1
+    assert len(imgpair._right_history) == 2
+
+    hybrid_step = right_pred - imgpair.right_coord
+    dhs_step = imgpair.dist_vec
+    dhs_step = dhs_step / np.linalg.norm(dhs_step) * step_size
+    gs_step = imgpair._right_history[-1] - imgpair._right_history[-2]
+
+    assert np.allclose(hybrid_step, 0.5 * dhs_step + 0.5 * gs_step)
+
+
+@requires_with_working_xtb_install
+@work_in(datadir)
 def test_dhs_diels_alder():
     set_dist_tol = 1.0  # angstrom
 
-    reactant = Molecule("da_reactant.xyz")
-    product = Molecule("da_product.xyz")
+    # Use almost converged images for quick calculation
+    reactant = Molecule("da_rct_image.xyz")
+    product = Molecule("da_prod_image.xyz")
     # TS optimized with ORCA using xTB method
     true_ts = Molecule("da_ts_orca_xtb.xyz")
 
@@ -147,6 +180,7 @@ def test_dhs_diels_alder():
         maxiter=2000,
         step_size=0.2,
         dist_tol=set_dist_tol,
+        gtol=5.0e-4,
     )
 
     dhs.calculate(method=XTB(), n_cores=Config.n_cores)
@@ -162,3 +196,14 @@ def test_dhs_diels_alder():
     # (assuming curvature of PES near TS not being too high)
 
     assert distance < set_dist_tol
+
+    # now run CI-NEB from end points
+    dhs.run_cineb()
+    peak = dhs.ts_guess
+
+    rmsd = calc_rmsd(peak.coordinates, true_ts.coordinates)
+    # Euclidean distance = rmsd * sqrt(n_atoms)
+    distance = rmsd * np.sqrt(peak.n_atoms)
+
+    # Now distance should be closer
+    assert distance < 0.6 * set_dist_tol
