@@ -79,7 +79,7 @@ def test_distance_constrained_optimiser():
     # should be less than or equal to trust radius
     step_size = np.linalg.norm(prod_coords_new - prod_coords)
     fp_err = 0.000001
-    assert step_size <= 0.2 + fp_err * 0.2  # for floating point errors
+    assert step_size <= 0.2 + fp_err * 0.2  # for floating point error
 
     opt = DistanceConstrainedOptimiser(
         pivot_point=rct_coords,
@@ -227,11 +227,10 @@ def test_dhs_jumping_over_barrier(caplog):
         step_size=0.5,
         dist_tol=0.3,  # smaller dist_tol also to make one side jump
         gtol=5.0e-4,
-        barrier_check=True
+        barrier_check=True,
     )
     with caplog.at_level("WARNING"):
         dhs.calculate(method=XTB(), n_cores=Config.n_cores)
 
     assert "One image has probably jumped over the barrier" in caplog.text
     assert not dhs.converged
-
