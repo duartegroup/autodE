@@ -37,6 +37,7 @@ def test_truncated_taylor_surface():
     # minimizing surface should give the same result
     surface = TruncatedTaylor(coords, coords.g, coords.h)
     res = minimize(
+        method="CG",
         fun=surface.value,
         x0=np.array(coords),
         jac=surface.gradient,
@@ -177,10 +178,10 @@ def test_dhs_diels_alder():
     dhs = DHS(
         initial_species=reactant,
         final_species=product,
-        maxiter=2000,
+        maxiter=200,
         step_size=0.2,
         dist_tol=set_dist_tol,
-        gtol=5.0e-4,
+        gtol=1.0e-3,
     )
 
     dhs.calculate(method=XTB(), n_cores=Config.n_cores)
@@ -207,3 +208,28 @@ def test_dhs_diels_alder():
 
     # Now distance should be closer
     assert distance < 0.6 * set_dist_tol
+
+
+@requires_with_working_xtb_install
+@work_in_zipped_dir(datazip)
+def test_dhs_jumping_over_barrier(caplog):
+    # Use almost converged images for quick calculation
+    reactant = Molecule("da_rct_image.xyz")
+    product = Molecule("da_prod_image.xyz")
+
+    # run DHS with large step sizes, which will make one side jump
+    dhs = DHS(
+        initial_species=reactant,
+        final_species=product,
+        maxiter=200,
+        step_size=0.5,
+        dist_tol=0.3,  # smaller dist_tol also to make one side jump
+        gtol=5.0e-4,
+        barrier_check=True
+    )
+    with caplog.at_level("WARNING"):
+        dhs.calculate(method=XTB(), n_cores=Config.n_cores)
+
+    assert "One image has probably jumped over the barrier" in caplog.text
+    assert not dhs.converged
+

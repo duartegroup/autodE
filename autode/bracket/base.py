@@ -124,7 +124,6 @@ class BaseBracketMethod(ABC):
         else:
             return False
 
-    @abstractmethod
     def calculate(
         self,
         method: "Method",
@@ -152,6 +151,7 @@ class BaseBracketMethod(ABC):
                     f" results carefully"
                 )
                 if self._barrier_check:
+                    logger.info(f"Stopping {self._method_name} calculation")
                     break
 
             if self._exceeded_maximum_iteration:
