@@ -63,7 +63,7 @@ def test_distance_constrained_optimiser():
 
     opt = DistanceConstrainedOptimiser(
         pivot_point=rct_coords,
-        maxiter=1,
+        maxiter=1,  # just one step
         init_trust=0.2,
         gtol=1e-3,
         etol=1e-4,
@@ -75,9 +75,11 @@ def test_distance_constrained_optimiser():
     # distance should not change
     new_distance = np.linalg.norm(prod_coords_new - rct_coords)
     assert np.isclose(new_distance, distance)
-    # step should be less than trust radius
+    # linear interpolation is skipped on first step
+    # should be less than or equal to trust radius
     step_size = np.linalg.norm(prod_coords_new - prod_coords)
-    assert np.isclose(step_size, 0.2)
+    fp_err = 0.000001
+    assert step_size <= 0.2 + fp_err * 0.2  # for floating point errors
 
     opt = DistanceConstrainedOptimiser(
         pivot_point=rct_coords,
