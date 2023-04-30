@@ -21,7 +21,7 @@ from autode.log import logger
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
-    from autode.opt.optimisers.base import _OptimiserHistory
+    from autode.opt.optimisers.base import OptimiserHistory
 
 
 class TruncatedTaylor:
@@ -101,7 +101,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         Initialise a distance constrained optimiser. The pivot point
         is the point against which the distance is constrained. Optionally
         a linear search can be used to attempt to speed up convergence, but
-        it does not always work.
+        it may not improve performance in all cases.
 
         Args:
             init_trust: Initial trust radius in Angstrom
@@ -367,7 +367,7 @@ class DHSImagePair(EuclideanImagePair):
 
     def _get_img_by_side(
         self, side: str
-    ) -> Tuple["Species", OptCoordinates, "_OptimiserHistory"]:
+    ) -> Tuple["Species", OptCoordinates, "OptimiserHistory"]:
         """
         Access an image and some properties by a string that
         represents side. Returns a tuple of the species, the
