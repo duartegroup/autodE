@@ -17,7 +17,6 @@ from ..testutils import requires_with_working_xtb_install, work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
 datazip = os.path.join(here, "data", "geometries.zip")
-# todo replace with zip later
 
 
 @requires_with_working_xtb_install
@@ -206,10 +205,28 @@ def test_dhs_diels_alder():
 
     rmsd = calc_rmsd(peak.coordinates, true_ts.coordinates)
     # Euclidean distance = rmsd * sqrt(n_atoms)
-    distance = rmsd * np.sqrt(peak.n_atoms)
+    new_distance = rmsd * np.sqrt(peak.n_atoms)
 
     # Now distance should be closer
-    assert distance < 0.6 * set_dist_tol
+    assert new_distance < distance
+    assert new_distance < 0.6 * set_dist_tol
+
+    # test print geometries
+    dhs.print_geometries()
+    assert os.path.isfile("initial_species_DHS.trj.xyz")
+    assert os.path.isfile("final_species_DHS.trj.xyz")
+    assert os.path.isfile("total_trajectory_DHS.trj.xyz")
+
+    # test graph plotting
+    dhs.plot_energies("DHS_relative_dist.pdf", distance_metric="relative")
+    dhs.plot_energies("DHS_by_index.pdf", distance_metric="index")
+    dhs.plot_energies("DHS_dist_from_start.pdf", distance_metric="from_start")
+    for filename in [
+        "DHS_relative_dist.pdf",
+        "DHS_by_index.pdf",
+        "DHS_dist_from_start.pdf",
+    ]:
+        assert os.path.isfile(filename)
 
 
 @requires_with_working_xtb_install

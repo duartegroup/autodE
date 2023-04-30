@@ -242,10 +242,9 @@ class BaseBracketMethod(ABC):
         position. If distance metric is set to "index", then the x-axis
         will simply be integer numbers representing each point in order
 
-
         Args:
-            filename (str): Name of the file
-            distance_metric (str): "relative" or "from_start" (or None)
+            filename (str|None): Name of the file (optional)
+            distance_metric (str): "relative" or "from_start" or "index"
         """
         filename = (
             filename
