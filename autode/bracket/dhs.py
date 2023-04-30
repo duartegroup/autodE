@@ -12,7 +12,7 @@ import numpy as np
 from autode.values import Distance, Angle, GradientRMS
 from autode.bracket.imagepair import EuclideanImagePair, ImgPairSideError
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
-from autode.opt.optimisers.hessian_update import BofillUpdate, BFGSUpdate
+from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
 from autode.exceptions import CalculationException
@@ -127,7 +127,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
         self._target_dist = None
 
-        self._hessian_update_types = [BFGSUpdate, BofillUpdate]
+        self._hessian_update_types = [BFGSSR1Update]
         self._old_coords = old_coords_read_hess
         # todo replace later with bfgssr1update?
 
