@@ -2,6 +2,7 @@ from autode.atoms import Atom, Atoms
 from autode.species import Molecule, NCIComplex
 from autode.conformers import Conformer, Conformers
 from autode.conformers.conformers import _calc_conformer
+from autode.exceptions import NoConformers
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
 from autode.config import Config
@@ -395,7 +396,7 @@ def test_pruning_conformers_without_energy_raises():
 
     assert sum(c.energy is None for c in conformers) == 2
 
-    with pytest.raises(Exception):
+    with pytest.raises(NoConformers):
         conformers.prune(remove_no_energy=True)
 
 

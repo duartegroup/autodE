@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Optional, Union
 from rdkit import Chem
+
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
 from autode.config import Config
@@ -8,6 +9,7 @@ from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.utils import ProcessPool
+from autode.exceptions import NoConformers
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -242,9 +244,9 @@ class Conformers(list):
 
         n_conformers = len(self)
         if n_conformers == 0 and n_conformers != n_conformers_before_remove:
-            raise RuntimeError(
+            raise NoConformers(
                 f"Removed all the conformers "
-                f"{n_conformers_before_remove} -> {n_conformers}"
+                f"{n_conformers_before_remove} -> 0"
             )
 
     def _parallel_calc(self, calc_type, method, keywords):
