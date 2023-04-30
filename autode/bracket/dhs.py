@@ -94,6 +94,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         init_trust: float = 0.2,
         line_search: bool = True,
         angle_thresh: Angle = Angle(5, units="deg"),
+        old_coords_read_hess: Optional[CartesianCoordinates] = None,
         *args,
         **kwargs,
     ):
@@ -109,6 +110,9 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             line_search: Whether to use linear search
             angle_thresh: An angle threshold above which linear search
                           will be rejected (in Degrees)
+            old_coords_read_hess: Old coordinate with hessian which will
+                                  be used to obtain initial hessian by
+                                  a Hessian update scheme
         """
         kwargs.pop("init_alpha", None)
         super().__init__(*args, init_alpha=init_trust, **kwargs)
@@ -124,15 +128,32 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._target_dist = None
 
         self._hessian_update_types = [BFGSUpdate, BofillUpdate]
+        self._old_coords = old_coords_read_hess
         # todo replace later with bfgssr1update?
 
     def _initialise_run(self) -> None:
         """Initialise self._coords, gradient and hessian"""
         self._coords = CartesianCoordinates(self._species.coordinates)
         self._target_dist = np.linalg.norm(self.dist_vec)
-        self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
-        self._coords.make_hessian_positive_definite()
         self._update_gradient_and_energy()
+
+        # Hack to get the Hessian update from old coordinates
+        if self._old_coords is not None and self._old_coords.h is not None:
+            assert isinstance(self._old_coords, CartesianCoordinates)
+            sub_opt = DistanceConstrainedOptimiser(
+                pivot_point=self._coords,  # any dummy coordinate will work
+                maxiter=20,
+                gtol=1.0e-4,
+                etol=1.0e-4,
+            )
+            sub_opt._coords = self._old_coords
+            sub_opt._coords = self._coords
+            new_h = sub_opt._updated_h()
+            self._coords.update_h_from_cart_h(new_h)
+        else:
+            # no hessian available, use low level method
+            self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
+            self._coords.make_hessian_positive_definite()
 
     @property
     def converged(self) -> bool:
@@ -170,6 +191,14 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         """
         return np.array(self._coords - self._pivot)
 
+    def _update_gradient_and_energy(self) -> None:
+        # Hessian update is done after en grad calculation, not in step
+        # so that it is present in the final converged coords, which
+        # can be used to start off the next batch of optimisation
+        super()._update_gradient_and_energy()
+        if self.iteration != 0:
+            self._coords.h = self._updated_h()
+
     def _step(self) -> None:
         """
         A step that maintains the distance of the coordinate from
@@ -178,9 +207,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         quasi-Newton step with a Lagrangian constraint for the distance
         is taken
         """
-        self._coords.h = self._updated_h()
-
-        if self.iteration > 1 and self._do_line_search:
+        if self.iteration >= 1 and self._do_line_search:
             coords, grad = self._line_search_on_sphere()
         else:
             coords, grad = self._coords, self._coords.g
@@ -387,7 +414,6 @@ class DHSImagePair(EuclideanImagePair):
             img = self._right_image
             coord = self.right_coord
             hist = self._right_history
-            # todo fix this
         else:
             raise ImgPairSideError()
 
@@ -556,7 +582,9 @@ class DHS(BaseBracketMethod):
             side = "right"
             pivot = self.imgpair.left_coord
 
-        # take a step on the side with lower energy
+        old_coords = self.imgpair.get_coord_by_side(side)
+        old_coords = old_coords if old_coords.h is not None else None
+        # take a DHS step on the side with lower energy
         new_coord = self._get_dhs_step(side)
 
         # calculate the number of remaining maxiter to feed into optimiser
@@ -569,6 +597,7 @@ class DHS(BaseBracketMethod):
             gtol=self._gtol,
             etol=1.0e-3,  # seems like a reasonable etol
             pivot_point=pivot,
+            old_coords_read_hess=old_coords,
         )
         tmp_spc = self._species.copy()
         tmp_spc.coordinates = new_coord
