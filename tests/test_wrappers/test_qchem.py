@@ -174,6 +174,7 @@ def test_simple_input_generation():
         "$rem\n"
         "method pbe0\n"
         "basis def2-SVP\n"
+        "mem_total 4000\n"
         "$end\n"
     )
 
