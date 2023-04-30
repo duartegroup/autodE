@@ -10,7 +10,7 @@ from typing import Tuple, Union, Optional, TYPE_CHECKING
 import numpy as np
 
 from autode.values import Distance, Angle, GradientRMS
-from autode.bracket.imagepair import EuclideanImagePair, ImgPairSideError
+from autode.bracket.imagepair import EuclideanImagePair
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
