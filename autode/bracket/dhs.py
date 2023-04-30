@@ -349,6 +349,16 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         return x_interp, g_interp
 
 
+class ImgPairSideError(ValueError):
+    """
+    Error if side is neither 'left' nor 'right', used only for internal
+    consistency in DHSImagePair, as the functions should not be called by user
+    """
+
+    def __init__(self):
+        super().__init__("Side supplied must be either 'left' or 'right'")
+
+
 class DHSImagePair(EuclideanImagePair):
     """
     Image-pair used for Dewar-Healy-Stewart (DHS) method to
@@ -460,19 +470,19 @@ class DHSImagePair(EuclideanImagePair):
     def update_one_img_mol_engrad(self, side: str) -> None:
         """
         Update the molecular en/grad using the supplied
-        engrad_method for one image only, required for the
+        method for one image only, required for the
         initial step of DHS
 
         Args:
             side (str): 'left' or 'right'
         """
-        assert self._engrad_method is not None
+        assert self._method is not None
         assert self._n_cores is not None
         img, coord, _ = self._get_img_by_side(side)
 
         logger.debug(
             f"Calculating energy/gradient for {side} side of DHS image"
-            f" pair with {self._engrad_method}"
+            f" pair with {self._method}"
         )
 
         from autode.calculations import Calculation
@@ -480,8 +490,8 @@ class DHSImagePair(EuclideanImagePair):
         engrad_calc = Calculation(
             name=f"{img.name}_engrad",
             molecule=img,
-            method=self._engrad_method,
-            keywords=self._engrad_method.keywords.grad,
+            method=self._method,
+            keywords=self._method.keywords.grad,
             n_cores=self._n_cores,
         )
         engrad_calc.run()

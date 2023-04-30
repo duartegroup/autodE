@@ -108,7 +108,7 @@ def test_dhs_dhs_gs_single_step():
         dist_tol=1.0,
     )
 
-    dhs.imgpair.set_method_and_n_cores(engrad_method=XTB(), n_cores=1)
+    dhs.imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
     dhs._method = XTB()
     dhs._initialise_run()
 
@@ -145,7 +145,7 @@ def test_dhs_gs_single_step():
         gs_mix=0.5,
     )
 
-    dhs_gs.imgpair.set_method_and_n_cores(engrad_method=XTB(), n_cores=1)
+    dhs_gs.imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
     dhs_gs._method = XTB()
     dhs_gs._initialise_run()
     # take one steps

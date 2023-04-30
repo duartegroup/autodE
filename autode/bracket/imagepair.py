@@ -20,16 +20,6 @@ if TYPE_CHECKING:
     from autode.wrappers.methods import Method
 
 
-class ImgPairSideError(ValueError):
-    """
-    Error if side is neither 'left' nor 'right', used only for internal
-    consistency, as the functions should not be called by user
-    """
-
-    def __init__(self):
-        super().__init__("Side supplied must be either 'left' or 'right'")
-
-
 class BaseImagePair(ABC):
     """
     Base class for a pair of images (e.g., reactant and product) of
@@ -60,13 +50,9 @@ class BaseImagePair(ABC):
         self._sanity_check()
         self._align_species()
 
-        # separate methods for engrad and hessian calc
-        self._engrad_method = None
-        self._hess_method = None
+        # for calculation
+        self._method = None
         self._n_cores = None
-
-        # Bofill has no conditions, so kept as default
-        self._hessian_update_types = [BofillUpdate]
 
         self._left_history = OptimiserHistory()
         self._right_history = OptimiserHistory()
@@ -77,9 +63,6 @@ class BaseImagePair(ABC):
         self.right_coord = CartesianCoordinates(
             self._right_image.coordinates.to("ang")
         )
-
-        # Store coords from CI-NEB
-        self._cineb_coords = None
 
     def _sanity_check(self) -> None:
         """
@@ -147,38 +130,26 @@ class BaseImagePair(ABC):
 
     def set_method_and_n_cores(
         self,
-        engrad_method: "Method",
+        method: "Method",
         n_cores: int,
-        hess_method: Optional["Method"] = None,
     ) -> None:
         """
         Sets the methods for engrad and hessian calculation, and the
         total number of cores used for any calculation in this image pair
 
         Args:
-            engrad_method (Method):
+            method (Method):
             n_cores (int):
-            hess_method (Method|None):
         """
         from autode.wrappers.methods import Method
 
-        if not isinstance(engrad_method, Method):
+        if not isinstance(method, Method):
             raise TypeError(
-                f"The engrad_method needs to be of type autode."
+                f"The method needs to be of type autode."
                 f"wrappers.method.Method, But "
-                f"{type(engrad_method)} was supplied."
+                f"{type(method)} was supplied."
             )
-        self._engrad_method = engrad_method
-
-        if hess_method is None:
-            pass
-        elif not isinstance(hess_method, Method):
-            raise TypeError(
-                f"The hess_method needs to be of type autode."
-                f"wrappers.method.Method, But "
-                f"{type(hess_method)} was supplied."
-            )
-        self._hess_method = hess_method
+        self._method = method
 
         self._n_cores = int(n_cores)
         return None
@@ -194,20 +165,20 @@ class BaseImagePair(ABC):
         return len(self._left_history) + len(self._right_history) - 2
 
     @property
-    def left_coord(self) -> Optional[OptCoordinates]:
+    def left_coord(self) -> Optional[CartesianCoordinates]:
         """The coordinates of the left image"""
         if len(self._left_history) == 0:
             return None
         return self._left_history[-1]
 
     @left_coord.setter
-    def left_coord(self, value: Optional[OptCoordinates]):
+    def left_coord(self, value: Optional[CartesianCoordinates]):
         """
         Sets the coordinates of the left image, also updates
         the coordinates of the species
 
         Args:
-            value (OptCoordinates|None): new set of coordinates
+            value (CartesianCoordinates|None): new set of coordinates
 
         Raises:
             (TypeError): If input is not of type CartesianCoordinates
@@ -218,12 +189,12 @@ class BaseImagePair(ABC):
         if value.shape[0] != 3 * self.n_atoms:
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
-        if isinstance(value, OptCoordinates):
+        if isinstance(value, CartesianCoordinates):
             self._left_history.append(value.copy())
         else:
             raise TypeError
 
-        self._left_image.coordinates = self.left_coord.to("cart")
+        self._left_image.coordinates = self.left_coord
         # todo should we remove old hessians that are not needed to free mem?
 
     @property
@@ -234,13 +205,13 @@ class BaseImagePair(ABC):
         return self._right_history[-1]
 
     @right_coord.setter
-    def right_coord(self, value: Optional[OptCoordinates]):
+    def right_coord(self, value: Optional[CartesianCoordinates]):
         """
         Sets the coordinates of the right image, also updates
         the coordinates of the species
 
         Args:
-            value (OptCoordinates|None): new set of coordinates
+            value (CartesianCoordinates|None): new set of coordinates
 
         Raises:
             (TypeError): If input is not of type CartesianCoordinates
@@ -256,7 +227,7 @@ class BaseImagePair(ABC):
         else:
             raise TypeError
 
-        self._right_image.coordinates = self.right_coord.to("cart")
+        self._right_image.coordinates = self.right_coord
 
     @property
     @abstractmethod
@@ -277,18 +248,86 @@ class BaseImagePair(ABC):
     def has_jumped_over_barrier(self) -> bool:
         """Whether one image has jumped over the barrier on the other side"""
 
+
+class EuclideanImagePair(BaseImagePair, ABC):
+    """
+    Image-pair that defines the distance between the images as
+    the Euclidean distance. It can also run CI-NEB calculation
+    from the final two points added to the image-pair, and
+    plot the energies of the total path
+    """
+
+    def __init__(
+        self,
+        left_image: "Species",
+        right_image: "Species",
+    ):
+        super().__init__(left_image=left_image, right_image=right_image)
+
+        # for storing results from CINEB
+        self._cineb_coords = None
+
     @property
-    def _total_history(self) -> OptimiserHistory:
+    def dist_vec(self) -> np.ndarray:
         """
-        The total history of the image-pair, including any CI run
-        from the endpoints
+        Distance vector in cartesian coordinates, it is defined here to
+        go from right to left image (i.e. right -> left)
         """
-        history = OptimiserHistory()
-        history.extend(self._left_history)
-        if self._cineb_coords is not None:
-            history.append(self._cineb_coords)
-        history.extend(self._right_history[::-1])  # reverse order
-        return history
+        return np.array(
+            self.left_coord.to("cart") - self.right_coord.to("cart")
+        )
+
+    @property
+    def dist(self) -> Distance:
+        """
+        Euclidean distance between the images in image-pair
+
+        Returns:
+            (Distance): Distance in Angstrom
+        """
+        return Distance(np.linalg.norm(self.dist_vec), units="ang")
+
+    def has_jumped_over_barrier(self) -> bool:
+        """
+        A quick test of whether the images are still separated by a barrier
+        is to check whether the gradient vectors are pointing outwards
+        compared to the linear path connecting the two images. In case
+        there are multiple barriers in the way, a distance threshold is
+        also used to guess if it is likely that one image has jumped over.
+
+        This is a slightly modified version of the method proposed in ref:
+        Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
+        https://doi.org/10.1021/acs.jctc.3c00151
+        """
+        # NOTE: The angle between the force vector on right image
+        # and the distance vector must be more than 90 degrees. Similarly
+        # for left image it must be less than 90 degrees. This would mean
+        # that the parallel component of the forces on each image are
+        # pointing away from each other. (force is negative gradient).
+
+        left_cos_theta = np.dot(-self.left_coord.g, self.dist_vec)
+        right_cos_theta = np.dot(-self.right_coord.g, self.dist_vec)
+
+        assert -1.0 < left_cos_theta < 1.0
+        assert -1.0 < right_cos_theta < 1.0
+
+        # cos(theta) < 0.0 means angle > 90 degrees and vice versa
+        if right_cos_theta < 0.0 < left_cos_theta:
+            return False
+
+        # However, if there are multiple barriers in the path (i.e. multi-step
+        # reaction), it will identify as having jumped over, even if it didn't.
+        # The distance between the images would be high if there are multiple
+        # barriers. A threshold of 1 angstrom is used as it seems the risk of
+        # jumping over is high (if there is only one barrier) below this.
+        # (according to Kilmes et al., J. Phys.: Condens. Matter, 22 2010, 074203)
+        # This is of course, somewhat arbitrary, and will not work if really
+        # large steps are taken OR two barriers are very close in distance
+
+        if self.dist <= Distance(1.0, "ang"):
+            return True
+        else:
+            return False
 
     def run_cineb_from_end_points(self) -> None:
         """
@@ -300,7 +339,7 @@ class BaseImagePair(ABC):
             (CartesianCoordinates): Coordinates of the peak species obtained
                                     from the CI-NEB run
         """
-        assert self._engrad_method is not None, "Methods must be set"
+        assert self._method is not None, "Methods must be set"
         assert self._n_cores is not None, "Number of cores must be set"
 
         if self.dist > 2.0:
@@ -313,7 +352,7 @@ class BaseImagePair(ABC):
         cineb = CINEB.from_end_points(
             self._left_image, self._right_image, num=3
         )
-        cineb.calculate(method=self._engrad_method, n_cores=self._n_cores)
+        cineb.calculate(method=self._method, n_cores=self._n_cores)
         peak = cineb.peak_species
 
         if peak is None:
@@ -326,6 +365,19 @@ class BaseImagePair(ABC):
 
         self._cineb_coords = ci_coords
         return None
+
+    @property
+    def _total_history(self) -> OptimiserHistory:
+        """
+        The total history of the image-pair, including any CI run
+        from the endpoints
+        """
+        history = OptimiserHistory()
+        history.extend(self._left_history)
+        if self._cineb_coords is not None:
+            history.append(self._cineb_coords)
+        history.extend(self._right_history[::-1])  # reverse order
+        return history
 
     def print_geometries(
         self,
@@ -426,72 +478,3 @@ class BaseImagePair(ABC):
         plot_bracket_method_energy_profile(
             filename, left_points, cineb_point, right_points, x_axis_title
         )
-
-
-class EuclideanImagePair(BaseImagePair, ABC):
-    """
-    Image-pair that defines the distance between the images as
-    the Euclidean distance
-    """
-
-    @property
-    def dist_vec(self) -> np.ndarray:
-        """
-        Distance vector in cartesian coordinates, it is defined here to
-        go from right to left image (i.e. right -> left)
-        """
-        return np.array(
-            self.left_coord.to("cart") - self.right_coord.to("cart")
-        )
-
-    @property
-    def dist(self) -> Distance:
-        """
-        Euclidean distance between the images in image-pair
-
-        Returns:
-            (Distance): Distance in Angstrom
-        """
-        return Distance(np.linalg.norm(self.dist_vec), units="ang")
-
-    def has_jumped_over_barrier(self) -> bool:
-        """
-        A quick test of whether the images are still separated by a barrier
-        is to check whether the gradient vectors are pointing outwards
-        compared to the linear path connecting the two images. In case
-        there are multiple barriers in the way, a distance threshold is
-        also used to guess if it is likely that one image has jumped over.
-
-        This is a slightly modified version of the method proposed in ref:
-        Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
-        https://doi.org/10.1021/acs.jctc.3c00151
-        """
-        # NOTE: The angle between the force vector on right image
-        # and the distance vector must be more than 90 degrees. Similarly
-        # for left image it must be less than 90 degrees. This would mean
-        # that the parallel component of the forces on each image are
-        # pointing away from each other. (force is negative gradient).
-
-        left_cos_theta = np.dot(-self.left_coord.g, self.dist_vec)
-        right_cos_theta = np.dot(-self.right_coord.g, self.dist_vec)
-
-        assert -1.0 < left_cos_theta < 1.0
-        assert -1.0 < right_cos_theta < 1.0
-
-        # cos(theta) < 0.0 means angle > 90 degrees and vice versa
-        if right_cos_theta < 0.0 < left_cos_theta:
-            return False
-
-        # However, if there are multiple barriers in the path (i.e. multi-step
-        # reaction), it will identify as having jumped over, even if it didn't.
-        # The distance between the images would be high if there are multiple
-        # barriers. A threshold of 1 angstrom is used as it seems the risk of
-        # jumping over is high (if there is only one barrier) below this.
-        # (according to Kilmes et al., J. Phys.: Condens. Matter, 22 2010, 074203)
-        # This is of course, somewhat arbitrary, and will not work if really
-        # large steps are taken OR two barriers are very close in distance
-
-        if self.dist <= Distance(1.0, "ang"):
-            return True
-        else:
-            return False
