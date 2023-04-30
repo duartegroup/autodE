@@ -517,6 +517,9 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
                 self.write("symmetry False")
                 self.write("sym_ignore True")
 
+            total_memory_in_mb = int(Config.max_core.to("MB") * calc.n_cores)
+            self.write(f"mem_total {total_memory_in_mb}")
+
             self.write("$end\n")
 
             return None

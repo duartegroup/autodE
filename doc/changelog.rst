@@ -28,6 +28,7 @@ Bug Fixes
 *********
 - Fixes pickling issue with :code:`autode.config.Config` on Windows and in multiprocessing spawn for Linux/macOS
 - Fixes RFO Hessian update bug
+- Fixes QChem not using :code:`Config.max_core`
 
 
 1.3.5
