@@ -400,37 +400,14 @@ class DHSImagePair(EuclideanImagePair):
         tmp_spc.gradient = peak_coords.g.reshape(-1, 3).copy()
         return tmp_spc
 
-    def _get_img_by_side(
-        self, side: str
-    ) -> Tuple["Species", OptCoordinates, "OptimiserHistory"]:
-        """
-        Access an image and some properties by a string that
-        represents side. Returns a tuple of the species, the
-        current coordinate object, and the history of that side
-
-        Args:
-            side (str): 'left' or 'right'
-
-        Returns:
-            (tuple) : tuple(image, current coord, history)
-        """
-        if side == "left":
-            img = self._left_image
-            coord = self.left_coord
-            hist = self._left_history
-        elif side == "right":
-            img = self._right_image
-            coord = self.right_coord
-            hist = self._right_history
-        else:
-            raise ImgPairSideError()
-
-        return img, coord, hist
-
     def get_coord_by_side(self, side: str) -> OptCoordinates:
         """For external usage, supplies only the coordinate object"""
-        _, coord, _ = self._get_img_by_side(side)
-        return coord
+        if side == "left":
+            return self.left_coord
+        elif side == "right":
+            return self.right_coord
+        else:
+            raise ImgPairSideError()
 
     def put_coord_by_side(
         self, new_coord: Optional[OptCoordinates], side: str
@@ -444,26 +421,43 @@ class DHSImagePair(EuclideanImagePair):
             raise ImgPairSideError()
         return None
 
-    def get_last_step_by_side(
-        self, side: str
-    ) -> Optional[CartesianCoordinates]:
-        _, _, hist = self._get_img_by_side(side)
+    def get_last_step_by_side(self, side: str) -> Optional[np.ndarray]:
+        """
+        Obtain the last step on the provided side (for the Growing
+        String like step)
+        """
+        if side == "left":
+            hist = self._left_history
+        elif side == "right":
+            hist = self._right_history
+        else:
+            raise ImgPairSideError()
+
         if len(hist) < 2:
             return None
         return hist[-1] - hist[-2]
 
-    @staticmethod
-    def get_dhs_step_sign_by_side(side: str) -> float:
+    def get_dhs_step_by_side(self, side: str, step_size: float) -> np.ndarray:
         """
-        The DHS step needs different sign for different sides since
-        the distance vector is defined from right -> left image
+        Obtain the DHS step on the specified side, with the specified step
+        size
+
+        Args:
+            side (str): "left" or "right"
+            step_size (float): Step size in Angstrom
+
+        Returns:
+            (np.ndarray): The step
         """
+        dhs_step = self.dist_vec * (step_size / self.dist)
         if side == "left":
-            return -1.0
+            dhs_step *= -1.0
         elif side == "right":
-            return 1.0
+            pass
         else:
             raise ImgPairSideError()
+
+        return dhs_step
 
 
 class DHS(BaseBracketMethod):
@@ -644,9 +638,7 @@ class DHS(BaseBracketMethod):
             (CartesianCoordinates): New predicted coordinates for that side
         """
         # take a DHS step of the size given
-        dist_vec = self.imgpair.dist_vec
-        dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
-        dhs_step *= self.imgpair.get_dhs_step_sign_by_side(side)
+        dhs_step = self.imgpair.get_dhs_step_by_side(side, self._step_size)
 
         old_coord = self.imgpair.get_coord_by_side(side)
         new_coord = old_coord + dhs_step
@@ -703,12 +695,9 @@ class DHSGS(DHS):
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
         """
-        # obtain the DHS step
-        dist_vec = self.imgpair.dist_vec
-        dhs_step = dist_vec * (self._step_size / self.imgpair.dist)
-        dhs_step *= self.imgpair.get_dhs_step_sign_by_side(side)
-
+        dhs_step = self.imgpair.get_dhs_step_by_side(side, self._step_size)
         gs_step = self.imgpair.get_last_step_by_side(side)
+
         if gs_step is None:
             gs_step = np.zeros_like(dhs_step)
             # hack to ensure the first step is 100% DHS (as GS is not possible)
@@ -718,7 +707,7 @@ class DHSGS(DHS):
         new_coord = (
             old_coord + (1 - self._gs_mix) * dhs_step + self._gs_mix * gs_step
         )
-
+        # step size is variable due to adding GS component
         step_size = np.linalg.norm(new_coord - old_coord)
         logger.info(
             f"DHS-GS step on {side} image: taking a step "
