@@ -3,21 +3,80 @@ Base classes for implementing all bracketing methods
 that require a pair of images
 """
 from abc import ABC, abstractmethod
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
-from autode.values import Distance
+from autode.values import Distance, PotentialEnergy, Gradient
 from autode.geom import get_rot_mat_kabsch
 from autode.neb import CINEB
 from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import OptimiserHistory
 from autode.plotting import plot_bracket_method_energy_profile
+from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
 
 if TYPE_CHECKING:
     from autode.species import Species
     from autode.wrappers.methods import Method
+    from autode.hessians import Hessian
+
+
+def _calculate_engrad_for_species(
+    species: "Species",
+    method: "Method",
+    n_cores: int,
+) -> Tuple[PotentialEnergy, Gradient]:
+    """
+    Convenience function for calculating the energy/gradient
+    for a molecule; removes all input and output files after
+    the calculation is finished
+
+    Returns:
+        (tuple[PotentialEnergy, Gradient]): Energy and gradient as tuple
+    """
+    from autode.calculations import Calculation
+
+    engrad_calc = Calculation(
+        name=f"{species.name}_engrad",
+        molecule=species,
+        method=method,
+        keywords=method.keywords.grad,
+        n_cores=n_cores,
+    )
+    engrad_calc.run()
+    engrad_calc.clean_up(force=True, everything=True)
+
+    return species.energy, species.gradient
+
+
+@work_in_tmp_dir()
+def _calculate_hessian_for_species(
+    species: "Species",
+    method: "Method",
+    n_cores: int,
+) -> "Hessian":
+    """
+    Convenience function for calculating the Hessian for a
+    molecule; removes all input and output files after
+    the calculation is finished
+
+    Returns:
+        (Hessian): Hessian matrix
+    """
+    from autode.calculations import Calculation
+
+    hess_calc = Calculation(
+        name=f"{species.name}_hess",
+        molecule=species,
+        method=method,
+        keywords=method.keywords.hess,
+        n_cores=n_cores,
+    )
+    hess_calc.run()
+    hess_calc.clean_up(force=True, everything=True)
+
+    return species.hessian
 
 
 class BaseImagePair(ABC):
@@ -34,8 +93,7 @@ class BaseImagePair(ABC):
         right_image: "Species",
     ):
         """
-        Initialize the image pair, does not set methods/n_cores or
-        hessian update types!
+        Initialize the image pair, does not set methods/n_cores
 
         Args:
             left_image: One molecule of the pair
@@ -53,6 +111,7 @@ class BaseImagePair(ABC):
         # for calculation
         self._method = None
         self._n_cores = None
+        self._hessian_update_type = BofillUpdate
 
         self._left_history = OptimiserHistory()
         self._right_history = OptimiserHistory()
@@ -247,6 +306,12 @@ class BaseImagePair(ABC):
     @abstractmethod
     def has_jumped_over_barrier(self) -> bool:
         """Whether one image has jumped over the barrier on the other side"""
+
+    def _update_both_img_mol_engrad(self):
+        """
+        Update the energy/gradient for both images, with parallelisation
+        """
+
 
 
 class EuclideanImagePair(BaseImagePair, ABC):
