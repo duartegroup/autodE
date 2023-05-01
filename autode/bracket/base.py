@@ -120,13 +120,14 @@ class BaseBracketMethod(ABC):
     def calculate(
         self,
         method: "Method",
-        n_cores: int,
+        n_cores: Optional[int] = None,
     ) -> None:
         """
         Run the bracketing method calculation using the method for
         energy/gradient calculation, with n_cores. Runs CI-NEB at
         the end if requested
         """
+        n_cores = Config.n_cores if n_cores is None else int(n_cores)
         self.imgpair.set_method_and_n_cores(method, n_cores)
         self._initialise_run()
 

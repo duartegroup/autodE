@@ -8,6 +8,7 @@ import numpy as np
 
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.geom import get_rot_mat_kabsch
+from autode.methods import get_lmethod
 from autode.neb import CINEB
 from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
@@ -84,7 +85,8 @@ class BaseImagePair(ABC):
     Base class for a pair of images (e.g., reactant and product) of
     the same species. The images are called 'left' and 'right' to
     distinguish them, but there is no requirement for one to be
-    reactant or product.
+    reactant or product. Calculations can be performed on both sides
+    parallely
     """
 
     def __init__(
@@ -110,6 +112,7 @@ class BaseImagePair(ABC):
 
         # for calculation
         self._method = None
+        self._hess_method = None
         self._n_cores = None
         self._hessian_update_type = BofillUpdate
 
@@ -191,14 +194,19 @@ class BaseImagePair(ABC):
         self,
         method: "Method",
         n_cores: int,
+        hess_method: Optional["Method"] = None,
     ) -> None:
         """
         Sets the methods for en/grad calculation, and the total
-        number of cores used for any calculation in this image pair
+        number of cores used for any calculation in this image pair.
+        Optionally, also set the method for hessian calculation; if
+        not set, the available lmethod will be used.
 
         Args:
-            method (Method):
-            n_cores (int):
+            method (Method): Method used for calculating energy/gradient
+            n_cores (int): Number of cores available
+            hess_method (Method|None): Method used for calculating
+                                       Hessian (optional)
         """
         from autode.wrappers.methods import Method
 
@@ -209,6 +217,17 @@ class BaseImagePair(ABC):
                 f"{type(method)} was supplied."
             )
         self._method = method
+
+        if hess_method is None:
+            hess_method = get_lmethod()
+
+        if not isinstance(hess_method, Method):
+            raise TypeError(
+                f"The hessian method needs to be of type autode."
+                f"wrappers.method.Method, But {type(hess_method)}"
+                f"was supplied"
+            )
+        self._hess_method = hess_method
 
         self._n_cores = int(n_cores)
         return None
@@ -307,11 +326,68 @@ class BaseImagePair(ABC):
     def has_jumped_over_barrier(self) -> bool:
         """Whether one image has jumped over the barrier on the other side"""
 
-    def _update_both_img_mol_engrad(self):
+    def update_both_img_engrad(self):
         """
-        Update the energy/gradient for both images, with parallelisation
+        Update the energy/gradient for both images, with parallel processing
         """
+        n_cores_per_pp = self._n_cores // 2 if self._n_cores < 2 else 1
+        n_procs = 1 if self._n_cores < 2 else 2
+        with ProcessPool(max_workers=n_procs) as pool:
+            jobs = [
+                pool.submit(
+                    _calculate_engrad_for_species,
+                    species=img,
+                    method=self._method,
+                    n_cores=n_cores_per_pp,
+                )
+                for img in [self._left_image, self._right_image]
+            ]
+            left_engrad, right_engrad = [job.result() for job in jobs]
 
+        self.left_coord.e = left_engrad[0]
+        self.left_coord.update_g_from_cart_g(left_engrad[1])
+        self.right_coord.e = right_engrad[0]
+        self.right_coord.update_g_from_cart_g(right_engrad[1])
+        return None
+
+    def update_both_img_hessian_by_calc(self):
+        """
+        Update the molecular hessian of both images by calculation
+        """
+        n_cores_per_pp = self._n_cores // 2 if self._n_cores < 2 else 1
+        n_procs = 1 if self._n_cores < 2 else 2
+        with ProcessPool(max_workers=n_procs) as pool:
+            jobs = [
+                pool.submit(
+                    _calculate_hessian_for_species,
+                    species=img,
+                    method=self._method,
+                    n_cores=n_cores_per_pp,
+                )
+                for img in [self._left_image, self._right_image]
+            ]
+            left_hess, right_hess = [job.result() for job in jobs]
+
+        self.left_coord.update_h_from_cart_h(left_hess)
+        self.right_coord.update_h_from_cart_h(right_hess)
+        return None
+
+    def update_both_img_mol_hessian_by_formula(self):
+        """
+        Update the molecular hessian for both images by update formula
+        """
+        for history in [self._left_history, self._right_history]:
+            coords_l, coords_k = history.final, history.penultimate
+
+            updater = self._hessian_update_type(
+                h=coords_k.h,
+                s=coords_l.raw - coords_k.raw,
+                y=coords_l.g - coords_k.g,
+            )
+
+            coords_l.update_h_from_cart_h(updater.updated_h)
+
+        return None
 
 
 class EuclideanImagePair(BaseImagePair, ABC):

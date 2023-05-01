@@ -465,43 +465,6 @@ class DHSImagePair(EuclideanImagePair):
         else:
             raise ImgPairSideError()
 
-    def update_one_img_mol_engrad(self, side: str) -> None:
-        """
-        Update the molecular en/grad using the supplied
-        method for one image only, required for the
-        initial step of DHS
-
-        Args:
-            side (str): 'left' or 'right'
-        """
-        assert self._method is not None
-        assert self._n_cores is not None
-        img, coord, _ = self._get_img_by_side(side)
-
-        logger.debug(
-            f"Calculating energy/gradient for {side} side of DHS image"
-            f" pair with {self._method}"
-        )
-
-        from autode.calculations import Calculation
-
-        engrad_calc = Calculation(
-            name=f"{img.name}_engrad",
-            molecule=img,
-            method=self._method,
-            keywords=self._method.keywords.grad,
-            n_cores=self._n_cores,
-        )
-        engrad_calc.run()
-        engrad_calc.clean_up(force=True, everything=True)
-
-        if img.energy is None:
-            raise CalculationException("Energy/gradient calculation failed")
-
-        # update coord
-        coord.e = img.energy.to("Ha")
-        coord.update_g_from_cart_g(img.gradient.to("Ha/ang"))
-
 
 class DHS(BaseBracketMethod):
     """
@@ -570,11 +533,9 @@ class DHS(BaseBracketMethod):
 
     def _initialise_run(self) -> None:
         """
-        Initialise everything needed for the first DHS macro-iteration
-        (Only energies are needed)
+        Initialise energies/gradients for the first DHS macro-iteration
         """
-        self.imgpair.update_one_img_mol_engrad("left")
-        self.imgpair.update_one_img_mol_engrad("right")
+        self.imgpair.update_both_img_engrad()
         return None
 
     def _step(self) -> None:
@@ -630,7 +591,9 @@ class DHS(BaseBracketMethod):
         self.imgpair.put_coord_by_side(opt.final_coordinates, side)
         return None
 
-    def calculate(self, method: "Method", n_cores: int) -> None:
+    def calculate(
+        self, method: "Method", n_cores: Optional[int] = None
+    ) -> None:
         """
         Run the DHS calculation and CI-NEB if requested. Should only
         be called once!
