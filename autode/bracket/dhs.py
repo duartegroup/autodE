@@ -15,7 +15,7 @@ from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
-from autode.exceptions import CalculationException
+from autode.exceptions import CalculationException, OptimiserStepError
 from autode.log import logger
 
 if TYPE_CHECKING:
@@ -43,31 +43,31 @@ class TruncatedTaylor:
         """
         self.centre = centre
         if hasattr(centre, "e") and centre.e is not None:
-            self.en = centre.e
+            self.e = centre.e
         else:
             # the energy can be relative and need not be absolute
-            self.en = 0.0
+            self.e = 0.0
         self.grad = grad
         self.hess = hess
         n_atoms = grad.shape[0]
         assert hess.shape == (n_atoms, n_atoms)
 
-    def value(self, coords: np.ndarray):
+    def value(self, coords: np.ndarray) -> float:
         """Energy (or relative energy if point did not have energy)"""
         # E = E(0) + g^T . dx + 0.5 * dx^T. H. dx
         dx = (coords - self.centre).flatten()
-        new_e = self.en + np.dot(self.grad, dx)
+        new_e = self.e + np.dot(self.grad, dx)
         new_e += 0.5 * np.linalg.multi_dot((dx, self.hess, dx))
         return new_e
 
-    def gradient(self, coords: np.ndarray):
+    def gradient(self, coords: np.ndarray) -> np.ndarray:
         """Gradient at supplied coordinate"""
         # g = g(0) + H . dx
         dx = (coords - self.centre).flatten()
         new_g = self.grad + np.matmul(self.hess, dx)
         return new_g
 
-    def hessian(self, coords: np.ndarray):
+    def hessian(self, coords: np.ndarray) -> np.ndarray:
         """Hessian at supplied coordinates"""
         # hessian is constant in second order expansion
         return self.hess
@@ -125,11 +125,10 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._pivot = pivot_point
         self._do_line_search = bool(line_search)
         self._angle_thresh = Angle(angle_thresh, units="deg").to("radian")
-        self._target_dist = None
+        self._target_dist: Optional[float] = None
 
         self._hessian_update_types = [BFGSSR1Update]
         self._old_coords = old_coords_read_hess
-        # todo replace later with bfgssr1update?
 
     def _initialise_run(self) -> None:
         """Initialise self._coords, gradient and hessian"""
@@ -159,13 +158,10 @@ class DistanceConstrainedOptimiser(RFOptimiser):
     def converged(self) -> bool:
         """Has the optimisation converged"""
         # The tangential gradient should be close to zero
-        if (
+        return (
             self.rms_tangent_grad < self.gtol
             and self.last_energy_change < self.etol
-        ):
-            return True
-        else:
-            return False
+        )
 
     @property
     def rms_tangent_grad(self) -> GradientRMS:
@@ -278,7 +274,9 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         )
 
         if not res.success:
-            raise RuntimeError("Unable to obtain distance-constrained step")
+            raise OptimiserStepError(
+                f"Unable to obtain distance-constrained step\nResult: {res}"
+            )
 
         step = res.x - coords
         return step

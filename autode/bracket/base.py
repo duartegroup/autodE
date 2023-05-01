@@ -38,7 +38,7 @@ class BaseBracketMethod(ABC):
 
         Args:
             initial_species: The "reactant" species
-            final_species: The "final" species
+            final_species: The "product" species
             maxiter: Maximum number of energy-gradient evaluations
             dist_tol: The distance tolerance at which the method will stop
             gtol: Gradient tolerance for optimisation steps in the method
@@ -71,16 +71,12 @@ class BaseBracketMethod(ABC):
         # optimisation is done in separate micro-iterations,
         # which means that the gradient tolerance is checked
         # elsewhere, and only distance criteria is checked here
-
-        if self.imgpair.dist <= self._dist_tol:
-            return True
-        else:
-            return False
+        return self.imgpair.dist <= self._dist_tol
 
     @property
     @abstractmethod
     def _method_name(self):
-        """Name of the current method"""
+        """Name of the current bracketing method"""
 
     @property
     @abstractmethod
@@ -119,10 +115,7 @@ class BaseBracketMethod(ABC):
     @property
     def _exceeded_maximum_iteration(self) -> bool:
         """Whether it has exceeded the number of maximum micro-iterations"""
-        if self._micro_iter >= self._maxiter:
-            return True
-        else:
-            return False
+        return self._micro_iter >= self._maxiter
 
     def calculate(
         self,
@@ -141,15 +134,17 @@ class BaseBracketMethod(ABC):
             f"Starting {self._method_name} method to find transition state"
         )
 
+        barrier_crossed = False
         while not self.converged:
             self._step()
 
-            if self.imgpair.has_jumped_over_barrier():
-                logger.warning(
+            if self.imgpair.has_jumped_over_barrier:
+                logger.error(
                     "One image has probably jumped over the barrier, in"
                     f" {self._method_name} TS search. Please check the"
                     f" results carefully"
                 )
+                barrier_crossed = True
                 if self._barrier_check:
                     logger.info(f"Stopping {self._method_name} calculation")
                     break
@@ -160,10 +155,15 @@ class BaseBracketMethod(ABC):
             self._log_convergence()
 
         # exited main loop, run CI-NEB if required and bracket converged
-        if self._should_run_cineb and self.converged:
-            self.run_cineb()
+        if self._should_run_cineb:
+            if self.converged and not barrier_crossed:
+                self.run_cineb()
+            else:
+                logger.warning(
+                    f"{self._method_name} calculation has not converged"
+                    f" completely, skipping CI-NEB run"
+                )
 
-        # print final message
         logger.info(
             f"Finished {self._method_name} procedure in {self._macro_iter} "
             f"macro-iterations consisting of {self._micro_iter} micro-"

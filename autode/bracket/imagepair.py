@@ -134,8 +134,8 @@ class BaseImagePair(ABC):
         n_cores: int,
     ) -> None:
         """
-        Sets the methods for engrad and hessian calculation, and the
-        total number of cores used for any calculation in this image pair
+        Sets the methods for en/grad calculation, and the total
+        number of cores used for any calculation in this image pair
 
         Args:
             method (Method):
@@ -287,6 +287,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         """
         return Distance(np.linalg.norm(self.dist_vec), units="ang")
 
+    @property
     def has_jumped_over_barrier(self) -> bool:
         """
         A quick test of whether the images are still separated by a barrier
