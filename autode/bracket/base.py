@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 
 from autode.values import Distance, GradientRMS
 from autode.bracket.imagepair import EuclideanImagePair
-from autode.methods import get_hmethod
 from autode.log import logger
+from autode.utils import work_in
 from autode import Config
 
 if TYPE_CHECKING:
@@ -16,6 +16,8 @@ class BaseBracketMethod(ABC):
     """
     Base class for all bracketing methods
     """
+
+    _method_name = "bracket"
 
     def __init__(
         self,
@@ -75,11 +77,6 @@ class BaseBracketMethod(ABC):
 
     @property
     @abstractmethod
-    def _method_name(self):
-        """Name of the current bracketing method"""
-
-    @property
-    @abstractmethod
     def _macro_iter(self) -> int:
         """The number of macro-iterations run with this method"""
 
@@ -117,6 +114,7 @@ class BaseBracketMethod(ABC):
         """Whether it has exceeded the number of maximum micro-iterations"""
         return self._micro_iter >= self._maxiter
 
+    @work_in(_method_name.lower())
     def calculate(
         self,
         method: "Method",
@@ -125,7 +123,8 @@ class BaseBracketMethod(ABC):
         """
         Run the bracketing method calculation using the method for
         energy/gradient calculation, with n_cores. Runs CI-NEB at
-        the end if requested
+        the end if requested; then save the .xyz trajectories,
+        plot the energies and finally save the peak as TS guess
         """
         n_cores = Config.n_cores if n_cores is None else int(n_cores)
         self.imgpair.set_method_and_n_cores(method, n_cores)
@@ -171,23 +170,10 @@ class BaseBracketMethod(ABC):
             f"iterations (optimiser steps). {self._method_name} is "
             f"{'converged' if self.converged else 'not converged'}"
         )
-        return None
 
-    def run(self) -> None:
-        """
-        Convenience method to run the bracketing method with the
-        default high-level method and n_cores from current state
-        of the configuration, and then writes trajectories and
-        plots the minimum energy path obtained
-        """
-        method = get_hmethod()
-        n_cores = Config.n_cores
-        self.calculate(method=method, n_cores=n_cores)
         self.print_geometries()
         self.plot_energies()
-        self.imgpair.ts_guess.print_xyz_file(
-            f"{self._method_name}_ts_guess.xyz"
-        )
+        self.ts_guess.print_xyz_file(f"{self._method_name}_ts_guess.xyz")
         return None
 
     def print_geometries(

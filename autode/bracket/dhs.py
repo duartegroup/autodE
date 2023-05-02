@@ -15,7 +15,8 @@ from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
-from autode.exceptions import CalculationException, OptimiserStepError
+from autode.utils import work_in
+from autode.exceptions import OptimiserStepError
 from autode.log import logger
 
 if TYPE_CHECKING:
@@ -466,6 +467,8 @@ class DHS(BaseBracketMethod):
     from the reactant and product structures
     """
 
+    _method_name = "DHS"
+
     def __init__(
         self,
         initial_species: "Species",
@@ -520,10 +523,6 @@ class DHS(BaseBracketMethod):
         # an optimiser, so to keep track of the actual number of
         # en/grad calls, this local variable is used
         self._current_microiters: int = 0
-
-    @property
-    def _method_name(self):
-        return "DHS"
 
     def _initialise_run(self) -> None:
         """
@@ -585,6 +584,7 @@ class DHS(BaseBracketMethod):
         self.imgpair.put_coord_by_side(opt.final_coordinates, side)
         return None
 
+    @work_in(_method_name.lower())
     def calculate(
         self, method: "Method", n_cores: Optional[int] = None
     ) -> None:
@@ -662,9 +662,7 @@ class DHSGS(DHS):
     J. Phys.: Condens. Matter, 2010, 22(7), 074203
     """
 
-    @property
-    def _method_name(self):
-        return "DHS-GS"
+    _method_name = "DHS-GS"
 
     def __init__(self, *args, gs_mix: float = 0.5, **kwargs):
         """
