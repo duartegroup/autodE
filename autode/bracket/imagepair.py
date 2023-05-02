@@ -330,6 +330,8 @@ class BaseImagePair(ABC):
         """
         Update the energy/gradient for both images, with parallel processing
         """
+        assert self._method is not None
+        assert self._n_cores is not None
         n_cores_per_pp = self._n_cores // 2 if self._n_cores < 2 else 1
         n_procs = 1 if self._n_cores < 2 else 2
         with ProcessPool(max_workers=n_procs) as pool:
@@ -354,6 +356,8 @@ class BaseImagePair(ABC):
         """
         Update the molecular hessian of both images by calculation
         """
+        assert self._hess_method is not None
+        assert self._n_cores is not None
         n_cores_per_pp = self._n_cores // 2 if self._n_cores < 2 else 1
         n_procs = 1 if self._n_cores < 2 else 2
         with ProcessPool(max_workers=n_procs) as pool:
@@ -361,7 +365,7 @@ class BaseImagePair(ABC):
                 pool.submit(
                     _calculate_hessian_for_species,
                     species=img,
-                    method=self._method,
+                    method=self._hess_method,
                     n_cores=n_cores_per_pp,
                 )
                 for img in [self._left_image, self._right_image]
@@ -378,6 +382,8 @@ class BaseImagePair(ABC):
         """
         for history in [self._left_history, self._right_history]:
             coords_l, coords_k = history.final, history.penultimate
+            assert coords_l.g is not None
+            assert coords_l.h is None
 
             updater = self._hessian_update_type(
                 h=coords_k.h,

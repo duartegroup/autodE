@@ -272,7 +272,7 @@ class BaseBracketMethod(ABC):
         should bring the ends very close to the TS). The result from
         the CI-NEB calculation is stored as coordinates.
         """
-        if not self._macro_iter > 0:
+        if not self._micro_iter > 0:
             logger.error(
                 f"Must run {self._method_name} calculation before"
                 f"running the CI-NEB calculation"

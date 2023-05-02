@@ -4,10 +4,11 @@ import pytest
 
 from autode import Molecule
 from autode.geom import calc_rmsd
+from autode.methods import XTB
 from autode.values import Energy
 from autode.utils import work_in, work_in_tmp_dir
 from autode.bracket.imagepair import EuclideanImagePair
-from ..testutils import work_in_zipped_dir
+from ..testutils import work_in_zipped_dir, requires_with_working_xtb_install
 
 here = os.path.dirname(os.path.abspath(__file__))
 datazip = os.path.join(here, "data", "geometries.zip")
@@ -141,3 +142,67 @@ def test_imgpair_trajectory_plotting():
     assert os.path.isfile("init.xyz")
     assert os.path.isfile("fin.xyz")
     assert os.path.isfile("total.xyz")
+
+
+@requires_with_working_xtb_install
+@work_in_zipped_dir(datazip)
+def test_imgpair_calc_engrad():
+    mol1 = Molecule("da_reactant.xyz")
+    mol2 = Molecule("da_product.xyz")
+
+    imgpair = NullImagePair(left_image=mol1, right_image=mol2)
+    # without setting method, assert will be set off
+    with pytest.raises(AssertionError):
+        imgpair.update_both_img_engrad()
+
+    imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
+    imgpair.update_both_img_engrad()
+    # energy should be updated
+    assert imgpair.left_coord.e is not None
+    assert imgpair.right_coord.e is not None
+    # units should be forced to Hartree
+    assert str(imgpair.left_coord.e.units) == "Unit(Ha)"
+    assert str(imgpair.right_coord.e.units) == "Unit(Ha)"
+    # gradient should also be updated
+    assert imgpair.left_coord.g is not None
+    assert imgpair.right_coord.g is not None
+
+    # since imgpair takes a copy of initial species they
+    # should not be affected
+    assert mol1.energy is None
+    assert mol2.energy is None
+    assert mol1.gradient is None
+    assert mol2.gradient is None
+
+
+@requires_with_working_xtb_install
+def test_hessian_update():
+    # todo clean up with stored hessian in txt instead of calling hessian
+    # todo separate hessian calculation into another test
+    mol1 = Molecule(smiles="N#N")
+    mol2 = Molecule(smiles="N#N")
+
+    imgpair = NullImagePair(mol1, mol2)
+    imgpair.set_method_and_n_cores(method=XTB(), n_cores=1, hess_method=XTB())
+
+    imgpair.update_both_img_engrad()
+    imgpair.update_both_img_hessian_by_calc()
+    assert imgpair.left_coord.h is not None
+
+    coord = imgpair.left_coord.copy()
+    coord[2] += 0.2
+
+    imgpair.left_coord = coord
+    imgpair.right_coord = coord
+
+    assert imgpair.left_coord.h is None
+    imgpair.update_both_img_engrad()
+    imgpair.update_both_img_mol_hessian_by_formula()
+    assert imgpair.left_coord.h is not None
+    assert (
+        imgpair.right_coord.h is not None
+    )  # check that it modified current side
+
+    # calling Hessian update again will raise exception
+    with pytest.raises(AssertionError):
+        imgpair.update_both_img_mol_hessian_by_formula()

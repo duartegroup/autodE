@@ -196,11 +196,18 @@ def test_dhs_diels_alder():
     # the true TS must be within the last two DHS images, therefore
     # the distance must be less than the distance tolerance
     # (assuming curvature of PES near TS not being too high)
-
     assert distance < set_dist_tol
+
+    # trajectories and default energy plot should be in "dhs" folder
+    assert os.path.isfile("dhs/initial_species_DHS.trj.xyz")
+    assert os.path.isfile("dhs/final_species_DHS.trj.xyz")
+    assert os.path.isfile("dhs/total_trajectory_DHS.trj.xyz")
+    assert os.path.isfile("dhs/DHS_path_energy_plot.pdf")
 
     # now run CI-NEB from end points
     dhs.run_cineb()
+    assert dhs.imgpair._cineb_coords is not None
+    assert dhs.imgpair._cineb_coords.e is not None
     peak = dhs.ts_guess
 
     rmsd = calc_rmsd(peak.coordinates, true_ts.coordinates)
@@ -211,13 +218,7 @@ def test_dhs_diels_alder():
     assert new_distance < distance
     assert new_distance < 0.6 * set_dist_tol
 
-    # test print geometries
-    dhs.print_geometries()
-    assert os.path.isfile("initial_species_DHS.trj.xyz")
-    assert os.path.isfile("final_species_DHS.trj.xyz")
-    assert os.path.isfile("total_trajectory_DHS.trj.xyz")
-
-    # test graph plotting
+    # test graph plotting again, with all available options
     dhs.plot_energies("DHS_relative_dist.pdf", distance_metric="relative")
     dhs.plot_energies("DHS_by_index.pdf", distance_metric="index")
     dhs.plot_energies("DHS_dist_from_start.pdf", distance_metric="from_start")
