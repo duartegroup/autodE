@@ -17,8 +17,6 @@ class BaseBracketMethod(ABC):
     Base class for all bracketing methods
     """
 
-    _method_name = "bracket"
-
     def __init__(
         self,
         initial_species: "Species",
@@ -59,6 +57,11 @@ class BaseBracketMethod(ABC):
 
         self._should_run_cineb = bool(cineb_at_conv)
         self._barrier_check = bool(barrier_check)
+
+    @property
+    @abstractmethod
+    def _method_name(self) -> str:
+        """Name of the current bracketing method, to be set by subclass"""
 
     @property
     def ts_guess(self) -> Optional["Species"]:
@@ -114,7 +117,6 @@ class BaseBracketMethod(ABC):
         """Whether it has exceeded the number of maximum micro-iterations"""
         return self._micro_iter >= self._maxiter
 
-    @work_in(_method_name.lower())
     def calculate(
         self,
         method: "Method",
@@ -125,6 +127,27 @@ class BaseBracketMethod(ABC):
         energy/gradient calculation, with n_cores. Runs CI-NEB at
         the end if requested; then save the .xyz trajectories,
         plot the energies and finally save the peak as TS guess
+
+        Args:
+            method:
+            n_cores:
+        """
+
+        @work_in(self._method_name.lower())
+        def run():
+            self._calculate(method, n_cores)
+
+        run()
+        return None
+
+    def _calculate(
+        self,
+        method: "Method",
+        n_cores: Optional[int] = None,
+    ) -> None:
+        """
+        Actually runs the calculation, it is wrapped around in calculate()
+        so that the results are placed in a sub-folder
         """
         n_cores = Config.n_cores if n_cores is None else int(n_cores)
         self.imgpair.set_method_and_n_cores(method, n_cores)

@@ -467,8 +467,6 @@ class DHS(BaseBracketMethod):
     from the reactant and product structures
     """
 
-    _method_name = "DHS"
-
     def __init__(
         self,
         initial_species: "Species",
@@ -523,6 +521,10 @@ class DHS(BaseBracketMethod):
         # an optimiser, so to keep track of the actual number of
         # en/grad calls, this local variable is used
         self._current_microiters: int = 0
+
+    @property
+    def _method_name(self) -> str:
+        return "DHS"
 
     def _initialise_run(self) -> None:
         """
@@ -584,8 +586,7 @@ class DHS(BaseBracketMethod):
         self.imgpair.put_coord_by_side(opt.final_coordinates, side)
         return None
 
-    @work_in(_method_name.lower())
-    def calculate(
+    def _calculate(
         self, method: "Method", n_cores: Optional[int] = None
     ) -> None:
         """
@@ -597,7 +598,7 @@ class DHS(BaseBracketMethod):
             n_cores: Number of cores to use for calculation
         """
         self._method = method
-        super().calculate(method, n_cores)
+        super()._calculate(method, n_cores)
 
     @property
     def _macro_iter(self):
@@ -662,7 +663,9 @@ class DHSGS(DHS):
     J. Phys.: Condens. Matter, 2010, 22(7), 074203
     """
 
-    _method_name = "DHS-GS"
+    @property
+    def _method_name(self) -> str:
+        return "DHS-GS"
 
     def __init__(self, *args, gs_mix: float = 0.5, **kwargs):
         """

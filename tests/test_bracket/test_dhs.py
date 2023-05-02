@@ -95,7 +95,7 @@ def test_distance_constrained_optimiser():
 
 @requires_with_working_xtb_install
 @work_in_zipped_dir(datazip)
-def test_dhs_dhs_gs_single_step():
+def test_dhs_single_step():
     step_size = 0.2
     reactant = Molecule("da_reactant.xyz")
     product = Molecule("da_product.xyz")
