@@ -233,6 +233,9 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
         Returns:
             (np.ndarray): Step in cartesian (or mw-cartesian) coordinates
+
+        Raises:
+            OptimiserStepError: If scipy fails to calculate constrained step
         """
         from scipy.optimize import minimize
 
@@ -621,10 +624,7 @@ class DHS(BaseBracketMethod):
         Args:
             value (int):
         """
-        if value is None:
-            return
-        else:
-            self._current_microiters = int(value)
+        self._current_microiters = int(value)
 
     def _get_dhs_step(self, side: str) -> CartesianCoordinates:
         """
