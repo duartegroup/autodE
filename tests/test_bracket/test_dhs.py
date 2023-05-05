@@ -130,7 +130,7 @@ def test_dhs_single_step():
 
 @requires_with_working_xtb_install
 @work_in_zipped_dir(datazip)
-def test_dhs_gs_single_step():
+def test_dhs_gs_single_step(caplog):
     step_size = 0.2
     reactant = Molecule("da_reactant.xyz")
     product = Molecule("da_product.xyz")
@@ -148,8 +148,11 @@ def test_dhs_gs_single_step():
     dhs_gs.imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
     dhs_gs._method = XTB()
     dhs_gs._initialise_run()
-    # take one steps
-    dhs_gs._step()
+    # take one step
+    with caplog.at_level("INFO"):
+        dhs_gs._step()
+        dhs_gs._log_convergence()
+    assert "DHS-GS" in caplog.text
     right_pred = dhs_gs._get_dhs_step("right")  # 50% DHS + 50% GS
 
     imgpair = dhs_gs.imgpair
@@ -242,7 +245,7 @@ def test_dhs_jumping_over_barrier(caplog):
         initial_species=reactant,
         final_species=product,
         maxiter=200,
-        step_size=0.5,
+        step_size=0.6,
         dist_tol=0.3,  # smaller dist_tol also to make one side jump
         gtol=5.0e-4,
         barrier_check=True,
@@ -252,3 +255,27 @@ def test_dhs_jumping_over_barrier(caplog):
 
     assert "One image has probably jumped over the barrier" in caplog.text
     assert not dhs.converged
+
+
+@requires_with_working_xtb_install
+@work_in_zipped_dir(datazip)
+def test_dhs_stops_if_microiter_exceeded(caplog):
+    reactant = Molecule("da_rct_image.xyz")
+    product = Molecule("da_prod_image.xyz")
+
+    # run DHS with low maxiter
+    dhs = DHS(
+        initial_species=reactant,
+        final_species=product,
+        maxiter=10,
+        step_size=0.2,
+        dist_tol=1.0,
+        gtol=5.0e-4,
+        barrier_check=True,
+    )
+    with caplog.at_level("ERROR"):
+        dhs.calculate(method=XTB(), n_cores=1)
+
+    assert not dhs.converged
+    text = "Micro-iterations (optimisation) after a DHS step did not converge"
+    assert text in caplog.text
