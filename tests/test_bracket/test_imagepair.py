@@ -4,10 +4,13 @@ import pytest
 
 from autode import Molecule
 from autode.geom import calc_rmsd
+from autode.opt.coordinates import CartesianCoordinates
 from autode.methods import XTB
 from autode.values import Energy
 from autode.utils import work_in, work_in_tmp_dir
-from autode.bracket.imagepair import EuclideanImagePair
+from autode.bracket.imagepair import (EuclideanImagePair,
+                                      _calculate_engrad_for_species,
+                                      _calculate_hessian_for_species)
 from ..testutils import work_in_zipped_dir, requires_with_working_xtb_install
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -20,6 +23,24 @@ class NullImagePair(EuclideanImagePair):
     @property
     def ts_guess(self):
         return None
+
+
+def test_imagpair_coordinates():
+    mol = Molecule(smiles="CCO")
+    imgpair = NullImagePair(mol, mol.copy())
+
+    # error on setting wrong type of coordinates, even if
+    # it's an array of right shape
+    with pytest.raises(TypeError):
+        imgpair.left_coord = np.array(mol.coordinates.flatten())
+
+    coords = CartesianCoordinates(mol.coordinates)
+    coords += 0.1
+    # no error if Cartesian coordinates
+    imgpair.left_coord = coords
+    coords = CartesianCoordinates(np.arange(mol.n_atoms + 1))
+    with pytest.raises(ValueError, match=f"Must have {mol.n_atoms * 3} entries"):
+        imgpair.right_coord = coords
 
 
 @work_in_zipped_dir(datazip)
@@ -173,6 +194,25 @@ def test_imgpair_calc_engrad():
     assert mol2.energy is None
     assert mol1.gradient is None
     assert mol2.gradient is None
+
+
+@requires_with_working_xtb_install
+def test_calculation_functions():
+    # Test the external functions that are used in image pair for
+    # easy parallelisation
+    mol = Molecule(smiles="CCO")
+    en, grad = _calculate_engrad_for_species(mol, XTB(), 1)
+    assert en == mol.energy
+    assert grad == mol.gradient
+
+    mol = Molecule(smiles="N#N")
+    hess = _calculate_hessian_for_species(mol, XTB(), 1)
+    # should take a copy to calculate
+    assert mol.energy is None
+    assert mol.gradient is None
+    assert mol.hessian is None
+    assert hess is not None
+    assert hess.shape == (3 * mol.n_atoms, 3*mol.n_atoms)
 
 
 @requires_with_working_xtb_install

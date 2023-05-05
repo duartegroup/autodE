@@ -66,6 +66,7 @@ def _calculate_hessian_for_species(
         (Hessian): Hessian matrix
     """
     from autode.calculations import Calculation
+    species = species.new_species()
 
     hess_calc = Calculation(
         name=f"{species.name}_hess",
@@ -250,7 +251,7 @@ class BaseImagePair(ABC):
         return self._left_history[-1]
 
     @left_coord.setter
-    def left_coord(self, value: Optional[CartesianCoordinates]):
+    def left_coord(self, value: CartesianCoordinates):
         """
         Sets the coordinates of the left image, also updates
         the coordinates of the species
@@ -262,8 +263,6 @@ class BaseImagePair(ABC):
             (TypeError): If input is not of type CartesianCoordinates
             (ValueError): If input does not have correct shape
         """
-        if value is None:
-            return
         if value.shape[0] != 3 * self.n_atoms:
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
@@ -283,7 +282,7 @@ class BaseImagePair(ABC):
         return self._right_history[-1]
 
     @right_coord.setter
-    def right_coord(self, value: Optional[CartesianCoordinates]):
+    def right_coord(self, value: CartesianCoordinates):
         """
         Sets the coordinates of the right image, also updates
         the coordinates of the species
@@ -295,12 +294,10 @@ class BaseImagePair(ABC):
             (TypeError): If input is not of type CartesianCoordinates
             (ValueError): If input does not have correct shape
         """
-        if value is None:
-            return
         if value.shape[0] != 3 * self.n_atoms:
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
-        if isinstance(value, OptCoordinates):
+        if isinstance(value, CartesianCoordinates):
             self._right_history.append(value.copy())
         else:
             raise TypeError
