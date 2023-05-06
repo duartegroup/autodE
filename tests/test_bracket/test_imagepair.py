@@ -2,15 +2,17 @@ import os
 import numpy as np
 import pytest
 
-from autode import Molecule
+from autode import Molecule, Atom
 from autode.geom import calc_rmsd
 from autode.opt.coordinates import CartesianCoordinates
 from autode.methods import XTB
 from autode.values import Energy
 from autode.utils import work_in, work_in_tmp_dir
-from autode.bracket.imagepair import (EuclideanImagePair,
-                                      _calculate_engrad_for_species,
-                                      _calculate_hessian_for_species)
+from autode.bracket.imagepair import (
+    EuclideanImagePair,
+    _calculate_engrad_for_species,
+    _calculate_hessian_for_species,
+)
 from ..testutils import work_in_zipped_dir, requires_with_working_xtb_install
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -39,7 +41,9 @@ def test_imagpair_coordinates():
     # no error if Cartesian coordinates
     imgpair.left_coord = coords
     coords = CartesianCoordinates(np.arange(mol.n_atoms + 1))
-    with pytest.raises(ValueError, match=f"Must have {mol.n_atoms * 3} entries"):
+    with pytest.raises(
+        ValueError, match=f"Must have {mol.n_atoms * 3} entries"
+    ):
         imgpair.right_coord = coords
 
 
@@ -197,6 +201,22 @@ def test_imgpair_calc_engrad():
 
 
 @requires_with_working_xtb_install
+@work_in_tmp_dir()
+def test_imgpair_calc_hess():
+    mol1 = Molecule(smiles="N#N")
+
+    imgpair = NullImagePair(mol1, mol1.copy())
+    imgpair.set_method_and_n_cores(method=XTB(), n_cores=1, hess_method=XTB())
+    imgpair.update_both_img_hessian_by_calc()
+
+    # should not change gradient and energy
+    assert imgpair.left_coord.g is None
+    assert imgpair.left_coord.e is None
+    # only hessian should be calculation
+    assert imgpair.left_coord.h is not None
+
+
+@requires_with_working_xtb_install
 def test_calculation_functions():
     # Test the external functions that are used in image pair for
     # easy parallelisation
@@ -212,37 +232,47 @@ def test_calculation_functions():
     assert mol.gradient is None
     assert mol.hessian is None
     assert hess is not None
-    assert hess.shape == (3 * mol.n_atoms, 3*mol.n_atoms)
+    assert hess.shape == (3 * mol.n_atoms, 3 * mol.n_atoms)
 
 
-@requires_with_working_xtb_install
+@work_in_zipped_dir(datazip)
 def test_hessian_update():
-    # todo clean up with stored hessian in txt instead of calling hessian
-    # todo separate hessian calculation into another test
-    mol1 = Molecule(smiles="N#N")
-    mol2 = Molecule(smiles="N#N")
+    mol1 = Molecule(
+        atoms=[
+            Atom("N", 0.5588, 0.0000, 0.0000),
+            Atom("N", -0.5588, 0.0000, 0.0000),
+        ]
+    )
+    g = np.loadtxt("n2_grad.txt")
+    h = np.loadtxt("n2_hess.txt")
 
-    imgpair = NullImagePair(mol1, mol2)
+    imgpair = NullImagePair(mol1, mol1.copy())
     imgpair.set_method_and_n_cores(method=XTB(), n_cores=1, hess_method=XTB())
 
-    imgpair.update_both_img_engrad()
-    imgpair.update_both_img_hessian_by_calc()
+    imgpair.left_coord.update_g_from_cart_g(g)
+    imgpair.left_coord.update_h_from_cart_h(h)
+    imgpair.right_coord.update_g_from_cart_g(g)
+    imgpair.right_coord.update_h_from_cart_h(h)
+
     assert imgpair.left_coord.h is not None
 
     coord = imgpair.left_coord.copy()
-    coord[2] += 0.2
+    coord[0] += 0.1
 
     imgpair.left_coord = coord
     imgpair.right_coord = coord
 
+    new_g = np.loadtxt("n2_new_grad.txt")
+
     assert imgpair.left_coord.h is None
-    imgpair.update_both_img_engrad()
-    imgpair.update_both_img_mol_hessian_by_formula()
+    imgpair.left_coord.update_g_from_cart_g(new_g)
+    imgpair.right_coord.update_g_from_cart_g(new_g)
+
+    # update the hessian with update formula
+    imgpair.update_both_img_hessian_by_formula()
     assert imgpair.left_coord.h is not None
-    assert (
-        imgpair.right_coord.h is not None
-    )  # check that it modified current side
+    assert imgpair.right_coord.h is not None
 
     # calling Hessian update again will raise exception
     with pytest.raises(AssertionError):
-        imgpair.update_both_img_mol_hessian_by_formula()
+        imgpair.update_both_img_hessian_by_formula()

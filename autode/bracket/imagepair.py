@@ -66,6 +66,7 @@ def _calculate_hessian_for_species(
         (Hessian): Hessian matrix
     """
     from autode.calculations import Calculation
+
     species = species.new_species()
 
     hess_calc = Calculation(
@@ -373,14 +374,14 @@ class BaseImagePair(ABC):
         self.right_coord.update_h_from_cart_h(right_hess)
         return None
 
-    def update_both_img_mol_hessian_by_formula(self):
+    def update_both_img_hessian_by_formula(self):
         """
         Update the molecular hessian for both images by update formula
         """
         for history in [self._left_history, self._right_history]:
             coords_l, coords_k = history.final, history.penultimate
-            assert coords_l.g is not None
-            assert coords_l.h is None
+            assert coords_l.g is not None, "Gradient is not set!"
+            assert coords_l.h is None, "Hessian already exists!"
 
             updater = self._hessian_update_type(
                 h=coords_k.h,
