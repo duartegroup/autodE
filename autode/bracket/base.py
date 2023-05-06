@@ -115,6 +115,10 @@ class BaseBracketMethod(ABC):
     @property
     def _exceeded_maximum_iteration(self) -> bool:
         """Whether it has exceeded the number of maximum micro-iterations"""
+        logger.error(
+            f"Reached the maximum number of micro-iterations "
+            f"*{self._maxiter}"
+        )
         return self._micro_iter >= self._maxiter
 
     def calculate(

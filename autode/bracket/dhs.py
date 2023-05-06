@@ -573,10 +573,6 @@ class DHS(BaseBracketMethod):
 
         # not converged can only happen if exceeded maxiter of optimiser
         if not opt.converged:
-            logger.error(
-                "Micro-iterations (optimisation) after a "
-                f"{self._method_name} step did not converge, exiting"
-            )
             return None
 
         logger.info(

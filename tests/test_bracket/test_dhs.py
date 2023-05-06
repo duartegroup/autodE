@@ -273,9 +273,9 @@ def test_dhs_stops_if_microiter_exceeded(caplog):
         gtol=5.0e-4,
         barrier_check=True,
     )
-    with caplog.at_level("ERROR"):
+    with caplog.at_level("WARNING"):
         dhs.calculate(method=XTB(), n_cores=1)
 
     assert not dhs.converged
-    text = "Micro-iterations (optimisation) after a DHS step did not converge"
+    text = "Reached the maximum number of micro-iterations"
     assert text in caplog.text
