@@ -15,14 +15,12 @@ from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
-from autode.utils import work_in
 from autode.exceptions import OptimiserStepError
 from autode.log import logger
 
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
-    from autode.opt.optimisers.base import OptimiserHistory
 
 
 class TruncatedTaylor:
@@ -67,11 +65,6 @@ class TruncatedTaylor:
         dx = (coords - self.centre).flatten()
         new_g = self.grad + np.matmul(self.hess, dx)
         return new_g
-
-    def hessian(self, coords: np.ndarray) -> np.ndarray:
-        """Hessian at supplied coordinates"""
-        # hessian is constant in second order expansion
-        return self.hess
 
 
 class DistanceConstrainedOptimiser(RFOptimiser):
@@ -391,7 +384,7 @@ class DHSImagePair(EuclideanImagePair):
 
         energies = []
         for coord in self._total_history:
-            energies.append(coord.e.to("Ha"))
+            energies.append(coord.e)
         if any(x is None for x in energies):
             logger.error(
                 "Energy values are missing in the trajectory of this"
@@ -493,7 +486,7 @@ class DHS(BaseBracketMethod):
 
             step_size: The size of the DHS step taken along
                         the linear path between reactant and
-                        product
+                        product in Angstroms
 
         Keyword Args:
 
@@ -518,7 +511,13 @@ class DHS(BaseBracketMethod):
         self._method = None
 
         self._step_size = Distance(abs(step_size), "ang")
-        assert self._step_size < self.imgpair.dist
+        if self._step_size > self.imgpair.dist:
+            logger.warning(
+                f"Step size ({self._step_size:.3f} Å) for {self._method_name}"
+                f" is larger than the starting Euclidean distance between"
+                f" images ({self.imgpair.dist:.3f} Å). This calculation"
+                f" will likely run into errors."
+            )
 
         # NOTE: In DHS the micro-iterations are done separately, in
         # an optimiser, so to keep track of the actual number of

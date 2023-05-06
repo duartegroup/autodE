@@ -484,13 +484,6 @@ class EuclideanImagePair(BaseImagePair, ABC):
         assert self._method is not None, "Methods must be set"
         assert self._n_cores is not None, "Number of cores must be set"
 
-        if self.dist > 2.0:
-            logger.warning(
-                "The distance between the images in image-pair is"
-                "quite large, bracketing method may not have "
-                "converged completely."
-            )
-
         cineb = CINEB.from_end_points(
             self._left_image, self._right_image, num=3
         )

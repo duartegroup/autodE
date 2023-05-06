@@ -283,11 +283,11 @@ class BaseBracketMethod(ABC):
             )
             return None
 
-        if not self.converged:
+        if not self.converged or self.imgpair.dist > 2.0:
             logger.warning(
-                f"{self._method_name} method has not converged, running a"
-                " CI-NEB calculation now may not be efficient. Please"
-                " check results carefully."
+                f"{self._method_name} method has not converged sufficiently,"
+                f" running a CI-NEB calculation now may cause errors."
+                f" Please check results carefully."
             )
         else:
             logger.info(

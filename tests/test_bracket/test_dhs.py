@@ -1,8 +1,10 @@
 import os
 import numpy as np
+import pytest
 from scipy.optimize import minimize
 from autode import Molecule
 from autode.methods import XTB
+from autode.values import PotentialEnergy
 from autode.utils import work_in_tmp_dir
 from autode.geom import calc_rmsd
 from autode.bracket.dhs import (
@@ -10,6 +12,8 @@ from autode.bracket.dhs import (
     DHSGS,
     DistanceConstrainedOptimiser,
     TruncatedTaylor,
+    DHSImagePair,
+    ImgPairSideError,
 )
 from autode.opt.coordinates import CartesianCoordinates
 from autode import Config
@@ -91,6 +95,49 @@ def test_distance_constrained_optimiser():
     prod_coords_new = opt.final_coordinates
     new_distance = np.linalg.norm(prod_coords_new - rct_coords)
     assert np.isclose(new_distance, distance)
+
+
+def test_dhs_image_pair():
+    mol1 = Molecule(smiles="CCO")
+    mol2 = mol1.new_species()
+    imgpair = DHSImagePair(mol1, mol2)
+
+    coords = imgpair.left_coord + 0.1
+
+    # check the functions that get one side
+    with pytest.raises(ImgPairSideError):
+        imgpair.put_coord_by_side(coords, "abc")
+
+    imgpair.left_coord = coords
+    with pytest.raises(ImgPairSideError):
+        step = imgpair.get_last_step_by_side("abc")
+
+    # with "left" it should not cause any issues
+    step = imgpair.get_last_step_by_side("left")
+    assert isinstance(step, np.ndarray)
+
+    with pytest.raises(ImgPairSideError):
+        imgpair.get_coord_by_side("abc")
+
+
+def test_dhs_image_pair_ts_guess(caplog):
+    mol1 = Molecule(smiles="CCO")
+    imgpair = DHSImagePair(mol1, mol1.copy())
+
+    imgpair.left_coord.e = PotentialEnergy(-0.144, "Ha")
+
+    with caplog.at_level("ERROR"):
+        peak = imgpair.ts_guess
+    assert "Energy values are missing in the trajectory" in caplog.text
+
+    imgpair.right_coord.e = PotentialEnergy(-0.145, "Ha")
+    imgpair.left_coord.g = np.ones_like(imgpair.left_coord)  # spoof gradient
+    peak = imgpair.ts_guess
+    assert peak is not None
+
+    assert np.allclose(peak.coordinates.flatten(), imgpair.left_coord)
+    assert np.isclose(peak.energy, -0.144)
+    assert np.allclose(peak.gradient.flatten(), imgpair.left_coord.g)
 
 
 @requires_with_working_xtb_install
@@ -279,3 +326,12 @@ def test_dhs_stops_if_microiter_exceeded(caplog):
     assert not dhs.converged
     text = "Reached the maximum number of micro-iterations"
     assert text in caplog.text
+
+
+def test_method_names():
+    # check all method names are properly written
+    mol1 = Molecule(smiles="CCO")
+    dhs = DHS(mol1, mol1.copy())
+    assert dhs._method_name == "DHS"
+    dhs_gs = DHSGS(mol1, mol1.copy())
+    assert dhs_gs._method_name == "DHS-GS"
