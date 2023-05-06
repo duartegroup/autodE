@@ -245,10 +245,8 @@ class BaseImagePair(ABC):
         return len(self._left_history) + len(self._right_history) - 2
 
     @property
-    def left_coord(self) -> Optional[CartesianCoordinates]:
+    def left_coord(self) -> CartesianCoordinates:
         """The coordinates of the left image"""
-        if len(self._left_history) == 0:
-            return None
         return self._left_history[-1]
 
     @left_coord.setter
@@ -276,10 +274,8 @@ class BaseImagePair(ABC):
         # todo should we remove old hessians that are not needed to free mem?
 
     @property
-    def right_coord(self) -> Optional[OptCoordinates]:
+    def right_coord(self) -> CartesianCoordinates:
         """The coordinates of the right image"""
-        if len(self._right_history) == 0:
-            return None
         return self._right_history[-1]
 
     @right_coord.setter
@@ -582,7 +578,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         if any(coord.e is None for coord in self._total_history):
             logger.error(
                 "One or more coordinates do not have associated"
-                "energies, unable to produce energy plot!"
+                " energies, unable to produce energy plot!"
             )
             return None
 

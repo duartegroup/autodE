@@ -33,18 +33,33 @@ def test_imagpair_coordinates():
 
     # error on setting wrong type of coordinates, even if
     # it's an array of right shape
+    coord_array = np.array(mol.coordinates.flatten())
     with pytest.raises(TypeError):
-        imgpair.left_coord = np.array(mol.coordinates.flatten())
+        imgpair.left_coord = coord_array
+    with pytest.raises(TypeError):
+        imgpair.right_coord = coord_array
 
     coords = CartesianCoordinates(mol.coordinates)
     coords += 0.1
     # no error if Cartesian coordinates
     imgpair.left_coord = coords
     coords = CartesianCoordinates(np.arange(mol.n_atoms + 1))
-    with pytest.raises(
-        ValueError, match=f"Must have {mol.n_atoms * 3} entries"
-    ):
+    num = mol.n_atoms * 3
+    with pytest.raises(ValueError, match=f"Must have {num} entries"):
+        imgpair.left_coord = coords
+    with pytest.raises(ValueError, match=f"Must have {num} entries"):
         imgpair.right_coord = coords
+
+
+def test_imagepair_method_typing():
+    mol = Molecule(smiles="CCO")
+    imgpair = NullImagePair(mol, mol.copy())
+
+    with pytest.raises(TypeError, match="method needs to be of type"):
+        imgpair.set_method_and_n_cores(method=5, n_cores=2)
+
+    with pytest.raises(TypeError, match="hessian method needs to be of type"):
+        imgpair.set_method_and_n_cores(method=XTB(), n_cores=2, hess_method=5)
 
 
 @work_in_zipped_dir(datazip)
@@ -128,7 +143,7 @@ def test_energy_plotting_and_trajectory_ignored_if_less_than_three_points():
 
 
 @work_in_tmp_dir()
-def test_imgpair_energy_plotting():
+def test_imgpair_energy_plotting(caplog):
     mol1 = Molecule(smiles="CCO")
     mol2 = Molecule(smiles="CCO")
 
@@ -151,6 +166,19 @@ def test_imgpair_energy_plotting():
     assert os.path.isfile("test1.pdf")
     imgpair.plot_energies(filename="test2.pdf", distance_metric="index")
     assert os.path.isfile("test2.pdf")
+
+    # distance metric should be one of the three options
+    with pytest.raises(ValueError, match="distance metric must"):
+        imgpair.plot_energies(filename="test.pdf", distance_metric="abc")
+
+    # if any energy is missing, also no plotting should be done
+    imgpair.left_coord.e = None
+    with caplog.at_level("ERROR"):
+        imgpair.plot_energies(
+            filename="test_noE.pdf", distance_metric="relative"
+        )
+    assert not os.path.isfile("test-noE.pdf")
+    assert "do not have associated energies" in caplog.text
 
 
 @work_in_tmp_dir()
