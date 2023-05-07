@@ -296,12 +296,16 @@ def test_dhs_jumping_over_barrier(caplog):
         dist_tol=0.3,  # smaller dist_tol also to make one side jump
         gtol=5.0e-4,
         barrier_check=True,
+        cineb_at_conv=True,
     )
     with caplog.at_level("WARNING"):
         dhs.calculate(method=XTB(), n_cores=Config.n_cores)
 
     assert "One image has probably jumped over the barrier" in caplog.text
     assert not dhs.converged
+    # CI-NEB should not be run if one image has jumped over
+    assert "has not converged properly or one side has jumped" in caplog.text
+    assert dhs.imgpair._cineb_coords is None
 
 
 @requires_with_working_xtb_install

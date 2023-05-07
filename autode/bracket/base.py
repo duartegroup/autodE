@@ -40,8 +40,10 @@ class BaseBracketMethod(ABC):
             initial_species: The "reactant" species
             final_species: The "product" species
             maxiter: Maximum number of energy-gradient evaluations
-            dist_tol: The distance tolerance at which the method will stop
-            gtol: Gradient tolerance for optimisation steps in the method
+            dist_tol: The distance tolerance at which the method
+                      will stop, in units of Å if not given
+            gtol: Gradient tolerance for optimisation steps in
+                  the method, units Ha/Å if not given
             cineb_at_conv: Whether to run a CI-NEB with from the final points
             barrier_check: Whether to stop the calculation if one image is
                            detected to have jumped over the barrier. Do not
@@ -161,7 +163,6 @@ class BaseBracketMethod(ABC):
             f"Starting {self._method_name} method to find transition state"
         )
 
-        barrier_crossed = False
         while not self.converged:
             self._step()
 
@@ -171,7 +172,6 @@ class BaseBracketMethod(ABC):
                     f" {self._method_name} TS search. Please check the"
                     f" results carefully"
                 )
-                barrier_crossed = True
                 if self._barrier_check:
                     logger.info(f"Stopping {self._method_name} calculation")
                     break
@@ -183,12 +183,13 @@ class BaseBracketMethod(ABC):
 
         # exited main loop, run CI-NEB if required and bracket converged
         if self._should_run_cineb:
-            if self.converged and not barrier_crossed:
+            if self.converged and not self.imgpair.has_jumped_over_barrier:
                 self.run_cineb()
             else:
                 logger.warning(
                     f"{self._method_name} calculation has not converged"
-                    f" completely, skipping CI-NEB run"
+                    f" properly or one side has jumped over the barrier,"
+                    f" skipping CI-NEB run"
                 )
 
         logger.info(
