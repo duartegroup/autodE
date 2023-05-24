@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Optional, Union
 from rdkit import Chem
+
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
 from autode.config import Config
@@ -8,6 +9,7 @@ from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.utils import ProcessPool
+from autode.exceptions import NoConformers
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -61,9 +63,7 @@ class Conformers(list):
         """
 
         if remove_no_energy:
-            for idx in reversed(range(len(self))):  # Enumerate backwards
-                if self[idx].energy is None:
-                    del self[idx]
+            self.remove_no_energy()
 
         self.prune_on_energy(e_tol=e_tol, n_sigma=n_sigma)
         self.prune_on_rmsd(rmsd_tol=rmsd_tol)
@@ -233,6 +233,21 @@ class Conformers(list):
 
         logger.info(f"Pruned on connectivity {n_prev_confs} -> {len(self)}")
         return None
+
+    def remove_no_energy(self) -> None:
+        """Remove all conformers from this list that do not have an energy"""
+        n_conformers_before_remove = len(self)
+
+        for idx in reversed(range(len(self))):  # Enumerate backwards
+            if self[idx].energy is None:
+                del self[idx]
+
+        n_conformers = len(self)
+        if n_conformers == 0 and n_conformers != n_conformers_before_remove:
+            raise NoConformers(
+                f"Removed all the conformers "
+                f"{n_conformers_before_remove} -> 0"
+            )
 
     def _parallel_calc(self, calc_type, method, keywords):
         """
