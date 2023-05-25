@@ -13,7 +13,7 @@ from autode.bracket.dhs import (
     DistanceConstrainedOptimiser,
     TruncatedTaylor,
     DHSImagePair,
-    ImgPairSideError,
+    ImageSide,
 )
 from autode.opt.coordinates import CartesianCoordinates
 from autode import Config
@@ -105,19 +105,19 @@ def test_dhs_image_pair():
     coords = imgpair.left_coord + 0.1
 
     # check the functions that get one side
-    with pytest.raises(ImgPairSideError):
-        imgpair.put_coord_by_side(coords, "abc")
+    with pytest.raises(ValueError):
+        imgpair.put_coord_by_side(coords, 2)
 
     imgpair.left_coord = coords
-    with pytest.raises(ImgPairSideError):
-        step = imgpair.get_last_step_by_side("abc")
+    with pytest.raises(ValueError):
+        step = imgpair.get_last_step_by_side(2)
 
     # with "left" it should not cause any issues
-    step = imgpair.get_last_step_by_side("left")
+    step = imgpair.get_last_step_by_side(ImageSide.left)
     assert isinstance(step, np.ndarray)
 
-    with pytest.raises(ImgPairSideError):
-        imgpair.get_coord_by_side("abc")
+    with pytest.raises(ValueError):
+        imgpair.get_coord_by_side(1)
 
 
 def test_dhs_image_pair_ts_guess(caplog):
@@ -200,7 +200,7 @@ def test_dhs_gs_single_step(caplog):
         dhs_gs._step()
         dhs_gs._log_convergence()
     assert "DHS-GS" in caplog.text
-    right_pred = dhs_gs._get_dhs_step("right")  # 50% DHS + 50% GS
+    right_pred = dhs_gs._get_dhs_step(ImageSide.right)  # 50% DHS + 50% GS
 
     imgpair = dhs_gs.imgpair
     assert imgpair.left_coord.e > imgpair.right_coord.e

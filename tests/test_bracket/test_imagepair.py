@@ -168,7 +168,7 @@ def test_imgpair_energy_plotting(caplog):
     assert os.path.isfile("test2.pdf")
 
     # distance metric should be one of the three options
-    with pytest.raises(ValueError, match="distance metric must"):
+    with pytest.raises(KeyError):
         imgpair.plot_energies(filename="test.pdf", distance_metric="abc")
 
     # if any energy is missing, also no plotting should be done

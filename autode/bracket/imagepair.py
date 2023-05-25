@@ -4,13 +4,14 @@ that require a pair of images
 """
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING
+from enum import Enum
 import numpy as np
 
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.geom import get_rot_mat_kabsch
 from autode.methods import get_lmethod
 from autode.neb import CINEB
-from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
+from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import OptimiserHistory
 from autode.plotting import plot_bracket_method_energy_profile
@@ -559,14 +560,17 @@ class EuclideanImagePair(BaseImagePair, ABC):
         See Also:
             :py:meth:`BaseBracketMethod <autode.bracket.base.BaseBracketMethod.plot_energies>`
         """
+
+        class Metrics(Enum):
+            relative = 1
+            from_start = 2
+            index = 3
+
+        metric = Metrics[distance_metric]
+
         if self.total_iters < 2:
             logger.warning("Cannot plot energies, not enough points")
             return None
-
-        if distance_metric not in ["relative", "from_start", "index"]:
-            raise ValueError(
-                "The distance metric must be 'relative', 'from_start' or 'index'"
-            )
 
         if any(coord.e is None for coord in self._total_history):
             logger.error(
@@ -585,15 +589,15 @@ class EuclideanImagePair(BaseImagePair, ABC):
         for idx, coord in enumerate(self._total_history):
             en = coord.e - lowest_en
             en = float(en.to("kcalmol"))
-            if distance_metric == "relative":
+            if metric == Metrics.relative:
                 if idx == 0:
                     x = 0
                 else:
                     x = np.linalg.norm(coord - self._total_history[idx - 1])
                     x += points[idx - 1][0]  # add previous distance
-            elif distance_metric == "from_start":
+            elif metric == Metrics.from_start:
                 x = np.linalg.norm(coord - first_point)
-            else:
+            else:  # metric == Metrics.index:
                 x = idx
             points.append((x, en))
 

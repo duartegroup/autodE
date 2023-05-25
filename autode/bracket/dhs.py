@@ -8,6 +8,7 @@ Also implements DHS-GS, CI-DHS and CI-DHS-GS methods
 
 from typing import Tuple, Union, Optional, TYPE_CHECKING
 import numpy as np
+from enum import Enum
 
 from autode.values import Distance, Angle, GradientRMS
 from autode.bracket.imagepair import EuclideanImagePair
@@ -344,14 +345,11 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         return x_interp, g_interp
 
 
-class ImgPairSideError(ValueError):
-    """
-    Error if side is neither 'left' nor 'right', used only for internal
-    consistency in DHSImagePair, as the functions should not be called by user
-    """
+class ImageSide(Enum):
+    """Represents one side of the image-pair"""
 
-    def __init__(self):
-        super().__init__("Side supplied must be either 'left' or 'right'")
+    left = 0
+    right = 1
 
 
 class DHSImagePair(EuclideanImagePair):
@@ -397,62 +395,64 @@ class DHSImagePair(EuclideanImagePair):
         tmp_spc.gradient = peak_coords.g.reshape(-1, 3).copy()
         return tmp_spc
 
-    def get_coord_by_side(self, side: str) -> OptCoordinates:
+    def get_coord_by_side(self, side: ImageSide) -> OptCoordinates:
         """For external usage, supplies only the coordinate object"""
-        if side == "left":
+        if side == ImageSide.left:
             return self.left_coord
-        elif side == "right":
+        elif side == ImageSide.right:
             return self.right_coord
         else:
-            raise ImgPairSideError()
+            raise ValueError
 
     def put_coord_by_side(
-        self, new_coord: Optional[OptCoordinates], side: str
+        self, new_coord: Optional[OptCoordinates], side: ImageSide
     ) -> None:
         """For external usage, put the new coordinate in appropriate side"""
-        if side == "left":
+        if side == ImageSide.left:
             self.left_coord = new_coord
-        elif side == "right":
+        elif side == ImageSide.right:
             self.right_coord = new_coord
         else:
-            raise ImgPairSideError()
+            raise ValueError
         return None
 
-    def get_last_step_by_side(self, side: str) -> Optional[np.ndarray]:
+    def get_last_step_by_side(self, side: ImageSide) -> Optional[np.ndarray]:
         """
         Obtain the last step on the provided side (for the Growing
         String like step)
         """
-        if side == "left":
+        if side == ImageSide.left:
             hist = self._left_history
-        elif side == "right":
+        elif side == ImageSide.right:
             hist = self._right_history
         else:
-            raise ImgPairSideError()
+            raise ValueError
 
         if len(hist) < 2:
             return None
         return hist[-1] - hist[-2]
 
-    def get_dhs_step_by_side(self, side: str, step_size: float) -> np.ndarray:
+    def get_dhs_step_by_side(
+        self, side: ImageSide, step_size: float
+    ) -> np.ndarray:
         """
         Obtain the DHS step on the specified side, with the specified step
         size
 
         Args:
-            side (str): "left" or "right"
+            side (ImageSide): left or right
             step_size (float): Step size in Angstrom
 
         Returns:
             (np.ndarray): The step
         """
         dhs_step = self.dist_vec * (step_size / self.dist)
-        if side == "left":
+        if side == ImageSide.left:
             dhs_step *= -1.0
-        elif side == "right":
+        elif side == ImageSide.right:
             pass
         else:
-            raise ImgPairSideError()
+            raise ValueError
 
         return dhs_step
 
@@ -542,10 +542,10 @@ class DHS(BaseBracketMethod):
         steps in the distance-constrained optimiser, to return to the MEP
         """
         if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
-            side = "left"
+            side = ImageSide.left
             pivot = self.imgpair.right_coord
         else:
-            side = "right"
+            side = ImageSide.right
             pivot = self.imgpair.left_coord
 
         old_coords = self.imgpair.get_coord_by_side(side)
@@ -621,14 +621,14 @@ class DHS(BaseBracketMethod):
         """
         self._current_microiters = int(value)
 
-    def _get_dhs_step(self, side: str) -> CartesianCoordinates:
+    def _get_dhs_step(self, side: ImageSide) -> CartesianCoordinates:
         """
         Take a DHS step, on the side requested, along the distance
         vector between the two images, and return the new coordinates
         after taking the step
 
         Args:
-            side (str):
+            side (ImageSide): left or right
 
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
@@ -679,14 +679,14 @@ class DHSGS(DHS):
         self._gs_mix = float(gs_mix)
         assert 0.0 < self._gs_mix < 1.0, "Mixing factor must be 0 < fac < 1"
 
-    def _get_dhs_step(self, side: str) -> CartesianCoordinates:
+    def _get_dhs_step(self, side: ImageSide) -> CartesianCoordinates:
         """
         Take a mixed DHS and GS step (interpolates between the two
         vectors) in the given ratio, and then return the new
         coordinates after taking the step
 
         Args:
-            side (str):
+            side (ImageSide):
 
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
