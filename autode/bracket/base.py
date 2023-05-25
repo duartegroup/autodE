@@ -132,11 +132,12 @@ class BaseBracketMethod(ABC):
         Run the bracketing method calculation using the method for
         energy/gradient calculation, with n_cores. Runs CI-NEB at
         the end if requested; then save the .xyz trajectories,
-        plot the energies and finally save the peak as TS guess
+        plot the energies and finally save the peak as TS guess.
+        This function should be called only once!
 
         Args:
-            method:
-            n_cores:
+            method (Method): Method used for calculating energy/gradients
+            n_cores (int): Number of cores to use for calculation
         """
 
         @work_in(self._method_name.lower())

@@ -395,7 +395,7 @@ class DHSImagePair(EuclideanImagePair):
         tmp_spc.gradient = peak_coords.g.reshape(-1, 3).copy()
         return tmp_spc
 
-    def get_coord_by_side(self, side: ImageSide) -> OptCoordinates:
+    def get_coord_by_side(self, side: ImageSide) -> CartesianCoordinates:
         """For external usage, supplies the coordinate object by side"""
         if side == ImageSide.left:
             return self.left_coord
@@ -405,9 +405,15 @@ class DHSImagePair(EuclideanImagePair):
             raise ValueError
 
     def put_coord_by_side(
-        self, new_coord: Optional[OptCoordinates], side: ImageSide
+        self, new_coord: CartesianCoordinates, side: ImageSide
     ) -> None:
-        """For external usage, puts the new coordinate in appropriate side"""
+        """
+        For external usage, puts the new coordinate in appropriate side
+
+        Args:
+            new_coord (CartesianCoordinates): New set of coordinates
+            side (ImageSide): left or right
+        """
         if side == ImageSide.left:
             self.left_coord = new_coord
         elif side == ImageSide.right:
@@ -588,12 +594,11 @@ class DHS(BaseBracketMethod):
         self, method: "Method", n_cores: Optional[int] = None
     ) -> None:
         """
-        Run the DHS calculation and CI-NEB if requested. Should only
-        be called once!
+        Run the DHS calculation and CI-NEB if requested.
 
         Args:
-            method : Method used for calculating energy/gradients
-            n_cores: Number of cores to use for calculation
+            method (Method): Method used for calculating energy/gradients
+            n_cores (int): Number of cores to use for calculation
         """
         self._method = method
         super()._calculate(method, n_cores)
