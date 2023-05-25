@@ -10,6 +10,7 @@ Functionality improvements
 - Adds :code:`temporary_config()` context manager for temporary configuration changes
 - Adds a :code:`ForceConstant` value
 - Adds a more robust hybrid RFO-TRM geometry optimiser with trust radius update and a feature to detect oscillation and damp it
+- Adds Dewar-Healy-Stewart (DHS) method to find transition states from initial and final geometries
 
 
 Usability improvements/Changes

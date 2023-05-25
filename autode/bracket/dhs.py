@@ -396,7 +396,7 @@ class DHSImagePair(EuclideanImagePair):
         return tmp_spc
 
     def get_coord_by_side(self, side: ImageSide) -> OptCoordinates:
-        """For external usage, supplies only the coordinate object"""
+        """For external usage, supplies the coordinate object by side"""
         if side == ImageSide.left:
             return self.left_coord
         elif side == ImageSide.right:
@@ -407,7 +407,7 @@ class DHSImagePair(EuclideanImagePair):
     def put_coord_by_side(
         self, new_coord: Optional[OptCoordinates], side: ImageSide
     ) -> None:
-        """For external usage, put the new coordinate in appropriate side"""
+        """For external usage, puts the new coordinate in appropriate side"""
         if side == ImageSide.left:
             self.left_coord = new_coord
         elif side == ImageSide.right:
