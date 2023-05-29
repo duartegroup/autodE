@@ -519,7 +519,7 @@ class DHS(BaseBracketMethod):
         self._step_size = Distance(abs(step_size), "ang")
         if self._step_size > self.imgpair.dist:
             logger.warning(
-                f"Step size ({self._step_size:.3f} Å) for {self._method_name}"
+                f"Step size ({self._step_size:.3f} Å) for {self._name}"
                 f" is larger than the starting Euclidean distance between"
                 f" images ({self.imgpair.dist:.3f} Å). This calculation"
                 f" will likely run into errors."
@@ -529,10 +529,6 @@ class DHS(BaseBracketMethod):
         # an optimiser, so to keep track of the actual number of
         # en/grad calls, this local variable is used
         self._current_microiters: int = 0
-
-    @property
-    def _method_name(self) -> str:
-        return "DHS"
 
     def _initialise_run(self) -> None:
         """
@@ -662,10 +658,6 @@ class DHSGS(DHS):
     Proposed by J. Kilmes, D. R. Bowler, A. Michaelides,
     J. Phys.: Condens. Matter, 2010, 22(7), 074203
     """
-
-    @property
-    def _method_name(self) -> str:
-        return "DHS-GS"
 
     def __init__(self, *args, gs_mix: float = 0.5, **kwargs):
         """

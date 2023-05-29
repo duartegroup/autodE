@@ -336,6 +336,6 @@ def test_method_names():
     # check all method names are properly written
     mol1 = Molecule(smiles="CCO")
     dhs = DHS(mol1, mol1.copy())
-    assert dhs._method_name == "DHS"
+    assert dhs._name == "DHS"
     dhs_gs = DHSGS(mol1, mol1.copy())
-    assert dhs_gs._method_name == "DHS-GS"
+    assert dhs_gs._name == "DHSGS"

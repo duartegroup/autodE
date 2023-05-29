@@ -61,9 +61,9 @@ class BaseBracketMethod(ABC):
         self._barrier_check = bool(barrier_check)
 
     @property
-    @abstractmethod
-    def _method_name(self) -> str:
-        """Name of the current bracketing method, to be set by subclass"""
+    def _name(self) -> str:
+        """Name of the current bracketing method, obtained from class name"""
+        return type(self).__name__
 
     @property
     def ts_guess(self) -> Optional["Species"]:
@@ -108,8 +108,8 @@ class BaseBracketMethod(ABC):
         subclasses may implement further logging for micro-iters
         """
         logger.info(
-            f"Macro-iteration #{self._macro_iter}: Distance = "
-            f"{self.imgpair.dist:.4f}; Energy (initial species) = "
+            f"{self._name} Macro-iteration #{self._macro_iter}: "
+            f"Distance = {self.imgpair.dist:.4f}; Energy (initial species) = "
             f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
             f"{self.imgpair.right_coord.e:.6f}"
         )
@@ -117,11 +117,14 @@ class BaseBracketMethod(ABC):
     @property
     def _exceeded_maximum_iteration(self) -> bool:
         """Whether it has exceeded the number of maximum micro-iterations"""
-        logger.error(
-            f"Reached the maximum number of micro-iterations "
-            f"*{self._maxiter}"
-        )
-        return self._micro_iter >= self._maxiter
+        if self._micro_iter >= self._maxiter:
+            logger.error(
+                f"Reached the maximum number of micro-iterations "
+                f"*{self._maxiter}"
+            )
+            return True
+        else:
+            return False
 
     def calculate(
         self,
@@ -140,7 +143,7 @@ class BaseBracketMethod(ABC):
             n_cores (int): Number of cores to use for calculation
         """
 
-        @work_in(self._method_name.lower())
+        @work_in(self._name.lower())
         def run():
             self._calculate(method, n_cores)
 
@@ -160,9 +163,7 @@ class BaseBracketMethod(ABC):
         self.imgpair.set_method_and_n_cores(method, n_cores)
         self._initialise_run()
 
-        logger.info(
-            f"Starting {self._method_name} method to find transition state"
-        )
+        logger.info(f"Starting {self._name} method to find transition state")
 
         while not self.converged:
             self._step()
@@ -170,11 +171,11 @@ class BaseBracketMethod(ABC):
             if self.imgpair.has_jumped_over_barrier:
                 logger.error(
                     "One image has probably jumped over the barrier, in"
-                    f" {self._method_name} TS search. Please check the"
+                    f" {self._name} TS search. Please check the"
                     f" results carefully"
                 )
                 if self._barrier_check:
-                    logger.info(f"Stopping {self._method_name} calculation")
+                    logger.info(f"Stopping {self._name} calculation")
                     break
 
             if self._exceeded_maximum_iteration:
@@ -188,21 +189,21 @@ class BaseBracketMethod(ABC):
                 self.run_cineb()
             else:
                 logger.warning(
-                    f"{self._method_name} calculation has not converged"
+                    f"{self._name} calculation has not converged"
                     f" properly or one side has jumped over the barrier,"
                     f" skipping CI-NEB run"
                 )
 
         logger.info(
-            f"Finished {self._method_name} procedure in {self._macro_iter} "
+            f"Finished {self._name} procedure in {self._macro_iter} "
             f"macro-iterations consisting of {self._micro_iter} micro-"
-            f"iterations (optimiser steps). {self._method_name} is "
+            f"iterations (optimiser steps). {self._name} is "
             f"{'converged' if self.converged else 'not converged'}"
         )
 
         self.print_geometries()
         self.plot_energies()
-        self.ts_guess.print_xyz_file(f"{self._method_name}_ts_guess.xyz")
+        self.ts_guess.print_xyz_file(f"{self._name}_ts_guess.xyz")
         return None
 
     def print_geometries(
@@ -220,17 +221,17 @@ class BaseBracketMethod(ABC):
         init_trj_filename = (
             init_trj_filename
             if init_trj_filename is not None
-            else f"initial_species_{self._method_name}.trj.xyz"
+            else f"initial_species_{self._name}.trj.xyz"
         )
         final_trj_filename = (
             final_trj_filename
             if final_trj_filename is not None
-            else f"final_species_{self._method_name}.trj.xyz"
+            else f"final_species_{self._name}.trj.xyz"
         )
         total_trj_filename = (
             total_trj_filename
             if total_trj_filename is not None
-            else f"total_trajectory_{self._method_name}.trj.xyz"
+            else f"total_trajectory_{self._name}.trj.xyz"
         )
         self.imgpair.print_geometries(
             init_trj_filename, final_trj_filename, total_trj_filename
@@ -265,7 +266,7 @@ class BaseBracketMethod(ABC):
         filename = (
             filename
             if filename is not None
-            else f"{self._method_name}_path_energy_plot.pdf"
+            else f"{self._name}_path_energy_plot.pdf"
         )
         self.imgpair.plot_energies(filename, distance_metric)
         return None
@@ -280,20 +281,20 @@ class BaseBracketMethod(ABC):
         """
         if not self._micro_iter > 0:
             logger.error(
-                f"Must run {self._method_name} calculation before"
+                f"Must run {self._name} calculation before"
                 f"running the CI-NEB calculation"
             )
             return None
 
         if not self.converged or self.imgpair.dist > 2.0:
             logger.warning(
-                f"{self._method_name} method has not converged sufficiently,"
+                f"{self._name} method has not converged sufficiently,"
                 f" running a CI-NEB calculation now may cause errors."
                 f" Please check results carefully."
             )
         else:
             logger.info(
-                f"{self._method_name} has converged, running CI-NEB"
+                f"{self._name} has converged, running CI-NEB"
                 f" calculation from the end points"
             )
         self.imgpair.run_cineb_from_end_points()
