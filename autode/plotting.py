@@ -488,25 +488,29 @@ def plot_bracket_method_energy_profile(
 
     fig, ax = plt.subplots()
 
+    # the data should be cast into kcal/mol
+    kcalmol = energy_unit_from_name("kcalmol")
+
     left_x = [point[0] for point in left_points]
-    left_y = [point[1] for point in left_points]
+    left_y = [point[1].to(kcalmol) for point in left_points]
     ax.plot(left_x, left_y, "bo-", label="initial image")
 
     right_x = [point[0] for point in right_points]
-    right_y = [point[1] for point in right_points]
+    right_y = [point[1].to(kcalmol) for point in right_points]
     ax.plot(right_x, right_y, "go-", label="final image")
 
     # plot the CI-NEB point and join it to the ends
     if cineb_point is not None:
         ax.plot(
             [left_x[-1], cineb_point[0], right_x[0]],
-            [left_y[-1], cineb_point[1], right_y[0]],
+            [
+                left_y[-1].to(kcalmol),
+                cineb_point[1].to(kcalmol),
+                right_y[0].to(kcalmol),
+            ],
             "ro-",
             label="CI-NEB",
         )
-
-    # the data should be in kcal/mol
-    kcalmol = energy_unit_from_name("kcalmol")
 
     ax.set_xlabel(x_title)
     ax.set_ylabel(f"Electronic energy / {kcalmol.plot_name}")

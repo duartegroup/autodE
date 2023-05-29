@@ -203,7 +203,7 @@ class BaseBracketMethod(ABC):
 
         self.print_geometries()
         self.plot_energies()
-        self.ts_guess.print_xyz_file(f"{self._name}_ts_guess.xyz")
+        self.ts_guess.print_xyz_file(filename=f"{self._name}_ts_guess.xyz")
         return None
 
     def print_geometries(

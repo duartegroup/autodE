@@ -588,7 +588,6 @@ class EuclideanImagePair(BaseImagePair, ABC):
 
         for idx, coord in enumerate(self._total_history):
             en = coord.e - lowest_en
-            en = float(en.to("kcalmol"))
             if metric == Metrics.relative:
                 if idx == 0:
                     x = 0
