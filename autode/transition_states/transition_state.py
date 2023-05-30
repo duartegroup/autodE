@@ -5,6 +5,7 @@ from autode.transition_states.base import displaced_species_along_mode
 from autode.transition_states.base import TSbase
 from autode.transition_states.ts_guess import TSguess
 from autode.transition_states.templates import TStemplate
+from autode.conformers.conformers import Conformers
 from autode.input_output import atoms_to_xyz_file
 from autode.calculations import Calculation
 from autode.config import Config
@@ -279,10 +280,11 @@ class TransitionState(TSbase):
         """Find the lowest energy transition state conformer by performing
         constrained optimisations"""
         logger.info("Finding lowest energy TS conformer")
+        assert self.energy is not None, "Must have a TS energy"
 
         # Generate a copy of this TS on which conformers are searched, for
         # easy reversion
-        _ts = self.copy()
+        _ts: TransitionState = self.copy()
         _ts.hessian, _ts.gradient, _ts.energy = None, None, None
 
         hmethod = get_hmethod() if Config.hmethod_conformers else None
@@ -290,18 +292,21 @@ class TransitionState(TSbase):
 
         # Remove similar TS conformer that are similar to this TS based on root
         # mean squared differences in their structures being above a threshold
-        t_h = (
+        rmsd_threshold = (
             Config.rmsd_threshold if rmsd_threshold is None else rmsd_threshold
         )
-        _ts.conformers = [
-            conf
-            for conf in _ts.conformers
-            if calc_heavy_atom_rmsd(conf.atoms, self.atoms) > t_h
-        ]
+        _ts.conformers = Conformers(
+            [
+                conf
+                for conf in _ts.conformers
+                if calc_heavy_atom_rmsd(conf.atoms, self.atoms)
+                > rmsd_threshold
+            ]
+        )
 
         logger.info(
             f"Generated {len(_ts.conformers)} unique (RMSD > "
-            f"{t_h} Å) TS conformer(s)"
+            f"{rmsd_threshold} Å) TS conformer(s)"
         )
 
         if len(_ts.conformers) == 0:
@@ -320,11 +325,10 @@ class TransitionState(TSbase):
             self._hess = _ts.hessian
             return None
 
-        # Ensure the energy has a numerical value
-        _ts.energy = _ts.energy if _ts.energy is not None else 0
+        de = "nan" if _ts.energy is None else f"{_ts.energy - self.energy:.4f}"  # type: ignore
         logger.warning(
             f"Transition state conformer search failed "
-            f"(∆E = {_ts.energy - self.energy:.4f} Ha). Reverting"
+            f"(∆E = {de} Ha). Reverting"
         )
         return None
 

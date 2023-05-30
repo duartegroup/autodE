@@ -498,6 +498,13 @@ class Keyword(ABC):
         """
         self.name = name
 
+        self.g09: Optional[str] = None
+        self.g16: Optional[str] = None
+        self.qchem: Optional[str] = None
+        self.orca: Optional[str] = None
+        self.xtb: Optional[str] = None
+        self.nwchem: Optional[str] = None
+
         self.doi_list = []
         if "doi" in kwargs and kwargs["doi"] is not None:
             self.doi_list.append(kwargs.pop("doi"))

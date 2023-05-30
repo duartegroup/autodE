@@ -1,8 +1,11 @@
 import os
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from autode.point_charges import PointCharge
+
+if TYPE_CHECKING:
+    from autode.wrappers.keywords import Keywords
 
 
 class CalculationInput:

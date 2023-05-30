@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from autode.wrappers.keywords import Keywords
     from autode.values import Coordinates
 
-TypeSpecies = TypeVar("TypeSpecies", bound="Value")
+TypeSpecies = TypeVar("TypeSpecies", bound="Species")
 
 
 class Species(AtomCollection):
@@ -132,9 +132,9 @@ class Species(AtomCollection):
         """
         return str(self) == str(other)
 
-    def copy(self) -> TypeSpecies:
+    def copy(self: TypeSpecies) -> TypeSpecies:
         """Copy this whole species"""
-        return deepcopy(self)
+        return deepcopy(self)  # type: ignore
 
     def new_species(
         self, name="species", with_constraints: bool = False
@@ -225,7 +225,7 @@ class Species(AtomCollection):
                 "Expecting either a string or Solvent, " f"had: {value}"
             )
 
-    @AtomCollection.atoms.setter
+    @AtomCollection.atoms.setter  # type: ignore[attr-defined]
     def atoms(self, value: Union[List[Atom], Atoms, None]):
         """
         Set the atoms for this species, and reset the energies
@@ -252,7 +252,7 @@ class Species(AtomCollection):
 
         return
 
-    @AtomCollection.coordinates.setter
+    @AtomCollection.coordinates.setter  # type: ignore[attr-defined]
     def coordinates(self, value: Union["Coordinates", np.ndarray, list]):
         """
         Set the coordinates of this species. If the geometry has changed then
@@ -272,7 +272,7 @@ class Species(AtomCollection):
         if rmsd > 1e-8:
             self._clear_energies_gradient_hessian()
 
-        self._atoms.coordinates = value
+        self._atoms.coordinates = Coordinates(value)
         return
 
     def _clear_energies_gradient_hessian(self) -> None:

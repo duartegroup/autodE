@@ -227,7 +227,7 @@ class Molecule(Species):
         product = self.copy()  # type: ignore
         product.__class__ = Product
 
-        return product
+        return product  # type: ignore
 
     def to_reactant(self) -> "Reactant":
         """
@@ -240,7 +240,7 @@ class Molecule(Species):
         reactant = self.copy()  # type: ignore
         reactant.__class__ = Reactant
 
-        return reactant
+        return reactant  # type: ignore
 
 
 class Reactant(Molecule):

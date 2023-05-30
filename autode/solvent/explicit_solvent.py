@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, TYPE_CHECKING, Any
+from typing import Optional, TYPE_CHECKING, Any, List
 from scipy.spatial import distance_matrix
 
 from autode.geom import get_points_on_sphere, get_rot_mat_euler
@@ -33,7 +33,7 @@ class _RandomPointGenerator:
         """
         self.random_state = random_state
         self._sphere_n = 1
-        self._points = []
+        self._points: List[np.ndarray] = []
 
     def random_point(self) -> np.ndarray:
         """
@@ -93,7 +93,7 @@ class ExplicitSolvent(AtomCollection, Solvent):
                 f"molecule. Had {num}"
             )
 
-        solvent_atoms = sum((solvent.atoms.copy() for _ in range(num)), None)
+        solvent_atoms = sum((solvent.atoms.copy() for _ in range(num)), None)  # type: ignore
         AtomCollection.__init__(self, atoms=solvent_atoms)
         Solvent.__init__(
             self,
@@ -116,6 +116,7 @@ class ExplicitSolvent(AtomCollection, Solvent):
             isinstance(other, ExplicitSolvent)
             and self.n_atoms == other.n_atoms
         ):
+            assert self.atoms and other.atoms  # keep mypy happy
             return all(
                 o_at.label == at.label
                 for o_at, at in zip(other.atoms, self.atoms)
@@ -235,6 +236,9 @@ class ExplicitSolvent(AtomCollection, Solvent):
         )
 
         coords = self.coordinates
+        assert (
+            coords is not None
+        ), "Must have coordinates to populate solvent around"
 
         # ----------------- Properties of the solute molecule -----------------
         m_radius = solute.radius.to("ang") + 1.0  # Assume some exterior H

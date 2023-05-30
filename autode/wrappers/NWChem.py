@@ -1,6 +1,9 @@
 import numpy as np
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
+
+from typing import TYPE_CHECKING, List
+
 from autode.utils import run_external_monitored
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.hessians import Hessian
@@ -9,6 +12,10 @@ from autode.config import Config
 from autode.exceptions import UnsupportedCalculationInput, CouldNotGetProperty
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
+
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
 
 
 def ecp_block(molecule, keywords):
@@ -135,7 +142,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
     def __repr__(self):
         return f"NWChem(available = {self.is_available})"
 
-    def generate_input_for(self, calc):
+    def generate_input_for(self, calc: "CalculationExecutor") -> None:
         molecule = calc.molecule
         keywords = get_keywords(calc.input, molecule)
 
@@ -190,13 +197,13 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         return None
 
-    def input_filename_for(self, calc):
+    def input_filename_for(self, calc: "CalculationExecutor") -> str:
         return f"{calc.name}.nw"
 
-    def output_filename_for(self, calc):
+    def output_filename_for(self, calc: "CalculationExecutor") -> str:
         return f"{calc.name}.out"
 
-    def version_in(self, calc):
+    def version_in(self, calc: "CalculationExecutor") -> str:
         """Get the NWChem version from the output file"""
         for line in calc.output.file_lines:
 
@@ -207,7 +214,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         logger.warning("Could not find the NWChem version")
         return "???"
 
-    def execute(self, calc):
+    def execute(self, calc: "CalculationExecutor"):
         @work_in_tmp_dir(
             filenames_to_copy=calc.input.filenames,
             kept_file_exts=(".nw", ".out"),
@@ -230,7 +237,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         execute_nwchem()
         return None
 
-    def terminated_normally_in(self, calc):
+    def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
 
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
             if any(
@@ -250,7 +257,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         return False
 
-    def _energy_from(self, calc):
+    def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
 
         wf_strings = [
             "Total CCSD energy",
@@ -272,7 +279,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         raise CouldNotGetProperty(name="energy")
 
-    def coordinates_from(self, calc):
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
 
         xyzs_section = False
         coords = []
@@ -292,7 +299,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         return Coordinates(coords, units="Å")
 
-    def partial_charges_from(self, calc):
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
         """
         e.g.
          Atom              Coordinates                           Charge
@@ -325,9 +332,9 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         return charges
 
-    def gradient_from(self, calc):
+    def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
 
-        gradients = []
+        gradients: List[np.ndarray] = []
         n_atoms = calc.molecule.n_atoms
 
         for i, line in enumerate(calc.output.file_lines):
@@ -343,7 +350,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         return Gradient(gradients, units="Ha a0^-1").to("Ha Å^-1")
 
     @staticmethod
-    def _atom_masses_from_hessian(calc):
+    def _atom_masses_from_hessian(calc: "CalculationExecutor") -> List[float]:
         """
         Grab the atomic masses from the 'atom information' section, which
         should be present from a Hessian calculation. Block looks like::
@@ -378,7 +385,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
             float(line.split()[-1].replace("D", "E")) for line in atom_lines
         ]
 
-    def hessian_from(self, calc):
+    def hessian_from(self, calc: "CalculationExecutor") -> Hessian:
         """
         Get the un-mass weighted Hessian matrix from the calculation. Block
         looks like::

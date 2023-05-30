@@ -167,7 +167,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             # Coordinate of a single atom will not change
             return calc.molecule.coordinates
 
-        coords = []
+        coords: list[list[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
 
@@ -228,6 +228,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
     ) -> Hessian:
         """Extract the mass-weighted non projected Hessian matrix
         NOTE: Required $rem vibman_print 4 $end in the input"""
+        assert calc.input.keywords is not None, "Must have keywords"
 
         hessian = self._extract_mass_weighted_hessian(calc)
         atom_masses = self._extract_atomic_masses(calc)
