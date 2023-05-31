@@ -698,7 +698,7 @@ class NEB:
             return None
 
         image = self.images[self.images.peak_idx]
-        return image.copy()
+        return image.new_species()
 
     def idpp_relax(self) -> None:
         """

@@ -489,12 +489,12 @@ class EuclideanImagePair(BaseImagePair, ABC):
             self._left_image, self._right_image, num=3
         )
         cineb.calculate(method=self._method, n_cores=self._n_cores)
-        peak = cineb.peak_species
 
-        if peak is None:
+        if not cineb.images.contains_peak:
             logger.error("CI-NEB failed to find the peak")
             return None
 
+        peak = cineb.images[cineb.images.peak_idx]
         ci_coords = CartesianCoordinates(peak.coordinates.to("ang"))
         ci_coords.e = peak.energy
         ci_coords.update_g_from_cart_g(peak.gradient)
