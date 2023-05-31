@@ -39,7 +39,7 @@ class Method(ABC):
 
         self._name = name
         self.keywords = keywords_set.copy()
-        self.implicit_solvation_type = None
+        self.implicit_solvation_type: Optional[ImplicitSolventType] = None
         self.doi_list = doi_list
 
     @property
@@ -115,7 +115,7 @@ class ExternalMethod(Method, ABC):
         executable_name: str,
         keywords_set: KeywordsSet,
         doi_list: List[str],
-        implicit_solvation_type: ImplicitSolventType,
+        implicit_solvation_type: Optional[ImplicitSolventType],
         path: Optional[str] = None,
     ):
         """

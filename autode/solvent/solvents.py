@@ -55,7 +55,7 @@ def get_solvent(
 
         if solvent.is_implicit:
             return (
-                solvent if kind == "implicit" else solvent.to_explicit(num=num)
+                solvent if kind == "implicit" else solvent.to_explicit(num=num)  # type: ignore[arg-type]
             )
 
         # Allow for solvent.is_explicit in solvents?
@@ -101,6 +101,12 @@ class Solvent(ABC):
         if aliases is not None:
             self.aliases.extend(alias.lower() for alias in aliases)
 
+        self.g09: Optional[str] = None
+        self.g16: Optional[str] = None
+        self.qchem: Optional[str] = None
+        self.orca: Optional[str] = None
+        self.xtb: Optional[str] = None
+        self.nwchem: Optional[str] = None
         # Add attributes for all the methods specified e.g. initialisation with
         # orca='water' -> self.orca = 'water'
         self.__dict__.update(kwargs)

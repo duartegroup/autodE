@@ -9,7 +9,7 @@ G : Spectroscopic G matrix
 """
 import numpy as np
 
-from typing import Any, Optional, Type, List
+from typing import Any, Optional, Type, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (
@@ -19,12 +19,19 @@ from autode.opt.coordinates.primitives import (
     DihedralAngle,
 )
 
+if TYPE_CHECKING:
+    from autode.opt.coordinates.cartesian import CartesianCoordinates
+    from autode.opt.coordinates.primitives import (
+        ConstrainedPrimitive,
+        _DistanceFunction,
+    )
+
 
 class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
     def __new__(cls, input_array) -> "InternalCoordinates":
         """New instance of these internal coordinates"""
 
-        arr = super().__new__(cls, input_array, units=None)
+        arr = super().__new__(cls, input_array, units="Å")
 
         for attr in ("_x", "primitives"):
             setattr(arr, attr, getattr(input_array, attr, None))
@@ -95,7 +102,7 @@ class PIC(list, ABC):
     @classmethod
     def from_cartesian(
         cls,
-        x: "autode.opt.cartesian.CartesianCoordinates",
+        x: "CartesianCoordinates",
     ) -> "PIC":
         """Construct a complete set of primitive internal coordinates from
         a set of Cartesian coordinates"""
@@ -230,3 +237,8 @@ class Distances(_FunctionOfDistances):
     @property
     def _primitive_type(self):
         return Distance
+
+
+class AnyPIC(PIC):
+    def _populate_all(self, x: np.ndarray) -> None:
+        raise RuntimeError("Cannot populate all on an AnyPIC instance")

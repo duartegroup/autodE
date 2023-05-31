@@ -255,6 +255,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         return False
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
+        assert calc.output.filename is not None, "Must have a set output"
 
         if calc.output.filename.endswith(".hess"):
             logger.warning("Failed to set the potential energy")
@@ -267,6 +268,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         raise CouldNotGetProperty(name="energy")
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
+        assert calc.output.filename is not None, "Must have a set output"
 
         fn_ext = ".hess" if calc.output.filename.endswith(".hess") else ".out"
 
@@ -330,7 +332,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
             0 C   -0.006954    0.000000
             . .      .            .
         """
-        charges = []
+        charges: List[float] = []
 
         for i, line in enumerate(calc.output.file_lines):
             if "HIRSHFELD ANALYSIS" in line:
@@ -351,7 +353,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
            1   C   :   -0.011390275   -0.000447412    0.000552736    <- j
         """
-        gradients = []
+        gradients: List[List[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
             if (
@@ -419,7 +421,9 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
             0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
             .         .          .           .           .           .
         """
+        assert calc.input.keywords is not None, "Must have keywords"
 
+        assert calc.output.filename is not None, "Output filename must be set"
         hess_filename = calc.output.filename
 
         if calc.output.filename.endswith(".out"):
@@ -532,6 +536,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         Returns:
             (bool):
         """
+        assert self.implicit_solvation_type is not None, "Must have a solvent"
 
         if self.implicit_solvation_type.lower() != "cpcm":
             return False

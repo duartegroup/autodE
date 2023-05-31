@@ -32,6 +32,10 @@ class BaseOptimiser(ABC):
     def last_energy_change(self) -> PotentialEnergy:
         """The energy change on between the final two optimisation cycles"""
 
+    def save(self, filename: str) -> None:
+        """Save the entire state of the optimiser to a file"""
+        raise NotImplementedError
+
 
 class Optimiser(BaseOptimiser, ABC):
     """Abstract base class for an optimiser"""
@@ -411,6 +415,16 @@ class NullOptimiser(BaseOptimiser):
     @property
     def last_energy_change(self) -> PotentialEnergy:
         return PotentialEnergy(np.inf)
+
+    def run(self, **kwargs: Any) -> None:
+        pass
+
+    def save(self, filename: str) -> None:
+        pass
+
+    @property
+    def final_coordinates(self):
+        raise RuntimeError("A NullOptimiser has no coordinates")
 
 
 class NDOptimiser(Optimiser, ABC):

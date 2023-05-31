@@ -313,7 +313,7 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
 
-        coords = []
+        coords: List[List[float]] = []
         n_atoms = calc.molecule.n_atoms
 
         for i, line in enumerate(calc.output.file_lines):

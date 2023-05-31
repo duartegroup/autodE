@@ -32,6 +32,7 @@ class RFOptimiser(NDOptimiser):
 
     def _step(self) -> None:
         """RFO step"""
+        assert self._coords and self._coords.h and self._coords.g
         logger.info("Taking a RFO step")
 
         self._coords.h_inv = self._updated_h_inv()
@@ -61,6 +62,7 @@ class RFOptimiser(NDOptimiser):
         """
         Initialise the energy, gradient, and initial Hessian to use
         """
+        assert self._species is not None, "Must have a species to init"
 
         self._coords = CartesianCoordinates(self._species.coordinates).to(
             "dic"
@@ -83,6 +85,8 @@ class RFOptimiser(NDOptimiser):
         """
         from autode.methods import get_lmethod
 
+        assert self._species is not None, "Must have a species"
+
         logger.info("Calculating low-level Hessian")
 
         species = self._species.copy()
@@ -104,6 +108,7 @@ class RFOptimiser(NDOptimiser):
         Returns:
             factor: The coefficient of the step taken
         """
+        assert self._coords is not None, "Must have coordinates"
 
         if len(delta_s) == 0:  # No need to sanitise a null step
             return 0.0

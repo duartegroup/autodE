@@ -531,9 +531,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         return False
 
-    def _energy_from(
-        self, calc: "CalculationExecutor"
-    ) -> Optional[PotentialEnergy]:
+    def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
 
         for line in reversed(calc.output.file_lines):
             if "SCF Done" in line or "E(CIS)" in line:
@@ -553,11 +551,9 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
     def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return G09Optimiser(output_lines=calc.output.file_lines)
 
-    def coordinates_from(
-        self, calc: "CalculationExecutor"
-    ) -> Optional[Coordinates]:
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
         """Get the final set of coordinates from a G09 output"""
-        coords = []
+        coords: List[List[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
 

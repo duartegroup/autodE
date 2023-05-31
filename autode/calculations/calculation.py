@@ -271,6 +271,7 @@ class Calculation:
 
         if self.molecule.solvent is not None:
             solv_type = self.method.implicit_solvation_type
+            assert solv_type is not None, "Must have an implicit solvent type"
             doi = solv_type.doi_str if hasattr(solv_type, "doi_str") else "?"
 
             string += (

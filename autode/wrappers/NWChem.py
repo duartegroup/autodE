@@ -143,6 +143,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         return f"NWChem(available = {self.is_available})"
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
+        assert calc.input.filename is not None, "Must have an input filename"
         molecule = calc.molecule
         keywords = get_keywords(calc.input, molecule)
 
@@ -150,7 +151,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
             print(f"start {calc.name}\necho", file=inp_file)
 
-            if molecule.solvent is not None:
+            if calc.molecule.solvent is not None:
                 print(
                     f"cosmo\n "
                     f"do_cosmo_smd true\n "
@@ -197,10 +198,12 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
 
         return None
 
-    def input_filename_for(self, calc: "CalculationExecutor") -> str:
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
         return f"{calc.name}.nw"
 
-    def output_filename_for(self, calc: "CalculationExecutor") -> str:
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
         return f"{calc.name}.out"
 
     def version_in(self, calc: "CalculationExecutor") -> str:
@@ -282,7 +285,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
 
         xyzs_section = False
-        coords = []
+        coords: List[List[float]] = []
 
         for line in calc.output.file_lines:
             if "Output coordinates in angstroms" in line:
@@ -311,7 +314,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         . .       .            .            .          .
         """
         charges_section = False
-        charges = []
+        charges: List[float] = []
 
         for line in calc.output.file_lines:
             if (
@@ -321,7 +324,7 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
                 and "Charge" in line
             ):
                 charges_section = True
-                charges = []
+                charges.clear()
 
             if charges_section and len(line.split()) == 6:
                 charge = line.split()[-1]
@@ -418,7 +421,9 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         except StopIteration:
             raise CouldNotGetProperty("Hessian not found in the output file")
 
-        hess_lines = [[] for _ in range(calc.molecule.n_atoms * 3)]
+        hess_lines: List[List[float]] = [
+            [] for _ in range(calc.molecule.n_atoms * 3)
+        ]
 
         for hess_line in calc.output.file_lines[line_idx + 6 :]:
 

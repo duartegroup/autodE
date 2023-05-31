@@ -9,20 +9,26 @@ import base64
 import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, TYPE_CHECKING
 from copy import deepcopy
+
 from autode.log import logger
 from autode.config import Config
 from autode.values import Distance
 from autode.utils import no_exceptions, requires_output_to_exist
 from autode.point_charges import PointCharge
-from autode.opt.optimisers.base import NullOptimiser
+from autode.opt.optimisers.base import NullOptimiser, Optimiser
 from autode.calculations.input import CalculationInput
 from autode.calculations.output import (
     CalculationOutput,
     BlankCalculationOutput,
 )
 from autode.values import PotentialEnergy, GradientRMS
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords import Keywords
 
 
 class CalculationExecutor:
@@ -41,7 +47,7 @@ class CalculationExecutor:
 
         self.molecule = molecule
         self.method = method
-        self.optimiser = NullOptimiser()
+        self.optimiser: Optimiser = NullOptimiser()
         self.n_cores = int(n_cores)
 
         self.input = CalculationInput(
@@ -334,6 +340,11 @@ class _IndirectCalculationExecutor(CalculationExecutor):
     def output(self) -> "CalculationOutput":
         return BlankCalculationOutput()
 
+    @output.setter
+    def output(self, value: CalculationOutput):
+        assert isinstance(value, CalculationOutput)
+        self._external_output = value
+
 
 class CalculationExecutorO(_IndirectCalculationExecutor):
     """Calculation executor that uses autodE inbuilt optimisation"""
@@ -455,9 +466,12 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         )
 
         final_coords = self.optimiser.final_coordinates
+        if final_coords is None:
+            raise ex.CalculationException("Final coordinates undefined")
 
         self.molecule.coordinates = final_coords.reshape((-1, 3))
-        self.molecule.gradient = final_coords.g.reshape((-1, 3))
+        if final_coords.g is not None:
+            self.molecule.gradient = final_coords.g.reshape((-1, 3))
         self.molecule.energy = final_coords.e
         return None
 
