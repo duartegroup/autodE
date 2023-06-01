@@ -32,9 +32,15 @@ class BaseOptimiser(ABC):
     def last_energy_change(self) -> PotentialEnergy:
         """The energy change on between the final two optimisation cycles"""
 
-    def save(self, filename: str) -> None:
-        """Save the entire state of the optimiser to a file"""
+    def run(self, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
+
+    def save(self, filename: str) -> None:
+        raise NotImplementedError
+
+    @property
+    def final_coordinates(self):
+        raise RuntimeError("A NullOptimiser has no coordinates")
 
 
 class Optimiser(BaseOptimiser, ABC):
@@ -125,6 +131,7 @@ class Optimiser(BaseOptimiser, ABC):
         """
         self._n_cores = n_cores if n_cores is not None else Config.n_cores
         self._initialise_species_and_method(species, method)
+        assert self._species is not None, "Species must be set"
 
         if not self._space_has_degrees_of_freedom:
             logger.info("Optimisation is in a 0D space – terminating")
@@ -207,6 +214,8 @@ class Optimiser(BaseOptimiser, ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
+        assert self._species and self._coords and self._method
+
         from autode.calculations import Calculation
 
         # TODO: species.calc_grad() method
@@ -249,6 +258,7 @@ class Optimiser(BaseOptimiser, ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
+        assert self._species and self._coords and self._method
         should_calc_hessian = True
 
         if (
@@ -269,12 +279,14 @@ class Optimiser(BaseOptimiser, ABC):
             self._update_hessian()
         else:
             self._coords.update_h_from_cart_h(
-                self._species.hessian.to("Ha Å^-2")
+                self._species.hessian.to("Ha Å^-2")  # type: ignore
             )
         return None
 
     def _update_hessian(self) -> None:
         """Update the Hessian of a species"""
+        assert self._species and self._coords and self._method
+
         species = self._species.new_species(
             name=f"{self._species.name}_opt_{self.iteration}"
         )
@@ -285,6 +297,7 @@ class Optimiser(BaseOptimiser, ABC):
             keywords=self._method.keywords.hess,
             n_cores=self._n_cores,
         )
+        assert species.hessian is not None, "Failed to calculate H"
 
         self._species.hessian = species.hessian.copy()
         self._coords.update_h_from_cart_h(self._species.hessian.to("Ha Å^-2"))
@@ -358,8 +371,10 @@ class Optimiser(BaseOptimiser, ABC):
         """Last ∆E found in this"""
 
         if self.iteration > 0:
-            delta_e = self._history.final.e - self._history.penultimate.e
-            return PotentialEnergy(delta_e, units="Ha")
+            final_e = self._history.final.e
+            penultimate_e = self._history.penultimate.e
+            if final_e is not None and penultimate_e is not None:
+                return PotentialEnergy(final_e - penultimate_e, units="Ha")
 
         if self.converged:
             logger.warning(
@@ -587,6 +602,7 @@ class NDOptimiser(Optimiser, ABC):
         """
         Save the entire state of the optimiser to a file
         """
+        assert self._species is not None, "Must have a species to save"
 
         if len(self._history) == 0:
             logger.warning("Optimiser did no steps. Not saving a trajectory")
@@ -678,11 +694,13 @@ class NDOptimiser(Optimiser, ABC):
             (autode.values.PotentialEnergy): Energy difference. Infinity if
                                   an energy difference cannot be calculated
         """
+        assert self._coords, "Must have coordinates to calculate ∆E"
 
         if len(self._history) < 2:
             logger.info("First iteration - returning |∆E| = ∞")
             return PotentialEnergy(np.inf)
 
+        assert self._coords.e and self._history.penultimate.e, "Need |∆E|"
         e1, e2 = self._coords.e, self._history.penultimate.e
 
         if e1 is None or e2 is None:
@@ -711,10 +729,12 @@ class NDOptimiser(Optimiser, ABC):
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy"""
+        assert self._coords, "Must have coordinates to log convergence"
         log_string = f"{self.iteration}\t"
 
         if len(self._history) > 1:
-            de = self._coords.e - self._history.penultimate.e
+            assert self._coords.e and self._history.penultimate.e, "Need ∆E"
+            de: PotentialEnergy = self._coords.e - self._history.penultimate.e
             log_string += f'{de.to("kcal mol-1"):.3f}\t{self._g_norm:.5f}'
 
         logger.info(log_string)
@@ -733,6 +753,7 @@ class NDOptimiser(Optimiser, ABC):
             H_{l - 1}^{-1} \rightarrow H_{l}^{-1}
 
         """
+        assert self._coords is not None, "Must have coordinates to get H"
 
         if self.iteration == 0:
             logger.info("First iteration so using exact inverse, H^-1")
@@ -750,6 +771,7 @@ class NDOptimiser(Optimiser, ABC):
             H_{l - 1} \rightarrow H_{l}
 
         """
+        assert self._coords is not None, "Must have coordinates to get H"
 
         if self.iteration == 0:
             logger.info("First iteration so not updating the Hessian")
@@ -772,6 +794,7 @@ class NDOptimiser(Optimiser, ABC):
             (RuntimeError): If no suitable strategies are found
         """
         coords_l, coords_k = self._history.final, self._history.penultimate
+        assert coords_k.g and coords_l.g, "Must have gradients to calculate y"
 
         for update_type in self._hessian_update_types:
             updater = update_type(
@@ -887,7 +910,7 @@ class _OptimiserCallbackFunction:
         self._f = f
         self._kwargs = kwargs if kwargs is not None else dict()
 
-    def __call__(self, coordinates: OptCoordinates) -> Any:
+    def __call__(self, coordinates: Optional[OptCoordinates]) -> Any:
         """Call the function, if it exists"""
 
         if self._f is None:

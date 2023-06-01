@@ -29,17 +29,16 @@ class CalculationInput:
             point_charges: Optional list of float of point charges, x, y, z
                            coordinates for each point charge
         """
-        self.keywords = keywords.copy()
+        self.keywords: Keywords = keywords.copy()
 
+        self.added_internals: Optional[list] = None
         if added_internals is not None and len(added_internals) > 0:
             self.added_internals = added_internals
-        else:
-            self.added_internals = None
 
         self.point_charges = point_charges
 
-        self.filename = None
-        self.additional_filenames = []
+        self.filename: Optional[str] = None
+        self.additional_filenames: List[str] = []
 
         self._check()
 

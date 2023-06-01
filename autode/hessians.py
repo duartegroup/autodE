@@ -441,7 +441,7 @@ class NumericalHessianCalculator:
             atoms=species.atoms.copy(),
         )
 
-        self._calculated_rows = []
+        self._calculated_rows: List[int] = []
 
         self._n_total_cores = Config.n_cores if n_cores is None else n_cores
 
@@ -727,7 +727,7 @@ class HybridHessianCalculator(NumericalHessianCalculator):
 
 
 def _method_or_default_hmethod(
-    method: "Method",
+    method: Optional["Method"],
 ) -> "Method":
     # Avoid cyclic imports
     from autode.methods import method_or_default_hmethod
@@ -736,7 +736,7 @@ def _method_or_default_hmethod(
 
 
 def _method_or_default_lmethod(
-    method: "Method",
+    method: Optional["Method"],
 ) -> "Method":
     # Avoid cyclic imports
     from autode.methods import method_or_default_lmethod

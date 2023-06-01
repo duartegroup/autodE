@@ -45,6 +45,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
         """Generate a QChem input file"""
+        assert calc.input.keywords is not None, "Must have input keywords"
         molecule = calc.molecule
 
         if calc.input.filename is None:
@@ -53,8 +54,10 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
                 "filename was undefined"
             )
 
-        if molecule.is_implicitly_solvated and not self._keywords_contain(
-            calc, "solvent_method"
+        if (
+            molecule.is_implicitly_solvated
+            and not self._keywords_contain(calc, "solvent_method")
+            and self.implicit_solvation_type is not None
         ):
             calc.input.keywords.append(self.implicit_solvation_type)
 

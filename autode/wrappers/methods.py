@@ -108,6 +108,38 @@ class Method(ABC):
     def copy(self) -> "Method":
         return deepcopy(self)
 
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
+        raise NotImplementedInMethod
+
+    def energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
+        raise NotImplementedInMethod
+
+    def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
+        raise NotImplementedInMethod
+
+    def hessian_from(self, calc: "CalculationExecutor") -> Hessian:
+        raise NotImplementedInMethod
+
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
+        raise NotImplementedInMethod
+
+    def atoms_from(self, calc: "CalculationExecutor") -> "Atoms":
+        raise NotImplementedInMethod
+
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
+        raise NotImplementedInMethod
+
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
+        raise NotImplementedInMethod
+
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
+        raise NotImplementedInMethod
+
+    def generate_input_for(self, calc: "CalculationExecutor") -> None:
+        return None
+
 
 class ExternalMethod(Method, ABC):
     def __init__(

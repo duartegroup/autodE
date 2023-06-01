@@ -9,7 +9,7 @@ import base64
 import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List, Tuple, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING
 from copy import deepcopy
 
 from autode.log import logger
@@ -17,7 +17,7 @@ from autode.config import Config
 from autode.values import Distance
 from autode.utils import no_exceptions, requires_output_to_exist
 from autode.point_charges import PointCharge
-from autode.opt.optimisers.base import NullOptimiser, Optimiser
+from autode.opt.optimisers.base import NullOptimiser, BaseOptimiser
 from autode.calculations.input import CalculationInput
 from autode.calculations.output import (
     CalculationOutput,
@@ -47,7 +47,7 @@ class CalculationExecutor:
 
         self.molecule = molecule
         self.method = method
-        self.optimiser: Optimiser = NullOptimiser()
+        self.optimiser: BaseOptimiser = NullOptimiser()
         self.n_cores = int(n_cores)
 
         self.input = CalculationInput(
@@ -377,7 +377,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
             gtol=self.gtol,
         )
         method = self.method.copy()
-        method.keywords.grad = self.input.keywords
+        method.keywords.grad = kws.GradientKeywords(self.input.keywords)
 
         self.optimiser.run(
             species=self.molecule, method=method, n_cores=self.n_cores
@@ -522,5 +522,5 @@ def _string_without_leading_hyphen(s: str) -> str:
     return s if not s.startswith("-") else f"_{s}"
 
 
-def _active_bonds(molecule: "Species") -> List[Tuple[int, int]]:
+def _active_bonds(molecule: "Species") -> List[tuple]:
     return [] if molecule.graph is None else molecule.graph.active_bonds

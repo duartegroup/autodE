@@ -4,7 +4,7 @@ import numpy as np
 
 from copy import deepcopy
 from networkx.algorithms import isomorphism
-from typing import Optional, List, Tuple, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
@@ -67,8 +67,8 @@ class MolecularGraph(nx.Graph):
 
         for (i, j) in self.edges:
 
-            r0 = self._covalent_radius(i) + self._covalent_radius(j)
-            matrix[i, j] = matrix[j, i] = float(r0)
+            r0 = float(self._covalent_radius(i) + self._covalent_radius(j))
+            matrix[i, j] = matrix[j, i] = r0
 
         return matrix
 
@@ -82,7 +82,7 @@ class MolecularGraph(nx.Graph):
         return is_isomorphic(self, other)
 
     @property
-    def active_bonds(self) -> List[Tuple[int, int]]:
+    def active_bonds(self) -> List[tuple]:
         """
         Extract the active bonds from the graph into a flat list of pairs
         of atom indices

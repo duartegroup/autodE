@@ -6,7 +6,7 @@ import signal
 import warnings
 import contextlib
 from time import time
-from typing import Any, Optional, Sequence, List, Callable
+from typing import Any, Optional, Sequence, List, Callable, TYPE_CHECKING
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
@@ -24,6 +24,10 @@ from autode.exceptions import (
     MethodUnavailable,
     CouldNotGetProperty,
 )
+
+if TYPE_CHECKING:
+    from autode.reactions.reaction import Reaction
+    from autode.config import _ConfigClass
 
 
 @contextlib.contextmanager
@@ -62,7 +66,7 @@ def temporary_config():
 
 
 def _copy_into_current_config(
-    parent_config: "autode.config._ConfigClass",
+    parent_config: "_ConfigClass",
 ) -> None:
     """
     Copies an instance of Config into current process. Required to set the
@@ -86,7 +90,7 @@ def get_total_memory() -> int:
 
 def _get_total_memory_on_windows() -> int:
     """Use WinAPI to get total memory on Windows machines"""
-    from ctypes import Structure, c_int32, c_uint64, sizeof, byref, windll
+    from ctypes import Structure, c_int32, c_uint64, sizeof, byref, windll  # type: ignore
 
     # Use Win32 API : https://stackoverflow.com/questions/31546309/
     class MemoryStatusEx(Structure):
@@ -159,11 +163,11 @@ def run_external(
     with open(output_filename, "w") as output_file:
         # /path/to/method input_filename > output_filename
         process = Popen(params, stdout=output_file, stderr=PIPE)
-
-        with process.stderr:
-            for line in iter(process.stderr.readline, b""):
-                if stderr_to_log:
-                    logger.warning("STDERR: %r", line.decode())
+        if process.stderr is not None:
+            with process.stderr:
+                for line in iter(process.stderr.readline, b""):
+                    if stderr_to_log:
+                        logger.warning("STDERR: %r", line.decode())
 
         process.wait()
 
@@ -470,11 +474,11 @@ def requires_output_to_exist(func: Callable) -> Callable:
     return wrapped_function
 
 
-def no_exceptions(func) -> Optional[Any]:
+def no_exceptions(func) -> Any:
     """Calculation method requiring the output filename to be set"""
 
     @wraps(func)
-    def wrapped_function(*args, **kwargs):
+    def wrapped_function(*args, **kwargs) -> Any:
 
         try:
             return func(*args, **kwargs)
@@ -643,7 +647,7 @@ def deprecated(func: Callable) -> Callable:
     def wrapped_function(*args, **kwargs):
         warnings.warn(
             "This function is deprecated and will be removed "
-            "in autodE v1.4.0",
+            "in autodE v1.5.0",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -695,7 +699,7 @@ class StringDict:
     Immutable dictionary stored as a single string. For example::
         'a = b  c = d'
     """
-    _value_type = str
+    _value_type: type = str
 
     def __init__(self, string: str, delim: str = " = "):
 
@@ -778,7 +782,7 @@ else:
 
     from concurrent.futures import ProcessPoolExecutor
 
-    ProcessPool = ProcessPoolExecutor
+    ProcessPool = ProcessPoolExecutor  # type: ignore
     timeout = _timeout_default
 
     def cleanup_after_timeout():
