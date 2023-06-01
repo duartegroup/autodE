@@ -125,7 +125,7 @@ class PESnD(ABC):
     def calculate(
         self,
         method: "Method",
-        keywords: Union[Sequence[str], str, None] = None,
+        keywords: Optional[Keywords] = None,
         n_cores: Optional[int] = None,
     ) -> None:
         """
@@ -159,6 +159,7 @@ class PESnD(ABC):
 
         self._keywords = keywords
         self._init_tensors()
+        assert self._coordinates is not None, "Expecting coords to be set"
 
         # Set the coordinates of the first point in the PES, and other attrs
         self._coordinates[self.origin] = self._species.coordinates
@@ -206,10 +207,10 @@ class PESnD(ABC):
         self._set_mpl_params()
 
         if self.ndim == 1:
-            self._plot_1d(interp_factor, units)
+            self._plot_1d(interp_factor, units_name=units)
 
         elif self.ndim == 2:
-            self._plot_2d(interp_factor, units)
+            self._plot_2d(interp_factor, units_name=units)
 
         else:
             raise NotImplementedError(
@@ -395,6 +396,7 @@ class PESnD(ABC):
         Returns:
             (str):
         """
+        assert self._species is not None, "Must have a species to name a point"
         return f'{self._species.name}_scan_{"-".join([str(p) for p in point])}'
 
     def _is_contained(self, point: Tuple) -> bool:
@@ -548,17 +550,17 @@ class PESnD(ABC):
 
         return None
 
-    def _plot_1d(self, interp_factor: int, units: str) -> None:
+    def _plot_1d(self, interp_factor: int, units_name: str) -> None:
         """
         Plot a PES in a single dimension
 
         -----------------------------------------------------------------------
         Args:
             interp_factor:
-            units:
+            units_name:
         """
         r_x = self._rs[0]
-        energies, units = self._energies, energy_unit_from_name(units)
+        energies, units = self._energies, energy_unit_from_name(units_name)
         energies = units.conversion * (energies - np.min(energies))
 
         plt.scatter(
@@ -594,14 +596,14 @@ class PESnD(ABC):
 
         return None
 
-    def _plot_2d(self, interp_factor: int, units: str) -> None:
+    def _plot_2d(self, interp_factor: int, units_name: str) -> None:
         """
         Plot the PES in two dimensions
 
         -----------------------------------------------------------------------
         Arguments:
             interp_factor:
-            units:
+            units_name:
         """
         from mpl_toolkits.mplot3d import Axes3D
         from matplotlib.ticker import FormatStrFormatter
@@ -619,7 +621,7 @@ class PESnD(ABC):
         ax1 = plt.subplot(1, 2, 2)
 
         # Convert the energies in the 2D array from the base Hartree units
-        units = energy_unit_from_name(units)
+        units = energy_unit_from_name(units_name)
         energies = units.conversion * (energies - np.min(energies))
 
         ax0.plot_surface(
@@ -738,8 +740,8 @@ class _ListDistances1D(list):
     def _distance1d_from_key_val(
         self,
         atom_idxs: Tuple[int, int],
-        value: Union[Tuple, np.ndarray],
-    ) -> np.ndarray:
+        value: Union[tuple, np.ndarray],
+    ) -> "_Distances1D":
         """
         From a 'value' determine the initial and final distances to use
 
@@ -755,7 +757,7 @@ class _ListDistances1D(list):
         """
 
         if isinstance(value, tuple):
-            return self._distance1d_from_key_val_tuple(atom_idxs, value)
+            return self._distance1d_from_key_val_tuple(atom_idxs, value)  # type: ignore
 
         elif isinstance(value, np.ndarray):
             return _Distances1D(value, atom_idxs=atom_idxs)

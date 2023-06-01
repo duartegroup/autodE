@@ -876,11 +876,11 @@ class Atoms(list):
         arr = self.coordinates.to("Å")
 
         if isinstance(distance_tol, Distance):
-            distance_tol = float(distance_tol.to("Å"))
+            distance_tol_float = float(distance_tol.to("Å"))
 
         else:
             logger.warning("Assuming a distance tolerance in units of Å")
-            distance_tol = float(distance_tol)
+            distance_tol_float = float(distance_tol)
 
         # Calculate a normal vector to the first two atomic vectors from atom 0
         x0 = arr[0, :]
@@ -890,7 +890,7 @@ class Atoms(list):
 
             # Calculate the 0->i atomic vector, which must not have any
             # component in the direction in the normal if the atoms are planar
-            if np.dot(normal_vec, arr[i, :] - x0) > distance_tol:
+            if np.dot(normal_vec, arr[i, :] - x0) > distance_tol_float:
                 return False
 
         return True
@@ -930,7 +930,7 @@ class AtomCollection:
             value (np.ndarray): Shape = (n_atoms, 3) or (3*n_atoms) as a
                                 row major vector
         """
-        if self.atoms is None:
+        if self._atoms is None:
             raise ValueError(
                 "Must have atoms set to be able to set the "
                 "coordinates of them"
@@ -984,12 +984,14 @@ class AtomCollection:
         if self.n_atoms == 0:
             return Mass(0.0)
 
-        return sum(atom.mass for atom in self.atoms)
+        return sum(atom.mass for atom in self.atoms)  # type: ignore
 
     def distance(self, i: int, j: int) -> Distance:
+        assert self.atoms is not None, "Must have atoms"
         return self.atoms.distance(i, j)
 
     def eqm_bond_distance(self, i: int, j: int) -> Distance:
+        assert self.atoms is not None, "Must have atoms"
         return self.atoms.eqm_bond_distance(i, j)
 
     def angle(self, i: int, j: int, k: int) -> Angle:
@@ -1024,6 +1026,8 @@ class AtomCollection:
         Raises:
             (ValueError): If any of the atom indexes are not present
         """
+        assert self.atoms is not None, "Must have atoms"
+
         if not self.atoms.idxs_are_present(i, j, k):
             raise ValueError(
                 f"Cannot calculate the angle between {i}-{j}-{k}."
@@ -1081,6 +1085,8 @@ class AtomCollection:
             (ValueError): If any of the atom indexes are not present in the
                           molecule
         """
+        assert self.atoms is not None, "Must have atoms"
+
         if not self.atoms.idxs_are_present(w, x, y, z):
             raise ValueError(
                 f"Cannot calculate the dihedral angle involving "

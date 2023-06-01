@@ -57,7 +57,7 @@ class Primitive(ABC):
         """Comparison of two primitive coordinates"""
 
     @property
-    def _ordered_idxs(self) -> Tuple[int]:
+    def _ordered_idxs(self) -> Tuple[int, ...]:
         """Atom indexes ordered smallest to largest"""
         return tuple(sorted(self._atom_indexes))
 

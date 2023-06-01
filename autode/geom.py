@@ -292,7 +292,7 @@ def symm_matrix_from_ltril(
 
     if len(array) > 0 and type(array[0]) in (list, np.ndarray):
         # Flatten the array of arrays
-        array = [item for sublist in array for item in sublist]
+        array = [item for sublist in array for item in sublist]  # type: ignore
 
     n = int((np.sqrt(8 * len(array) + 1) - 1) / 2)
 

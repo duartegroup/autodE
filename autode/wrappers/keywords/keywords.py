@@ -75,8 +75,11 @@ class KeywordsSet:
         str_methods = ",\n".join(str(c) for c in self._list if c is not None)
         return f"KeywordsSet({str_methods})"
 
-    def __getitem__(self, item: int) -> Optional["Keywords"]:
+    def __getitem__(self, item: int) -> "Keywords":
         return self._list[item]
+
+    def __iter__(self) -> Iterator["Keywords"]:
+        yield from self._list
 
     def __eq__(self, other: object) -> bool:
         """Equality of two keyword sets"""
@@ -139,7 +142,7 @@ class KeywordsSet:
         self._sp = SinglePointKeywords(value)
 
     @property
-    def _list(self) -> List[Optional["Keywords"]]:
+    def _list(self) -> List["Keywords"]:
         """List of all the keywords in this set"""
         return [
             self._low_opt,
@@ -167,7 +170,7 @@ class KeywordsSet:
 
     def set_functional(self, functional: Union["Functional", str]):
         """Set the functional for all calculation types"""
-        for keywords in self._list:
+        for keywords in self:
             keywords.functional = functional
 
         return None
@@ -202,11 +205,12 @@ class Keywords(ABC):
             keyword_list: Keywords
         """
 
+        self._list: List[Union[Keyword, str]] = []
+
         if isinstance(keyword_list, str):
             self._list = [keyword_list]
-
-        else:
-            self._list = list(keyword_list) if keyword_list is not None else []
+        elif keyword_list is not None:
+            self._list = list(keyword_list)
 
     def __str__(self):
         return " ".join([repr(kw) for kw in self._list])
@@ -280,6 +284,9 @@ class Keywords(ABC):
                     "WF method present, or vice-versa "
                 )
 
+        if keyword is None:  # don't append None to list
+            return
+
         # This keyword does not appear in the list, so add it
         self.append(keyword)
         return None
@@ -302,15 +309,30 @@ class Keywords(ABC):
         """Get the functional in this set of keywords"""
         return self._get_keyword(Functional)
 
+    @functional.setter
+    def functional(self, functional: Union["Functional", str]):
+        """Set the functional in a set of keywords"""
+        self._set_keyword(functional, keyword_type=Functional)
+
     @property
     def basis_set(self):
         """Get the functional in this set of keywords"""
         return self._get_keyword(BasisSet)
 
+    @basis_set.setter
+    def basis_set(self, basis_set: Union["BasisSet", str]):
+        """Set the functional in a set of keywords"""
+        self._set_keyword(basis_set, keyword_type=BasisSet)
+
     @property
     def dispersion(self):
         """Get the dispersion keyword in this set of keywords"""
         return self._get_keyword(DispersionCorrection)
+
+    @dispersion.setter
+    def dispersion(self, dispersion: Union["DispersionCorrection", str]):
+        """Set the dispersion correction in a set of keywords"""
+        self._set_keyword(dispersion, keyword_type=DispersionCorrection)
 
     @property
     def wf_method(self):
@@ -320,21 +342,6 @@ class Keywords(ABC):
     @wf_method.setter
     def wf_method(self, method: Union["WFMethod", str]):
         self._set_keyword(method, keyword_type=WFMethod)
-
-    @functional.setter
-    def functional(self, functional: Union["Functional", str]):
-        """Set the functional in a set of keywords"""
-        self._set_keyword(functional, keyword_type=Functional)
-
-    @dispersion.setter
-    def dispersion(self, dispersion: Union["DispersionCorrection", str]):
-        """Set the dispersion correction in a set of keywords"""
-        self._set_keyword(dispersion, keyword_type=DispersionCorrection)
-
-    @basis_set.setter
-    def basis_set(self, basis_set: Union["BasisSet", str]):
-        """Set the functional in a set of keywords"""
-        self._set_keyword(basis_set, keyword_type=BasisSet)
 
     @property
     def method_string(self) -> str:
@@ -399,8 +406,8 @@ class Keywords(ABC):
 
         return not kwds.isdisjoint(w.lower() for w in words)
 
-    def copy(self) -> TypeKeywords:
-        return deepcopy(self)
+    def copy(self) -> TypeKeywords:  # type: ignore
+        return deepcopy(self)  # type: ignore
 
     def append(self, item: Union["Keyword", str]) -> None:
         assert type(item) is str or isinstance(item, Keyword)
@@ -414,10 +421,10 @@ class Keywords(ABC):
     def remove(self, item: "Keyword") -> None:
         self._list.remove(item)
 
-    def __getitem__(self, item: int) -> "Keyword":
+    def __getitem__(self, item: int) -> Union["Keyword", str]:
         return self._list[item]
 
-    def __setitem__(self, key: int, value: "Keyword"):
+    def __setitem__(self, key: int, value: Union["Keyword", str]) -> None:
         self._list[key] = value
 
     def __len__(self) -> int:
@@ -647,7 +654,7 @@ class ECP(Keyword):
         name: str,
         min_atomic_number: int = 37,
         doi: Optional[str] = None,
-        doi_list: Optional[Sequence[str]] = None,
+        doi_list: Optional[List[str]] = None,
         **kwargs,
     ):
         """

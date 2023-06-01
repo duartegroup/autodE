@@ -1,6 +1,6 @@
+# mypy: disable-error-code="override, type-var"
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Any, Union, Type, Optional, Sequence, TypeVar, TYPE_CHECKING
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
@@ -14,6 +14,8 @@ from autode.units import (
     nm,     pm,      m_e,         amu_ang_sq,    TB,              ha_per_a0_sq,
     ha_per_ang_sq,   J_per_m_sq,  J_per_ang_sq,  J_per_ang_sq_kg,
 )
+
+from typing import Any, Union, Type, Optional, Sequence, List, TypeVar, TYPE_CHECKING
 # fmt: on
 
 if TYPE_CHECKING:
@@ -171,7 +173,7 @@ class Value(ABC, float):
     def _like_self_from_float(self, value: float) -> TypeValue:
         new_value = self.__class__(value, units=self.units)
         new_value.__dict__.update(self.__dict__)
-        return new_value
+        return new_value  # type: ignore
 
     def __eq__(self, other: Any) -> bool:
         """Equality of two values, which may be in different units"""
@@ -250,7 +252,7 @@ class Value(ABC, float):
 
     def __abs__(self) -> TypeValue:
         """Absolute value"""
-        return self if self > 0 else self * -1
+        return self if self > 0 else self * -1  # type: ignore
 
     def to(self, units):
         """Convert this value to a new unit, returning a copy
@@ -308,7 +310,10 @@ class Energy(Value):
         self.method_str = method_string(method, keywords)
 
     def __repr__(self) -> str:
-        return f"Energy({round(self, 5)} {self.units.name})"
+        if self.units is None:
+            return f"Energy({round(self, 5)} *no units*)"
+        else:
+            return f"Energy({round(self, 5)} {self.units.name})"
 
     def __eq__(self, other: Any) -> bool:
         """Is an energy equal to another? Compares only the value, with
@@ -546,7 +551,7 @@ class Frequency(Value):
         Returns:
             (autode.values.Frequency):
         """
-        return self * -1 if self.is_imaginary else self
+        return Frequency(-float(self)) if self.is_imaginary else self
 
     def __repr__(self):
         return f"Frequency({round(self, 5)} {self.units.name})"
@@ -588,7 +593,7 @@ class ValueArray(ABC, np.ndarray):
     Abstract base class for an array of values, e.g. gradients or a Hessian
     """
 
-    implemented_units = []
+    implemented_units: List[Unit] = []
 
     @abstractmethod
     def __repr__(self):

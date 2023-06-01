@@ -5,6 +5,7 @@ from autode.log import logger
 from autode.path.path import Path
 from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
+from autode.constraints import DistanceConstraints
 from autode.bonds import ScannedBond
 
 from typing import TYPE_CHECKING, List, Optional
@@ -168,9 +169,9 @@ class AdaptivePath(Path):
         # Add the first point - will run a constrained minimisation if possible
         if init_species is not None:
             point = init_species.new_species()
-            point.constraints.distance = {
-                b.atom_indexes: b.curr_dist for b in bonds
-            }
+            point.constraints.distance = DistanceConstraints(
+                {b.atom_indexes: b.curr_dist for b in bonds}
+            )
             self.append(point)
 
         self._check_bonds_have_initial_and_final_distances()

@@ -1,3 +1,4 @@
+# mypy: disable-error-code="has-type"
 """
 Delocalised internal coordinate implementation from:
 1. https://aip.scitation.org/doi/pdf/10.1063/1.478397
@@ -304,6 +305,7 @@ class DICWithConstraints(DIC):
     @property
     def raw(self) -> np.ndarray:
         """Raw numpy array of these coordinates including the multipliers"""
+        assert self._lambda is not None, "Must have λ defined"
         return np.array(self.tolist() + self._lambda.tolist(), copy=True)
 
     @staticmethod
@@ -358,6 +360,8 @@ class DICWithConstraints(DIC):
         Arguments:
             arr: Cartesian gradient array
         """
+        assert self._lambda is not None, "Must have λ defined"
+
         if arr is None:
             self._x.g, self.g = None, None
 
@@ -430,6 +434,7 @@ class DICWithConstraints(DIC):
 
     def update_lagrange_multipliers(self, arr: np.ndarray) -> None:
         """Update the lagrange multipliers by adding a set of values"""
+        assert self._lambda is not None, "Must have λ defined"
 
         if arr.shape != self._lambda.shape:
             raise ValueError(
@@ -479,7 +484,7 @@ def _symmetry_inequivalent_u(u, q) -> np.ndarray:
     """Remove symmetry equivalent vectors from the U matrix"""
 
     # The non-redundant space can be further pruned by considering symmetry
-    idxs = []
+    idxs: List[int] = []
     s = np.matmul(u.T, q)
 
     for i, s_i in enumerate(s):

@@ -66,7 +66,7 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
 class PIC(list, ABC):
     """Primitive internal coordinates"""
 
-    def __init__(self, *args):
+    def __init__(self, *args: Any):
         """
         List of primitive internal coordinates with a Wilson B matrix.
         If there are no arguments then all possible primitive coordinates

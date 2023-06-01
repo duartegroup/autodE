@@ -5,6 +5,7 @@ from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 from autode.input_output import atoms_to_xyz_file
 from autode.calculations import Calculation
+from autode.constraints import DistanceConstraints
 from autode.config import Config
 from autode.values import Distance
 from autode.exceptions import CalculationException
@@ -262,7 +263,7 @@ class TSguess(TSbase):
         logger.info("Running constrained optimisation on TS guess geometry")
 
         if distance_consts is not None:
-            self.constraints.distance = distance_consts
+            self.constraints.distance = DistanceConstraints(distance_consts)
 
         self._lmethod_scan_to_point()
 

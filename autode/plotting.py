@@ -1,13 +1,18 @@
 import os
 import numpy as np
-from typing import Sequence, Union
+from typing import Sequence, Union, TYPE_CHECKING
 from scipy import interpolate
+
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
 from scipy.optimize import minimize
 from autode.config import Config
 from autode.units import energy_unit_from_name
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.reactions.reaction import Reaction
+    from autode.units import Unit
 
 
 def save_plot(plot, filename):

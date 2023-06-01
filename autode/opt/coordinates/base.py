@@ -1,3 +1,4 @@
+# mypy: disable-error-code="has-type"
 import numpy as np
 from copy import deepcopy
 from enum import IntEnum, unique

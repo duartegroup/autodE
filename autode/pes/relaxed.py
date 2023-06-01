@@ -6,6 +6,7 @@ from typing import Tuple, List, Type, Iterator, TYPE_CHECKING
 from autode.log import logger
 from autode.utils import hashable, ProcessPool
 from autode.pes.reactive import ReactivePESnD
+from autode.constraints import DistanceConstraints
 from autode.calculations import Calculation
 from autode.exceptions import CalculationException
 
@@ -160,14 +161,14 @@ class RelaxedPESnD(ReactivePESnD):
             f"energy close to point {point} in the PES"
         )
 
-    def _constraints(self, point: Tuple) -> dict:
+    def _constraints(self, point: Tuple) -> DistanceConstraints:
         """
         Construct the distance constraints required for a particular point
         on the PES
 
         -----------------------------------------------------------------------
         Arguments:
-            point: Indicied of a point on the surface
+            point: Indices of a point on the surface
 
         Returns:
             (dict): Distance constraints
@@ -178,7 +179,9 @@ class RelaxedPESnD(ReactivePESnD):
                 f"{point} in a {self.ndim}D-PES"
             )
 
-        return {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
+        return DistanceConstraints(
+            {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
+        )
 
     def _points_generator(self) -> Iterator[List[Tuple]]:
         """
