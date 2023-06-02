@@ -36,6 +36,7 @@ setup(
     python_requires=">3.7",
     packages=[
         "autode",
+        "autode.bracket",
         "autode.conformers",
         "autode.calculations",
         "autode.pes",
