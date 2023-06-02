@@ -7,7 +7,7 @@ from autode.geom import calc_rmsd
 from autode.opt.coordinates import CartesianCoordinates
 from autode.methods import XTB
 from autode.values import Energy
-from autode.utils import work_in, work_in_tmp_dir
+from autode.utils import work_in_tmp_dir
 from autode.bracket.imagepair import (
     EuclideanImagePair,
     _calculate_engrad_for_species,
@@ -304,3 +304,33 @@ def test_hessian_update():
     # calling Hessian update again will raise exception
     with pytest.raises(AssertionError):
         imgpair.update_both_img_hessian_by_formula()
+
+
+@work_in_zipped_dir(datazip)
+def test_imgpair_hessian_flushing():
+    import autode.bracket.imagepair
+
+    mol1 = Molecule(
+        atoms=[
+            Atom("N", 0.5588, 0.0000, 0.0000),
+            Atom("N", -0.5588, 0.0000, 0.0000),
+        ]
+    )
+    h = np.loadtxt("n2_hess.txt")
+
+    imgpair = NullImagePair(mol1, mol1.copy())
+    # turn off flushing Hessians
+    autode.bracket.imagepair._flush_old_hessians = False
+    imgpair.left_coord.update_h_from_cart_h(h)
+    # generate dummy coordinates
+    imgpair.left_coord = imgpair.left_coord * 0.99
+    imgpair.left_coord = imgpair.left_coord * 0.99
+    assert imgpair._left_history[0].h is not None
+
+    # turn on flushing Hessians again
+    autode.bracket.imagepair._flush_old_hessians = True
+    imgpair = NullImagePair(mol1, mol1.copy())
+    imgpair.right_coord.update_h_from_cart_h(h)
+    imgpair.right_coord = imgpair.right_coord * 0.99
+    imgpair.right_coord = imgpair.right_coord * 0.99
+    assert imgpair._right_history[0].h is None

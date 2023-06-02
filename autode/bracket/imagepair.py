@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     from autode.wrappers.methods import Method
     from autode.hessians import Hessian
 
+_flush_old_hessians = True
+
 
 def _calculate_engrad_for_species(
     species: "Species",
@@ -272,7 +274,9 @@ class BaseImagePair(ABC):
             raise TypeError
 
         self._left_image.coordinates = self.left_coord
-        # todo should we remove old hessians that are not needed to free mem?
+        if _flush_old_hessians:
+            if len(self._left_history) >= 3:
+                self._left_history[-3].h = None
 
     @property
     def right_coord(self) -> CartesianCoordinates:
@@ -301,6 +305,9 @@ class BaseImagePair(ABC):
             raise TypeError
 
         self._right_image.coordinates = self.right_coord
+        if _flush_old_hessians:
+            if len(self._right_history) >= 3:
+                self._right_history[-3].h = None
 
     @property
     @abstractmethod
