@@ -4,12 +4,13 @@ import numpy as np
 from autode.point_charges import PointCharge
 from autode.wrappers.QChem import QChem
 from autode.calculations import Calculation
+from autode.values import Allocation
 from autode.atoms import Atom
 from autode.config import Config
 from autode.wrappers.keywords import cpcm, pbe0, def2svp
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, temporary_config
 from autode.exceptions import CalculationException
 from ..testutils import work_in_zipped_dir
 
@@ -27,6 +28,7 @@ def _blank_calc(name="test"):
         molecule=Molecule(atoms=[Atom("H")], mult=2),
         method=method,
         keywords=SinglePointKeywords(),
+        n_cores=Config.n_cores,
     )
 
     return calc
@@ -172,6 +174,7 @@ def test_simple_input_generation():
         "$rem\n"
         "method pbe0\n"
         "basis def2-SVP\n"
+        "mem_total 4000\n"
         "$end\n"
     )
 
@@ -576,3 +579,18 @@ def test_coordinate_extract_from_single_atom_calculation():
     calc.molecule = Molecule(atoms=[Atom("H", x=0, y=0, z=0)])
 
     assert np.allclose(QChem().coordinates_from(calc), np.zeros(3))
+
+
+@work_in_tmp_dir()
+def test_total_memory_is_printed_in_input_file():
+
+    with temporary_config():
+        Config.n_cores = 3
+        Config.max_core = Allocation(900, "MB")
+        calc = _blank_calc()
+        calc.input.keywords = method.keywords.sp
+        calc.generate_input()
+
+    input_lines = open(calc.input.filename, "r").readlines()
+
+    assert sum("mem_total 2700" in line for line in input_lines) == 1

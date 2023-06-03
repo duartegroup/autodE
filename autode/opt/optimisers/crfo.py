@@ -101,7 +101,7 @@ class CRFOptimiser(RFOptimiser):
 
     def _initialise_run(self) -> None:
         """Initialise the optimisation"""
-        logger.info("Initialising constrained optimisation")
+        logger.info("Initialising optimisation")
 
         self._build_internal_coordinates()
         assert self._coords is not None

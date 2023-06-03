@@ -4,6 +4,7 @@ from .molecules import h2, methane_mol, water_mol, h2o2_mol
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.values import Angle
+from autode.exceptions import CoordinateTransformFailed
 from autode.opt.coordinates.base import CartesianComponent
 from autode.opt.coordinates.internals import InverseDistances, PIC
 from autode.opt.coordinates.cartesian import CartesianCoordinates
@@ -719,11 +720,17 @@ def test_dic_large_step_allowed_unconverged_back_transform():
     x = CartesianCoordinates(water_mol().coordinates)
     dic = DIC.from_cartesian(x)
 
-    dic += 1.0 * np.ones(shape=(len(dic),))
-    new_x = dic.to("cartesian")
+    # unconverged IBT is allowed by default
+    dic_unconverged = dic + 1.0 * np.ones(shape=(len(dic),))
+    new_x = dic_unconverged.to("cartesian")
 
     # DIC transform should have moved the cartesian coordinates
     assert not np.allclose(new_x, x)
+
+    # should raise exception if unconverged IBT is disallowed
+    dic.allow_unconverged_back_transform = False
+    with pytest.raises(CoordinateTransformFailed):
+        _ = dic + 1.0 * np.ones(shape=(len(dic),))
 
 
 def test_constrained_angle_delta():

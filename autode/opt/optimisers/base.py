@@ -2,6 +2,7 @@ import os.path
 import numpy as np
 
 from abc import ABC, abstractmethod
+from collections import UserList
 from typing import Type, List, Union, Optional, Callable, Any, TYPE_CHECKING
 
 from autode.log import logger
@@ -11,6 +12,7 @@ from autode.values import GradientRMS, PotentialEnergy, method_string
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
 from autode.exceptions import CalculationException
+from autode.plotting import plot_optimiser_profile
 
 if TYPE_CHECKING:
     from autode.species.species import Species
@@ -83,7 +85,7 @@ class Optimiser(BaseOptimiser, ABC):
         self._maxiter = int(maxiter)
         self._n_cores: int = Config.n_cores
 
-        self._history = _OptimiserHistory()
+        self._history = OptimiserHistory()
 
         self._coords = coords
         self._species: Optional["Species"] = None
@@ -816,8 +818,84 @@ class NDOptimiser(Optimiser, ABC):
             "suitable update strategies"
         )
 
+    def plot_optimisation(
+        self,
+        filename: Optional[str] = None,
+        plot_energy: bool = True,
+        plot_rms_grad: bool = True,
+    ) -> None:
+        """
+        Draw the plot of the energies and/or rms_gradients of
+        the optimisation so far
 
-class _OptimiserHistory(list):
+        ----------------------------------------------------------------------
+        Args:
+            filename (str): Name of the file to plot
+            plot_energy (bool): Whether to plot energy
+            plot_rms_grad (bool): Whether to plot RMS of gradient
+        """
+        assert self._species is not None, "Must have a species to plot"
+
+        if self.iteration < 1:
+            logger.warning("Less than 2 points, cannot draw optimisation plot")
+            return None
+
+        if not self.converged:
+            logger.warning(
+                "Optimisation is not converged, drawing a plot "
+                "of optimiser profile until current iteration"
+            )
+
+        filename = (
+            f"{self._species.name}_opt_plot.pdf"
+            if filename is None
+            else str(filename)
+        )
+
+        plot_optimiser_profile(
+            self._history,
+            filename=filename,
+            plot_energy=plot_energy,
+            plot_rms_grad=plot_rms_grad,
+        )
+        return None
+
+    def print_geometries(self, filename: Optional[str] = None) -> None:
+        """
+        Write the trajectory of the optimiser in .xyz format
+
+        Args:
+            filename: Name of the trajectory file (xyz)
+        """
+        assert self._species is not None
+        if self.iteration < 1:
+            logger.warning(
+                "Optimiser did no steps, not saving .xyz trajectory"
+            )
+            return None
+
+        filename = (
+            f"{self._species.name}_opt.trj.xyz"
+            if filename is None
+            else str(filename)
+        )
+
+        if os.path.isfile(filename):
+            logger.warning(f"File {filename} exists, overwriting...")
+            os.remove(filename)
+
+        tmp_spc = self._species.new_species()
+        for coord in self._history:
+            tmp_spc.coordinates = coord.to("cart")
+            tmp_spc.energy = coord.e
+            tmp_spc.print_xyz_file(
+                filename=filename,
+                append=True,
+            )
+        return None
+
+
+class OptimiserHistory(UserList):
     """Sequential history of coordinates"""
 
     @property

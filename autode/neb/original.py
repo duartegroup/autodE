@@ -619,6 +619,9 @@ class NEB:
         """Generate simple interpolated coordinates for these set of images
         in Cartesian coordinates"""
 
+        if n == 2:
+            return [initial.copy(), final.copy()]
+
         intermediate_species = []
 
         # Interpolate images between the starting point i=0 and end point i=n-1

@@ -45,15 +45,22 @@ class OptCoordinates(ValueArray, ABC):
         arr.B = None  # Wilson B matrix
         arr.B_T_inv = None  # Generalised inverse of B
         arr.U = np.eye(len(arr))  # Transform matrix
+        arr.allow_unconverged_back_transform = True  # for internal coords
 
         return arr
 
     def __array_finalize__(self, obj: "OptCoordinates") -> None:
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
 
-        for attr in ("units", "_e", "_g", "_h", "_h_inv", "U", "B", "B_T_inv"):
+        # fmt: off
+        for attr in (
+            "units",    "_e",   "_g",   "_h",
+            "_h_inv",   "U",    "B",    "B_T_inv",
+            "allow_unconverged_back_transform",
+        ):
             self.__dict__[attr] = getattr(obj, attr, None)
 
+        # fmt: on
         return None
 
     @property

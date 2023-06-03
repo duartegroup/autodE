@@ -14,7 +14,6 @@ from autode.units import (
     nm,     pm,      m_e,         amu_ang_sq,    TB,              ha_per_a0_sq,
     ha_per_ang_sq,   J_per_m_sq,  J_per_ang_sq,  J_per_ang_sq_kg,
 )
-
 from typing import Any, Union, Type, Optional, Sequence, List, TypeVar, TYPE_CHECKING
 # fmt: on
 

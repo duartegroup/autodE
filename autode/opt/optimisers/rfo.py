@@ -1,9 +1,14 @@
 import numpy as np
+from typing import TYPE_CHECKING
+
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
+
+if TYPE_CHECKING:
+    from autode.hessians import Hessian
 
 
 class RFOptimiser(NDOptimiser):
@@ -35,7 +40,7 @@ class RFOptimiser(NDOptimiser):
         assert self._coords and self._coords.h and self._coords.g
         logger.info("Taking a RFO step")
 
-        self._coords.h_inv = self._updated_h_inv()
+        self._coords.h = self._updated_h()
 
         h_n, _ = self._coords.h.shape
 
@@ -75,7 +80,7 @@ class RFOptimiser(NDOptimiser):
 
     @property
     @work_in_tmp_dir(use_ll_tmp=True)
-    def _low_level_cart_hessian(self) -> np.ndarray:
+    def _low_level_cart_hessian(self) -> "Hessian":
         """
         Calculate a Hessian matrix using a low-level method, used as the
         estimate from which BFGS updates are applied. To ensure steps are taken
@@ -91,6 +96,7 @@ class RFOptimiser(NDOptimiser):
 
         species = self._species.copy()
         species.calc_hessian(method=get_lmethod(), n_cores=self._n_cores)
+        assert species.hessian is not None, "Hessian calculation must be ok"
 
         return species.hessian
 
@@ -113,7 +119,9 @@ class RFOptimiser(NDOptimiser):
         if len(delta_s) == 0:  # No need to sanitise a null step
             return 0.0
 
-        new_coords = self._coords + factor * delta_s
+        self._coords.allow_unconverged_back_transform = True
+        step = factor * delta_s
+        new_coords = self._coords + step
         cartesian_delta = new_coords.to("cart") - self._coords.to("cart")
         max_component = np.max(np.abs(cartesian_delta))
 
@@ -126,7 +134,8 @@ class RFOptimiser(NDOptimiser):
             # Note because the transformation is not linear this will not
             # generate a step exactly max(∆x) ≡ α, but is empirically close
             factor = self.alpha / max_component
-            new_coords = self._coords + self.alpha / max_component * delta_s
+            step = factor * delta_s
 
-        self._coords = new_coords
+        self._coords.allow_unconverged_back_transform = False
+        self._coords = self._coords + step
         return factor

@@ -13,17 +13,29 @@ from autode.log import logger
 if TYPE_CHECKING:
     from autode.reactions.reaction import Reaction
     from autode.units import Unit
+    from autode.opt.optimisers.base import OptimiserHistory
+    from matplotlib.figure import Figure
 
 
-def save_plot(plot, filename):
-    """Save a plot"""
+def save_plot(figure: "Figure", filename: str, **kwargs):
+    """
+    Save a pyplot figure
+
+    Args:
+        figure (matplotlib.figure.Figure): The matplotlib figure object
+        filename (str): Name of the file to plot
+        **kwargs : Other keyword arguments for matplotlib which
+                   are passed onto figure.savefig()
+    """
+    import matplotlib.pyplot as plt
 
     if os.path.exists(filename):
         logger.warning("Plot already exists. Overriding..")
         os.remove(filename)
 
-    plot.savefig(filename, dpi=400 if Config.high_quality_plots else 100)
-    plot.close()
+    dpi = 400 if Config.high_quality_plots else 100
+    figure.savefig(filename, dpi=dpi, **kwargs)
+    plt.close(figure)
 
     return None
 
@@ -102,7 +114,7 @@ def plot_reaction_profile(
     )
 
     prefix = "" if name == "reaction" else f"{name}_"
-    return save_plot(plt, filename=f"{prefix}reaction_profile.pdf")
+    return save_plot(fig, filename=f"{prefix}reaction_profile.pdf")
 
 
 def plot_smooth_profile(zi_s, energies, ax):
@@ -381,3 +393,74 @@ def error_on_stationary_points(x, energies):
     energy_difference = energies - np.array(energies_at_stationary_points)
 
     return np.sum(np.square(energy_difference))
+
+
+def plot_optimiser_profile(
+    history: "OptimiserHistory",
+    plot_energy: bool,
+    plot_rms_grad: bool,
+    filename: str,
+):
+    """
+    Plot the energy and RMS gradient profile from an optimiser history.
+    Skips plotting of points where energy/grad is not available
+
+    -------------------------------------------------------------------------
+    Args:
+        history (OptimiserHistory): History (list) of coordinate objects
+        plot_energy (bool): Whether to plot energy or not
+        plot_rms_grad (bool): Whether to plot rms grad or not
+        filename (str): Name of plotted file
+    """
+    if not (plot_energy or plot_rms_grad):
+        logger.error(
+            "Must plot either energies or RMS gradients for an"
+            " optimiser profile"
+        )
+        return None
+
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import MaxNLocator
+
+    x_axis = [i + 1 for i in range(len(history))]  # starts at 0
+    energies = []
+    rms_grads = []
+    for coord in history:
+        if coord.e is not None:
+            energies.append(coord.e.to("Ha"))
+        else:
+            energies.append(np.nan)
+
+        if coord.g is not None:
+            rms = np.sqrt(np.average(np.square(coord.to("cart").g)))
+            rms_grads.append(rms)
+        else:
+            rms_grads.append(np.nan)
+
+    fig, ax = plt.subplots()
+
+    if plot_energy:
+        ax.plot(
+            x_axis, energies, "o-", color="C0", label="Electronic energy"
+        )  # blue
+        ax.set_xlabel("Optimiser step")
+        ax.set_ylabel("Electronic energy / Ha")
+
+    ax.set_xlim(left=0.5)
+    ax.xaxis.set_major_locator(
+        MaxNLocator(nbins="auto", steps=[1, 2, 2.5, 5, 10], integer=True)
+    )
+
+    if plot_rms_grad:
+        # plot on a different axis if both are present
+        ax2 = ax.twinx() if plot_energy else ax
+        ax2.plot(
+            x_axis, rms_grads, "o:", color="C3", label="RMS gradient"
+        )  # red
+        ax2.set_ylabel("RMS of gradient / Ha(Å)^-1")
+
+    fig.legend(
+        loc="upper right", bbox_to_anchor=(1, 1), bbox_transform=ax.transAxes
+    )
+    # bbox_inches="tight" uses tight bounding box, which prevents labels cutting out
+    save_plot(fig, filename, bbox_inches="tight")
