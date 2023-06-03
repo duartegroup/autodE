@@ -272,7 +272,7 @@ class Species(AtomCollection):
         if rmsd > 1e-8:
             self._clear_energies_gradient_hessian()
 
-        self._atoms.coordinates = Coordinates(value)
+        self._atoms.coordinates = val.Coordinates(value)
         return
 
     def _clear_energies_gradient_hessian(self) -> None:

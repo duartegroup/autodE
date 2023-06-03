@@ -82,7 +82,9 @@ class Method(ABC):
         from autode.solvent.solvents import solvents
 
         return [
-            s.name for s in solvents if s.is_implicit and hasattr(s, self.name)
+            solvent.name
+            for solvent in solvents
+            if solvent.is_implicit and getattr(solvent, self.name) is not None
         ]
 
     @property

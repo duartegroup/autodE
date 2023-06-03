@@ -31,7 +31,7 @@ def2ecp = ECP(
         "La: 10.1007/BF00528565",
         "Lu: 10.1063/1.1406535",
     ],
-    orca=None,  # def2-ECP is applied by default
+    orca="",  # def2-ECP is applied by default
     nwchem="def2-ecp",
     qchem="def2-ecp",
     min_atomic_number=37,

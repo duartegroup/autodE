@@ -195,9 +195,9 @@ class Image(Species):
         Returns:
             (np.ndarray, np.ndarray, np.ndarray, np.ndarray)
         """
-        assert self.energy, "Energy must be set to calculate tau_xl_x_xr"
-        assert im_r.energy, "Left image energy must be set"
-        assert im_l.energy, "Right image energy must be set"
+        assert self.energy is not None, "Energy must be set to calculate tau"
+        assert im_l.energy is not None, "Left image energy must be set"
+        assert im_r.energy is not None, "Right image energy must be set"
 
         # ΔV_i^max
         dv_max = max(
@@ -254,7 +254,7 @@ class Image(Species):
             im_l (autode.neb.Image): Left image (i-1)
             im_r (autode.neb.Image): Right image (i+1)
         """
-        assert self.gradient, "Gradient must be set to calculate the force"
+        assert self.gradient is not None, "Gradient must be set to calc force"
 
         # τ,  x_i-1,  x_i,   x_i+1
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)

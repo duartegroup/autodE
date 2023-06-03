@@ -125,7 +125,7 @@ class PESnD(ABC):
     def calculate(
         self,
         method: "Method",
-        keywords: Optional[Keywords] = None,
+        keywords: Optional["Keywords"] = None,
         n_cores: Optional[int] = None,
     ) -> None:
         """

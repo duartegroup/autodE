@@ -541,7 +541,7 @@ def test_cannot_run_locate_ts_with_no_reactants_or_products():
     Config.ORCA.path = here
 
     rxn = reaction.Reaction()
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AssertionError):
         rxn.locate_transition_state()
 
     Config.lcode = None

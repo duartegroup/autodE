@@ -176,6 +176,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         assert calc.input.filename is not None
 
         keywords = self.get_keywords(calc.input, calc.molecule)
+        assert len(keywords) > 0
 
         with open(calc.input.filename, "w") as inp_file:
             print("!", *keywords, file=inp_file)

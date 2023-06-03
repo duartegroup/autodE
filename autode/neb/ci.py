@@ -33,7 +33,7 @@ class CImage(Image):
             im_l (autode.neb.Image): Left image (i-1)
             im_r (autode.neb.Image): Right image (i+1)
         """
-        assert self.gradient, "Image force requires an evaluated gradient"
+        assert self.gradient is not None, "Image force requires a gradient"
 
         # τ,  x_i-1,  x_i,   x_i+1
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)

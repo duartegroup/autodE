@@ -239,7 +239,7 @@ def test_solvent_get():
 
     # Currently iodoethane is not in XTB - might be in the future
     _test_mol.solvent = "iodoethane"
-    assert not hasattr(_test_mol.solvent, "xtb")
+    assert _test_mol.solvent.xtb is None
     assert _test_mol.solvent.is_implicit
 
     with pytest.raises(ex.SolventUnavailable):
@@ -419,7 +419,10 @@ def test_numerical_hessian_evaluation():
 def test_check_properties_exist_did_not_terminate_normally():
 
     calc = Calculation(
-        name="tmp", molecule=h_atom(), method=XTB(), keywords=None
+        name="tmp",
+        molecule=h_atom(),
+        method=XTB(),
+        keywords=SinglePointKeywords(),
     )
 
     with pytest.raises(ex.CouldNotGetProperty):

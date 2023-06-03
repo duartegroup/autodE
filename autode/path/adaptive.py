@@ -220,7 +220,7 @@ class AdaptivePath(Path):
             # so rerun a gradient calculation, which should be very fast
             # while MOPAC doesn't print gradients for a constrained opt
             tmp_point_for_grad = point.new_species()
-            assert self.method.keywords.grad, "Must have gradient keywords"
+            assert self.method.keywords.grad is not None
 
             calc = ade.Calculation(
                 name=f"path_grad{idx}",

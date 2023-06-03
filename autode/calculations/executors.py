@@ -61,16 +61,13 @@ class CalculationExecutor:
     def _check(self) -> None:
         """Check that the method has the required properties to run the calc"""
 
-        if (
-            self.molecule.solvent is not None
-            and self.molecule.solvent.is_implicit
-            and not hasattr(self.molecule.solvent, self.method.name)
-        ):
+        if self.molecule.solvent is None or self.molecule.solvent.is_explicit:
+            return
 
-            m_name = self.method.name
+        if getattr(self.molecule.solvent, self.method.name) is None:
             err_str = (
                 f"Could not find {self.molecule.solvent} for "
-                f"{m_name}. Available solvents for {m_name} "
+                f"{self.method.name}. Available solvents for {self.method.name} "
                 f"are: {self.method.available_implicit_solvents}"
             )
 
@@ -118,7 +115,7 @@ class CalculationExecutor:
 
             # For a keyword e.g. Keyword(name='pbe', orca='PBE') then the
             # definition in this method is not obvious, so raise an exception
-            if not hasattr(keyword, self.method.name):
+            if getattr(keyword, self.method.name) is None:
                 err_str = (
                     f"Keyword: {keyword} is not supported set "
                     f"{repr(keyword)}.{self.method.name} as a string"

@@ -214,7 +214,7 @@ class Calculation:
 
         -----------------------------------------------------------------------
         Raises:
-            (ValueError | SolventUnavailable | NoInputError):
+            (ValueError | autode.exceptions.CalculationException):
         """
         from autode.species.species import Species
 

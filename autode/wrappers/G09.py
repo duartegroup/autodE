@@ -105,7 +105,7 @@ def _get_keywords(calc_input, molecule):
             continue  # Handled after the full set of keywords is set
 
         elif isinstance(keyword, kws.Keyword):
-            kwd_str = keyword.g09 if hasattr(keyword, "g09") else keyword.g16
+            kwd_str = keyword.g09 if getattr(keyword, "g09") else keyword.g16
 
             # Add any empirical dispersion
             if isinstance(keyword, kws.DispersionCorrection):
@@ -214,7 +214,7 @@ def _print_custom_basis(inp_file, calc_input, molecule):
     keywords = calc_input.keywords
 
     for keyword in keywords:
-        if isinstance(keyword, kws.Keyword) and hasattr(keyword, "g09"):
+        if isinstance(keyword, kws.Keyword) and getattr(keyword, "g09"):
             str_keyword = keyword.g09
         else:
             str_keyword = str(keyword)
@@ -248,8 +248,8 @@ def _print_custom_basis(inp_file, calc_input, molecule):
     print("@basis.gbs", file=inp_file)
 
     # Keyword strings that could be defined as either G09 or G16
-    ecp_str = ecp_kwd.g09 if hasattr(ecp_kwd, "g09") else ecp_kwd.g16
-    basis_str = basis_kwd.g09 if hasattr(basis_kwd, "g09") else basis_kwd.g16
+    ecp_str = ecp_kwd.g09 if getattr(ecp_kwd, "g09") else ecp_kwd.g16
+    basis_str = basis_kwd.g09 if getattr(basis_kwd, "g09") else basis_kwd.g16
 
     with open("basis.gbs", "w") as basis_file:
         if len(other_elems) > 0:
