@@ -144,6 +144,7 @@ def test_sanitised_zero_length_step():
     """Should be able to update with a null step"""
 
     optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
+    optimiser._coords = CartesianCoordinates(np.array([]))
     optimiser._take_step_within_trust_radius(np.array([]))
 
 

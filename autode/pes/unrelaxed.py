@@ -61,7 +61,7 @@ class UnRelaxedPES1D(ReactivePESnD):
         Returns:
             (autode.species.species.Species): New species
         """
-        assert self._coordinates, "Must have set coordinates array"
+        assert self._coordinates is not None, "Must have set coordinates array"
         assert self._species, "Must have a base species"
 
         species = self._species.new_species(name=self._point_name(point))
@@ -118,7 +118,9 @@ class UnRelaxedPES1D(ReactivePESnD):
         Returns:
             (autode.wrappers.keywords.Keywords):
         """
-        assert method.keywords.sp, "Must have single point energy kwds"
+        assert (
+            method.keywords.sp is not None
+        ), "Must have single point energy kwds"
         return method.keywords.sp
 
     def _single_energy(self, species: "Species", n_cores: int) -> float:

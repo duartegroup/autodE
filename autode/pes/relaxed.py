@@ -24,7 +24,7 @@ class RelaxedPESnD(ReactivePESnD):
         """
         Calculate the n-dimensional surface
         """
-        assert self._coordinates, "Coordinates must be set"
+        assert self._coordinates is not None, "Coordinates must be set"
 
         for points in self._points_generator():
 
@@ -96,7 +96,7 @@ class RelaxedPESnD(ReactivePESnD):
             n_cores: Number of cores to use for the calculation, if left
                      unassigned then use self._n_cores
         """
-        assert self._keywords and self._method
+        assert self._keywords is not None and self._method is not None
 
         const_opt = Calculation(
             name=species.name,
@@ -117,7 +117,9 @@ class RelaxedPESnD(ReactivePESnD):
 
     def _default_keywords(self, method: "Method") -> "Keywords":
         """Default keywords"""
-        assert method.keywords.opt, "Method must have optimisation kwds"
+        assert (
+            method.keywords.opt is not None
+        ), "Method must have optimisation kwds"
         return method.keywords.opt
 
     def _closest_coordinates(self, point: Tuple) -> np.ndarray:
@@ -135,7 +137,7 @@ class RelaxedPESnD(ReactivePESnD):
         Returns:
             (np.ndarray): Coordinates. shape = (n_atoms, 3)
         """
-        assert self._coordinates, "Must have set coordinates"
+        assert self._coordinates is not None, "Must have set coordinates"
 
         if point == self.origin:
             return self._coordinates[self.origin]

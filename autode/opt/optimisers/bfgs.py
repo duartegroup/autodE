@@ -70,7 +70,10 @@ class BFGSOptimiser(NDOptimiser, ABC):
         positions accordingly (:math:`X_{k+1} = X_{k} + s_k`)
         """
         assert (
-            self._coords and self._species and self._method and self._coords.g
+            self._coords is not None
+            and self._coords.g is not None
+            and self._species
+            and self._method
         )
 
         self._coords.h_inv = self._updated_h_inv()

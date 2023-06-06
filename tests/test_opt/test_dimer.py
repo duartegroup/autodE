@@ -115,6 +115,7 @@ def test_dimer_init_zero_distance():
     a = Molecule(atoms=[Atom("H")], mult=2)
 
     dimer = Dimer(maxiter=10, coords=DimerCoordinates.from_species(a, a))
+    dimer._species = a
 
     # Should raise an exception if there is no distance between the end points
     with pytest.raises(RuntimeError):

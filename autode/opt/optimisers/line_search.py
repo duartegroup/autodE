@@ -176,8 +176,11 @@ class ArmijoLineSearch(LineSearchOptimiser):
     @property
     def _satisfies_wolfe1(self) -> bool:
         """First Wolfe condition:"""
-        assert self._coords and self._init_coords and self.p  # all not None
-
+        assert (
+            self._coords is not None
+            and self._init_coords is not None
+            and self.p is not None
+        )
         term_2 = self.alpha * self.beta * np.dot(self._init_coords.g, self.p)
         return self._coords.e < self._init_coords.e + term_2
 

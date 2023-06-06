@@ -619,6 +619,9 @@ class NEB:
         """Generate simple interpolated coordinates for these set of images
         in Cartesian coordinates"""
 
+        if n < 2:
+            raise RuntimeError("Cannot interpolated 2 images to <2")
+
         if n == 2:
             return [initial.copy(), final.copy()]
 

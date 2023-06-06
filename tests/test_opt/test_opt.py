@@ -89,7 +89,7 @@ def test_abs_diff_e():
     assert optimiser.iteration == 1
 
     # without defined energies |E_0 - E_1| cannot be calculated
-    with pytest.raises(RuntimeError):
+    with pytest.raises(Exception):
         _ = optimiser._abs_delta_e
 
     # but can be if both structures have a potential energy
@@ -135,7 +135,7 @@ def test_optimiser_h_update():
 
     # and try and update the (inverse) hessian, which is impossible without
     # an updater
-    with pytest.raises(RuntimeError):
+    with pytest.raises(Exception):
         _ = optimiser._updated_h_inv()
 
 

@@ -139,7 +139,7 @@ class CRFOptimiser(RFOptimiser):
     @property
     def _primitives(self) -> PIC:
         """Primitive internal coordinates in this molecule"""
-        assert self._species and self._species.graph and self._coords
+        assert self._species and self._species.graph
         logger.info("Generating primitive internal coordinates")
         graph = self._species.graph.copy()
 

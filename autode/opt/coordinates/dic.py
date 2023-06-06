@@ -359,28 +359,29 @@ class DICWithConstraints(DIC):
         Arguments:
             arr: Cartesian gradient array
         """
-        assert self._lambda is not None, "Must have λ defined"
 
         if arr is None:
             self._x.g, self.g = None, None
+            return
 
-        else:
-            self._x.g = arr.flatten()
-            n = len(self)
-            m = self.n_constraints
+        assert self._lambda is not None, "Must have λ defined"
 
-            self.g = np.zeros(shape=(n + m,))
+        self._x.g = arr.flatten()
+        n = len(self)
+        m = self.n_constraints
 
-            # Set the first part dL/ds_i
-            self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
+        self.g = np.zeros(shape=(n + m,))
 
-            for i in range(m):
-                self.g[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
+        # Set the first part dL/ds_i
+        self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
 
-            # and the final dL/dλ_i
-            c = self.constrained_primitives
-            for i in range(m):
-                self.g[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
+        for i in range(m):
+            self.g[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
+
+        # and the final dL/dλ_i
+        c = self.constrained_primitives
+        for i in range(m):
+            self.g[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
 
         return None
 

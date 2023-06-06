@@ -216,7 +216,7 @@ class Optimiser(BaseOptimiser, ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
-        assert self._species and self._coords and self._method
+        assert self._species and self._coords is not None and self._method
 
         from autode.calculations import Calculation
 
@@ -696,7 +696,9 @@ class NDOptimiser(Optimiser, ABC):
             (autode.values.PotentialEnergy): Energy difference. Infinity if
                                   an energy difference cannot be calculated
         """
-        assert self._coords, "Must have coordinates to calculate ∆E"
+        assert (
+            self._coords is not None
+        ), "Must have coordinates to calculate ∆E"
 
         if len(self._history) < 2:
             logger.info("First iteration - returning |∆E| = ∞")
@@ -731,7 +733,9 @@ class NDOptimiser(Optimiser, ABC):
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy"""
-        assert self._coords, "Must have coordinates to log convergence"
+        assert (
+            self._coords is not None
+        ), "Must have coordinates to log convergence"
         log_string = f"{self.iteration}\t"
 
         if len(self._history) > 1:
@@ -796,7 +800,7 @@ class NDOptimiser(Optimiser, ABC):
             (RuntimeError): If no suitable strategies are found
         """
         coords_l, coords_k = self._history.final, self._history.penultimate
-        assert coords_k.g and coords_l.g, "Must have gradients to calculate y"
+        assert coords_k.g is not None and coords_l.g is not None
 
         for update_type in self._hessian_update_types:
             updater = update_type(
