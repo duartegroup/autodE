@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from typing import Sequence, Union, TYPE_CHECKING
+from typing import Sequence, Union, TYPE_CHECKING, List, Optional
 from scipy import interpolate
 
 from autode.values import Energy
@@ -464,3 +464,59 @@ def plot_optimiser_profile(
     )
     # bbox_inches="tight" uses tight bounding box, which prevents labels cutting out
     save_plot(fig, filename, bbox_inches="tight")
+
+
+def plot_bracket_method_energy_profile(
+    filename: str,
+    left_points: List[tuple],
+    cineb_point: Optional[tuple],
+    right_points: List[tuple],
+    x_title: str,
+) -> None:
+    """
+    Plot the energy profile from a bracketing method run, showing the
+    points from left and right image and final CI-NEB (if done), in
+    different colours. Energies should be in kcal/mol.
+
+    Args:
+        filename (str): Filename with extension
+        left_points (list[tuple]): List of tuples containing position and
+                                   energies from left image
+        cineb_point (tuple|None): Tuple with position and energy for CI-NEB peak
+        right_points (list[tuple]): List of tuples containing position and
+                                    energies from right image
+        x_title (str): Title of the x-axis
+    """
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+
+    # the data should be cast into kcal/mol
+    kcalmol = energy_unit_from_name("kcalmol")
+
+    left_x = [point[0] for point in left_points]
+    left_y = [point[1].to(kcalmol) for point in left_points]
+    ax.plot(left_x, left_y, "bo-", label="initial image")
+
+    right_x = [point[0] for point in right_points]
+    right_y = [point[1].to(kcalmol) for point in right_points]
+    ax.plot(right_x, right_y, "go-", label="final image")
+
+    # plot the CI-NEB point and join it to the ends
+    if cineb_point is not None:
+        ax.plot(
+            [left_x[-1], cineb_point[0], right_x[0]],
+            [
+                left_y[-1].to(kcalmol),
+                cineb_point[1].to(kcalmol),
+                right_y[0].to(kcalmol),
+            ],
+            "ro-",
+            label="CI-NEB",
+        )
+
+    ax.set_xlabel(x_title)
+    ax.set_ylabel(f"Electronic energy / {kcalmol.plot_name}")
+    ax.legend()
+    save_plot(fig, filename=filename)
+    return None

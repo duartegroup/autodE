@@ -862,10 +862,11 @@ class NDOptimiser(Optimiser, ABC):
 
     def print_geometries(self, filename: Optional[str] = None) -> None:
         """
-        Write the trajectory of the optimiser in .xyz format
+        Writes the trajectory of the optimiser in .xyz format
 
         Args:
-            filename: Name of the trajectory file (xyz)
+            filename (str|None): Name of the trajectory file (xyz),
+                                 if not given, generates name from species
         """
         assert self._species is not None
         if self.iteration < 1:
@@ -880,18 +881,7 @@ class NDOptimiser(Optimiser, ABC):
             else str(filename)
         )
 
-        if os.path.isfile(filename):
-            logger.warning(f"File {filename} exists, overwriting...")
-            os.remove(filename)
-
-        tmp_spc = self._species.new_species()
-        for coord in self._history:
-            tmp_spc.coordinates = coord.to("cart")
-            tmp_spc.energy = coord.e
-            tmp_spc.print_xyz_file(
-                filename=filename,
-                append=True,
-            )
+        self._history.print_geometries(self._species, filename=filename)
         return None
 
 
@@ -967,6 +957,35 @@ class OptimiserHistory(UserList):
                 return True
 
         return False
+
+    def print_geometries(self, species: "Species", filename: str) -> None:
+        """
+        Print geometries from this history of coordinates as a .xyz
+        trajectory file
+
+        Args:
+            species: The Species for which this coordinate history is generated
+            filename: Name of file
+        """
+        from autode.species import Species
+
+        assert isinstance(species, Species)
+
+        if not filename.lower().endswith(".xyz"):
+            filename = filename + ".xyz"
+
+        if os.path.isfile(filename):
+            logger.warning(f"{filename} already exists, overwriting...")
+            os.remove(filename)
+
+        # take a copy so that original is not modified
+        tmp_spc = species.copy()
+        for coords in self:
+            tmp_spc.coordinates = coords
+            tmp_spc.energy = coords.e
+            tmp_spc.print_xyz_file(filename=filename, append=True)
+
+        return None
 
 
 class ExternalOptimiser(BaseOptimiser, ABC):
