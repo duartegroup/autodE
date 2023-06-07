@@ -239,6 +239,7 @@ def test_optimiser_plotting_sanity_checks(caplog):
     coord1.e = Energy(0.1, "Ha")
     coord1.update_g_from_cart_g(np.array([0.01, 0.02, 0.05, 0.06, 0.03, 0.07]))
     opt._coords = coord1
+    opt._species = mol
     assert opt.iteration == 0
     assert not opt.converged
     # plotting does not work if less than 2 points

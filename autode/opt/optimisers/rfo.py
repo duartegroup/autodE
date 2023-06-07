@@ -37,7 +37,7 @@ class RFOptimiser(NDOptimiser):
 
     def _step(self) -> None:
         """RFO step"""
-        assert self._coords and self._coords.h and self._coords.g
+        assert self._coords is not None and self._coords.g is not None
         logger.info("Taking a RFO step")
 
         self._coords.h = self._updated_h()

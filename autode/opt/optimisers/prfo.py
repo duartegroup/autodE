@@ -39,13 +39,14 @@ class PRFOptimiser(CRFOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
-        assert self._coords and self._coords.g and self._coords.h
+        assert self._coords is not None and self._coords.g is not None
 
         if self.should_calculate_hessian:
             self._update_hessian()
         else:
             self._coords.h = self._updated_h()
 
+        assert self._coords.h is not None  # _update_hessian must set .h
         idxs = list(range(len(self._coords)))
 
         b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])

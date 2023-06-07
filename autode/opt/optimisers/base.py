@@ -260,7 +260,7 @@ class Optimiser(BaseOptimiser, ABC):
         Raises:
             (autode.exceptions.CalculationException):
         """
-        assert self._species and self._coords and self._method
+        assert self._species and self._coords is not None and self._method
         should_calc_hessian = True
 
         if (
@@ -287,7 +287,7 @@ class Optimiser(BaseOptimiser, ABC):
 
     def _update_hessian(self) -> None:
         """Update the Hessian of a species"""
-        assert self._species and self._coords and self._method
+        assert self._species and self._coords is not None and self._method
 
         species = self._species.new_species(
             name=f"{self._species.name}_opt_{self.iteration}"
@@ -704,13 +704,15 @@ class NDOptimiser(Optimiser, ABC):
             logger.info("First iteration - returning |∆E| = ∞")
             return PotentialEnergy(np.inf)
 
-        assert self._coords.e and self._history.penultimate.e, "Need |∆E|"
         e1, e2 = self._coords.e, self._history.penultimate.e
 
         if e1 is None or e2 is None:
-            raise RuntimeError("Cannot determine absolute energy difference")
+            logger.error(
+                "Cannot determine absolute energy difference. Using |∆E| = ∞"
+            )
+            return PotentialEnergy(np.inf)
 
-        return PotentialEnergy(abs(e1 - e2))
+        return PotentialEnergy(abs(e1 - e2))  # type: ignore
 
     @property
     def _g_norm(self) -> GradientRMS:

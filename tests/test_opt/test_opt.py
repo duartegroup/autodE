@@ -89,8 +89,7 @@ def test_abs_diff_e():
     assert optimiser.iteration == 1
 
     # without defined energies |E_0 - E_1| cannot be calculated
-    with pytest.raises(Exception):
-        _ = optimiser._abs_delta_e
+    assert optimiser._abs_delta_e
 
     # but can be if both structures have a potential energy
     optimiser._history.final.e = PotentialEnergy(-1.0)
@@ -181,8 +180,8 @@ def test_xtb_h2_cart_opt():
         gtol=GradientRMS(0.01),
         etol=PotentialEnergy(1e-3),
     )
-    assert not optimiser.converged
     optimiser._species = h2()
+    optimiser._coords = CartesianCoordinates(optimiser._species.coordinates)
 
     assert not optimiser.converged
 

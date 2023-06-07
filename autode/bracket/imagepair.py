@@ -50,6 +50,7 @@ def _calculate_engrad_for_species(
     )
     engrad_calc.run()
     engrad_calc.clean_up(force=True, everything=True)
+    assert species.energy and species.gradient is not None, "Calc must be ok"
 
     return species.energy, species.gradient
 
@@ -81,6 +82,7 @@ def _calculate_hessian_for_species(
     )
     hess_calc.run()
     hess_calc.clean_up(force=True, everything=True)
+    assert species.hessian is not None, "Calc must be ok"
 
     return species.hessian
 
