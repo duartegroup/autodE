@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from typing import Sequence, Union, TYPE_CHECKING, List, Optional
+from typing import Sequence, Union, TYPE_CHECKING, List, Optional, Any, Tuple
 from scipy import interpolate
 
 from autode.values import Energy
@@ -468,9 +468,9 @@ def plot_optimiser_profile(
 
 def plot_bracket_method_energy_profile(
     filename: str,
-    left_points: List[tuple],
+    left_points: List[Tuple[int, Energy]],
     cineb_point: Optional[tuple],
-    right_points: List[tuple],
+    right_points: List[Tuple[int, Energy]],
     x_title: str,
 ) -> None:
     """

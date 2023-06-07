@@ -2,10 +2,11 @@
 Base classes for implementing all bracketing methods
 that require a pair of images
 """
-from abc import ABC, abstractmethod
-from typing import Optional, Tuple, TYPE_CHECKING
-from enum import Enum
 import numpy as np
+
+from abc import ABC, abstractmethod
+from typing import Optional, Tuple, TYPE_CHECKING, List
+from enum import Enum
 
 from autode.values import Distance, PotentialEnergy, Gradient
 from autode.geom import get_rot_mat_kabsch
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from autode.species import Species
     from autode.wrappers.methods import Method
     from autode.hessians import Hessian
+    from autode.values import Energy
 
 _flush_old_hessians = True
 
@@ -326,6 +328,7 @@ class BaseImagePair(ABC):
     def dist(self) -> Distance:
         """Distance defined between two images in the image-pair"""
 
+    @property
     @abstractmethod
     def has_jumped_over_barrier(self) -> bool:
         """Whether one image has jumped over the barrier on the other side"""
@@ -416,7 +419,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         super().__init__(left_image=left_image, right_image=right_image)
 
         # for storing results from CINEB
-        self._cineb_coords = None
+        self._cineb_coords: Optional[CartesianCoordinates] = None
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -451,6 +454,8 @@ class EuclideanImagePair(BaseImagePair, ABC):
         Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
         https://doi.org/10.1021/acs.jctc.3c00151
         """
+        assert self.left_coord.g is not None and self.right_coord.g is not None
+
         # NOTE: The angle between the force vector on right image
         # and the distance vector must be more than 90 degrees. Similarly
         # for left image it must be less than 90 degrees. This would mean
@@ -503,7 +508,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
             logger.error("CI-NEB failed to find the peak")
             return None
 
-        peak = cineb.images[cineb.images.peak_idx]
+        peak = cineb.images[cineb.images.peak_idx]  # type: ignore
         ci_coords = CartesianCoordinates(peak.coordinates.to("ang"))
         ci_coords.e = peak.energy
         ci_coords.update_g_from_cart_g(peak.gradient)
@@ -591,7 +596,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         num_left_points = len(self._left_history)
         num_right_points = len(self._right_history)
         first_point = self._left_history[0]
-        points = []  # list of tuples
+        points: List[Tuple[int, "Energy"]] = []  # list of tuples
 
         lowest_en = min(coord.e for coord in self._total_history)
 

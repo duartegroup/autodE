@@ -14,11 +14,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Black
-        uses: psf/black@stable
+      - name: Install Python
+        uses: actions/setup-python@v3
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.0
         with:
-          options: "--check --verbose"
-          version: "~= 22.0"
+          extra_args: flake8 --all-files
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
