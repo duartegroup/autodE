@@ -165,7 +165,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         Obtain the RMS of the gradient tangent to the distance
         vector between current coords and pivot point
         """
-        assert self._coords and self._coords.g is not None
+        assert self._coords is not None and self._coords.g is not None
 
         grad = self._coords.g
         # unit vector in the direction of distance vector
