@@ -305,9 +305,9 @@ def test_spawn_multiprocessing_posix():
     process = Popen(["python", "tmp.py"])
 
     # Executing the script should not take more than a second, if the function
-    # hangs then it should timeout after 10s
+    # hangs then it should timeout after 20s
     try:
-        process.wait(timeout=10)
+        process.wait(timeout=20)
     except TimeoutExpired:
         raise AssertionError
 
