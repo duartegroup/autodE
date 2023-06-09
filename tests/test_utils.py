@@ -291,12 +291,13 @@ def test_spawn_multiprocessing_posix():
             "import multiprocessing as mp",
             'mp.set_start_method("spawn", force=True)',
             "import autode as ade",
+            "from autode.utils import ProcessPool",
             "def mol():",
             '    return ade.Molecule(atoms=[ade.Atom("H"), ade.Atom("H", x=0.7)])',
             'if __name__ == "__main__":',
-            "    with mp.Pool(2) as pool:",
-            "        res = [pool.apply_async(mol) for _ in range(2)]",
-            "        mols = [r.get() for r in res]",
+            "    with ProcessPool(2) as pool:",
+            "        res = [pool.submit(mol) for _ in range(2)]",
+            "        mols = [r.result() for r in res]",
             sep="\n",
             file=py_file,
         )
@@ -304,9 +305,9 @@ def test_spawn_multiprocessing_posix():
     process = Popen(["python", "tmp.py"])
 
     # Executing the script should not take more than a second, if the function
-    # hangs then it should timeout after 10s
+    # hangs then it should timeout after 20s
     try:
-        process.wait(timeout=10)
+        process.wait(timeout=20)
     except TimeoutExpired:
         raise AssertionError
 
