@@ -329,7 +329,7 @@ class CalculationExecutor:
 class _IndirectCalculationExecutor(CalculationExecutor):
     """
     An 'indirect' executor is one that, given a calculation to perform,
-    calls the method multiple time and aggregates the results in some way.
+    calls the method multiple times and aggregates the results in some way.
     Therefore, there is no direct calculation output.
     """
 
@@ -339,8 +339,7 @@ class _IndirectCalculationExecutor(CalculationExecutor):
 
     @output.setter
     def output(self, value: CalculationOutput):
-        assert isinstance(value, CalculationOutput)
-        self._external_output = value
+        raise ValueError("Cannot set the output of an indirect calculation")
 
 
 class CalculationExecutorO(_IndirectCalculationExecutor):

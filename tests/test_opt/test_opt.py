@@ -13,7 +13,7 @@ from .molecules import h2, methane_mol, h_atom
 from .setup import Method
 from autode.utils import NumericStringDict
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.base import OptimiserHistory
+from autode.opt.optimisers.base import OptimiserHistory, NullOptimiser
 from autode.opt.optimisers.steepest_descent import (
     CartesianSDOptimiser,
     DIC_SD_Optimiser,
@@ -374,3 +374,13 @@ def test_mocked_method():
     method = Method()
     assert method.implements(CalculationType.energy)
     assert repr(method) is not None  # just needs to be implemented
+
+
+def test_null_optimiser_methods():
+
+    optimiser = NullOptimiser()
+    optimiser.run()
+    optimiser.save(filename="None")  # run and saving does nothing
+
+    with pytest.raises(RuntimeError):
+        _ = optimiser.final_coordinates

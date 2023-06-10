@@ -126,6 +126,8 @@ def test_methods_in_base_class_raise_runtime_errors():
         "coordinates_from",
         "atoms_from",
         "partial_charges_from",
+        "input_filename_for",
+        "output_filename_for",
     ]
 
     for method_name in method_names:

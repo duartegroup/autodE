@@ -2,13 +2,15 @@ import numpy as np
 import pytest
 import os
 import sys
-from copy import deepcopy
 from autode.calculations import Calculation
 from autode.calculations.output import (
     CalculationOutput,
     BlankCalculationOutput,
 )
-from autode.calculations.executors import CalculationExecutor
+from autode.calculations.executors import (
+    CalculationExecutor,
+    CalculationExecutorO,
+)
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
 from autode.wrappers.keywords.functionals import Functional
@@ -601,3 +603,15 @@ def test_cannot_set_filename_on_a_blank_output():
     output = BlankCalculationOutput()
     with pytest.raises(ValueError):
         output.filename = "test"
+
+
+def test_cannot_set_output_of_indirect_executor():
+
+    orca = ORCA()
+    test_mol = h2o()
+
+    executor = CalculationExecutorO(
+        name="tmp", molecule=test_mol, method=orca, keywords=orca.keywords.sp
+    )
+    with pytest.raises(ValueError):
+        executor.output = BlankCalculationOutput()
