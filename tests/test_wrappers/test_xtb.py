@@ -259,7 +259,7 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
         return XTB.__repr__(self)
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_with_autode_opt_method():
 
@@ -275,7 +275,7 @@ def test_xtb_with_autode_opt_method():
     assert calc.optimiser.converged
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_with_autode_opt_method_for_a_single_atom():
 
@@ -292,7 +292,7 @@ def test_xtb_with_autode_opt_method_for_a_single_atom():
     assert mol.energy is not None
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_opt_non_contiguous_range_cart_constraints():
 
@@ -313,7 +313,7 @@ def test_xtb_opt_non_contiguous_range_cart_constraints():
     assert mol.energy is not None
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_errors_with_infinite_nuclear_repulsion():
 
@@ -348,7 +348,7 @@ def test_xtb_did_not_terminate_normally_with_blank_output():
     assert not calc.method.terminated_normally_in(calc)
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_ade_opt_rerun_with_different_input_skip_saved_opt():
     def run_calc(_mol):
@@ -371,7 +371,7 @@ def test_ade_opt_rerun_with_different_input_skip_saved_opt():
     assert mol.energy != unconstrained_energy
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_cartesian_constrained_opt():
 
@@ -392,7 +392,7 @@ def test_xtb_cartesian_constrained_opt():
 
 
 @pytest.mark.parametrize("gfn_ver,etemp", [(1, 300.0), (2, 1200.1)])
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_etemp_and_gfn_var_params_recognised(gfn_ver, etemp):
 

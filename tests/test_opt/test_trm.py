@@ -6,7 +6,7 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.values import Energy
 from autode.utils import work_in_tmp_dir
-from ..testutils import requires_with_working_xtb_install, work_in_zipped_dir
+from ..testutils import requires_working_xtb_install, work_in_zipped_dir
 from autode.opt.coordinates import CartesianCoordinates, DIC
 from autode.opt.optimisers.trm import (
     HybridTRMOptimiser,
@@ -95,7 +95,7 @@ def test_trim_convergence_gtol_overachieved():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_trm_molecular_opt():
     mol = Molecule(smiles="O")
     assert [atom.label for atom in mol.atoms] == ["O", "H", "H"]
@@ -123,7 +123,7 @@ def test_trm_molecular_opt():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_trust_update(caplog):
     init_trust = 0.05
     water_atoms = [
@@ -195,7 +195,7 @@ def test_trust_update(caplog):
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_optimiser_plotting():
     mol = Molecule(smiles="O")
 

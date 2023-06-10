@@ -22,7 +22,7 @@ from autode.utils import (
 )
 from autode.wrappers.keywords.keywords import Functional
 from autode.config import Config
-from .testutils import requires_with_working_xtb_install
+from .testutils import requires_working_xtb_install
 
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -444,7 +444,7 @@ def test_requires_xtb_install():
 
     test_list = []
 
-    @requires_with_working_xtb_install
+    @requires_working_xtb_install
     def tmp_function():
         test_list.append("executed")
 

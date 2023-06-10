@@ -1,6 +1,7 @@
 from autode import methods
 from autode import Config
-from autode.exceptions import MethodUnavailable
+from .test_opt.setup import Method
+from autode.exceptions import MethodUnavailable, NotImplementedInMethod
 from autode.wrappers.XTB import XTB
 from autode.wrappers.ORCA import ORCA
 import pytest
@@ -113,3 +114,21 @@ def test_get_method_or_default_hmethod():  # h <=> higher
 
     assert methods.method_or_default_hmethod(None) is not None
     assert isinstance(methods.method_or_default_lmethod(ORCA()), ORCA)
+
+
+def test_methods_in_base_class_raise_runtime_errors():
+
+    method_names = [
+        "optimiser_from",
+        "energy_from",
+        "gradient_from",
+        "hessian_from",
+        "coordinates_from",
+        "atoms_from",
+        "partial_charges_from",
+    ]
+
+    for method_name in method_names:
+        method = getattr(Method(), method_name)
+        with pytest.raises(NotImplementedInMethod):
+            method(None)

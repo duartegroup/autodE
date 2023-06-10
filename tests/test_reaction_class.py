@@ -23,7 +23,7 @@ from autode.values import (
 )
 from autode.methods import get_hmethod
 from autode.config import Config
-from .testutils import work_in_zipped_dir, requires_with_working_xtb_install
+from .testutils import work_in_zipped_dir, requires_working_xtb_install
 import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -319,7 +319,7 @@ def test_single_points():
 
 
 @work_in_zipped_dir(os.path.join(here, "data", "free_energy_profile.zip"))
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_free_energy_profile():
 
     # Use a spoofed Gaussian09 and XTB install

@@ -53,7 +53,7 @@ def get_ts_guess_neb(
     try:
         calculate()
     except ex.CalculationException:
-        logger.error("NEB failed - could not calculate")
+        logger.error("NEB calculation failed")
         return None
 
     if neb.peak_species is None:

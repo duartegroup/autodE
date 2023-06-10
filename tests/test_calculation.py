@@ -20,7 +20,7 @@ from autode.species import Molecule
 from autode.config import Config
 import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
-from .testutils import requires_with_working_xtb_install
+from .testutils import requires_working_xtb_install
 from autode.wrappers.keywords import (
     SinglePointKeywords,
     HessianKeywords,
@@ -319,7 +319,7 @@ def test_exec_too_much_memory_requested_above_py39():
         run_external(["whoami"], output_filename="tmp.txt")
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_calculations_have_unique_names():
 
@@ -339,7 +339,7 @@ def test_calculations_have_unique_names():
     # assert cation_energy > neutral_energy
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_numerical_hessian_evaluation():
 
@@ -594,3 +594,10 @@ def test_init_a_calculation_without_a_valid_spin_state_throws():
         _ = Calculation(
             name="tmp", molecule=test_m, method=xtb, keywords=xtb.keywords.sp
         )
+
+
+def test_cannot_set_filename_on_a_blank_output():
+
+    output = BlankCalculationOutput()
+    with pytest.raises(ValueError):
+        output.filename = "test"

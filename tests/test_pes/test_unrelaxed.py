@@ -9,7 +9,7 @@ from autode.atoms import Atom
 from autode.pes.unrelaxed import UnRelaxedPES1D
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_h2_points():
 

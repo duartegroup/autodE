@@ -301,3 +301,15 @@ def test_inplace_value_modification_raises():
     e = Energy(1, units="Ha")
     with pytest.raises(ValueError):  # floats are immutable
         _to(e, units="eV", inplace=True)
+
+
+def test_energy_no_units_has_valid_repr():
+    energy = Energy(1.0, units=None)
+    assert repr(energy) is not None
+
+
+def test_to_no_units():
+
+    energy = Energy(1.0, units=None)
+    with pytest.raises(RuntimeError):
+        _ = energy.to("ha")

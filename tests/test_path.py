@@ -180,7 +180,7 @@ def test_products_made():
     assert not path.products_made(product=diff_mol)
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_adaptive_path():
 
     species_no_atoms = Species(name="tmp", charge=0, mult=1, atoms=[])

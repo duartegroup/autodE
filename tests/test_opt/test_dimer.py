@@ -7,7 +7,7 @@ from autode.values import MWDistance
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 from autode.opt.optimisers.dimer import Dimer
 from .molecules import methane_mol
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import requires_working_xtb_install
 
 
 def _single_atom_dimer_coords():
@@ -219,7 +219,7 @@ def test_dimer_2d():
     )
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_dimer_sn2():
 
     left_point = Molecule(

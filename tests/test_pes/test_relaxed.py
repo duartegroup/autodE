@@ -207,3 +207,16 @@ def test_1d_pes_acetone_cn():
 
     ts_guess = ts_guesses[0]  # Check the distance is close to the true value
     assert np.isclose(ts_guess.distance(1, 10).to("Å"), 1.919, atol=0.1)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
+def test_calculating_a_point_with_broken_method_fails():
+
+    orca = ORCA()
+    orca.path = None
+    assert not orca.is_available
+
+    species = Molecule("acetone_cn.xyz", charge=-1, solvent_name="water")
+    pes = RelaxedPESnD(species=species, rs={(1, 10): (1.5, 2)})
+    with pytest.raises(RuntimeError):
+        pes.calculate(method=orca)

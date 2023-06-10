@@ -12,7 +12,7 @@ from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.primitives import DihedralAngle
 from autode.utils import work_in_tmp_dir
 from .molecules import h2o2_mol
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import requires_working_xtb_install
 
 
 def crfo_coords(molecule):
@@ -148,7 +148,7 @@ def test_sanitised_zero_length_step():
     optimiser._take_step_within_trust_radius(np.array([]))
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_opt_with_distance_constraint():
 
@@ -234,7 +234,7 @@ def test_baker1997_example():
     assert len(dic) == 10
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_crfo_with_dihedral():
 
@@ -247,7 +247,7 @@ def test_crfo_with_dihedral():
     assert np.isclose(mol.distance(0, 1), constrained_distance, atol=1e-4)
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_opt_with_two_distance_constraint():
 

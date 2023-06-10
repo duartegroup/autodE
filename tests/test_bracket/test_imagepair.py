@@ -13,7 +13,7 @@ from autode.bracket.imagepair import (
     _calculate_engrad_for_species,
     _calculate_hessian_for_species,
 )
-from ..testutils import work_in_zipped_dir, requires_with_working_xtb_install
+from ..testutils import work_in_zipped_dir, requires_working_xtb_install
 
 here = os.path.dirname(os.path.abspath(__file__))
 datazip = os.path.join(here, "data", "geometries.zip")
@@ -197,7 +197,7 @@ def test_imgpair_trajectory_plotting():
     assert os.path.isfile("total.xyz")
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_imgpair_calc_engrad():
     mol1 = Molecule("da_reactant.xyz")
@@ -228,7 +228,7 @@ def test_imgpair_calc_engrad():
     assert mol2.gradient is None
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_imgpair_calc_hess():
     mol1 = Molecule(smiles="N#N")
@@ -244,7 +244,7 @@ def test_imgpair_calc_hess():
     assert imgpair.left_coord.h is not None
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_calculation_functions():
     # Test the external functions that are used in image pair for
     # easy parallelisation

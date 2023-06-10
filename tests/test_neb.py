@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 from autode.path import Path
-from autode.neb import NEB, CINEB
+from autode.neb import NEB
 from autode.values import Distance, ForceConstant
 from autode.neb.ci import Images, CImages, Image
 from autode.neb.idpp import IDPP
@@ -91,7 +91,7 @@ def test_contains_peak():
     assert not species_list.contains_peak
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
 def test_full_calc_with_xtb():
 
@@ -126,7 +126,7 @@ def test_full_calc_with_xtb():
     assert 0.25 < path_energy < 0.45
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
 def test_get_ts_guess_neb():
 
@@ -429,3 +429,15 @@ def test_neb_from_endpoints_requires_at_least_2_images():
         _ = NEB.from_end_points(
             Molecule(smiles=r"C\C=C\C"), Molecule(smiles=r"C\C=C/C"), num=1
         )
+
+
+@testutils.requires_working_xtb_install
+@work_in_tmp_dir()
+def test_neb_ts_guess_is_none_if_no_peak():
+
+    init = Molecule(smiles="C")
+    final = init.copy()
+    final.rotate(axis=[0.1, 0.2, 0.3], theta=0.4)
+
+    result = get_ts_guess_neb(init, final, method=XTB(), n=3)
+    assert result is None

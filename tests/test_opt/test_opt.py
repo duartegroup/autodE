@@ -4,10 +4,11 @@ import pytest
 import numpy as np
 
 from autode.methods import XTB
+from autode.calculations.types import CalculationType
 from autode.values import GradientRMS, PotentialEnergy
 from autode.hessians import Hessian
 from autode.utils import work_in_tmp_dir
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import requires_working_xtb_install
 from .molecules import h2, methane_mol, h_atom
 from .setup import Method
 from autode.utils import NumericStringDict
@@ -161,7 +162,7 @@ def test_history():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_xtb_h2_cart_opt():
 
     mol = h2()
@@ -172,7 +173,7 @@ def test_xtb_h2_cart_opt():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_xtb_h2_cart_opt():
 
     optimiser = CartesianSDOptimiser(
@@ -191,7 +192,7 @@ def test_xtb_h2_cart_opt():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_xtb_h2_dic_opt():
 
     # In DICs we can use a much larger step size
@@ -260,7 +261,7 @@ def test_value_extraction_from_string():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_optimisation_is_possible_with_single_atom():
 
     mol = h_atom()
@@ -304,7 +305,7 @@ class HessianInTesting(Hessian):
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_hessian_is_not_recalculated_if_present():
 
     mol = h2()
@@ -326,7 +327,7 @@ def test_hessian_is_not_recalculated_if_present():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_multiple_optimiser_saves_overrides_not_append():
 
     optimiser = CartesianSDOptimiser(
@@ -367,3 +368,9 @@ def test_optimiserhistory_operations_maintain_subclass():
 
     hist_slice = hist[:-1]
     assert isinstance(hist_slice, OptimiserHistory)
+
+
+def test_mocked_method():
+    method = Method()
+    assert method.implements(CalculationType.energy)
+    assert repr(method) is not None  # just needs to be implemented
