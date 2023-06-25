@@ -187,6 +187,7 @@ def make_graph(
     coords = species.coordinates
     dist_mat = distance_matrix(coords, coords)
 
+    # Enumerate atoms low->high atomic weight for consistent graph generation
     for i, _ in enumerate(
         sorted(species.atoms, key=lambda _atom: _atom.weight)
     ):
@@ -194,8 +195,7 @@ def make_graph(
         # Iterate through the closest atoms to atom i
         for j in np.argsort(dist_mat[i]):
 
-            if i == j:
-                # Don't bond atoms to themselves
+            if i == j:  # Don't bond atoms to themselves
                 continue
 
             # Get r_avg for this X-Y bond e.g. C-C -> 1.5 Å

@@ -42,7 +42,7 @@ class BaseOptimiser(ABC):
 
     @property
     def final_coordinates(self):
-        raise RuntimeError("A NullOptimiser has no coordinates")
+        raise NotImplementedError
 
 
 class Optimiser(BaseOptimiser, ABC):

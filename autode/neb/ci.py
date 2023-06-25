@@ -106,7 +106,7 @@ class CINEB(NEB):
         self.images: CImages = CImages(self.images)
 
     def _minimise(self, method, n_cores, etol, max_n=30) -> OptimizeResult:
-        """Minimise th energy of every image in the NEB"""
+        """Minimise the energy of every image in the NEB"""
         logger.info(f"Minimising to ∆E < {etol:.4f} Ha on all NEB coordinates")
         result = super()._minimise(method, n_cores, etol, max_n)
 

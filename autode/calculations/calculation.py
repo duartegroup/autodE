@@ -269,7 +269,10 @@ class Calculation:
                 f"({basis.doi_str}) basis set"
             )
 
-        if self.molecule.solvent is not None:
+        if (
+            self.molecule.solvent is not None
+            and self.molecule.solvent.is_implicit
+        ):
             solv_type = self.method.implicit_solvation_type
             assert solv_type is not None, "Must have an implicit solvent type"
             doi = solv_type.doi_str if hasattr(solv_type, "doi_str") else "?"
