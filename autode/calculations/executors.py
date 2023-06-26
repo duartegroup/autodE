@@ -9,7 +9,7 @@ import base64
 import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, Tuple, TYPE_CHECKING
 from copy import deepcopy
 
 from autode.log import logger
@@ -518,5 +518,5 @@ def _string_without_leading_hyphen(s: str) -> str:
     return s if not s.startswith("-") else f"_{s}"
 
 
-def _active_bonds(molecule: "Species") -> List[tuple]:
+def _active_bonds(molecule: "Species") -> List[Tuple[int, int]]:
     return [] if molecule.graph is None else molecule.graph.active_bonds
