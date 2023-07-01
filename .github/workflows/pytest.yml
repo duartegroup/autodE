@@ -40,7 +40,7 @@ jobs:
 
     - name: Install
       run: |
-        conda install \
+        mamba install \
           --file requirements.txt \
           --file tests/requirements.txt \
           --channel conda-forge
