@@ -13,6 +13,7 @@ from autode.wrappers.keywords.wf import hf
 from autode.wrappers.keywords.functionals import pbe0
 from autode.config import Config
 from autode.atoms import Atom
+from autode.utils import work_in_tmp_dir
 from .. import testutils
 
 
@@ -259,3 +260,16 @@ def test_no_driver_in_generated_opt_input():
 
     with pytest.raises(UnsupportedCalculationInput):
         calc.generate_input()
+
+
+@work_in_tmp_dir()
+def test_single_atom_optimisation_input_file_does_not_include_opt():
+
+    h_atom = Molecule(smiles="[H]")
+
+    calc = Calculation(
+        name="tmp", molecule=h_atom, method=NWChem(), keywords=opt_keywords
+    )
+    calc.generate_input()
+
+    assert "opt" not in open(calc.input.filename, "r").read()
