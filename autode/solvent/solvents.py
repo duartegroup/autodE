@@ -221,7 +221,7 @@ class ImplicitSolvent(Solvent):
 
     @property
     def atoms(self) -> Optional["Atoms"]:
-        logger.warning("Impleicit solvent have no atoms")
+        logger.warning("Implicit solvent have no atoms")
         return None
 
 

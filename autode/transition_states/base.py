@@ -148,9 +148,6 @@ class TSbase(Species, ABC):
             which is defined as autode.config.Config.min_imag_freq
 
         -----------------------------------------------------------------------
-        Keywords Arguments:
-            method (autode.wrappers.base.ElectronicStructureMethod):
-
         Returns:
             (bool):
 

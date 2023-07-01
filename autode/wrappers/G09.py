@@ -636,7 +636,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             calc (autode.calculation.Calculation):
 
         Returns:
-            (np.ndarray):
+            (autode.hessians.Hessian):
 
         Raises:
             (IndexError | ValueError):

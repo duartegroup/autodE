@@ -179,7 +179,8 @@ class Optimiser(BaseOptimiser, ABC):
         method: "Method",
     ) -> None:
         """
-        Initialise the internal species and method. They be the correct types
+        Initialise the internal species and method. They must be the correct
+        types
 
         -----------------------------------------------------------------------
          Raises:

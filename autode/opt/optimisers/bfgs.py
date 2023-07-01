@@ -72,8 +72,8 @@ class BFGSOptimiser(NDOptimiser, ABC):
         assert (
             self._coords is not None
             and self._coords.g is not None
-            and self._species
-            and self._method
+            and self._species is not None
+            and self._method is not None
         )
 
         self._coords.h_inv = self._updated_h_inv()

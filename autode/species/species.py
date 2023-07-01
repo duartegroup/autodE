@@ -134,7 +134,7 @@ class Species(AtomCollection):
 
     def copy(self: TypeSpecies) -> TypeSpecies:
         """Copy this whole species"""
-        return deepcopy(self)  # type: ignore
+        return deepcopy(self)
 
     def new_species(
         self, name="species", with_constraints: bool = False
