@@ -1,7 +1,8 @@
 import os
 import numpy as np
-from typing import Sequence, Union, TYPE_CHECKING, List, Optional
+from typing import Sequence, Union, TYPE_CHECKING, List, Optional, Any, Tuple
 from scipy import interpolate
+
 from autode.values import Energy
 from autode.exceptions import CouldNotPlotSmoothProfile
 from scipy.optimize import minimize
@@ -10,6 +11,8 @@ from autode.units import energy_unit_from_name
 from autode.log import logger
 
 if TYPE_CHECKING:
+    from autode.reactions.reaction import Reaction
+    from autode.units import Unit
     from autode.opt.optimisers.base import OptimiserHistory
     from matplotlib.figure import Figure
 
@@ -38,8 +41,8 @@ def save_plot(figure: "Figure", filename: str, **kwargs):
 
 
 def plot_reaction_profile(
-    reactions: Sequence["autode.reactions.Reaction"],
-    units: Union["autode.units.Unit", str],
+    reactions: Sequence["Reaction"],
+    units: Union["Unit", str],
     name: str,
     free_energy: bool = False,
     enthalpy: bool = False,
@@ -465,9 +468,9 @@ def plot_optimiser_profile(
 
 def plot_bracket_method_energy_profile(
     filename: str,
-    left_points: List[tuple],
+    left_points: List[Tuple[int, Energy]],
     cineb_point: Optional[tuple],
-    right_points: List[tuple],
+    right_points: List[Tuple[int, Energy]],
     x_title: str,
 ) -> None:
     """

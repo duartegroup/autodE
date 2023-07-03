@@ -2,13 +2,15 @@ import numpy as np
 import pytest
 import os
 import sys
-from copy import deepcopy
 from autode.calculations import Calculation
 from autode.calculations.output import (
     CalculationOutput,
     BlankCalculationOutput,
 )
-from autode.calculations.executors import CalculationExecutor
+from autode.calculations.executors import (
+    CalculationExecutor,
+    CalculationExecutorO,
+)
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
 from autode.wrappers.keywords.functionals import Functional
@@ -20,7 +22,7 @@ from autode.species import Molecule
 from autode.config import Config
 import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
-from .testutils import requires_with_working_xtb_install
+from .testutils import requires_working_xtb_install
 from autode.wrappers.keywords import (
     SinglePointKeywords,
     HessianKeywords,
@@ -239,7 +241,7 @@ def test_solvent_get():
 
     # Currently iodoethane is not in XTB - might be in the future
     _test_mol.solvent = "iodoethane"
-    assert not hasattr(_test_mol.solvent, "xtb")
+    assert _test_mol.solvent.xtb is None
     assert _test_mol.solvent.is_implicit
 
     with pytest.raises(ex.SolventUnavailable):
@@ -319,7 +321,7 @@ def test_exec_too_much_memory_requested_above_py39():
         run_external(["whoami"], output_filename="tmp.txt")
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_calculations_have_unique_names():
 
@@ -329,7 +331,7 @@ def test_calculations_have_unique_names():
     mol.single_point(method=xtb)
     mol.single_point(method=xtb)  # calculation should be skipped
 
-    """For some insane reason the following code works if executed in python 
+    """For some insane reason the following code works if executed in python
     directly but not if run within pytest"""
     # neutral_energy = mol.energy.copy()
     #
@@ -339,7 +341,7 @@ def test_calculations_have_unique_names():
     # assert cation_energy > neutral_energy
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_numerical_hessian_evaluation():
 
@@ -419,7 +421,10 @@ def test_numerical_hessian_evaluation():
 def test_check_properties_exist_did_not_terminate_normally():
 
     calc = Calculation(
-        name="tmp", molecule=h_atom(), method=XTB(), keywords=None
+        name="tmp",
+        molecule=h_atom(),
+        method=XTB(),
+        keywords=SinglePointKeywords(),
     )
 
     with pytest.raises(ex.CouldNotGetProperty):
@@ -591,3 +596,22 @@ def test_init_a_calculation_without_a_valid_spin_state_throws():
         _ = Calculation(
             name="tmp", molecule=test_m, method=xtb, keywords=xtb.keywords.sp
         )
+
+
+def test_cannot_set_filename_on_a_blank_output():
+
+    output = BlankCalculationOutput()
+    with pytest.raises(ValueError):
+        output.filename = "test"
+
+
+def test_cannot_set_output_of_indirect_executor():
+
+    orca = ORCA()
+    test_mol = h2o()
+
+    executor = CalculationExecutorO(
+        name="tmp", molecule=test_mol, method=orca, keywords=orca.keywords.sp
+    )
+    with pytest.raises(ValueError):
+        executor.output = BlankCalculationOutput()

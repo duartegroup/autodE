@@ -49,7 +49,7 @@ def work_in_zipped_dir(zip_path, chdir=True):
     return func_decorator
 
 
-def requires_with_working_xtb_install(func):
+def requires_working_xtb_install(func):
     """A function requiring an output file and output file lines"""
 
     @wraps(func)

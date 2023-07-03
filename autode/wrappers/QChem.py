@@ -1,7 +1,8 @@
 import numpy as np
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
-from typing import List
+from typing import List, TYPE_CHECKING
+
 from autode.config import Config
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.log import logger
@@ -13,6 +14,10 @@ from autode.exceptions import (
     NotImplementedInMethod,
     UnsupportedCalculationInput,
 )
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 
 class QChem(autode.wrappers.methods.ExternalMethodOEGH):
@@ -40,6 +45,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
         """Generate a QChem input file"""
+        assert calc.input.keywords is not None, "Must have input keywords"
         molecule = calc.molecule
 
         if calc.input.filename is None:
@@ -48,8 +54,10 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
                 "filename was undefined"
             )
 
-        if molecule.is_implicitly_solvated and not self._keywords_contain(
-            calc, "solvent_method"
+        if (
+            molecule.is_implicitly_solvated
+            and not self._keywords_contain(calc, "solvent_method")
+            and self.implicit_solvation_type is not None
         ):
             calc.input.keywords.append(self.implicit_solvation_type)
 
@@ -146,9 +154,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
         return True if calc_started else False
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return QChemOptimiser(output_lines=calc.output.file_lines)
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
@@ -164,7 +170,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             # Coordinate of a single atom will not change
             return calc.molecule.coordinates
 
-        coords = []
+        coords: list[list[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
 
@@ -175,7 +181,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             else:
                 continue
 
-            """e.g.            
+            """e.g.
                                Coordinates (Angstroms)
              ATOM                X               Y               Z
               1  O         0.0003489977   -0.1403224128    0.0000000000
@@ -225,6 +231,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
     ) -> Hessian:
         """Extract the mass-weighted non projected Hessian matrix
         NOTE: Required $rem vibman_print 4 $end in the input"""
+        assert calc.input.keywords is not None, "Must have keywords"
 
         hessian = self._extract_mass_weighted_hessian(calc)
         atom_masses = self._extract_atomic_masses(calc)

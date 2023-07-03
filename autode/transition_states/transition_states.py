@@ -1,13 +1,16 @@
 import numpy as np
 from autode.log import logger
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from autode.transition_states.transition_state import TransitionState
 
 
 class TransitionStates(list):
     @property
     def lowest_energy(
         self,
-    ) -> Optional["autode.transition_states.TransitionState"]:
+    ) -> Optional["TransitionState"]:
         """
         Return the lowest energy transition state from this set
 

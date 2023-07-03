@@ -661,7 +661,7 @@ def test_species_does_not_have_reasonable_coordinates():
     assert np.min(distance_matrix(x, x) + np.eye(5)) > 0.7
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_calc_thermo_not_run_calculation():
 
     m = Molecule(smiles="O")

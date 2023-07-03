@@ -1,14 +1,15 @@
 import re
 import rdkit
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional, List
 from rdkit.Chem import AllChem
+
 from autode.log.methods import methods
 from autode.input_output import xyz_file_to_atoms
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_conformer
 from autode.conformers.conformers import atoms_from_rdkit_mol
-from autode.atoms import metals
+from autode.atoms import metals, Atom
 from autode.config import Config
 from autode.log import logger
 from autode.mol_graphs import make_graph
@@ -23,7 +24,7 @@ class Molecule(Species):
         self,
         arg: str = "molecule",
         smiles: Optional[str] = None,
-        atoms: Optional[Sequence["autode.atoms.Atom"]] = None,
+        atoms: Optional[List["Atom"]] = None,
         solvent_name: Optional[str] = None,
         charge: int = 0,
         mult: int = 1,
@@ -196,10 +197,12 @@ class Molecule(Species):
                     pool.submit(get_simanl_conformer, self, None, i)
                     for i in range(n_confs)
                 ]
-                self.conformers = [res.result() for res in results]
+                self.conformers = [res.result() for res in results]  # type: ignore
 
             self.conformers.prune_on_energy(e_tol=1e-10)
-            methods.add("RR algorithm (???) implemented in autodE")
+            methods.add(
+                "RR algorithm (10.1002/anie.202011941) implemented in autodE"
+            )
 
         self.conformers.prune_on_rmsd()
         return None
@@ -223,10 +226,10 @@ class Molecule(Species):
         Returns:
             (autode.species.molecule.Product): Product
         """
-        product = self.copy()
+        product = self.copy()  # type: ignore
         product.__class__ = Product
 
-        return product
+        return product  # type: ignore
 
     def to_reactant(self) -> "Reactant":
         """
@@ -236,10 +239,10 @@ class Molecule(Species):
         Returns:
             (autode.species.molecule.Reactant): Reactant
         """
-        reactant = self.copy()
+        reactant = self.copy()  # type: ignore
         reactant.__class__ = Reactant
 
-        return reactant
+        return reactant  # type: ignore
 
 
 class Reactant(Molecule):

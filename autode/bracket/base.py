@@ -68,11 +68,13 @@ class BaseBracketMethod(ABC):
     @property
     def ts_guess(self) -> Optional["Species"]:
         """Get the TS guess from image-pair"""
+        assert self.imgpair is not None, "Must have an image pair for TS guess"
         return self.imgpair.ts_guess
 
     @property
     def converged(self) -> bool:
         """Whether the bracketing method has converged or not"""
+        assert self.imgpair is not None, "Must have an image pair"
 
         # NOTE: In bracketing methods, usually the geometry
         # optimisation is done in separate micro-iterations,
@@ -107,6 +109,8 @@ class BaseBracketMethod(ABC):
         Log the convergence of the bracket method. Only logs macro-iters,
         subclasses may implement further logging for micro-iters
         """
+        assert self.imgpair is not None, "Must have an image pair to log"
+
         logger.info(
             f"{self._name} Macro-iteration #{self._macro_iter}: "
             f"Distance = {self.imgpair.dist:.4f}; Energy (initial species) = "
@@ -159,6 +163,8 @@ class BaseBracketMethod(ABC):
         Actually runs the calculation, it is wrapped around in calculate()
         so that the results are placed in a sub-folder
         """
+        assert self.imgpair is not None, "Must have set image pair"
+
         n_cores = Config.n_cores if n_cores is None else int(n_cores)
         self.imgpair.set_method_and_n_cores(method, n_cores)
         self._initialise_run()
@@ -203,7 +209,8 @@ class BaseBracketMethod(ABC):
 
         self.print_geometries()
         self.plot_energies()
-        self.ts_guess.print_xyz_file(filename=f"{self._name}_ts_guess.xyz")
+        if self.ts_guess is not None:
+            self.ts_guess.print_xyz_file(filename=f"{self._name}_ts_guess.xyz")
         return None
 
     def print_geometries(
@@ -218,6 +225,8 @@ class BaseBracketMethod(ABC):
         any CI-NEB run from the final end points. The default names for
         the trajectories must be set in individual subclasses
         """
+        assert self.imgpair is not None, "Must have an image pair to plot"
+
         init_trj_filename = (
             init_trj_filename
             if init_trj_filename is not None
@@ -263,6 +272,8 @@ class BaseBracketMethod(ABC):
             filename (str|None): Name of the file (optional)
             distance_metric (str): "relative" or "from_start" or "index"
         """
+        assert self.imgpair is not None, "Must have an image pair to plot"
+
         filename = (
             filename
             if filename is not None
@@ -279,6 +290,8 @@ class BaseBracketMethod(ABC):
         should bring the ends very close to the TS). The result from
         the CI-NEB calculation is stored as coordinates.
         """
+        assert self.imgpair is not None, "Must have image pair to run CINEB"
+
         if not self._micro_iter > 0:
             logger.error(
                 f"Must run {self._name} calculation before"

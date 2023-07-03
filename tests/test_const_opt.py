@@ -12,7 +12,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 @testutils.work_in_zipped_dir(
     os.path.join(here, "data", "constrained_opt.zip")
 )
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_constrained_opt():
 
     ts_guess = TSguess(atoms=xyz_file_to_atoms("h_shift_init.xyz"), mult=2)

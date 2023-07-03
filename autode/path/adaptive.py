@@ -5,6 +5,7 @@ from autode.log import logger
 from autode.path.path import Path
 from autode.transition_states.ts_guess import TSguess
 from autode.utils import work_in
+from autode.constraints import DistanceConstraints
 from autode.bonds import ScannedBond
 
 from typing import TYPE_CHECKING, List, Optional
@@ -12,8 +13,10 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from autode.species import ReactantComplex, ProductComplex, Species
+    from autode.transition_states import TSguess
     from autode.wrappers.methods import Method
     from autode.bond_rearrangement import BondRearrangement
+    from autode.wrappers.keywords.keywords import OptKeywords
 
 
 def get_ts_adaptive_path(
@@ -52,7 +55,7 @@ def get_ts_adaptive_path(
     )
     ts_path.generate(name=name)
 
-    if not ts_path.contains_peak:
+    if ts_path.peak_idx is None:
         logger.warning("Adaptive path had no peak")
         return None
 
@@ -128,7 +131,7 @@ def pruned_active_bonds(
         )
         """
         Counterintuitively, this is possible e.g. metallocyclobutate formation
-        from a metalocyclopropane and a alkylidene (due to the way bonds are 
+        from a metalocyclopropane and a alkylidene (due to the way bonds are
         defined)
         """
         bbonds = [bond for bond in bbonds if bond.dr > 0]
@@ -166,9 +169,9 @@ class AdaptivePath(Path):
         # Add the first point - will run a constrained minimisation if possible
         if init_species is not None:
             point = init_species.new_species()
-            point.constraints.distance = {
-                b.atom_indexes: b.curr_dist for b in bonds
-            }
+            point.constraints.distance = DistanceConstraints(
+                {b.atom_indexes: b.curr_dist for b in bonds}
+            )
             self.append(point)
 
         self._check_bonds_have_initial_and_final_distances()
@@ -198,7 +201,7 @@ class AdaptivePath(Path):
         """
 
         idx = len(self) - 1
-        keywords = self.method.keywords.low_opt.copy()
+        keywords: "OptKeywords" = self.method.keywords.low_opt.copy()
         keywords.max_opt_cycles = 50
 
         calc = ade.Calculation(
@@ -217,6 +220,8 @@ class AdaptivePath(Path):
             # so rerun a gradient calculation, which should be very fast
             # while MOPAC doesn't print gradients for a constrained opt
             tmp_point_for_grad = point.new_species()
+            assert self.method.keywords.grad is not None
+
             calc = ade.Calculation(
                 name=f"path_grad{idx}",
                 molecule=tmp_point_for_grad,
@@ -239,6 +244,14 @@ class AdaptivePath(Path):
     def contains_suitable_peak(self) -> bool:
         """Does this path contain a peak suitable for a TS guess?"""
         if not self.contains_peak:
+            return False
+
+        assert self.peak_idx, "Must have a peak_idx if contains_peak"
+
+        if self.final_species is None:
+            logger.warning(
+                "No final species set. Can't check peak suitability"
+            )
             return False
 
         idx = self.product_idx(product=self.final_species)

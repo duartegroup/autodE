@@ -21,7 +21,7 @@ class Constraints:
             cartesian (list(int) | None): List of atom indexes or None
         """
         self._distance = DistanceConstraints()
-        self._cartesian = []
+        self._cartesian: List[int] = []
 
         self.update(distance, cartesian)
 
@@ -43,7 +43,7 @@ class Constraints:
         return self.__str__()
 
     @property
-    def distance(self) -> Optional[dict]:
+    def distance(self) -> Optional["DistanceConstraints"]:
         return None if len(self._distance) == 0 else self._distance
 
     @distance.setter

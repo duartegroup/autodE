@@ -5,10 +5,11 @@ optimisers available in multiple popular QM softwares.
 
 Only minimiser, this is not TS search/constrained optimiser
 """
-from typing import TYPE_CHECKING, Tuple
 import numpy as np
 from scipy.optimize import root_scalar
 from itertools import combinations
+from typing import TYPE_CHECKING, Tuple, Any
+
 from autode.opt.coordinates import CartesianCoordinates, DIC, OptCoordinates
 from autode.opt.coordinates.primitives import Distance
 from autode.opt.optimisers import CRFOptimiser
@@ -50,8 +51,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         min_trust: float = 0.01,
         max_trust: float = 0.3,
         damp: bool = True,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
         Hybrid RFO and TRM/QA optimiser with dynamic trust radius (and
@@ -76,8 +77,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         See Also:
             :py:meth:`NDOptimiser <NDOptimiser.__init__>`
         """
-        kwargs.pop("init_alpha", None)
-        super().__init__(init_alpha=init_trust, *args, **kwargs)
+        _ = kwargs.pop("init_alpha", None)
+        super().__init__(init_alpha=init_trust, *args, **kwargs)  # type: ignore
 
         assert 0.0 < min_trust < max_trust
         self._max_alpha = float(max_trust)
@@ -92,6 +93,7 @@ class HybridTRMOptimiser(CRFOptimiser):
     @property
     def _g_norm(self) -> GradientRMS:
         """Calculate the RMS gradient norm in Cartesian coordinates"""
+        assert self._coords is not None, "Must have coordinates"
         grad = self._coords.to("cart").g
         return GradientRMS(np.sqrt(np.average(np.square(grad))))
 
@@ -122,6 +124,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         there are no constraints in the species
         """
         super()._initialise_species_and_method(species, method)
+        assert self._species is not None, "Must have a species now"
         assert (
             not self._species.constraints.any
         ), "HybridTRMOptimiser cannot work with constraints!"
@@ -155,6 +158,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         the trust radius, if that calculation fails, it simply scales
         back the RFO step to lie within trust radius
         """
+        assert self._coords is not None, "Must have coordinates"
 
         self._coords.h = self._updated_h()
         self._update_trust_radius()
@@ -198,7 +202,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         self._coords = self._coords + step
 
         step_size = np.linalg.norm(
-            self._coords.to("cart") - self._history.penultimate.to("cart")
+            self._coords.to("cart") - self._history.penultimate.to("cart")  # type: ignore
         )
         logger.info(f"Size of step taken (in Cartesian) = {step_size:.3f} Å")
         return None
@@ -392,6 +396,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         """
         Updates the trust radius before a geometry step
         """
+        assert self._coords is not None, "Must have coordinates"
+
         # skip on first iteration
         if self.iteration < 1:
             return None
@@ -479,6 +485,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         """
         Take a damped step by interpolating between the last two coordinates
         """
+        assert self._coords is not None, "Must have coordinates"
+
         logger.info("Taking a damped step...")
         self._last_damped_iteration = self.iteration
 
@@ -492,6 +500,7 @@ class HybridTRMOptimiser(CRFOptimiser):
 class CartesianHybridTRMOptimiser(HybridTRMOptimiser):
     def _initialise_run(self) -> None:
         """Initialise the optimisation with Cartesian coordinates"""
+        assert self._species is not None, "Must have a species"
         self._coords = CartesianCoordinates(self._species.coordinates)
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._update_gradient_and_energy()

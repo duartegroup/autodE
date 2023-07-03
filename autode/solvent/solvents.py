@@ -1,14 +1,20 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from copy import deepcopy
+
 from autode.log import logger
 from autode.input_output import xyz_file_to_atoms
 from autode.exceptions import SolventNotFound
 
+if TYPE_CHECKING:
+    from autode.solvent.explicit_solvent import ExplicitSolvent
+    from autode.species.species import Species
+    from autode.atoms import Atoms
+
 
 def get_solvent(
-    solvent_name: str, kind: str, num: Optional[int] = None
+    solvent_name: Optional[str], kind: str, num: Optional[int] = None
 ) -> Optional["Solvent"]:
     """
     For a named solvent return the Solvent which matches one of the aliases
@@ -49,7 +55,7 @@ def get_solvent(
 
         if solvent.is_implicit:
             return (
-                solvent if kind == "implicit" else solvent.to_explicit(num=num)
+                solvent if kind == "implicit" else solvent.to_explicit(num=num)  # type: ignore[arg-type]
             )
 
         # Allow for solvent.is_explicit in solvents?
@@ -95,6 +101,12 @@ class Solvent(ABC):
         if aliases is not None:
             self.aliases.extend(alias.lower() for alias in aliases)
 
+        self.g09: Optional[str] = None
+        self.g16: Optional[str] = None
+        self.qchem: Optional[str] = None
+        self.orca: Optional[str] = None
+        self.xtb: Optional[str] = None
+        self.nwchem: Optional[str] = None
         # Add attributes for all the methods specified e.g. initialisation with
         # orca='water' -> self.orca = 'water'
         self.__dict__.update(kwargs)
@@ -119,6 +131,11 @@ class Solvent(ABC):
     def copy(self) -> "Solvent":
         """Return a copy of this solvent"""
         return deepcopy(self)
+
+    @property
+    @abstractmethod
+    def atoms(self) -> Optional["Atoms"]:
+        """Atoms in this solvent"""
 
     @property
     def dielectric(self) -> Optional[float]:
@@ -148,6 +165,12 @@ class Solvent(ABC):
         """Is this solvent explicit i.e. has atoms in space"""
         return not self.is_implicit
 
+    def randomise_around(self, solute: "Species") -> None:
+        raise RuntimeError("Method may implemented in subclass")
+
+    def to_explicit(self, num: int) -> "ExplicitSolvent":
+        raise RuntimeError("Method may implemented in subclass")
+
 
 class ImplicitSolvent(Solvent):
     """Implicit solvent"""
@@ -161,7 +184,7 @@ class ImplicitSolvent(Solvent):
         """
         return True
 
-    def to_explicit(self, num: int) -> "autode.solvent.ExplicitSolvent":
+    def to_explicit(self, num: int) -> "ExplicitSolvent":
         """
         Convert this implicit solvent into an explicit one
 
@@ -195,6 +218,11 @@ class ImplicitSolvent(Solvent):
         return ExplicitSolvent(
             solvent=solvent_mol, num=num, solute=None, aliases=self.aliases
         )
+
+    @property
+    def atoms(self) -> Optional["Atoms"]:
+        logger.warning("Implicit solvent have no atoms")
+        return None
 
 
 solvents = [

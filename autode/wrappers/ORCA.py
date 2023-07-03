@@ -2,7 +2,8 @@ import numpy as np
 import os
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
-from typing import List
+from typing import List, TYPE_CHECKING
+
 from autode.utils import run_external
 from autode.hessians import Hessian
 from autode.opt.optimisers.base import ExternalOptimiser
@@ -18,6 +19,10 @@ from autode.exceptions import (
     XYZfileWrongFormat,
     AtomsNotFound,
 )
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 vdw_gaussian_solvent_dict = {
     "water": "Water",
@@ -168,25 +173,26 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         return f"ORCA(available = {self.is_available})"
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
-        molecule = calc.molecule
+        assert calc.input.filename is not None
 
-        keywords = self.get_keywords(calc.input, molecule)
+        keywords = self.get_keywords(calc.input, calc.molecule)
+        assert len(keywords) > 0
 
         with open(calc.input.filename, "w") as inp_file:
             print("!", *keywords, file=inp_file)
 
-            self.print_solvent(inp_file, molecule, keywords)
+            self.print_solvent(inp_file, calc.molecule, keywords)
             print_added_internals(inp_file, calc.input)
-            print_distance_constraints(inp_file, molecule)
-            print_cartesian_constraints(inp_file, molecule)
-            print_num_optimisation_steps(inp_file, molecule, calc.input)
+            print_distance_constraints(inp_file, calc.molecule)
+            print_cartesian_constraints(inp_file, calc.molecule)
+            print_num_optimisation_steps(inp_file, calc.molecule, calc.input)
             print_point_charges(inp_file, calc.input)
             print_default_params(inp_file)
 
             if calc.n_cores > 1:
                 print(f"%pal nprocs {calc.n_cores}\nend", file=inp_file)
 
-            print_coordinates(inp_file, molecule)
+            print_coordinates(inp_file, calc.molecule)
 
         return None
 
@@ -225,9 +231,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         execute_orca()
         return None
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return ORCAOptimiser(output_lines=calc.output.file_lines)
 
     def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
@@ -252,6 +256,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         return False
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
+        assert calc.output.filename is not None, "Must have a set output"
 
         if calc.output.filename.endswith(".hess"):
             logger.warning("Failed to set the potential energy")
@@ -264,6 +269,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         raise CouldNotGetProperty(name="energy")
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
+        assert calc.output.filename is not None, "Must have a set output"
 
         fn_ext = ".hess" if calc.output.filename.endswith(".hess") else ".out"
 
@@ -327,7 +333,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
             0 C   -0.006954    0.000000
             . .      .            .
         """
-        charges = []
+        charges: List[float] = []
 
         for i, line in enumerate(calc.output.file_lines):
             if "HIRSHFELD ANALYSIS" in line:
@@ -348,7 +354,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
            1   C   :   -0.011390275   -0.000447412    0.000552736    <- j
         """
-        gradients = []
+        gradients: List[List[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
             if (
@@ -416,7 +422,9 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
             0      6.48E-01   4.376E-03   2.411E-09  -3.266E-01  -2.5184E-01
             .         .          .           .           .           .
         """
+        assert calc.input.keywords is not None, "Must have keywords"
 
+        assert calc.output.filename is not None, "Output filename must be set"
         hess_filename = calc.output.filename
 
         if calc.output.filename.endswith(".out"):
@@ -529,6 +537,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         Returns:
             (bool):
         """
+        assert self.implicit_solvation_type is not None, "Must have a solvent"
 
         if self.implicit_solvation_type.lower() != "cpcm":
             return False

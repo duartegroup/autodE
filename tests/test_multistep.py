@@ -13,7 +13,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "multistep.zip"))
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_multistep_reaction():
 
     Config.num_conformers = 1

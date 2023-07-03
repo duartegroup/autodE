@@ -9,15 +9,15 @@ conda install --file requirements.txt
 then run the tests
 
 ```bash
-py.test 
+py.test
 ```
 
 ***
 ### Benchmark
 In addition to the tests there is a benchmark of calculations (*benchmark.py*) to
-run for every minor release. This benchmark **must** be run and the results 
-posted below to ensure consistent functionality - it should take a few hours 
-on 8 cores. 
+run for every minor release. This benchmark **must** be run and the results
+posted below to ensure consistent functionality - it should take a few hours
+on 8 cores.
 
 #### SO (small organic)
 ```

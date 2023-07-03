@@ -11,9 +11,7 @@ class Method(BaseMethod):
     def __repr__(self):
         return f"{self.__class__.__name__}"
 
-    def implements(
-        self, calculation_type: "autode.calculations.types.CalculationType"
-    ) -> bool:
+    def implements(self, calculation_type) -> bool:
         return True
 
     @property

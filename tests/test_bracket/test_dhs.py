@@ -17,13 +17,13 @@ from autode.bracket.dhs import (
 )
 from autode.opt.coordinates import CartesianCoordinates
 from autode import Config
-from ..testutils import requires_with_working_xtb_install, work_in_zipped_dir
+from ..testutils import requires_working_xtb_install, work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
 datazip = os.path.join(here, "data", "geometries.zip")
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_truncated_taylor_surface():
     mol = Molecule(smiles="CCO")
@@ -50,7 +50,7 @@ def test_truncated_taylor_surface():
     assert np.allclose(res.x, minim, rtol=1e-4)
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_distance_constrained_optimiser():
     reactant = Molecule("da_reactant.xyz")
@@ -140,7 +140,7 @@ def test_dhs_image_pair_ts_guess(caplog):
     assert np.allclose(peak.gradient.flatten(), imgpair.left_coord.g)
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_dhs_single_step():
     step_size = 0.2
@@ -175,7 +175,7 @@ def test_dhs_single_step():
     assert np.isclose(old_dist - new_dist, step_size)
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_dhs_gs_single_step(caplog):
     step_size = 0.2
@@ -215,7 +215,7 @@ def test_dhs_gs_single_step(caplog):
     assert np.allclose(hybrid_step, 0.5 * dhs_step + 0.5 * gs_step)
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_dhs_diels_alder():
     set_dist_tol = 1.0  # angstrom
@@ -280,7 +280,7 @@ def test_dhs_diels_alder():
         assert os.path.isfile(filename)
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_dhs_jumping_over_barrier(caplog):
     # Use almost converged images for quick calculation
@@ -308,7 +308,7 @@ def test_dhs_jumping_over_barrier(caplog):
     assert dhs.imgpair._cineb_coords is None
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_dhs_stops_if_microiter_exceeded(caplog):
     reactant = Molecule("da_rct_image.xyz")

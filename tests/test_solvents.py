@@ -61,3 +61,20 @@ def test_solvent_dielectric():
     assert abs(water.dielectric - 78) < 1
 
     assert solvents.ImplicitSolvent("X", "X", aliases=["X"]).dielectric is None
+
+
+def test_unavailable_methods_for_implicit_solvents():
+
+    solvent = get_solvent("water", kind="implicit")
+    assert solvent.atoms is None
+
+    # Can't randomise an implicit solvent around a solute
+    with pytest.raises(RuntimeError):
+        solvent.randomise_around(solute=Molecule("C"))
+
+
+def test_unavailable_methods_for_explicit_solvents():
+
+    solvent = get_solvent("water", kind="explicit", num=1)
+    with pytest.raises(RuntimeError):
+        solvent.to_explicit(num=2)  # already explicit

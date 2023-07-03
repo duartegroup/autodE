@@ -1,12 +1,18 @@
+# mypy: disable-error-code="has-type"
 import numpy as np
 from copy import deepcopy
 from enum import IntEnum, unique
-from typing import Optional, Union, Sequence, List
+from typing import Optional, Union, Sequence, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 from autode.log import logger
 from autode.units import ang, nm, pm, m
 from autode.values import ValueArray, PotentialEnergy
+
+if TYPE_CHECKING:
+    from autode.units import Unit
+    from autode.values import Gradient
+    from autode.hessians import Hessian
 
 
 @unique
@@ -26,7 +32,7 @@ class OptCoordinates(ValueArray, ABC):
     def __new__(
         cls,
         input_array: Union[Sequence, np.ndarray],
-        units: Union[str, "autode.units.Unit"],
+        units: Union[str, "Unit"],
     ) -> "OptCoordinates":
         """New instance of these coordinates"""
 
@@ -182,14 +188,12 @@ class OptCoordinates(ValueArray, ABC):
         return arr.ndim == 2 and arr.shape[0] == arr.shape[1] == len(self)
 
     @abstractmethod
-    def _update_g_from_cart_g(
-        self, arr: Optional["autode.values.Gradient"]
-    ) -> None:
+    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         """Update the gradient dE/dR of from a Cartesian (cart) gradient"""
 
     def update_g_from_cart_g(
         self,
-        arr: Optional["autode.values.Gradient"],
+        arr: Optional["Gradient"],
     ) -> None:
         """Update the gradient from a Cartesian gradient, zeroing those atoms
         that are constrained"""
@@ -200,14 +204,12 @@ class OptCoordinates(ValueArray, ABC):
         return self._update_g_from_cart_g(arr)
 
     @abstractmethod
-    def _update_h_from_cart_h(
-        self, arr: Optional["autode.values.Hessian"]
-    ) -> None:
+    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """Update the Hessian from a cartesian Hessian"""
 
     def update_h_from_cart_h(
         self,
-        arr: Optional["autode.values.Hessian"],
+        arr: Optional["Hessian"],
     ) -> None:
         """Update the Hessian from a cartesian Hessian with shape 3N x 3N for
         N atoms, zeroing the second derivatives if required"""
@@ -247,7 +249,7 @@ class OptCoordinates(ValueArray, ABC):
         self.clear_tensors()
         return super().__setitem__(key, value)
 
-    def __add__(self, other: Union[np.ndarray, float]) -> "OptKeywords":
+    def __add__(self, other: Union[np.ndarray, float]) -> "OptCoordinates":
         """
         Addition of another set of coordinates. Clears the current
         gradient vector and Hessian matrix.

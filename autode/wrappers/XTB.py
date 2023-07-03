@@ -3,6 +3,8 @@ import shutil
 import numpy as np
 import autode.wrappers.methods
 
+from typing import TYPE_CHECKING
+
 from autode.values import Coordinates, Gradient, PotentialEnergy
 from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
@@ -11,6 +13,10 @@ from autode.opt.optimisers.base import ExternalOptimiser
 from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.utils import work_in_tmp_dir, run_in_tmp_environment
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 
 class XTB(autode.wrappers.methods.ExternalMethodOEG):
@@ -80,7 +86,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         return None
 
     @staticmethod
-    def print_point_charge_file(calc):
+    def print_point_charge_file(calc: "CalculationExecutor"):
         """Generate a point charge file"""
 
         if calc.input.point_charges is None:
@@ -100,7 +106,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         calc.input.additional_filenames.append(f"{calc.name}_xtb.pc")
         return None
 
-    def print_xcontrol_file(self, calc, molecule):
+    def print_xcontrol_file(self, calc: "CalculationExecutor", molecule):
         """Print an XTB input file with constraints and point charges"""
 
         xcontrol_filename = f"xcontrol_{calc.name}"
@@ -122,7 +128,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         calc.input.additional_filenames.append(xcontrol_filename)
         return
 
-    def generate_input_for(self, calc):
+    def generate_input_for(self, calc: "CalculationExecutor"):
 
         molecule = calc.molecule
         calc.molecule.print_xyz_file(filename=calc.input.filename)
@@ -133,14 +139,14 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         return None
 
     @staticmethod
-    def input_filename_for(calc):
+    def input_filename_for(calc: "CalculationExecutor"):
         return f"{calc.name}.xyz"
 
     @staticmethod
-    def output_filename_for(calc):
+    def output_filename_for(calc: "CalculationExecutor"):
         return f"{calc.name}.out"
 
-    def version_in(self, calc):
+    def version_in(self, calc: "CalculationExecutor"):
         """Get the XTB version from the output file"""
 
         for line in calc.output.file_lines:
@@ -158,7 +164,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
         return None
 
-    def execute(self, calc):
+    def execute(self, calc: "CalculationExecutor"):
         """Execute an XTB calculation using the runtime flags"""
         # XTB calculation keywords must be a class
 
@@ -188,6 +194,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             flags.append("--grad")
 
         if calc.molecule.solvent is not None:
+            assert calc.molecule.solvent.xtb is not None
             flags += ["--gbsa", calc.molecule.solvent.xtb]
 
         if len(calc.input.additional_filenames) > 0:
@@ -250,13 +257,11 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
         return False
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return XTBOptimiser(converged=self.converged_line_in_output(calc))
 
     @staticmethod
-    def _get_final_coords_6_2_above(calc):
+    def _get_final_coords_6_2_above(calc: "CalculationExecutor"):
         """
         e.g.
 
@@ -287,7 +292,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         return Coordinates(matrix, units="Å")
 
     @staticmethod
-    def _get_final_coords_old(calc):
+    def _get_final_coords_old(calc: "CalculationExecutor"):
         """
         e.g.
 
@@ -315,7 +320,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
         return Coordinates(matrix, units="a0").to("Å")
 
-    def coordinates_from(self, calc):
+    def coordinates_from(self, calc: "CalculationExecutor"):
 
         for i, line in enumerate(calc.output.file_lines):
 
@@ -341,7 +346,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             "Failed to find any coordinates in XTB " "output file"
         )
 
-    def partial_charges_from(self, calc):
+    def partial_charges_from(self, calc: "CalculationExecutor"):
         charges_sect = False
         charges = []
         for line in calc.output.file_lines:
@@ -353,7 +358,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
                 charges_sect = True
         return charges
 
-    def gradient_from(self, calc):
+    def gradient_from(self, calc: "CalculationExecutor"):
         raw = []
 
         if os.path.exists(f"{calc.name}_xtb.grad"):

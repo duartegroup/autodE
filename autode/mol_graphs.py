@@ -4,12 +4,16 @@ import numpy as np
 
 from copy import deepcopy
 from networkx.algorithms import isomorphism
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, TYPE_CHECKING
 from autode.utils import timeout
 import autode.exceptions as ex
 from scipy.spatial import distance_matrix
 from autode.atoms import Atom, metals
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.values import Distance
+    from autode.species.species import Species
 
 
 class MolecularGraph(nx.Graph):
@@ -63,12 +67,12 @@ class MolecularGraph(nx.Graph):
 
         for (i, j) in self.edges:
 
-            r0 = self._covalent_radius(i) + self._covalent_radius(j)
-            matrix[i, j] = matrix[j, i] = float(r0)
+            r0 = float(self._covalent_radius(i) + self._covalent_radius(j))
+            matrix[i, j] = matrix[j, i] = r0
 
         return matrix
 
-    def _covalent_radius(self, i) -> "autode.values.Distance":
+    def _covalent_radius(self, i) -> "Distance":
         """Covalent radius of a node in the graph"""
         return Atom(self.nodes[i]["atom_label"]).covalent_radius.to("Å")
 
@@ -83,7 +87,9 @@ class MolecularGraph(nx.Graph):
         Extract the active bonds from the graph into a flat list of pairs
         of atom indices
         """
-        return [tuple(e) for e in self.edges if self.edges[e]["active"]]
+        return [
+            (i, j) for (i, j) in self.edges if self.edges[(i, j)]["active"]
+        ]
 
     def add_active_edge(self, u: int, v: int) -> None:
         """
@@ -113,7 +119,7 @@ class MolecularGraph(nx.Graph):
 
 
 def make_graph(
-    species: "autode.Species",
+    species: "Species",
     rel_tolerance: float = 0.3,
     bond_list: Optional[List[tuple]] = None,
     allow_invalid_valancies: bool = False,
@@ -169,38 +175,41 @@ def make_graph(
             i, atom_label=atom.label, stereo=False, atom_class=atom.atom_class
         )
 
-    # If bonds are specified then add edges to the graph and return
     if bond_list is not None:
-        for bond in bond_list:
-            graph.add_edge(bond[0], bond[1], pi=False, active=False)
+        logger.debug(
+            f"Bonds have been specified. Adding {len(bond_list)} edges"
+        )
+        for (i, j) in bond_list:
+            graph.add_edge(i, j, pi=False, active=False)
 
         species.graph = graph
         return None
 
-    else:
-        # Loop over the unique pairs of atoms and add 'bonds'
-        coords = species.coordinates
-        dist_mat = distance_matrix(coords, coords)
+    # Loop over the unique pairs of atoms and add 'bonds'
+    coords = species.coordinates
+    dist_mat = distance_matrix(coords, coords)
 
-        for i in get_atom_ids_sorted_type(species):
+    # Enumerate atoms low->high atomic weight for consistent graph generation
+    for i, _ in enumerate(
+        sorted(species.atoms, key=lambda _atom: _atom.weight)
+    ):
 
-            # Iterate through the closest atoms to atom i
-            for j in np.argsort(dist_mat[i]):
+        # Iterate through the closest atoms to atom i
+        for j in np.argsort(dist_mat[i]):
 
-                if i == j:
-                    # Don't bond atoms to themselves
-                    continue
+            if i == j:  # Don't bond atoms to themselves
+                continue
 
-                # Get r_avg for this X-Y bond e.g. C-C -> 1.5
-                avg_bond_length = species.atoms.eqm_bond_distance(i, j)
+            # Get r_avg for this X-Y bond e.g. C-C -> 1.5 Å
+            avg_bond_length = species.atoms.eqm_bond_distance(i, j)
 
-                # If the distance between atoms i and j are less or equal to
-                # 1.25x average length add a 'bond'
-                if (
-                    dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance)
-                    and (i, j) not in graph.edges
-                ):
-                    graph.add_edge(i, j, pi=False, active=False)
+            # If the distance between atoms i and j are less or equal to
+            # 1.25x average length add a 'bond'
+            if (
+                dist_mat[i, j] <= avg_bond_length * (1.0 + rel_tolerance)
+                and (i, j) not in graph.edges
+            ):
+                graph.add_edge(i, j, pi=False, active=False)
 
     _set_graph_attributes(graph)
     species.graph = graph
@@ -209,24 +218,6 @@ def make_graph(
         remove_bonds_invalid_valancies(species)
 
     return None
-
-
-def get_atom_ids_sorted_type(species):
-    """
-    Get a list of atom ids sorted by increasing atomic weight, useful for when
-    a molecular graph depends on the order of atoms in what will be considered
-    bonded
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        species (autode.species.Species):
-
-    Returns:
-        (list(int)):
-    """
-    atom_idxs = list(range(species.n_atoms))
-
-    return sorted(atom_idxs, key=lambda idx: species.atoms[idx].weight)
 
 
 def remove_bonds_invalid_valancies(species):
@@ -352,13 +343,13 @@ def species_are_isomorphic(species1, species2):
 
     # Check on all the pairwise combinations of species conformers looking for
     #  an isomorphism
-    def conformers_or_self(species):
+    def conformers_or_self(_species):
         """If there are no conformers for this species return itself otherwise
         the list of conformers"""
-        if species.n_conformers == 0:
-            return [species]
+        if _species.n_conformers == 0:
+            return [_species]
 
-        return species.conformers
+        return _species.conformers
 
     # Check on all pairs of conformers between the two species
     for conformer1 in conformers_or_self(species1):

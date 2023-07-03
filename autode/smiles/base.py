@@ -1,7 +1,7 @@
 import enum
 import numpy as np
 
-from typing import Optional
+from typing import Optional, SupportsIndex
 from autode.log import logger
 from autode.atoms import Atom
 from autode.exceptions import InvalidSmilesString
@@ -273,7 +273,7 @@ class SMILESBonds(list):
 
         return super().append(bond)
 
-    def insert(self, index: int, bond: SMILESBond):
+    def insert(self, index: SupportsIndex, bond: SMILESBond):
         """Insert a bond into this list if it does not already exist"""
 
         if self._bond_exists(bond) or len(set(bond.atom_indexes)) != 2:

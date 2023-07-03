@@ -1,9 +1,14 @@
 import numpy as np
+from typing import TYPE_CHECKING
+
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
+
+if TYPE_CHECKING:
+    from autode.hessians import Hessian
 
 
 class RFOptimiser(NDOptimiser):
@@ -32,6 +37,7 @@ class RFOptimiser(NDOptimiser):
 
     def _step(self) -> None:
         """RFO step"""
+        assert self._coords is not None and self._coords.g is not None
         logger.info("Taking a RFO step")
 
         self._coords.h = self._updated_h()
@@ -61,6 +67,7 @@ class RFOptimiser(NDOptimiser):
         """
         Initialise the energy, gradient, and initial Hessian to use
         """
+        assert self._species is not None, "Must have a species to init"
 
         self._coords = CartesianCoordinates(self._species.coordinates).to(
             "dic"
@@ -73,7 +80,7 @@ class RFOptimiser(NDOptimiser):
 
     @property
     @work_in_tmp_dir(use_ll_tmp=True)
-    def _low_level_cart_hessian(self) -> np.ndarray:
+    def _low_level_cart_hessian(self) -> "Hessian":
         """
         Calculate a Hessian matrix using a low-level method, used as the
         estimate from which BFGS updates are applied. To ensure steps are taken
@@ -83,10 +90,13 @@ class RFOptimiser(NDOptimiser):
         """
         from autode.methods import get_lmethod
 
+        assert self._species is not None, "Must have a species"
+
         logger.info("Calculating low-level Hessian")
 
         species = self._species.copy()
         species.calc_hessian(method=get_lmethod(), n_cores=self._n_cores)
+        assert species.hessian is not None, "Hessian calculation must be ok"
 
         return species.hessian
 
@@ -104,6 +114,7 @@ class RFOptimiser(NDOptimiser):
         Returns:
             factor: The coefficient of the step taken
         """
+        assert self._coords is not None, "Must have coordinates"
 
         if len(delta_s) == 0:  # No need to sanitise a null step
             return 0.0

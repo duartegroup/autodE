@@ -1,9 +1,11 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
 from autode.transition_states.base import TSbase
 from autode.transition_states.templates import get_ts_templates
 from autode.transition_states.templates import template_matches
 from autode.input_output import atoms_to_xyz_file
 from autode.calculations import Calculation
+from autode.constraints import DistanceConstraints
 from autode.config import Config
 from autode.values import Distance
 from autode.exceptions import CalculationException
@@ -15,10 +17,16 @@ from autode.mol_graphs import (
     get_truncated_active_mol_graph,
 )
 
+if TYPE_CHECKING:
+    from autode.species import ReactantComplex, ProductComplex, Species
+    from autode.bond_rearrangement import BondRearrangement
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords import Keywords
+
 
 def has_matching_ts_templates(
-    reactant: "autode.species.ReactantComplex",
-    bond_rearr: "autode.bond_rearrangement.BondRearrangement",
+    reactant: "ReactantComplex",
+    bond_rearr: "BondRearrangement",
 ):
     """
     See if there are any templates suitable to get a TS guess from a template
@@ -51,11 +59,11 @@ def has_matching_ts_templates(
 
 
 def get_template_ts_guess(
-    reactant: "autode.species.ReactantComplex",
-    product: "autode.species.ProductComplex",
-    bond_rearr: "autode.bond_rearrangement.BondRearrangement",
+    reactant: "ReactantComplex",
+    product: "ProductComplex",
+    bond_rearr: "BondRearrangement",
     name: str,
-    method: "autode.wrappers.base.ElectronicStructureMethod",
+    method: "Method",
 ):
     """
     Get a transition state guess object by searching though the stored TS
@@ -146,7 +154,7 @@ class TSguess(TSbase):
     """Transition state guess"""
 
     @classmethod
-    def from_species(cls, species: "autode.species.Species") -> "TSguess":
+    def from_species(cls, species: "Species") -> "TSguess":
         """
         Generate a TS guess from a species
 
@@ -228,10 +236,8 @@ class TSguess(TSbase):
         self,
         name: str,
         distance_consts: Optional[dict] = None,
-        method: Optional[
-            "autode.wrappers.base.ElectronicStructureMethod"
-        ] = None,
-        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        method: Optional["Method"] = None,
+        keywords: Optional["Keywords"] = None,
     ):
         """Get a TS guess from a constrained optimisation with the active atoms
         fixed at values defined in distance_consts
@@ -241,8 +247,6 @@ class TSguess(TSbase):
             name (str):
 
             keywords (autode.wrappers.keywords.Keywords):
-
-        Keyword Arguments:
 
             distance_consts (dict): Distance constraints to use, if None
                                     then use self.constraints
@@ -259,7 +263,7 @@ class TSguess(TSbase):
         logger.info("Running constrained optimisation on TS guess geometry")
 
         if distance_consts is not None:
-            self.constraints.distance = distance_consts
+            self.constraints.distance = DistanceConstraints(distance_consts)
 
         self._lmethod_scan_to_point()
 
@@ -268,6 +272,11 @@ class TSguess(TSbase):
             method = get_hmethod()
         if keywords is None:
             keywords = method.keywords.opt
+            assert (
+                keywords is not None
+            ), "Keywords must be defined to do an opt"
+
+        assert self.constraints.distance, "Must have some distance constraints"
 
         hl_const_opt = Calculation(
             name=f"{name}_constrained_opt",

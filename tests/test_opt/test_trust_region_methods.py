@@ -101,7 +101,10 @@ class BraninCGSteihaugTROptimiser(CGSteihaugTROptimiser):
 
     @property
     def converged(self) -> bool:
-        return np.linalg.norm(self._coords.g) < self._gtol
+        return (
+            self._coords.g is not None
+            and np.linalg.norm(self._coords.g) < self._gtol
+        )
 
 
 def test_trm_base_properties():

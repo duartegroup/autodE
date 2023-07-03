@@ -38,7 +38,7 @@ def _sn2_reaction():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_adapt_neb.zip"))
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_ts_from_neb_optimised_after_adapt():
 
     rxn = _sn2_reaction()

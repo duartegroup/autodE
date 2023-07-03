@@ -14,9 +14,9 @@ Frequencies and normal modes are obtained from Hessian diagonalization, followin
 
 \begin{equation}
 	\mathsf{H} = \begin{pmatrix}
-		\frac{\partial^2 E}{\partial x_1^2} & \frac{\partial^2 E}{\partial x_1y_1} & 
+		\frac{\partial^2 E}{\partial x_1^2} & \frac{\partial^2 E}{\partial x_1y_1} &
 		\frac{\partial^2 E}{\partial x_1z_1} & \cdots\\
-		\frac{\partial^2 E}{\partial y_1x_1} & \frac{\partial^2 E}{\partial y_1^2} & 
+		\frac{\partial^2 E}{\partial y_1x_1} & \frac{\partial^2 E}{\partial y_1^2} &
 		\frac{\partial^2 E}{\partial y_1z_1} & \cdots\\
 		\vdots & \vdots & \vdots & \ddots
 	\end{pmatrix}
@@ -44,7 +44,7 @@ which is real symmetric so Hermitian ($\mathsf{H} \in \mathbb{R}^{3N\times3N}$ f
 	\mathsf{S} = \begin{pmatrix}
 		\uparrow & \uparrow &  \\
 		\boldsymbol{s}_1 & \boldsymbol{s}_2 & \cdots \\
-		\downarrow & \downarrow & 
+		\downarrow & \downarrow &
 	\end{pmatrix}
 \end{equation}
 \\
@@ -57,12 +57,12 @@ To project out translational and rotational motion for a non linear molecule req
 	\end{pmatrix}
 \end{equation}
 \\
-where 
+where
 \begin{equation}
 	\mathsf{T} = \begin{pmatrix}
 		\uparrow & \uparrow  & \\
 		\hat{\boldsymbol{t}}_1 & \hat{\boldsymbol{t}}_2 & \cdots \\
-		\downarrow & \downarrow & 
+		\downarrow & \downarrow &
 	\end{pmatrix}
 \end{equation}
 \\
@@ -75,7 +75,7 @@ and the columns of $\mathsf{M}$ are,
 		(\hat{\boldsymbol{e}}_1)_N \\
 	\end{bmatrix}
 	%
-	\quad ; \quad 
+	\quad ; \quad
 	%
 	\boldsymbol{t}_2 = \begin{bmatrix}
 		(\hat{\boldsymbol{e}}_2)_1 \\
@@ -83,7 +83,7 @@ and the columns of $\mathsf{M}$ are,
 		(\hat{\boldsymbol{e}}_2)_N \\
 	\end{bmatrix}
 	%
-	\quad ; \quad 
+	\quad ; \quad
 	%
 	\boldsymbol{t}_3 = \begin{bmatrix}
 		(\hat{\boldsymbol{e}}_3)_1 \\
@@ -101,7 +101,7 @@ where $\hat{\boldsymbol{e}}_k$ is a unit vector in 3D (i.e. $\hat{\boldsymbol{e}
 		\boldsymbol{e}_1 \times \boldsymbol{r}_N \\
 	\end{bmatrix}
 	%
-	\quad ; \quad 
+	\quad ; \quad
 	%
 	\boldsymbol{t}_5 = \begin{bmatrix}
 		\boldsymbol{e}_2 \times \boldsymbol{r}_1 \\
@@ -109,7 +109,7 @@ where $\hat{\boldsymbol{e}}_k$ is a unit vector in 3D (i.e. $\hat{\boldsymbol{e}
 		\boldsymbol{e}_2 \times \boldsymbol{r}_N \\
 	\end{bmatrix}
 	%
-	\quad ; \quad 
+	\quad ; \quad
 	%
 	\boldsymbol{t}_6 = \begin{bmatrix}
 		\boldsymbol{e}_3 \times \boldsymbol{r}_1 \\
@@ -121,7 +121,7 @@ where $\hat{\boldsymbol{e}}_k$ is a unit vector in 3D (i.e. $\hat{\boldsymbol{e}
 where $\boldsymbol{r}_i$ is the vector from the centre of mass of the system to the atom $i$. The remaining $\boldsymbol{t}_n$ are filled with random vectors that are orthogonal to $\boldsymbol{t}_1\text{--}\boldsymbol{t}_6$, which can be achieved by QR factorisation once the remaining elements of $\mathsf{T}$ have been seeded with random numbers. Normalisation requires,
 
 \begin{equation}
-	\hat{\boldsymbol{t}}_i = \frac{\mathsf{M}^{1/2}\boldsymbol{t}_i}{|\mathsf{M}^{1/2}\boldsymbol{t}_i|}	
+	\hat{\boldsymbol{t}}_i = \frac{\mathsf{M}^{1/2}\boldsymbol{t}_i}{|\mathsf{M}^{1/2}\boldsymbol{t}_i|}
 	%
 	\qquad ; \qquad
 	%
@@ -142,11 +142,11 @@ Projected frequencies are then obtained from the submatrix of $\mathsf{H}_\text{
 
 
 \begin{equation}
-	\bar{\mathsf{H}}_\text{w} = \mathsf{\bar{S} \bar{D}\bar{S}}^T 
+	\bar{\mathsf{H}}_\text{w} = \mathsf{\bar{S} \bar{D}\bar{S}}^T
 	%
 	\quad ; \quad
 	%
-	\bar{\mathsf{S}} = 
+	\bar{\mathsf{S}} =
 	\begin{pmatrix}
 		\uparrow & \\
 		\bar{\boldsymbol{s}}_7 & \cdots \\
@@ -155,7 +155,7 @@ Projected frequencies are then obtained from the submatrix of $\mathsf{H}_\text{
 	%
 	\quad ; \quad
 	%
-	\bar{\mathsf{D}} = 
+	\bar{\mathsf{D}} =
 	\begin{pmatrix}
 		\bar{\lambda}_7 &  0& \cdots \\
 		0 & \bar{\lambda}_8 & \cdots \\
@@ -174,7 +174,7 @@ with $\bar{\nu}_{0\text{--}6} = 0$ cm${}^{-1}$, while the eigenvectors are,
 		\boldsymbol{s}_1' & \cdots\\
 		\downarrow &
 	\end{pmatrix}
-    = 
+    =
 	\begin{pmatrix}
 		\boldsymbol{0} & \boldsymbol{0} \\
 		\boldsymbol{0} & \bar{\mathsf{S}}

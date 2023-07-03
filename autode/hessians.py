@@ -6,7 +6,15 @@ import numpy as np
 import multiprocessing as mp
 
 from functools import cached_property
-from typing import List, Tuple, Iterator, Optional, Sequence, Union, Any
+from typing import (
+    List,
+    Tuple,
+    Iterator,
+    Optional,
+    Sequence,
+    Union,
+    TYPE_CHECKING,
+)
 from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
 from autode.config import Config
@@ -22,6 +30,13 @@ from autode.units import (
     J_per_ang_sq,
     J_per_ang_sq_kg,
 )
+
+if TYPE_CHECKING:
+    from autode.wrappers.methods import Method
+    from autode.atoms import Atoms
+    from autode.species.species import Species
+    from autode.wrappers.keywords import GradientKeywords, Keywords
+    from autode.values import Distance, Gradient
 
 
 class Hessian(ValueArray):
@@ -45,9 +60,9 @@ class Hessian(ValueArray):
         cls,
         input_array: np.ndarray,
         units: Union[Unit, str] = ha_per_ang_sq,
-        atoms: Optional["autode.atoms.Atoms"] = None,
+        atoms: Optional["Atoms"] = None,
         functional: Optional[Functional] = None,
-    ):
+    ) -> "Hessian":
         """
         Hessian matrix
 
@@ -396,7 +411,7 @@ class Hessian(ValueArray):
 
         return trans_rot_freqs + vib_freqs
 
-    def copy(self) -> "Hessian":
+    def copy(self, *args, **kwargs) -> "Hessian":
         return self.__class__(
             np.copy(self), units=self.units, atoms=self.atoms
         )
@@ -405,9 +420,9 @@ class Hessian(ValueArray):
 class NumericalHessianCalculator:
     def __init__(
         self,
-        species: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
-        keywords: "autode.wrappers.keywords.GradientKeywords",
+        species: "Species",
+        method: "Method",
+        keywords: "GradientKeywords",
         do_c_diff: bool,
         shift: Distance,
         n_cores: Optional[int] = None,
@@ -426,7 +441,7 @@ class NumericalHessianCalculator:
             atoms=species.atoms.copy(),
         )
 
-        self._calculated_rows = []
+        self._calculated_rows: List[int] = []
 
         self._n_total_cores = Config.n_cores if n_cores is None else n_cores
 
@@ -539,8 +554,8 @@ class NumericalHessianCalculator:
 
     @staticmethod
     def _validated(
-        keywords: "autode.keywords.Keywords",
-    ) -> "autode.keywords.GradientKeywords":
+        keywords: "Keywords",
+    ) -> "GradientKeywords":
         """Validate the keywords"""
 
         if not isinstance(keywords, GradientKeywords):
@@ -566,7 +581,7 @@ class NumericalHessianCalculator:
 
         return vec
 
-    def _gradient(self, species) -> "autode.values.Gradient":
+    def _gradient(self, species) -> "Gradient":
         """Evaluate the flat gradient, with shape = (3 n_atoms,)"""
         from autode.calculations import Calculation
 
@@ -581,7 +596,7 @@ class NumericalHessianCalculator:
         return species.gradient.flatten()
 
     @property
-    def _init_gradient(self) -> "autode.values.Gradient":
+    def _init_gradient(self) -> "Gradient":
         """Gradient at the initial geometry of the species"""
         return np.array(self._species.gradient).flatten()
 
@@ -633,11 +648,11 @@ class HybridHessianCalculator(NumericalHessianCalculator):
 
     def __init__(
         self,
-        species: "autode.species.Species",
+        species: "Species",
         idxs: Sequence[int],
-        shift: "autode.values.Distance",
-        lmethod: Optional["autode.wrappers.methods.Method"] = None,
-        hmethod: Optional["autode.wrappers.methods.Method"] = None,
+        shift: "Distance",
+        lmethod: Optional["Method"] = None,
+        hmethod: Optional["Method"] = None,
         n_cores: Optional[int] = None,
     ):
         """
@@ -712,8 +727,8 @@ class HybridHessianCalculator(NumericalHessianCalculator):
 
 
 def _method_or_default_hmethod(
-    method: "autode.wrappers.methods.Method",
-) -> "autode.wrappers.methods.Method":
+    method: Optional["Method"],
+) -> "Method":
     # Avoid cyclic imports
     from autode.methods import method_or_default_hmethod
 
@@ -721,8 +736,8 @@ def _method_or_default_hmethod(
 
 
 def _method_or_default_lmethod(
-    method: "autode.wrappers.methods.Method",
-) -> "autode.wrappers.methods.Method":
+    method: Optional["Method"],
+) -> "Method":
     # Avoid cyclic imports
     from autode.methods import method_or_default_lmethod
 

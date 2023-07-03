@@ -1,7 +1,9 @@
 import numpy as np
 from abc import ABC
 from typing import Type
+
 from autode.log import logger
+from autode.values import GradientRMS, PotentialEnergy
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.optimisers.hessian_update import BFGSUpdate, NullUpdate
 from autode.opt.optimisers.line_search import (
@@ -14,8 +16,8 @@ class BFGSOptimiser(NDOptimiser, ABC):
     def __init__(
         self,
         maxiter: int,
-        gtol: "autode.values.GradientRMS",
-        etol: "autode.values.PotentialEnergy",
+        gtol: GradientRMS,
+        etol: PotentialEnergy,
         init_alpha: float = 1.0,
         line_search_type: Type[LineSearchOptimiser] = ArmijoLineSearch,
         **kwargs,
@@ -67,6 +69,13 @@ class BFGSOptimiser(NDOptimiser, ABC):
         and setting :math:`s_k = \alpha \boldsymbol{p}_k`, and updating the
         positions accordingly (:math:`X_{k+1} = X_{k} + s_k`)
         """
+        assert (
+            self._coords is not None
+            and self._coords.g is not None
+            and self._species is not None
+            and self._method is not None
+        )
+
         self._coords.h_inv = self._updated_h_inv()
         p = np.matmul(self._coords.h_inv, -self._coords.g)
 
@@ -76,6 +85,7 @@ class BFGSOptimiser(NDOptimiser, ABC):
         )
 
         ls.run(self._species, self._method, n_cores=self._n_cores)
+        assert ls.minimum_e_coords is not None
 
         self._coords = ls.minimum_e_coords.copy()
         return None

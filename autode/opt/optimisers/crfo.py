@@ -10,7 +10,7 @@ from itertools import combinations
 from autode.log import logger
 from autode.values import GradientRMS, Angle
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.internals import PIC
+from autode.opt.coordinates.internals import PIC, AnyPIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (
@@ -40,6 +40,8 @@ class CRFOptimiser(RFOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
+        assert self._coords is not None, "Must have coords to take a step"
+        assert self._coords.g is not None, "Must have a gradient"
         self._coords.h = self._updated_h()
 
         n, m = len(self._coords), self._coords.n_constraints
@@ -102,6 +104,7 @@ class CRFOptimiser(RFOptimiser):
         logger.info("Initialising optimisation")
 
         self._build_internal_coordinates()
+        assert self._coords is not None
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._update_gradient_and_energy()
 
@@ -136,6 +139,7 @@ class CRFOptimiser(RFOptimiser):
     @property
     def _primitives(self) -> PIC:
         """Primitive internal coordinates in this molecule"""
+        assert self._species and self._species.graph
         logger.info("Generating primitive internal coordinates")
         graph = self._species.graph.copy()
 
@@ -147,7 +151,7 @@ class CRFOptimiser(RFOptimiser):
             for (i, j) in self._species.constraints.distance:
                 graph.add_edge(i, j)
 
-        pic = PIC()
+        pic = AnyPIC()
 
         for (i, j) in sorted(graph.edges):
 
@@ -184,6 +188,8 @@ class CRFOptimiser(RFOptimiser):
         the eigenvalues of the full lagrangian Hessian matrix (b) and the
         gradient in the Hessian eigenbasis
         """
+        assert self._coords is not None
+
         m = self._coords.n_constraints - self._coords.n_satisfied_constraints
 
         aug_h = np.zeros(shape=(m + 1, m + 1))
@@ -197,6 +203,8 @@ class CRFOptimiser(RFOptimiser):
         self, b: np.ndarray, f: np.ndarray
     ) -> float:
         """Like lambda_p but for the negative component"""
+        assert self._coords is not None
+
         n_satisfied = self._coords.n_satisfied_constraints
         m = self._coords.n_constraints - n_satisfied
         n = len(self._coords) - n_satisfied

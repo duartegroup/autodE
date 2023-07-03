@@ -15,22 +15,28 @@ https://optimization.mccormick.northwestern.edu/index.php/Trust-region_methods
 with :math:`\Delta \equiv \alpha`
 """
 import numpy as np
-from typing import Optional, Union
+from typing import Optional, TYPE_CHECKING
 from abc import ABC, abstractmethod
+
 from autode.log import logger
 from autode.values import GradientRMS, PotentialEnergy
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt import CartesianCoordinates
+
+if TYPE_CHECKING:
+    from autode.opt.coordinates import OptCoordinates
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
 
 
 class TrustRegionOptimiser(NDOptimiser, ABC):
     def __init__(
         self,
         maxiter: int,
-        gtol: "autode.values.GradientRMS",
-        etol: "autode.values.PotentialEnergy",
+        gtol: GradientRMS,
+        etol: PotentialEnergy,
         trust_radius: float,
-        coords: Optional["autode.opt.OptCoordinates"] = None,
+        coords: Optional["OptCoordinates"] = None,
         max_trust_radius: Optional[float] = None,
         eta_1: float = 0.1,
         eta_2: float = 0.25,
@@ -61,13 +67,13 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
     @classmethod
     def optimise(
         cls,
-        species: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
+        species: "Species",
+        method: "Method",
         n_cores: Optional[int] = None,
-        coords: Optional["autode.opt.OptCoordinates"] = None,
-        gtol: Union[float, GradientRMS] = GradientRMS(1e-3, "Ha Å-1"),
-        etol: Union[float, PotentialEnergy] = PotentialEnergy(1e-4, "Ha"),
+        coords: Optional["OptCoordinates"] = None,
         maxiter: int = 5,
+        gtol: GradientRMS = GradientRMS(1e-3, "Ha Å-1"),
+        etol: PotentialEnergy = PotentialEnergy(1e-4, "Ha"),
         trust_radius: float = 0.2,
         **kwargs,
     ) -> None:
@@ -93,6 +99,8 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         direction which to step in, the distance for which is fixed by the
         current trust region (alpha)
         """
+        assert self._coords is not None
+
         rho = self.rho
         self._solve_subproblem()
 
@@ -182,8 +190,12 @@ class TrustRegionOptimiser(NDOptimiser, ABC):
         if self.m is None:
             raise RuntimeError("Predicted energy update (m) undefined")
 
-        true_diff = self._history.penultimate.e - self._history.final.e
-        predicted_diff = self._history.penultimate.e - self.m
+        penultimate_energy = self._history.penultimate.e
+        final_energy = self._history.final.e
+        assert final_energy is not None and penultimate_energy is not None
+
+        true_diff: PotentialEnergy = penultimate_energy - final_energy
+        predicted_diff: PotentialEnergy = penultimate_energy - self.m
 
         return true_diff / predicted_diff
 
@@ -210,6 +222,7 @@ class CauchyTROptimiser(TrustRegionOptimiser):
         """Initialise a TR optimiser, so it can take the first step"""
 
         if self._coords is None:
+            assert self._species is not None
             self._coords = CartesianCoordinates(self._species.coordinates)
 
         self._update_gradient_and_energy()
@@ -218,6 +231,7 @@ class CauchyTROptimiser(TrustRegionOptimiser):
 
     def _update_hessian(self) -> None:
         """Hessian is always the identity matrix"""
+        assert self._coords is not None
         self._coords.h = np.eye(len(self._coords))
         return None
 
@@ -241,6 +255,7 @@ class CauchyTROptimiser(TrustRegionOptimiser):
             p = -\tau \frac{\alpha}{|g|} g
 
         """
+        assert self._coords is not None
         g = self._coords.g
 
         self.p = -self.tau * (self.alpha / np.linalg.norm(g)) * g
@@ -256,6 +271,7 @@ class CauchyTROptimiser(TrustRegionOptimiser):
         Returns:
             (float): τ
         """
+        assert self._coords is not None
 
         e, g, h = self._coords.e, self._coords.g, self._coords.h
         g_h_g = np.dot(g, np.matmul(h, g))
@@ -273,6 +289,7 @@ class DoglegTROptimiser(CauchyTROptimiser):
         """
         Solve the subproblem to generate a dogleg step
         """
+        assert self._coords is not None
         tau, g, h = self.tau, self._coords.g, self._coords.h
 
         p_u = -(np.dot(g, g) / np.dot(g, np.matmul(h, g))) * g
@@ -315,6 +332,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         """Initialise a TR optimiser, so it can take the first step"""
 
         if self._coords is None:
+            assert self._species is not None
             self._coords = self.coordinate_type(self._species.coordinates)
 
         self._update_gradient_and_energy()
@@ -323,6 +341,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
 
     def _update_hessian(self) -> None:
         """Hessian is always the identity matrix"""
+        assert self._coords is not None
         self._coords.h = np.eye(len(self._coords))
         return None
 
@@ -340,6 +359,7 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         Returns:
             (np.ndarray): Step direction (p)
         """
+        assert self._coords is not None
 
         e, g, h = self._coords.e, self._coords.g, self._coords.h
         tau_arr, m_arr = np.linspace(0, 10, num=1000), []
@@ -369,6 +389,8 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         """
         Solve the subproblem for a direction
         """
+        assert self._coords is not None
+
         h = self._coords.h
         z, r = 0.0, np.array(self._coords.g, copy=True)
         d = -r.copy()

@@ -1,10 +1,10 @@
-import os
 import base64
 import hashlib
 import pickle
 
-from typing import Union, Optional, List, Generator
+from typing import Union, Optional, List, Generator, TYPE_CHECKING
 from datetime import date
+
 from autode.config import Config
 from autode.solvent.solvents import get_solvent
 from autode.transition_states.locate_tss import find_tss
@@ -23,11 +23,15 @@ from autode.utils import (
 )
 from autode.reactions import reaction_types
 
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.units import Unit
+
 
 class Reaction:
     def __init__(
         self,
-        *args: Union[str, "autode.species.species.Species"],
+        *args: Union[str, "Species"],
         name: str = "reaction",
         solvent_name: Optional[str] = None,
         smiles: Optional[str] = None,
@@ -64,8 +68,13 @@ class Reaction:
         logger.info(f"Generating a Reaction for {name}")
 
         self.name = name
-        self.reacs, self.prods = [], []
-        self._reactant_complex, self._product_complex = None, None
+
+        self.reacs: List["Species"] = []
+        self.prods: List["Species"] = []
+
+        self._reactant_complex: Optional[ReactantComplex] = None
+        self._product_complex: Optional[ProductComplex] = None
+
         self.tss = TransitionStates()
 
         # If there is only one string argument assume it's a SMILES
@@ -103,7 +112,7 @@ class Reaction:
     @requires_hl_level_methods
     def calculate_reaction_profile(
         self,
-        units: Union["autode.units.Unit", str] = "kcal mol-1",
+        units: Union["Unit", str] = "kcal mol-1",
         with_complexes: bool = False,
         free_energy: bool = False,
         enthalpy: bool = False,
@@ -235,6 +244,7 @@ class Reaction:
             for mol in molecules:
                 mol.solvent = self.solvent
 
+        assert self.solvent is not None, "Solvent cannot be undefined here"
         logger.info(
             f"Set the solvent of all species in the reaction to "
             f"{self.solvent.name}"
@@ -350,8 +360,9 @@ class Reaction:
         Returns:
             (autode.values.Energy | None):
         """
+        delta = self.delta(e_type)
 
-        if self.delta(e_type) is None:
+        if delta is None:
             logger.error(
                 f"Could not estimate barrierless {e_type},"
                 f" an energy was None"
@@ -359,8 +370,8 @@ class Reaction:
             return None
 
         # Minimum barrier is the 0 for an exothermic reaction but the reaction
-        # energy for a endothermic reaction
-        value = max(Energy(0.0), self.delta(e_type))
+        # energy for an endothermic reaction
+        value = max(Energy(0.0), delta)
 
         if self.type != reaction_types.Rearrangement:
             logger.warning(
@@ -420,8 +431,10 @@ class Reaction:
         def is_ts_delta():
             return delta_type_matches("ddagger", "‡", "double dagger")
 
-        # Determine the species on the left and right hand sides of the eqn.
-        lhs, rhs = self.reacs, [self.ts] if is_ts_delta() else self.prods
+        # Determine the species on the left and right-hand sides of the equation
+        lhs: List[Species] = self.reacs
+        rhs: List[Optional[Species]] = []
+        rhs += [self.ts] if is_ts_delta() else self.prods  # type: ignore
 
         # and the type of energy to calculate
         if delta_type_matches("h", "enthalpy"):
@@ -441,6 +454,9 @@ class Reaction:
         # If there is no TS estimate the effective barrier from diffusion limit
         if is_ts_delta() and self.is_barrierless:
             return self._estimated_barrierless_delta(e_type)
+
+        for molecule in rhs:
+            assert molecule is not None, "Must have products to calc ∆E"
 
         # If the electronic structure has failed to calculate the energy then
         # the difference between the left and right cannot be calculated
@@ -577,10 +593,15 @@ class Reaction:
 
         self.prods, self.reacs = self.reacs, self.prods
 
-        (self._product_complex, self._reactant_complex) = (
-            self._reactant_complex,
-            self._product_complex,
-        )
+        if (
+            self._reactant_complex is not None
+            and self._product_complex is not None
+        ):
+            product, reactant = (
+                self._reactant_complex.to_product_complex(),
+                self._product_complex.to_reactant_complex(),
+            )
+            self._product_complex, self._reactant_complex = product, reactant
         return None
 
     @checkpoint_rxn_profile_step("reactant_product_conformers")
@@ -637,15 +658,15 @@ class Reaction:
     @work_in("transition_states")
     def locate_transition_state(self) -> None:
 
-        if self.type is None:
-            raise RuntimeError(
-                "Cannot invoke locate_transition_state without a reaction type"
-            )
+        assert self.type is not None, "Must have a reaction type"
+        assert all(
+            molecule.graph is not None for molecule in self.reacs + self.prods
+        ), "Must have molecular graphs set for reactants and products"
 
         # If there are more bonds in the product e.g. an addition reaction then
         # switch as the TS is then easier to find
-        if sum(p.graph.number_of_edges() for p in self.prods) > sum(
-            r.graph.number_of_edges() for r in self.reacs
+        if sum(p.graph.number_of_edges() for p in self.prods) > sum(  # type: ignore
+            r.graph.number_of_edges() for r in self.reacs  # type: ignore
         ):
             self.switch_reactants_products()
             self.tss = find_tss(self)
@@ -690,6 +711,9 @@ class Reaction:
 
         csv_file = open("energies.csv", "w")
         method = get_hmethod()
+        assert (
+            method.keywords.sp and method.keywords.opt
+        ), "High level methods must have sp and opt keywords"
         print(
             f"Energies generated by autodE on: {date.today()}. Single point "
             f"energies at {method.keywords.sp.bstring} and optimisations at "
@@ -716,7 +740,7 @@ class Reaction:
             print_energies_to_csv(mol)
 
         # and the reactant and product complexes if they're present
-        for mol in [self._reactant_complex, self._product_complex]:
+        for mol in [self._reactant_complex, self._product_complex]:  # type: ignore
             if mol is not None and mol.energy is not None:
                 mol.print_xyz_file()
                 print_energies_to_csv(mol)
@@ -725,6 +749,7 @@ class Reaction:
         if self.ts is not None:
             ts_title_str = ""
             imags = self.ts.imaginary_frequencies
+            assert imags is not None, "A TS must have an imaginary frequency"
 
             if self.ts.has_imaginary_frequencies and len(imags) > 0:
                 ts_title_str += f". Imaginary frequency = {imags[0]:.1f} cm-1"
@@ -767,7 +792,7 @@ class Reaction:
         return None
 
     def _plot_reaction_profile_with_complexes(
-        self, units: "autode.units.Unit", free_energy: bool, enthalpy: bool
+        self, units: Union["Unit", str], free_energy: bool, enthalpy: bool
     ) -> None:
         """Plot a reaction profile with the association complexes of R, P"""
         rxns = []

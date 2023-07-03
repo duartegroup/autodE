@@ -11,13 +11,20 @@ x : Cartesian coordinates
 g : gradient in cartesian coordinates
 """
 import numpy as np
-from typing import Optional
+
+from typing import Optional, Union, TYPE_CHECKING
 from enum import Enum
+
 from autode.calculations import Calculation
 from autode.log import logger
 from autode.values import GradientRMS, Angle, MWDistance
 from autode.opt.optimisers.base import Optimiser
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
+
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
 
 
 class Dimer(Optimiser):
@@ -28,7 +35,7 @@ class Dimer(Optimiser):
         maxiter: int,
         coords: DimerCoordinates,
         ratio_rot_iters: int = 10,
-        gtol: GradientRMS = GradientRMS(1e-3, "Ha Å-1"),
+        gtol: Union[float, GradientRMS] = GradientRMS(1e-3, "Ha Å-1"),
         trns_tol: MWDistance = MWDistance(1e-3, "Å amu^1/2"),
         phi_tol: Angle = Angle(5.0, "°"),
         init_alpha: MWDistance = MWDistance(0.3, "Å amu^1/2"),
@@ -67,15 +74,16 @@ class Dimer(Optimiser):
 
         self._converged_translation = False  # Convergence flag
 
+        assert self._coords is not None
         logger.info(f"Initialised a dimer with Δ = {self._coords.delta:.4f} Å")
 
     @classmethod
     def optimise(
         cls,
-        species: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
+        species: "Species",
+        method: "Method",
         n_cores: Optional[int] = None,
-        coords: DimerCoordinates = None,
+        coords: Optional[DimerCoordinates] = None,
         **kwargs,
     ) -> None:
         """
@@ -120,6 +128,7 @@ class Dimer(Optimiser):
 
     def _rotate(self) -> "_StepResult":
         """Apply a rotation"""
+        assert self._coords is not None
 
         c_phi0, dc_dphi0 = self._c, self._dc_dphi
         logger.info(
@@ -173,6 +182,7 @@ class Dimer(Optimiser):
 
     def _translate(self, update_g0=True) -> "_StepResult":
         """Translate the dimer under the translational force"""
+        assert self._coords is not None
         x0 = self._coords.x0
 
         trns_iters = [c for c in self._history if c.did_translation]
@@ -224,6 +234,7 @@ class Dimer(Optimiser):
 
     def _initialise_run(self) -> None:
         """Initialise running the dimer optimisation"""
+        assert self._coords is not None and self._species is not None
 
         if np.isclose(self._coords.delta, 0.0):
             raise RuntimeError("Zero distance between the dimer points")
@@ -241,6 +252,7 @@ class Dimer(Optimiser):
     @property
     def converged(self) -> bool:
         """Has the dimer converged?"""
+        assert self._coords is not None
 
         if self._converged_translation:
             logger.info(
@@ -258,6 +270,12 @@ class Dimer(Optimiser):
 
     def _update_gradient_at(self, point: DimerPoint) -> None:
         """Update the gradient at one of the points in the dimer"""
+        assert (
+            self._coords is not None
+            and self._species is not None
+            and self._method is not None
+            and self._method.keywords.grad is not None
+        )
         i = int(point)
 
         self._species.coordinates = self._coords.x_at(
@@ -272,9 +290,12 @@ class Dimer(Optimiser):
             n_cores=self._n_cores,
         )
         calc.run()
+        assert (
+            self._species.energy is not None
+            and self._species.gradient is not None
+        )
 
         self._coords.e = self._species.energy
-
         self._coords.set_g_at(
             point, self._species.gradient.flatten(), mass_weighted=False
         )
@@ -290,20 +311,25 @@ class Dimer(Optimiser):
     @property
     def _theta_steepest_descent(self) -> np.ndarray:
         """Rotation direction Θ, calculated using steepest descent"""
-        f_r = self._coords.f_r
+        assert self._coords is not None
 
+        f_r = self._coords.f_r
         # F_R / |F_R| with a small jitter to prevent division by zero
         return f_r / (np.linalg.norm(f_r) + 1e-8)
 
     @property
     def _c(self) -> float:
         """Curvature of the PES, C_τ.  eqn. 4 in ref [1]"""
+        assert self._coords is not None
+
         g1, g0 = self._coords.g1, self._coords.g0
         return np.dot((g1 - g0), self._coords.tau_hat) / self._coords.delta
 
     @property
     def _dc_dphi(self) -> float:
         """dC_τ/dϕ eqn. 6 in ref [1]"""
+        assert self._coords is not None
+
         g1, g0 = self._coords.g1, self._coords.g0
 
         return 2.0 * np.dot((g1 - g0), self._theta) / self._coords.delta
@@ -324,6 +350,8 @@ class Dimer(Optimiser):
 
             update_g1 (bool): Update the gradient on point 1 after the rotation
         """
+        assert self._coords is not None
+
         x0 = self._coords.x0.copy()  # Midpoint coordinates
         g0 = self._coords.g0.copy()  # Midpoint gradient
 
@@ -339,7 +367,7 @@ class Dimer(Optimiser):
                 f"Step size ({max_step_c}) was above the tolerance"
                 f" {self.init_alpha} Å amu^1/2. Scaling down"
             )
-            return self._rotate_coords(phi=phi / 2, update_g1=update_g1)
+            return self._rotate_coords(phi=Angle(phi / 2), update_g1=update_g1)
 
         self._coords = self._coords.copy()
         self._coords.x1 = x0 + delta

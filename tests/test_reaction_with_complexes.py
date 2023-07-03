@@ -9,7 +9,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 @testutils.work_in_zipped_dir(
     os.path.join(here, "data", "reaction_with_complexes.zip")
 )
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_reaction_w_complexes():
 
     ade.Config.n_cores = 1  # Ensure only a single core is used

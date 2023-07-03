@@ -76,6 +76,10 @@ class BlankCalculationOutput(CalculationOutput):
     def filename(self) -> Optional[str]:
         return None
 
+    @filename.setter
+    def filename(self, value: str):
+        raise ValueError("Cannot set the filename of a blank output")
+
     @property
     def file_lines(self) -> List[str]:
         return []

@@ -1,7 +1,9 @@
 from abc import ABC
 import numpy as np
-from typing import Optional
 import autode.exceptions as ex
+
+from typing import Optional, TYPE_CHECKING
+
 from autode.atoms import metals
 from autode.config import Config
 from autode.geom import calc_rmsd
@@ -10,6 +12,13 @@ from autode.log import logger
 from autode.methods import get_hmethod, get_lmethod
 from autode.mol_graphs import make_graph, species_are_isomorphic
 from autode.species.species import Species
+from autode.exceptions import AutodeException
+
+
+if TYPE_CHECKING:
+    from autode.species import Species
+    from autode.bond_rearrangement import BondRearrangement
+    from autode.atoms import Atoms
 
 
 class TSbase(Species, ABC):
@@ -25,15 +34,13 @@ class TSbase(Species, ABC):
 
     def __init__(
         self,
-        atoms: "autode.atoms.Atoms",
-        reactant: Optional["autode.species.ReactantComplex"] = None,
-        product: Optional["autode.species.ProductComplex"] = None,
+        atoms: "Atoms",
+        reactant: Optional["Species"] = None,
+        product: Optional["Species"] = None,
         name: str = "ts_guess",
         charge: int = 0,
         mult: int = 1,
-        bond_rearr: Optional[
-            "autode.bond_rearrangement.BondRearrangement"
-        ] = None,
+        bond_rearr: Optional["BondRearrangement"] = None,
         solvent_name: Optional[str] = None,
     ):
         """
@@ -86,6 +93,7 @@ class TSbase(Species, ABC):
 
         if self.reactant is not None:
             logger.warning(f"Setting the graph of {self.name} from reactants")
+            assert self.reactant.graph is not None
             self._graph = self.reactant.graph.copy()
 
         return None
@@ -140,9 +148,6 @@ class TSbase(Species, ABC):
             which is defined as autode.config.Config.min_imag_freq
 
         -----------------------------------------------------------------------
-        Keywords Arguments:
-            method (autode.wrappers.base.ElectronicStructureMethod):
-
         Returns:
             (bool):
 
@@ -239,6 +244,8 @@ class TSbase(Species, ABC):
         Returns:
             (bool):
         """
+        assert self.bond_rearrangement, "Must have a bond rearrangement"
+
         logger.info(
             "Checking displacement on imaginary mode forms the correct"
             " bonds"
@@ -358,6 +365,7 @@ class TSbase(Species, ABC):
             self, mode_number=6, disp_factor=-disp_mag, max_atom_disp=0.2
         )
         b_mol.name = f"{self.name}_backwards"
+        assert f_mol.graph and b_mol.graph, "Must have graphs"
 
         # The high and low level methods may not have the same minima, so
         # optimise and recheck isomorphisms
@@ -379,7 +387,7 @@ class TSbase(Species, ABC):
                     )
                     return False
 
-            if f_b_isomorphic_to_r_p(
+            if forward_backward_isomorphic_to_reactant_product(
                 f_mol, b_mol, self.reactant, self.product
             ):
                 return True
@@ -399,6 +407,7 @@ class TSbase(Species, ABC):
             (dict): Keyed with atom indexes for the active atoms (tuple) and
                     equal to the constrained value
         """
+        assert self.graph is not None, "Must have a molecular graph"
         constraints = DistanceConstraints()
 
         for edge in self.graph.edges:
@@ -414,7 +423,7 @@ def displaced_species_along_mode(
     mode_number: int,
     disp_factor: float = 1.0,
     max_atom_disp: float = 99.9,
-) -> Optional[Species]:
+) -> Species:
     """
     Displace the geometry along a normal mode with mode number indexed from 0,
     where 0-2 are translational normal modes, 3-5 are rotational modes and 6
@@ -424,9 +433,9 @@ def displaced_species_along_mode(
     ---------------------------------------------------------------------------
     Arguments:
         species (autode.species.Species):
+
         mode_number (int): Mode number to displace along
 
-    Keyword Arguments:
         disp_factor (float): Distance to displace (default: {1.0})
 
         max_atom_disp (float): Maximum displacement of any atom (Å)
@@ -435,17 +444,16 @@ def displaced_species_along_mode(
         (autode.species.Species):
 
     Raises:
-        (autode.exceptions.CouldNotGetProperty):
+        (autode.exceptions.CouldNotGetProperty | autode.exceptions.AutodeException):
     """
     logger.info(f"Displacing along mode {mode_number} in {species.name}")
 
     mode_disp_coords = species.normal_mode(mode_number)
     if mode_disp_coords is None:
-        logger.error(
+        raise AutodeException(
             "Could not get a displaced species. No normal mode "
             "could be found"
         )
-        return None
 
     coords = species.coordinates
     disp_coords = coords.copy() + disp_factor * mode_disp_coords
@@ -478,7 +486,8 @@ def displaced_species_along_mode(
 def imag_mode_generates_other_bonds(
     ts: TSbase, f_species: Species, b_species: Species, allow_mx: bool = False
 ) -> bool:
-    """Determine if the forward or backwards displaced molecule break or make
+    """
+    Determine if the forward or backwards displaced molecule break or make
     bonds that aren't in all the active bonds bond_rearrangement.all. Will be
     fairly conservative here
 
@@ -490,18 +499,20 @@ def imag_mode_generates_other_bonds(
 
         b_species (autode.species.Species): Backward displaced species
 
-    Keyword Arguments:
         allow_mx (bool): Allow any metal-X bonds where X is another element
 
     Returns:
         (bool):
     """
 
-    _ts = ts.copy()
+    _ts: TSbase = ts.copy()
+    assert _ts.graph is not None, "TS must have a molecular graph"
+
     for species in (_ts, f_species, b_species):
         make_graph(species, rel_tolerance=0.3)
 
     for product in (f_species, b_species):
+        assert product.graph is not None, "Must have a graph for product"
 
         new_bonds_in_product = set(
             [
@@ -522,6 +533,8 @@ def imag_mode_generates_other_bonds(
             )
 
         br = _ts.bond_rearrangement
+        assert br is not None, "Must have a bond rearrangement"
+
         if not set(a for b in new_bonds_in_product for a in b).issubset(
             set(br.active_atoms)
         ):
@@ -535,11 +548,11 @@ def imag_mode_generates_other_bonds(
     return False
 
 
-def f_b_isomorphic_to_r_p(
+def forward_backward_isomorphic_to_reactant_product(
     forwards: Species,
     backwards: Species,
-    reactant: "autode.species.ReactantComplex",
-    product: "autode.species.ProductComplex",
+    reactant: "Species",
+    product: "Species",
 ) -> bool:
     """
     Are the forward/backward displaced species isomorphic to

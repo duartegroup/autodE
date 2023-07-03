@@ -1,4 +1,5 @@
-from typing import Union
+from typing import Union, TYPE_CHECKING
+
 from autode.plotting import plot_reaction_profile
 from autode.methods import get_hmethod
 from autode.config import Config
@@ -6,11 +7,13 @@ from autode.reactions.reaction import Reaction
 from autode.log import logger
 from autode.utils import work_in
 
+if TYPE_CHECKING:
+    from autode.units import Unit
+    from autode.species.molecule import Molecule
+
 
 class MultiStepReaction:
-    def __init__(
-        self, *args: "autode.reactions.Reaction", name: str = "reaction"
-    ):
+    def __init__(self, *args: "Reaction", name: str = "reaction"):
         """
         Reaction with multiple steps.
 
@@ -23,7 +26,7 @@ class MultiStepReaction:
 
     def calculate_reaction_profile(
         self,
-        units: Union["autode.units.Unit", str] = "kcal mol-1",
+        units: Union["Unit", str] = "kcal mol-1",
     ) -> None:
         """
         Calculate a multistep reaction profile using the products of step 1
@@ -135,9 +138,7 @@ class MultiStepReaction:
 
         return None
 
-    def _added_molecule(
-        self, step_idx: int, next_step_idx: int
-    ) -> "autode.species.molecule.Molecule":
+    def _added_molecule(self, step_idx: int, next_step_idx: int) -> "Molecule":
         r"""
         Extract the added molecule going from a step to the next. For example::
 

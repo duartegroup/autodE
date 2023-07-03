@@ -5,9 +5,8 @@ Also implements DHS-GS, CI-DHS and CI-DHS-GS methods
 
 [1] M. J. S. Dewar, E. Healy, J. Chem. Soc. Farady Trans. 2, 1984, 80, 227-233
 """
-
-from typing import Tuple, Union, Optional, TYPE_CHECKING
 import numpy as np
+from typing import Tuple, Union, Optional, Any, TYPE_CHECKING
 from enum import Enum
 
 from autode.values import Distance, Angle, GradientRMS
@@ -127,6 +126,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
     def _initialise_run(self) -> None:
         """Initialise self._coords, gradient and hessian"""
+        assert self._species is not None, "Must have a species to init run"
+
         self._coords = CartesianCoordinates(self._species.coordinates)
         self._target_dist = np.linalg.norm(self.dist_vec)
         self._update_gradient_and_energy()
@@ -164,6 +165,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         Obtain the RMS of the gradient tangent to the distance
         vector between current coords and pivot point
         """
+        assert self._coords is not None and self._coords.g is not None
+
         grad = self._coords.g
         # unit vector in the direction of distance vector
         d_hat = self.dist_vec / np.linalg.norm(self.dist_vec)
@@ -188,6 +191,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # can be used to start off the next batch of optimisation
         super()._update_gradient_and_energy()
         if self.iteration != 0:
+            assert self._coords is not None, "Must have set coordinates"
             self._coords.h = self._updated_h()
 
     def _step(self) -> None:
@@ -198,6 +202,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         quasi-Newton step with a Lagrangian constraint for the distance
         is taken
         """
+        assert self._coords is not None, "Must have set coordinates"
+
         if self.iteration >= 1 and self._do_line_search:
             coords, grad = self._line_search_on_sphere()
         else:
@@ -232,6 +238,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             OptimiserStepError: If scipy fails to calculate constrained step
         """
         from scipy.optimize import minimize
+
+        assert self._coords is not None, "Must have set coordinates"
 
         # NOTE: Since the linear interpolation should produce a point
         # in the vicinity of the last two points, it seems reasonable to
@@ -289,6 +297,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         Returns:
             (Tuple): Interpolated coordinates and gradient as tuple
         """
+        assert self._coords is not None, "Must have set coords to line search"
+
         # Eq (12) to (15) in J. Chem. Phys., 90, 1989, 2154
         # Notation follows the publication
         last_coords = self._history[-2]
@@ -370,7 +380,11 @@ class DHSImagePair(EuclideanImagePair):
         tmp_spc = self._left_image.new_species(name="peak")
 
         if self._cineb_coords is not None:
-            assert self._cineb_coords.e is not None
+            assert (
+                self._cineb_coords is not None
+                and self._cineb_coords.e
+                and self._cineb_coords.g is not None
+            )
             tmp_spc.coordinates = self._cineb_coords
             tmp_spc.energy = self._cineb_coords.e
             tmp_spc.gradient = self._cineb_coords.g.reshape(-1, 3).copy()
@@ -511,10 +525,12 @@ class DHS(BaseBracketMethod):
         super().__init__(initial_species, final_species, **kwargs)
 
         # imgpair is only used for storing the points here
-        self.imgpair = DHSImagePair(initial_species, final_species)
+        self.imgpair: DHSImagePair = DHSImagePair(
+            initial_species, final_species
+        )
 
         # DHS needs to keep an extra reference to the calculation method
-        self._method = None
+        self._method: Optional[Method] = None
 
         self._step_size = Distance(abs(step_size), "ang")
         if self._step_size > self.imgpair.dist:
@@ -543,6 +559,9 @@ class DHS(BaseBracketMethod):
         the linear path between two images is taken, and several micro-iteration
         steps in the distance-constrained optimiser, to return to the MEP
         """
+        assert self._method is not None, "Must have a set method"
+        assert self.imgpair.left_coord.e and self.imgpair.right_coord.e
+
         if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
             side = ImageSide.left
             pivot = self.imgpair.right_coord
@@ -550,7 +569,7 @@ class DHS(BaseBracketMethod):
             side = ImageSide.right
             pivot = self.imgpair.left_coord
 
-        old_coords = self.imgpair.get_coord_by_side(side)
+        old_coords: Any = self.imgpair.get_coord_by_side(side)
         old_coords = old_coords if old_coords.h is not None else None
         # take a DHS step on the side with lower energy
         new_coord = self._get_dhs_step(side)
@@ -583,7 +602,7 @@ class DHS(BaseBracketMethod):
         )
 
         # put results back into imagepair
-        self.imgpair.put_coord_by_side(opt.final_coordinates, side)
+        self.imgpair.put_coord_by_side(opt.final_coordinates, side)  # type: ignore
         return None
 
     def _calculate(
@@ -688,6 +707,8 @@ class DHSGS(DHS):
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
         """
+        assert self.imgpair is not None, "Must have an image pair"
+
         dhs_step = self.imgpair.get_dhs_step_by_side(side, self._step_size)
         gs_step = self.imgpair.get_last_step_by_side(side)
 

@@ -9,11 +9,11 @@ from autode.exceptions import TemplateLoadingFailed
 from autode.solvent.solvents import get_solvent
 
 """
-The idea with templating is to avoid needless PES scans when finding TSs for 
+The idea with templating is to avoid needless PES scans when finding TSs for
 which similar have already been found.
 
-For instance the TS for the addition of CN- to acetone is going to be perturbed 
-only slightly by modifying a methyl for a CH2CH3 group. It is more efficient 
+For instance the TS for the addition of CN- to acetone is going to be perturbed
+only slightly by modifying a methyl for a CH2CH3 group. It is more efficient
 to know the forming C–C bond distance in the previous TS, fix it and run
 a constrained optimisation which will hopefully be a good guess of the TS
 """

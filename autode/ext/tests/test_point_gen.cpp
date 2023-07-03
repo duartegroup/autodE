@@ -9,12 +9,12 @@ using namespace autode;
 
 TEST_CASE("Test point generation with only a single point"){
 
-    REQUIRE_THROWS( 
+    REQUIRE_THROWS(
                    CubePointGenerator(1,  // Single point
                                       1,
                                       0.0,
                                       1.0)
-    ); 
+    );
 }
 
 
@@ -25,8 +25,8 @@ TEST_CASE("Test periodic point generation in 1D"){
                                       1.0); // maximum value
 
 
-                               
-    pointGenerator.run(1E-3, // Gradient tolerance 
+
+    pointGenerator.run(1E-3, // Gradient tolerance
                        0.01, // Step size
                        200); // Maximum number of iterations
 
@@ -34,8 +34,8 @@ TEST_CASE("Test periodic point generation in 1D"){
 
     REQUIRE(points.size() == 2);
     REQUIRE(points[0].size() == 1);
-   
-    // ∆r between the two points should be 0.5 in a periodic 1D system with length of 1 
+
+    // ∆r between the two points should be 0.5 in a periodic 1D system with length of 1
     REQUIRE(fabs(points[0][0] - points[1][0]) == Approx(0.5).epsilon(0.05));
 }
 
@@ -47,12 +47,12 @@ double distance(vector<double> point1, vector<double> point2){
 
     double dist_sq = 0.0;
     int dim = point1.size();
- 
+
     for (int i = 0; i < dim; i++){
         double tmp = point1[i] - point2[i];
         dist_sq += tmp * tmp;
-    } // i 
- 
+    } // i
+
     return sqrt(dist_sq);
 }
 
@@ -80,7 +80,7 @@ TEST_CASE("Test periodic point generation in 3D cube"){
                                       1.0);
 
 
-                               
+
     pointGenerator.run(1E-4, 0.01, 100);
     auto points = pointGenerator.points;
 

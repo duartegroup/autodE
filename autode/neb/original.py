@@ -5,7 +5,7 @@ Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 import numpy as np
 import matplotlib.pyplot as plt
 
-from typing import Optional, Sequence, List, Any, TYPE_CHECKING
+from typing import Optional, Sequence, List, Any, TYPE_CHECKING, Union, Type
 from copy import deepcopy
 
 from autode.log import logger
@@ -18,10 +18,11 @@ from autode.utils import work_in, ProcessPool
 from autode.config import Config
 from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
-from autode.values import Distance, PotentialEnergy, ForceConstant, Gradient
+from autode.values import Distance, PotentialEnergy, ForceConstant
 
 if TYPE_CHECKING:
     from autode.wrappers.methods import Method
+    from autode.neb.ci import CImages
 
 
 def energy_gradient(image, method, n_cores):
@@ -194,6 +195,9 @@ class Image(Species):
         Returns:
             (np.ndarray, np.ndarray, np.ndarray, np.ndarray)
         """
+        assert self.energy is not None, "Energy must be set to calculate tau"
+        assert im_l.energy is not None, "Left image energy must be set"
+        assert im_r.energy is not None, "Right image energy must be set"
 
         # ΔV_i^max
         dv_max = max(
@@ -250,6 +254,8 @@ class Image(Species):
             im_l (autode.neb.Image): Left image (i-1)
             im_r (autode.neb.Image): Right image (i+1)
         """
+        assert self.gradient is not None, "Gradient must be set to calc force"
+
         # τ,  x_i-1,  x_i,   x_i+1
         hat_tau, x_l, x, x_r = self._tau_xl_x_xr(im_l, im_r)
 
@@ -266,7 +272,7 @@ class Image(Species):
 
     @property
     def gradient(self) -> Optional[np.ndarray]:
-        return None if self._grad is None else self._grad.flatten()
+        return None if self._grad is None else self._grad.flatten()  # type: ignore
 
     @gradient.setter
     def gradient(self, value: Optional[np.ndarray]):
@@ -395,7 +401,7 @@ class Images(Path):
 
 class NEB:
 
-    _images_type = Images
+    _images_type: Union[Type[Images], Type["CImages"]] = Images
 
     def __init__(
         self,
@@ -440,7 +446,7 @@ class NEB:
             )
 
             max_de = max(
-                abs(molecules[i].energy - molecules[i + 1].energy)
+                abs(molecules[i].energy - molecules[i + 1].energy)  # type: ignore
                 for i in range(len(molecules) - 1)
             )
 
@@ -458,12 +464,12 @@ class NEB:
         logger.info(
             f"Using k = {init_k:.6f} Ha Å^-1 as the NEB force constant"
         )
-        return cls.from_list(molecules, init_k=init_k)
+        return cls.from_list(molecules, init_k=ForceConstant(init_k))
 
     @classmethod
     def from_list(
         cls,
-        species_list: List[Species],
+        species_list: Sequence[Species],
         init_k: ForceConstant = ForceConstant(0.1, units="Ha / Å^2"),
     ) -> "NEB":
         """
@@ -516,9 +522,6 @@ class NEB:
             raise ValueError(
                 "Cannot construct a NEB from species with different atoms"
             )
-
-        if num < 2:
-            raise ValueError("Cannot create a NEB with fewer than 2 images")
 
         neb = cls.from_list(
             species_list=cls._interpolated_species(initial, final, n=num),
@@ -616,6 +619,9 @@ class NEB:
         """Generate simple interpolated coordinates for these set of images
         in Cartesian coordinates"""
 
+        if n < 2:
+            raise RuntimeError("Cannot interpolated 2 images to <2")
+
         if n == 2:
             return [initial.copy(), final.copy()]
 
@@ -625,7 +631,7 @@ class NEB:
         for i in range(1, n - 1):
 
             # Use a copy of the starting point for atoms, charge etc.
-            species = initial.copy()
+            species: Species = initial.copy()
 
             # For all the atoms in the species translate an amount so the
             # spacing is even between the initial and final points
@@ -646,7 +652,7 @@ class NEB:
         method: "Method",
         n_cores: int,
         name_prefix: str = "",
-        etol_per_image: PotentialEnergy = PotentialEnergy(
+        etol_per_image: Union[float, PotentialEnergy] = PotentialEnergy(
             0.6, units="kcal mol-1"
         ),
     ) -> None:
@@ -697,7 +703,11 @@ class NEB:
             logger.warning("Found no peaks in the NEB")
             return None
 
+        assert (
+            self.images.peak_idx is not None
+        ), "Must have a peak index with a peak"
         image = self.images[self.images.peak_idx]
+
         return image.new_species()
 
     def idpp_relax(self) -> None:
