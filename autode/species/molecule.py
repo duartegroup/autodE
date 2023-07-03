@@ -200,7 +200,9 @@ class Molecule(Species):
                 self.conformers = [res.result() for res in results]  # type: ignore
 
             self.conformers.prune_on_energy(e_tol=1e-10)
-            methods.add("RR algorithm (???) implemented in autodE")
+            methods.add(
+                "RR algorithm (10.1002/anie.202011941) implemented in autodE"
+            )
 
         self.conformers.prune_on_rmsd()
         return None
