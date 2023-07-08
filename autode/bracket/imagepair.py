@@ -458,14 +458,21 @@ class EuclideanImagePair(BaseImagePair, ABC):
             self.left_coords.g is not None and self.right_coords.g is not None
         )
 
+        def cos_angle(vec1, vec2) -> float:
+            """Returns the cos(theta) between two vectors (1D arrays)"""
+            dot = float(np.dot(vec1, vec2))
+            dot /= np.linalg.norm(vec1)
+            dot /= np.linalg.norm(vec2)
+            return dot
+
         # NOTE: The angle between the force vector on right image
         # and the distance vector must be more than 90 degrees. Similarly
         # for left image it must be less than 90 degrees. This would mean
         # that the parallel component of the forces on each image are
         # pointing away from each other. (force is negative gradient).
 
-        left_cos_theta = np.dot(-self.left_coords.g, self.dist_vec)
-        right_cos_theta = np.dot(-self.right_coords.g, self.dist_vec)
+        left_cos_theta = cos_angle(-self.left_coords.g, self.dist_vec)
+        right_cos_theta = cos_angle(-self.right_coords.g, self.dist_vec)
 
         assert -1.0 < left_cos_theta < 1.0
         assert -1.0 < right_cos_theta < 1.0
