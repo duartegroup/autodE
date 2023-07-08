@@ -143,8 +143,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             )
             sub_opt._coords = self._old_coords
             sub_opt._coords = self._coords
-            new_h = sub_opt._updated_h()
-            self._coords.update_h_from_cart_h(new_h)
+            self._coords.h = np.array(sub_opt._updated_h())
         else:
             # no hessian available, use low level method
             self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
@@ -412,9 +411,9 @@ class DHSImagePair(EuclideanImagePair):
     def get_coord_by_side(self, side: ImageSide) -> CartesianCoordinates:
         """For external usage, supplies the coordinate object by side"""
         if side == ImageSide.left:
-            return self.left_coord
+            return self.left_coords
         elif side == ImageSide.right:
-            return self.right_coord
+            return self.right_coords
         else:
             raise ValueError
 
@@ -429,9 +428,9 @@ class DHSImagePair(EuclideanImagePair):
             side (ImageSide): left or right
         """
         if side == ImageSide.left:
-            self.left_coord = new_coord
+            self.left_coords = new_coord
         elif side == ImageSide.right:
-            self.right_coord = new_coord
+            self.right_coords = new_coord
         else:
             raise ValueError
         return None
@@ -560,14 +559,14 @@ class DHS(BaseBracketMethod):
         steps in the distance-constrained optimiser, to return to the MEP
         """
         assert self._method is not None, "Must have a set method"
-        assert self.imgpair.left_coord.e and self.imgpair.right_coord.e
+        assert self.imgpair.left_coords.e and self.imgpair.right_coords.e
 
-        if self.imgpair.left_coord.e < self.imgpair.right_coord.e:
+        if self.imgpair.left_coords.e < self.imgpair.right_coords.e:
             side = ImageSide.left
-            pivot = self.imgpair.right_coord
+            pivot = self.imgpair.right_coords
         else:
             side = ImageSide.right
-            pivot = self.imgpair.left_coord
+            pivot = self.imgpair.left_coords
 
         old_coords: Any = self.imgpair.get_coord_by_side(side)
         old_coords = old_coords if old_coords.h is not None else None

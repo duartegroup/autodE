@@ -114,8 +114,8 @@ class BaseBracketMethod(ABC):
         logger.info(
             f"{self._name} Macro-iteration #{self._macro_iter}: "
             f"Distance = {self.imgpair.dist:.4f}; Energy (initial species) = "
-            f"{self.imgpair.left_coord.e:.6f}; Energy (final species) = "
-            f"{self.imgpair.right_coord.e:.6f}"
+            f"{self.imgpair.left_coords.e:.6f}; Energy (final species) = "
+            f"{self.imgpair.right_coords.e:.6f}"
         )
 
     @property

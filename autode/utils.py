@@ -1,4 +1,5 @@
 import os
+import sys
 import platform
 import shutil
 import copy
@@ -82,7 +83,7 @@ def _copy_into_current_config(
 
 def get_total_memory() -> int:
     """Returns total amount of physical memory available in bytes"""
-    if platform.system() == "Windows":
+    if sys.platform == "win32" or platform.system() == "Windows":
         return _get_total_memory_on_windows()
     else:
         return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
