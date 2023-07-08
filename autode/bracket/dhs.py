@@ -85,7 +85,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
     def __init__(
         self,
         pivot_point: Optional[CartesianCoordinates],
-        init_trust: float = 0.2,
+        init_trust: float = 0.1,
         line_search: bool = True,
         angle_thresh: Angle = Angle(5, units="deg"),
         old_coords_read_hess: Optional[CartesianCoordinates] = None,
