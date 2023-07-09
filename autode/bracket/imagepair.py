@@ -460,9 +460,9 @@ class EuclideanImagePair(BaseImagePair, ABC):
 
         def cos_angle(vec1, vec2) -> float:
             """Returns the cos(theta) between two vectors (1D arrays)"""
-            dot = float(np.dot(vec1, vec2))
-            dot /= np.linalg.norm(vec1)
-            dot /= np.linalg.norm(vec2)
+            dot = float(np.dot(vec1, vec2)) / (
+                np.linalg.norm(vec1) * np.linalg.norm(vec2)
+            )
             return dot
 
         # NOTE: The angle between the force vector on right image
