@@ -35,20 +35,20 @@ def test_imagpair_coordinates():
     # it's an array of right shape
     coord_array = np.array(mol.coordinates.flatten())
     with pytest.raises(TypeError):
-        imgpair.left_coord = coord_array
+        imgpair.left_coords = coord_array
     with pytest.raises(TypeError):
-        imgpair.right_coord = coord_array
+        imgpair.right_coords = coord_array
 
     coords = CartesianCoordinates(mol.coordinates)
     coords += 0.1
     # no error if Cartesian coordinates
-    imgpair.left_coord = coords
+    imgpair.left_coords = coords
     coords = CartesianCoordinates(np.arange(mol.n_atoms + 1))
     num = mol.n_atoms * 3
     with pytest.raises(ValueError, match=f"Must have {num} entries"):
-        imgpair.left_coord = coords
+        imgpair.left_coords = coords
     with pytest.raises(ValueError, match=f"Must have {num} entries"):
-        imgpair.right_coord = coords
+        imgpair.right_coords = coords
 
 
 def test_imagepair_method_typing():
@@ -148,15 +148,15 @@ def test_imgpair_energy_plotting(caplog):
     mol2 = Molecule(smiles="CCO")
 
     imgpair = NullImagePair(mol1, mol2)
-    imgpair.left_coord.e = Energy(-3.14)
-    imgpair.right_coord.e = Energy(-2.87)
+    imgpair.left_coords.e = Energy(-3.14)
+    imgpair.right_coords.e = Energy(-2.87)
     # spoof new coordinates
-    imgpair.left_coord = imgpair.left_coord * 0.99
-    imgpair.right_coord = imgpair.right_coord * 0.99
-    imgpair.left_coord.e = Energy(-1.99)
-    imgpair.right_coord.e = Energy(-2.15)
+    imgpair.left_coords = imgpair.left_coords * 0.99
+    imgpair.right_coords = imgpair.right_coords * 0.99
+    imgpair.left_coords.e = Energy(-1.99)
+    imgpair.right_coords.e = Energy(-2.15)
     # if CINEB run at the end
-    imgpair._cineb_coords = imgpair.left_coord * 0.99
+    imgpair._cineb_coords = imgpair.left_coords * 0.99
     imgpair._cineb_coords.e = Energy(-0.99)
 
     # test all distance_metrics
@@ -172,7 +172,7 @@ def test_imgpair_energy_plotting(caplog):
         imgpair.plot_energies(filename="test.pdf", distance_metric="abc")
 
     # if any energy is missing, also no plotting should be done
-    imgpair.left_coord.e = None
+    imgpair.left_coords.e = None
     with caplog.at_level("ERROR"):
         imgpair.plot_energies(
             filename="test_noE.pdf", distance_metric="relative"
@@ -187,9 +187,9 @@ def test_imgpair_trajectory_plotting():
     mol2 = Molecule(smiles="CCO")
 
     imgpair = NullImagePair(mol1, mol2)
-    imgpair.left_coord = imgpair.left_coord * 0.99
-    imgpair.right_coord = imgpair.right_coord * 0.99
-    imgpair._cineb_coords = imgpair.left_coord * 0.99
+    imgpair.left_coords = imgpair.left_coords * 0.99
+    imgpair.right_coords = imgpair.right_coords * 0.99
+    imgpair._cineb_coords = imgpair.left_coords * 0.99
 
     imgpair.print_geometries("init.xyz", "fin.xyz", "total.xyz")
     assert os.path.isfile("init.xyz")
@@ -211,14 +211,14 @@ def test_imgpair_calc_engrad():
     imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
     imgpair.update_both_img_engrad()
     # energy should be updated
-    assert imgpair.left_coord.e is not None
-    assert imgpair.right_coord.e is not None
+    assert imgpair.left_coords.e is not None
+    assert imgpair.right_coords.e is not None
     # units should be forced to Hartree
-    assert str(imgpair.left_coord.e.units) == "Unit(Ha)"
-    assert str(imgpair.right_coord.e.units) == "Unit(Ha)"
+    assert str(imgpair.left_coords.e.units) == "Unit(Ha)"
+    assert str(imgpair.right_coords.e.units) == "Unit(Ha)"
     # gradient should also be updated
-    assert imgpair.left_coord.g is not None
-    assert imgpair.right_coord.g is not None
+    assert imgpair.left_coords.g is not None
+    assert imgpair.right_coords.g is not None
 
     # since imgpair takes a copy of initial species they
     # should not be affected
@@ -238,10 +238,10 @@ def test_imgpair_calc_hess():
     imgpair.update_both_img_hessian_by_calc()
 
     # should not change gradient and energy
-    assert imgpair.left_coord.g is None
-    assert imgpair.left_coord.e is None
+    assert imgpair.left_coords.g is None
+    assert imgpair.left_coords.e is None
     # only hessian should be calculation
-    assert imgpair.left_coord.h is not None
+    assert imgpair.left_coords.h is not None
 
 
 @requires_working_xtb_install
@@ -277,29 +277,29 @@ def test_hessian_update():
     imgpair = NullImagePair(mol1, mol1.copy())
     imgpair.set_method_and_n_cores(method=XTB(), n_cores=1, hess_method=XTB())
 
-    imgpair.left_coord.update_g_from_cart_g(g)
-    imgpair.left_coord.update_h_from_cart_h(h)
-    imgpair.right_coord.update_g_from_cart_g(g)
-    imgpair.right_coord.update_h_from_cart_h(h)
+    imgpair.left_coords.g = g.copy()
+    imgpair.left_coords.h = h.copy()
+    imgpair.right_coords.g = g.copy()
+    imgpair.right_coords.h = h.copy()
 
-    assert imgpair.left_coord.h is not None
+    assert imgpair.left_coords.h is not None
 
-    coord = imgpair.left_coord.copy()
+    coord = imgpair.left_coords.copy()
     coord[0] += 0.1
 
-    imgpair.left_coord = coord
-    imgpair.right_coord = coord
+    imgpair.left_coords = coord
+    imgpair.right_coords = coord
 
     new_g = np.loadtxt("n2_new_grad.txt")
 
-    assert imgpair.left_coord.h is None
-    imgpair.left_coord.update_g_from_cart_g(new_g)
-    imgpair.right_coord.update_g_from_cart_g(new_g)
+    assert imgpair.left_coords.h is None
+    imgpair.left_coords.g = new_g.copy()
+    imgpair.right_coords.g = new_g.copy()
 
     # update the hessian with update formula
     imgpair.update_both_img_hessian_by_formula()
-    assert imgpair.left_coord.h is not None
-    assert imgpair.right_coord.h is not None
+    assert imgpair.left_coords.h is not None
+    assert imgpair.right_coords.h is not None
 
     # calling Hessian update again will raise exception
     with pytest.raises(AssertionError):
@@ -321,16 +321,16 @@ def test_imgpair_hessian_flushing():
     imgpair = NullImagePair(mol1, mol1.copy())
     # turn off flushing Hessians
     autode.bracket.imagepair._flush_old_hessians = False
-    imgpair.left_coord.update_h_from_cart_h(h)
+    imgpair.left_coords.h = h.copy()
     # generate dummy coordinates
-    imgpair.left_coord = imgpair.left_coord * 0.99
-    imgpair.left_coord = imgpair.left_coord * 0.99
+    imgpair.left_coords = imgpair.left_coords * 0.99
+    imgpair.left_coords = imgpair.left_coords * 0.99
     assert imgpair._left_history[0].h is not None
 
     # turn on flushing Hessians again
     autode.bracket.imagepair._flush_old_hessians = True
     imgpair = NullImagePair(mol1, mol1.copy())
-    imgpair.right_coord.update_h_from_cart_h(h)
-    imgpair.right_coord = imgpair.right_coord * 0.99
-    imgpair.right_coord = imgpair.right_coord * 0.99
+    imgpair.right_coords.h = h.copy()
+    imgpair.right_coords = imgpair.right_coords * 0.99
+    imgpair.right_coords = imgpair.right_coords * 0.99
     assert imgpair._right_history[0].h is None

@@ -128,10 +128,10 @@ class BaseImagePair(ABC):
         self._left_history = OptimiserHistory()
         self._right_history = OptimiserHistory()
         # push the first coordinates into history
-        self.left_coord = CartesianCoordinates(
+        self.left_coords = CartesianCoordinates(
             self._left_image.coordinates.to("ang")
         )
-        self.right_coord = CartesianCoordinates(
+        self.right_coords = CartesianCoordinates(
             self._right_image.coordinates.to("ang")
         )
 
@@ -252,12 +252,12 @@ class BaseImagePair(ABC):
         return len(self._left_history) + len(self._right_history) - 2
 
     @property
-    def left_coord(self) -> CartesianCoordinates:
+    def left_coords(self) -> CartesianCoordinates:
         """The coordinates of the left image"""
         return self._left_history[-1]
 
-    @left_coord.setter
-    def left_coord(self, value: CartesianCoordinates):
+    @left_coords.setter
+    def left_coords(self, value: CartesianCoordinates):
         """
         Sets the coordinates of the left image, also updates
         the coordinates of the species
@@ -277,18 +277,18 @@ class BaseImagePair(ABC):
         else:
             raise TypeError
 
-        self._left_image.coordinates = self.left_coord
+        self._left_image.coordinates = self.left_coords
         if _flush_old_hessians:
             if len(self._left_history) >= 3:
                 self._left_history[-3].h = None
 
     @property
-    def right_coord(self) -> CartesianCoordinates:
+    def right_coords(self) -> CartesianCoordinates:
         """The coordinates of the right image"""
         return self._right_history[-1]
 
-    @right_coord.setter
-    def right_coord(self, value: CartesianCoordinates):
+    @right_coords.setter
+    def right_coords(self, value: CartesianCoordinates):
         """
         Sets the coordinates of the right image, also updates
         the coordinates of the species
@@ -308,7 +308,7 @@ class BaseImagePair(ABC):
         else:
             raise TypeError
 
-        self._right_image.coordinates = self.right_coord
+        self._right_image.coordinates = self.right_coords
         if _flush_old_hessians:
             if len(self._right_history) >= 3:
                 self._right_history[-3].h = None
@@ -353,10 +353,10 @@ class BaseImagePair(ABC):
             ]
             left_engrad, right_engrad = [job.result() for job in jobs]
 
-        self.left_coord.e = left_engrad[0]
-        self.left_coord.update_g_from_cart_g(left_engrad[1])
-        self.right_coord.e = right_engrad[0]
-        self.right_coord.update_g_from_cart_g(right_engrad[1])
+        self.left_coords.e = left_engrad[0]
+        self.left_coords.update_g_from_cart_g(left_engrad[1])
+        self.right_coords.e = right_engrad[0]
+        self.right_coords.update_g_from_cart_g(right_engrad[1])
         return None
 
     def update_both_img_hessian_by_calc(self):
@@ -379,8 +379,8 @@ class BaseImagePair(ABC):
             ]
             left_hess, right_hess = [job.result() for job in jobs]
 
-        self.left_coord.update_h_from_cart_h(left_hess)
-        self.right_coord.update_h_from_cart_h(right_hess)
+        self.left_coords.update_h_from_cart_h(left_hess)
+        self.right_coords.update_h_from_cart_h(right_hess)
         return None
 
     def update_both_img_hessian_by_formula(self):
@@ -398,7 +398,7 @@ class BaseImagePair(ABC):
                 y=coords_l.g - coords_k.g,
             )
 
-            coords_l.update_h_from_cart_h(updater.updated_h)
+            coords_l.h = np.array(updater.updated_h)
 
         return None
 
@@ -428,7 +428,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         go from right to left image (i.e. right -> left)
         """
         return np.array(
-            self.left_coord.to("cart") - self.right_coord.to("cart")
+            self.left_coords.to("cart") - self.right_coords.to("cart")
         )
 
     @property
@@ -454,7 +454,16 @@ class EuclideanImagePair(BaseImagePair, ABC):
         Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
         https://doi.org/10.1021/acs.jctc.3c00151
         """
-        assert self.left_coord.g is not None and self.right_coord.g is not None
+        assert (
+            self.left_coords.g is not None and self.right_coords.g is not None
+        )
+
+        def cos_angle(vec1, vec2) -> float:
+            """Returns the cos(theta) between two vectors (1D arrays)"""
+            dot = float(np.dot(vec1, vec2)) / (
+                np.linalg.norm(vec1) * np.linalg.norm(vec2)
+            )
+            return dot
 
         # NOTE: The angle between the force vector on right image
         # and the distance vector must be more than 90 degrees. Similarly
@@ -462,8 +471,8 @@ class EuclideanImagePair(BaseImagePair, ABC):
         # that the parallel component of the forces on each image are
         # pointing away from each other. (force is negative gradient).
 
-        left_cos_theta = np.dot(-self.left_coord.g, self.dist_vec)
-        right_cos_theta = np.dot(-self.right_coord.g, self.dist_vec)
+        left_cos_theta = cos_angle(-self.left_coords.g, self.dist_vec)
+        right_cos_theta = cos_angle(-self.right_coords.g, self.dist_vec)
 
         assert -1.0 < left_cos_theta < 1.0
         assert -1.0 < right_cos_theta < 1.0

@@ -102,13 +102,13 @@ def test_dhs_image_pair():
     mol2 = mol1.new_species()
     imgpair = DHSImagePair(mol1, mol2)
 
-    coords = imgpair.left_coord + 0.1
+    coords = imgpair.left_coords + 0.1
 
     # check the functions that get one side
     with pytest.raises(ValueError):
         imgpair.put_coord_by_side(coords, 2)
 
-    imgpair.left_coord = coords
+    imgpair.left_coords = coords
     with pytest.raises(ValueError):
         step = imgpair.get_last_step_by_side(2)
 
@@ -124,20 +124,20 @@ def test_dhs_image_pair_ts_guess(caplog):
     mol1 = Molecule(smiles="CCO")
     imgpair = DHSImagePair(mol1, mol1.copy())
 
-    imgpair.left_coord.e = PotentialEnergy(-0.144, "Ha")
+    imgpair.left_coords.e = PotentialEnergy(-0.144, "Ha")
 
     with caplog.at_level("ERROR"):
         peak = imgpair.ts_guess
     assert "Energy values are missing in the trajectory" in caplog.text
 
-    imgpair.right_coord.e = PotentialEnergy(-0.145, "Ha")
-    imgpair.left_coord.g = np.ones_like(imgpair.left_coord)  # spoof gradient
+    imgpair.right_coords.e = PotentialEnergy(-0.145, "Ha")
+    imgpair.left_coords.g = np.ones_like(imgpair.left_coords)  # spoof gradient
     peak = imgpair.ts_guess
     assert peak is not None
 
-    assert np.allclose(peak.coordinates.flatten(), imgpair.left_coord)
+    assert np.allclose(peak.coordinates.flatten(), imgpair.left_coords)
     assert np.isclose(peak.energy, -0.144)
-    assert np.allclose(peak.gradient.flatten(), imgpair.left_coord.g)
+    assert np.allclose(peak.gradient.flatten(), imgpair.left_coords.g)
 
 
 @requires_working_xtb_install
@@ -160,10 +160,10 @@ def test_dhs_single_step():
     dhs._initialise_run()
 
     imgpair = dhs.imgpair
-    assert imgpair.left_coord.e is not None
-    assert imgpair.right_coord.e is not None
+    assert imgpair.left_coords.e is not None
+    assert imgpair.right_coords.e is not None
     old_dist = imgpair.dist
-    assert imgpair.left_coord.e > imgpair.right_coord.e
+    assert imgpair.left_coords.e > imgpair.right_coords.e
 
     # take a single step
     dhs._step()
@@ -203,11 +203,11 @@ def test_dhs_gs_single_step(caplog):
     right_pred = dhs_gs._get_dhs_step(ImageSide.right)  # 50% DHS + 50% GS
 
     imgpair = dhs_gs.imgpair
-    assert imgpair.left_coord.e > imgpair.right_coord.e
+    assert imgpair.left_coords.e > imgpair.right_coords.e
     assert len(imgpair._left_history) == 1
     assert len(imgpair._right_history) == 2
 
-    hybrid_step = right_pred - imgpair.right_coord
+    hybrid_step = right_pred - imgpair.right_coords
     dhs_step = imgpair.dist_vec
     dhs_step = dhs_step / np.linalg.norm(dhs_step) * step_size
     gs_step = imgpair._right_history[-1] - imgpair._right_history[-2]
