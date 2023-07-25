@@ -1,1613 +1,579 @@
 
+
 <!DOCTYPE html>
 
-<html>
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Changelog &#8212; autodE  documentation</title>
-    
-  <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    
-  <link rel="stylesheet"
-    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+    <title>Changelog &#8212; autodE  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
-    
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'changelog';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Development" href="dev/index.html" />
     <link rel="prev" title="Thermochemistry" href="examples/thermochem.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay overlay-navbar" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<!-- Checkboxes to toggle the in-page toc -->
-<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
-<label class="overlay overlay-pagetoc" for="__page-toc">
-    <div class="visually-hidden">Toggle in-page Table of Contents</div>
-</label>
-<!-- Headers at the top -->
-<div class="announcement header-item noprint"></div>
-<div class="header header-item noprint"></div>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
     
-    <div class="container-fluid" id="banner"></div>
-
     
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
 
-    <div class="container-xl">
-      <div class="row">
-          
-<!-- Sidebar -->
-<div class="bd-sidebar noprint" id="site-navigation">
-    <div class="bd-sidebar__content">
-        <div class="bd-sidebar__top"><div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="index.html">
-      
-      
-      
-      <h1 class="site-logo" id="site-title">autodE  documentation</h1>
-      
-    </a>
-</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item active">
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">autodE  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="install.html">
-   Install
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="quickstart.html">
-   Quick Start
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="config.html">
-   Configuration
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="reference/index.html">
-   Reference
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/atoms.html">
-     Atoms
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/bonds.html">
-     Bonds
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/calculation.html">
-     Calculation
-    </a>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/conformers/index.html">
-     Conformers
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
-    <label for="toctree-checkbox-2">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/conformers/conf_gen.html">
-       Conf Gen
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/conformers/conformer.html">
-       Conformer
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/conformers/conformers.html">
-       Conformers
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/pes/index.html">
-     PES
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
-    <label for="toctree-checkbox-3">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/pes.html">
-       Potential Energy Surfaces
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/mep.html">
-       Min Energy Pathway
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/reactions/index.html">
-     Reactions
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
-    <label for="toctree-checkbox-4">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/reactions/multistep.html">
-       Multistep Reaction
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/reactions/reaction.html">
-       Reaction
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/reactions/reaction_types.html">
-       Reaction Types
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/smiles/index.html">
-     SMILES
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
-    <label for="toctree-checkbox-5">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/smiles.html">
-       Molecules from SMILES
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/parser.html">
-       SMILES Parser
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/builder.html">
-       3D Geometry Builder
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/atom_types.html">
-       SMILES Atom Types
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/angles.html">
-       SMILES Angles
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/base.html">
-       SMILES Base
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/solvent/index.html">
-     Solvent
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
-    <label for="toctree-checkbox-6">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/solvent/solvents.html">
-       Solvents
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/solvent/explicit_solvent.html">
-       Explicit Solvent
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/species/index.html">
-     Species
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
-    <label for="toctree-checkbox-7">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/species/complex.html">
-       Complex
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/species/molecule.html">
-       Molecule
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/species/species.html">
-       Species
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/neb/index.html">
-     Nudged elastic band
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
-    <label for="toctree-checkbox-8">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/neb.html">
-       NEB Transition states
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/original.html">
-       Original NEB
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/ci.html">
-       Climbing image NEB
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/idpp.html">
-       Image dependent pair potential
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/transition_states/index.html">
-     Transition States
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
-    <label for="toctree-checkbox-9">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/base.html">
-       Base
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/locate_tss.html">
-       Locate TSs
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/templates.html">
-       Templates
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/transition_state.html">
-       Transition State
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/truncation.html">
-       Truncation
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/ts_guess.html">
-       TS Guess
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/thermochemistry/index.html">
-     Thermochemistry
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
-    <label for="toctree-checkbox-10">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/thermochemistry/igm.html">
-       Ideal gas model
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/thermochemistry/symmetry.html">
-       Symmetry
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/wrappers/index.html">
-     Wrappers
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
-    <label for="toctree-checkbox-11">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/base.html">
-       Base
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/g09.html">
-       Gaussian09
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/keywords.html">
-       Keywords
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/mopac.html">
-       MOPAC
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/nwchem.html">
-       NWChem
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/orca.html">
-       ORCA
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/xtb.html">
-       XTB
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/opt/index.html">
-     Optimisation
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
-    <label for="toctree-checkbox-12">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/opt/coordinates.html">
-       Coordinates
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/opt/optimisers.html">
-       Optimisers
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/bond_rearrangement.html">
-     Bond Rearrangement
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/config.html">
-     Configuration
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/constants.html">
-     Constants
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/exceptions.html">
-     Exceptions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/geom.html">
-     Geometry
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/input_output.html">
-     Input Output
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/log.html">
-     Logging
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/methods.html">
-     Methods
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/mol_graphs.html">
-     Molecular Graphs
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/plotting.html">
-     Plotting
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/point_charges.html">
-     Point Charges
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/substitution.html">
-     Substitution
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/units.html">
-     Units
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/utils.html">
-     Utilities
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/values.html">
-     Values
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/hessians.html">
-     Hessians
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="troubleshooting.html">
-   Troubleshooting
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="examples/index.html">
-   Examples
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
-  <label for="toctree-checkbox-13">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/species.html">
-     Species
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/molecules.html">
-     Molecules
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/reactions.html">
-     Reactions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/nci.html">
-     Non-covalent Interaction Complexes
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/manipulation.html">
-     Molecular Manipulation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/pes1d.html">
-     1D PES Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/pes2d.html">
-     2D PES Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/conformers.html">
-     Conformer Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/rmsd.html">
-     RMSD
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/tss.html">
-     Transition States
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/thermochem.html">
-     Thermochemistry
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   Changelog
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="dev/index.html">
-   Development
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/>
-  <label for="toctree-checkbox-14">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="dev/overview.html">
-     Code Structure
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="dev/contributing.html">
-     Contributing to autodE
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="citation.html">
-   Citation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference external" href="https://doi.org/10.1002/anie.202011941">
-   Paper
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="reference/index.html">Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/bonds.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/calculation.html">Calculation</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/conformers/index.html">Conformers</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/conformers/conf_gen.html">Conf Gen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/conformers/conformer.html">Conformer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/conformers/conformers.html">Conformers</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/pes/index.html">PES</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/pes/pes.html">Potential Energy Surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/pes/mep.html">Min Energy Pathway</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/reactions/index.html">Reactions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/reactions/multistep.html">Multistep Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/reactions/reaction.html">Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/reactions/reaction_types.html">Reaction Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/smiles/index.html">SMILES</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/smiles.html">Molecules from SMILES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/parser.html">SMILES Parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/builder.html">3D Geometry Builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/atom_types.html">SMILES Atom Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/angles.html">SMILES Angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/base.html">SMILES Base</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/solvent/index.html">Solvent</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/solvent/solvents.html">Solvents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/solvent/explicit_solvent.html">Explicit Solvent</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/species/index.html">Species</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-7"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/species/complex.html">Complex</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/species/molecule.html">Molecule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/species/species.html">Species</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/neb/index.html">Nudged elastic band</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-8"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/neb.html">NEB Transition states</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/original.html">Original NEB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/ci.html">Climbing image NEB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/idpp.html">Image dependent pair potential</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/transition_states/index.html">Transition States</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-9"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/locate_tss.html">Locate TSs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/templates.html">Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/transition_state.html">Transition State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/truncation.html">Truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/ts_guess.html">TS Guess</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/thermochemistry/index.html">Thermochemistry</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-10"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/thermochemistry/igm.html">Ideal gas model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/thermochemistry/symmetry.html">Symmetry</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/wrappers/index.html">Wrappers</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-11"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/g09.html">Gaussian09</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/keywords.html">Keywords</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/mopac.html">MOPAC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/nwchem.html">NWChem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/orca.html">ORCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/xtb.html">XTB</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/opt/index.html">Optimisation</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-12"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/opt/coordinates.html">Coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/opt/optimisers.html">Optimisers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/hessians.html">Hessians</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-13"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/reactions.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/tss.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/thermochem.html">Thermochemistry</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Changelog</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev/index.html">Development</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-14"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev/overview.html">Code Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev/contributing.html">Contributing to autodE</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://doi.org/10.1002/anie.202011941">Paper</a></li>
 </ul>
 
     </div>
 </nav></div>
-        <div class="bd-sidebar__bottom">
-             <!-- To handle the deprecated key -->
-            
-            <div class="navbar_extra_footer">
-            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-            </div>
-            
-        </div>
     </div>
-    <div id="rtd-footer-container"></div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/changelog.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
 </div>
 
 
-          
 
 
-          
-<!-- A tiny helper pixel to detect if we've scrolled -->
-<div class="sbt-scroll-pixel-helper"></div>
-<!-- Main content -->
-<div class="col py-0 content-container">
-    
-    <div class="header-article row sticky-top noprint">
-        
-
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        
-        <label for="__navigation"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="right"
-title="Toggle navigation"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-bars"></i>
-  </span>
-
-</label>
-
-        
-    </div>
-    <div class="header-article__right">
 <button onclick="toggleFullScreen()"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   <i class="fas fa-expand"></i>
   </span>
 
 </button>
 
-<div class="menu-dropdown menu-dropdown-download-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Download this page">
-      <i class="fas fa-download"></i>
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="_sources/changelog.rst.txt"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Download source file"
->
-  
+`);
+</script>
 
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="headerbtn__text-container">.rst</span>
-</a>
-
-      </li>
-      
-      <li>
-        
-<button onclick="printPdf(this)"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="left"
-title="Print to PDF"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="headerbtn__text-container">.pdf</span>
-</button>
-
-      </li>
-      
-    </ul>
-  </div>
-</div>
-<label for="__page-toc"
-  class="headerbtn headerbtn-page-toc"
-  
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-list"></i>
-  </span>
-
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
 </label>
-
+</div></div>
+      
     </div>
+  
 </div>
-
-<!-- Table of contents -->
-<div class="col-md-3 bd-toc show noprint">
-    <div class="tocsection onthispage pt-5 pb-3">
-        <i class="fas fa-list"></i> Contents
-    </div>
-    <nav id="bd-toc-nav" aria-label="Page">
-        <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id1">
-   1.3.5
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#usability-improvements-changes">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#functionality-improvements">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#bug-fixes">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id2">
-   1.3.4
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id3">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id4">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id5">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id6">
-   1.3.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id7">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id8">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id9">
-   1.3.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id10">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id11">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id12">
-   1.3.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id13">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id14">
-   1.3.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id15">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id16">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id17">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id18">
-   1.2.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id19">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id20">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id21">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id22">
-   1.2.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id23">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id24">
-   1.2.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id25">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id26">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id27">
-   1.2.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id28">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id29">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id30">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id31">
-   1.1.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id32">
-     Usability improvements/Changes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id33">
-   1.1.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id34">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id35">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id36">
-   1.1.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id37">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id38">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id39">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id40">
-   1.1.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id41">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id42">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id43">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id44">
-   1.0.5
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id45">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id46">
-   1.0.4
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#usability-improvements">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id47">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id48">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id49">
-   1.0.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id50">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id51">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id52">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id53">
-   1.0.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id54">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id55">
-     Functionality improvements
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id56">
-   1.0.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id57">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id58">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id59">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id60">
-   1.0.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id61">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id62">
-     Functionality improvements
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#b3">
-   1.0.0b3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id63">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id64">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id65">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
-</ul>
-
-    </nav>
 </div>
-    </div>
-    <div class="article row">
-        <div class="col pl-md-3 pl-lg-5 content-container">
-            <!-- Table of contents that is only displayed when printing the page -->
-            <div id="jb-print-docs-body" class="onlyprint">
-                <h1>Changelog</h1>
-                <!-- Table of contents -->
-                <div id="print-main-content">
-                    <div id="jb-print-toc">
-                        
-                        <div>
-                            <h2> Contents </h2>
-                        </div>
-                        <nav aria-label="Page">
-                            <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id1">
-   1.3.5
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#usability-improvements-changes">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#functionality-improvements">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#bug-fixes">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id2">
-   1.3.4
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id3">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id4">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id5">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id6">
-   1.3.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id7">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id8">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id9">
-   1.3.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id10">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id11">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id12">
-   1.3.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id13">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id14">
-   1.3.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id15">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id16">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id17">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id18">
-   1.2.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id19">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id20">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id21">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id22">
-   1.2.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id23">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id24">
-   1.2.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id25">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id26">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id27">
-   1.2.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id28">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id29">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id30">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id31">
-   1.1.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id32">
-     Usability improvements/Changes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id33">
-   1.1.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id34">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id35">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id36">
-   1.1.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id37">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id38">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id39">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id40">
-   1.1.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id41">
-     Usability improvements/Changes
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id42">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id43">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id44">
-   1.0.5
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id45">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id46">
-   1.0.4
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#usability-improvements">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id47">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id48">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id49">
-   1.0.3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id50">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id51">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id52">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id53">
-   1.0.2
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id54">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id55">
-     Functionality improvements
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id56">
-   1.0.1
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id57">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id58">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id59">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id60">
-   1.0.0
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id61">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id62">
-     Functionality improvements
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#b3">
-   1.0.0b3
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id63">
-     Usability improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id64">
-     Functionality improvements
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id65">
-     Bug Fixes
-    </a>
-   </li>
-  </ul>
- </li>
-</ul>
+              
+              
 
-                        </nav>
-                    </div>
-                </div>
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Changelog</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
             </div>
-            <main id="main-content" role="main">
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">1.4.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functionality-improvements">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usability-improvements-changes">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">1.3.5</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">1.3.4</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">1.3.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">1.3.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">1.3.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">1.3.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">1.2.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">1.2.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">1.2.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id29">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">1.2.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id32">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id33">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id34">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id35">1.1.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id36">Usability improvements/Changes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id37">1.1.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id38">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id39">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id40">1.1.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id41">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id42">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id43">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id44">1.1.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id45">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id46">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id47">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id48">1.0.5</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id49">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id50">1.0.4</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usability-improvements">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id51">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id52">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id53">1.0.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id54">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id55">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id56">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id57">1.0.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id58">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id59">Functionality improvements</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id60">1.0.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id61">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id62">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id63">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id64">1.0.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id65">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id66">Functionality improvements</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b3">1.0.0b3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id67">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id68">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id69">Bug Fixes</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
                 
-              <div>
-                
-  <div class="section" id="changelog">
-<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">#</a></h1>
-<div class="section" id="id1">
-<h2>1.3.5<a class="headerlink" href="#id1" title="Permalink to this headline">#</a></h2>
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">#</a></h1>
+<section id="id1">
+<h2>1.4.0<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
-<div class="section" id="usability-improvements-changes">
-<h3>Usability improvements/Changes<a class="headerlink" href="#usability-improvements-changes" title="Permalink to this headline">#</a></h3>
+<section id="functionality-improvements">
+<h3>Functionality improvements<a class="headerlink" href="#functionality-improvements" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Adds <code class="code docutils literal notranslate"><span class="pre">temporary_config()</span></code> context manager for temporary configuration changes</p></li>
+<li><p>Adds a <code class="code docutils literal notranslate"><span class="pre">ForceConstant</span></code> value</p></li>
+<li><p>Adds a more robust hybrid RFO-TRM geometry optimiser with trust radius update and a feature to detect oscillation and damp it</p></li>
+<li><p>Adds Dewar-Healy-Stewart (DHS) method and its variant DHS-GS to find transition states from initial and final geometries</p></li>
+</ul>
+</section>
+<section id="usability-improvements-changes">
+<h3>Usability improvements/Changes<a class="headerlink" href="#usability-improvements-changes" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Adds full usability of autodE on Windows, including parallelisation with <code class="code docutils literal notranslate"><span class="pre">loky</span></code></p></li>
+<li><p>Optional timeout for graph isomorphism test in Windows, turned on by <code class="code docutils literal notranslate"><span class="pre">Config.use_experimental_timeout=True</span></code> (default behaviour kept for Linux/macOS)</p></li>
+<li><p>The electronic temperature and the version of parameterisation for xTB calculations are made configurable</p></li>
+<li><p>A NEB <code class="code docutils literal notranslate"><span class="pre">Image</span></code> now derives from a <code class="code docutils literal notranslate"><span class="pre">Species</span></code> superclass</p></li>
+<li><p>Modifies NEB <code class="code docutils literal notranslate"><span class="pre">Image</span></code> constructor to be formed from an image</p></li>
+<li><p>Defines named constructors (<code class="code docutils literal notranslate"><span class="pre">from_end_points(...)</span></code>, <code class="code docutils literal notranslate"><span class="pre">from_list(...)</span></code>) for <code class="code docutils literal notranslate"><span class="pre">NEB</span></code></p></li>
+<li><p>Removes <code class="code docutils literal notranslate"><span class="pre">NEB().contains_peak()</span></code> in favour of <code class="code docutils literal notranslate"><span class="pre">NEB().images.contains_peak</span></code></p></li>
+<li><p>Modifies the <code class="code docutils literal notranslate"><span class="pre">CImages</span></code> constructor to ensure it’s constructed from an <code class="code docutils literal notranslate"><span class="pre">Images</span></code> instance</p></li>
+<li><p>Removes <code class="code docutils literal notranslate"><span class="pre">NEB.get_species_saddle_point()</span></code> in favour of <code class="code docutils literal notranslate"><span class="pre">NEB.peak_species</span></code></p></li>
+<li><p>Defines named constructors (<code class="code docutils literal notranslate"><span class="pre">from_end_points(...)</span></code>, <code class="code docutils literal notranslate"><span class="pre">from_list(...)</span></code>) for <code class="code docutils literal notranslate"><span class="pre">NEB</span></code></p></li>
+<li><p>Removes <code class="code docutils literal notranslate"><span class="pre">mol_graphs.get_atom_ids_sorted_type()</span></code></p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Fixes pickling issue with <code class="code docutils literal notranslate"><span class="pre">autode.config.Config</span></code> on Windows and in multiprocessing spawn for Linux/macOS</p></li>
+<li><p>Fixes RFO Hessian update bug</p></li>
+<li><p>Fixes QChem not using <code class="code docutils literal notranslate"><span class="pre">Config.max_core</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h2>1.3.5<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h2>
+<hr class="docutils" />
+<section id="id3">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.value.ValueArray.to()</span></code> now defaults to copying the object rather than inplace modification</p></li>
 </ul>
-</div>
-<div class="section" id="functionality-improvements">
-<h3>Functionality improvements<a class="headerlink" href="#functionality-improvements" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id4">
+<h3>Functionality improvements<a class="headerlink" href="#id4" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds a <code class="code docutils literal notranslate"><span class="pre">to_</span></code> method to <code class="code docutils literal notranslate"><span class="pre">autode.value.ValueArray</span></code> for explicit inplace modification of the array</p></li>
 </ul>
-</div>
-<div class="section" id="bug-fixes">
-<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id5">
+<h3>Bug Fixes<a class="headerlink" href="#id5" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes <code class="code docutils literal notranslate"><span class="pre">ERROR</span></code> logging level being ignored from environment variable <code class="code docutils literal notranslate"><span class="pre">AUTODE_LOG_LEVEL</span></code></p></li>
 <li><p>Fixes <code class="code docutils literal notranslate"><span class="pre">autode.values.Value</span></code> instances generating items with units on division, and throw a warning if multiplying</p></li>
@@ -1615,90 +581,90 @@ title="Print to PDF"
 <li><p>Fixes <code class="code docutils literal notranslate"><span class="pre">Hessian</span></code> instances changing units when normal modes are calculated</p></li>
 <li><p>Fixes an incorrect alias for <code class="code docutils literal notranslate"><span class="pre">ev_per_ang</span></code></p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id2">
-<h2>1.3.4<a class="headerlink" href="#id2" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id6">
+<h2>1.3.4<a class="headerlink" href="#id6" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Feature additions.</p>
-<div class="section" id="id3">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id3" title="Permalink to this headline">#</a></h3>
+<section id="id7">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id7" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Throw useful exception for invalid <code class="code docutils literal notranslate"><span class="pre">ade.Config.ts_template_folder_path</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id4">
-<h3>Functionality improvements<a class="headerlink" href="#id4" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id8">
+<h3>Functionality improvements<a class="headerlink" href="#id8" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">ade.transition_states.TransitionState.from_species</span></code> method to construct transition states from a species or molecule</p></li>
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">autode.Reaction.save()</span></code> and <code class="code docutils literal notranslate"><span class="pre">autode.Reaction.load()</span></code> to save and reload a reaction state</p></li>
 <li><p>Adds saving checkpoints of a reaction during <code class="code docutils literal notranslate"><span class="pre">autode.Reaction.calculate_reaction_profile</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id5">
-<h3>Bug Fixes<a class="headerlink" href="#id5" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id9">
+<h3>Bug Fixes<a class="headerlink" href="#id9" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes calculation <code class="code docutils literal notranslate"><span class="pre">clean_up()</span></code> failing with a null filename</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id6">
-<h2>1.3.3<a class="headerlink" href="#id6" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id10">
+<h2>1.3.3<a class="headerlink" href="#id10" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release.</p>
-<div class="section" id="id7">
-<h3>Functionality improvements<a class="headerlink" href="#id7" title="Permalink to this headline">#</a></h3>
+<section id="id11">
+<h3>Functionality improvements<a class="headerlink" href="#id11" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds skipping Hessian re-evaluation when using autodE optimisers if a molecules has a Hessian calculated at the same level of theory</p></li>
 <li><p>Adds a Hessian recalculation frequency to <code class="code docutils literal notranslate"><span class="pre">autode.optimisers.PRFOptimiser</span></code></p></li>
 <li><p>Improves the default step size for TS optimising to be consistent with the ORCA default</p></li>
 </ul>
-</div>
-<div class="section" id="id8">
-<h3>Bug Fixes<a class="headerlink" href="#id8" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id12">
+<h3>Bug Fixes<a class="headerlink" href="#id12" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds checking of SMILES-defined charge against the user-specified value</p></li>
 <li><p>Fixes <code class="code docutils literal notranslate"><span class="pre">autode.optimisers.CRFOptimiser</span></code> building incomplete internal coordinates for partially or completely fragmented molecules</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id9">
-<h2>1.3.2<a class="headerlink" href="#id9" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id13">
+<h2>1.3.2<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release.</p>
-<div class="section" id="id10">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id10" title="Permalink to this headline">#</a></h3>
+<section id="id14">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id14" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Removes <code class="code docutils literal notranslate"><span class="pre">autode.geom.get_distance_constraints</span></code> in favour of a better named method <code class="code docutils literal notranslate"><span class="pre">TSBase().active_bond_constraints</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id11">
-<h3>Bug Fixes<a class="headerlink" href="#id11" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id15">
+<h3>Bug Fixes<a class="headerlink" href="#id15" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.transition_states.ts_guess.TSguess.from_species</span></code> now inherits solvent from the species</p></li>
 <li><p>Fixes a possible race condition in I/O for XTB conformer optimisations</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id12">
-<h2>1.3.1<a class="headerlink" href="#id12" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id16">
+<h2>1.3.1<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release.</p>
-<div class="section" id="id13">
-<h3>Bug Fixes<a class="headerlink" href="#id13" title="Permalink to this headline">#</a></h3>
+<section id="id17">
+<h3>Bug Fixes<a class="headerlink" href="#id17" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes behaviour of <code class="code docutils literal notranslate"><span class="pre">autode.utils.work_in_tmp_dir</span></code> and <code class="code docutils literal notranslate"><span class="pre">autode.utils.work_in</span></code> decorators</p></li>
 <li><p>Fixes an exception being raised when <code class="code docutils literal notranslate"><span class="pre">autode.Calculation.clean_up</span></code> is called with a method that doesn’t implement external I/O</p></li>
 <li><p>Fixes autodE driven optimisations skipping execution when the input but not name changes</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id14">
-<h2>1.3.0<a class="headerlink" href="#id14" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id18">
+<h2>1.3.0<a class="headerlink" href="#id18" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Optimisation features, graph assignment improvements and bugfixes.</p>
-<div class="section" id="id15">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id15" title="Permalink to this headline">#</a></h3>
+<section id="id19">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id19" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Defines dummy atoms to have zero covalent and vdW radii</p></li>
 <li><p>Renames <code class="code docutils literal notranslate"><span class="pre">Method().available</span></code> to <code class="code docutils literal notranslate"><span class="pre">Method().is_available</span></code></p></li>
@@ -1721,9 +687,9 @@ title="Print to PDF"
 <li><p>Removes support for Python &lt; v3.8</p></li>
 <li><p>Tweaks the default ORCA TS optimisation keywords to be more conservative, i.e. slower and more accurate</p></li>
 </ul>
-</div>
-<div class="section" id="id16">
-<h3>Functionality improvements<a class="headerlink" href="#id16" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id20">
+<h3>Functionality improvements<a class="headerlink" href="#id20" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds a <code class="code docutils literal notranslate"><span class="pre">autode.atoms.Atom.covalent_radius</span></code> property</p></li>
 <li><p>Adds a <code class="code docutils literal notranslate"><span class="pre">autode.atoms.Atoms.eqm_bond_distance</span></code> method for the equilibrium bonded distance between two atoms</p></li>
@@ -1737,9 +703,9 @@ title="Print to PDF"
 <li><p>Adds functionality to partition a nudged elastic band into images where the maximum atom-atom distance between images is below a threshold</p></li>
 <li><p>Adds a sequential adapt+NEB TS finding method where a pure adapt. path fails to generate a geometry close enough to the TS for a successful TS optimisation</p></li>
 </ul>
-</div>
-<div class="section" id="id17">
-<h3>Bug Fixes<a class="headerlink" href="#id17" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id21">
+<h3>Bug Fixes<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes variable harmonic frequencies (&lt;2 cm-1 differences) due to projection vectors becoming close to rotational axes</p></li>
 <li><p>Fixes the extraction of atomic partial charges from ORCA output files</p></li>
@@ -1751,11 +717,6 @@ compared to ORCA. In all cases the structures were generated from SMILES strings
 and optimised with a single constraint on the (0,1) distance of +0.1 Å from its current
 value.</p>
 <table class="table">
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Molecule</p></th>
 <th class="head"><p>autodE</p></th>
@@ -1793,70 +754,70 @@ value.</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="section" id="id18">
-<h2>1.2.3<a class="headerlink" href="#id18" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id22">
+<h2>1.2.3<a class="headerlink" href="#id22" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Minor functionality improvements and bugfixes.</p>
-<div class="section" id="id19">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id19" title="Permalink to this headline">#</a></h3>
+<section id="id23">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id23" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>All exceptions now inherit from a base <code class="code docutils literal notranslate"><span class="pre">autode.exceptions.AutodeException</span></code></p></li>
 <li><p>Fixes a typo in <code class="code docutils literal notranslate"><span class="pre">autode.exceptions.UnsupoportedCalculationInput</span></code></p></li>
 <li><p>Adds documentation explaining the intention of each exception in  <code class="code docutils literal notranslate"><span class="pre">autode.exceptions</span></code></p></li>
 <li><p>Molecular graphs are now ‘laziliy-loaded’ i.e. generated once when the property is accessed</p></li>
 </ul>
-</div>
-<div class="section" id="id20">
-<h3>Functionality improvements<a class="headerlink" href="#id20" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id24">
+<h3>Functionality improvements<a class="headerlink" href="#id24" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds the ability to define atom classes for molecules in turn allowing for identity reactions to be calculated</p></li>
 </ul>
-</div>
-<div class="section" id="id21">
-<h3>Bug Fixes<a class="headerlink" href="#id21" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id25">
+<h3>Bug Fixes<a class="headerlink" href="#id25" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes clashing names for a reaction initialised explicitly from molecules without defined names</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id22">
-<h2>1.2.2<a class="headerlink" href="#id22" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id26">
+<h2>1.2.2<a class="headerlink" href="#id26" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release.</p>
-<div class="section" id="id23">
-<h3>Bug Fixes<a class="headerlink" href="#id23" title="Permalink to this headline">#</a></h3>
+<section id="id27">
+<h3>Bug Fixes<a class="headerlink" href="#id27" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes output redirection from XTB calculations resulting in missed lines on Mac</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id24">
-<h2>1.2.1<a class="headerlink" href="#id24" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id28">
+<h2>1.2.1<a class="headerlink" href="#id28" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release.</p>
-<div class="section" id="id25">
-<h3>Functionality improvements<a class="headerlink" href="#id25" title="Permalink to this headline">#</a></h3>
+<section id="id29">
+<h3>Functionality improvements<a class="headerlink" href="#id29" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">autode.mol_graphs.MolecularGraph</span></code> (subclass of <code class="code docutils literal notranslate"><span class="pre">networkx.Graph</span></code>) with a <code class="code docutils literal notranslate"><span class="pre">expected_planar_geometry</span></code> method</p></li>
 <li><p>Adds an <code class="code docutils literal notranslate"><span class="pre">are_planar</span></code> method to <code class="code docutils literal notranslate"><span class="pre">autode.atoms.Atoms</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id26">
-<h3>Bug Fixes<a class="headerlink" href="#id26" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id30">
+<h3>Bug Fixes<a class="headerlink" href="#id30" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes a bug in assigning reasonable geometries which, in turn, could lead to skipped single point energy evaluations</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id27">
-<h2>1.2.0<a class="headerlink" href="#id27" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id31">
+<h2>1.2.0<a class="headerlink" href="#id31" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Adds optimisation algorithms experimental explicit solvation, improves potential energy surface
 module as well as an array of usability improvements.</p>
-<div class="section" id="id28">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id28" title="Permalink to this headline">#</a></h3>
+<section id="id32">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id32" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds more type hints and documentation</p></li>
 <li><p>Updates the TS template saved in the default template library</p></li>
@@ -1883,9 +844,9 @@ module as well as an array of usability improvements.</p>
 <li><p>Adds a flag to override exiting a reaction profile calculation when association complexes are generated</p></li>
 <li><p>Adds a check that a calculation isn’t going to exceed the maximum amount of physical memory on the computer</p></li>
 </ul>
-</div>
-<div class="section" id="id29">
-<h3>Functionality improvements<a class="headerlink" href="#id29" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id33">
+<h3>Functionality improvements<a class="headerlink" href="#id33" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds a selection of molecule optimisers to locate minima and transition states</p></li>
 <li><p>Refactors <code class="code docutils literal notranslate"><span class="pre">autode.smiles.angles</span></code> to use unique class names (preventing overlap with e.g. <code class="code docutils literal notranslate"><span class="pre">autode.values.Angle</span></code>)</p></li>
@@ -1901,79 +862,79 @@ module as well as an array of usability improvements.</p>
 <li><p>Adds image dependent pair potential (IDPP) relaxation improved interpolated geometries</p></li>
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">autode.hessians.HybridHessianCalculator</span></code> to calculate numerical Hessians at two levels of theory</p></li>
 </ul>
-</div>
-<div class="section" id="id30">
-<h3>Bug Fixes<a class="headerlink" href="#id30" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id34">
+<h3>Bug Fixes<a class="headerlink" href="#id34" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Updates the TS template saved in the default template library</p></li>
 <li><p>Reloads output file lines from a failed then re-run calculation</p></li>
 <li><p>Fixes Hessian extractions from some Gaussian output files</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id31">
-<h2>1.1.3<a class="headerlink" href="#id31" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id35">
+<h2>1.1.3<a class="headerlink" href="#id35" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Usability improvements</p>
-<div class="section" id="id32">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id32" title="Permalink to this headline">#</a></h3>
+<section id="id36">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id36" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Improves consistency and behaviour of <code class="code docutils literal notranslate"><span class="pre">calc_thermo</span></code> method of a species, allowing for keywords and non-run calculations</p></li>
 <li><p>Allows for a non-fork multiprocessing ‘start_method’</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id33">
-<h2>1.1.2<a class="headerlink" href="#id33" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id37">
+<h2>1.1.2<a class="headerlink" href="#id37" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bugfixes</p>
-<div class="section" id="id34">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id34" title="Permalink to this headline">#</a></h3>
+<section id="id38">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id38" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes typo in <code class="code docutils literal notranslate"><span class="pre">autode.exceptions.ReactionFormationFalied</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id35">
-<h3>Bug Fixes<a class="headerlink" href="#id35" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id39">
+<h3>Bug Fixes<a class="headerlink" href="#id39" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes a bug where rings containing mostly double bonds failed to build with <code class="code docutils literal notranslate"><span class="pre">autode.smiles.builder.Builder</span></code></p></li>
 <li><p>Fixes using XTB as a high-level method with the xtb-gaussian wrapper (thanks &#64;kjelljorner)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id36">
-<h2>1.1.1<a class="headerlink" href="#id36" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id40">
+<h2>1.1.1<a class="headerlink" href="#id40" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Documentation and typing hints</p>
-<div class="section" id="id37">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id37" title="Permalink to this headline">#</a></h3>
+<section id="id41">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id41" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds <a class="reference external" href="https://docs.python.org/3/library/typing.html">typing</a> to user-facing functions</p></li>
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">autode.config.location</span></code> to easily locate the core configuration file for permanent editing</p></li>
 <li><p>Updates documentation for readability</p></li>
 <li><p>Ensures units are kept if constructing a <code class="code docutils literal notranslate"><span class="pre">Value</span></code> from a <code class="code docutils literal notranslate"><span class="pre">Value</span></code> (i.e. <code class="code docutils literal notranslate"><span class="pre">Value(x)</span></code>, when <code class="code docutils literal notranslate"><span class="pre">x</span></code> is a <code class="code docutils literal notranslate"><span class="pre">Value</span></code>)</p></li>
 </ul>
-</div>
-<div class="section" id="id38">
-<h3>Functionality improvements<a class="headerlink" href="#id38" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id42">
+<h3>Functionality improvements<a class="headerlink" href="#id42" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Changes <code class="code docutils literal notranslate"><span class="pre">Keyword</span></code> to an abstract base class</p></li>
 <li><p>Improves speed of <code class="code docutils literal notranslate"><span class="pre">Species</span></code> rotation (numpy rather than a Python for loop)</p></li>
 </ul>
-</div>
-<div class="section" id="id39">
-<h3>Bug Fixes<a class="headerlink" href="#id39" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id43">
+<h3>Bug Fixes<a class="headerlink" href="#id43" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Fixes bug where NCI conformers were generated with the same name thus did not optimise uniquely (introduced in v.1.1.0)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id40">
-<h2>1.1.0<a class="headerlink" href="#id40" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id44">
+<h2>1.1.0<a class="headerlink" href="#id44" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>API improvements that broadly maintain backwards compatibility.</p>
-<div class="section" id="id41">
-<h3>Usability improvements/Changes<a class="headerlink" href="#id41" title="Permalink to this headline">#</a></h3>
+<section id="id45">
+<h3>Usability improvements/Changes<a class="headerlink" href="#id45" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds more argument and return types</p></li>
 <li><p>Changes <code class="code docutils literal notranslate"><span class="pre">AtomCollection.atoms</span></code> to a property for more flexible sub-classing</p></li>
@@ -2003,9 +964,9 @@ module as well as an array of usability improvements.</p>
 <li><p>Adds <code class="code docutils literal notranslate"><span class="pre">Conformers</span></code> to enable parallel electronic structure calculations across a set of conformers</p></li>
 <li><p>Improves readability of pruning of conformers based on RMSD and energy thresholds</p></li>
 </ul>
-</div>
-<div class="section" id="id42">
-<h3>Functionality improvements<a class="headerlink" href="#id42" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id46">
+<h3>Functionality improvements<a class="headerlink" href="#id46" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Adds angle and dihedral angle properties to an <code class="code docutils literal notranslate"><span class="pre">AtomCollection</span></code></p></li>
 <li><p>Improves and adds more <code class="code docutils literal notranslate"><span class="pre">Unit</span></code> definitions</p></li>
@@ -2028,9 +989,9 @@ module as well as an array of usability improvements.</p>
 <a class="reference internal image-reference" href="_images/opt_convergence_3500_ORCA.png"><img alt="_images/opt_convergence_3500_ORCA.png" src="_images/opt_convergence_3500_ORCA.png" style="width: 500px;" /></a>
 <p>suggesting a value of 10 is a appropriate. This will be system dependent and need increasing for
 large/flexible systems. For path optimisations loose optimisations use a maximum of 50 cycles.</p>
-</div>
-<div class="section" id="id43">
-<h3>Bug Fixes<a class="headerlink" href="#id43" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id47">
+<h3>Bug Fixes<a class="headerlink" href="#id47" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Skips conformers with no atoms in finding unique conformers</p></li>
 <li><p>Corrects benchmark TS location for the Grubbs metathesis example, where the reactant complex is bound</p></li>
@@ -2038,39 +999,39 @@ large/flexible systems. For path optimisations loose optimisations use a maximum
 <li><p>Fixes spin state definition for XTB calculations</p></li>
 <li><p>Fixes possible override of a constructor-defined spin state by the SMILES parser</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id44">
-<h2>1.0.5<a class="headerlink" href="#id44" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id48">
+<h2>1.0.5<a class="headerlink" href="#id48" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bugfix release</p>
-<div class="section" id="id45">
-<h3>Bug Fixes<a class="headerlink" href="#id45" title="Permalink to this headline">#</a></h3>
+<section id="id49">
+<h3>Bug Fixes<a class="headerlink" href="#id49" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Saves transition state templates with correct atom labels</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id46">
-<h2>1.0.4<a class="headerlink" href="#id46" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id50">
+<h2>1.0.4<a class="headerlink" href="#id50" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>Bug fixes in SMILES parser and 3D geometry builder from 1.0.3.</p>
-<div class="section" id="usability-improvements">
-<h3>Usability improvements<a class="headerlink" href="#usability-improvements" title="Permalink to this headline">#</a></h3>
+<section id="usability-improvements">
+<h3>Usability improvements<a class="headerlink" href="#usability-improvements" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Improves doc strings</p></li>
 <li><p>Throws interpretable error when calling <code class="code docutils literal notranslate"><span class="pre">find_tss</span></code>  without <code class="code docutils literal notranslate"><span class="pre">reaction.reactant</span></code> set</p></li>
 </ul>
-</div>
-<div class="section" id="id47">
-<h3>Functionality improvements<a class="headerlink" href="#id47" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id51">
+<h3>Functionality improvements<a class="headerlink" href="#id51" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>SMILES strings with &gt;9 ring closures are parsed correctly</p></li>
 <li><p>cis-double bonds in rings no longer minimise with constraints, which is a little faster</p></li>
 </ul>
-</div>
-<div class="section" id="id48">
-<h3>Bug Fixes<a class="headerlink" href="#id48" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id52">
+<h3>Bug Fixes<a class="headerlink" href="#id52" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Tweaks repulsion parameters in minimisation to build fused rings</p></li>
 <li><p>Enables SMILES parsing with “X(…)1” branching</p></li>
@@ -2081,15 +1042,15 @@ large/flexible systems. For path optimisations loose optimisations use a maximum
 <li><p>Corrects atom type for sp2 group 16 elements</p></li>
 <li><p>Fixes dihedral rotation with atoms not close to any other</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id49">
-<h2>1.0.3<a class="headerlink" href="#id49" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id53">
+<h2>1.0.3<a class="headerlink" href="#id53" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>A minor API revision from 1.0.2 but adds C++ extension which should be extensible to
 further developments of fast C-based code.</p>
-<div class="section" id="id50">
-<h3>Usability improvements<a class="headerlink" href="#id50" title="Permalink to this headline">#</a></h3>
+<section id="id54">
+<h3>Usability improvements<a class="headerlink" href="#id54" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.Species()</span></code> inherit from a <code class="code docutils literal notranslate"><span class="pre">AtomCollection()</span></code> base class for more flexibility</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.Constants</span></code> attributes have more readable names (while retaining backwards compatability)</p></li>
@@ -2099,9 +1060,9 @@ further developments of fast C-based code.</p>
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.formula</span></code> and <code class="code docutils literal notranslate"><span class="pre">species.is_explicitly_solvated</span></code> are now a properties</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.smiles.parser</span></code> has been rewritten &amp; is (hopefully) a more robust SMILES parser</p></li>
 </ul>
-</div>
-<div class="section" id="id51">
-<h3>Functionality improvements<a class="headerlink" href="#id51" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id55">
+<h3>Functionality improvements<a class="headerlink" href="#id55" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Metal complex initial geometries can now be generated with the correct stereochemistry</p></li>
 <li><p>Macrocycles default to an <strong>autodE</strong> builder that conserves SMILES stereochemistry (<a class="reference external" href="https://github.com/rdkit/rdkit/issues/1852">RDKit#1852</a>)</p></li>
@@ -2110,83 +1071,83 @@ further developments of fast C-based code.</p>
 <li><p><code class="code docutils literal notranslate"><span class="pre">autode.atoms.PeriodicTable</span></code> added</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.bond_matrix</span></code> added as a property and returns a boolean array for interactions between all atom pairs</p></li>
 </ul>
-</div>
-<div class="section" id="id52">
-<h3>Bug Fixes<a class="headerlink" href="#id52" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id56">
+<h3>Bug Fixes<a class="headerlink" href="#id56" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">reaction.calculate_complexes()</span></code> calls <code class="code docutils literal notranslate"><span class="pre">reaction.find_complexes()</span></code> if needed thus can be called in isolation</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id53">
-<h2>1.0.2<a class="headerlink" href="#id53" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id57">
+<h2>1.0.2<a class="headerlink" href="#id57" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
-<div class="section" id="id54">
-<h3>Usability improvements<a class="headerlink" href="#id54" title="Permalink to this headline">#</a></h3>
+<section id="id58">
+<h3>Usability improvements<a class="headerlink" href="#id58" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Effective core potentials can now be specified in <code class="code docutils literal notranslate"><span class="pre">Keywords()</span></code></p></li>
 <li><p>ORCA fitting basis sets now default to def2/J, which should be smaller but as accurate as AutoAux</p></li>
 <li><p>Molecule initialisation from a .xyz file now checks for an odd number of electrons. For example, <code class="code docutils literal notranslate"><span class="pre">Molecule('H_atom.xyz')</span></code> will raise a <code class="code docutils literal notranslate"><span class="pre">ValueError</span></code> but <code class="code docutils literal notranslate"><span class="pre">Molecule('H_atom.xyz',</span> <span class="pre">charge=1)</span></code> or <code class="code docutils literal notranslate"><span class="pre">Molecule('H_atom.xyz',</span> <span class="pre">mult=2)</span></code> are acceptable</p></li>
 </ul>
-</div>
-<div class="section" id="id55">
-<h3>Functionality improvements<a class="headerlink" href="#id55" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id59">
+<h3>Functionality improvements<a class="headerlink" href="#id59" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">atom.atomic_number</span></code> has been added as an atom attribute</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">atom.atomic_symbol</span></code> is a more intuitive alias for <code class="code docutils literal notranslate"><span class="pre">atom.label</span></code></p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id56">
-<h2>1.0.1<a class="headerlink" href="#id56" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id60">
+<h2>1.0.1<a class="headerlink" href="#id60" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
-<div class="section" id="id57">
-<h3>Usability improvements<a class="headerlink" href="#id57" title="Permalink to this headline">#</a></h3>
+<section id="id61">
+<h3>Usability improvements<a class="headerlink" href="#id61" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Molecular complexes can now be initialised with a reasonable geometry <code class="code docutils literal notranslate"><span class="pre">Complex(...,</span> <span class="pre">do_init_translation=True)</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id58">
-<h3>Functionality improvements<a class="headerlink" href="#id58" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id62">
+<h3>Functionality improvements<a class="headerlink" href="#id62" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.radius</span></code> has been added as an approximate molecular radius (in Angstroms, excluding VdW radii)</p></li>
 </ul>
-</div>
-<div class="section" id="id59">
-<h3>Bug Fixes<a class="headerlink" href="#id59" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id63">
+<h3>Bug Fixes<a class="headerlink" href="#id63" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Final breaking bond distances are now the minimum of the product X-Y distance if present in the product, or 2x the distance. This is required for breaking bonds that cross a ring.</p></li>
 <li><p>Neighbour lists for comparing possibly equivalent bond rearrangements are now compared using a sorted list</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id60">
-<h2>1.0.0<a class="headerlink" href="#id60" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="id64">
+<h2>1.0.0<a class="headerlink" href="#id64" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>The first stable release! Mostly documentation updates from v.1.0.0b3 with the
 package now being conda-install-able.</p>
-<div class="section" id="id61">
-<h3>Usability improvements<a class="headerlink" href="#id61" title="Permalink to this headline">#</a></h3>
+<section id="id65">
+<h3>Usability improvements<a class="headerlink" href="#id65" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>More documentation</p></li>
 </ul>
-</div>
-<div class="section" id="id62">
-<h3>Functionality improvements<a class="headerlink" href="#id62" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id66">
+<h3>Functionality improvements<a class="headerlink" href="#id66" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>XTB wrapper now supports v. 6.4 (and hopefully higher)</p></li>
 </ul>
 <p>Thanks to Joe, Alistair, Matina, Kjell, Gabe, Cher-Tian amongst others for their invaluable contributions.</p>
-</div>
-</div>
-<div class="section" id="b3">
-<h2>1.0.0b3<a class="headerlink" href="#b3" title="Permalink to this headline">#</a></h2>
+</section>
+</section>
+<section id="b3">
+<h2>1.0.0b3<a class="headerlink" href="#b3" title="Permalink to this heading">#</a></h2>
 <hr class="docutils" />
 <p>This version brings several major changes and in some instances breaks
 backwards compatibility, but does feature significant improvements in speed
 and accuracy for finding transition states.</p>
-<div class="section" id="id63">
-<h3>Usability improvements<a class="headerlink" href="#id63" title="Permalink to this headline">#</a></h3>
+<section id="id67">
+<h3>Usability improvements<a class="headerlink" href="#id67" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.get_distance(i,</span> <span class="pre">j)</span></code> is now <code class="code docutils literal notranslate"><span class="pre">species.distance(i,</span> <span class="pre">j)</span></code></p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.set_atoms(new_atoms)</span></code>  is now properly handled with a setter so <code class="code docutils literal notranslate"><span class="pre">species.atoms</span> <span class="pre">=</span> <span class="pre">new_atoms</span></code> will set the new atoms</p></li>
@@ -2195,9 +1156,9 @@ and accuracy for finding transition states.</p>
 <li><p><code class="code docutils literal notranslate"><span class="pre">species.centre()</span></code> will translate a species so it’s coordinate centroid lies at the origin</p></li>
 <li><p>PBE0/def2-SVP is now the default ‘low opt’ method (<cite>keywords.low_opt</cite>) with loose optimisation. Path exploration uses this method, thus it needs to be very close to the ‘opt’ level</p></li>
 </ul>
-</div>
-<div class="section" id="id64">
-<h3>Functionality improvements<a class="headerlink" href="#id64" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id68">
+<h3>Functionality improvements<a class="headerlink" href="#id68" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>1D, 2D potential energy surface scans and nudged elastic band (NEB) methods to generate TS guesses from reactants have been replaced by an adaptive path search which seems to be very efficient for generating initial paths</p></li>
 </ul>
@@ -2223,61 +1184,233 @@ then the BDE curve calculated at the GFN2-XTB level of theory. A multiplier of ~
 <ul class="simple">
 <li><p>There is now a heuristic used to skip TSs that go via small rings (3, 4-membered) if there is a &gt;4-membered equivalent (<code class="code docutils literal notranslate"><span class="pre">ade.Config.skip_small_ring_tss</span></code>)</p></li>
 </ul>
-</div>
-<div class="section" id="id65">
-<h3>Bug Fixes<a class="headerlink" href="#id65" title="Permalink to this headline">#</a></h3>
+</section>
+<section id="id69">
+<h3>Bug Fixes<a class="headerlink" href="#id69" title="Permalink to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Calculations are now unique based on constraints, so NEB calculations executed in the same directory are not skipped with different bond rearrangements</p></li>
 </ul>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
-              </div>
+                </article>
               
-            </main>
-            <footer class="footer-article noprint">
-                
-    <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="examples/thermochem.html" title="previous page">
-        <i class="fas fa-angle-left"></i>
-        <div class="prev-next-info">
-            <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Thermochemistry</p>
-        </div>
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="examples/thermochem.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Thermochemistry</p>
+      </div>
     </a>
-    <a class='right-next' id="next-link" href="dev/index.html" title="next page">
-    <div class="prev-next-info">
+    <a class="right-next"
+       href="dev/index.html"
+       title="next page">
+      <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
         <p class="prev-next-title">Development</p>
-    </div>
-    <i class="fas fa-angle-right"></i>
-    </a>
-</div>
-            </footer>
-        </div>
-    </div>
-    <div class="footer-content row">
-        <footer class="col footer"><p>
-  
-    By Tom Young, Joseph Silcock<br/>
-  
-      &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
-</p>
-        </footer>
-    </div>
-    
-</div>
-
-
       </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">1.4.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functionality-improvements">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usability-improvements-changes">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#bug-fixes">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">1.3.5</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">1.3.4</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">1.3.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">1.3.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">1.3.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">1.3.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">1.2.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">1.2.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id27">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id28">1.2.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id29">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id30">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id31">1.2.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id32">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id33">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id34">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id35">1.1.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id36">Usability improvements/Changes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id37">1.1.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id38">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id39">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id40">1.1.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id41">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id42">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id43">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id44">1.1.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id45">Usability improvements/Changes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id46">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id47">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id48">1.0.5</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id49">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id50">1.0.4</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usability-improvements">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id51">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id52">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id53">1.0.3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id54">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id55">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id56">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id57">1.0.2</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id58">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id59">Functionality improvements</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id60">1.0.1</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id61">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id62">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id63">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id64">1.0.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id65">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id66">Functionality improvements</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#b3">1.0.0b3</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id67">Usability improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id68">Functionality improvements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id69">Bug Fixes</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Tom Young, Joseph Silcock
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2020-2021, Tom Young, Joseph Silcock.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
     </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

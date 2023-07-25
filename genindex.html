@@ -1,735 +1,345 @@
 
+
 <!DOCTYPE html>
 
-<html>
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; autodE  documentation</title>
-    
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
 
-    
-  <link rel="stylesheet"
-    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
-    
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay overlay-navbar" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<!-- Checkboxes to toggle the in-page toc -->
-<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
-<label class="overlay overlay-pagetoc" for="__page-toc">
-    <div class="visually-hidden">Toggle in-page Table of Contents</div>
-</label>
-<!-- Headers at the top -->
-<div class="announcement header-item noprint"></div>
-<div class="header header-item noprint"></div>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
     
-    <div class="container-fluid" id="banner"></div>
-
     
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
 
-    <div class="container-xl">
-      <div class="row">
-          
-<!-- Sidebar -->
-<div class="bd-sidebar noprint" id="site-navigation">
-    <div class="bd-sidebar__content">
-        <div class="bd-sidebar__top"><div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="index.html">
-      
-      
-      
-      <h1 class="site-logo" id="site-title">autodE  documentation</h1>
-      
-    </a>
-</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item active">
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">autodE  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
         <ul class="nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="install.html">
-   Install
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="quickstart.html">
-   Quick Start
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="config.html">
-   Configuration
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="reference/index.html">
-   Reference
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/atoms.html">
-     Atoms
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/bonds.html">
-     Bonds
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/calculation.html">
-     Calculation
-    </a>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/conformers/index.html">
-     Conformers
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
-    <label for="toctree-checkbox-2">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/conformers/conf_gen.html">
-       Conf Gen
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/conformers/conformer.html">
-       Conformer
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/conformers/conformers.html">
-       Conformers
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/pes/index.html">
-     PES
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
-    <label for="toctree-checkbox-3">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/pes.html">
-       Potential Energy Surfaces
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/pes/mep.html">
-       Min Energy Pathway
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/reactions/index.html">
-     Reactions
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
-    <label for="toctree-checkbox-4">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/reactions/multistep.html">
-       Multistep Reaction
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/reactions/reaction.html">
-       Reaction
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/reactions/reaction_types.html">
-       Reaction Types
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/smiles/index.html">
-     SMILES
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
-    <label for="toctree-checkbox-5">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/smiles.html">
-       Molecules from SMILES
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/parser.html">
-       SMILES Parser
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/builder.html">
-       3D Geometry Builder
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/atom_types.html">
-       SMILES Atom Types
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/angles.html">
-       SMILES Angles
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/smiles/base.html">
-       SMILES Base
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/solvent/index.html">
-     Solvent
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
-    <label for="toctree-checkbox-6">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/solvent/solvents.html">
-       Solvents
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/solvent/explicit_solvent.html">
-       Explicit Solvent
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/species/index.html">
-     Species
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
-    <label for="toctree-checkbox-7">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/species/complex.html">
-       Complex
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/species/molecule.html">
-       Molecule
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/species/species.html">
-       Species
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/neb/index.html">
-     Nudged elastic band
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
-    <label for="toctree-checkbox-8">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/neb.html">
-       NEB Transition states
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/original.html">
-       Original NEB
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/ci.html">
-       Climbing image NEB
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/neb/idpp.html">
-       Image dependent pair potential
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/transition_states/index.html">
-     Transition States
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
-    <label for="toctree-checkbox-9">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/base.html">
-       Base
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/locate_tss.html">
-       Locate TSs
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/templates.html">
-       Templates
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/transition_state.html">
-       Transition State
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/truncation.html">
-       Truncation
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/transition_states/ts_guess.html">
-       TS Guess
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/thermochemistry/index.html">
-     Thermochemistry
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
-    <label for="toctree-checkbox-10">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/thermochemistry/igm.html">
-       Ideal gas model
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/thermochemistry/symmetry.html">
-       Symmetry
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/wrappers/index.html">
-     Wrappers
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
-    <label for="toctree-checkbox-11">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/base.html">
-       Base
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/g09.html">
-       Gaussian09
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/keywords.html">
-       Keywords
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/mopac.html">
-       MOPAC
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/nwchem.html">
-       NWChem
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/orca.html">
-       ORCA
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/wrappers/xtb.html">
-       XTB
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="reference/opt/index.html">
-     Optimisation
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
-    <label for="toctree-checkbox-12">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/opt/coordinates.html">
-       Coordinates
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="reference/opt/optimisers.html">
-       Optimisers
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/bond_rearrangement.html">
-     Bond Rearrangement
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/config.html">
-     Configuration
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/constants.html">
-     Constants
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/exceptions.html">
-     Exceptions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/geom.html">
-     Geometry
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/input_output.html">
-     Input Output
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/log.html">
-     Logging
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/methods.html">
-     Methods
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/mol_graphs.html">
-     Molecular Graphs
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/plotting.html">
-     Plotting
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/point_charges.html">
-     Point Charges
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/substitution.html">
-     Substitution
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/units.html">
-     Units
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/utils.html">
-     Utilities
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/values.html">
-     Values
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="reference/hessians.html">
-     Hessians
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="troubleshooting.html">
-   Troubleshooting
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="examples/index.html">
-   Examples
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
-  <label for="toctree-checkbox-13">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/species.html">
-     Species
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/molecules.html">
-     Molecules
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/reactions.html">
-     Reactions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/nci.html">
-     Non-covalent Interaction Complexes
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/manipulation.html">
-     Molecular Manipulation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/pes1d.html">
-     1D PES Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/pes2d.html">
-     2D PES Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/conformers.html">
-     Conformer Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/rmsd.html">
-     RMSD
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/tss.html">
-     Transition States
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="examples/thermochem.html">
-     Thermochemistry
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="changelog.html">
-   Changelog
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="dev/index.html">
-   Development
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/>
-  <label for="toctree-checkbox-14">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="dev/overview.html">
-     Code Structure
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="dev/contributing.html">
-     Contributing to autodE
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="citation.html">
-   Citation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference external" href="https://doi.org/10.1002/anie.202011941">
-   Paper
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="reference/index.html">Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/bonds.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/calculation.html">Calculation</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/conformers/index.html">Conformers</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/conformers/conf_gen.html">Conf Gen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/conformers/conformer.html">Conformer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/conformers/conformers.html">Conformers</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/pes/index.html">PES</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/pes/pes.html">Potential Energy Surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/pes/mep.html">Min Energy Pathway</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/reactions/index.html">Reactions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/reactions/multistep.html">Multistep Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/reactions/reaction.html">Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/reactions/reaction_types.html">Reaction Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/smiles/index.html">SMILES</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/smiles.html">Molecules from SMILES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/parser.html">SMILES Parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/builder.html">3D Geometry Builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/atom_types.html">SMILES Atom Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/angles.html">SMILES Angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/smiles/base.html">SMILES Base</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/solvent/index.html">Solvent</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/solvent/solvents.html">Solvents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/solvent/explicit_solvent.html">Explicit Solvent</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/species/index.html">Species</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-7"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/species/complex.html">Complex</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/species/molecule.html">Molecule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/species/species.html">Species</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/neb/index.html">Nudged elastic band</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-8"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/neb.html">NEB Transition states</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/original.html">Original NEB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/ci.html">Climbing image NEB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/neb/idpp.html">Image dependent pair potential</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/transition_states/index.html">Transition States</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-9"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/locate_tss.html">Locate TSs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/templates.html">Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/transition_state.html">Transition State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/truncation.html">Truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/transition_states/ts_guess.html">TS Guess</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/thermochemistry/index.html">Thermochemistry</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-10"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/thermochemistry/igm.html">Ideal gas model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/thermochemistry/symmetry.html">Symmetry</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/wrappers/index.html">Wrappers</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-11"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/g09.html">Gaussian09</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/keywords.html">Keywords</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/mopac.html">MOPAC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/nwchem.html">NWChem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/orca.html">ORCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/wrappers/xtb.html">XTB</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/opt/index.html">Optimisation</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-12"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="reference/opt/coordinates.html">Coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reference/opt/optimisers.html">Optimisers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reference/bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/hessians.html">Hessians</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-13"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/reactions.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/tss.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/thermochem.html">Thermochemistry</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev/index.html">Development</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-14"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev/overview.html">Code Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev/contributing.html">Contributing to autodE</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://doi.org/10.1002/anie.202011941">Paper</a></li>
 </ul>
 
     </div>
 </nav></div>
-        <div class="bd-sidebar__bottom">
-             <!-- To handle the deprecated key -->
-            
-            <div class="navbar_extra_footer">
-            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-            </div>
-            
-        </div>
     </div>
-    <div id="rtd-footer-container"></div>
-</div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
 
 
-          
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
 
-
-          
-<!-- A tiny helper pixel to detect if we've scrolled -->
 <div class="sbt-scroll-pixel-helper"></div>
-<!-- Main content -->
-<div class="col py-0 content-container">
-    
-    <div class="header-article row sticky-top noprint">
-        
 
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        
-        <label for="__navigation"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="right"
-title="Toggle navigation"
->
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
   
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-bars"></i>
-  </span>
-
-</label>
-
-        
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
     </div>
-    <div class="header-article__right">
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
 <button onclick="toggleFullScreen()"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   <i class="fas fa-expand"></i>
   </span>
 
 </button>
 
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script>
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
     </div>
 </div>
 
-<!-- Table of contents -->
-<div class="col-md-3 bd-toc show noprint">
-</div>
-    </div>
-    <div class="article row">
-        <div class="col pl-md-3 pl-lg-5 content-container">
-            <!-- Table of contents that is only displayed when printing the page -->
-            <div id="jb-print-docs-body" class="onlyprint">
-                <h1></h1>
-                <!-- Table of contents -->
-                <div id="print-main-content">
-                    <div id="jb-print-toc">
-                        
-                    </div>
-                </div>
-            </div>
-            <main id="main-content" role="main">
+              
                 
-              <div>
-                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
 
 <h1 id="index">Index</h1>
 
@@ -940,6 +550,8 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/values.html#autode.values.Energy.__init__">(autode.values.Energy method)</a>
 </li>
+        <li><a href="reference/values.html#autode.values.ForceConstant.__init__">(autode.values.ForceConstant method)</a>
+</li>
         <li><a href="reference/values.html#autode.values.Frequency.__init__">(autode.values.Frequency method)</a>
 </li>
         <li><a href="reference/values.html#autode.values.GradientRMS.__init__">(autode.values.GradientRMS method)</a>
@@ -1024,9 +636,13 @@ title="Fullscreen mode"
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSDampedUpdate._updated_h">_updated_h (autode.opt.optimisers.hessian_update.BFGSDampedUpdate property)</a>
 
       <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSSR1Update._updated_h">(autode.opt.optimisers.hessian_update.BFGSSR1Update property)</a>
+</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate._updated_h">(autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate._updated_h">(autode.opt.optimisers.hessian_update.BofillUpdate property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.FlowchartUpdate._updated_h">(autode.opt.optimisers.hessian_update.FlowchartUpdate property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater._updated_h">(autode.opt.optimisers.hessian_update.HessianUpdater property)</a>
 </li>
@@ -1035,10 +651,14 @@ title="Fullscreen mode"
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.SR1Update._updated_h">(autode.opt.optimisers.hessian_update.SR1Update property)</a>
 </li>
       </ul></li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate._updated_h_inv">_updated_h_inv (autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSSR1Update._updated_h_inv">_updated_h_inv (autode.opt.optimisers.hessian_update.BFGSSR1Update property)</a>
 
       <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate._updated_h_inv">(autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
+</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate._updated_h_inv">(autode.opt.optimisers.hessian_update.BofillUpdate property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.FlowchartUpdate._updated_h_inv">(autode.opt.optimisers.hessian_update.FlowchartUpdate property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater._updated_h_inv">(autode.opt.optimisers.hessian_update.HessianUpdater property)</a>
 </li>
@@ -1133,6 +753,8 @@ title="Fullscreen mode"
         <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keywords.append">(autode.wrappers.keywords.Keywords method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/neb/original.html#autode.neb.original.Images.append_species">append_species() (autode.neb.original.Images method)</a>
+</li>
       <li><a href="reference/geom.html#autode.geom.are_coords_reasonable">are_coords_reasonable() (in module autode.geom)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atoms.are_linear">are_linear() (autode.atoms.Atoms method)</a>
@@ -1179,6 +801,10 @@ title="Fullscreen mode"
 
       <ul>
         <li><a href="reference/conformers/conformer.html#autode.conformers.conformer.Conformer.atoms">(autode.conformers.conformer.Conformer property)</a>
+</li>
+        <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.ImplicitSolvent.atoms">(autode.solvent.solvents.ImplicitSolvent property)</a>
+</li>
+        <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.Solvent.atoms">(autode.solvent.solvents.Solvent property)</a>
 </li>
         <li><a href="reference/species/complex.html#autode.species.complex.Complex.atoms">(autode.species.complex.Complex property)</a>
 </li>
@@ -1330,6 +956,8 @@ title="Fullscreen mode"
         <li><a href="reference/neb/original.html#module-autode.neb.original">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autode.opt.coordinates.base
 
@@ -1337,8 +965,6 @@ title="Fullscreen mode"
         <li><a href="reference/opt/coordinates.html#module-autode.opt.coordinates.base">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autode.opt.coordinates.cartesian
 
@@ -1728,6 +1354,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSPDUpdate">BFGSPDUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSSR1Update">BFGSSR1Update (class in autode.opt.optimisers.hessian_update)</a>
+</li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate">BFGSUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
   </ul></td>
@@ -1844,6 +1472,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/reactions/reaction_types.html#autode.reactions.reaction_types.classify">classify() (in module autode.reactions.reaction_types)</a>
 </li>
+      <li><a href="reference/utils.html#autode.utils.cleanup_after_timeout">cleanup_after_timeout() (in module autode.utils)</a>
+</li>
       <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.clear">clear() (autode.pes.pes_nd.PESnD method)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.clear_tensors">clear_tensors() (autode.opt.coordinates.base.OptCoordinates method)</a>
@@ -1863,9 +1493,13 @@ title="Fullscreen mode"
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSPDUpdate.conditions_met">conditions_met (autode.opt.optimisers.hessian_update.BFGSPDUpdate property)</a>
 
       <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSSR1Update.conditions_met">(autode.opt.optimisers.hessian_update.BFGSSR1Update property)</a>
+</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate.conditions_met">(autode.opt.optimisers.hessian_update.BFGSUpdate property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate.conditions_met">(autode.opt.optimisers.hessian_update.BofillUpdate property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.FlowchartUpdate.conditions_met">(autode.opt.optimisers.hessian_update.FlowchartUpdate property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater.conditions_met">(autode.opt.optimisers.hessian_update.HessianUpdater property)</a>
 </li>
@@ -1876,10 +1510,10 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/conformers/conformer.html#autode.conformers.conformer.Conformer">Conformer (class in autode.conformers.conformer)</a>
 </li>
-      <li><a href="reference/species/species.html#autode.species.species.Species.conformers">conformers (autode.species.species.Species property)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/species/species.html#autode.species.species.Species.conformers">conformers (autode.species.species.Species property)</a>
+</li>
       <li><a href="reference/conformers/conformers.html#autode.conformers.conformers.Conformers">Conformers (class in autode.conformers.conformers)</a>
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.connected_components">connected_components() (in module autode.mol_graphs)</a>
@@ -1896,7 +1530,7 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atoms.contain_metals">contain_metals (autode.atoms.Atoms property)</a>
 </li>
-      <li><a href="reference/neb/original.html#autode.neb.original.NEB.contains_peak">contains_peak() (autode.neb.original.NEB method)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.contains_energy_rise">contains_energy_rise (autode.opt.optimisers.base.OptimiserHistory property)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.converged">converged (autode.opt.optimisers.base.BaseOptimiser property)</a>
 
@@ -1958,6 +1592,8 @@ title="Fullscreen mode"
         <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.coordinates_from">(autode.wrappers.XTB.XTB method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/exceptions.html#autode.exceptions.CoordinateTransformFailed">CoordinateTransformFailed</a>
+</li>
       <li><a href="reference/neb/original.html#autode.neb.original.Images.coords">coords() (autode.neb.original.Images method)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atom.copy">copy() (autode.atoms.Atom method)</a>
@@ -2186,8 +1822,6 @@ title="Fullscreen mode"
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/transition_states/base.html#autode.transition_states.base.f_b_isomorphic_to_r_p">f_b_isomorphic_to_r_p() (in module autode.transition_states.base)</a>
-</li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.f_r">f_r (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.f_t">f_t (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
@@ -2200,8 +1834,16 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.TStemplate.filename">filename (autode.transition_states.templates.TStemplate property)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.final_coordinates">final_coordinates (autode.opt.optimisers.base.Optimiser property)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.final">final (autode.opt.optimisers.base.OptimiserHistory property)</a>
 </li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.final_coordinates">final_coordinates (autode.opt.optimisers.base.BaseOptimiser property)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser.final_coordinates">(autode.opt.optimisers.base.NullOptimiser property)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.final_coordinates">(autode.opt.optimisers.base.Optimiser property)</a>
+</li>
+      </ul></li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.find_cycles">find_cycles() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.find_lowest_energy_conformer">find_lowest_energy_conformer() (autode.species.species.Species method)</a>
@@ -2228,11 +1870,17 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/values.html#autode.values.Energies.first_potential">first_potential (autode.values.Energies property)</a>
 </li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.FlowchartUpdate">FlowchartUpdate (class in autode.opt.optimisers.hessian_update)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/values.html#autode.values.ForceConstant">ForceConstant (class in autode.values)</a>
+</li>
       <li><a href="reference/bonds.html#autode.bonds.FormingBond">FormingBond (class in autode.bonds)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.formula">formula (autode.species.species.Species property)</a>
+</li>
+      <li><a href="reference/transition_states/base.html#autode.transition_states.base.forward_backward_isomorphic_to_reactant_product">forward_backward_isomorphic_to_reactant_product() (in module autode.transition_states.base)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.free_energy">free_energy (autode.species.species.Species property)</a>
 </li>
@@ -2254,6 +1902,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.from_checkpoint">from_checkpoint() (autode.reactions.reaction.Reaction class method)</a>
 </li>
+      <li><a href="reference/neb/original.html#autode.neb.original.NEB.from_end_points">from_end_points() (autode.neb.original.NEB class method)</a>
+</li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.from_file">from_file() (autode.neb.original.NEB class method)</a>
 
       <ul>
@@ -2262,6 +1912,8 @@ title="Fullscreen mode"
         <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.from_file">(autode.pes.pes_nd.PESnD class method)</a>
 </li>
       </ul></li>
+      <li><a href="reference/neb/original.html#autode.neb.original.NEB.from_list">from_list() (autode.neb.original.NEB class method)</a>
+</li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.from_species">from_species() (autode.opt.coordinates.dimer.DimerCoordinates class method)</a>
 
       <ul>
@@ -2315,8 +1967,6 @@ title="Fullscreen mode"
       <li><a href="reference/utils.html#autode.utils.StringDict.get">get() (autode.utils.StringDict method)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement.get_active_atom_neighbour_lists">get_active_atom_neighbour_lists() (autode.bond_rearrangement.BondRearrangement method)</a>
-</li>
-      <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_atom_ids_sorted_type">get_atom_ids_sorted_type() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.get_atoms_and_fixed_atom_indexes">get_atoms_and_fixed_atom_indexes() (in module autode.wrappers.MOPAC)</a>
 </li>
@@ -2372,10 +2022,10 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_mapping_ts_template">get_mapping_ts_template() (in module autode.mol_graphs)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/geom.html#autode.geom.get_neighbour_list">get_neighbour_list() (in module autode.geom)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/geom.html#autode.geom.get_points_on_sphere">get_points_on_sphere() (in module autode.geom)</a>
 </li>
       <li><a href="reference/thermochemistry/symmetry.html#autode.thermochemistry.symmetry.get_possible_axes">get_possible_axes() (in module autode.thermochemistry.symmetry)</a>
@@ -2396,13 +2046,13 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.get_solvent">get_solvent() (in module autode.solvent.solvents)</a>
 </li>
-      <li><a href="reference/neb/original.html#autode.neb.original.NEB.get_species_saddle_point">get_species_saddle_point() (autode.neb.original.NEB method)</a>
-</li>
       <li><a href="reference/plotting.html#autode.plotting.get_stationary_points">get_stationary_points() (in module autode.plotting)</a>
 </li>
       <li><a href="reference/substitution.html#autode.substitution.get_substc_and_add_dummy_atoms">get_substc_and_add_dummy_atoms() (in module autode.substitution)</a>
 </li>
       <li><a href="reference/transition_states/ts_guess.html#autode.transition_states.ts_guess.get_template_ts_guess">get_template_ts_guess() (in module autode.transition_states.ts_guess)</a>
+</li>
+      <li><a href="reference/utils.html#autode.utils.get_total_memory">get_total_memory() (in module autode.utils)</a>
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_truncated_active_mol_graph">get_truncated_active_mol_graph() (in module autode.mol_graphs)</a>
 </li>
@@ -2428,8 +2078,12 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP.grad">grad() (autode.neb.idpp.IDPP method)</a>
 </li>
-      <li><a href="reference/species/species.html#autode.species.species.Species.gradient">gradient (autode.species.species.Species property)</a>
+      <li><a href="reference/neb/original.html#autode.neb.original.Image.gradient">gradient (autode.neb.original.Image property)</a>
+
+      <ul>
+        <li><a href="reference/species/species.html#autode.species.species.Species.gradient">(autode.species.species.Species property)</a>
 </li>
+      </ul></li>
       <li><a href="reference/values.html#autode.values.Gradient">Gradient (class in autode.values)</a>
 </li>
       <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.gradient_from">gradient_from() (autode.wrappers.G09.G09 method)</a>
@@ -2617,6 +2271,8 @@ title="Fullscreen mode"
 </li>
         <li><a href="reference/values.html#autode.values.EnergyArray.implemented_units">(autode.values.EnergyArray attribute)</a>
 </li>
+        <li><a href="reference/values.html#autode.values.ForceConstant.implemented_units">(autode.values.ForceConstant attribute)</a>
+</li>
         <li><a href="reference/values.html#autode.values.Frequency.implemented_units">(autode.values.Frequency attribute)</a>
 </li>
         <li><a href="reference/values.html#autode.values.Gradient.implemented_units">(autode.values.Gradient attribute)</a>
@@ -2656,10 +2312,10 @@ title="Fullscreen mode"
         <li><a href="reference/neb/original.html#autode.neb.original.Images.increment">(autode.neb.original.Images method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.indexes">indexes (autode.opt.coordinates.base.OptCoordinates property)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.indexes">indexes (autode.opt.coordinates.base.OptCoordinates property)</a>
+</li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.init_k">init_k (autode.neb.original.NEB property)</a>
 </li>
       <li><a href="reference/smiles/smiles.html#autode.smiles.smiles.init_organic_smiles">init_organic_smiles() (in module autode.smiles.smiles)</a>
@@ -2671,7 +2327,7 @@ title="Fullscreen mode"
       <ul>
         <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.input_filename_for">(autode.wrappers.MOPAC.MOPAC static method)</a>
 </li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.input_filename_for">(autode.wrappers.NWChem.NWChem method)</a>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.input_filename_for">(autode.wrappers.NWChem.NWChem static method)</a>
 </li>
         <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.input_filename_for">(autode.wrappers.ORCA.ORCA static method)</a>
 </li>
@@ -2679,8 +2335,6 @@ title="Fullscreen mode"
 </li>
       </ul></li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESBonds.insert">insert() (autode.smiles.base.SMILESBonds method)</a>
-</li>
-      <li><a href="reference/neb/original.html#autode.neb.original.NEB.interpolate_geometries">interpolate_geometries() (autode.neb.original.NEB method)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.InvalidSmilesString">InvalidSmilesString</a>
 </li>
@@ -2750,8 +2404,12 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/transition_states/truncation.html#autode.transition_states.truncation.is_worth_truncating">is_worth_truncating() (in module autode.transition_states.truncation)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.iteration">iteration (autode.opt.optimisers.base.Optimiser property)</a>
+      <li><a href="reference/neb/original.html#autode.neb.original.Image.iteration">iteration (autode.neb.original.Image attribute)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.iteration">(autode.opt.optimisers.base.Optimiser property)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -2911,6 +2569,8 @@ title="Fullscreen mode"
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerPoint.midpoint">midpoint (autode.opt.coordinates.dimer.DimerPoint attribute)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate.min_update_tol">min_update_tol (autode.opt.optimisers.hessian_update.BofillUpdate attribute)</a>
+</li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.minimum">minimum (autode.opt.optimisers.base.OptimiserHistory property)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.LineSearchOptimiser.minimum_e_coords">minimum_e_coords (autode.opt.optimisers.line_search.LineSearchOptimiser property)</a>
 
@@ -3231,8 +2891,6 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser">Optimiser (class in autode.opt.optimisers.base)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.optimiser_from">optimiser_from() (autode.wrappers.G09.G09 method)</a>
 
       <ul>
@@ -3243,6 +2901,12 @@ title="Fullscreen mode"
         <li><a href="reference/wrappers/xtb.html#autode.wrappers.XTB.XTB.optimiser_from">(autode.wrappers.XTB.XTB method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory">OptimiserHistory (class in autode.opt.optimisers.base)</a>
+</li>
+      <li><a href="reference/exceptions.html#autode.exceptions.OptimiserStepError">OptimiserStepError</a>
+</li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.OptKeywords">OptKeywords (class in autode.wrappers.keywords)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.OptTSKeywords">OptTSKeywords (class in autode.wrappers.keywords)</a>
@@ -3264,7 +2928,7 @@ title="Fullscreen mode"
       <ul>
         <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPAC.output_filename_for">(autode.wrappers.MOPAC.MOPAC static method)</a>
 </li>
-        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.output_filename_for">(autode.wrappers.NWChem.NWChem method)</a>
+        <li><a href="reference/wrappers/nwchem.html#autode.wrappers.NWChem.NWChem.output_filename_for">(autode.wrappers.NWChem.NWChem static method)</a>
 </li>
         <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.output_filename_for">(autode.wrappers.ORCA.ORCA static method)</a>
 </li>
@@ -3301,7 +2965,11 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/pes/mep.html#autode.pes.mep.peak_point">peak_point() (in module autode.pes.mep)</a>
 </li>
+      <li><a href="reference/neb/original.html#autode.neb.original.NEB.peak_species">peak_species (autode.neb.original.NEB property)</a>
+</li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.PentagonalBipyramidalAtom">PentagonalBipyramidalAtom (class in autode.smiles.atom_types)</a>
+</li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.penultimate">penultimate (autode.opt.optimisers.base.OptimiserHistory property)</a>
 </li>
       <li><a href="reference/constants.html#autode.constants.Constants.per_cm_to_hz">per_cm_to_hz (autode.constants.Constants attribute)</a>
 </li>
@@ -3323,7 +2991,13 @@ title="Fullscreen mode"
       </ul></li>
       <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.plot">plot() (autode.pes.pes_nd.PESnD method)</a>
 </li>
+      <li><a href="reference/plotting.html#autode.plotting.plot_bracket_method_energy_profile">plot_bracket_method_energy_profile() (in module autode.plotting)</a>
+</li>
       <li><a href="reference/neb/original.html#autode.neb.original.Images.plot_energies">plot_energies() (autode.neb.original.Images method)</a>
+</li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.plot_optimisation">plot_optimisation() (autode.opt.optimisers.base.NDOptimiser method)</a>
+</li>
+      <li><a href="reference/plotting.html#autode.plotting.plot_optimiser_profile">plot_optimiser_profile() (in module autode.plotting)</a>
 </li>
       <li><a href="reference/plotting.html#autode.plotting.plot_points">plot_points() (in module autode.plotting)</a>
 </li>
@@ -3372,7 +3046,13 @@ title="Fullscreen mode"
 </li>
       </ul></li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.print_geometries">print_geometries() (autode.neb.original.NEB method)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.print_geometries">(autode.opt.optimisers.base.NDOptimiser method)</a>
 </li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.print_geometries">(autode.opt.optimisers.base.OptimiserHistory method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/transition_states/transition_state.html#autode.transition_states.transition_state.TransitionState.print_imag_vector">print_imag_vector() (autode.transition_states.transition_state.TransitionState method)</a>
 </li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_num_optimisation_steps">print_num_optimisation_steps() (in module autode.wrappers.ORCA)</a>
@@ -3424,7 +3104,11 @@ title="Fullscreen mode"
       <li><a href="reference/species/species.html#autode.species.species.Species.radius">radius (autode.species.species.Species property)</a>
 </li>
       <li><a href="reference/solvent/explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent.randomise_around">randomise_around() (autode.solvent.explicit_solvent.ExplicitSolvent method)</a>
+
+      <ul>
+        <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.Solvent.randomise_around">(autode.solvent.solvents.Solvent method)</a>
 </li>
+      </ul></li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.raw">raw (autode.opt.coordinates.base.OptCoordinates property)</a>
 
       <ul>
@@ -3460,6 +3144,8 @@ title="Fullscreen mode"
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.remove_bonds_invalid_valancies">remove_bonds_invalid_valancies() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atoms.remove_dummy">remove_dummy() (autode.atoms.Atoms method)</a>
+</li>
+      <li><a href="reference/conformers/conformers.html#autode.conformers.conformers.Conformers.remove_no_energy">remove_no_energy() (autode.conformers.conformers.Conformers method)</a>
 </li>
       <li><a href="reference/species/complex.html#autode.species.complex.Complex.reorder_atoms">reorder_atoms() (autode.species.complex.Complex method)</a>
 
@@ -3513,8 +3199,14 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.AtomType.rotate_randomly">rotate_randomly() (autode.smiles.atom_types.AtomType method)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.run">run() (autode.opt.optimisers.base.Optimiser method)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.run">run() (autode.opt.optimisers.base.BaseOptimiser method)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser.run">(autode.opt.optimisers.base.NullOptimiser method)</a>
 </li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.run">(autode.opt.optimisers.base.Optimiser method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/transition_states/ts_guess.html#autode.transition_states.ts_guess.TSguess.run_constrained_opt">run_constrained_opt() (autode.transition_states.ts_guess.TSguess method)</a>
 </li>
       <li><a href="reference/utils.html#autode.utils.run_external">run_external() (in module autode.utils)</a>
@@ -3535,9 +3227,13 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.SArmijoLineSearch">SArmijoLineSearch (class in autode.opt.optimisers.line_search)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.save">save() (autode.opt.optimisers.base.NDOptimiser method)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.save">save() (autode.opt.optimisers.base.BaseOptimiser method)</a>
 
       <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.save">(autode.opt.optimisers.base.NDOptimiser method)</a>
+</li>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser.save">(autode.opt.optimisers.base.NullOptimiser method)</a>
+</li>
         <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.save">(autode.pes.pes_nd.PESnD method)</a>
 </li>
         <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.save">(autode.reactions.reaction.Reaction method)</a>
@@ -3591,10 +3287,10 @@ title="Fullscreen mode"
         <li><a href="reference/species/species.html#autode.species.species.Species.single_point">(autode.species.species.Species method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.SinglePointKeywords">SinglePointKeywords (class in autode.wrappers.keywords)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.SinglePointKeywords">SinglePointKeywords (class in autode.wrappers.keywords)</a>
+</li>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.Parser.smiles">smiles (autode.smiles.parser.Parser property)</a>
 </li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESAtom">SMILESAtom (class in autode.smiles.base)</a>
@@ -3677,6 +3373,8 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.TemplateLoadingFailed">TemplateLoadingFailed</a>
 </li>
+      <li><a href="reference/utils.html#autode.utils.temporary_config">temporary_config() (in module autode.utils)</a>
+</li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.TerminalAtom">TerminalAtom (class in autode.smiles.atom_types)</a>
 </li>
       <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09.terminated_normally_in">terminated_normally_in() (autode.wrappers.G09.G09 method)</a>
@@ -3724,7 +3422,11 @@ title="Fullscreen mode"
       <li><a href="reference/values.html#autode.values.ValueArray.to_">to_() (autode.values.ValueArray method)</a>
 </li>
       <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.ImplicitSolvent.to_explicit">to_explicit() (autode.solvent.solvents.ImplicitSolvent method)</a>
+
+      <ul>
+        <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.Solvent.to_explicit">(autode.solvent.solvents.Solvent method)</a>
 </li>
+      </ul></li>
       <li><a href="reference/species/molecule.html#autode.species.molecule.Molecule.to_product">to_product() (autode.species.molecule.Molecule method)</a>
 </li>
       <li><a href="reference/species/complex.html#autode.species.complex.ReactantComplex.to_product_complex">to_product_complex() (autode.species.complex.ReactantComplex method)</a>
@@ -3785,14 +3487,26 @@ title="Fullscreen mode"
 </li>
       <li><a href="reference/units.html#autode.units.Unit">Unit (class in autode.units)</a>
 </li>
+      <li><a href="reference/values.html#autode.values.Enthalpy.units">units (autode.values.Enthalpy attribute)</a>
+
+      <ul>
+        <li><a href="reference/values.html#autode.values.EnthalpyCont.units">(autode.values.EnthalpyCont attribute)</a>
+</li>
+        <li><a href="reference/values.html#autode.values.FreeEnergy.units">(autode.values.FreeEnergy attribute)</a>
+</li>
+        <li><a href="reference/values.html#autode.values.FreeEnergyCont.units">(autode.values.FreeEnergyCont attribute)</a>
+</li>
+        <li><a href="reference/values.html#autode.values.PotentialEnergy.units">(autode.values.PotentialEnergy attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/pes/pes.html#autode.pes.unrelaxed.UnRelaxedPES1D">UnRelaxedPES1D (class in autode.pes.unrelaxed)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.UnsupportedCalculationInput">UnsupportedCalculationInput</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g">update_g_from_cart_g() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h">update_h_from_cart_h() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.update_lagrange_multipliers">update_lagrange_multipliers() (autode.opt.coordinates.dic.DICWithConstraints method)</a>
@@ -3950,36 +3664,73 @@ title="Fullscreen mode"
 
 
 
-              </div>
+                </article>
               
-            </main>
-            <footer class="footer-article noprint">
-                
-    <!-- Previous / next buttons -->
-<div class='prev-next-area'>
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
 </div>
-            </footer>
-        </div>
-    </div>
-    <div class="footer-content row">
-        <footer class="col footer"><p>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
   
-    By Tom Young, Joseph Silcock<br/>
-  
-      &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
-</p>
-        </footer>
-    </div>
+  <div class="footer-item">
     
+<p class="component-author">
+By Tom Young, Joseph Silcock
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2020-2021, Tom Young, Joseph Silcock.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
 </div>
+          </footer>
+        
 
-
-      </div>
+      </main>
     </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

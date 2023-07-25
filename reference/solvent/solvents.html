@@ -1,798 +1,446 @@
 
+
 <!DOCTYPE html>
 
-<html>
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Solvents &#8212; autodE  documentation</title>
-    
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    
-  <link rel="stylesheet"
-    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+    <title>Solvents &#8212; autodE  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
-    
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/solvent/solvents';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Explicit Solvent" href="explicit_solvent.html" />
     <link rel="prev" title="Solvent" href="index.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-<!-- Checkboxes to toggle the left sidebar -->
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
-<label class="overlay overlay-navbar" for="__navigation">
-    <div class="visually-hidden">Toggle navigation sidebar</div>
-</label>
-<!-- Checkboxes to toggle the in-page toc -->
-<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
-<label class="overlay overlay-pagetoc" for="__page-toc">
-    <div class="visually-hidden">Toggle in-page Table of Contents</div>
-</label>
-<!-- Headers at the top -->
-<div class="announcement header-item noprint"></div>
-<div class="header header-item noprint"></div>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search..."
+         aria-label="Search..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
     
-    <div class="container-fluid" id="banner"></div>
-
     
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
 
-    <div class="container-xl">
-      <div class="row">
-          
-<!-- Sidebar -->
-<div class="bd-sidebar noprint" id="site-navigation">
-    <div class="bd-sidebar__content">
-        <div class="bd-sidebar__top"><div class="navbar-brand-box">
-    <a class="navbar-brand text-wrap" href="../../index.html">
-      
-      
-      
-      <h1 class="site-logo" id="site-title">autodE  documentation</h1>
-      
-    </a>
-</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
-    <div class="bd-toc-item active">
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">autodE  documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="../../install.html">
-   Install
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../quickstart.html">
-   Quick Start
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../config.html">
-   Configuration
-  </a>
- </li>
- <li class="toctree-l1 current active has-children">
-  <a class="reference internal" href="../index.html">
-   Reference
-  </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul class="current">
-   <li class="toctree-l2">
-    <a class="reference internal" href="../atoms.html">
-     Atoms
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../bonds.html">
-     Bonds
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../calculation.html">
-     Calculation
-    </a>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../conformers/index.html">
-     Conformers
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
-    <label for="toctree-checkbox-2">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../conformers/conf_gen.html">
-       Conf Gen
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../conformers/conformer.html">
-       Conformer
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../conformers/conformers.html">
-       Conformers
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../pes/index.html">
-     PES
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
-    <label for="toctree-checkbox-3">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../pes/pes.html">
-       Potential Energy Surfaces
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../pes/mep.html">
-       Min Energy Pathway
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../reactions/index.html">
-     Reactions
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
-    <label for="toctree-checkbox-4">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../reactions/multistep.html">
-       Multistep Reaction
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../reactions/reaction.html">
-       Reaction
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../reactions/reaction_types.html">
-       Reaction Types
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../smiles/index.html">
-     SMILES
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
-    <label for="toctree-checkbox-5">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../smiles/smiles.html">
-       Molecules from SMILES
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../smiles/parser.html">
-       SMILES Parser
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../smiles/builder.html">
-       3D Geometry Builder
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../smiles/atom_types.html">
-       SMILES Atom Types
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../smiles/angles.html">
-       SMILES Angles
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../smiles/base.html">
-       SMILES Base
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 current active has-children">
-    <a class="reference internal" href="index.html">
-     Solvent
-    </a>
-    <input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
-    <label for="toctree-checkbox-6">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul class="current">
-     <li class="toctree-l3 current active">
-      <a class="current reference internal" href="#">
-       Solvents
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="explicit_solvent.html">
-       Explicit Solvent
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../species/index.html">
-     Species
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
-    <label for="toctree-checkbox-7">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../species/complex.html">
-       Complex
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../species/molecule.html">
-       Molecule
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../species/species.html">
-       Species
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../neb/index.html">
-     Nudged elastic band
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
-    <label for="toctree-checkbox-8">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../neb/neb.html">
-       NEB Transition states
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../neb/original.html">
-       Original NEB
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../neb/ci.html">
-       Climbing image NEB
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../neb/idpp.html">
-       Image dependent pair potential
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../transition_states/index.html">
-     Transition States
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
-    <label for="toctree-checkbox-9">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../transition_states/base.html">
-       Base
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../transition_states/locate_tss.html">
-       Locate TSs
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../transition_states/templates.html">
-       Templates
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../transition_states/transition_state.html">
-       Transition State
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../transition_states/truncation.html">
-       Truncation
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../transition_states/ts_guess.html">
-       TS Guess
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../thermochemistry/index.html">
-     Thermochemistry
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
-    <label for="toctree-checkbox-10">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../thermochemistry/igm.html">
-       Ideal gas model
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../thermochemistry/symmetry.html">
-       Symmetry
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../wrappers/index.html">
-     Wrappers
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
-    <label for="toctree-checkbox-11">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../wrappers/base.html">
-       Base
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../wrappers/g09.html">
-       Gaussian09
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../wrappers/keywords.html">
-       Keywords
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../wrappers/mopac.html">
-       MOPAC
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../wrappers/nwchem.html">
-       NWChem
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../wrappers/orca.html">
-       ORCA
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../wrappers/xtb.html">
-       XTB
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="../opt/index.html">
-     Optimisation
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
-    <label for="toctree-checkbox-12">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../opt/coordinates.html">
-       Coordinates
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../opt/optimisers.html">
-       Optimisers
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../bond_rearrangement.html">
-     Bond Rearrangement
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../config.html">
-     Configuration
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../constants.html">
-     Constants
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../exceptions.html">
-     Exceptions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../geom.html">
-     Geometry
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../input_output.html">
-     Input Output
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../log.html">
-     Logging
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../methods.html">
-     Methods
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../mol_graphs.html">
-     Molecular Graphs
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../plotting.html">
-     Plotting
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../point_charges.html">
-     Point Charges
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../substitution.html">
-     Substitution
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../units.html">
-     Units
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../utils.html">
-     Utilities
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../values.html">
-     Values
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../hessians.html">
-     Hessians
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../troubleshooting.html">
-   Troubleshooting
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../../examples/index.html">
-   Examples
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
-  <label for="toctree-checkbox-13">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/species.html">
-     Species
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/molecules.html">
-     Molecules
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/reactions.html">
-     Reactions
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/nci.html">
-     Non-covalent Interaction Complexes
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/manipulation.html">
-     Molecular Manipulation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/pes1d.html">
-     1D PES Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/pes2d.html">
-     2D PES Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/conformers.html">
-     Conformer Generation
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/rmsd.html">
-     RMSD
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/tss.html">
-     Transition States
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../examples/thermochem.html">
-     Thermochemistry
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../changelog.html">
-   Changelog
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="../../dev/index.html">
-   Development
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/>
-  <label for="toctree-checkbox-14">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../dev/overview.html">
-     Code Structure
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="../../dev/contributing.html">
-     Contributing to autodE
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../citation.html">
-   Citation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference external" href="https://doi.org/10.1002/anie.202011941">
-   Paper
-  </a>
- </li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Configuration</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../atoms.html">Atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bonds.html">Bonds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../calculation.html">Calculation</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../conformers/index.html">Conformers</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../conformers/conf_gen.html">Conf Gen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../conformers/conformer.html">Conformer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../conformers/conformers.html">Conformers</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../pes/index.html">PES</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../pes/pes.html">Potential Energy Surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pes/mep.html">Min Energy Pathway</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../reactions/index.html">Reactions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../reactions/multistep.html">Multistep Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reactions/reaction.html">Reaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reactions/reaction_types.html">Reaction Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../smiles/index.html">SMILES</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../smiles/smiles.html">Molecules from SMILES</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../smiles/parser.html">SMILES Parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../smiles/builder.html">3D Geometry Builder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../smiles/atom_types.html">SMILES Atom Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../smiles/angles.html">SMILES Angles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../smiles/base.html">SMILES Base</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Solvent</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Solvents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="explicit_solvent.html">Explicit Solvent</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../species/index.html">Species</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-7"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../species/complex.html">Complex</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../species/molecule.html">Molecule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../species/species.html">Species</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../neb/index.html">Nudged elastic band</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-8"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../neb/neb.html">NEB Transition states</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../neb/original.html">Original NEB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../neb/ci.html">Climbing image NEB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../neb/idpp.html">Image dependent pair potential</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../transition_states/index.html">Transition States</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-9"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../transition_states/base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../transition_states/locate_tss.html">Locate TSs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../transition_states/templates.html">Templates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../transition_states/transition_state.html">Transition State</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../transition_states/truncation.html">Truncation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../transition_states/ts_guess.html">TS Guess</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../thermochemistry/index.html">Thermochemistry</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-10"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../thermochemistry/igm.html">Ideal gas model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../thermochemistry/symmetry.html">Symmetry</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../wrappers/index.html">Wrappers</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-11"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../wrappers/base.html">Base</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../wrappers/g09.html">Gaussian09</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../wrappers/keywords.html">Keywords</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../wrappers/mopac.html">MOPAC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../wrappers/nwchem.html">NWChem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../wrappers/orca.html">ORCA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../wrappers/xtb.html">XTB</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../opt/index.html">Optimisation</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-12"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../opt/coordinates.html">Coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../opt/optimisers.html">Optimisers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../bond_rearrangement.html">Bond Rearrangement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../constants.html">Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../geom.html">Geometry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../input_output.html">Input Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../log.html">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../methods.html">Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mol_graphs.html">Molecular Graphs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plotting.html">Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../point_charges.html">Point Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../substitution.html">Substitution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../units.html">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../values.html">Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hessians.html">Hessians</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">Troubleshooting</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-13"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/species.html">Species</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/molecules.html">Molecules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/reactions.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/nci.html">Non-covalent Interaction Complexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/manipulation.html">Molecular Manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/pes1d.html">1D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/pes2d.html">2D PES Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/conformers.html">Conformer Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/rmsd.html">RMSD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/tss.html">Transition States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/thermochem.html">Thermochemistry</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../dev/index.html">Development</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-14"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../dev/overview.html">Code Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../dev/contributing.html">Contributing to autodE</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../citation.html">Citation</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://doi.org/10.1002/anie.202011941">Paper</a></li>
 </ul>
 
     </div>
 </nav></div>
-        <div class="bd-sidebar__bottom">
-             <!-- To handle the deprecated key -->
-            
-            <div class="navbar_extra_footer">
-            Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
-            </div>
-            
-        </div>
     </div>
-    <div id="rtd-footer-container"></div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/reference/solvent/solvents.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
 </div>
 
 
-          
 
 
-          
-<!-- A tiny helper pixel to detect if we've scrolled -->
-<div class="sbt-scroll-pixel-helper"></div>
-<!-- Main content -->
-<div class="col py-0 content-container">
-    
-    <div class="header-article row sticky-top noprint">
-        
-
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        
-        <label for="__navigation"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="right"
-title="Toggle navigation"
->
-  
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-bars"></i>
-  </span>
-
-</label>
-
-        
-    </div>
-    <div class="header-article__right">
 <button onclick="toggleFullScreen()"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
   
 
-<span class="headerbtn__icon-container">
+<span class="btn__icon-container">
   <i class="fas fa-expand"></i>
   </span>
 
 </button>
 
-<div class="menu-dropdown menu-dropdown-download-buttons">
-  <button class="headerbtn menu-dropdown__trigger"
-      aria-label="Download this page">
-      <i class="fas fa-download"></i>
+
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
   </button>
-  <div class="menu-dropdown__content">
-    <ul>
-      <li>
-        <a href="../../_sources/reference/solvent/solvents.rst.txt"
-   class="headerbtn"
-   data-toggle="tooltip"
-data-placement="left"
-title="Download source file"
->
-  
+`);
+</script>
 
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="headerbtn__text-container">.rst</span>
-</a>
-
-      </li>
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
       
-      <li>
-        
-<button onclick="printPdf(this)"
-  class="headerbtn"
-  data-toggle="tooltip"
-data-placement="left"
-title="Print to PDF"
->
+    </div>
   
-
-<span class="headerbtn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="headerbtn__text-container">.pdf</span>
-</button>
-
-      </li>
-      
-    </ul>
-  </div>
 </div>
-
-    </div>
 </div>
+              
+              
 
-<!-- Table of contents -->
-<div class="col-md-3 bd-toc show noprint">
-</div>
-    </div>
-    <div class="article row">
-        <div class="col pl-md-3 pl-lg-5 content-container">
-            <!-- Table of contents that is only displayed when printing the page -->
-            <div id="jb-print-docs-body" class="onlyprint">
-                <h1>Solvents</h1>
-                <!-- Table of contents -->
-                <div id="print-main-content">
-                    <div id="jb-print-toc">
-                        
-                    </div>
-                </div>
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Solvents</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
             </div>
-            <main id="main-content" role="main">
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent.atoms"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent.atoms</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent.is_implicit"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent.is_implicit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent.to_explicit"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent.to_explicit()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent"><code class="docutils literal notranslate"><span class="pre">Solvent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.__eq__"><code class="docutils literal notranslate"><span class="pre">Solvent.__eq__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.__init__"><code class="docutils literal notranslate"><span class="pre">Solvent.__init__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.__str__"><code class="docutils literal notranslate"><span class="pre">Solvent.__str__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.atoms"><code class="docutils literal notranslate"><span class="pre">Solvent.atoms</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.copy"><code class="docutils literal notranslate"><span class="pre">Solvent.copy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.dielectric"><code class="docutils literal notranslate"><span class="pre">Solvent.dielectric</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.is_explicit"><code class="docutils literal notranslate"><span class="pre">Solvent.is_explicit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.is_implicit"><code class="docutils literal notranslate"><span class="pre">Solvent.is_implicit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.randomise_around"><code class="docutils literal notranslate"><span class="pre">Solvent.randomise_around()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.to_explicit"><code class="docutils literal notranslate"><span class="pre">Solvent.to_explicit()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.get_solvent"><code class="docutils literal notranslate"><span class="pre">get_solvent()</span></code></a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
                 
-              <div>
-                
-  <div class="section" id="solvents">
-<span id="id1"></span><h1>Solvents<a class="headerlink" href="#solvents" title="Permalink to this headline">#</a></h1>
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="solvents">
+<span id="id1"></span><h1>Solvents<a class="headerlink" href="#solvents" title="Permalink to this heading">#</a></h1>
 <span class="target" id="module-autode.solvent.solvents"></span><dl class="py class">
 <dt class="sig sig-object py" id="autode.solvent.solvents.ImplicitSolvent">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.solvent.solvents.</span></span><span class="sig-name descname"><span class="pre">ImplicitSolvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.solvent.solvents.ImplicitSolvent" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.solvent.solvents.</span></span><span class="sig-name descname"><span class="pre">ImplicitSolvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.solvent.solvents.ImplicitSolvent" title="Permalink to this definition">#</a></dt>
 <dd><p>Implicit solvent</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.solvent.solvents.ImplicitSolvent.atoms">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">atoms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">Atoms</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.solvent.solvents.ImplicitSolvent.atoms" title="Permalink to this definition">#</a></dt>
+<dd><p>Atoms in this solvent</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.solvent.solvents.ImplicitSolvent.is_implicit">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_implicit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.solvent.solvents.ImplicitSolvent.is_implicit" title="Permalink to this definition">#</a></dt>
 <dd><p>Is this solvent implicit?</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>True</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>(bool)</p>
 </dd>
 </dl>
@@ -800,20 +448,17 @@ title="Print to PDF"
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.solvent.solvents.ImplicitSolvent.to_explicit">
-<span class="sig-name descname"><span class="pre">to_explicit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autode.solvent.ExplicitSolvent</span></span></span><a class="headerlink" href="#autode.solvent.solvents.ImplicitSolvent.to_explicit" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">to_explicit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent" title="autode.solvent.explicit_solvent.ExplicitSolvent"><span class="pre">ExplicitSolvent</span></a></span></span><a class="headerlink" href="#autode.solvent.solvents.ImplicitSolvent.to_explicit" title="Permalink to this definition">#</a></dt>
 <dd><p>Convert this implicit solvent into an explicit one</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>num</strong> (<em>int</em>) – Number of explicit solvent molecules to include</p>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>(</strong><strong>IOError</strong><strong>)</strong> – If the expected 3D structure cannot be located</p>
 </dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>(</strong><strong>IOError</strong><strong>)</strong> – If the expected 3D structure cannot be located</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Solvent</p>
 </dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Solvent</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>(<a class="reference internal" href="explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent" title="autode.solvent.explicit_solvent.ExplicitSolvent">autode.solvent.explicit_solvent.ExplicitSolvent</a>)</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(<a class="reference internal" href="explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent" title="autode.solvent.explicit_solvent.ExplicitSolvent">autode.solvent.explicit_solvent.ExplicitSolvent</a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -822,7 +467,7 @@ title="Print to PDF"
 
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.solvent.solvents.Solvent">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.solvent.solvents.</span></span><span class="sig-name descname"><span class="pre">Solvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.solvent.solvents.Solvent" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.solvent.solvents.</span></span><span class="sig-name descname"><span class="pre">Solvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.solvent.solvents.Solvent" title="Permalink to this definition">#</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="autode.solvent.solvents.Solvent.__eq__">
 <span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.solvent.solvents.Solvent.__eq__" title="Permalink to this definition">#</a></dt>
@@ -831,22 +476,21 @@ title="Print to PDF"
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.solvent.solvents.Solvent.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.solvent.solvents.Solvent.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.solvent.solvents.Solvent.__init__" title="Permalink to this definition">#</a></dt>
 <dd><p>Abstract base class for a solvent. As electronic structure methods
 implement implicit solvation without a unique list of solvents there
 needs to be conversion between them, while also allowing for user
 specifying one possibility from a list of aliases</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – Unique name of the solvent</p></li>
 <li><p><strong>smiles</strong> (<em>str</em><em> | </em><em>None</em>) – SMILES string</p></li>
 <li><p><strong>aliases</strong> (<em>list</em><em>(</em><em>str</em><em>) </em><em>| </em><em>None</em>) – Different names for the same solvent
 e.g. water and H2O. If None then will
 only use the name as an alias</p></li>
 </ul>
 </dd>
-<dt class="field-even">Keyword Arguments</dt>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>kwargs</strong> (<em>str</em>) – Name of the solvent in the electronic structure
 package e.g. Solvent(…, orca=’water’)</p>
 </dd>
@@ -859,22 +503,28 @@ package e.g. Solvent(…, orca=’water’)</p>
 <dd><p>Return str(self).</p>
 </dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="autode.solvent.solvents.Solvent.atoms">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">atoms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">Atoms</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.solvent.solvents.Solvent.atoms" title="Permalink to this definition">#</a></dt>
+<dd><p>Atoms in this solvent</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.solvent.solvents.Solvent.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.solvent.solvents.Solvent" title="autode.solvent.solvents.Solvent"><span class="pre">autode.solvent.solvents.Solvent</span></a></span></span><a class="headerlink" href="#autode.solvent.solvents.Solvent.copy" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.solvent.solvents.Solvent" title="autode.solvent.solvents.Solvent"><span class="pre">Solvent</span></a></span></span><a class="headerlink" href="#autode.solvent.solvents.Solvent.copy" title="Permalink to this definition">#</a></dt>
 <dd><p>Return a copy of this solvent</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.solvent.solvents.Solvent.dielectric">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dielectric</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.solvent.solvents.Solvent.dielectric" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dielectric</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.solvent.solvents.Solvent.dielectric" title="Permalink to this definition">#</a></dt>
 <dd><p>Dielectric constant (ε) of this solvent. Used in implicit solvent
 models to determine the electrostatic interaction</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Dielectric, or None if unknown</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>(float | None)</p>
 </dd>
 </dl>
@@ -892,79 +542,159 @@ models to determine the electrostatic interaction</p>
 <dd><p>Is this solvent implicit and just defined by a dielectric</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.solvent.solvents.Solvent.randomise_around">
+<span class="sig-name descname"><span class="pre">randomise_around</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solute</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">Species</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.solvent.solvents.Solvent.randomise_around" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.solvent.solvents.Solvent.to_explicit">
+<span class="sig-name descname"><span class="pre">to_explicit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent" title="autode.solvent.explicit_solvent.ExplicitSolvent"><span class="pre">ExplicitSolvent</span></a></span></span><a class="headerlink" href="#autode.solvent.solvents.Solvent.to_explicit" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.solvent.solvents.get_solvent">
-<span class="sig-prename descclassname"><span class="pre">autode.solvent.solvents.</span></span><span class="sig-name descname"><span class="pre">get_solvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#autode.solvent.solvents.Solvent" title="autode.solvent.solvents.Solvent"><span class="pre">autode.solvent.solvents.Solvent</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.solvent.solvents.get_solvent" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">autode.solvent.solvents.</span></span><span class="sig-name descname"><span class="pre">get_solvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#autode.solvent.solvents.Solvent" title="autode.solvent.solvents.Solvent"><span class="pre">Solvent</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#autode.solvent.solvents.get_solvent" title="Permalink to this definition">#</a></dt>
 <dd><p>For a named solvent return the Solvent which matches one of the aliases</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>solvent_name</strong> – Name of the solvent e.g. DCM. Not case-sensitive</p></li>
-<li><p><strong>kind</strong> – Kind of solvent. One of: {“implicit”, “explicit”}</p></li>
-<li><p><strong>num</strong> – Number of solvent molecules to include in the explicit solvent</p></li>
-</ul>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num</strong> – Number of solvent molecules to include in the explicit solvent</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Solvent</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(<a class="reference internal" href="#autode.solvent.solvents.Solvent" title="autode.solvent.solvents.Solvent">autode.solvent.solvents.Solvent</a> | None)</p>
 </dd>
-<dt class="field-even">Raises</dt>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>(</strong><strong>ValueError</strong><strong>)</strong> – If both explicit and implicit solvent are selected</p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
-              </div>
+                </article>
               
-            </main>
-            <footer class="footer-article noprint">
-                
-    <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="index.html" title="previous page">
-        <i class="fas fa-angle-left"></i>
-        <div class="prev-next-info">
-            <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Solvent</p>
-        </div>
+
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Solvent</p>
+      </div>
     </a>
-    <a class='right-next' id="next-link" href="explicit_solvent.html" title="next page">
-    <div class="prev-next-info">
+    <a class="right-next"
+       href="explicit_solvent.html"
+       title="next page">
+      <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
         <p class="prev-next-title">Explicit Solvent</p>
-    </div>
-    <i class="fas fa-angle-right"></i>
-    </a>
-</div>
-            </footer>
-        </div>
-    </div>
-    <div class="footer-content row">
-        <footer class="col footer"><p>
-  
-    By Tom Young, Joseph Silcock<br/>
-  
-      &copy; Copyright 2020-2021, Tom Young, Joseph Silcock.<br/>
-</p>
-        </footer>
-    </div>
-    
-</div>
-
-
       </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent.atoms"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent.atoms</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent.is_implicit"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent.is_implicit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.ImplicitSolvent.to_explicit"><code class="docutils literal notranslate"><span class="pre">ImplicitSolvent.to_explicit()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent"><code class="docutils literal notranslate"><span class="pre">Solvent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.__eq__"><code class="docutils literal notranslate"><span class="pre">Solvent.__eq__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.__init__"><code class="docutils literal notranslate"><span class="pre">Solvent.__init__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.__str__"><code class="docutils literal notranslate"><span class="pre">Solvent.__str__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.atoms"><code class="docutils literal notranslate"><span class="pre">Solvent.atoms</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.copy"><code class="docutils literal notranslate"><span class="pre">Solvent.copy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.dielectric"><code class="docutils literal notranslate"><span class="pre">Solvent.dielectric</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.is_explicit"><code class="docutils literal notranslate"><span class="pre">Solvent.is_explicit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.is_implicit"><code class="docutils literal notranslate"><span class="pre">Solvent.is_implicit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.randomise_around"><code class="docutils literal notranslate"><span class="pre">Solvent.randomise_around()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.Solvent.to_explicit"><code class="docutils literal notranslate"><span class="pre">Solvent.to_explicit()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.solvent.solvents.get_solvent"><code class="docutils literal notranslate"><span class="pre">get_solvent()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Tom Young, Joseph Silcock
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2020-2021, Tom Young, Joseph Silcock.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
     </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>
