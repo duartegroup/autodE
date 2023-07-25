@@ -4,18 +4,33 @@ and transition state guess finding
 """
 import numpy as np
 from abc import ABC
-from typing import Iterator, Tuple, Optional, Dict, Union, Sequence
+
+from typing import (
+    Iterator,
+    Tuple,
+    Optional,
+    Dict,
+    List,
+    Union,
+    Sequence,
+    TYPE_CHECKING,
+)
+
 from autode.pes.pes_nd import PESnD
 from autode.log import logger
 from autode.values import Distance
 from autode.transition_states.ts_guess import TSguess
 from autode.pes.mep import peak_point
 
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.transition_states.ts_guess import TSguess
+
 
 class ReactivePESnD(PESnD, ABC):
     def __init__(
         self,
-        species: "autode.species.Species",
+        species: "Species",
         rs: Dict[Tuple[int, int], Union[Tuple, np.ndarray]],
         allow_rounding: bool = True,
     ):
@@ -42,9 +57,9 @@ class ReactivePESnD(PESnD, ABC):
 
     def ts_guesses(
         self,
-        product: Optional["autode.species.Species"] = None,
+        product: Optional["Species"] = None,
         min_separation: Distance = Distance(0.5, units="Å"),
-    ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
+    ) -> Iterator["TSguess"]:
         """
         Generate TS guesses from the saddle points in the energy on this
         surface. Only those that are seperated by at least min_separation will
@@ -80,7 +95,10 @@ class ReactivePESnD(PESnD, ABC):
 
             return StopIteration
 
-        yielded_p = []
+        assert self._coordinates is not None, "Must have set coordinates"
+        assert self._species is not None, "Must have set species"
+
+        yielded_p: List[tuple] = []
 
         for idx, point in enumerate(self._sorted_saddle_points()):
 
@@ -146,7 +164,6 @@ class ReactivePESnD(PESnD, ABC):
             (tuple(int)): Indices of a saddle point
         """
         for point in self._stationary_points():
-
             self._set_hessian(point)
 
             if self._is_saddle_point(point, threshold=threshold):
@@ -164,9 +181,7 @@ class ReactivePESnD(PESnD, ABC):
         """
         return sorted(self._saddle_points(), key=lambda p: self._energies[p])
 
-    def _mep_ts_guess(
-        self, product: "autode.species.Species"
-    ) -> Iterator["autode.transition_states.ts_guess.TSguess"]:
+    def _mep_ts_guess(self, product: "Species") -> Iterator["TSguess"]:
         """
         Find a TS guess by traversing the minimum energy pathway (MEP) on a
         discreet potential energy surface between the initial species
@@ -183,6 +198,9 @@ class ReactivePESnD(PESnD, ABC):
         Returns:
             (StopIteration): If there are no suitable TS guesses
         """
+        assert self._coordinates is not None, "Must have set coordinates"
+        assert self._species is not None, "Must have set species"
+
         reactant = self._species
 
         if reactant.graph is None or product.graph is None:
@@ -211,7 +229,7 @@ class ReactivePESnD(PESnD, ABC):
         yield TSguess.from_species(species)
 
     def _point_with_isomorphic_graph_to(
-        self, species: "autode.species.Species"
+        self, species: "Species"
     ) -> Optional[Tuple]:
         """
         Find a point on this surface that is graph-isomorphic to a particular
@@ -224,6 +242,9 @@ class ReactivePESnD(PESnD, ABC):
         Returns:
             (tuple(int, ..) | None):
         """
+        assert self._coordinates is not None, "Must have set coordinates"
+        assert self._species is not None, "Must have set species"
+
         isomorphic_points = []
 
         for point in self._points():

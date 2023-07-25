@@ -1,5 +1,6 @@
 import os
 import shutil
+from autode.utils import cleanup_after_timeout
 from zipfile import ZipFile
 from functools import wraps
 
@@ -38,6 +39,7 @@ def work_in_zipped_dir(zip_path, chdir=True):
                 if chdir:
                     os.chdir(here)
 
+                cleanup_after_timeout()
                 shutil.rmtree(dir_path)
 
             return result
@@ -47,12 +49,15 @@ def work_in_zipped_dir(zip_path, chdir=True):
     return func_decorator
 
 
-def requires_with_working_xtb_install(func):
+def requires_working_xtb_install(func):
     """A function requiring an output file and output file lines"""
 
     @wraps(func)
     def wrapped_function(*args, **kwargs):
-        if not shutil.which("xtb") or not shutil.which("xtb").endswith("xtb"):
+        if not shutil.which("xtb"):
+            return
+
+        if not shutil.which("xtb").lower().endswith(("xtb", "xtb.exe")):
             return
 
         return func(*args, **kwargs)

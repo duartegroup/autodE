@@ -247,7 +247,7 @@ def test_complex_atom_reorder():
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_allow_connectivity_change():
 
     xtb = XTB()

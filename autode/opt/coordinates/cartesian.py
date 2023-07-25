@@ -1,12 +1,17 @@
 import numpy as np
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
 from autode.log import logger
 from autode.values import ValueArray
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.coordinates.dic import DIC
 
+if TYPE_CHECKING:
+    from autode.values import Gradient
+    from autode.hessians import Hessian
 
-class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
+
+class CartesianCoordinates(OptCoordinates):
     """Flat Cartesian coordinates shape = (3 × n_atoms, )"""
 
     def __repr__(self):
@@ -26,9 +31,7 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         """Is a string a valid unit for these coordinates e.g. nm"""
         return any(string in unit.aliases for unit in self.implemented_units)
 
-    def _update_g_from_cart_g(
-        self, arr: Optional["autode.values.Gradient"]
-    ) -> None:
+    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient, which for
         Cartesian coordinates there is nothing to be done for.
@@ -39,9 +42,7 @@ class CartesianCoordinates(OptCoordinates):  # lgtm [py/missing-equals]
         """
         self.g = None if arr is None else np.array(arr).flatten()
 
-    def _update_h_from_cart_h(
-        self, arr: Optional["autode.values.Hessian"]
-    ) -> None:
+    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
         Update the Hessian from a Cartesian Hessian matrix with shape
         3N x 3N for a species with N atoms.

@@ -2,7 +2,8 @@ import numpy as np
 import autode.values as val
 from copy import deepcopy
 from datetime import date
-from typing import Optional, Union, List, Sequence, Any
+from typing import Optional, Union, List, Sequence, Any, TypeVar, TYPE_CHECKING
+
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode import methods
@@ -34,6 +35,15 @@ from autode.wrappers.keywords import (
     GradientKeywords,
     SinglePointKeywords,
 )
+
+if TYPE_CHECKING:
+    from autode.solvent.solvents import Solvent
+    from autode.conformers import Conformer, Conformers
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords import Keywords
+    from autode.values import Coordinates
+
+TypeSpecies = TypeVar("TypeSpecies", bound="Species")
 
 
 class Species(AtomCollection):
@@ -72,12 +82,12 @@ class Species(AtomCollection):
         self._charge = int(charge)
         self._mult = int(mult)
         self._solvent = get_solvent(solvent_name, kind="implicit")
-        self._graph = None
+        self._graph: Optional[MolecularGraph] = None
 
         #: All energies calculated at a geometry (autode.values.Energies)
         self.energies = val.Energies()
-        self._grad = None
-        self._hess = None
+        self._grad: Optional[val.Gradient] = None
+        self._hess: Optional[Hessian] = None
 
         self._conformers = Conformers()
 
@@ -122,25 +132,33 @@ class Species(AtomCollection):
         """
         return str(self) == str(other)
 
-    def copy(self) -> "Species":
+    def copy(self: TypeSpecies) -> TypeSpecies:
         """Copy this whole species"""
         return deepcopy(self)
 
-    def new_species(self, name="species") -> "Species":
+    def new_species(
+        self, name="species", with_constraints: bool = False
+    ) -> "Species":
         """
         A new version of this species, identical properties without any
         energies, gradients, hessian, conformers or constraints.
 
         -----------------------------------------------------------------------
-        Keyword Arguments:
+        Arguments:
             name (str): Name of the new species
+
+            with_constraints (bool): Should the constraints from this species be copied
+                                    into the new one
 
         Returns:
             (autode.species.Species):
         """
-        species = Species(name, deepcopy(self.atoms), self.charge, self.mult)
+        species = Species(name, self.atoms.copy(), self.charge, self.mult)
         species.graph = None if self.graph is None else self.graph.copy()
         species.solvent = None if self.solvent is None else self.solvent.copy()
+
+        if with_constraints:
+            species.constraints = self.constraints.copy()
 
         return species
 
@@ -172,7 +190,7 @@ class Species(AtomCollection):
         self._mult = int(value)
 
     @property
-    def solvent(self) -> Optional["autode.solvent.solvents.Solvent"]:
+    def solvent(self) -> Optional["Solvent"]:
         """
         Solvent which this species is immersed in
 
@@ -184,9 +202,7 @@ class Species(AtomCollection):
         return self._solvent
 
     @solvent.setter
-    def solvent(
-        self, value: Union["autode.solvent.solvents.Solvent", str, None]
-    ):
+    def solvent(self, value: Union["Solvent", str, None]):
         """
         Set the solvent for this species. For a species in the gas phase
         set mol.solvent = None
@@ -209,7 +225,7 @@ class Species(AtomCollection):
                 "Expecting either a string or Solvent, " f"had: {value}"
             )
 
-    @AtomCollection.atoms.setter
+    @AtomCollection.atoms.setter  # type: ignore[attr-defined]
     def atoms(self, value: Union[List[Atom], Atoms, None]):
         """
         Set the atoms for this species, and reset the energies
@@ -236,8 +252,8 @@ class Species(AtomCollection):
 
         return
 
-    @AtomCollection.coordinates.setter
-    def coordinates(self, value: Union[np.ndarray, list]):
+    @AtomCollection.coordinates.setter  # type: ignore[attr-defined]
+    def coordinates(self, value: Union["Coordinates", np.ndarray, list]):
         """
         Set the coordinates of this species. If the geometry has changed then
         the energies, gradient and Hessian will be set to None.
@@ -247,6 +263,7 @@ class Species(AtomCollection):
             value: numpy array or nested list of coordinate values
                   (str or float).
         """
+        assert self._atoms is not None, "Can't set coordinates without atoms"
 
         rmsd = calc_rmsd(
             coords1=np.asarray(value).reshape((-1, 3)),  # N x 3
@@ -255,7 +272,7 @@ class Species(AtomCollection):
         if rmsd > 1e-8:
             self._clear_energies_gradient_hessian()
 
-        self._atoms.coordinates = value
+        self._atoms.coordinates = val.Coordinates(value)
         return
 
     def _clear_energies_gradient_hessian(self) -> None:
@@ -334,6 +351,10 @@ class Species(AtomCollection):
         """Set the Hessian matrix as a Hessian value"""
         logger.info("Setting hessian")
 
+        if value is None:
+            self._hess = None
+            return
+
         required_shape = (3 * self.n_atoms, 3 * self.n_atoms)
 
         if hasattr(value, "shape") and value.shape != required_shape:
@@ -341,9 +362,6 @@ class Species(AtomCollection):
                 "Could not set the Hessian. Incorrect shape: "
                 f"{value.shape} != {required_shape}"
             )
-
-        if value is None:
-            self._hess = None
 
         elif isinstance(value, Hessian):
             self._hess = value
@@ -379,16 +397,17 @@ class Species(AtomCollection):
     def gradient(self, value: Union[val.Gradient, np.ndarray, None]):
         """Set the gradient matrix"""
 
+        if value is None:
+            self._grad = None
+            return
+
         if hasattr(value, "shape") and value.shape != (self.n_atoms, 3):
             raise ValueError(
                 "Could not set the gradient. Incorrect shape: "
                 f"{value.shape} != {(self.n_atoms, 3)}"
             )
 
-        if value is None:
-            self._grad = None
-
-        elif isinstance(value, val.Gradient):
+        if isinstance(value, val.Gradient):
             self._grad = value
 
         elif isinstance(value, np.ndarray):
@@ -486,6 +505,7 @@ class Species(AtomCollection):
         Returns:
             (np.ndarray): Adjacency matrix. shape = (n_atoms, n_atoms)
         """
+        assert self.graph is not None, "Must have a molecular graph"
 
         matrix = np.zeros(shape=(self.n_atoms, self.n_atoms), dtype=bool)
 
@@ -677,12 +697,11 @@ class Species(AtomCollection):
         Returns:
             (autode.values.FreeEnergy | None): 'Gibbs' free energy
         """
-        try:
-            return val.FreeEnergy(self.energy + self.g_cont)
-
-        except TypeError:
+        if self.energy is None or self.g_cont is None:
             logger.warning("Could not calculate G - an energy was None")
             return None
+
+        return val.FreeEnergy(self.energy + self.g_cont)
 
     @property
     def enthalpy(self) -> Optional[val.Enthalpy]:
@@ -715,12 +734,11 @@ class Species(AtomCollection):
         Returns:
             (autode.values.Enthalpy | None): Enthalpy
         """
-        try:
-            return val.Enthalpy(self.energy + self.h_cont)
-
-        except TypeError:
+        if self.energy is None or self.h_cont is None:
             logger.warning("Could not calculate H - an energy was None")
             return None
+
+        return val.Enthalpy(self.energy + self.h_cont)
 
     @property
     def zpe(self) -> Optional[val.Energy]:
@@ -773,6 +791,7 @@ class Species(AtomCollection):
             )
             return False
 
+        assert self.graph is not None, "Need graph to check"
         if self.atoms.are_planar() and not self.graph.expected_planar_geometry:
             logger.warning(
                 "Atoms lie in a plane but the molecular graph ⇒ "
@@ -820,18 +839,14 @@ class Species(AtomCollection):
         return 0 if self.conformers is None else len(self.conformers)
 
     @property
-    def conformers(self) -> "autode.conformers.Conformers":
+    def conformers(self) -> "Conformers":
         """Conformers of this species"""
         return self._conformers
 
     @conformers.setter
     def conformers(
         self,
-        value: Union[
-            List["autode.conformers.Conformer"],
-            "autode.conformers.Conformers",
-            None,
-        ],
+        value: Union[List["Conformer"], "Conformers", None],
     ) -> None:
         """
         Set conformers of this species
@@ -968,7 +983,7 @@ class Species(AtomCollection):
             raise ValueError("Invalid mapping. Must be 1-1 for all atoms")
 
         self._atoms = Atoms(
-            [self.atoms[i] for i in sorted(mapping, key=mapping.get)]
+            [self.atoms[i] for i in sorted(mapping, key=lambda k: mapping[k])]
         )
 
         if self.graph is None:
@@ -1169,7 +1184,7 @@ class Species(AtomCollection):
     @requires_atoms
     def optimise(
         self,
-        method: Optional["ElectronicStructureMethod"] = None,
+        method: Optional["Method"] = None,
         reset_graph: bool = False,
         calc: Optional[Calculation] = None,
         keywords: Union[Sequence[str], str, None] = None,
@@ -1223,7 +1238,7 @@ class Species(AtomCollection):
     @requires_atoms
     def calc_thermo(
         self,
-        method: Optional["ElectronicStructureMethod"] = None,
+        method: Optional["Method"] = None,
         calc: Optional[Calculation] = None,
         temp: float = 298.15,
         keywords: Union[Sequence[str], str, None] = None,
@@ -1315,8 +1330,8 @@ class Species(AtomCollection):
     @requires_atoms
     def single_point(
         self,
-        method: "ElectronicStructureMethod",
-        keywords: Union[Sequence[str], str, None] = None,
+        method: "Method",
+        keywords: Union["Keywords", Sequence[str], str, None] = None,
         n_cores: Optional[int] = None,
     ) -> None:
         """
@@ -1344,6 +1359,7 @@ class Species(AtomCollection):
         else:
             keywords = SinglePointKeywords(keywords)
 
+        assert keywords is not None, "Must have keywords"
         sp = Calculation(
             name=f"{self.name}_sp",
             molecule=self,
@@ -1357,8 +1373,8 @@ class Species(AtomCollection):
     @work_in("conformers")
     def find_lowest_energy_conformer(
         self,
-        lmethod: Optional["ElectronicStructureMethod"] = None,
-        hmethod: Optional["ElectronicStructureMethod"] = None,
+        lmethod: Optional["Method"] = None,
+        hmethod: Optional["Method"] = None,
         allow_connectivity_changes: bool = False,
     ) -> None:
         """
@@ -1408,6 +1424,7 @@ class Species(AtomCollection):
             if Config.hmethod_sp_conformers:
                 # Use only single point energies on lmethod geometries
                 assert hmethod.keywords.low_sp is not None
+                assert hmethod is not None
                 self.conformers.single_point(
                     method=hmethod, keywords=hmethod.keywords.low_sp
                 )
@@ -1416,6 +1433,7 @@ class Species(AtomCollection):
                 self.conformers.optimise(hmethod)
 
         if not allow_connectivity_changes:
+            assert self.graph is not None, "Must have a graph"
             self.conformers.prune_diff_graph(self.graph)
 
         self._set_lowest_energy_conformer()
@@ -1452,7 +1470,12 @@ class Species(AtomCollection):
         elif isinstance(solvent, str):
             self.solvent = get_solvent(solvent, kind="explicit", num=num)
 
-        elif solvent is None and self.solvent.is_implicit:
+        elif (
+            solvent is None
+            and self.solvent is not None
+            and self.solvent.is_implicit
+        ):
+            assert self.solvent is not None
             self.solvent = self.solvent.to_explicit(num=num)
 
         else:
@@ -1461,18 +1484,18 @@ class Species(AtomCollection):
                 f"either a string or a Species."
             )
 
+        assert self.solvent is not None
         print(
             "WARNING: Explicit solvation is experimental is not implemented "
             "beyond generating a single reasonable initial structure "
         )
-
         self.solvent.randomise_around(self)
         return None
 
     def calc_hessian(
         self,
-        method: "ElectronicStructureMethod",
-        keywords: Union[Sequence[str], str, None] = None,
+        method: "Method",
+        keywords: Optional["Keywords"] = None,
         numerical: bool = False,
         use_central_differences: bool = False,
         coordinate_shift: Union[float, val.Distance] = val.Distance(
@@ -1532,12 +1555,13 @@ class Species(AtomCollection):
                     "Using default gradient keywords to evaluate "
                     "numerical Hessian"
                 )
+                assert method.keywords.grad is not None
                 keywords = method.keywords.grad
 
             nhc = NumericalHessianCalculator(
                 self,
                 method=method,
-                keywords=keywords,
+                keywords=GradientKeywords(keywords),
                 do_c_diff=use_central_differences,
                 shift=coordinate_shift,
                 n_cores=n_cores,

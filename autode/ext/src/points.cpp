@@ -213,12 +213,12 @@ namespace autode {
          */
         set_grad();
         int iteration = 0;
-        
+
         double _norm_grad = 0.0;
         double _norm_grad_prev = 2*grad_diff_tol;
 
         while (fabs(_norm_grad - _norm_grad_prev) > grad_diff_tol && iteration < max_iterations) {
-            
+
             _norm_grad_prev = _norm_grad;
 
             for (int point_idx = 0; point_idx < n; point_idx++) {
@@ -242,7 +242,7 @@ namespace autode {
 
             set_grad();
             _norm_grad = norm_grad();
-            
+
             iteration++;
         }
 

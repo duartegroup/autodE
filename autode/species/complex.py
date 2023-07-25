@@ -1,8 +1,9 @@
 from copy import deepcopy
 import numpy as np
-from typing import Optional, Union, List, Sequence
-from autode.atoms import Atom, Atoms
 from itertools import product as iterprod
+from typing import Optional, Union, List, Sequence, TYPE_CHECKING
+
+from autode.atoms import Atom, Atoms
 from scipy.spatial import distance_matrix
 from autode.log import logger
 from autode.geom import get_points_on_sphere
@@ -14,6 +15,10 @@ from autode.config import Config
 from autode.methods import get_lmethod
 from autode.conformers import Conformer
 from autode.exceptions import MethodUnavailable
+
+if TYPE_CHECKING:
+    from autode.values import Angle
+    from autode.solvent import Solvent
 
 
 def get_complex_conformer_atoms(molecules, rotations, points):
@@ -120,12 +125,12 @@ class Complex(Species):
             atoms=sum(
                 (deepcopy(mol.atoms) if copy else mol.atoms for mol in args),
                 None,
-            ),
+            ),  # type: ignore
             charge=sum(mol.charge for mol in args),
             mult=sum(m.mult for m in args) - (len(args) - 1),
         )
 
-        self._molecules = args
+        self._molecules = list(args)
 
         if do_init_translation:
             self._init_translation()
@@ -147,7 +152,7 @@ class Complex(Species):
 
         if value is None:
             self.graph = None
-            self._molecules = []
+            self._molecules.clear()
 
         elif self.n_atoms != len(value):
             raise ValueError(
@@ -323,7 +328,7 @@ class Complex(Species):
     def rotate_mol(
         self,
         axis: Union[np.ndarray, Sequence],
-        theta: Union["autode.values.Angle", float],
+        theta: Union["Angle", float],
         mol_index: int,
         origin: Union[np.ndarray, Sequence, None] = None,
     ):
@@ -395,7 +400,9 @@ class Complex(Species):
             )
         return None
 
-    def _init_solvent(self, solvent_name: str):
+    def _init_solvent(
+        self, solvent_name: Optional[str]
+    ) -> Optional["Solvent"]:
         """Initial solvent"""
 
         if solvent_name is not None:

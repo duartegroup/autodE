@@ -1,13 +1,18 @@
 import os
+import sys
+import platform
 import shutil
+import copy
+import signal
 import warnings
+import contextlib
 from time import time
-from typing import Any, Optional, Sequence, List, Callable
+from typing import Any, Optional, Sequence, List, Callable, TYPE_CHECKING
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
 from tempfile import mkdtemp
-import multiprocessing as mp
-import multiprocessing.pool
+import multiprocessing
+
 from autode.config import Config
 from autode.log import logger
 from autode.values import Allocation
@@ -21,10 +26,96 @@ from autode.exceptions import (
     CouldNotGetProperty,
 )
 
-try:
-    mp.set_start_method("fork")
-except RuntimeError:
-    logger.warning("Multiprocessing context has already been defined")
+if TYPE_CHECKING:
+    from autode.reactions.reaction import Reaction
+    from autode.config import _ConfigClass
+
+
+@contextlib.contextmanager
+def temporary_config():
+    """
+    Context manager to temporarily change autodE's Config. When it
+    exits, the Config will be restored to whatever it was before
+    calling the context manager.
+
+    Example usage:
+
+    .. code-block:: Python
+
+    >>> import autode as ade
+    >>> from autode import Config
+    >>> Config.hcode = 'ORCA'
+    >>> with ade.temporary_config():
+    ...     # change some config vars
+    ...     Config.n_cores = 16
+    ...     Config.ORCA.keywords.sp.functional = 'B3LYP'
+    ...     # then do some calculations
+    ...     # ------
+    >>> # When context manager returns, Config should be restored to what it was before
+    >>> assert Config.n_cores == 4
+    >>> assert str(Config.ORCA.keywords.sp.functional).lower() == 'pbe0'
+
+    """
+    original_config_data = copy.deepcopy(Config.__dict__)
+
+    try:
+        yield
+    finally:
+        Config.__dict__.update(original_config_data)
+
+    return None
+
+
+def _copy_into_current_config(
+    parent_config: "_ConfigClass",
+) -> None:
+    """
+    Copies an instance of Config into current process. Required to set the
+    process pool workers' Config to the same state as the parent, when
+    not forking the interpreter. To be only run on initializing workers
+
+    Args:
+        parent_config: Parent config instance that will be copied into
+         present process
+    """
+    Config.__dict__.update(parent_config.__dict__)
+
+
+def get_total_memory() -> int:
+    """Returns total amount of physical memory available in bytes"""
+    if sys.platform == "win32" or platform.system() == "Windows":
+        return _get_total_memory_on_windows()
+    else:
+        return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+
+
+def _get_total_memory_on_windows() -> int:
+    """Use WinAPI to get total memory on Windows machines"""
+    from ctypes import Structure, c_int32, c_uint64, sizeof, byref, windll  # type: ignore
+
+    # Use Win32 API : https://stackoverflow.com/questions/31546309/
+    class MemoryStatusEx(Structure):
+        _fields_ = [
+            ("length", c_int32),
+            ("memoryLoad", c_int32),
+            ("totalPhys", c_uint64),
+            ("availPhys", c_uint64),
+            ("totalPageFile", c_uint64),
+            ("availPageFile", c_uint64),
+            ("totalVirtual", c_uint64),
+            ("availVirtual", c_uint64),
+            ("availExtendedVirtual", c_uint64),
+        ]
+
+        def __init__(self):
+            super().__init__()
+            self.length = sizeof(self)
+
+    win_mem = MemoryStatusEx()
+    if windll.kernel32.GlobalMemoryStatusEx(byref(win_mem)):
+        return int(win_mem.totalPhys)
+    else:
+        raise OSError
 
 
 def check_sufficient_memory(func: Callable):
@@ -37,10 +128,7 @@ def check_sufficient_memory(func: Callable):
         required_mem = int(Config.n_cores) * Config.max_core
 
         try:
-            physical_mem = Allocation(
-                os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES"),
-                units="bytes",
-            )
+            physical_mem = Allocation(get_total_memory(), units="bytes")
         except (ValueError, OSError):
             logger.warning("Cannot check physical memory")
 
@@ -76,11 +164,11 @@ def run_external(
     with open(output_filename, "w") as output_file:
         # /path/to/method input_filename > output_filename
         process = Popen(params, stdout=output_file, stderr=PIPE)
-
-        with process.stderr:
-            for line in iter(process.stderr.readline, b""):
-                if stderr_to_log:
-                    logger.warning("STDERR: %r", line.decode())
+        if process.stderr is not None:
+            with process.stderr:
+                for line in iter(process.stderr.readline, b""):
+                    if stderr_to_log:
+                        logger.warning("STDERR: %r", line.decode())
 
         process.wait()
 
@@ -160,6 +248,7 @@ def work_in(dir_ext: str) -> Callable:
                         f"Worked in {dir_path} but made no files "
                         f"- deleting"
                     )
+                    cleanup_after_timeout()
                     os.rmdir(dir_path)
 
             return result
@@ -233,6 +322,7 @@ def work_in_tmp_dir(
                 os.chdir(here)
 
                 logger.info("Removing temporary directory")
+                cleanup_after_timeout()
                 shutil.rmtree(tmpdir_path)
 
             return result
@@ -368,7 +458,7 @@ def requires_output(func: Callable) -> Callable:
     return wrapped_function
 
 
-def requires_output_to_exist(func) -> Callable:
+def requires_output_to_exist(func: Callable) -> Callable:
     """Calculation method requiring the output filename to be set"""
 
     @wraps(func)
@@ -385,11 +475,11 @@ def requires_output_to_exist(func) -> Callable:
     return wrapped_function
 
 
-def no_exceptions(func) -> Optional[Any]:
+def no_exceptions(func) -> Any:
     """Calculation method requiring the output filename to be set"""
 
     @wraps(func)
-    def wrapped_function(*args, **kwargs):
+    def wrapped_function(*args, **kwargs) -> Any:
 
         try:
             return func(*args, **kwargs)
@@ -399,36 +489,95 @@ def no_exceptions(func) -> Optional[Any]:
     return wrapped_function
 
 
-def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
+def _cleanup_after_exp_timeout_win() -> None:
     """
-    Function decorator that times-out after a number of seconds
+    If experimental timeout has been used, the ProcessPool has to be shutdown
+    otherwise File permission errors will be caused on Windows
+    """
+    if Config.use_experimental_timeout:
+        pool = loky.get_reusable_executor()
+        pool.shutdown()
 
-    ---------------------------------------------------------------------------
-    Arguments:
-        seconds:
 
+def _timeout_experimental(
+    seconds: float, return_value: Optional[Any] = None
+) -> Any:
+    """
+    Function decorator that times-out after a number of seconds, if
+    Config.use_experimental_timeout = True, otherwise no timeout
+    (experimental version, works on Windows)
+
+    Args:
+        seconds: The number of seconds to timeout
         return_value: Value returned if the function times out
 
     Returns:
-        (Any): Result of the function | return_value
+        (Any): result of function | return_value
+    """
+
+    def func_runner(connector, func, args, kwargs):
+        connector.send(os.getpid())
+        return func(*args, **kwargs)
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            # if user does not want it, there is no timeout
+            if not Config.use_experimental_timeout:
+                return func(*args, **kwargs)
+
+            pool = loky.get_reusable_executor(max_workers=1)
+            conn1, conn2 = multiprocessing.Pipe()
+            job = pool.submit(func_runner, conn1, func, args, kwargs)
+            job_pid = conn2.recv()
+            try:
+                res = job.result(timeout=seconds)
+                return res
+            except loky.TimeoutError:
+                if os.getpid() != job_pid:
+                    os.kill(job_pid, signal.SIGTERM)
+                pool.shutdown(wait=True)
+                return return_value
+
+        return wrapper
+
+    return decorator
+
+
+def _timeout_default(
+    seconds: float, return_value: Optional[Any] = None
+) -> Any:
+    """
+    Function decorator that times-out after a number of seconds
+    (default version, uses forking)
+
+    Args:
+        seconds: The number of seconds to timeout
+        return_value: Value returned if the function times out
+
+    Returns:
+        (Any): result of function | return_value
     """
 
     def handler(queue, func, args, kwargs):
         queue.put(func(*args, **kwargs))
 
     def decorator(func):
-        def wraps(*args, **kwargs):
+        def wrapper(*args, **kwargs):
+
             q = multiprocessing.Queue()
             p = multiprocessing.Process(
                 target=handler, args=(q, func, args, kwargs)
             )
 
-            if mp.current_process().daemon:
+            if multiprocessing.current_process().daemon:
                 # Cannot run a subprocess in a daemon process - timeout is not
                 # possible
                 return func(*args, **kwargs)
 
-            elif isinstance(mp.get_context(), mp.context.ForkContext):
+            elif isinstance(
+                multiprocessing.get_context(),
+                multiprocessing.context.ForkContext,
+            ):
                 p.start()
 
             else:
@@ -445,7 +594,7 @@ def timeout(seconds: float, return_value: Optional[Any] = None) -> Any:
             else:
                 return q.get()
 
-        return wraps
+        return wrapper
 
     return decorator
 
@@ -499,7 +648,7 @@ def deprecated(func: Callable) -> Callable:
     def wrapped_function(*args, **kwargs):
         warnings.warn(
             "This function is deprecated and will be removed "
-            "in autodE v1.4.0",
+            "in autodE v1.5.0",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -551,7 +700,7 @@ class StringDict:
     Immutable dictionary stored as a single string. For example::
         'a = b  c = d'
     """
-    _value_type = str
+    _value_type: type = str
 
     def __init__(self, string: str, delim: str = " = "):
 
@@ -584,3 +733,58 @@ class StringDict:
 
 class NumericStringDict(StringDict):
     _value_type = float
+
+
+if platform.system() == "Windows":
+    # On Win64 or Win32, use loky
+    import loky
+    import loky.backend.resource_tracker
+
+    try:
+        loky.backend.context.set_start_method("loky")
+    except RuntimeError:
+        logger.warning("Loky context has already been set")
+    # start the resource tracker early to fix file permission errors
+    if isinstance(
+        loky.backend.context.get_context(), loky.backend.context.LokyContext
+    ):
+        loky.backend.resource_tracker.ensure_running()
+
+    class ProcessPool(loky.ProcessPoolExecutor):
+        def __init__(
+            self,
+            max_workers=None,
+            job_reducers=None,
+            result_reducers=None,
+            timeout=None,
+            context=None,
+            env=None,
+        ):
+            super().__init__(
+                max_workers=max_workers,
+                job_reducers=job_reducers,
+                result_reducers=result_reducers,
+                timeout=timeout,
+                context=context,
+                initializer=_copy_into_current_config,
+                initargs=(Config,),
+                env=env,
+            )
+
+    timeout = _timeout_experimental
+    cleanup_after_timeout = _cleanup_after_exp_timeout_win
+
+else:
+    # On Linux, macOS, use concurrent futures, which has multiprocessing backend
+    try:
+        multiprocessing.set_start_method("fork")
+    except RuntimeError:
+        logger.warning("Multiprocessing context has already been set")
+
+    from concurrent.futures import ProcessPoolExecutor
+
+    ProcessPool = ProcessPoolExecutor  # type: ignore
+    timeout = _timeout_default
+
+    def cleanup_after_timeout():
+        pass

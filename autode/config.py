@@ -1,4 +1,5 @@
 import os
+from typing import Any
 from autode.values import Frequency, Distance, Allocation
 from autode.wrappers.keywords import implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
@@ -181,6 +182,12 @@ class _ConfigClass:
     #
     allow_association_complex_G = False
     # -------------------------------------------------------------------------
+    # Flag to allow use of an experimental timeout function wrapper for
+    # Windows, using loky. The default case has no timeout for Windows, and
+    # timeout only works on Linux/macOS. This flag is ignored on Linux/macOS.
+    #
+    use_experimental_timeout = False
+    # -------------------------------------------------------------------------
 
     class ORCA:
         # ---------------------------------------------------------------------
@@ -330,6 +337,15 @@ class _ConfigClass:
         # Force constant used for harmonic restraints in constrained
         # optimisations (Ha/a0)
         force_constant = 2
+        #
+        # Electronic temperature for all calculations (Kelvin)
+        # None means unset (default), set to 300.0 to have 300K for example
+        electronic_temp = None
+        #
+        # Version of xTB hamiltonian parameterisation: 0,1 or 2
+        # corresponding to GFN0-xTB, GFN1-xTB, GFN2-xTB respectively
+        # When unset, uses the default
+        gfn_version = None
 
     class MOPAC:
         # ---------------------------------------------------------------------
@@ -401,8 +417,39 @@ class _ConfigClass:
 
             value = Distance(value).to("ang")
 
-        return super(_ConfigClass, self).__setattr__(key, value)
+        return super().__setattr__(key, value)
+
+
+def _instantiate_config_opts(cls: type) -> Any:
+    """
+    Instantiate a config class containing options defined
+    as class variables. It generates an instance of the
+    class, and then creates instance variables of the same
+    name as class variables, recursively converting any
+    nested class into instances.
+    (This is required because class variables are not pickled,
+    only instance variables are)
+
+    Args:
+        cls (type): Must be a class containing class
+         variables (not instance)
+
+    Returns:
+        (Any): The generated class instance
+    """
+    if not isinstance(cls, type):
+        raise ValueError("Must be a class, not an instance")
+    cls_instance = cls()
+    for name, attr in cls.__dict__.items():
+        if name.startswith("__"):
+            continue
+        if isinstance(attr, type):
+            attr_val = _instantiate_config_opts(attr)  # recursive
+        else:
+            attr_val = attr
+        setattr(cls_instance, name, attr_val)
+    return cls_instance
 
 
 # Single instance of the configuration
-Config = _ConfigClass()
+Config = _instantiate_config_opts(_ConfigClass)

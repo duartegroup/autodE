@@ -39,12 +39,14 @@ class PRFOptimiser(CRFOptimiser):
 
     def _step(self) -> None:
         """Partitioned rational function step"""
+        assert self._coords is not None and self._coords.g is not None
 
         if self.should_calculate_hessian:
             self._update_hessian()
         else:
             self._coords.h = self._updated_h()
 
+        assert self._coords.h is not None  # _update_hessian must set .h
         idxs = list(range(len(self._coords)))
 
         b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])
@@ -76,6 +78,8 @@ class PRFOptimiser(CRFOptimiser):
         Initialise running a partitioned rational function optimisation by
         setting the coordinates and Hessian
         """
+        assert self._species is not None, "Must have a species to init"
+
         # self._build_internal_coordinates()
         self._coords = CartesianCoordinates(self._species.coordinates).to(
             "dic"

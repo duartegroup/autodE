@@ -4,12 +4,13 @@ import numpy as np
 from autode.point_charges import PointCharge
 from autode.wrappers.QChem import QChem
 from autode.calculations import Calculation
+from autode.values import Allocation
 from autode.atoms import Atom
 from autode.config import Config
 from autode.wrappers.keywords import cpcm, pbe0, def2svp
 from autode.species.molecule import Molecule
 from autode.wrappers.keywords import SinglePointKeywords, OptKeywords
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, temporary_config
 from autode.exceptions import CalculationException
 from ..testutils import work_in_zipped_dir
 
@@ -27,6 +28,7 @@ def _blank_calc(name="test"):
         molecule=Molecule(atoms=[Atom("H")], mult=2),
         method=method,
         keywords=SinglePointKeywords(),
+        n_cores=Config.n_cores,
     )
 
     return calc
@@ -35,7 +37,7 @@ def _blank_calc(name="test"):
 def _completed_thf_calc():
 
     calc = _blank_calc()
-    calc.output.filename = "smd_thf.out"
+    calc.set_output_filename("smd_thf.out")
 
     assert calc.output.exists
     assert len(calc.output.file_lines) > 0
@@ -172,6 +174,7 @@ def test_simple_input_generation():
         "$rem\n"
         "method pbe0\n"
         "basis def2-SVP\n"
+        "mem_total 4000\n"
         "$end\n"
     )
 
@@ -204,9 +207,8 @@ def test_simple_input_generation():
 def test_energy_extraction():
 
     calc = _completed_thf_calc()
-    energy = calc.get_energy()
 
-    assert np.isclose(energy.to("Ha"), -232.45463628, atol=1e-8)
+    assert np.isclose(calc.molecule.energy.to("Ha"), -232.45463628, atol=1e-8)
 
     for calc in (_blank_calc(), _broken_output_calc(), _broken_output_calc2()):
         with pytest.raises(CalculationException):
@@ -294,9 +296,11 @@ def test_h2o_opt():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_gradient_extraction_h2o():
+
+    h2o = Molecule(smiles="O")
     calc = Calculation(
         name="test",
-        molecule=Molecule(smiles="O"),
+        molecule=h2o,
         method=method,
         keywords=OptKeywords(),
     )
@@ -305,15 +309,13 @@ def test_gradient_extraction_h2o():
 
     assert calc.output.exists
 
-    grad = calc.get_gradients()
-    assert grad.shape == (3, 3)
+    assert h2o.gradient.shape == (3, 3)
 
     # The minimum should have a gradient close to zero
-    assert np.allclose(grad, np.zeros(shape=(3, 3)), atol=1e-4)
+    assert np.allclose(h2o.gradient, np.zeros(shape=(3, 3)), atol=1e-4)
 
     # also for this calculation the optimisation has converged
     assert calc.optimiser.converged
-    assert not calc.optimisation_nearly_converged()
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
@@ -321,10 +323,9 @@ def test_gradient_extraction_h2():
 
     calc = _blank_calc()
     calc.molecule = Molecule(atoms=[Atom("H"), Atom("H", x=0.77)])
-    calc.output.filename = "H2_qchem.out"
+    calc.set_output_filename("H2_qchem.out")
 
-    grad = calc.get_gradients()
-    assert grad.shape == (2, 3)
+    assert calc.molecule.gradient.shape == (2, 3)
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
@@ -343,10 +344,11 @@ def test_butane_gradient_extraction():
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_h2o_hessian_extraction():
 
+    h2o = Molecule(smiles="O")
     calc = _blank_calc()
     calc.input.keywords = method.keywords.hess
-    calc.output.filename = "H2O_hess_qchem.out"
-    calc.molecule = Molecule(smiles="O")
+    calc.molecule = h2o
+    calc.set_output_filename("H2O_hess_qchem.out")
 
     hess = method.hessian_from(calc)
     assert hess.shape == (9, 9)
@@ -358,7 +360,7 @@ def test_h2o_hessian_extraction():
     # Final atoms are available, as the same ones input
     assert np.allclose(
         calc.molecule.coordinates,
-        calc.get_final_atoms().coordinates,
+        h2o.coordinates,
         atol=1e-8,
     )
 
@@ -446,9 +448,7 @@ def test_ts_opt():
     # Should skip calculation for already completed and saved calculation
     calc.run()
 
-    assert np.isclose(calc.get_energy().to("Ha"), -599.4788133790, atol=1e-8)
-
-    ts_mol.hessian = calc.get_hessian()
+    assert np.isclose(ts_mol.energy.to("Ha"), -599.4788133790, atol=1e-8)
     assert ts_mol.hessian is not None
 
     assert sum(freq.is_imaginary for freq in ts_mol.vib_frequencies) == 1
@@ -579,3 +579,18 @@ def test_coordinate_extract_from_single_atom_calculation():
     calc.molecule = Molecule(atoms=[Atom("H", x=0, y=0, z=0)])
 
     assert np.allclose(QChem().coordinates_from(calc), np.zeros(3))
+
+
+@work_in_tmp_dir()
+def test_total_memory_is_printed_in_input_file():
+
+    with temporary_config():
+        Config.n_cores = 3
+        Config.max_core = Allocation(900, "MB")
+        calc = _blank_calc()
+        calc.input.keywords = method.keywords.sp
+        calc.generate_input()
+
+    input_lines = open(calc.input.filename, "r").readlines()
+
+    assert sum("mem_total 2700" in line for line in input_lines) == 1

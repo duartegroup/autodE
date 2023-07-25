@@ -2,6 +2,7 @@ from autode.atoms import Atom, Atoms
 from autode.species import Molecule, NCIComplex
 from autode.conformers import Conformer, Conformers
 from autode.conformers.conformers import _calc_conformer
+from autode.exceptions import NoConformers
 from autode.wrappers.ORCA import ORCA
 from autode.wrappers.XTB import XTB
 from autode.config import Config
@@ -177,11 +178,14 @@ def test_confs_energy_pruning3():
 
 def test_confs_no_energy_pruning():
     # Check that if energies are unassigned then conformers are removed
+    conf0 = Conformer(atoms=[Atom("H")])
+    conf1 = conf0.copy()
+    conf1.energy = -0.5
 
-    confs = Conformers([Conformer(atoms=[Atom("H")])])
+    confs = Conformers([conf0, conf1])
     confs.prune(remove_no_energy=True)
 
-    assert len(confs) == 0
+    assert len(confs) == 1
 
 
 def test_confs_rmsd_pruning1():
@@ -302,7 +306,7 @@ def test_complex_conformers_diff_names():
         shutil.rmtree("conformers")
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calc_conformer():
 
@@ -382,3 +386,21 @@ def test_conformer_coordinate_setting_with_different_atomic_attr():
     # But cannot set atoms with a different label (e.g. atomic symbol)
     with pytest.raises(ValueError):
         conf.atoms = Atoms([Atom("H")])
+
+
+def test_pruning_conformers_without_energy_raises():
+
+    conformers = Conformers(
+        [Conformer(atoms=[Atom("H")]), Conformer(atoms=[Atom("H")])]
+    )
+
+    assert sum(c.energy is None for c in conformers) == 2
+
+    with pytest.raises(NoConformers):
+        conformers.prune(remove_no_energy=True)
+
+
+def test_pruning_no_energy_with_no_conformers_is_possible():
+
+    conformers = Conformers()
+    conformers.remove_no_energy()

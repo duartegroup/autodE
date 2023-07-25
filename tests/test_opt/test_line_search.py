@@ -10,7 +10,7 @@ from autode.opt.optimisers.line_search import (
     NullLineSearch,
     LineSearchOptimiser,
 )
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import requires_working_xtb_install
 from .setup import Method
 
 
@@ -149,7 +149,7 @@ def test_armijo_line_search_complex_func():
 
 
 @work_in_tmp_dir()
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_xtb_h2_cart_opt():
 
     optimiser = ArmijoLineSearch()

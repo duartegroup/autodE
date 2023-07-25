@@ -1,14 +1,17 @@
 import os
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from autode.point_charges import PointCharge
+
+if TYPE_CHECKING:
+    from autode.wrappers.keywords import Keywords
 
 
 class CalculationInput:
     def __init__(
         self,
-        keywords: "autode.wrappers.keywords.Keywords",
+        keywords: "Keywords",
         added_internals: Optional[list] = None,
         point_charges: Optional[List[PointCharge]] = None,
     ):
@@ -26,17 +29,16 @@ class CalculationInput:
             point_charges: Optional list of float of point charges, x, y, z
                            coordinates for each point charge
         """
-        self.keywords = None if keywords is None else keywords.copy()
+        self.keywords: Keywords = keywords.copy()
 
+        self.added_internals: Optional[list] = None
         if added_internals is not None and len(added_internals) > 0:
             self.added_internals = added_internals
-        else:
-            self.added_internals = None
 
         self.point_charges = point_charges
 
-        self.filename = None
-        self.additional_filenames = []
+        self.filename: Optional[str] = None
+        self.additional_filenames: List[str] = []
 
         self._check()
 

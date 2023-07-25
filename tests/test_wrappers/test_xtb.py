@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pytest
 
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, temporary_config
 from autode.atoms import Atom
 from autode.wrappers.XTB import XTB
 from autode.calculations import Calculation
@@ -216,6 +216,8 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
             implicit_solvation_type=None,
             keywords_set=XTB().keywords,
         )
+        self.electronic_temp = XTB().electronic_temp
+        self.gfn_version = XTB().gfn_version
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
         return XTB._energy_from(self, calc)
@@ -257,7 +259,7 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
         return XTB.__repr__(self)
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_with_autode_opt_method():
 
@@ -273,7 +275,7 @@ def test_xtb_with_autode_opt_method():
     assert calc.optimiser.converged
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_with_autode_opt_method_for_a_single_atom():
 
@@ -290,7 +292,7 @@ def test_xtb_with_autode_opt_method_for_a_single_atom():
     assert mol.energy is not None
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_opt_non_contiguous_range_cart_constraints():
 
@@ -311,7 +313,7 @@ def test_xtb_opt_non_contiguous_range_cart_constraints():
     assert mol.energy is not None
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_errors_with_infinite_nuclear_repulsion():
 
@@ -346,7 +348,7 @@ def test_xtb_did_not_terminate_normally_with_blank_output():
     assert not calc.method.terminated_normally_in(calc)
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_ade_opt_rerun_with_different_input_skip_saved_opt():
     def run_calc(_mol):
@@ -369,7 +371,7 @@ def test_ade_opt_rerun_with_different_input_skip_saved_opt():
     assert mol.energy != unconstrained_energy
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_cartesian_constrained_opt():
 
@@ -387,3 +389,32 @@ def test_xtb_cartesian_constrained_opt():
     # if the coordinates are constrained then the distance should be
     # close to the initial
     assert abs(h2.distance(0, 1) - init_r) < 0.1
+
+
+@pytest.mark.parametrize("gfn_ver,etemp", [(1, 300.0), (2, 1200.1)])
+@testutils.requires_working_xtb_install
+@work_in_tmp_dir()
+def test_xtb_etemp_and_gfn_var_params_recognised(gfn_ver, etemp):
+
+    # test that the electronic_temp and gfn_version Config params are recognised
+
+    mol = Molecule(smiles="O")
+    with temporary_config():
+        Config.XTB.gfn_version = gfn_ver
+        Config.XTB.electronic_temp = etemp
+
+        calc = Calculation(
+            name="water",
+            molecule=mol,
+            method=XTB(),
+            keywords=XTB().keywords.sp,
+        )
+        calc.run()
+
+    assert calc.output.filename is not None
+    output = "".join(calc.output.file_lines)
+
+    # xTB command line flags should be printed in the output
+    assert f"--gfn {gfn_ver}" in output
+    etemp_str = str(float(etemp))  # string repr may be different
+    assert f"--etemp {etemp_str}" in output

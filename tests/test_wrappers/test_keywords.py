@@ -74,6 +74,7 @@ def test_set_keywordsset():
     assert hasattr(kwset, "opt")
     assert "keywords" in repr(kwset).lower()
     assert kwset.low_sp is not None
+    assert kwset[0] is not None  # Allow indexing
 
     kwset.set_opt_functional(pbe)
     assert kwset.opt.functional.lower() == "pbe"
@@ -235,3 +236,16 @@ def test_keyword_addition():
         _ = a + 2
 
     assert isinstance(a + b, OptKeywords)
+
+
+def test_keyword_setting_with_empty_keywords():
+    keywords = SinglePointKeywords()
+    keywords.functional = None  # Should not append to the list
+    assert len(keywords) == 0
+
+
+def test_setting_keyword_by_index():
+    keywords = SinglePointKeywords(["a"])
+    keywords[0] = "b"
+    assert len(keywords) == 1
+    assert keywords[0] == "b"

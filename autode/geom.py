@@ -1,9 +1,14 @@
 import numpy as np
 
-from typing import Sequence
+from typing import Sequence, Union, TYPE_CHECKING, List
 from scipy.spatial.distance import cdist
 from scipy.spatial import distance_matrix
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.values import Angle
+    from autode.species.species import Species
+    from autode.atoms import Atoms
 
 
 def are_coords_reasonable(coords: np.ndarray) -> bool:
@@ -96,7 +101,9 @@ def get_rot_mat_euler_from_terms(
     return rot_matrix
 
 
-def get_rot_mat_euler(axis: np.ndarray, theta: float) -> np.ndarray:
+def get_rot_mat_euler(
+    axis: np.ndarray, theta: Union[float, "Angle"]
+) -> np.ndarray:
     """
     Compute the 3D rotation matrix using the Euler Rodrigues formula
     https://en.wikipedia.org/wiki/Euler–Rodrigues_formula
@@ -124,7 +131,7 @@ def get_rot_mat_euler(axis: np.ndarray, theta: float) -> np.ndarray:
 
 
 def get_neighbour_list(
-    species: "autode.species.species.Species",
+    species: "Species",
     atom_i: int,
     index_set: Sequence[int],
 ) -> Sequence[int]:
@@ -167,9 +174,7 @@ def get_neighbour_list(
     return atom_label_neighbour_list
 
 
-def calc_heavy_atom_rmsd(
-    atoms1: "autode.atoms.Atoms", atoms2: "autode.atoms.Atoms"
-) -> float:
+def calc_heavy_atom_rmsd(atoms1: "Atoms", atoms2: "Atoms") -> float:
     """
     Calculate the RMSD between two sets of atoms considering only the 'heavy'
     atoms, i.e. the non-hydrogen atoms
@@ -227,7 +232,7 @@ def calc_rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
     return np.sqrt(np.average(np.square(fitted_coords - q_mat)))
 
 
-def get_points_on_sphere(n_points: int, r: float = 1) -> Sequence[np.ndarray]:
+def get_points_on_sphere(n_points: int, r: float = 1) -> List[np.ndarray]:
     """
     Find n evenly spaced points on a sphere using the "How to generate
     equidistributed points on the surface of a sphere" by Markus Deserno, 2004.
@@ -268,7 +273,9 @@ def get_points_on_sphere(n_points: int, r: float = 1) -> Sequence[np.ndarray]:
     return points
 
 
-def symm_matrix_from_ltril(array: Sequence[float]) -> np.ndarray:
+def symm_matrix_from_ltril(
+    array: Union[Sequence[float], Sequence[Sequence[float]]]
+) -> np.ndarray:
     """
     Construct a symmetric matrix from the lower triangular elements e.g.::
 
@@ -285,7 +292,7 @@ def symm_matrix_from_ltril(array: Sequence[float]) -> np.ndarray:
 
     if len(array) > 0 and type(array[0]) in (list, np.ndarray):
         # Flatten the array of arrays
-        array = [item for sublist in array for item in sublist]
+        array = [item for sublist in array for item in sublist]  # type: ignore
 
     n = int((np.sqrt(8 * len(array) + 1) - 1) / 2)
 

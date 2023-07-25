@@ -1,40 +1,28 @@
+# mypy: disable-error-code="override, type-var"
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Any, Union, Type, Optional, Sequence, Tuple
 from copy import deepcopy
 from collections.abc import Iterable
 from autode.log import logger
+
+# fmt: off
 from autode.units import (
-    Unit,
-    ha,
-    kjmol,
-    kcalmol,
-    ev,
-    J,
-    ang,
-    a0,
-    nm,
-    pm,
-    m,
-    ang_amu_half,
-    rad,
-    deg,
-    wavenumber,
-    hz,
-    amu,
-    kg,
-    m_e,
-    amu_ang_sq,
-    kg_m_sq,
-    ha_per_ang,
-    ha_per_a0,
-    ev_per_ang,
-    kcalmol_per_ang,
-    byte,
-    MB,
-    GB,
-    TB,
+    Unit,   ha,      m,           ang_amu_half,  ha_per_a0,       ev_per_ang,
+    kjmol,  kcalmol, rad,         deg,           kcalmol_per_ang, byte,
+    ev,     J,       wavenumber,  hz,            MB,              ha_per_ang,
+    ang,    a0,      amu,         kg,            GB,              kg_m_sq,
+    nm,     pm,      m_e,         amu_ang_sq,    TB,              ha_per_a0_sq,
+    ha_per_ang_sq,   J_per_m_sq,  J_per_ang_sq,  J_per_ang_sq_kg,
 )
+from typing import Any, Union, Type, Optional, Sequence, List, TypeVar, TYPE_CHECKING
+# fmt: on
+
+if TYPE_CHECKING:
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords.keywords import Keywords
+
+TypeValue = TypeVar("TypeValue", bound="Value")
+TypeEnergy = TypeVar("TypeEnergy", bound="Energy")
 
 
 def _to(
@@ -55,6 +43,9 @@ def _to(
     """
     if value.units == units:
         return value
+
+    if value.units is None:
+        raise RuntimeError("Cannot convert with units=None")
 
     try:
         units = next(
@@ -89,7 +80,7 @@ def _to(
     return None if inplace else new_value
 
 
-def _units_init(value, units: Union[Unit, str, None]):
+def _units_init(value, units: Union[Unit, str, None]) -> Optional[Unit]:
     """Initialise the units of this value
 
     Arguments:
@@ -124,7 +115,7 @@ class Value(ABC, float):
     x = Value(0.0)
     """
 
-    implemented_units = []
+    implemented_units: Sequence[Unit] = []
 
     def __init__(self, x: Any, units: Union[Unit, str, None] = None):
         """
@@ -139,6 +130,7 @@ class Value(ABC, float):
         """
 
         float.__init__(float(x))
+        self.units: Optional[Unit] = None
 
         if isinstance(x, Value):
             self.units = x.units
@@ -177,12 +169,12 @@ class Value(ABC, float):
 
         return other.to(self.units)
 
-    def _like_self_from_float(self, value: float) -> "Value":
+    def _like_self_from_float(self, value: float) -> TypeValue:
         new_value = self.__class__(value, units=self.units)
         new_value.__dict__.update(self.__dict__)
-        return new_value
+        return new_value  # type: ignore
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Equality of two values, which may be in different units"""
 
         if other is None:
@@ -193,10 +185,10 @@ class Value(ABC, float):
 
         return abs(float(self) - float(other)) < 1e-8
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: Any) -> bool:
         """Less than comparison operator"""
 
         if isinstance(other, Value):
@@ -204,19 +196,19 @@ class Value(ABC, float):
 
         return float(self) < other
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other: Any) -> bool:
         """Greater than comparison operator"""
         return not self.__lt__(other)
 
-    def __le__(self, other) -> bool:
+    def __le__(self, other: Any) -> bool:
         """Greater than or equal to comparison operator"""
         return self.__lt__(other) or self.__eq__(other)
 
-    def __ge__(self, other) -> bool:
+    def __ge__(self, other: Any) -> bool:
         """Less than or equal to comparison operator"""
         return self.__gt__(other) or self.__eq__(other)
 
-    def __add__(self, other) -> "Value":
+    def __add__(self, other: Any) -> TypeValue:
         """Add another value onto this one"""
         if isinstance(other, np.ndarray):
             return other + float(self)
@@ -225,7 +217,7 @@ class Value(ABC, float):
             float(self) + self._other_same_units(other)
         )
 
-    def __mul__(self, other) -> Union[float, "Value"]:
+    def __mul__(self, other) -> Union[float, TypeValue]:
         """Multiply this value with another"""
         if isinstance(other, np.ndarray):
             return other * float(self)
@@ -240,26 +232,26 @@ class Value(ABC, float):
             float(self) * self._other_same_units(other)
         )
 
-    def __rmul__(self, other) -> Union[float, "Value"]:
+    def __rmul__(self, other) -> Union[float, TypeValue]:
         return self.__mul__(other)
 
-    def __radd__(self, other) -> "Value":
+    def __radd__(self, other) -> TypeValue:
         return self.__add__(other)
 
-    def __sub__(self, other) -> "Value":
+    def __sub__(self, other) -> TypeValue:
         return self.__add__(-other)
 
-    def __floordiv__(self, other) -> Union[float, "Value"]:
+    def __floordiv__(self, other) -> Union[float, TypeValue]:
         x = float(self) // self._other_same_units(other)
         return x if isinstance(other, Value) else self._like_self_from_float(x)
 
-    def __truediv__(self, other) -> Union[float, "Value"]:
+    def __truediv__(self, other) -> Union[float, TypeValue]:
         x = float(self) / self._other_same_units(other)
         return x if isinstance(other, Value) else self._like_self_from_float(x)
 
-    def __abs__(self) -> "Value":
+    def __abs__(self) -> TypeValue:
         """Absolute value"""
-        return self if self > 0 else self * -1
+        return self if self > 0 else self * -1  # type: ignore
 
     def to(self, units):
         """Convert this value to a new unit, returning a copy
@@ -285,10 +277,10 @@ class Energy(Value):
 
     def __init__(
         self,
-        value,
+        value: Any,
         units: Union[Unit, str] = ha,
-        method: Optional["autode.wrappers.methods.Method"] = None,
-        keywords: Optional["autode.wrappers.keywords.Keywords"] = None,
+        method: Optional["Method"] = None,
+        keywords: Optional["Keywords"] = None,
         estimated: bool = False,
     ):
         """
@@ -316,10 +308,13 @@ class Energy(Value):
         self.is_estimated = estimated
         self.method_str = method_string(method, keywords)
 
-    def __repr__(self):
-        return f"Energy({round(self, 5)} {self.units.name})"
+    def __repr__(self) -> str:
+        if self.units is None:
+            return f"Energy({round(self, 5)} *no units*)"
+        else:
+            return f"Energy({round(self, 5)} {self.units.name})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Is an energy equal to another? Compares only the value, with
         implicit unit conversion"""
         tol_ha = 0.0000159  # 0.01 kcal mol-1
@@ -340,8 +335,8 @@ class Energy(Value):
 
     def set_method_str(
         self,
-        method: Optional["autode.wrappers.methods.Method"],
-        keywords: Optional["autode.wrappers.keywords.Keywords"],
+        method: Optional["Method"],
+        keywords: Optional["Keywords"],
     ) -> None:
         self.method_str = method_string(method, keywords)
 
@@ -427,7 +422,7 @@ class Energies(list):
         return super().append(other)
 
     @staticmethod
-    def _next(energies, energy_type):
+    def _next(energies: Any, energy_type: Type):
         """Next type of energy in a list of energies"""
         try:
             return next(
@@ -439,7 +434,7 @@ class Energies(list):
         except StopIteration:
             return None
 
-    def last(self, energy_type: Type[Energy]) -> Optional[Energy]:
+    def last(self, energy_type: Type[Energy]) -> Optional[TypeEnergy]:
         """
         Return the last instance of a particular energy type in these list
         of energies
@@ -453,7 +448,7 @@ class Energies(list):
         """
         return self._next(reversed(self), energy_type=energy_type)
 
-    def first(self, energy_type: Type[Energy]) -> Optional[Energy]:
+    def first(self, energy_type: Type[Energy]) -> Optional[TypeEnergy]:
         """
         Return the last instance of a particular energy type in these list
         of energies
@@ -555,7 +550,7 @@ class Frequency(Value):
         Returns:
             (autode.values.Frequency):
         """
-        return self * -1 if self.is_imaginary else self
+        return Frequency(-float(self)) if self.is_imaginary else self
 
     def __repr__(self):
         return f"Frequency({round(self, 5)} {self.units.name})"
@@ -575,12 +570,29 @@ class Mass(Value):
         super().__init__(value, units=units)
 
 
+class ForceConstant(Value):
+
+    implemented_units = [
+        ha_per_ang_sq,
+        ha_per_a0_sq,
+        J_per_m_sq,
+        J_per_ang_sq,
+        J_per_ang_sq_kg,
+    ]
+
+    def __repr__(self):
+        return f"Force constant({round(self, 5)} {self.units.name})"
+
+    def __init__(self, value, units=ha_per_ang_sq):
+        super().__init__(value, units=units)
+
+
 class ValueArray(ABC, np.ndarray):
     """
     Abstract base class for an array of values, e.g. gradients or a Hessian
     """
 
-    implemented_units = []
+    implemented_units: List[Unit] = []
 
     @abstractmethod
     def __repr__(self):
@@ -608,7 +620,7 @@ class ValueArray(ABC, np.ndarray):
         cls,
         input_array: Union[np.ndarray, Sequence],
         units: Union[Unit, str, None] = None,
-    ):
+    ) -> Any:
         """
         Initialise a ValueArray from a numpy array, or another ValueArray
 
@@ -730,7 +742,7 @@ class Coordinates(ValueArray):
     def __repr__(self):
         return f"Coordinates({np.ndarray.__str__(self)} {self.units.name})"
 
-    def __new__(cls, input_array, units=ang):
+    def __new__(cls, input_array, units=ang) -> "Coordinates":
         return super().__new__(
             cls, np.asarray(input_array).reshape(-1, 3), units
         )
@@ -782,8 +794,8 @@ class EnergyArray(ValueArray):
 
 
 def method_string(
-    method: Optional["autode.wrappers.methods.Method"],
-    keywords: Optional["autode.wrappers.keywords.Keywords"],
+    method: Optional["Method"],
+    keywords: Optional["Keywords"],
 ) -> str:
     """
     Create a method string for a method and the keywords

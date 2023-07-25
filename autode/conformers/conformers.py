@@ -1,13 +1,23 @@
 import numpy as np
-from typing import Optional, Union
-from multiprocessing import Pool
+
+from typing import Optional, Union, TYPE_CHECKING
 from rdkit import Chem
+
 from autode.values import Distance, Energy
 from autode.atoms import Atom, Atoms
 from autode.config import Config
 from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
+from autode.utils import ProcessPool
+from autode.exceptions import NoConformers
+
+
+if TYPE_CHECKING:
+    from autode.conformers.conformer import Conformer
+    from autode.wrappers.methods import Method
+    from autode.mol_graphs import MolecularGraph
+    from autode.wrappers.keywords import Keywords
 
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
@@ -20,7 +30,7 @@ def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
 
 class Conformers(list):
     @property
-    def lowest_energy(self) -> Optional["autode.conformers.Conformer"]:
+    def lowest_energy(self) -> Optional["Conformer"]:
         """
         Return the lowest energy conformer state from this set. If no
         conformers have an energy then return None
@@ -61,9 +71,7 @@ class Conformers(list):
         """
 
         if remove_no_energy:
-            for idx in reversed(range(len(self))):  # Enumerate backwards
-                if self[idx].energy is None:
-                    del self[idx]
+            self.remove_no_energy()
 
         self.prune_on_energy(e_tol=e_tol, n_sigma=n_sigma)
         self.prune_on_rmsd(rmsd_tol=rmsd_tol)
@@ -206,9 +214,7 @@ class Conformers(list):
         logger.info(f"Pruned to {len(self)} unique conformer(s) on RMSD")
         return None
 
-    def prune_diff_graph(
-        self, graph: "autode.mol_graphs.MolecularGraph"
-    ) -> None:
+    def prune_diff_graph(self, graph: "MolecularGraph") -> None:
         """
         Remove conformers with a different molecular graph to a defined
         reference. Although all conformers should have the same molecular
@@ -234,6 +240,21 @@ class Conformers(list):
         logger.info(f"Pruned on connectivity {n_prev_confs} -> {len(self)}")
         return None
 
+    def remove_no_energy(self) -> None:
+        """Remove all conformers from this list that do not have an energy"""
+        n_conformers_before_remove = len(self)
+
+        for idx in reversed(range(len(self))):  # Enumerate backwards
+            if self[idx].energy is None:
+                del self[idx]
+
+        n_conformers = len(self)
+        if n_conformers == 0 and n_conformers != n_conformers_before_remove:
+            raise NoConformers(
+                f"Removed all the conformers "
+                f"{n_conformers_before_remove} -> 0"
+            )
+
     def _parallel_calc(self, calc_type, method, keywords):
         """
         Run a set of calculations (single point energy evaluations or geometry
@@ -254,25 +275,28 @@ class Conformers(list):
 
         n_cores_pp = max(Config.n_cores // len(self), 1)
 
-        with Pool(processes=Config.n_cores // n_cores_pp) as pool:
-            results = [
-                pool.apply_async(
+        with ProcessPool(max_workers=Config.n_cores // n_cores_pp) as pool:
+            jobs = [
+                pool.submit(
                     _calc_conformer,
-                    args=(conf, calc_type, method, keywords),
-                    kwds={"n_cores": n_cores_pp},
+                    conf,
+                    calc_type,
+                    method,
+                    keywords,
+                    n_cores=n_cores_pp,
                 )
                 for conf in self
             ]
 
-            for idx, res in enumerate(results):
-                self[idx] = res.get(timeout=None)
+            for idx, res in enumerate(jobs):
+                self[idx] = res.result()
 
         return None
 
     def optimise(
         self,
-        method: "autode.wrappers.base.ElectronicStructureMethod",
-        keywords: Optional["autode.wrappers.Keywords"] = None,
+        method: "Method",
+        keywords: Optional["Keywords"] = None,
     ) -> None:
         """
         Optimise a set of conformers in parallel
@@ -287,8 +311,8 @@ class Conformers(list):
 
     def single_point(
         self,
-        method: "autode.wrappers.base.ElectronicStructureMethod",
-        keywords: Optional["autode.wrappers.Keywords"] = None,
+        method: "Method",
+        keywords: Optional["Keywords"] = None,
     ) -> None:
         """
         Evaluate single point energies for a set of conformers in parallel

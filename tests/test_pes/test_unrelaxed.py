@@ -9,8 +9,8 @@ from autode.atoms import Atom
 from autode.pes.unrelaxed import UnRelaxedPES1D
 
 
-@testutils.requires_with_working_xtb_install
-@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+@testutils.requires_working_xtb_install
+@work_in_tmp_dir()
 def test_h2_points():
 
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.8)])
@@ -53,3 +53,30 @@ def test_unrelaxed_kwd_type():
     )
 
     assert isinstance(pes._default_keyword_type("a str"), SinglePointKeywords)
+
+
+@testutils.requires_working_xtb_install
+def test_unrelaxed_must_be_over_a_single_dim():
+
+    h3 = Molecule(atoms=[Atom("H"), Atom("H", x=0.8), Atom("H", x=-0.8)])
+
+    pes = UnRelaxedPES1D(h3, rs={(0, 1): (1.5, 10), (1, 2): (1.5, 10)})
+
+    with pytest.raises(NotImplementedError):
+        pes.calculate(method=XTB())
+
+
+@testutils.requires_working_xtb_install
+@work_in_tmp_dir()
+def test_single_energy_works():
+    # This method is called but in parallel so codecov can't see it
+
+    h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.8)])
+
+    pes = UnRelaxedPES1D(h2, rs={(0, 1): (0.9, 2)})
+    xtb = XTB()
+    pes._method = xtb
+    pes._keywords = xtb.keywords.sp
+    result = pes._single_energy(h2, n_cores=1)
+
+    assert result is not None and result != np.nan

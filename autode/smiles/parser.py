@@ -6,7 +6,7 @@
 
 as of 03/2021
 """
-from typing import Optional
+from typing import Optional, Dict, List, Set
 
 from autode.log import logger
 from autode.utils import log_time
@@ -25,14 +25,14 @@ from autode.smiles.base import (
 
 
 class Parser:
-    def __init__(self):
+    def __init__(self) -> None:
         """SMILES Parser"""
 
         self._string = ""
 
         # Indexes of the characters in the SMILES string that have been parsed
-        self.parsed_idxs = set()
-        self.atoms = []
+        self.parsed_idxs: Set[int] = set()
+        self.atoms: List[SMILESAtom] = []
         self.bonds = SMILESBonds()
 
     @property
@@ -92,7 +92,7 @@ class Parser:
         return self._string
 
     @smiles.setter
-    def smiles(self, string):
+    def smiles(self, string: str):
         """Set the SMILES string for the parser and reset"""
         self._string = str(string.strip())  # strip leading/trailing whitespace
         self._check_smiles()
@@ -102,7 +102,7 @@ class Parser:
         self.atoms = []
         self.bonds = SMILESBonds()
 
-    def _parse_sq_bracket(self, string):
+    def _parse_sq_bracket(self, string: str) -> None:
         """
         Parse a section in a square bracket
 
@@ -151,7 +151,7 @@ class Parser:
         self.atoms.append(atom)
         return None
 
-    def _parse_next_sq_bracket(self, idx):
+    def _parse_next_sq_bracket(self, idx: int) -> None:
         """
         Parse the next square bracket section from the SMILES e.g.
 
@@ -185,7 +185,7 @@ class Parser:
         self.parsed_idxs.update(list(range(idx, idx + len(bracketed_sec) + 2)))
         return None
 
-    def _parse_ring_idx(self, idx):
+    def _parse_ring_idx(self, idx: int) -> int:
         """
         From a position in the SMILES string determine the ring index, zero
         indexed
@@ -389,7 +389,7 @@ class Parser:
         logger.info(f"Parsing {self.smiles}")
 
         branch_idxs = []  # Indexes of branch points
-        unclosed_bonds = {}  # Bonds that must be closed
+        unclosed_bonds: Dict[int, RingBond] = {}  # Bonds that must be closed
         prev_idx = None  # Index of the previous atom to bond the next to
 
         # Enumerate over the string until all characters have been parsed

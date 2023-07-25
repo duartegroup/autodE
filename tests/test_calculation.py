@@ -2,13 +2,15 @@ import numpy as np
 import pytest
 import os
 import sys
-from copy import deepcopy
 from autode.calculations import Calculation
 from autode.calculations.output import (
     CalculationOutput,
     BlankCalculationOutput,
 )
-from autode.calculations.executors import CalculationExecutor
+from autode.calculations.executors import (
+    CalculationExecutor,
+    CalculationExecutorO,
+)
 from autode.solvent.solvents import get_solvent
 from autode.constraints import Constraints
 from autode.wrappers.keywords.functionals import Functional
@@ -20,7 +22,7 @@ from autode.species import Molecule
 from autode.config import Config
 import autode.exceptions as ex
 from autode.utils import work_in_tmp_dir
-from .testutils import requires_with_working_xtb_install
+from .testutils import requires_working_xtb_install
 from autode.wrappers.keywords import (
     SinglePointKeywords,
     HessianKeywords,
@@ -29,17 +31,19 @@ from autode.wrappers.keywords import (
 )
 
 
-test_mol = Molecule(smiles="O", name="test_mol")
-
-
 def h_atom() -> Molecule:
     return Molecule(atoms=[Atom("H")], mult=2)
+
+
+def h2o() -> Molecule:
+    return Molecule(smiles="O", name="test_mol")
 
 
 @work_in_tmp_dir()
 def test_calc_class():
 
     xtb = XTB()
+    test_mol = h2o()
 
     calc = Calculation(
         name="-tmp", molecule=test_mol, method=xtb, keywords=xtb.keywords.sp
@@ -51,17 +55,10 @@ def test_calc_class():
     assert calc.method.name == "xtb"
     assert len(calc.input.filenames) == 0
 
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_energy()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_final_atoms()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_gradients()
-
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_atomic_charges()
+    # Without
+    assert test_mol.energy is None
+    assert test_mol.gradient is None
+    assert test_mol.hessian is None
 
     # With a filename that doesn't exist a NoOutput exception should be raised
     calc.output.filename = "/a/path/that/does/not/exist/tmp"
@@ -69,12 +66,12 @@ def test_calc_class():
         _ = calc.output.file_lines
 
     # With no output should not be able to get properties
-    calc.output.filename = "tmp.out"
-    with open(calc.output.filename, "w") as output_file:
+    with open("tmp.out", "w") as output_file:
         print("some\ntest\noutput", file=output_file)
 
-    with pytest.raises(ex.CouldNotGetProperty):
-        _ = calc.get_atomic_charges()
+    with pytest.raises(ex.CalculationException):
+        # Cannot set even the energy from an invalid output file
+        calc.set_output_filename("tmp.out")
 
     # Should default to a single core
     assert calc.n_cores == 1
@@ -105,6 +102,8 @@ def test_calc_class():
 def test_calc_copy():
 
     orca = ORCA()
+    test_mol = h2o()
+
     calc = Calculation(
         name="tmp", molecule=test_mol, method=orca, keywords=orca.keywords.sp
     )
@@ -160,6 +159,7 @@ def test_distance_const_check():
 def test_calc_string():
 
     xtb = XTB()
+    test_mol = h2o()
 
     a = test_mol.copy()
     no_const = Calculation(
@@ -197,6 +197,7 @@ def test_fix_unique():
     autodE checks the input of each previously run calc with the name name"""
 
     orca = ORCA()
+    test_mol = h2o()
 
     calc = CalculationExecutor(
         name="tmp", molecule=test_mol, method=orca, keywords=orca.keywords.sp
@@ -225,7 +226,7 @@ def test_fix_unique():
 
 def test_solvent_get():
     xtb = XTB()
-    _test_mol = Molecule(smiles="O", name="test_mol")
+    _test_mol = h2o()
 
     # Can't get the name of a solvent if molecule.solvent is not a string
     with pytest.raises(ex.SolventUnavailable):
@@ -240,7 +241,7 @@ def test_solvent_get():
 
     # Currently iodoethane is not in XTB - might be in the future
     _test_mol.solvent = "iodoethane"
-    assert not hasattr(test_mol.solvent, "xtb")
+    assert _test_mol.solvent.xtb is None
     assert _test_mol.solvent.is_implicit
 
     with pytest.raises(ex.SolventUnavailable):
@@ -253,6 +254,7 @@ def test_solvent_get():
 def test_input_gen():
 
     xtb = XTB()
+    test_mol = h2o()
 
     calc = Calculation(
         name="tmp", molecule=test_mol, method=xtb, keywords=xtb.keywords.sp
@@ -286,6 +288,8 @@ def test_input_gen():
 def test_exec_not_avail_method():
 
     orca = ORCA()
+    test_mol = h2o()
+
     orca.path = "/a/non/existent/path"
     assert not orca.is_available
 
@@ -308,19 +312,16 @@ def test_exec_too_much_memory_requested_above_py39():
         return  # Only supported on Python 3.9 and above
 
     # Normal external run should be fine
-    run_external(["ls"], output_filename="tmp.txt")
+    run_external(["whoami"], output_filename="tmp.txt")
 
-    curr_max_core = deepcopy(Config.max_core)
     Config.max_core = 10000000000000
 
     # But if there is not enough physical memory it should raise an exception
     with pytest.raises(RuntimeError):
-        run_external(["ls"], output_filename="tmp.txt")
-
-    Config.max_core = curr_max_core
+        run_external(["whoami"], output_filename="tmp.txt")
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_calculations_have_unique_names():
 
@@ -330,7 +331,7 @@ def test_calculations_have_unique_names():
     mol.single_point(method=xtb)
     mol.single_point(method=xtb)  # calculation should be skipped
 
-    """For some insane reason the following code works if executed in python 
+    """For some insane reason the following code works if executed in python
     directly but not if run within pytest"""
     # neutral_energy = mol.energy.copy()
     #
@@ -340,7 +341,7 @@ def test_calculations_have_unique_names():
     # assert cation_energy > neutral_energy
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_numerical_hessian_evaluation():
 
@@ -420,7 +421,10 @@ def test_numerical_hessian_evaluation():
 def test_check_properties_exist_did_not_terminate_normally():
 
     calc = Calculation(
-        name="tmp", molecule=h_atom(), method=XTB(), keywords=None
+        name="tmp",
+        molecule=h_atom(),
+        method=XTB(),
+        keywords=SinglePointKeywords(),
     )
 
     with pytest.raises(ex.CouldNotGetProperty):
@@ -592,3 +596,22 @@ def test_init_a_calculation_without_a_valid_spin_state_throws():
         _ = Calculation(
             name="tmp", molecule=test_m, method=xtb, keywords=xtb.keywords.sp
         )
+
+
+def test_cannot_set_filename_on_a_blank_output():
+
+    output = BlankCalculationOutput()
+    with pytest.raises(ValueError):
+        output.filename = "test"
+
+
+def test_cannot_set_output_of_indirect_executor():
+
+    orca = ORCA()
+    test_mol = h2o()
+
+    executor = CalculationExecutorO(
+        name="tmp", molecule=test_mol, method=orca, keywords=orca.keywords.sp
+    )
+    with pytest.raises(ValueError):
+        executor.output = BlankCalculationOutput()

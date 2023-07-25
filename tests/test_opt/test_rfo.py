@@ -4,7 +4,7 @@ from autode.wrappers.XTB import XTB
 from autode.utils import work_in_tmp_dir
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.coordinates import CartesianCoordinates
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import requires_working_xtb_install
 from .setup import Method
 
 
@@ -89,7 +89,7 @@ def test_branin_opt():
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 def test_molecular_opt():
 
     mol = Molecule(smiles="O")

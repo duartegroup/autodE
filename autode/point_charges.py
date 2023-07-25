@@ -1,5 +1,7 @@
 from typing import Sequence, Optional
+
 from autode.atoms import DummyAtom
+from autode.values import Coordinate
 
 
 class PointCharge(DummyAtom):
@@ -30,4 +32,6 @@ class PointCharge(DummyAtom):
         self.charge = float(charge)
 
         if coord is not None:
-            self.coord = coord
+            assert len(coord) == 3, "Coordinate much have 3 components: x,y,z"
+            x, y, z = coord[0], coord[1], coord[2]
+            self._coord = Coordinate(float(x), float(y), float(z))

@@ -5,6 +5,7 @@ from autode import utils
 from autode import neb
 from autode import mol_graphs
 from autode import hessians
+from autode.neb import NEB, CINEB
 from autode.reactions.reaction import Reaction
 from autode.reactions.multistep import MultiStepReaction
 from autode.transition_states.transition_state import TransitionState
@@ -21,6 +22,7 @@ from autode.wrappers.keywords import (
     Keywords,
     GradientKeywords,
 )
+from autode.utils import temporary_config
 
 """
 Bumping the version number requires following the release proceedure:
@@ -39,7 +41,7 @@ Bumping the version number requires following the release proceedure:
   - Merge when tests pass
 """
 
-__version__ = "1.3.5"
+__version__ = "1.4.0"
 
 
 __all__ = [
@@ -60,6 +62,8 @@ __all__ = [
     "NCIComplex",
     "Config",
     "Calculation",
+    "NEB",
+    "CINEB",
     "pes",
     "neb",
     "geom",

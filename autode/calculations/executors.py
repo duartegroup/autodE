@@ -9,14 +9,15 @@ import base64
 import autode.exceptions as ex
 import autode.wrappers.keywords as kws
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, TYPE_CHECKING
 from copy import deepcopy
+
 from autode.log import logger
 from autode.config import Config
 from autode.values import Distance
 from autode.utils import no_exceptions, requires_output_to_exist
 from autode.point_charges import PointCharge
-from autode.opt.optimisers.base import NullOptimiser
+from autode.opt.optimisers.base import NullOptimiser, BaseOptimiser
 from autode.calculations.input import CalculationInput
 from autode.calculations.output import (
     CalculationOutput,
@@ -24,14 +25,19 @@ from autode.calculations.output import (
 )
 from autode.values import PotentialEnergy, GradientRMS
 
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.methods import Method
+    from autode.wrappers.keywords import Keywords
+
 
 class CalculationExecutor:
     def __init__(
         self,
         name: str,
-        molecule: "autode.species.Species",
-        method: "autode.wrappers.methods.Method",
-        keywords: "autode.wrappers.keywords.Keywords",
+        molecule: "Species",
+        method: "Method",
+        keywords: "Keywords",
         n_cores: int = 1,
         point_charges: Optional[List[PointCharge]] = None,
     ):
@@ -41,7 +47,7 @@ class CalculationExecutor:
 
         self.molecule = molecule
         self.method = method
-        self.optimiser = NullOptimiser()
+        self.optimiser: BaseOptimiser = NullOptimiser()
         self.n_cores = int(n_cores)
 
         self.input = CalculationInput(
@@ -55,16 +61,13 @@ class CalculationExecutor:
     def _check(self) -> None:
         """Check that the method has the required properties to run the calc"""
 
-        if (
-            self.molecule.solvent is not None
-            and self.molecule.solvent.is_implicit
-            and not hasattr(self.molecule.solvent, self.method.name)
-        ):
+        if self.molecule.solvent is None or self.molecule.solvent.is_explicit:
+            return
 
-            m_name = self.method.name
+        if getattr(self.molecule.solvent, self.method.name) is None:
             err_str = (
                 f"Could not find {self.molecule.solvent} for "
-                f"{m_name}. Available solvents for {m_name} "
+                f"{self.method.name}. Available solvents for {self.method.name} "
                 f"are: {self.method.available_implicit_solvents}"
             )
 
@@ -112,7 +115,7 @@ class CalculationExecutor:
 
             # For a keyword e.g. Keyword(name='pbe', orca='PBE') then the
             # definition in this method is not obvious, so raise an exception
-            if not hasattr(keyword, self.method.name):
+            if getattr(keyword, self.method.name) is None:
                 err_str = (
                     f"Keyword: {keyword} is not supported set "
                     f"{repr(keyword)}.{self.method.name} as a string"
@@ -326,13 +329,17 @@ class CalculationExecutor:
 class _IndirectCalculationExecutor(CalculationExecutor):
     """
     An 'indirect' executor is one that, given a calculation to perform,
-    calls the method multiple time and aggregates the results in some way.
+    calls the method multiple times and aggregates the results in some way.
     Therefore, there is no direct calculation output.
     """
 
     @property
     def output(self) -> "CalculationOutput":
         return BlankCalculationOutput()
+
+    @output.setter
+    def output(self, value: CalculationOutput):
+        raise ValueError("Cannot set the output of an indirect calculation")
 
 
 class CalculationExecutorO(_IndirectCalculationExecutor):
@@ -366,7 +373,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
             gtol=self.gtol,
         )
         method = self.method.copy()
-        method.keywords.grad = self.input.keywords
+        method.keywords.grad = kws.GradientKeywords(self.input.keywords)
 
         self.optimiser.run(
             species=self.molecule, method=method, n_cores=self.n_cores
@@ -455,9 +462,12 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         )
 
         final_coords = self.optimiser.final_coordinates
+        if final_coords is None:
+            raise ex.CalculationException("Final coordinates undefined")
 
         self.molecule.coordinates = final_coords.reshape((-1, 3))
-        self.molecule.gradient = final_coords.g.reshape((-1, 3))
+        if final_coords.g is not None:
+            self.molecule.gradient = final_coords.g.reshape((-1, 3))
         self.molecule.energy = final_coords.e
         return None
 
@@ -508,5 +518,5 @@ def _string_without_leading_hyphen(s: str) -> str:
     return s if not s.startswith("-") else f"_{s}"
 
 
-def _active_bonds(molecule: "autode.species.Species") -> List[Tuple[int, int]]:
+def _active_bonds(molecule: "Species") -> List[Tuple[int, int]]:
     return [] if molecule.graph is None else molecule.graph.active_bonds

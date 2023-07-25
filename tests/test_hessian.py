@@ -3,7 +3,7 @@ import pytest
 import pickle
 import numpy as np
 import autode as ade
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, ProcessPool
 from . import testutils
 import multiprocessing as mp
 from autode.config import Config
@@ -739,7 +739,7 @@ def test_h2_c_diff_hessian():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "num_hess.zip"))
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_h2_xtb_vs_orca_hessian():
 
     h2 = Molecule(name="H2", atoms=[Atom("H"), Atom("H", x=0.77)])
@@ -755,7 +755,7 @@ def test_h2_xtb_vs_orca_hessian():
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "num_hess.zip"))
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 def test_ind_num_hess_row():
     """Calculate d^2E/dx0dx0 using numerical displacements with and
     without central differences"""
@@ -805,7 +805,7 @@ def test_partial_num_hess_init():
             )
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "num_hess.zip"))
 def test_partial_water_num_hess():
 
@@ -863,7 +863,7 @@ def test_partial_water_num_hess():
     partial_hess = calculator.hessian
     """
     Partial Hessian should have structure
-    
+
          (   A    B  )
     H =  (           )
          (   B    C  )
@@ -884,28 +884,27 @@ def test_partial_water_num_hess():
     )
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
-def test_numerical_hessian_in_daemon():
+def test_numerical_hessian_in_process_pool():
     """
     Ensure that no exceptions are raised when a numerical hessian is
-    calculated within a multiprocessing pool
+    calculated within a process pool
     """
+    with ProcessPool(max_workers=2) as pool:
 
-    with mp.pool.Pool(processes=1) as pool:
-
-        res = pool.apply_async(func=_calc_num_hessian_h2)
-        _ = res.get(timeout=None)
+        res = pool.submit(_calc_num_hessian_h2)
+        _ = res.result(timeout=None)
 
 
 def _calc_num_hessian_h2():
 
-    assert mp.current_process().daemon
+    assert mp.parent_process() is not None
     h2 = Molecule(smiles="[H][H]")
     h2.calc_hessian(method=XTB(), numerical=True, n_cores=1)
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_serial_calculation_matches_parallel():
 

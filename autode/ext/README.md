@@ -2,7 +2,7 @@
 
 Some **autodE** functionality is written in C++ for speed
 and the functionality exposed to Python using Cython wrappers around
-the base classes. 
+the base classes.
 
 Currently it's written in C++11 for compatibility with older compilers. Build and
 run the tests by, in this directory:

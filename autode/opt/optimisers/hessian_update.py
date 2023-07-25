@@ -451,5 +451,130 @@ class BofillUpdate(HessianUpdater):
         return True
 
 
+class FlowchartUpdate(HessianUpdater):
+    """
+    A hybrid update scheme combining BFGS, SR1 and PSB Hessian update
+    formulae. Proposed in  A. B. Birkholz and H. B. Schlegel in
+    Theor. Chem. Acc., 135 (84), 2016. This implementation is slightly
+    modified.
+    """
+
+    def __repr__(self):
+        return "Flowchart"
+
+    @property
+    def _updated_h(self) -> np.ndarray:
+        """
+        Flowchart (or FlowPSB) Hessian update scheme, that dynamically
+        switches between BFGS and SR1 depending on some criteria.
+
+        Alternatively switches to PSB update as a fallback if none of
+        the criteria are satisfied. Notation follows A. B. Birkholz,
+        H. B. Schlegel, Theor. Chem. Acc., 135 (84), 2016.
+
+        Returns:
+            (np.ndarray): H
+        """
+        z = self.y - np.matmul(self.h, self.s)
+        sr1_criteria = np.dot(z, self.s) / (
+            np.linalg.norm(z) * np.linalg.norm(self.s)
+        )
+        bfgs_criteria = np.dot(self.y, self.s) / (
+            np.linalg.norm(self.y) * np.linalg.norm(self.s)
+        )
+        if sr1_criteria < -0.1:
+            h_new = self.h + np.outer(z, z) / np.dot(z, self.s)
+            return h_new
+        elif bfgs_criteria > 0.1:
+            bfgs_delta_h = np.outer(self.y, self.y) / np.dot(self.y, self.s)
+            bfgs_delta_h -= np.linalg.multi_dot(
+                (self.h, self.s.reshape(-1, 1), self.s.reshape(1, -1), self.h)
+            ) / np.linalg.multi_dot(
+                (self.s.flatten(), self.h, self.s.flatten())
+            )
+            h_new = self.h + bfgs_delta_h
+            return h_new
+        else:
+            # Notation copied from Bofill update
+            G_i_1 = self.h  # G_{i-1}
+            dE_i = self.y - np.dot(G_i_1, self.s)  # ΔE_i = Δg_i - G_{i-1}Δx_i
+            dxTdg = np.dot(self.s, self.y)
+            G_i_PSB = (
+                G_i_1
+                + (
+                    (np.outer(dE_i, self.s) + np.outer(self.s, dE_i))
+                    / np.dot(self.s, self.s)
+                )
+                - (
+                    (
+                        (dxTdg - np.linalg.multi_dot((self.s, G_i_1, self.s)))
+                        * np.outer(self.s, self.s)
+                    )
+                    / np.dot(self.s, self.s) ** 2
+                )
+            )
+            return G_i_PSB
+
+    @property
+    def _updated_h_inv(self) -> np.ndarray:
+        """Flowchart update is only available for Hessian"""
+        return np.linalg.inv(self._updated_h)
+
+    @property
+    def conditions_met(self) -> bool:
+        """
+        Flowchart update does not have any conditions, as
+        update scheme is dynamically selected
+        """
+        return True
+
+
+class BFGSSR1Update(HessianUpdater):
+    """
+    Interpolates between BFGS and SR1 update in a fashion similar
+    to Bofill updates, but suited for minimisations. Proposed by
+    Farkas and Schlegel in J. Chem. Phys., 111, 1999, 10806
+    """
+
+    def __repr__(self):
+        return "BFGS-SR1"
+
+    @property
+    def _updated_h(self) -> np.ndarray:
+        """
+        Hybrid BFGS and SR1 update. The mixing parameter phi is defined
+        as the square root of the (1 - phi_Bofill) used in Bofill update.
+
+        Returns:
+            (np.ndarray): The updated hessian
+        """
+        bfgs_delta_h = np.outer(self.y, self.y) / np.dot(self.y, self.s)
+        bfgs_delta_h -= np.linalg.multi_dot(
+            (self.h, self.s.reshape(-1, 1), self.s.reshape(1, -1), self.h)
+        ) / np.linalg.multi_dot((self.s.flatten(), self.h, self.s.flatten()))
+
+        y_hs = self.y - np.matmul(self.h, self.s)
+        sr1_delta_h = np.outer(y_hs, y_hs) / np.dot(y_hs, self.s)
+
+        # definition according to Farkas, Schlegel, J Chem. Phys., 111, 1999
+        # NOTE: this phi is (1 - original_phi_bofill)
+        phi = np.dot(self.s, y_hs) ** 2 / (
+            np.dot(self.s, self.s) * np.dot(y_hs, y_hs)
+        )
+        sqrt_phi = np.sqrt(phi)
+        logger.info(f"BFGS-SR1 update: ϕ = {sqrt_phi:.4f}")
+        return self.h + sqrt_phi * sr1_delta_h + (1 - sqrt_phi) * bfgs_delta_h
+
+    @property
+    def _updated_h_inv(self) -> np.ndarray:
+        """For BFGS-SR1 update, only hessian is available"""
+        return np.linalg.inv(self._updated_h)
+
+    @property
+    def conditions_met(self) -> bool:
+        """No conditions need to be satisfied for BFGS-SR1 update"""
+        return True
+
+
 def _ensure_hermitian(matrix: np.ndarray) -> np.ndarray:
     return (matrix + matrix.T) / 2.0

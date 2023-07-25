@@ -1,4 +1,7 @@
-from autode import utils
+import numpy as np
+import pytest
+import os
+
 from autode.wrappers.NWChem import NWChem, ecp_block
 from autode.point_charges import PointCharge
 from autode.calculations import Calculation
@@ -10,13 +13,11 @@ from autode.wrappers.keywords.wf import hf
 from autode.wrappers.keywords.functionals import pbe0
 from autode.config import Config
 from autode.atoms import Atom
+from autode.utils import work_in_tmp_dir
 from .. import testutils
-import numpy as np
-import pytest
-import os
+
 
 here = os.path.dirname(os.path.abspath(__file__))
-test_mol = Molecule(name="methane", smiles="C")
 method = NWChem()
 method.path = here  # spoof install
 
@@ -32,24 +33,24 @@ opt_keywords = OptKeywords(
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_opt_calc():
 
+    test_mol = Molecule(name="methane", smiles="C")
+
     calc = Calculation(
         name="opt", molecule=test_mol, method=NWChem(), keywords=opt_keywords
     )
     calc.run()
 
-    final_atoms = calc.get_final_atoms()
-    assert len(final_atoms) == 5
-    assert type(final_atoms[0]) is Atom
-    assert -40.4165 < calc.get_energy() < -40.4164
+    assert len(test_mol.atoms) == 5
+    assert type(test_mol.atoms[0]) is Atom
+    assert -40.4165 < test_mol.energy < -40.4164
     assert calc.terminated_normally
-    assert calc.optimisation_converged()
-    assert calc.optimisation_nearly_converged() is False
+    assert calc.optimiser.converged
 
     # No Hessian is computed for an optimisation calculation
-    assert calc.get_hessian() is None
+    assert test_mol.hessian is None
 
     # Optimisation should result in small gradients
-    gradients = calc.get_gradients()
+    gradients = test_mol.gradient
     assert len(gradients) == 5
     assert all(-0.1 < np.linalg.norm(g) < 0.1 for g in gradients)
 
@@ -154,7 +155,7 @@ def test_hessian_extract_butane():
     )
     calc.set_output_filename("butane_hess_nwchem.out")
 
-    hess = calc.get_hessian()
+    hess = butane.hessian
     assert hess is not None
 
     # bottom right corner element should be positive
@@ -218,11 +219,11 @@ def test_point_charge_calculation():
     )
     calc.run()
 
-    assert calc.get_energy() is not None
+    assert h.energy is not None
 
     # H atom energy with a point charge should be different from the
     # isolated atoms HF energy
-    assert not np.isclose(calc.get_energy(), -0.5, atol=0.001)
+    assert not np.isclose(h.energy.to("Ha"), -0.5, atol=0.001)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
@@ -259,3 +260,16 @@ def test_no_driver_in_generated_opt_input():
 
     with pytest.raises(UnsupportedCalculationInput):
         calc.generate_input()
+
+
+@work_in_tmp_dir()
+def test_single_atom_optimisation_input_file_does_not_include_opt():
+
+    h_atom = Molecule(smiles="[H]")
+
+    calc = Calculation(
+        name="tmp", molecule=h_atom, method=NWChem(), keywords=opt_keywords
+    )
+    calc.generate_input()
+
+    assert "opt" not in open(calc.input.filename, "r").read()

@@ -2,15 +2,21 @@ import os
 import numpy as np
 import autode as ade
 from copy import deepcopy
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 from itertools import combinations
 from scipy.optimize import minimize
+
 from autode.conformers import Conformer
 import autode.exceptions as ex
 from autode.utils import log_time
 from autode.input_output import xyz_file_to_atoms, atoms_to_xyz_file
 from autode.mol_graphs import split_mol_across_bond
 from autode.log import logger
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.keywords import Keywords
+    from autode.wrappers.methods import Method
 
 
 def _get_bond_matrix(n_atoms, bonds, fixed_bonds):
@@ -365,7 +371,7 @@ def _get_coords_no_init_structure(atoms, species, d0, constrained_bonds):
 
 @log_time(prefix="Generated RR atoms in:", units="s")
 def get_simanl_atoms(
-    species: "autode.species.Species",
+    species: "Species",
     dist_consts: Optional[Dict] = None,
     conf_n: int = 0,
     save_xyz: bool = True,
@@ -421,12 +427,12 @@ def get_simanl_atoms(
     # Add distance constraints across stereocentres e.g. for a Z double bond
     # then modify d0 appropriately
     curr_dist_consts = {} if dist_consts is None else dist_consts
-    dist_consts = _add_dist_consts_for_stereocentres(
+    distance_constraints = _add_dist_consts_for_stereocentres(
         species=species, dist_consts=curr_dist_consts
     )
 
     constrained_bonds = []
-    for bond, length in dist_consts.items():
+    for bond, length in distance_constraints.items():
         i, j = bond
         d0[i, j] = length
         d0[j, i] = length
@@ -484,11 +490,11 @@ def get_simanl_atoms(
 
 
 def get_simanl_conformer(
-    species: "autode.species.Species",
+    species: "Species",
     dist_consts: Optional[Dict] = None,
     conf_n: int = 0,
     save_xyz: bool = True,
-) -> "autode.conformers.Conformer":
+) -> "Conformer":
     """
     Generate a conformer of a species using randomise+relax with a simple FF
     (see get_simanl_atoms). Example

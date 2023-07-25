@@ -1,3 +1,4 @@
+# mypy: disable-error-code="has-type"
 """
 Delocalised internal coordinate implementation from:
 1. https://aip.scitation.org/doi/pdf/10.1063/1.478397
@@ -16,7 +17,8 @@ summarised below:
 """
 import numpy as np
 from time import time
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
+
 from autode.geom import proj
 from autode.log import logger
 from autode.opt.coordinates.internals import (
@@ -24,6 +26,13 @@ from autode.opt.coordinates.internals import (
     InverseDistances,
     InternalCoordinates,
 )
+from autode.exceptions import CoordinateTransformFailed
+
+if TYPE_CHECKING:
+    from autode.opt.coordinates import CartesianCoordinates, OptCoordinates
+    from autode.values import Gradient
+    from autode.hessians import Hessian
+
 
 _max_back_transform_iterations = 20
 
@@ -82,9 +91,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
     @classmethod
     def from_cartesian(
         cls,
-        x: "autode.opt.coordinates.CartesianCoordinates",
+        x: "CartesianCoordinates",
         primitives: Optional[PIC] = None,
-    ) -> "autode.opt.coordinates.dic.DIC":
+    ) -> "DIC":
         """
         Convert cartesian coordinates to primitives then to delocalised
         internal coordinates (DICs), of which there should be 3N-6 for a
@@ -127,9 +136,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         logger.info(f"Transformed in      ...{time() - start_time:.4f} s")
         return dic
 
-    def _update_g_from_cart_g(
-        self, arr: Optional["autode.values.Gradient"]
-    ) -> None:
+    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient
 
@@ -146,9 +153,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         return None
 
-    def _update_h_from_cart_h(
-        self, arr: Optional["autode.values.Hessian"]
-    ) -> None:
+    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
         Update the DIC Hessian matrix from a Cartesian one
 
@@ -168,7 +173,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         return None
 
-    def to(self, value: str) -> "autode.opt.coordinates.base.OptCoordinates":
+    def to(self, value: str) -> "OptCoordinates":
         """
         Convert these DICs to another type of coordinate
 
@@ -185,9 +190,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         raise ValueError(f"Unknown conversion to {value}")
 
-    def iadd(
-        self, value: np.ndarray
-    ) -> "autode.opt.coordidnates.base.OptCoordinates":
+    def iadd(self, value: np.ndarray) -> "OptCoordinates":
 
         """
         Set some new internal coordinates and update the Cartesian coordinates
@@ -239,8 +242,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                     f"Final RMS(s) = {rms_s:.8f}"
                 )
                 x_k = x_1
-                if self._allow_unconverged_back_transform:
-                    break
+                if not self.allow_unconverged_back_transform:
+                    raise CoordinateTransformFailed(
+                        "DIC->Cart iterative back-transform did not converge"
+                    )
 
         s_k = np.matmul(self.U.T, self.primitives(x_k))
         self.B = np.matmul(self.U.T, self.primitives.B)
@@ -250,10 +255,6 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         self._x = x_k
 
         return self
-
-    @property
-    def _allow_unconverged_back_transform(self) -> bool:
-        return True
 
     @property
     def active_indexes(self) -> List[int]:
@@ -303,6 +304,7 @@ class DICWithConstraints(DIC):
     @property
     def raw(self) -> np.ndarray:
         """Raw numpy array of these coordinates including the multipliers"""
+        assert self._lambda is not None, "Must have λ defined"
         return np.array(self.tolist() + self._lambda.tolist(), copy=True)
 
     @staticmethod
@@ -347,9 +349,7 @@ class DICWithConstraints(DIC):
 
         return [i for i in range(n + m) if i not in self.inactive_indexes]
 
-    def _update_g_from_cart_g(
-        self, arr: Optional["autode.values.Gradient"]
-    ) -> None:
+    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         r"""
         Updates the gradient from a calculated Cartesian gradient, where
         the gradient is that of the Lagrangian. Includes dL/d_λi terms where
@@ -359,32 +359,33 @@ class DICWithConstraints(DIC):
         Arguments:
             arr: Cartesian gradient array
         """
+
         if arr is None:
             self._x.g, self.g = None, None
+            return
 
-        else:
-            self._x.g = arr.flatten()
-            n = len(self)
-            m = self.n_constraints
+        assert self._lambda is not None, "Must have λ defined"
 
-            self.g = np.zeros(shape=(n + m,))
+        self._x.g = arr.flatten()
+        n = len(self)
+        m = self.n_constraints
 
-            # Set the first part dL/ds_i
-            self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
+        self.g = np.zeros(shape=(n + m,))
 
-            for i in range(m):
-                self.g[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
+        # Set the first part dL/ds_i
+        self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
 
-            # and the final dL/dλ_i
-            c = self.constrained_primitives
-            for i in range(m):
-                self.g[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
+        for i in range(m):
+            self.g[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
+
+        # and the final dL/dλ_i
+        c = self.constrained_primitives
+        for i in range(m):
+            self.g[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
 
         return None
 
-    def _update_h_from_cart_h(
-        self, arr: Optional["autode.values.Hessian"]
-    ) -> None:
+    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
         Update the DIC Hessian matrix from a Cartesian one
 
@@ -433,6 +434,7 @@ class DICWithConstraints(DIC):
 
     def update_lagrange_multipliers(self, arr: np.ndarray) -> None:
         """Update the lagrange multipliers by adding a set of values"""
+        assert self._lambda is not None, "Must have λ defined"
 
         if arr.shape != self._lambda.shape:
             raise ValueError(
@@ -482,7 +484,7 @@ def _symmetry_inequivalent_u(u, q) -> np.ndarray:
     """Remove symmetry equivalent vectors from the U matrix"""
 
     # The non-redundant space can be further pruned by considering symmetry
-    idxs = []
+    idxs: List[int] = []
     s = np.matmul(u.T, q)
 
     for i, s_i in enumerate(s):

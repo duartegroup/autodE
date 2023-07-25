@@ -1,14 +1,22 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from shutil import which
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from pathlib import Path
+
 from autode.log import logger
 from autode.values import PotentialEnergy, Gradient, Coordinates
 from autode.hessians import Hessian
 from autode.exceptions import NotImplementedInMethod
 from autode.wrappers.keywords import ImplicitSolventType, KeywordsSet
 from autode.calculations.types import CalculationType as ct
+
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.calculations.types import CalculationType
+    from autode.opt.optimisers.base import BaseOptimiser
+    from autode.atoms import Atoms
 
 
 class Method(ABC):
@@ -31,7 +39,7 @@ class Method(ABC):
 
         self._name = name
         self.keywords = keywords_set.copy()
-        self.implicit_solvation_type = None
+        self.implicit_solvation_type: Optional[ImplicitSolventType] = None
         self.doi_list = doi_list
 
     @property
@@ -57,9 +65,7 @@ class Method(ABC):
         """Representation of this method"""
 
     @abstractmethod
-    def implements(
-        self, calculation_type: "autode.calculations.types.CalculationType"
-    ) -> bool:
+    def implements(self, calculation_type: "CalculationType") -> bool:
         """Does this method implement a particular calculation type?"""
 
     def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
@@ -76,7 +82,9 @@ class Method(ABC):
         from autode.solvent.solvents import solvents
 
         return [
-            s.name for s in solvents if s.is_implicit and hasattr(s, self.name)
+            solvent.name
+            for solvent in solvents
+            if solvent.is_implicit and getattr(solvent, self.name) is not None
         ]
 
     @property
@@ -102,6 +110,38 @@ class Method(ABC):
     def copy(self) -> "Method":
         return deepcopy(self)
 
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
+        raise NotImplementedInMethod
+
+    def energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
+        raise NotImplementedInMethod
+
+    def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
+        raise NotImplementedInMethod
+
+    def hessian_from(self, calc: "CalculationExecutor") -> Hessian:
+        raise NotImplementedInMethod
+
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
+        raise NotImplementedInMethod
+
+    def atoms_from(self, calc: "CalculationExecutor") -> "Atoms":
+        raise NotImplementedInMethod
+
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
+        raise NotImplementedInMethod
+
+    @staticmethod
+    def input_filename_for(calc: "CalculationExecutor") -> str:
+        raise NotImplementedInMethod
+
+    @staticmethod
+    def output_filename_for(calc: "CalculationExecutor") -> str:
+        raise NotImplementedInMethod
+
+    def generate_input_for(self, calc: "CalculationExecutor") -> None:
+        return None
+
 
 class ExternalMethod(Method, ABC):
     def __init__(
@@ -109,7 +149,7 @@ class ExternalMethod(Method, ABC):
         executable_name: str,
         keywords_set: KeywordsSet,
         doi_list: List[str],
-        implicit_solvation_type: ImplicitSolventType,
+        implicit_solvation_type: Optional[ImplicitSolventType],
         path: Optional[str] = None,
     ):
         """
@@ -158,9 +198,7 @@ class ExternalMethod(Method, ABC):
         """Did the calculation terminate normally?"""
 
     @abstractmethod
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         """
         Optimiser that this method used. Set from the calculation output
         """
@@ -191,9 +229,7 @@ class ExternalMethod(Method, ABC):
         """
 
     @abstractmethod
-    def hessian_from(
-        self, calc: "autode.calculations.executors.CalculationExecutor"
-    ) -> Hessian:
+    def hessian_from(self, calc: "CalculationExecutor") -> Hessian:
         """
         Extract the Hessian from this calculation
         """
@@ -253,35 +289,25 @@ class ExternalMethod(Method, ABC):
 class ExternalMethodOEG(ExternalMethod, ABC):
     """External method that implements optimisation, energy and gradient"""
 
-    def implements(
-        self, calculation_type: "autode.calculations.types.CalculationType"
-    ) -> bool:
+    def implements(self, calculation_type: "CalculationType") -> bool:
         return calculation_type in (ct.opt, ct.energy, ct.gradient)
 
-    def hessian_from(
-        self, calc: "autode.calculations.executors.CalculationExecutor"
-    ) -> Hessian:
+    def hessian_from(self, calc: "CalculationExecutor") -> Hessian:
         raise NotImplementedInMethod
 
 
 class ExternalMethodOEGH(ExternalMethod, ABC):
     """External method that implements opt, energy, gradient and Hessians"""
 
-    def implements(
-        self, calculation_type: "autode.calculations.types.CalculationType"
-    ) -> bool:
+    def implements(self, calculation_type: "CalculationType") -> bool:
         return calculation_type in (ct.opt, ct.energy, ct.gradient, ct.hessian)
 
 
 class ExternalMethodEGH(ExternalMethod, ABC):
     """External method that implements energy, gradient and Hessians"""
 
-    def implements(
-        self, calculation_type: "autode.calculations.types.CalculationType"
-    ) -> bool:
+    def implements(self, calculation_type: "CalculationType") -> bool:
         return calculation_type in (ct.energy, ct.gradient, ct.hessian)
 
-    def optimiser_from(
-        self, calc: "autode.calculations.executors.CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         raise NotImplementedInMethod

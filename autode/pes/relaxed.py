@@ -1,12 +1,19 @@
 import numpy as np
 import itertools as it
-from typing import Tuple, List, Type
+
+from typing import Tuple, List, Type, Iterator, TYPE_CHECKING
+
 from autode.log import logger
-from autode.utils import hashable
-from multiprocessing.pool import Pool
+from autode.utils import hashable, ProcessPool
 from autode.pes.reactive import ReactivePESnD
+from autode.constraints import DistanceConstraints
 from autode.calculations import Calculation
 from autode.exceptions import CalculationException
+
+if TYPE_CHECKING:
+    from autode.species.species import Species
+    from autode.wrappers.keywords import Keywords
+    from autode.wrappers.methods import Method
 
 
 class RelaxedPESnD(ReactivePESnD):
@@ -17,6 +24,7 @@ class RelaxedPESnD(ReactivePESnD):
         """
         Calculate the n-dimensional surface
         """
+        assert self._coordinates is not None, "Coordinates must be set"
 
         for points in self._points_generator():
 
@@ -26,34 +34,32 @@ class RelaxedPESnD(ReactivePESnD):
                 f"{n_cores_pp} cores per process"
             )
 
-            with Pool(processes=self._n_cores) as pool:
+            with ProcessPool(max_workers=self._n_cores) as pool:
 
-                results = []
                 func = hashable("_single_energy_coordinates", self)
 
-                for point in points:
-                    res = pool.apply_async(
-                        func=func,
-                        args=(self._species_at(point),),
-                        kwds={"n_cores": n_cores_pp},
+                jobs = [
+                    pool.submit(
+                        func, self._species_at(point), n_cores=n_cores_pp
                     )
-                    results.append(res)
+                    for point in points
+                ]
 
                 for i, point in enumerate(points):
                     (
                         self._energies[point],
                         self._coordinates[point],
-                    ) = results[i].get(timeout=None)
+                    ) = jobs[i].result()
 
         return None
 
     @property
-    def _default_keyword_type(self) -> Type["autode.wrappers.Keywords"]:
+    def _default_keyword_type(self) -> Type["Keywords"]:
         from autode.wrappers.keywords import OptKeywords
 
         return OptKeywords
 
-    def _species_at(self, point: Tuple) -> "autode.species.Species":
+    def _species_at(self, point: Tuple) -> "Species":
         """
         Generate a species on the PES at a defined point. Attributes are
         obtained from the internal species (molecule at the origin in the PES)
@@ -68,6 +74,7 @@ class RelaxedPESnD(ReactivePESnD):
         Returns:
             (autode.species.Species): Species
         """
+        assert self._species
 
         species = self._species.new_species(name=self._point_name(point))
         species.coordinates = self._closest_coordinates(point)
@@ -76,7 +83,7 @@ class RelaxedPESnD(ReactivePESnD):
         return species
 
     def _single_energy_coordinates(
-        self, species: "autode.species.Species", **kwargs
+        self, species: "Species", **kwargs
     ) -> Tuple[float, np.ndarray]:
         """
         Calculate a single energy and set of coordinates on this surface
@@ -89,6 +96,7 @@ class RelaxedPESnD(ReactivePESnD):
             n_cores: Number of cores to use for the calculation, if left
                      unassigned then use self._n_cores
         """
+        assert self._keywords is not None and self._method is not None
 
         const_opt = Calculation(
             name=species.name,
@@ -100,16 +108,18 @@ class RelaxedPESnD(ReactivePESnD):
 
         try:
             species.optimise(method=self._method, calc=const_opt)
+            assert species.energy is not None
             return float(species.energy), np.array(species.coordinates)
 
-        except (CalculationException, ValueError, TypeError):
+        except (CalculationException, ValueError, TypeError, AssertionError):
             logger.error(f"Optimisation failed for: {species.name}")
             return np.nan, np.zeros(shape=(species.n_atoms, 3))
 
-    def _default_keywords(
-        self, method: "autode.wrapper.ElectronicStructureMethod"
-    ) -> "autode.wrappers.Keywords":
+    def _default_keywords(self, method: "Method") -> "Keywords":
         """Default keywords"""
+        assert (
+            method.keywords.opt is not None
+        ), "Method must have optimisation kwds"
         return method.keywords.opt
 
     def _closest_coordinates(self, point: Tuple) -> np.ndarray:
@@ -127,6 +137,8 @@ class RelaxedPESnD(ReactivePESnD):
         Returns:
             (np.ndarray): Coordinates. shape = (n_atoms, 3)
         """
+        assert self._coordinates is not None, "Must have set coordinates"
+
         if point == self.origin:
             return self._coordinates[self.origin]
 
@@ -151,14 +163,14 @@ class RelaxedPESnD(ReactivePESnD):
             f"energy close to point {point} in the PES"
         )
 
-    def _constraints(self, point: Tuple) -> dict:
+    def _constraints(self, point: Tuple) -> DistanceConstraints:
         """
         Construct the distance constraints required for a particular point
         on the PES
 
         -----------------------------------------------------------------------
         Arguments:
-            point: Indicied of a point on the surface
+            point: Indices of a point on the surface
 
         Returns:
             (dict): Distance constraints
@@ -169,9 +181,11 @@ class RelaxedPESnD(ReactivePESnD):
                 f"{point} in a {self.ndim}D-PES"
             )
 
-        return {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
+        return DistanceConstraints(
+            {r.atom_idxs: r[idx] for r, idx in zip(self._rs, point)}
+        )
 
-    def _points_generator(self) -> List[Tuple]:
+    def _points_generator(self) -> Iterator[List[Tuple]]:
         """
         Yield points on this surface that sum to the same total, thus are
         close and should be calculated in a group, in parallel. This *should*
@@ -185,7 +199,7 @@ class RelaxedPESnD(ReactivePESnD):
 
         for i in range(0, sum(self.shape)):
 
-            points = []
+            points: List[tuple] = []
             while all_points:
 
                 # Next point is the next step in the grid

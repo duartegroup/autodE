@@ -11,7 +11,7 @@ autode\.egg-info/
 doc/_build/
 **.DS_Store
 **htmlcov/
-.coverage
+.coverage*
 coverage.xml
 tests/*.xyz
 **/tmp.xyz
@@ -20,3 +20,5 @@ tests/*.xyz
 *.inp
 *.pyc
 .autode_calculations
+tests/initial_path/*
+.mypy_cache

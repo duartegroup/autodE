@@ -21,10 +21,10 @@ def test_calculate_no_species():
         pes.calculate(method=XTB())
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calculate_1d():
-    pes = RelaxedPESnD(species=h2(), rs={(0, 1): (1.7, 10)})
+    pes = RelaxedPESnD(species=h2(), rs={(0, 1): (1.5, 10)})
 
     pes.calculate(method=XTB())
 
@@ -33,7 +33,7 @@ def test_calculate_1d():
         assert pes._has_energy(point=(i,))
 
 
-@testutils.requires_with_working_xtb_install
+@testutils.requires_working_xtb_install
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calculate_1d_serial():
     """

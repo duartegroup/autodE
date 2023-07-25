@@ -1,6 +1,7 @@
 from autode import methods
 from autode import Config
-from autode.exceptions import MethodUnavailable
+from .test_opt.setup import Method
+from autode.exceptions import MethodUnavailable, NotImplementedInMethod
 from autode.wrappers.XTB import XTB
 from autode.wrappers.ORCA import ORCA
 import pytest
@@ -10,6 +11,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_get_hmethod():
+
     Config.hcode = None
     Config.ORCA.path = here  # A path that exists
 
@@ -51,9 +53,6 @@ def test_get_lmethod():
 
     method4 = methods.get_lmethod()
     assert method4.name == "mopac"
-
-    # Back to default
-    Config.lcode = None
 
 
 def test_method_unavailable():
@@ -115,3 +114,23 @@ def test_get_method_or_default_hmethod():  # h <=> higher
 
     assert methods.method_or_default_hmethod(None) is not None
     assert isinstance(methods.method_or_default_lmethod(ORCA()), ORCA)
+
+
+def test_methods_in_base_class_raise_runtime_errors():
+
+    method_names = [
+        "optimiser_from",
+        "energy_from",
+        "gradient_from",
+        "hessian_from",
+        "coordinates_from",
+        "atoms_from",
+        "partial_charges_from",
+        "input_filename_for",
+        "output_filename_for",
+    ]
+
+    for method_name in method_names:
+        method = getattr(Method(), method_name)
+        with pytest.raises(NotImplementedInMethod):
+            method(None)

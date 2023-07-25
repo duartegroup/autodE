@@ -1,6 +1,7 @@
 import shutil
 import time
 import pytest
+import platform
 import os
 from autode import utils
 from autode.calculations import Calculation
@@ -12,8 +13,16 @@ from subprocess import Popen, TimeoutExpired
 import multiprocessing as mp
 from autode import exceptions as ex
 from autode.mol_graphs import is_isomorphic
-from autode.utils import work_in_tmp_dir, log_time, requires_graph
-from .testutils import requires_with_working_xtb_install
+from autode.utils import (
+    work_in_tmp_dir,
+    log_time,
+    requires_graph,
+    ProcessPool,
+    temporary_config,
+)
+from autode.wrappers.keywords.keywords import Functional
+from autode.config import Config
+from .testutils import requires_working_xtb_install
 
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -47,6 +56,9 @@ def test_reset_dir_on_error():
 def test_monitored_external():
 
     echo = ["echo", "test"]
+    if platform.system() == "Windows":
+        echo = ["cmd", "/c", *echo]  # echo is cmd prompt builtin
+
     utils.run_external_monitored(params=echo, output_filename="test.txt")
 
     assert os.path.exists("test.txt")
@@ -55,6 +67,9 @@ def test_monitored_external():
 
     # If the break word is in the stdout or stderr then the process should exit
     echo = ["echo", "ABORT\ntest"]
+    if platform.system() == "Windows":
+        echo = ["cmd", "/c", *echo]
+
     utils.run_external_monitored(
         params=echo, output_filename="test.txt", break_word="ABORT"
     )
@@ -175,7 +190,47 @@ def test_work_in_empty():
     os.rmdir("tmp_dir")
 
 
+def test_work_in_compatible_with_experimental_timeout():
+    if platform.system() != "Windows":
+        return
+    # cleanup should take care of all processes unused if the
+    # function finished within time limit
+
+    @utils.timeout(seconds=3)
+    def sleep_2s():
+        return time.sleep(2)
+
+    @utils.work_in("tmp_dir")
+    def use_exp_timeout():
+        sleep_2s()
+
+    with temporary_config():
+        Config.use_experimental_timeout = True
+        use_exp_timeout()
+
+
+def test_cleanup_after_timeout():
+    if platform.system() != "Windows":
+        return
+    # cleanup should take care of all processes unused
+
+    @utils.timeout(seconds=3)
+    def sleep_2s():
+        return time.sleep(2)
+
+    with temporary_config():
+        Config.use_experimental_timeout = True
+        sleep_2s()
+        assert len(mp.active_children()) != 0
+        utils.cleanup_after_timeout()
+        assert len(mp.active_children()) == 0
+
+
 def test_timeout():
+
+    if platform.system() == "Windows":
+        Config.use_experimental_timeout = True
+
     def sleep_2s():
         return time.sleep(2)
 
@@ -201,21 +256,48 @@ def test_timeout():
     assert return_string() == "test"
     assert time.time() - start_time < 10
 
+    if platform.system() == "Windows":
+        Config.use_experimental_timeout = False
+
+
+def test_repeated_timeout_win_loky():
+    if platform.system() != "Windows":
+        return None
+    # With experimental timeout, triggering timeout
+    # repeatedly should not cause deadlocks or hangs
+    # from executor manager thread
+
+    @utils.timeout(seconds=1)
+    def sleep_2s():
+        return time.sleep(2)
+
+    with temporary_config():
+        Config.use_experimental_timeout = True
+        start_time = time.time()
+        sleep_2s()
+        sleep_2s()
+        sleep_2s()
+        assert time.time() - start_time < 6
+
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
-def test_spawn_multiprocessing():
+def test_spawn_multiprocessing_posix():
+
+    if platform.system() == "Windows":
+        return None
 
     with open("tmp.py", "w") as py_file:
         print(
             "import multiprocessing as mp",
-            "import autode as ade",
             'mp.set_start_method("spawn", force=True)',
+            "import autode as ade",
+            "from autode.utils import ProcessPool",
             "def mol():",
             '    return ade.Molecule(atoms=[ade.Atom("H"), ade.Atom("H", x=0.7)])',
             'if __name__ == "__main__":',
-            "    with mp.Pool(2) as pool:",
-            "        res = [pool.apply_async(mol) for _ in range(2)]",
-            "        mols = [r.get() for r in res]",
+            "    with ProcessPool(2) as pool:",
+            "        res = [pool.submit(mol) for _ in range(2)]",
+            "        mols = [r.result() for r in res]",
             sep="\n",
             file=py_file,
         )
@@ -223,16 +305,19 @@ def test_spawn_multiprocessing():
     process = Popen(["python", "tmp.py"])
 
     # Executing the script should not take more than a second, if the function
-    # hangs then it should timeout after 10s
+    # hangs then it should timeout after 20s
     try:
-        process.wait(timeout=10)
+        process.wait(timeout=20)
     except TimeoutExpired:
         raise AssertionError
 
     os.remove("tmp.py")
 
 
-def test_spawn_multiprocessing_graph():
+def test_spawn_multiprocessing_graph_posix():
+    # Test spawn method for POSIX only
+    if platform.system() == "Windows":
+        return None
 
     mp.set_start_method("spawn", force=True)
 
@@ -241,6 +326,71 @@ def test_spawn_multiprocessing_graph():
     assert is_isomorphic(h2o_a.graph, h2o_b.graph)
 
     mp.set_start_method("fork", force=True)
+
+
+def test_spawn_loky_graph_win():
+
+    if platform.system() != "Windows":
+        return
+
+    import loky
+
+    loky.backend.context.set_start_method("spawn", force=True)
+
+    # Isomorphism should still be able to be checked
+    h2o_a, h2o_b = Molecule(smiles="O"), Molecule(smiles="O")
+    assert is_isomorphic(h2o_a.graph, h2o_b.graph)
+
+    loky.backend.context.set_start_method("loky", force=True)
+
+
+def test_config_in_worker_proc():
+    # check that the config is able to be passed to child processes
+    # mainly for windows, but still nice to check for posix
+
+    with temporary_config():
+        Config.n_cores = 9
+        Config.ORCA.keywords.sp.functional = "B3LYP"
+        with ProcessPool(max_workers=2) as pool:
+            job = pool.submit(worker_fn)
+            _ = job.result()
+
+
+def worker_fn():
+    assert Config.n_cores == 9
+    assert Config.ORCA.keywords.sp.functional == Functional("B3LYP")
+
+
+def test_temporary_config_context_manager():
+    old_n_cores = Config.n_cores
+    old_orca_funct = Config.ORCA.keywords.sp.functional
+
+    with temporary_config():
+        Config.n_cores = 9
+        Config.ORCA.keywords.sp.functional = "B3LYP"
+        # test the values have been changed in external function
+        worker_fn()
+
+    # Config should be restored after exit
+    assert Config.n_cores == old_n_cores
+    assert Config.ORCA.keywords.sp.functional == old_orca_funct
+
+
+def test_temporary_config_in_worker_proc():
+    # check that the context manager works if workers
+    # are created inside the context manager
+    old_n_cores = Config.n_cores
+    old_orca_funct = Config.ORCA.keywords.sp.functional
+
+    with temporary_config():
+        Config.n_cores = 9
+        Config.ORCA.keywords.sp.functional = "B3LYP"
+        with ProcessPool(max_workers=2) as pool:
+            job = pool.submit(worker_fn)
+            _ = job.result()
+
+    assert Config.n_cores == old_n_cores
+    assert Config.ORCA.keywords.sp.functional == old_orca_funct
 
 
 def test_time_units():
@@ -294,10 +444,17 @@ def test_requires_xtb_install():
 
     test_list = []
 
-    @requires_with_working_xtb_install
+    @requires_working_xtb_install
     def tmp_function():
         test_list.append("executed")
 
     # If XTB is not in $PATH then the function should not execute
     assert len(test_list) == 0
     os.environ["PATH"] = path_env_var
+
+    # if XTB is in $PATH, the function should execute
+    xtbpath = shutil.which("xtb")
+    if xtbpath is not None:
+        assert xtbpath.lower().endswith(("xtb", "xtb.exe"))
+        tmp_function()
+        assert len(test_list) == 1

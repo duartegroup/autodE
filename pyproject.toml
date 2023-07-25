@@ -6,3 +6,17 @@ build-backend = "setuptools.build_meta"
 line-length = 79
 target-version = ['py39']
 
+[tool.coverage.run]
+omit = [
+    "setup.py",
+    "benchmark.py"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if\\s+(typing\\.)?TYPE_CHECKING:"
+]
+
+[tool.mypy]
+# disallow_untyped_defs = true

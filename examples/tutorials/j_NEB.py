@@ -13,14 +13,13 @@ if multiprocessing.cpu_count() < 10 or not orca.is_available:
 # that support gradient evaluations (all of them!). For example, to
 # set up a set of images and relax to the ~minimum energy path for a
 # Diels Alder reaction between benzoquinone and cyclopentadiene
-neb = ade.neb.NEB(
-    initial_species=ade.Molecule("_data/DielsAlder/reactant.xyz"),
-    final_species=ade.Molecule("_data/DielsAlder/product.xyz"),
+neb = ade.NEB.from_end_points(
+    ade.Molecule("_data/DielsAlder/reactant.xyz"),
+    ade.Molecule("_data/DielsAlder/product.xyz"),
     num=5,
 )
-
 neb.calculate(method=orca, n_cores=10)
 # will have generated a plot of the relaxation, along with a .xyz
 # trajectory of the initial and final NEB path
 
-# To use a climbing image NEB simply replace ade.neb.NEB with ade.neb.CINEB
+# To use a climbing image NEB replace ade.NEB with ade.CINEB

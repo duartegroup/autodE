@@ -2,7 +2,7 @@ import numpy as np
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from copy import deepcopy
 from autode.constants import Constants
 from autode.utils import run_external
@@ -15,6 +15,10 @@ from autode.exceptions import AtomsNotFound, CouldNotGetProperty
 from autode.log import logger
 from autode.constraints import Constraints
 from autode.utils import work_in_tmp_dir
+
+if TYPE_CHECKING:
+    from autode.calculations.executors import CalculationExecutor
+    from autode.opt.optimisers.base import BaseOptimiser
 
 
 def _add_opt_option(keywords, new_option):
@@ -101,7 +105,7 @@ def _get_keywords(calc_input, molecule):
             continue  # Handled after the full set of keywords is set
 
         elif isinstance(keyword, kws.Keyword):
-            kwd_str = keyword.g09 if hasattr(keyword, "g09") else keyword.g16
+            kwd_str = keyword.g09 if getattr(keyword, "g09") else keyword.g16
 
             # Add any empirical dispersion
             if isinstance(keyword, kws.DispersionCorrection):
@@ -210,7 +214,7 @@ def _print_custom_basis(inp_file, calc_input, molecule):
     keywords = calc_input.keywords
 
     for keyword in keywords:
-        if isinstance(keyword, kws.Keyword) and hasattr(keyword, "g09"):
+        if isinstance(keyword, kws.Keyword) and getattr(keyword, "g09"):
             str_keyword = keyword.g09
         else:
             str_keyword = str(keyword)
@@ -244,8 +248,8 @@ def _print_custom_basis(inp_file, calc_input, molecule):
     print("@basis.gbs", file=inp_file)
 
     # Keyword strings that could be defined as either G09 or G16
-    ecp_str = ecp_kwd.g09 if hasattr(ecp_kwd, "g09") else ecp_kwd.g16
-    basis_str = basis_kwd.g09 if hasattr(basis_kwd, "g09") else basis_kwd.g16
+    ecp_str = ecp_kwd.g09 if getattr(ecp_kwd, "g09") else ecp_kwd.g16
+    basis_str = basis_kwd.g09 if getattr(basis_kwd, "g09") else basis_kwd.g16
 
     with open("basis.gbs", "w") as basis_file:
         if len(other_elems) > 0:
@@ -527,9 +531,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         return False
 
-    def _energy_from(
-        self, calc: "CalculationExecutor"
-    ) -> Optional[PotentialEnergy]:
+    def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
 
         for line in reversed(calc.output.file_lines):
             if "SCF Done" in line or "E(CIS)" in line:
@@ -546,16 +548,12 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         raise CouldNotGetProperty(name="energy")
 
-    def optimiser_from(
-        self, calc: "CalculationExecutor"
-    ) -> "autode.opt.optimisers.base.BaseOptimiser":
+    def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
         return G09Optimiser(output_lines=calc.output.file_lines)
 
-    def coordinates_from(
-        self, calc: "CalculationExecutor"
-    ) -> Optional[Coordinates]:
+    def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
         """Get the final set of coordinates from a G09 output"""
-        coords = []
+        coords: List[List[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
 
@@ -572,12 +570,10 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         return Coordinates(coords, units="Å")
 
-    def partial_charges_from(
-        self, calc: "CalculationExecutor"
-    ) -> Optional[List[float]]:
+    def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
 
         charges_section = False
-        charges = []
+        charges: List[float] = []
         for line in reversed(calc.output.file_lines):
             if "sum of mulliken charges" in line.lower():
                 charges_section = True
@@ -589,7 +585,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
                 charges.append(float(line.split()[2]))
 
         logger.error("Something went wrong finding the atomic charges")
-        return None
+        return charges
 
     def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
         """
@@ -604,7 +600,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
           .        .                .              .               .
         """
         n_atoms = calc.molecule.n_atoms
-        raw_gradient = []
+        raw_gradient: List[np.ndarray] = []
 
         for i, line in enumerate(calc.output.file_lines):
 
@@ -629,7 +625,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
     def hessian_from(
         self, calc: "autode.calculations.executors.CalculationExecutor"
-    ) -> Optional[Hessian]:
+    ) -> Hessian:
         r"""
         Extract the Hessian from a Gaussian09 calculation, which is printed as
         just the lower triangular portion but is symmetric so the full 3Nx3N
@@ -640,11 +636,12 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             calc (autode.calculation.Calculation):
 
         Returns:
-            (np.ndarray):
+            (autode.hessians.Hessian):
 
         Raises:
             (IndexError | ValueError):
         """
+        assert calc.input.keywords is not None, "Must have keywords"
 
         if _calc_uses_external_method(calc) and not _freq_in_keywords(calc):
             # Using external force drivers can lead to failed Hessian calcs.
@@ -667,10 +664,10 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         r"""
         For a block with the format:
-        
+
         ...[C*(O1C1O1)]\NImag=0\\H_x1x1, H_y1x1, ...\\
         F_x1, F_y1, ...\\\@
-        
+
         get the elements of the Hessian, noting that the lines have been
         parsed backwards, hence the [::-1]
         """

@@ -4,18 +4,18 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.opt.optimisers import PRFOptimiser
 from autode.utils import work_in_tmp_dir
-from ..testutils import requires_with_working_xtb_install
+from ..testutils import requires_working_xtb_install
 
 xtb = XTB()
 
 
 def has_single_imag_freq_at_xtb_level(mol: Molecule) -> bool:
     mol.calc_hessian(method=xtb)
-
+    assert mol.imaginary_frequencies is not None
     return len(mol.imaginary_frequencies) == 1
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_sn2_opt():
 
@@ -42,7 +42,7 @@ def test_sn2_opt():
     assert np.isclose(freq.to("cm-1"), -555, atol=20)
 
 
-@requires_with_working_xtb_install
+@requires_working_xtb_install
 @work_in_tmp_dir()
 def test_diels_alder_ts_opt():
 

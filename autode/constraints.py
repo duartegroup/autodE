@@ -1,5 +1,7 @@
 from collections.abc import MutableMapping
 from typing import Optional, Dict, List
+from copy import deepcopy
+
 from autode.values import Distance
 from autode.log import logger
 
@@ -19,7 +21,7 @@ class Constraints:
             cartesian (list(int) | None): List of atom indexes or None
         """
         self._distance = DistanceConstraints()
-        self._cartesian = []
+        self._cartesian: List[int] = []
 
         self.update(distance, cartesian)
 
@@ -41,7 +43,7 @@ class Constraints:
         return self.__str__()
 
     @property
-    def distance(self) -> Optional[dict]:
+    def distance(self) -> Optional["DistanceConstraints"]:
         return None if len(self._distance) == 0 else self._distance
 
     @distance.setter
@@ -94,7 +96,7 @@ class Constraints:
         return len(self._cartesian)
 
     @property
-    def any(self):
+    def any(self) -> bool:
         """Are there any constraints?"""
         return self.distance is not None or self.cartesian is not None
 
@@ -121,6 +123,9 @@ class Constraints:
             self._cartesian += cartesian
 
         return None
+
+    def copy(self) -> "Constraints":
+        return deepcopy(self)
 
 
 class DistanceConstraints(MutableMapping):
@@ -178,3 +183,6 @@ class DistanceConstraints(MutableMapping):
             )
 
         self._store[self._key_transform(key)] = Distance(value)
+
+    def copy(self) -> "DistanceConstraints":
+        return deepcopy(self)

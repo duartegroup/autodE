@@ -69,7 +69,7 @@ class CompositeUnit(Unit):
     def __init__(
         self,
         *args: Unit,
-        per: Collection[Unit] = None,
+        per: Optional[Collection[Unit]] = None,
         name: Union[str, None] = None,
         aliases: Union[Collection, None] = None,
     ):
@@ -81,18 +81,18 @@ class CompositeUnit(Unit):
 
             per (list(autode.units.Unit) | None): Units on the denominator
         """
-        per = [] if per is None else per
+        per_units: Collection[Unit] = [] if per is None else per
 
         if name is None:
             top_names = " ".join([u.name for u in args])
-            per_names = " ".join([u.name for u in per])
+            per_names = " ".join([u.name for u in per_units])
             name = f"{top_names}({per_names})^-1"
 
-        conversion = 1.0
+        conversion: float = 1.0
         for unit in args:
             conversion *= unit.conversion
 
-        for unit in per:
+        for unit in per_units:
             conversion /= unit.conversion
 
         super().__init__(name=name, conversion=conversion, aliases=aliases)
@@ -131,7 +131,7 @@ kcalmol = KcalMol = Unit(
 J = Unit(name="J", conversion=Constants.ha_to_J, aliases=["joule"])
 
 
-def energy_unit_from_name(name: str) -> "autode.units.Unit":
+def energy_unit_from_name(name: str) -> "Unit":
     """
     Generate an energy unit given a name
 

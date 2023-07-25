@@ -1,6 +1,39 @@
 Changelog
 =========
 
+1.4.0
+--------
+----------
+
+Functionality improvements
+**************************
+- Adds :code:`temporary_config()` context manager for temporary configuration changes
+- Adds a :code:`ForceConstant` value
+- Adds a more robust hybrid RFO-TRM geometry optimiser with trust radius update and a feature to detect oscillation and damp it
+- Adds Dewar-Healy-Stewart (DHS) method and its variant DHS-GS to find transition states from initial and final geometries
+
+
+Usability improvements/Changes
+******************************
+- Adds full usability of autodE on Windows, including parallelisation with :code:`loky`
+- Optional timeout for graph isomorphism test in Windows, turned on by :code:`Config.use_experimental_timeout=True` (default behaviour kept for Linux/macOS)
+- The electronic temperature and the version of parameterisation for xTB calculations are made configurable
+- A NEB :code:`Image` now derives from a :code:`Species` superclass
+- Modifies NEB :code:`Image` constructor to be formed from an image
+- Defines named constructors (:code:`from_end_points(...)`, :code:`from_list(...)`) for :code:`NEB`
+- Removes :code:`NEB().contains_peak()` in favour of :code:`NEB().images.contains_peak`
+- Modifies the :code:`CImages` constructor to ensure it's constructed from an :code:`Images` instance
+- Removes :code:`NEB.get_species_saddle_point()` in favour of :code:`NEB.peak_species`
+- Defines named constructors (:code:`from_end_points(...)`, :code:`from_list(...)`) for :code:`NEB`
+- Removes :code:`mol_graphs.get_atom_ids_sorted_type()`
+
+Bug Fixes
+*********
+- Fixes pickling issue with :code:`autode.config.Config` on Windows and in multiprocessing spawn for Linux/macOS
+- Fixes RFO Hessian update bug
+- Fixes QChem not using :code:`Config.max_core`
+
+
 1.3.5
 --------
 ----------

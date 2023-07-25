@@ -1,20 +1,22 @@
-from typing import Union, Optional, Sequence, List
+from typing import Union, Optional, Sequence, List, Type, Iterator, TypeVar
 from copy import deepcopy
 from abc import ABC, abstractmethod
 from autode.log import logger
+
+TypeKeywords = TypeVar("TypeKeywords", bound="Keywords")
 
 
 class KeywordsSet:
     def __init__(
         self,
-        low_opt: Optional[Sequence[str]] = None,
-        grad: Optional[Sequence[str]] = None,
-        low_sp: Optional[Sequence[str]] = None,
-        opt: Optional[Sequence[str]] = None,
-        opt_ts: Optional[Sequence[str]] = None,
-        hess: Optional[Sequence[str]] = None,
-        sp: Optional[Sequence[str]] = None,
-        ecp: Optional["autode.wrappers.keywords.ECP"] = None,
+        low_opt: Optional["_KEYWORDS_TYPE"] = None,
+        grad: Optional["_KEYWORDS_TYPE"] = None,
+        low_sp: Optional["_KEYWORDS_TYPE"] = None,
+        opt: Optional["_KEYWORDS_TYPE"] = None,
+        opt_ts: Optional["_KEYWORDS_TYPE"] = None,
+        hess: Optional["_KEYWORDS_TYPE"] = None,
+        sp: Optional["_KEYWORDS_TYPE"] = None,
+        ecp: Optional["ECP"] = None,
     ):
         """
         Keywords used to specify the type and method used in electronic
@@ -56,15 +58,15 @@ class KeywordsSet:
              optts_block: String as extra input for a TS optimisation
         """
 
-        self._low_opt = OptKeywords(low_opt)  # Low-level optimisation
-        self._opt = OptKeywords(opt)  # Optimisation
-        self._opt_ts = OptTSKeywords(opt_ts)  # TS optimisation
+        self._low_opt: OptKeywords = OptKeywords(low_opt)
+        self._opt: OptKeywords = OptKeywords(opt)
+        self._opt_ts: OptTSKeywords = OptTSKeywords(opt_ts)
 
-        self._grad = GradientKeywords(grad)  # Gradient
-        self._hess = HessianKeywords(hess)  # Hessian
+        self._grad: GradientKeywords = GradientKeywords(grad)
+        self._hess: HessianKeywords = HessianKeywords(hess)
 
-        self._low_sp = SinglePointKeywords(low_sp)  # Low-level single point
-        self._sp = SinglePointKeywords(sp)  # Single point
+        self._low_sp: SinglePointKeywords = SinglePointKeywords(low_sp)
+        self._sp: SinglePointKeywords = SinglePointKeywords(sp)
 
         if ecp is not None:
             self.set_ecp(ecp)
@@ -73,10 +75,13 @@ class KeywordsSet:
         str_methods = ",\n".join(str(c) for c in self._list if c is not None)
         return f"KeywordsSet({str_methods})"
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> "Keywords":
         return self._list[item]
 
-    def __eq__(self, other) -> bool:
+    def __iter__(self) -> Iterator["Keywords"]:
+        yield from self._list
+
+    def __eq__(self, other: object) -> bool:
         """Equality of two keyword sets"""
         return isinstance(other, KeywordsSet) and self._list == other._list
 
@@ -102,7 +107,7 @@ class KeywordsSet:
 
     @opt_ts.setter
     def opt_ts(self, value: Optional[Sequence[str]]):
-        self._opt_ts = OptKeywords(value)
+        self._opt_ts = OptTSKeywords(value)
 
     @property
     def grad(self) -> "GradientKeywords":
@@ -121,12 +126,12 @@ class KeywordsSet:
         self._hess = HessianKeywords(value)
 
     @property
-    def low_sp(self) -> Optional["SinglePointKeywords"]:
+    def low_sp(self) -> "SinglePointKeywords":
         return self._low_sp
 
     @low_sp.setter
     def low_sp(self, value: Optional[Sequence[str]]):
-        self._low_sp = value if value is None else SinglePointKeywords(value)
+        self._low_sp = SinglePointKeywords(value)
 
     @property
     def sp(self) -> "SinglePointKeywords":
@@ -137,7 +142,7 @@ class KeywordsSet:
         self._sp = SinglePointKeywords(value)
 
     @property
-    def _list(self) -> List["autode.wrappers.keywords.Keywords"]:
+    def _list(self) -> List["Keywords"]:
         """List of all the keywords in this set"""
         return [
             self._low_opt,
@@ -149,35 +154,35 @@ class KeywordsSet:
             self._low_sp,
         ]
 
-    def set_opt_functional(self, functional):
+    def set_opt_functional(self, functional: Union["Functional", str]):
         """Set the functional for all optimisation and gradient calculations"""
         for attr in ("low_opt", "opt", "opt_ts", "grad", "hess"):
             getattr(self, attr).functional = functional
 
         return None
 
-    def set_opt_basis_set(self, basis_set):
+    def set_opt_basis_set(self, basis_set: Union["BasisSet", str]):
         """Set the basis set for all optimisation and gradient calculations"""
         for attr in ("low_opt", "opt", "opt_ts", "grad", "hess"):
             getattr(self, attr).basis_set = basis_set
 
         return None
 
-    def set_functional(self, functional):
+    def set_functional(self, functional: Union["Functional", str]):
         """Set the functional for all calculation types"""
         for keywords in self:
             keywords.functional = functional
 
         return None
 
-    def set_dispersion(self, dispersion):
+    def set_dispersion(self, dispersion: Union["DispersionCorrection", str]):
         """Set the dispersion correction for all calculation types"""
         for keywords in self:
             keywords.dispersion = dispersion
 
         return None
 
-    def set_ecp(self, ecp):
+    def set_ecp(self, ecp: Union["ECP", str]):
         """Set the effective core potential for all calculation types"""
         for keywords in self:
             keywords.ecp = ecp
@@ -189,7 +194,9 @@ class KeywordsSet:
 
 
 class Keywords(ABC):
-    def __init__(self, keyword_list: Union[Sequence, str, None] = None):
+    def __init__(
+        self, keyword_list: Union["_KEYWORDS_TYPE", str, None] = None
+    ):
         """
         List of keywords used in an electronic structure calculation
 
@@ -198,22 +205,23 @@ class Keywords(ABC):
             keyword_list: Keywords
         """
 
+        self._list: List[Union[Keyword, str]] = []
+
         if isinstance(keyword_list, str):
             self._list = [keyword_list]
-
-        else:
-            self._list = list(keyword_list) if keyword_list is not None else []
+        elif keyword_list is not None:
+            self._list = list(keyword_list)
 
     def __str__(self):
         return " ".join([repr(kw) for kw in self._list])
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Equality of these keywords to another kind"""
         return isinstance(other, self.__class__) and set(self._list) == set(
             other._list
         )
 
-    def __add__(self, other):
+    def __add__(self, other: object):
         """Add some keywords to these"""
 
         if isinstance(other, Keywords):
@@ -232,7 +240,9 @@ class Keywords(ABC):
     def __repr__(self):
         """Representation of these keywords"""
 
-    def _get_keyword(self, keyword_type) -> Optional["Keyword"]:
+    def _get_keyword(
+        self, keyword_type: Type["Keyword"]
+    ) -> Optional["Keyword"]:
         """Get a keyword given a type"""
 
         for keyword in self._list:
@@ -241,7 +251,11 @@ class Keywords(ABC):
 
         return None
 
-    def _set_keyword(self, keyword, keyword_type):
+    def _set_keyword(
+        self,
+        keyword: Union["Keyword", str, None],
+        keyword_type: Type["Keyword"],
+    ):
         """Set a keyword. A keyword of the same type must exist"""
         if type(keyword) is str:
             keyword = keyword_type(name=keyword)
@@ -270,6 +284,9 @@ class Keywords(ABC):
                     "WF method present, or vice-versa "
                 )
 
+        if keyword is None:  # don't append None to list
+            return
+
         # This keyword does not appear in the list, so add it
         self.append(keyword)
         return None
@@ -283,7 +300,7 @@ class Keywords(ABC):
         return self._get_keyword(ECP)
 
     @ecp.setter
-    def ecp(self, ecp):
+    def ecp(self, ecp: Union["ECP", str]):
         """Set the functional in a set of keywords"""
         self._set_keyword(ecp, keyword_type=ECP)
 
@@ -292,15 +309,30 @@ class Keywords(ABC):
         """Get the functional in this set of keywords"""
         return self._get_keyword(Functional)
 
+    @functional.setter
+    def functional(self, functional: Union["Functional", str]):
+        """Set the functional in a set of keywords"""
+        self._set_keyword(functional, keyword_type=Functional)
+
     @property
     def basis_set(self):
         """Get the functional in this set of keywords"""
         return self._get_keyword(BasisSet)
 
+    @basis_set.setter
+    def basis_set(self, basis_set: Union["BasisSet", str]):
+        """Set the functional in a set of keywords"""
+        self._set_keyword(basis_set, keyword_type=BasisSet)
+
     @property
     def dispersion(self):
         """Get the dispersion keyword in this set of keywords"""
         return self._get_keyword(DispersionCorrection)
+
+    @dispersion.setter
+    def dispersion(self, dispersion: Union["DispersionCorrection", str]):
+        """Set the dispersion correction in a set of keywords"""
+        self._set_keyword(dispersion, keyword_type=DispersionCorrection)
 
     @property
     def wf_method(self):
@@ -308,26 +340,11 @@ class Keywords(ABC):
         return self._get_keyword(WFMethod)
 
     @wf_method.setter
-    def wf_method(self, method):
+    def wf_method(self, method: Union["WFMethod", str]):
         self._set_keyword(method, keyword_type=WFMethod)
 
-    @functional.setter
-    def functional(self, functional):
-        """Set the functional in a set of keywords"""
-        self._set_keyword(functional, keyword_type=Functional)
-
-    @dispersion.setter
-    def dispersion(self, dispersion):
-        """Set the dispersion correction in a set of keywords"""
-        self._set_keyword(dispersion, keyword_type=DispersionCorrection)
-
-    @basis_set.setter
-    def basis_set(self, basis_set):
-        """Set the functional in a set of keywords"""
-        self._set_keyword(basis_set, keyword_type=BasisSet)
-
     @property
-    def method_string(self):
+    def method_string(self) -> str:
         """Generate a string with refs (dois) for this method e.g. PBE0-D3BJ"""
         string = ""
 
@@ -354,7 +371,7 @@ class Keywords(ABC):
         return string
 
     @property
-    def bstring(self):
+    def bstring(self) -> str:
         """Brief string without dois of the method e.g. PBE0-D3BJ/def2-SVP"""
 
         string = ""
@@ -389,10 +406,10 @@ class Keywords(ABC):
 
         return not kwds.isdisjoint(w.lower() for w in words)
 
-    def copy(self):
-        return deepcopy(self)
+    def copy(self) -> TypeKeywords:  # type: ignore
+        return deepcopy(self)  # type: ignore
 
-    def append(self, item):
+    def append(self, item: Union["Keyword", str]) -> None:
         assert type(item) is str or isinstance(item, Keyword)
 
         # Don't re-add a keyword that is already there
@@ -401,19 +418,19 @@ class Keywords(ABC):
 
         self._list.append(item)
 
-    def remove(self, item):
+    def remove(self, item: "Keyword") -> None:
         self._list.remove(item)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> Union["Keyword", str]:
         return self._list[item]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: int, value: Union["Keyword", str]) -> None:
         self._list[key] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._list)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self._list)
 
 
@@ -488,6 +505,13 @@ class Keyword(ABC):
         """
         self.name = name
 
+        self.g09: Optional[str] = None
+        self.g16: Optional[str] = None
+        self.qchem: Optional[str] = None
+        self.orca: Optional[str] = None
+        self.xtb: Optional[str] = None
+        self.nwchem: Optional[str] = None
+
         self.doi_list = []
         if "doi" in kwargs and kwargs["doi"] is not None:
             self.doi_list.append(kwargs.pop("doi"))
@@ -533,14 +557,10 @@ class Keyword(ABC):
         be printed verbatim into an input file, otherwise needs keyword.method
         to be set, where method is e.g. orca
         """
-
-        excl_attrs = ("name", "doi_list", "doi", "freq_scale_factor")
-        for attr in self.__dict__:
-            if attr in excl_attrs:
-                continue
-            return False
-
-        return True
+        excl = ("name", "doi_list", "doi", "freq_scale_factor")
+        return all(
+            getattr(self, a) is None for a in self.__dict__ if a not in excl
+        )
 
 
 class BasisSet(Keyword):
@@ -613,7 +633,7 @@ class ECP(Keyword):
     def __repr__(self):
         return f"EffectiveCorePotential({self.name})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object):
         """Equality of ECPs"""
         return (
             isinstance(other, ECP)
@@ -630,7 +650,7 @@ class ECP(Keyword):
         name: str,
         min_atomic_number: int = 37,
         doi: Optional[str] = None,
-        doi_list: Optional[Sequence[str]] = None,
+        doi_list: Optional[List[str]] = None,
         **kwargs,
     ):
         """
@@ -661,3 +681,6 @@ class MaxOptCycles(Keyword):
 
     def __init__(self, number: int):
         super().__init__(name=str(int(number)))
+
+
+_KEYWORDS_TYPE = Union[Keywords, Sequence[Union[Keyword, str]]]

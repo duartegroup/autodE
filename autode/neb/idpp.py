@@ -1,5 +1,12 @@
 import numpy as np
+
 from scipy.spatial import distance_matrix
+from typing import TYPE_CHECKING
+
+from autode.values import PotentialEnergy
+
+if TYPE_CHECKING:
+    from autode.neb.original import Image, Images
 
 
 class IDPP:
@@ -17,7 +24,7 @@ class IDPP:
     as suggested in the paper.
     """
 
-    def __init__(self, images: "autode.neb.original.Images"):
+    def __init__(self, images: "Images"):
         """Initialise a IDPP potential from a set of NEB images"""
 
         if len(images) < 2:
@@ -29,7 +36,7 @@ class IDPP:
 
         self._set_distance_matrices(images)
 
-    def __call__(self, image: "autode.neb.original.Image") -> float:
+    def __call__(self, image: "Image") -> PotentialEnergy:
         r"""
         Value of the IDPP objective function for a single image defined by,
 
@@ -50,9 +57,9 @@ class IDPP:
         r_k, r = self._req_distance_matrix(image), self._distance_matrix(image)
         w = self._weight_matrix(image)
 
-        return 0.5 * np.sum(w * (r_k - r) ** 2)
+        return PotentialEnergy(0.5 * np.sum(w * (r_k - r) ** 2))
 
-    def grad(self, image: "autode.neb.original.Image") -> np.ndarray:
+    def grad(self, image: "Image") -> np.ndarray:
         r"""
         Gradient of the potential with respect to displacement of
         the Cartesian components: :math:`\nabla S = (dS/dx_0, dS/dy_0, dS/dz_0,
@@ -75,7 +82,7 @@ class IDPP:
             (np.ndarray): :math:`\nabla S`
         """
 
-        x = np.array(image.species.coordinates).flatten()
+        x = np.array(image.coordinates).flatten()
         grad = np.zeros_like(x)
 
         r = self._distance_matrix(image, unity_diagonal=True)
@@ -89,7 +96,7 @@ class IDPP:
         -----------------------------------------------------------------------
         x = x.reshape((-1, 3))
         grad = np.zeros_like(x)
-        
+
         for i in range(n_atoms):
             for j in range(n_atoms):
 
@@ -105,9 +112,9 @@ class IDPP:
         grad[1::3] = np.sum(a * delta[1::3, 1::3], axis=1)  # y
         grad[2::3] = np.sum(a * delta[2::3, 2::3], axis=1)  # z
 
-        return grad
+        return grad.reshape((-1, 3))
 
-    def _set_distance_matrices(self, images) -> None:
+    def _set_distance_matrices(self, images: "Images") -> None:
         """
         For each image determine the optimum distance matrix using
 
@@ -130,14 +137,16 @@ class IDPP:
         self._diagonal_distance_matrix_idxs = np.diag_indices_from(delta)
         return None
 
-    def _req_distance_matrix(self, image):
+    def _req_distance_matrix(self, image: "Image"):
         """Required distance matrix for an image, with elements r_{ij}^k"""
         return self._dists[image.name]
 
-    def _distance_matrix(self, image, unity_diagonal=False) -> np.ndarray:
+    def _distance_matrix(
+        self, image: "Image", unity_diagonal: bool = False
+    ) -> np.ndarray:
         """Distance matrix for an image"""
 
-        x = image.species.coordinates
+        x = image.coordinates
         r = distance_matrix(x, x)
 
         if unity_diagonal:
@@ -145,7 +154,7 @@ class IDPP:
 
         return r
 
-    def _weight_matrix(self, image) -> np.ndarray:
+    def _weight_matrix(self, image: "Image") -> np.ndarray:
         r"""
         Weight matrix with elements
 
