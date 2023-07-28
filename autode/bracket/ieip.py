@@ -87,16 +87,19 @@ def _parallel_calc_energies(
     return energies
 
 
-def _get_spline_maximum(
+def _get_path_spline_maximum(
     spline: PPoly, l_bound: float, u_bound: float
 ) -> Optional[float]:
     """
-    Get the peak point of a scipy spline within a range, using
-    the roots of the first derivative of the spline. The given
-    spline must be twice differentiable at all points.
+    Get the peak point of a scipy parametric spline fitted to
+    a series of coordinates and energies for a path, within a
+    defined range, using the roots of the first derivative of
+    the spline. The given spline must be twice differentiable
+    at all points.
 
     Args:
-        spline (PPoly): The spline object (scipy)
+        spline (PPoly): The spline object (scipy), must return
+                        energy as the last element of array
         l_bound (float): The upper bound of range
         u_bound (float): The lower bound of range
 
@@ -286,7 +289,7 @@ class ElasticImagePair(EuclideanImagePair):
             y=target_data,
             axis=0,
         )
-        peak_pos = _get_spline_maximum(spline, 0.0, total_dist)
+        peak_pos = _get_path_spline_maximum(spline, 0.0, total_dist)
         if peak_pos is None:
             raise RuntimeError(
                 "The fitted spline does not have a peak! Unable to proceed"
@@ -334,7 +337,7 @@ class ElasticImagePair(EuclideanImagePair):
             y=target_data,
             axis=0,
         )
-        peak = _get_spline_maximum(spline, 0, path_distances[-1])
+        peak = _get_path_spline_maximum(spline, 0, path_distances[-1])
         # check that the peak is not in between current imagepair
         # because one image should have jumped over the barrier
         if path_distances[1] < peak < path_distances[2]:
