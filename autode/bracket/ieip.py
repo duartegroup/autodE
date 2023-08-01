@@ -8,9 +8,10 @@ References:
 from typing import Union, Optional, List, TYPE_CHECKING
 import numpy as np
 from scipy.interpolate import CubicSpline, PPoly
+from autode.methods import get_lmethod
 from autode.bracket.base import BaseBracketMethod
 from autode.bracket.dhs import TruncatedTaylor
-from autode.neb import NEB
+from autode.neb import NEB, CINEB
 from autode.bracket.imagepair import EuclideanImagePair
 from autode.opt.coordinates import CartesianCoordinates
 from autode.values import Distance, GradientRMS, PotentialEnergy
@@ -183,9 +184,9 @@ class ElasticImagePair(EuclideanImagePair):
 
     def redistribute_imagepair_cubic_spline(
         self,
-        init_image_density: float = 2.0,
-        fit_image_density: float = 1.0,
+        image_density: float = 1.0,
         interp_fraction: float = 1 / 4,
+        interp_lmethod: bool = True,
     ):
         """
         Redistribute the image pair by running an IDPP interpolation, and
@@ -195,73 +196,49 @@ class ElasticImagePair(EuclideanImagePair):
         either side.
 
         Args:
-            init_image_density (float): images per Angstrom for initial IDPP
-                                        interpolation which is used to estimate
-                                        the total path
-
-            fit_image_density (float): images per Angstrom for final fitting
-                                       (this will change how many of the initial
-                                       interpolated images are selected for actual
-                                       energy calculation and fitting)
+            image_density (float): Approximate number of images per Angstrom for
+                                   the interpolation, which is used to fit the
+                                   spline for redistribution
 
             interp_fraction (float): Fraction of total interpolated path distance
                                      that will be used to generate the image pair
                                      on either side of the interpolated TS
+
+            interp_lmethod (bool): Whether to use a CI-NEB calculation at lmethod
+                                   for the interpolation. If False, a simple IDPP
+                                   interpolation will be used.
         """
-        assert init_image_density > fit_image_density, (
-            "The image density for initial interpolation must be larger than"
-            "the image density for the energy calculation and fitting"
-        )
-        n_images_idpp = int(init_image_density * self.dist - 1)
-        idpp = NEB.from_end_points(
-            self._left_image.copy(), self._right_image.copy(), n_images_idpp
-        )
-        # approximate the integrated path length by summing subsequent distances
+        # Use at least 5 images for interpolation
+        n_images = int(image_density * self.dist - 1)
+        n_images = max(n_images, 5)
+
+        if interp_lmethod:
+            interp = CINEB.from_end_points(
+                self._left_image.copy(), self._right_image.copy(), n_images
+            )
+            interp.calculate(method=get_lmethod(), n_cores=self._n_cores)
+        else:
+            interp = NEB.from_end_points(
+                self._left_image.copy(), self._right_image.copy(), n_images
+            )
+        # approximate the integrated path length by summing adjacent distances
         distances = [
             np.linalg.norm(
-                idpp.images[idx].coordinates - idpp.images[idx + 1].coordinates
+                interp.images[idx].coordinates
+                - interp.images[idx + 1].coordinates
             )
-            for idx in range(len(idpp.images) - 1)
+            for idx in range(len(interp.images) - 1)
         ]
-        cumulative_distances = np.cumsum(distances)
-        total_dist = cumulative_distances.max()
-        dist_per_img = 1.0 / fit_image_density
-
-        fit_idxs = []
-        path_dist = 0.0
-        while True:
-            path_dist += dist_per_img
-            if path_dist >= total_dist:
-                break
-            fit_idxs.append(
-                int(np.argmin(np.abs(cumulative_distances - path_dist)))
-            )
-        # remove last point if included
-        last_idx = len(cumulative_distances) - 1
-        while last_idx in fit_idxs:
-            fit_idxs.remove(last_idx)
-        # sanity checks - no duplication, at least one point
-        point_duplicated = len(set(fit_idxs)) != len(fit_idxs)
-        not_enough_points = (
-            len(fit_idxs) - int(fit_image_density * total_dist)
-        ) < 0
-        if point_duplicated or not_enough_points:
-            logger.warning(
-                "Difficulty in spline fitting, image density for initial "
-                "interpolation is likely lower than required, retrying with"
-                " higher density..."
-            )
-            return self.redistribute_imagepair_cubic_spline(
-                2 * init_image_density, fit_image_density
-            )
-        # extract the distance along path (angstrom) and the needed images
-        path_distances = cumulative_distances[fit_idxs]
-        path_points = [idpp.images[idx + 1] for idx in fit_idxs]
-        # obtain the energies
+        path_distances = np.cumsum(distances)[:-1]
+        total_dist = np.cumsum(distances).max()
+        # Only get intermediate images, initial and final already have energies
+        path_points = interp.images[1:-1]
+        # Get energies
         path_energies = _parallel_calc_energies(
-            path_points, self._method, self._n_cores
+            path_points, method=self._method, n_cores=self._n_cores
         )
         logger.info(f"Fitting parametric spline on {len(path_points)} points")
+
         # NOTE: Here we are fitting a parametric spline, with the parameter
         # being the path length along rxn coordinate (approximated from initial
         # IDPP interpolation), and target being all coordinates *and* energy at
@@ -294,7 +271,8 @@ class ElasticImagePair(EuclideanImagePair):
             raise RuntimeError(
                 "The fitted spline does not have a peak! Unable to proceed"
             )
-        assert 0.01 < peak_pos / total_dist < 0.9
+        # Check the peak is not at the beginning or end
+        assert 0.01 < peak_pos / total_dist < 0.99
         # todo check the shape of spline output
         # Generate new coordinates a fraction (default 1/4) of total distance
         # on each side of the peak (interpolated TS)
