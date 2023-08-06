@@ -6,10 +6,15 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.path import Path, AdaptivePath
 from autode.path.adaptive import pruned_active_bonds
+from autode.path.interpolation import PathSpline
+from autode.neb import NEB
+from autode.input_output import xyz_file_to_molecules
 from autode.bonds import FormingBond, BreakingBond
 from autode.species import Species, Molecule
 from autode.units import Unit, KcalMol
 from . import testutils
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 test_species = Species(name="tmp", charge=0, mult=1, atoms=[Atom("He")])
 test_mol = Molecule(smiles="O")
@@ -199,3 +204,75 @@ def test_adaptive_path():
 
     assert path1 != 0
     assert path1 == path1
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "spline_fit.zip"))
+def test_path_spline_fitting():
+    species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    spline = PathSpline.from_species_list(species_list, fit_energy=False)
+
+    # point locations should be normalised
+    assert min(spline.path_distances) == 0
+    assert max(spline.path_distances) == 1
+
+    # asking for energy peak should raise Exception
+    with pytest.raises(RuntimeError):
+        spline.energy_peak(0, 1)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "spline_fit.zip"))
+def test_path_spline_integral():
+    # NEB optimised path with 20 images
+    species_list_1 = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    spline_1 = PathSpline.from_species_list(species_list_1)
+    length_1 = spline_1.path_integral(0, 1)
+
+    # NEB optimised path with 30 images
+    species_list_2 = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+    spline_2 = PathSpline.from_species_list(species_list_2)
+    length_2 = spline_2.path_integral(0, 1)
+
+    # Length should be roughly same (0.1 angstrom error margin)
+    assert np.isclose(length_1, length_2, atol=0.1)
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "spline_fit.zip"))
+def test_path_spline_ivp():
+    # Load optimised NEB path
+    species_list = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+    spline = PathSpline.from_species_list(species_list, fit_energy=True)
+    length_tot = spline.path_integral(0, 1)
+
+    # find peak
+    peak_x = spline.energy_peak(0, 1)
+
+    # find points 1/4th path length away on both sides of the peak
+    left_x = spline.integrate_upto_length(
+        span=length_tot / 4, x0=peak_x, sol_guess=peak_x - 0.25
+    )
+    right_x = spline.integrate_upto_length(
+        span=length_tot / 4, x0=peak_x, sol_guess=peak_x + 0.25
+    )
+    assert left_x < peak_x
+    assert np.isclose(spline.path_integral(left_x, peak_x), length_tot / 4)
+    assert right_x > peak_x
+    assert np.isclose(spline.path_integral(peak_x, right_x), length_tot / 4)
+
+
+@testutils.requires_working_xtb_install
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "spline_fit.zip"))
+def test_path_spline_peak():
+    # Load NEB optimised path with energies
+    species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    spline = PathSpline.from_species_list(species_list, fit_energy=True)
+
+    # Check at 10 random points
+    test_points = list(np.random.uniform(0, 1, size=10))
+    for point in test_points:
+        pred_e = spline.energy_at(point)
+        coords = spline.coords_at(point)
+        tmp_spc = species_list[0].new_species(name=f"calc_{point}")
+        tmp_spc.coordinates = coords
+        tmp_spc.single_point(XTB())
+        actual_e = float(tmp_spc.energy)
+        assert np.isclose(pred_e, actual_e, atol=0.02)

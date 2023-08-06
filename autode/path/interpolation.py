@@ -6,7 +6,7 @@ import numpy as np
 from math import sqrt
 from scipy.interpolate import CubicSpline
 from scipy.integrate import quad
-from scipy.optimize import minimize
+from scipy.optimize import root_scalar
 
 if TYPE_CHECKING:
     from autode.species.species import Species
@@ -40,7 +40,7 @@ class PathSpline:
         )
 
         self._path_spline = self._spline_from_coords(coords_list)
-        self._energy_spline = None
+        self._energy_spline: Optional["PPoly"] = None
 
         if energies is not None:
             self.fit_energies(energies)
@@ -62,10 +62,10 @@ class PathSpline:
             np.linalg.norm(coords_list[idx + 1] - coords_list[idx])
             for idx in range(len(coords_list) - 1)
         ]
-        path_distances = [0] + list(np.cumsum(distances))
+        path_distances = [0.0] + list(np.cumsum(distances))
         max_dist = max(path_distances)
         path_distances = [dist / max_dist for dist in path_distances]
-        coords_data = np.array(coords_list).transpose()
+        coords_data = np.array(coords_list)
         return CubicSpline(x=path_distances, y=coords_data, axis=0)
 
     @property
@@ -88,6 +88,18 @@ class PathSpline:
             y=energies,
         )
         return None
+
+    def coords_at(self, path_distance) -> np.ndarray:
+        """Spline-predicted coordinates at a point"""
+        return self._path_spline(path_distance)
+
+    def energy_at(self, path_distance) -> float:
+        """Spline-predicted energy at a point"""
+        if self._energy_spline is None:
+            raise RuntimeError(
+                "Must have fitted energies before calling energy_at()"
+            )
+        return self._energy_spline(path_distance)
 
     @classmethod
     def from_species_list(
@@ -143,7 +155,7 @@ class PathSpline:
             func=dpath,
             a=l_bound,
             b=u_bound,
-            epsabs=1.0e-5,
+            epsabs=1.0e-6,
         )
 
         return path_length[0]
@@ -161,16 +173,36 @@ class PathSpline:
         Returns:
             (float): The solution
         """
-        res = minimize(
-            fun=lambda x: self.path_integral(float(x), x0) - span,
-            x0=np.array([sol_guess]),
-            method="BFGS",
-            tol=1.0e-5,
+        # Find bounds for root search
+        def span_error(x):
+            return self.path_integral(x, x0) - span
+
+        bracket_left = None
+        bracket_right = None
+        dx = (sol_guess - x0) / 100
+
+        x_tmp = sol_guess
+        while (bracket_left is None) or (bracket_right is None):
+            if span_error(x_tmp) < 0:
+                bracket_left = x_tmp
+                x_tmp = x_tmp + dx
+            else:
+                bracket_right = x_tmp
+                x_tmp = x_tmp - dx
+
+        res = root_scalar(
+            f=span_error,
+            bracket=[bracket_left, bracket_right],
+            method="brentq",
+            xtol=1.0e-5,
         )
 
-        return float(res.x)
+        if not res.converged:
+            raise RuntimeError("Unable to integrate upto length")
 
-    def peak_x(self, l_bound: float, u_bound: float) -> Optional[float]:
+        return float(res.root)
+
+    def energy_peak(self, l_bound: float, u_bound: float) -> Optional[float]:
         """
         Get the peak of the path within a given range,
         by using the energy spline
@@ -199,7 +231,7 @@ class PathSpline:
         values = []
         for x in all_possible_points:
             # get the predicted energy from spline
-            values.append(self._energy_spline(x)[-1])
+            values.append(float(self._energy_spline(x)))
 
         # Extreme value theorem means that inside a bound, there
         # must be a highest and lowest point on a continuous function
