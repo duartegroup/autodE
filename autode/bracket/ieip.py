@@ -12,6 +12,7 @@ from autode.methods import get_lmethod
 from autode.bracket.base import BaseBracketMethod
 from autode.bracket.dhs import TruncatedTaylor
 from autode.neb import NEB, CINEB
+from autode.path.interpolation import PathSpline
 from autode.bracket.imagepair import EuclideanImagePair
 from autode.opt.coordinates import CartesianCoordinates
 from autode.values import Distance, GradientRMS, PotentialEnergy
@@ -88,55 +89,6 @@ def _parallel_calc_energies(
     return energies
 
 
-def _get_path_spline_maximum(
-    spline: PPoly, l_bound: float, u_bound: float
-) -> Optional[float]:
-    """
-    Get the peak point of a scipy parametric spline fitted to
-    a series of coordinates and energies for a path, within a
-    defined range, using the roots of the first derivative of
-    the spline. The given spline must be twice differentiable
-    at all points.
-
-    Args:
-        spline (PPoly): The spline object (scipy), must return
-                        energy as the last element of array
-        l_bound (float): The upper bound of range
-        u_bound (float): The lower bound of range
-
-    Returns:
-        (float|None): The peak point position i.e. x for which
-                      f(x) is peak (None if peak is not found)
-    """
-    # cast into proper types
-    l_bound = float(l_bound)
-    u_bound = float(u_bound)
-
-    deriv = spline.derivative()
-    # the roots are provided as an array of arrays
-    roots = deriv.roots(discontinuity=False, extrapolate=False)
-    tmp_roots = []
-    for i in roots:
-        tmp_roots.extend(list(i))
-    roots = np.array([float(x) for x in tmp_roots])
-    roots = roots[(roots < u_bound) & (roots > l_bound)]
-    all_possible_points = [u_bound, l_bound] + list(roots)
-    values = []
-    for x in all_possible_points:
-        # get the predicted energy from spline
-        values.append(spline(x)[-1])
-
-    # Extreme value theorem means that inside a bound, there
-    # must be a highest and lowest point on a continuous function
-    # So, the highest point must be a maximum (within bounds)
-    peak = np.argmax(values)
-    if peak in [0, 1]:
-        # means the highest point is on one of the bounds i.e. no peak
-        return None
-    else:
-        return all_possible_points[peak]
-
-
 class ElasticImagePair(EuclideanImagePair):
     """
     This image-pair used for the Elastic Image Pair calculation. The
@@ -186,14 +138,14 @@ class ElasticImagePair(EuclideanImagePair):
         self,
         image_density: float = 1.0,
         interp_fraction: float = 1 / 4,
-        interp_lmethod: bool = True,
+        interp_lmethod_neb: bool = True,
     ):
         """
-        Redistribute the image pair by running an IDPP interpolation, and
-        then fitting a cubic spline on energy calculated by the method (low_sp
-        keywords). It regenerates the image pair on both sides of the peak on the
-        fitted spline, with a distance of interp_fraction * total path distance on
-        either side.
+        Redistribute the image pair by running a NEB calculation at lmethod or
+        use only IDPP interpolation, and then fitting a cubic spline on energy
+        calculated by the method (low_sp keywords). It generates the image pair
+        on both sides of the peak on the fitted spline, with a distance of
+        interp_fraction * total path distance on either side.
 
         Args:
             image_density (float): Approximate number of images per Angstrom for
@@ -204,7 +156,7 @@ class ElasticImagePair(EuclideanImagePair):
                                      that will be used to generate the image pair
                                      on either side of the interpolated TS
 
-            interp_lmethod (bool): Whether to use a CI-NEB calculation at lmethod
+            interp_lmethod_neb (bool): Whether to use a CI-NEB calculation at lmethod
                                    for the interpolation. If False, a simple IDPP
                                    interpolation will be used.
         """
@@ -212,7 +164,7 @@ class ElasticImagePair(EuclideanImagePair):
         n_images = int(image_density * self.dist - 1)
         n_images = max(n_images, 5)
 
-        if interp_lmethod:
+        if interp_lmethod_neb:
             interp = CINEB.from_end_points(
                 self._left_image.copy(), self._right_image.copy(), n_images
             )
@@ -221,69 +173,51 @@ class ElasticImagePair(EuclideanImagePair):
             interp = NEB.from_end_points(
                 self._left_image.copy(), self._right_image.copy(), n_images
             )
-        # approximate the integrated path length by summing adjacent distances
-        distances = [
-            np.linalg.norm(
-                interp.images[idx].coordinates
-                - interp.images[idx + 1].coordinates
-            )
-            for idx in range(len(interp.images) - 1)
-        ]
-        path_distances = np.cumsum(distances)[:-1]
-        total_dist = np.cumsum(distances).max()
-        # Only get intermediate images, initial and final already have energies
+        # Only calc intermediate images, initial and final already have energies
         path_points = interp.images[1:-1]
         # Get energies
         path_energies = _parallel_calc_energies(
             path_points, method=self._method, n_cores=self._n_cores
         )
-        logger.info(f"Fitting parametric spline on {len(path_points)} points")
+        energies = [self.left_coords.e] + path_energies + [self.right_coords.e]
+        logger.info(
+            f"Fitting parametric spline on {len(interp.images)} points"
+        )
 
         # NOTE: Here we are fitting a parametric spline, with the parameter
-        # being the path length along rxn coordinate (approximated from initial
-        # IDPP interpolation), and target being all coordinates *and* energy at
-        # the selected points (where actual QM energy is available)
-        target_data = np.zeros(
-            shape=(
-                len(path_points) + 2,
-                len(path_points[0].coordinates.flatten()) + 1,
-            )
-        )
-        for idx, point in enumerate(path_points):
-            assert path_energies[idx] is not None
-            target_data[idx + 1, :-1] = point.coordinates.flatten()
-            target_data[idx + 1, -1] = float(path_energies[idx])
-        # add first and last point (reactant, product)
-        assert self.left_coords.e and self.right_coords.e
-        target_data[0, :-1] = self.left_coords.flatten()
-        target_data[0, -1] = float(self.left_coords.e)
-        target_data[-1, :-1] = self.right_coords.flatten()
-        target_data[-1, -1] = float(self.right_coords.e)
-        path_distances = [0.0] + list(path_distances) + [total_dist]
-
-        spline = CubicSpline(
-            x=path_distances,
-            y=target_data,
-            axis=0,
-        )
-        peak_pos = _get_path_spline_maximum(spline, 0.0, total_dist)
+        # being the path length along approx. rxn coordinate and target being all
+        # coordinates *and* energy at the points (where QM energy is available)
+        path_spline = PathSpline.from_species_list(interp.images)
+        path_spline.fit_energies(energies)
+        peak_pos = path_spline.energy_peak()
+        path_length = path_spline.path_integral()
         if peak_pos is None:
             raise RuntimeError(
                 "The fitted spline does not have a peak! Unable to proceed"
             )
         # Check the peak is not at the beginning or end
-        assert 0.01 < peak_pos / total_dist < 0.99
-        # todo check the shape of spline output
+        assert 0.01 < peak_pos < 0.99
+        # todo double check spline code
         # Generate new coordinates a fraction (default 1/4) of total distance
         # on each side of the peak (interpolated TS)
-        l_point = peak_pos - total_dist * interp_fraction
-        r_point = peak_pos + total_dist * interp_fraction
+        l_point = path_spline.integrate_upto_length(
+            span=interp_fraction * path_length,
+            x0=peak_pos,
+            sol_guess=peak_pos - interp_fraction,
+        )
+        r_point = path_spline.integrate_upto_length(
+            span=interp_fraction * path_length,
+            x0=peak_pos,
+            sol_guess=peak_pos + interp_fraction,
+        )
         if l_point < 0:
             l_point = 0
-        if r_point > total_dist:
-            r_point = total_dist
-        self.left_coords = CartesianCoordinates(spline(l_point)[:-1])
-        self.right_coords = CartesianCoordinates(spline(r_point)[:-1])
+        if r_point > 1:
+            r_point = 1
+        self.left_coords = CartesianCoordinates(path_spline.coords_at(l_point))
+        self.right_coords = CartesianCoordinates(
+            path_spline.coords_at(r_point)
+        )
         # todo check the n_images formulas
         return None
 

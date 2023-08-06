@@ -129,7 +129,9 @@ class PathSpline:
 
         return cls(coords_list=coords_list, energies=energies)  # type: ignore
 
-    def path_integral(self, l_bound: float, u_bound: float) -> float:
+    def path_integral(
+        self, l_bound: float = 0.0, u_bound: float = 1.0
+    ) -> float:
         """
         Integrate the parametric spline to obtain the length of the
         path, in a given range
@@ -202,7 +204,9 @@ class PathSpline:
 
         return float(res.root)
 
-    def energy_peak(self, l_bound: float, u_bound: float) -> Optional[float]:
+    def energy_peak(
+        self, l_bound: float = 0.0, u_bound: float = 1.0
+    ) -> Optional[float]:
         """
         Get the peak of the path within a given range,
         by using the energy spline
