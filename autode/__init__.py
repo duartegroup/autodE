@@ -41,7 +41,7 @@ Bumping the version number requires following the release proceedure:
   - Merge when tests pass
 """
 
-__version__ = "1.4.0"
+__version__ = "1.4.1"
 
 
 __all__ = [

@@ -31,10 +31,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install libarchive
-      if: ${{ contains(matrix.os, 'macos') }}
-      run: brew install libarchive
-
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: ${{ matrix.python-version }}
@@ -45,7 +41,8 @@ jobs:
       if: ${{ contains(matrix.os, 'macos') }}
       run: conda install mamba libarchive
 
-    - name: Install mamba
+    - name: Install mamba on Linux or Windows
+      if: ${{ !contains(matrix.os, 'macos') }}
       run: conda install mamba
 
     - name: Install
