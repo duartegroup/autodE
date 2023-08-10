@@ -31,6 +31,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install libarchive
+      run: brew install libarchive
+
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: ${{ matrix.python-version }}
