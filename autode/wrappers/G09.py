@@ -652,7 +652,11 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         for line in reversed(calc.output.file_lines):
 
-            if r"\\@" in line or line.startswith(" @"):
+            if (
+                r"\\@" in line
+                or line.startswith(" @")
+                or line.startswith(" \@")
+            ):
                 append_line = True
 
             if append_line:
