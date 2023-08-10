@@ -1,6 +1,17 @@
 Changelog
 =========
 
+
+1.4.1
+------
+-------
+
+
+Bug Fixes
+*********
+- Fixes Hessian extraction in some G16 output files
+
+
 1.4.0
 --------
 ----------
