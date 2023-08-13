@@ -4,7 +4,7 @@ Routines for interpolation of a path or series of images
 from typing import List, Optional, Union, Sequence, TYPE_CHECKING
 import numpy as np
 from math import sqrt
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import CubicSpline, CubicHermiteSpline
 from scipy.integrate import quad
 from scipy.optimize import root_scalar
 
@@ -70,6 +70,13 @@ class PathSpline:
 
     @property
     def path_distances(self) -> List[float]:
+        """
+        Locations of each point in the current spline, according
+        to normalised Euclidean distances (chord-length parameterisation)
+
+        Returns:
+            (list[float]):
+        """
         assert self._path_spline is not None
         return list(self._path_spline.x)
 
@@ -80,12 +87,47 @@ class PathSpline:
         Will overwrite any energies used during init.
 
         Args:
-            energies (list[float|Energy]):
+            energies (Sequence[float|Energy]):
         """
         energies = [float(en) for en in energies]
         self._energy_spline = CubicSpline(
             x=self.path_distances,
             y=energies,
+        )
+        return None
+
+    def fit_energies_gradients(
+        self,
+        energies: Sequence[Union[float, "Energy"]],
+        gradients: Sequence[np.ndarray],
+    ):
+        """
+        Fit the energy spline based on the nodes of the current
+        path spline, using supplied energy and gradients at those
+        nodes. Will overwrite any energies set during init.
+
+        Args:
+            energies (Sequence[float|Energy]):
+            gradients (Sequence[np.ndarray]):
+        """
+        assert len(energies) == len(gradients) == len(self.path_distances)
+        energies = [float(en) for en in energies]
+        energy_derivs = np.zeros(len(energies))
+
+        path_deriv = self._path_spline.derivative()
+        for idx, point in enumerate(self.path_distances):
+            # Tangent of path at this point
+            tau = path_deriv(point)
+            tau_hat = tau / np.linalg.norm(tau)
+            # Project cartesian gradient along tangent
+            assert gradients[idx].shape == tau_hat.shape
+            proj_grad = np.dot(tau_hat, gradients[idx])
+            energy_derivs[idx] = proj_grad
+
+        self._energy_spline = CubicHermiteSpline(
+            x=self.path_distances,
+            y=energies,
+            dydx=energy_derivs,
         )
         return None
 

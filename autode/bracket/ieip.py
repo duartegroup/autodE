@@ -230,43 +230,50 @@ class ElasticImagePair(EuclideanImagePair):
         # get the original reactant and product coords
         first_left = self._left_history[0]
         first_right = self._right_history[0]
-        path_intervals = [
-            0.0,
-            np.linalg.norm(first_left - self.left_coords),
-            self.dist,
-            np.linalg.norm(self.right_coords - first_right),
-        ]
-        path_distances = np.cumsum(path_intervals)
-        target_data = np.zeros(shape=(4, len(self.left_coords) + 1))
-        for idx, coords in enumerate(
-            [first_left, self.left_coords, self.right_coords, first_right]
-        ):
-            target_data[idx, :-1] = np.array(coords)
-            target_data[idx, -1] = coords.e
 
-        spline = CubicSpline(
-            x=path_distances,
-            y=target_data,
-            axis=0,
+        # get the last good position of image pairs, before jumping barrier
+        before_left = self._left_history[-2]
+        before_right = self._right_history[-2]
+
+        coords_list = [first_left, before_left, before_right, first_right]
+
+        path_spline = PathSpline(
+            [first_left, before_left, before_right, first_right]
         )
-        peak = _get_path_spline_maximum(spline, 0, path_distances[-1])
-        # check that the peak is not in between current imagepair
-        # because one image should have jumped over the barrier
-        if path_distances[1] < peak < path_distances[2]:
+        path_spline.fit_energies_gradients(
+            energies=[coords.e for coords in coords_list],
+            gradients=[coords.g for coords in coords_list],
+        )
+
+        peak_pos = path_spline.energy_peak()
+        if peak_pos is None:
             raise RuntimeError(
-                "Image pair regeneration failed after one image jumped over"
-                "the barrier. Aborting run..."
+                "Spline fitting failed, unable to regenerate image pair!"
             )
 
-        # regenerate image pair with the same distance as the current one
-        l_point = peak - self.dist / 2
-        r_point = peak + self.dist / 2
+        before_dist = path_spline.path_integral(
+            path_spline.path_distances[1],
+            path_spline.path_distances[2],
+        )
+        l_point = path_spline.integrate_upto_length(
+            span=before_dist / 2,
+            x0=peak_pos,
+            sol_guess=peak_pos - before_dist / 2,
+        )
+        r_point = path_spline.integrate_upto_length(
+            span=before_dist / 2,
+            x0=peak_pos,
+            sol_guess=peak_pos + before_dist / 2,
+        )
+
         if l_point < 0:
             l_point = 0
-        if r_point > path_distances[-1]:
-            r_point = 0
-        self.left_coords = CartesianCoordinates(spline(l_point)[:-1])
-        self.right_coords = CartesianCoordinates(spline(r_point)[:-1])
+        if r_point > 1:
+            r_point = 1
+        self.left_coords = CartesianCoordinates(path_spline.coords_at(l_point))
+        self.right_coords = CartesianCoordinates(
+            path_spline.coords_at(r_point)
+        )
         return None
 
 
