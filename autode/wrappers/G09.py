@@ -2,7 +2,7 @@ import numpy as np
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
 
-from typing import Optional, List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 from copy import deepcopy
 from autode.constants import Constants
 from autode.utils import run_external
@@ -655,7 +655,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             if (
                 r"\\@" in line
                 or line.startswith(" @")
-                or line.startswith(" \@")
+                or line.startswith(r" \@")
             ):
                 append_line = True
 
