@@ -35,8 +35,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         activate-environment: test
-        mamba-version: "*"
         channels: conda-forge
+
+    - name: Install mamba on MacOS
+      if: ${{ contains(matrix.os, 'macos') }}
+      run: conda install mamba libarchive
+
+    - name: Install mamba on Linux or Windows
+      if: ${{ !contains(matrix.os, 'macos') }}
+      run: conda install mamba
 
     - name: Install
       run: |
