@@ -254,7 +254,7 @@ def test_unknown_entropy_method():
     with pytest.raises(KeyError):
         _ = calculate_thermo_cont(
             species=h2,
-            method="an_unkown_method",
+            lfm_method="an_unkown_method",
             temp=298,
             ss="1M",
             shift=100,
@@ -300,3 +300,22 @@ def test_calc_thermo_with_calc():
 
     assert os.path.exists("h2_calc_hess_orca.inp")
     assert "B3LYP " in open("h2_calc_hess_orca.inp", "r").readline()
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
+def test_themochem_minenkov_is_close_to_grimme():
+
+    mol = Molecule("alkane_hess_orca.xyz")
+    calc = Calculation(
+        name="tmp", molecule=mol, method=orca, keywords=orca.keywords.hess
+    )
+    calc.set_output_filename("alkane_hess_orca.hess")
+
+    mol.calc_thermo(calc=calc, ss="1atm", sn=1, lfm_method="grimme")
+    G_grimme = mol.g_cont
+
+    mol.calc_thermo(calc=calc, ss="1atm", sn=1, lfm_method="minenkov")
+    G_minenkov = mol.g_cont
+
+    mad = abs(float(G_grimme.to("kcal mol-1") - G_minenkov.to("kcal mol-1")))
+    assert 1e-5 < mad < 1  # Absolute differnce should be small but non zero

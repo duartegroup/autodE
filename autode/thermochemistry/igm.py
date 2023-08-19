@@ -45,10 +45,9 @@ class LFMethod(Enum):
 class _ThermoParams:
     def __init__(self, default_sigma_r: int = 1, **kwargs: Any) -> None:
 
-        if "method" in kwargs:
-            self.method = LFMethod[kwargs["method"].lower()]
-        else:
-            self.method = LFMethod[Config.lfm_method]
+        self.method = kwargs.get("lfm_method", LFMethod[Config.lfm_method])
+        if isinstance(self.method, str):
+            self.method = LFMethod[self.method.lower()]
 
         self.temp = kwargs["temp"]
         self.ss = kwargs.get("ss", Config.standard_state)
@@ -120,6 +119,10 @@ def calculate_thermo_cont(
             "Cannot calculate vibrational entropy/internal energy"
             f" no frequencies present for {species.name}."
         )
+
+    logger.info(
+        f"Calculating themochemistry with {params.method} at {params.temp} K"
+    )
 
     S_cont = _entropy(species, params)
     U_cont = _internal_energy(species, params)
@@ -450,7 +453,9 @@ def _entropy(species: "Species", params: _ThermoParams) -> float:
     elif params.method == LFMethod.truhlar:
         s_vib = _truhlar_s_vib(species, temp, shift_freq=params.shift)
 
-    elif params.method == LFMethod.grimme:
+    elif (
+        params.method == LFMethod.grimme or params.method == LFMethod.minenkov
+    ):
         s_vib = _grimme_s_vib(
             species, temp, omega_0=params.w0, alpha=params.alpha
         )
