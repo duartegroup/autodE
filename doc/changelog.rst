@@ -6,6 +6,10 @@ Changelog
 ------
 -------
 
+Functionality improvements
+**************************
+- Adds the thermochemistry method from A. Otlyotov, Y. Minenkov in https://doi.org/10.1002/jcc.27129
+
 
 Bug Fixes
 *********
@@ -16,7 +20,7 @@ Bug Fixes
 --------
 ----------
 
-Functionality improvements
+3Functionality improvements
 **************************
 - Adds :code:`temporary_config()` context manager for temporary configuration changes
 - Adds a :code:`ForceConstant` value
