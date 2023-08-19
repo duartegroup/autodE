@@ -1,6 +1,7 @@
 import os
 import pytest
 import numpy as np
+
 from autode import Molecule, Atom, Calculation, HessianKeywords
 from autode.transition_states import TSguess, TransitionState
 from autode.thermochemistry import calculate_thermo_cont
@@ -9,7 +10,7 @@ from autode.values import Energy
 from autode.species import Species
 from autode.methods import ORCA, G09
 from . import testutils
-from autode.thermochemistry.igm import _q_rot_igm, _s_rot_rr, _entropy, _zpe
+from autode.thermochemistry.igm import _q_rot_igm, _s_rot_rr, _zpe
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -250,8 +251,8 @@ def test_unknown_entropy_method():
 
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.7)])
 
-    with pytest.raises(NotImplementedError):
-        _ = _entropy(
+    with pytest.raises(KeyError):
+        _ = calculate_thermo_cont(
             species=h2,
             method="an_unkown_method",
             temp=298,
