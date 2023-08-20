@@ -6,6 +6,10 @@ Changelog
 ------
 -------
 
+Functionality improvements
+**************************
+- Adds the thermochemistry method from A. Otlyotov, Y. Minenkov in https://doi.org/10.1002/jcc.27129
+
 
 Bug Fixes
 *********
