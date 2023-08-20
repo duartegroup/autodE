@@ -177,11 +177,16 @@ class BaseBracketMethod(ABC):
             if self.imgpair.has_jumped_over_barrier:
                 logger.error(
                     "One image has probably jumped over the barrier, in"
-                    f" {self._name} TS search. Please check the"
-                    f" results carefully"
+                    f" {self._name} TS search. Will attempt to recover, "
+                    f"please check the results carefully"
                 )
-                if self._barrier_check:
-                    logger.info(f"Stopping {self._name} calculation")
+                self.imgpair.regenerate_imagepair()
+                # prevent too many regens => means something is wrong
+                if self.imgpair.n_regens > 2:
+                    logger.info(
+                        "Image-pair has been regenerated too many times,"
+                        " exiting..."
+                    )
                     break
 
             if self._exceeded_maximum_iteration:
