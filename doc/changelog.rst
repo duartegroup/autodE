@@ -20,7 +20,7 @@ Bug Fixes
 --------
 ----------
 
-3Functionality improvements
+Functionality improvements
 **************************
 - Adds :code:`temporary_config()` context manager for temporary configuration changes
 - Adds a :code:`ForceConstant` value
