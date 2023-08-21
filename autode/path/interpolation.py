@@ -112,6 +112,7 @@ class PathSpline:
         """
         assert len(energies) == len(gradients) == len(self.path_distances)
         energies = [float(en) for en in energies]
+        gradients = [np.array(grad).flatten() for grad in gradients]
         energy_derivs = np.zeros(len(energies))
 
         path_deriv = self._path_spline.derivative()
@@ -121,7 +122,7 @@ class PathSpline:
             tau_hat = tau / np.linalg.norm(tau)
             # Project cartesian gradient along tangent
             assert gradients[idx].shape == tau_hat.shape
-            proj_grad = np.dot(tau_hat, gradients[idx])
+            proj_grad = np.dot(gradients[idx], tau_hat)
             energy_derivs[idx] = proj_grad
 
         self._energy_spline = CubicHermiteSpline(

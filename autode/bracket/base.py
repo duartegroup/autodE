@@ -25,7 +25,6 @@ class BaseBracketMethod(ABC):
         dist_tol: Union[Distance, float] = Distance(1.0, "ang"),
         gtol: Union[GradientRMS, float] = GradientRMS(1.0e-3, "ha/ang"),
         cineb_at_conv: bool = False,
-        barrier_check: bool = True,
     ):
         """
         Bracketing methods find transition state by using two images, one
@@ -45,9 +44,6 @@ class BaseBracketMethod(ABC):
             gtol: Gradient tolerance for optimisation steps in
                   the method, units Ha/Å if not given
             cineb_at_conv: Whether to run a CI-NEB with from the final points
-            barrier_check: Whether to stop the calculation if one image is
-                           detected to have jumped over the barrier. Do not
-                           turn this off unless you are absolutely sure!
         """
         # imgpair type must be set by subclass
         self.imgpair: Optional["EuclideanImagePair"] = None
@@ -58,7 +54,6 @@ class BaseBracketMethod(ABC):
         self._gtol = GradientRMS(gtol, units="Ha/ang")
 
         self._should_run_cineb = bool(cineb_at_conv)
-        self._barrier_check = bool(barrier_check)
 
     @property
     def _name(self) -> str:

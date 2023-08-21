@@ -295,7 +295,6 @@ def test_dhs_jumping_over_barrier(caplog):
         step_size=0.6,
         dist_tol=0.3,  # smaller dist_tol also to make one side jump
         gtol=5.0e-4,
-        barrier_check=True,
         cineb_at_conv=True,
     )
     with caplog.at_level("WARNING"):
@@ -322,7 +321,6 @@ def test_dhs_stops_if_microiter_exceeded(caplog):
         step_size=0.2,
         dist_tol=1.0,
         gtol=5.0e-4,
-        barrier_check=True,
     )
     with caplog.at_level("WARNING"):
         dhs.calculate(method=XTB(), n_cores=1)

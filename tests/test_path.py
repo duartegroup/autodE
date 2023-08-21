@@ -12,6 +12,7 @@ from autode.input_output import xyz_file_to_molecules
 from autode.bonds import FormingBond, BreakingBond
 from autode.species import Species, Molecule
 from autode.units import Unit, KcalMol
+from autode.utils import work_in_tmp_dir
 from . import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -261,18 +262,37 @@ def test_path_spline_ivp():
 
 @testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "spline_fit.zip"))
-def test_path_spline_peak():
+def test_path_spline_energies():
     # Load NEB optimised path with energies
-    species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
-    spline = PathSpline.from_species_list(species_list, fit_energy=True)
+    neb = NEB.from_file("da_neb_optimised_20.xyz")
+    e_spline = PathSpline.from_species_list(neb.images)
+    e_g_spline = PathSpline.from_species_list(neb.images)
+    # calculate engrad at all points
+    from autode.neb.original import total_energy
+
+    neb.images[0].calc_hessian(XTB())  # TODO change these
+    neb.images[-1].calc_hessian(XTB())
+    total_energy(
+        neb.images.coords(), neb.images, XTB(), n_cores=1, plot_energies=False
+    )
+    e_spline.fit_energies(energies=[image.energy for image in neb.images])
+
+    e_g_spline.fit_energies_gradients(
+        energies=[image.energy for image in neb.images],
+        gradients=[image.gradient for image in neb.images],
+    )
 
     # Check at 10 random points
     test_points = list(np.random.uniform(0, 1, size=10))
     for point in test_points:
-        pred_e = spline.energy_at(point)
-        coords = spline.coords_at(point)
-        tmp_spc = species_list[0].new_species(name=f"calc_{point}")
+        # only energy fit
+        pred_1 = e_spline.energy_at(point)
+        # both energy and gradient fit
+        pred_2 = e_g_spline.energy_at(point)
+        coords = e_spline.coords_at(point)
+        tmp_spc = neb.images[0].new_species(name=f"calc_{point}")
         tmp_spc.coordinates = coords
         tmp_spc.single_point(XTB())
         actual_e = float(tmp_spc.energy)
-        assert np.isclose(pred_e, actual_e, atol=0.02)
+        assert np.isclose(pred_1, actual_e, atol=0.02)
+        assert np.isclose(pred_2, actual_e, atol=0.01)

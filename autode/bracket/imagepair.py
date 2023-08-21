@@ -504,18 +504,17 @@ class EuclideanImagePair(BaseImagePair, ABC):
         so regenerate the image pair by fitting a spline and then
         regenerating images on both sides of the spline peak.
         """
+        assert len(self._total_history) >= 3
         # get the original reactant and product coords
         first_left = self._left_history[0]
         first_right = self._right_history[0]
 
-        # spline through original reactant and
-        coords_list = [
-            first_left,
-            self.left_coords,
-            self.right_coords,
-            first_right,
-        ]
-
+        coords_list = [first_left]
+        if len(self._left_history) > 1:
+            coords_list.append(self.left_coords)
+        if len(self._right_history) > 1:
+            coords_list.append(self.right_coords)
+        coords_list.append(first_right)
         assert all(coords.e and coords.g is not None for coords in coords_list)
 
         path_spline = PathSpline(coords_list)
