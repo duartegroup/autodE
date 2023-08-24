@@ -221,61 +221,6 @@ class ElasticImagePair(EuclideanImagePair):
         # todo check the n_images formulas
         return None
 
-    def regenerate_imagepair(self):
-        """
-        When one image jumps over the barrier, the bracketing is lost,
-        so regenerate the image pair by fitting a spline and then
-        regenerating images on both sides of the spline peak
-        """
-        # get the original reactant and product coords
-        first_left = self._left_history[0]
-        first_right = self._right_history[0]
-
-        # get the last good position of image pairs, before jumping barrier
-        before_left = self._left_history[-2]
-        before_right = self._right_history[-2]
-
-        coords_list = [first_left, before_left, before_right, first_right]
-
-        path_spline = PathSpline(
-            [first_left, before_left, before_right, first_right]
-        )
-        path_spline.fit_energies_gradients(
-            energies=[coords.e for coords in coords_list],
-            gradients=[coords.g for coords in coords_list],
-        )
-
-        peak_pos = path_spline.energy_peak()
-        if peak_pos is None:
-            raise RuntimeError(
-                "Spline fitting failed, unable to regenerate image pair!"
-            )
-
-        before_dist = path_spline.path_integral(
-            path_spline.path_distances[1],
-            path_spline.path_distances[2],
-        )
-        l_point = path_spline.integrate_upto_length(
-            span=before_dist / 2,
-            x0=peak_pos,
-            sol_guess=peak_pos - before_dist / 2,
-        )
-        r_point = path_spline.integrate_upto_length(
-            span=before_dist / 2,
-            x0=peak_pos,
-            sol_guess=peak_pos + before_dist / 2,
-        )
-
-        if l_point < 0:
-            l_point = 0
-        if r_point > 1:
-            r_point = 1
-        self.left_coords = CartesianCoordinates(path_spline.coords_at(l_point))
-        self.right_coords = CartesianCoordinates(
-            path_spline.coords_at(r_point)
-        )
-        return None
-
 
 class IEIPMicroImagePair(EuclideanImagePair):
     """
@@ -469,15 +414,15 @@ class IEIP(BaseBracketMethod):
     Improved Elastic Image Pair Method (i-EIP). It performs an initial
     interpolation followed by spline fitting to redistribute the image
     pair close to the interpolated TS. Then, micro-iterations are performed
-    to move the images closer while maintaining the distance
+    to move the images closer while shortening the distance slowly.
     """
 
     @property
     def _exceeded_maximum_iteration(self) -> bool:
-        """Whether it has exceeded the number of maximum micro-iterations"""
+        """Whether it has exceeded the number of maximum macro-iterations"""
         if self._macro_iter >= self._maxiter:
             logger.error(
-                f"Reached the maximum number of micro-iterations "
+                f"Reached the maximum number of macro-iterations "
                 f"*{self._maxiter}"
             )
             return True
@@ -488,12 +433,12 @@ class IEIP(BaseBracketMethod):
         self,
         initial_species: "Species",
         final_species: "Species",
-        micro_step_size: Distance = Distance(1.5e-5, "ang"),
-        max_micro_per_macro: int = 2000,
-        max_macro_step: Distance = Distance(0.15, "ang"),
+        maxstep: Distance = Distance(0.15, "ang"),
         dist_tol: Union[Distance, float] = Distance(0.3, "ang"),
         gtol: Union[GradientRMS, float] = GradientRMS(0.02, "Ha/ang"),
         maxiter: int = 200,
+        micro_step_size: Distance = Distance(1.5e-5, "ang"),
+        max_micro_per_macro: int = 2000,
         **kwargs,
     ):
         """
@@ -507,12 +452,7 @@ class IEIP(BaseBracketMethod):
 
             final_species: The "product" species
 
-            micro_step_size: The step size for every micro-iteration
-
-            max_micro_per_macro: The maximum number of micro-iterations
-                                per macro-iteration
-
-            max_macro_step: The maximum step size for one macro-iteration
+            maxstep: The maximum step size for one macro-iteration
 
             dist_tol: The Euclidean distance tolerance (between images)
                       for convergence
@@ -520,6 +460,11 @@ class IEIP(BaseBracketMethod):
             gtol: The tolerance for perpendicular gradient RMS norm
 
             maxiter: For i-EIP maxiter is the maximum number of macro-iterations
+
+            micro_step_size: The step size for every micro-iteration
+
+            max_micro_per_macro: The maximum number of micro-iterations
+                                per macro-iteration
 
         """
         # todo what should be the correct value of gtol??
@@ -541,7 +486,7 @@ class IEIP(BaseBracketMethod):
         self._micro_step_size = Distance(micro_step_size, "ang")
         assert self._micro_step_size > 0
         self._max_micro_per = abs(int(max_micro_per_macro))
-        self._max_macro_step = Distance(max_macro_step, "ang")
+        self._max_macro_step = Distance(maxstep, "ang")
         assert self._max_macro_step > 0
 
         # NOTE: In EIP the microiters are done separately in a throwaway
@@ -589,10 +534,10 @@ class IEIP(BaseBracketMethod):
         self.imgpair.update_both_img_engrad()
         self.imgpair.redistribute_imagepair_cubic_spline()
         self.imgpair.update_both_img_engrad()
-        # todo make a new function ll hessian and remove hess method?
+        # TODO: make a new hessian ll function and remove method
         self.imgpair.update_both_img_hessian_by_calc()
         self._target_dist = self.imgpair.dist
-        # todo paper does not say what rmsg should be at beginning
+        # TODO: paper does not say what rmsg should be at beginning, is this reasonable?
         self._target_rms_g = (
             min(max(self.imgpair.dist / self._dist_tol, 1), 2) * self._gtol
         )

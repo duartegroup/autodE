@@ -12,6 +12,7 @@ from autode.values import Distance, PotentialEnergy, Gradient
 from autode.geom import get_rot_mat_kabsch
 from autode.methods import get_lmethod
 from autode.neb import CINEB
+from autode.path.interpolation import PathSpline
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.optimisers.base import OptimiserHistory
@@ -420,6 +421,8 @@ class EuclideanImagePair(BaseImagePair, ABC):
 
         # for storing results from CINEB
         self._cineb_coords: Optional[CartesianCoordinates] = None
+        # counting how many regenerations done
+        self.n_regens = 0
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -494,6 +497,64 @@ class EuclideanImagePair(BaseImagePair, ABC):
             return True
         else:
             return False
+
+    def regenerate_imagepair(self):
+        """
+        When one image jumps over the barrier, the bracketing is lost,
+        so regenerate the image pair by fitting a spline and then
+        regenerating images on both sides of the spline peak.
+        """
+        assert len(self._total_history) >= 3
+        # get the original reactant and product coords
+        first_left = self._left_history[0]
+        first_right = self._right_history[0]
+
+        coords_list = [first_left]
+        if len(self._left_history) > 1:
+            coords_list.append(self.left_coords)
+        if len(self._right_history) > 1:
+            coords_list.append(self.right_coords)
+        coords_list.append(first_right)
+        assert all(coords.e and coords.g is not None for coords in coords_list)
+
+        path_spline = PathSpline(coords_list)
+        path_spline.fit_energies_gradients(
+            energies=[coords.e for coords in coords_list],
+            gradients=[coords.g for coords in coords_list],
+        )
+
+        peak_pos = path_spline.energy_peak()
+        if peak_pos is None:
+            raise RuntimeError(
+                "Spline fitting failed, unable to regenerate image pair!"
+            )
+        # current distance between images in arc length
+        current_dist = path_spline.path_integral(
+            path_spline.path_distances[1],
+            path_spline.path_distances[2],
+        )
+        l_point = path_spline.integrate_upto_length(
+            span=current_dist / 2,
+            x0=peak_pos,
+            sol_guess=peak_pos - current_dist / 2,
+        )
+        r_point = path_spline.integrate_upto_length(
+            span=current_dist / 2,
+            x0=peak_pos,
+            sol_guess=peak_pos + current_dist / 2,
+        )
+
+        if l_point < 0:
+            l_point = 0
+        if r_point > 1:
+            r_point = 1
+        self.left_coords = CartesianCoordinates(path_spline.coords_at(l_point))
+        self.right_coords = CartesianCoordinates(
+            path_spline.coords_at(r_point)
+        )
+        logger.info("Successfully regenerated image-pair by spline fitting")
+        self.n_regens += 1
+        return None
 
     def run_cineb_from_end_points(self) -> None:
         """

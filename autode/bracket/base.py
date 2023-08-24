@@ -25,7 +25,6 @@ class BaseBracketMethod(ABC):
         dist_tol: Union[Distance, float] = Distance(1.0, "ang"),
         gtol: Union[GradientRMS, float] = GradientRMS(1.0e-3, "ha/ang"),
         cineb_at_conv: bool = False,
-        barrier_check: bool = True,
     ):
         """
         Bracketing methods find transition state by using two images, one
@@ -45,9 +44,6 @@ class BaseBracketMethod(ABC):
             gtol: Gradient tolerance for optimisation steps in
                   the method, units Ha/Å if not given
             cineb_at_conv: Whether to run a CI-NEB with from the final points
-            barrier_check: Whether to stop the calculation if one image is
-                           detected to have jumped over the barrier. Do not
-                           turn this off unless you are absolutely sure!
         """
         # imgpair type must be set by subclass
         self.imgpair: Optional["EuclideanImagePair"] = None
@@ -58,7 +54,6 @@ class BaseBracketMethod(ABC):
         self._gtol = GradientRMS(gtol, units="Ha/ang")
 
         self._should_run_cineb = bool(cineb_at_conv)
-        self._barrier_check = bool(barrier_check)
 
     @property
     def _name(self) -> str:
@@ -177,11 +172,16 @@ class BaseBracketMethod(ABC):
             if self.imgpair.has_jumped_over_barrier:
                 logger.error(
                     "One image has probably jumped over the barrier, in"
-                    f" {self._name} TS search. Please check the"
-                    f" results carefully"
+                    f" {self._name} TS search. Will attempt to recover, "
+                    f"please check the results carefully"
                 )
-                if self._barrier_check:
-                    logger.info(f"Stopping {self._name} calculation")
+                self.imgpair.regenerate_imagepair()
+                # prevent too many regens => means something is wrong
+                if self.imgpair.n_regens > 2:
+                    logger.info(
+                        "Image-pair has been regenerated too many times,"
+                        " exiting..."
+                    )
                     break
 
             if self._exceeded_maximum_iteration:
