@@ -84,6 +84,22 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             file=inp_file,
         )
         return None
+    
+    def print_angular_constraints(self, inp_file, molecule):
+        """Add angle/dihedral constraints to the input file"""
+
+        if molecule.constraints.angular is None:
+            return None
+        for key, angle in molecule.constraints.angular.items():
+            # XTB counts from 1 so increment atom ids by 1
+            atom_idxs = [i+1 for i in key]
+            constraint_type = "angle" if len(key) == 3 else "dihedral"
+            print(
+                f"$constrain\n"
+                f"{constraint_type}:{', '.join(map(str, atom_idxs))}, {float(angle):.4f}\n$",
+                file=inp_file,
+            )
+        return None
 
     @staticmethod
     def print_point_charge_file(calc: "CalculationExecutor"):
@@ -114,6 +130,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
             self.print_distance_constraints(xcontrol_file, molecule)
             self.print_cartesian_constraints(xcontrol_file, molecule)
+            self.print_angular_constraints(xcontrol_file, molecule)
 
             if calc.input.point_charges is not None:
                 self.print_point_charge_file(calc)
