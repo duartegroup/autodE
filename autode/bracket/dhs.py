@@ -715,6 +715,9 @@ class DHSGS(DHS):
             gs_step = np.zeros_like(dhs_step)
             # hack to ensure the first step is 100% DHS (as GS is not possible)
             dhs_step = dhs_step / (1 - self._gs_mix)
+        else:
+            # rescale GS step as well so that one vector doesn't dominate
+            gs_step *= self._step_size / np.linalg.norm(gs_step)
 
         old_coord = self.imgpair.get_coord_by_side(side)
         new_coord = (
