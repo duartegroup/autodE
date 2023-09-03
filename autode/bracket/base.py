@@ -209,7 +209,7 @@ class BaseBracketMethod(ABC):
 
         self.print_geometries()
         self.plot_energies()
-        if self.ts_guess is not None:
+        if self.converged and self.ts_guess is not None:
             self.ts_guess.print_xyz_file(filename=f"{self._name}_ts_guess.xyz")
         return None
 
