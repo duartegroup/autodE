@@ -14,6 +14,7 @@ Functionality improvements
 Bug Fixes
 *********
 - Fixes Hessian extraction in some G16 output files
+- Fixes large step sizes in DHSGS
 
 
 1.4.0
