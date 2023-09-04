@@ -76,10 +76,8 @@ class BaseBracketMethod(ABC):
         """Whether the bracketing method has converged or not"""
         assert self.imgpair is not None, "Must have an image pair"
 
-        # NOTE: In bracketing methods, usually the geometry
-        # optimisation is done in separate micro-iterations,
-        # which means that the gradient tolerance is checked
-        # elsewhere, and only distance criteria is checked here
+        # NOTE: Usually geometry optimisation is done in separate
+        # micro-iters, so gradient is checked elsewhere
         return self.imgpair.dist <= self._dist_tol
 
     @property
