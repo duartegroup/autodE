@@ -157,7 +157,7 @@ class ElasticImagePair(EuclideanImagePair):
         """
         # Use at least 5 images for interpolation
         n_images = int(_interp_image_density * self.dist - 1)
-        n_images = max(n_images, 5)
+        n_images = max(n_images, 5 + 2)
 
         interp = CINEB.from_end_points(
             self._left_image.copy(), self._right_image.copy(), n_images
@@ -187,12 +187,12 @@ class ElasticImagePair(EuclideanImagePair):
             raise RuntimeError(
                 "The fitted spline does not have a peak! Unable to proceed"
             )
+        # Check the peak is not at the beginning or end
+        assert 0 < peak_x < 1
         # convert to integrated arc lengths
         peak_pos = path_spline.path_integral(0, peak_x)
         path_length = path_spline.path_integral(0, 1)
 
-        # Check the peak is not at the beginning or end
-        assert 0.01 < peak_pos < 0.99
         # todo double check spline code
         # Generate new coordinates a fraction (default 1/4) of total distance
         # on each side of the peak (interpolated TS)
