@@ -363,6 +363,7 @@ class BaseImagePair(ABC):
         """
         Update the molecular hessian of both images by calculation
         """
+        # TODO: refactor into ll_hessian code
         assert self._hess_method is not None
         assert self._n_cores is not None
         n_cores_per_pp = self._n_cores // 2 if self._n_cores < 2 else 1
