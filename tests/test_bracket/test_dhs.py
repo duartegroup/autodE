@@ -211,6 +211,7 @@ def test_dhs_gs_single_step(caplog):
     dhs_step = imgpair.dist_vec
     dhs_step = dhs_step / np.linalg.norm(dhs_step) * step_size
     gs_step = imgpair._right_history[-1] - imgpair._right_history[-2]
+    gs_step = gs_step / np.linalg.norm(gs_step) * step_size
 
     assert np.allclose(hybrid_step, 0.5 * dhs_step + 0.5 * gs_step)
 
