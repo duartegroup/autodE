@@ -10,7 +10,7 @@ import numpy as np
 from autode.methods import get_lmethod
 from autode.bracket.base import BaseBracketMethod
 from autode.bracket.dhs import TruncatedTaylor
-from autode.neb import CINEB
+from autode.neb import NEB
 from autode.path.interpolation import CubicPathSpline
 from autode.bracket.imagepair import EuclideanImagePair
 from autode.opt.coordinates import CartesianCoordinates
@@ -137,19 +137,19 @@ class ElasticImagePair(EuclideanImagePair):
 
     def redistribute_imagepair(
         self,
-        ll_cineb_interp: bool = True,
+        ll_neb_interp: bool = True,
         interp_fraction: float = 1 / 4,
     ):
         """
-        Redistribute the image pair by running a CINEB calculation at lmethod or
+        Redistribute the image pair by running a NEB calculation at lmethod or
         use only IDPP interpolation, and then fitting a cubic spline on energy
         calculated by the method (low_sp keywords). It generates the image pair
         on both sides of the peak on the fitted spline, with a distance of
         interp_fraction * total path distance on either side.
 
         Args:
-            ll_cineb_interp (bool): Whether to use lmethod CINEB for the
-                                    interpolation.
+            ll_neb_interp (bool): Whether to optimise the interpolated path with
+                                  NEB at lmethod for the interpolation.
 
             interp_fraction (float): Fraction of total interpolated path distance
                                      that will be used to generate the image pair
@@ -159,10 +159,10 @@ class ElasticImagePair(EuclideanImagePair):
         n_images = int(_interp_image_density * self.dist - 1)
         n_images = max(n_images, 5 + 2)
 
-        interp = CINEB.from_end_points(
+        interp = NEB.from_end_points(
             self._left_image.copy(), self._right_image.copy(), n_images
         )
-        if ll_cineb_interp:
+        if ll_neb_interp:
             interp.calculate(method=get_lmethod(), n_cores=self._n_cores)
 
         # Only calc intermediate images, initial and final already have energies
@@ -179,7 +179,7 @@ class ElasticImagePair(EuclideanImagePair):
 
         # NOTE: Here we are fitting a parametric spline, with the parameter
         # being the path length along approx. rxn coordinate and target being all
-        # coordinates *and* energy at the points (where QM energy is available)
+        # coordinates *and* energy at the points
         path_spline = CubicPathSpline.from_species_list(interp.images)
         path_spline.fit_energies(energies)
         peak_x = path_spline.energy_peak()
@@ -188,7 +188,7 @@ class ElasticImagePair(EuclideanImagePair):
                 "The fitted spline does not have a peak! Unable to proceed"
             )
         # Check the peak is not at the beginning or end
-        assert 0 < peak_x < 1
+        assert 0.01 < peak_x < 0.99
         # convert to integrated arc lengths
         peak_pos = path_spline.path_integral(0, peak_x)
         path_length = path_spline.path_integral(0, 1)
@@ -415,7 +415,7 @@ class IEIP(BaseBracketMethod):
         micro_step_size: Distance = Distance(1.5e-5, "ang"),
         max_micro_per_macro: int = 2000,
         max_macro_step: Distance = Distance(0.15, "ang"),
-        use_ll_cineb_interp: bool = True,
+        use_ll_neb_interp: bool = True,
         interp_fraction: float = 1 / 4,
         dist_tol: Union[Distance, float] = Distance(0.3, "ang"),
         gtol: Union[GradientRMS, float] = GradientRMS(0.02, "Ha/ang"),
@@ -443,7 +443,7 @@ class IEIP(BaseBracketMethod):
 
             max_macro_step: The maximum step size for one macro-iteration
 
-            use_ll_cineb_interp: Whether to use lmethod CI-NEB for the
+            use_ll_neb_interp: Whether to use lmethod CI-NEB for the
                             initial interpolation
 
             interp_fraction: Generate image pair on both sides of the
@@ -478,7 +478,7 @@ class IEIP(BaseBracketMethod):
         self._max_micro_per = abs(int(max_micro_per_macro))
         self._max_macro_step = Distance(max_macro_step, "ang")
         assert self._max_macro_step > 0
-        self._ll_cineb_interp = bool(use_ll_cineb_interp)
+        self._ll_neb_interp = bool(use_ll_neb_interp)
         self._interp_frac = float(interp_fraction)
         assert 0 < interp_fraction < 1
 
@@ -538,7 +538,7 @@ class IEIP(BaseBracketMethod):
         """
         self.imgpair.update_both_img_engrad()
         self.imgpair.redistribute_imagepair(
-            self._ll_cineb_interp, self._interp_frac
+            self._ll_neb_interp, self._interp_frac
         )
         self.imgpair.update_both_img_engrad()
         self.imgpair.update_both_img_hessian_by_calc()
@@ -567,7 +567,7 @@ class IEIP(BaseBracketMethod):
         )
 
         while not (
-            micro_imgpair.n_micro_steps > self._max_micro_per
+            micro_imgpair.n_micro_steps >= self._max_micro_per
             or micro_imgpair.max_displacement > self._max_macro_step
         ):
             micro_imgpair.update_both_img_engrad()
@@ -583,9 +583,9 @@ class IEIP(BaseBracketMethod):
         logger.info(
             f"Completed one i-EIP macro-iteration with "
             f"{micro_imgpair.n_micro_steps} micro-iterations; maximum"
-            f"image displacement = {micro_imgpair.max_displacement}.\n"
-            f"Left image step: {self.imgpair.last_left_step_size},"
-            f"Right image step: {self.imgpair.last_right_step_size}"
+            f"image displacement = {micro_imgpair.max_displacement:.3f}.\n"
+            f"Left image step: {self.imgpair.last_left_step_size:.3f},"
+            f"Right image step: {self.imgpair.last_right_step_size:.3f}"
         )
         return None
 
@@ -616,6 +616,6 @@ class IEIP(BaseBracketMethod):
         logger.info(
             f"Updating target distance to {self._target_dist:.3f} Å"
             f" and updating target RMS gradient to "
-            f"{self._target_rms_g} Ha/Å"
+            f"{self._target_rms_g:.3f} Ha/Å"
         )
         return None
