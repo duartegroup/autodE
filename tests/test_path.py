@@ -234,3 +234,33 @@ def test_path_spline_energy_peak():
 
     # check that the predicted peak is close to actual peak
     assert calc_rmsd(da_30_peak_coords, peak_coords) < 0.02
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_integral():
+    da_20_path = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    da_30_path = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+    spline_20 = CubicPathSpline.from_species_list(da_20_path)
+    spline_30 = CubicPathSpline.from_species_list(da_30_path)
+
+    length_20 = spline_20.path_integral()
+    length_30 = spline_30.path_integral()
+
+    # length should approximately be the same
+    assert np.isclose(length_20, length_30, atol=0.1)
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_ivp():
+    # initial value problem, integrate upto a certain length
+    species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    spline = CubicPathSpline.from_species_list(species_list)
+
+    length_tot = spline.path_integral(0, 1)
+    # choose ten random lengths and check if the integration
+    # and ivp gives same result
+    fractions = list(np.random.uniform(0, 1, size=10))
+    for frac in fractions:
+        length = length_tot * frac
+        ivp_x = spline.integrate_upto_length(length)
+        assert np.isclose(spline.path_integral(0, ivp_x), length, atol=1e-4)
