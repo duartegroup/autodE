@@ -6,10 +6,16 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.path import Path, AdaptivePath
 from autode.path.adaptive import pruned_active_bonds
+from autode.path.interpolation import CubicPathSpline
+from autode.input_output import xyz_file_to_molecules
 from autode.bonds import FormingBond, BreakingBond
 from autode.species import Species, Molecule
 from autode.units import Unit, KcalMol
+from autode.geom import calc_rmsd
 from . import testutils
+
+here = os.path.dirname(os.path.abspath(__file__))
+spline_datazip = os.path.join(here, "data", "spline_fit.zip")
 
 test_species = Species(name="tmp", charge=0, mult=1, atoms=[Atom("He")])
 test_mol = Molecule(smiles="O")
@@ -199,3 +205,32 @@ def test_adaptive_path():
 
     assert path1 != 0
     assert path1 == path1
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_fitting():
+    species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    spline = CubicPathSpline.from_species_list(species_list, fit_energy=False)
+
+    # point locations should be normalised
+    assert min(spline.path_distances) == 0
+    assert max(spline.path_distances) == 1
+    # energy peak should raise exception if energy not fitted
+    with pytest.raises(RuntimeError, match="Energy spline must be fitted"):
+        spline.energy_peak()
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_energy_peak():
+    da_20_path = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    da_30_path = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+
+    peak_idx = np.argmax([mol.energy for mol in da_30_path])
+    da_30_peak_coords = da_30_path[int(peak_idx)].coordinates
+
+    path_20_spline = CubicPathSpline.from_species_list(da_20_path, True)
+    peak_x = path_20_spline.energy_peak()
+    peak_coords = path_20_spline.coords_at(peak_x).reshape(-1, 3)
+
+    # check that the predicted peak is close to actual peak
+    assert calc_rmsd(da_30_peak_coords, peak_coords) < 0.02

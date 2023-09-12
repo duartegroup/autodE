@@ -222,6 +222,9 @@ class CubicPathSpline:
 
         Returns:
             (float|None): Position of the peak, None if not found
+
+        Raises:
+            RuntimeError: If energy was not fitted
         """
         if self._energy_spline is None:
             raise RuntimeError(
