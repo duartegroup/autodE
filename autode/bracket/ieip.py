@@ -37,7 +37,7 @@ def _calculate_low_sp_energy_for_species(
         n_cores (int): The number of cores
 
     Returns:
-        (PotentialEnergy|None): The single point energy of the species
+        (PotentialEnergy): The single point energy of the species
     """
     from autode import Calculation
 
@@ -69,7 +69,7 @@ def _parallel_calc_energies(
         n_cores (int): Total number of cores for all calculations
 
     Returns:
-        (list[PotentialEnergy|None]): List of energies in order
+        (list[PotentialEnergy]): List of energies in order
     """
     n_cores_per_pp = max(n_cores // len(points), 1)
     n_procs = min(n_cores, len(points))
@@ -196,14 +196,16 @@ class ElasticImagePair(EuclideanImagePair):
         # todo double check spline code
         # Generate new coordinates a fraction (default 1/4) of total distance
         # on each side of the peak (interpolated TS)
-        l_point = path_spline.integrate_upto_length(
-            span=peak_pos - interp_fraction * path_length,
-        )
+        left_span = peak_pos - interp_fraction * path_length
+        if left_span <= 0.01:
+            l_point = 0.0
+        else:
+            l_point = path_spline.integrate_upto_length(
+                span=left_span,
+            )
         r_point = path_spline.integrate_upto_length(
             span=peak_pos + interp_fraction * path_length,
         )
-        if l_point < 0:
-            l_point = 0
         if r_point > 1:
             r_point = 1
         self.left_coords = CartesianCoordinates(path_spline.coords_at(l_point))
@@ -414,9 +416,9 @@ class IEIP(BaseBracketMethod):
         self,
         initial_species: "Species",
         final_species: "Species",
-        micro_step_size: Distance = Distance(1.5e-5, "ang"),
+        micro_step_size: Union[Distance, float] = Distance(1.5e-5, "ang"),
         max_micro_per_macro: int = 2000,
-        max_macro_step: Distance = Distance(0.15, "ang"),
+        max_macro_step: Union[Distance, float] = Distance(0.15, "ang"),
         use_ll_neb_interp: bool = True,
         interp_fraction: float = 1 / 4,
         dist_tol: Union[Distance, float] = Distance(0.3, "ang"),
