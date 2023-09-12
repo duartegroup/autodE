@@ -298,6 +298,8 @@ class IEIPMicroImagePair(EuclideanImagePair):
             (list[np.ndarray]): A list of steps for left and right
                                 image, in order
         """
+        assert self.left_coords.g is not None
+        assert self.right_coords.g is not None
         steps = []
         for coord in [self.left_coords, self.right_coords]:
             force = -coord.g  # type: ignore
@@ -373,7 +375,7 @@ class IEIPMicroImagePair(EuclideanImagePair):
 
     def _flush_old_matrices(self):
         """The old gradient matrices should be removed to save memory"""
-        if self.total_iters / 2 > 3:
+        if self.total_iters / 2 > 2:
             self._left_history[-3].g = None
             self._right_history[-3].g = None
 
