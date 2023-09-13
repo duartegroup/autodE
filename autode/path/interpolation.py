@@ -204,9 +204,7 @@ class CubicPathSpline:
             xtol=1.0e-5,
         )
 
-        if not res.converged:
-            raise RuntimeError("Unable to integrate upto length")
-
+        assert res.converged, "Failed to integrate upto length!"
         return float(res.root)
 
     def energy_peak(

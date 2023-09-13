@@ -215,9 +215,12 @@ def test_path_spline_fitting():
     # point locations should be normalised
     assert min(spline.path_distances) == 0
     assert max(spline.path_distances) == 1
-    # energy peak should raise exception if energy not fitted
+    # energy related methods should raise exception if energy not fitted
     with pytest.raises(RuntimeError, match="Energy spline must be fitted"):
         spline.energy_peak()
+
+    with pytest.raises(RuntimeError, match="Must have fitted energies"):
+        spline.energy_at(0.5)
 
 
 @testutils.work_in_zipped_dir(spline_datazip)
