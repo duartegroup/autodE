@@ -164,6 +164,7 @@ class CubicPathSpline:
             a=l_bound,
             b=u_bound,
             epsabs=1.0e-6,
+            limit=100,
         )
 
         return path_length[0]
