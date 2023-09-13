@@ -5,6 +5,7 @@ import pytest
 from autode.species import Molecule
 from autode.methods import XTB
 from autode.bracket.ieip import IEIP, ElasticImagePair, IEIPMicroImagePair
+from autode.bracket.ieip import _calculate_low_sp_energy_for_species
 from autode.geom import calc_rmsd
 from ..testutils import requires_working_xtb_install, work_in_zipped_dir
 
@@ -38,6 +39,16 @@ def test_ieip_initialisation():
     # the target distance and rms g should be set
     assert ieip._target_dist is not None
     assert ieip._target_rms_g is not None
+    # there should be no ts guess without at least one iter
+    assert ieip.ts_guess is None
+
+
+@requires_working_xtb_install
+def test_low_sp_func():
+    mol = Molecule(smiles="CCO")
+    en = _calculate_low_sp_energy_for_species(mol, method=XTB(), n_cores=1)
+    assert en is not None
+    assert hasattr(en, "units")
 
 
 @requires_working_xtb_install
@@ -90,6 +101,7 @@ def test_ieip_diels_alder():
         use_ll_neb_interp=False,
         interp_fraction=3 / 4,
         dist_tol=set_dist_tol,
+        maxiter=5,
         max_macro_step=set_step_size,
     )
     dist_curr = ieip.imgpair.dist
@@ -112,9 +124,13 @@ def test_ieip_diels_alder():
     curr_de = abs(ieip.imgpair.left_coords.e - ieip.imgpair.right_coords.e)
     assert curr_de < prev_de
 
-    # now take 5 steps
-    while not ieip.converged and ieip._macro_iter <= 5:
+    # now take only 5 steps
+    while not ieip.converged:
         ieip._step()
+        if ieip._exceeded_maximum_iteration:
+            break
+    assert ieip._macro_iter == 5
+    assert len(ieip.imgpair._left_history) == 7
     # check that distance is going down and the rms g is also tightened
     assert ieip.imgpair.dist <= prev_dist
     assert ieip._target_rms_g < prev_rms_g

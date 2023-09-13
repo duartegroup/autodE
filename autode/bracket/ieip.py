@@ -115,7 +115,8 @@ class ElasticImagePair(EuclideanImagePair):
         Returns:
             (Species|None): The ts guess species, if images are available
         """
-        if self.total_iters == 0:
+        # account for initial redistribution
+        if self.total_iters <= 2:
             return None
 
         tmp_spc = self._left_image.new_species(name="peak")
