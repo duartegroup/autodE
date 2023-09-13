@@ -14,22 +14,30 @@ datazip = os.path.join(here, "data", "geometries.zip")
 
 @requires_working_xtb_install
 @work_in_zipped_dir(datazip)
-def test_ieip_redistribution():
+def test_ieip_initialisation():
     rct = Molecule("da_reactant.xyz")
     prod = Molecule("da_product.xyz")
-    imgpair = ElasticImagePair(rct, prod)
-    dist_orig = imgpair.dist
-    imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
-    imgpair.update_both_img_engrad()
-    imgpair.redistribute_imagepair(interp_fraction=1 / 4)
-    assert len(imgpair._left_history) == 2
-    assert len(imgpair._right_history) == 2
+    ieip = IEIP(rct, prod)
+    dist_orig = ieip.imgpair.dist
+    ieip.imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
+    ieip._initialise_run()
+    # redistribution means one pair of coords should be added
+    assert len(ieip.imgpair._left_history) == 2
+    assert len(ieip.imgpair._right_history) == 2
     # the distance should be lower
-    dist_curr = imgpair.dist
+    dist_curr = ieip.imgpair.dist
     assert dist_curr < dist_orig
     # the current geometries should be reasonable
-    assert imgpair._left_image.has_reasonable_coordinates
-    assert imgpair._right_image.has_reasonable_coordinates
+    assert ieip.imgpair._left_image.has_reasonable_coordinates
+    assert ieip.imgpair._right_image.has_reasonable_coordinates
+    # the hessian and gradients should be set
+    assert ieip.imgpair.left_coords.g is not None
+    assert ieip.imgpair.right_coords.g is not None
+    assert ieip.imgpair.left_coords.h is not None
+    assert ieip.imgpair.right_coords.h is not None
+    # the target distance and rms g should be set
+    assert ieip._target_dist is not None
+    assert ieip._target_rms_g is not None
 
 
 @requires_working_xtb_install
