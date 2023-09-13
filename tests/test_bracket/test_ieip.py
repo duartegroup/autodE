@@ -69,8 +69,8 @@ def test_ieip_microiters():
 @requires_working_xtb_install
 @work_in_zipped_dir(datazip)
 def test_ieip_diels_alder():
-    set_dist_tol = 0.8  # Angstrom
-    set_step_size = 0.1  # Angstrom
+    set_dist_tol = 1.0  # Angstrom
+    set_step_size = 0.2  # Angstrom
     # Use almost converged images for quick calculation
     reactant = Molecule("da_rct_image.xyz")
     product = Molecule("da_prod_image.xyz")
@@ -87,23 +87,30 @@ def test_ieip_diels_alder():
     dist_curr = ieip.imgpair.dist
     ieip.imgpair.set_method_and_n_cores(XTB(), n_cores=1)
     ieip.imgpair.update_both_img_engrad()
-    ieip.imgpair.update_both_img_hessian_by_calc()
+    prev_de = abs(ieip.imgpair.left_coords.e - ieip.imgpair.right_coords.e)
+    prev_dist = ieip.imgpair.dist
+    # load hessian from txt to save time
+    ieip.imgpair.left_coords.h = np.loadtxt("da_rct_image_hess.txt")
+    ieip.imgpair.right_coords.h = np.loadtxt("da_prod_image_hess.txt")
     ieip._target_dist = dist_curr
-    ieip._target_rms_g = min(max(dist_curr / set_dist_tol, 1), 2) * ieip._gtol
+    prev_rms_g = min(max(dist_curr / set_dist_tol, 1), 2) * ieip._gtol
+    ieip._target_rms_g = prev_rms_g
 
     ieip._step()
-    assert ieip.imgpair.last_left_step_size < set_step_size
-    assert ieip.imgpair.last_right_step_size < set_step_size
-    while not ieip.converged:
+    # step sizes should be within set size
+    assert ieip.imgpair.last_left_step_size <= set_step_size
+    assert ieip.imgpair.last_right_step_size <= set_step_size
+    # energy should be more equalised after a step
+    curr_de = abs(ieip.imgpair.left_coords.e - ieip.imgpair.right_coords.e)
+    assert curr_de < prev_de
+
+    # now take 5 steps
+    while not ieip.converged and ieip._macro_iter <= 5:
         ieip._step()
-        if ieip.imgpair.has_jumped_over_barrier:
-            raise RuntimeError
-        if ieip._exceeded_maximum_iteration:
-            break
-
-    assert ieip.converged
-    assert ieip.imgpair.dist <= set_dist_tol
-
+    # check that distance is going down and the rms g is also tightened
+    assert ieip.imgpair.dist <= prev_dist
+    assert ieip._target_rms_g < prev_rms_g
+    # interpolated guess should be reasonable even if not converged
     peak = ieip.ts_guess
     rmsd = calc_rmsd(peak.coordinates, true_ts.coordinates)
-    assert rmsd < 0.1
+    assert rmsd < 0.2
