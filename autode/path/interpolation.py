@@ -190,13 +190,17 @@ class CubicPathSpline:
         dx = min(span / 10, 0.1)
 
         x_tmp = span
-        while (bracket_left is None) or (bracket_right is None):
+        for _ in range(500):
             if span_error(x_tmp) < 0:
                 bracket_left = x_tmp
                 x_tmp = x_tmp + dx
             else:
                 bracket_right = x_tmp
                 x_tmp = x_tmp - dx
+
+        assert (
+            bracket_left is not None and bracket_right is not None
+        ), "Unable to find range for root search to integrate upto length"
 
         res = root_scalar(
             f=span_error,
