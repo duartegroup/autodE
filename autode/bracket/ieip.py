@@ -194,7 +194,6 @@ class ElasticImagePair(EuclideanImagePair):
         peak_pos = path_spline.path_integral(0, peak_x)
         path_length = path_spline.path_integral(0, 1)
 
-        # todo double check spline code
         # Generate new coordinates a fraction (default 1/4) of total distance
         # on each side of the peak (interpolated TS)
         left_span = peak_pos - interp_fraction * path_length

@@ -210,12 +210,16 @@ def test_adaptive_path():
 @testutils.work_in_zipped_dir(spline_datazip)
 def test_path_spline_fitting():
     species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
-    spline = CubicPathSpline.from_species_list(species_list, fit_energy=False)
+    species_list[
+        0
+    ].energies.clear()  # delete one energy to prevent energy fitting
+    spline = CubicPathSpline.from_species_list(species_list)
 
     # point locations should be normalised
     assert min(spline.path_distances) == 0
     assert max(spline.path_distances) == 1
-    # energy related methods should raise exception if energy not fitted
+
+    # energy related methods should raise exception as energy not fitted
     with pytest.raises(RuntimeError, match="Energy spline must be fitted"):
         spline.energy_peak()
 
@@ -231,7 +235,7 @@ def test_path_spline_energy_peak():
     peak_idx = np.argmax([mol.energy for mol in da_30_path])
     da_30_peak_coords = da_30_path[int(peak_idx)].coordinates
 
-    path_20_spline = CubicPathSpline.from_species_list(da_20_path, True)
+    path_20_spline = CubicPathSpline.from_species_list(da_20_path)
     peak_x = path_20_spline.energy_peak()
     peak_coords = path_20_spline.coords_at(peak_x).reshape(-1, 3)
 
@@ -274,7 +278,7 @@ def test_path_spline_ivp():
 def test_path_spline_energy_predictions():
     # NEB path optimised at xTB level
     species_list = xyz_file_to_molecules("da_neb_optimised_30.xyz")
-    spline = CubicPathSpline.from_species_list(species_list, fit_energy=True)
+    spline = CubicPathSpline.from_species_list(species_list)
 
     test_points = list(np.random.uniform(0, 1, size=10))
     for idx, point in enumerate(test_points):

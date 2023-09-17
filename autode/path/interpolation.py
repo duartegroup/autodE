@@ -109,16 +109,15 @@ class CubicPathSpline:
 
     @classmethod
     def from_species_list(
-        cls, species_list: Sequence["Species"], fit_energy=False
+        cls, species_list: Sequence["Species"]
     ) -> "CubicPathSpline":
         """
-        Obtain a cubic spline from a list of species.
+        Obtain a cubic spline from a list of species. Will fit energies if they
+        are available on all species provided.
 
         Args:
             species_list (Sequence[Species]): The list of species in the path,
                                 in the order that they appear
-            fit_energy (bool): Whether to use the energies from the species
-                               to fit the energy spline
 
         Returns:
             (PathSpline):
@@ -127,11 +126,9 @@ class CubicPathSpline:
             np.array(mol.coordinates).flatten() for mol in species_list
         ]
 
-        energies = None
-
-        if fit_energy:
-            energies = [mol.energy for mol in species_list]
-            assert all(en is not None for en in energies)
+        energies: Optional[list] = [mol.energy for mol in species_list]
+        if any(mol.energy is None for mol in species_list):
+            energies = None
 
         return cls(coords_list=coords_list, energies=energies)  # type: ignore
 
