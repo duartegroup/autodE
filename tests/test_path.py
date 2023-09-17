@@ -267,3 +267,22 @@ def test_path_spline_ivp():
         length = length_tot * frac
         ivp_x = spline.integrate_upto_length(length)
         assert np.isclose(spline.path_integral(0, ivp_x), length, atol=1e-4)
+
+
+@testutils.requires_working_xtb_install
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_energy_predictions():
+    # NEB path optimised at xTB level
+    species_list = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+    spline = CubicPathSpline.from_species_list(species_list, fit_energy=True)
+
+    test_points = list(np.random.uniform(0, 1, size=10))
+    for idx, point in enumerate(test_points):
+        pred_e = spline.energy_at(point)
+        pred_coords = spline.coords_at(point)
+        tmp_spc = species_list[0].new_species(name=f"calc_{idx}")
+        tmp_spc.coordinates = pred_coords
+        tmp_spc.single_point(method=XTB())
+        actual_e = float(tmp_spc.energy.to("Ha"))
+        # does not seem to be very accurate!
+        assert np.isclose(pred_e, actual_e, atol=0.02)

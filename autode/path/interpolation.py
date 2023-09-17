@@ -58,13 +58,12 @@ class CubicPathSpline:
             (PPoly): The fitted path spline
         """
         # Estimate normalised distances by adjacent Euclidean distances
-        distances = [
+        distances = [0.0] + [
             np.linalg.norm(coords_list[idx + 1] - coords_list[idx])
             for idx in range(len(coords_list) - 1)
         ]
-        path_distances = [0.0] + list(np.cumsum(distances))
-        max_dist = max(path_distances)
-        path_distances = [dist / max_dist for dist in path_distances]
+        path_distances = np.cumsum(distances)
+        path_distances /= max(path_distances)
         coords_data = np.array(coords_list)
         return CubicSpline(x=path_distances, y=coords_data, axis=0)
 
@@ -89,18 +88,18 @@ class CubicPathSpline:
         Args:
             energies (Sequence[float|Energy]):
         """
-        energies = [float(en) for en in energies]
+        energies = [float(energy) for energy in energies]
         self._energy_spline = CubicSpline(
             x=self.path_distances,
             y=energies,
         )
         return None
 
-    def coords_at(self, path_distance) -> np.ndarray:
+    def coords_at(self, path_distance: float) -> np.ndarray:
         """Spline-predicted coordinates at a point"""
         return self._path_spline(path_distance)
 
-    def energy_at(self, path_distance) -> float:
+    def energy_at(self, path_distance: float) -> float:
         """Spline-predicted energy at a point"""
         if self._energy_spline is None:
             raise RuntimeError(
