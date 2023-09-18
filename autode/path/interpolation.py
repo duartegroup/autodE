@@ -185,16 +185,17 @@ class CubicPathSpline:
         assert span > 0
         bracket_left = None
         bracket_right = None
-        dx = min(span / 10, 0.1)
 
         x_tmp = span
         for _ in range(500):
             if span_error(x_tmp) < 0:
                 bracket_left = x_tmp
-                x_tmp = x_tmp + dx
+                x_tmp = x_tmp * 1.5
             else:
                 bracket_right = x_tmp
-                x_tmp = x_tmp - dx
+                x_tmp = x_tmp * 0.5
+            if bracket_left is not None and bracket_right is not None:
+                break
 
         assert (
             bracket_left is not None and bracket_right is not None
