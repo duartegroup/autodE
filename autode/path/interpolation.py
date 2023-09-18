@@ -137,20 +137,21 @@ class CubicPathSpline:
     ) -> float:
         """
         Integrate the parametric spline to obtain the length of the
-        path, in a given range
+        path, in a given range. The bounds should be ideally in the
+        range [0, 1], beyond that range the spline extrapolation is
+        unreliable.
 
         Args:
             l_bound (float): Lower bound of integration
             u_bound (float): Upper bound of integration
 
         Returns:
-            (float): The path length
+            (float): The path length in the units of the coordinates fitted
         """
         deriv = self._path_spline.derivative()
         assert deriv(l_bound).shape[0] > 1
 
-        if l_bound > u_bound:
-            l_bound, u_bound = u_bound, l_bound
+        assert l_bound < u_bound, "Lower bound must be less than upper bound"
 
         def dpath(t):
             return sqrt(np.sum(np.square(deriv(t))))
@@ -165,13 +166,14 @@ class CubicPathSpline:
 
         return path_length[0]
 
-    def integrate_upto_length(self, span) -> float:
+    def integrate_upto_length(self, span: float) -> float:
         """
-        Solve the value of x for which, path integral from 0 to x will
+        Solve the value of x for which path integral from 0 to x will
         be equal to the given length.
 
         Args:
-            span (float): The specified length
+            span (float): The specified length in the units of the
+                          fitted coordinates (must be positive)
 
         Returns:
             (float): The solution

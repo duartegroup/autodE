@@ -5,7 +5,7 @@ References:
 
 [1] Y. Liu, H. Qi, M. Lei, J. Chem. Theory Comput., 2023, 19, 2410-2417
 """
-from typing import Union, Optional, List, TYPE_CHECKING
+from typing import Union, Optional, Tuple, List, TYPE_CHECKING
 import numpy as np
 from autode.methods import get_lmethod
 from autode.bracket.base import BaseBracketMethod
@@ -57,7 +57,7 @@ def _calculate_low_sp_energy_for_species(
 
 
 def _parallel_calc_energies(
-    points: List["Species"], method, n_cores
+    points: List["Species"], method: "Method", n_cores: int
 ) -> List["PotentialEnergy"]:
     """
     Calculate the single point energies on a list of species with
@@ -125,16 +125,24 @@ class ElasticImagePair(EuclideanImagePair):
         return tmp_spc
 
     @property
-    def perpendicular_gradients(self):
+    def perp_rms_gs(self) -> Tuple[GradientRMS, GradientRMS]:
+        """
+        The RMS norms of perpendicular gradient component for left
+        and right image, in order. The parallel component against
+        the distance vector is projected out.
+
+        Returns:
+            (tuple[GradientRMS, GradientRMS]):
+        """
         perp_gradients = []
         d_hat = self.dist_vec / np.linalg.norm(self.dist_vec)
         for coord in [self.left_coords, self.right_coords]:
             parall_g = d_hat * np.dot(d_hat, coord.g)
             perp_g = coord.g - parall_g
             rms_perp_g = np.sqrt(np.mean(np.square(perp_g)))
-            perp_gradients.append(rms_perp_g)
+            perp_gradients.append(GradientRMS(rms_perp_g))
 
-        return perp_gradients
+        return perp_gradients[0], perp_gradients[1]
 
     def redistribute_imagepair(
         self,
@@ -170,6 +178,7 @@ class ElasticImagePair(EuclideanImagePair):
         path_points = interp.images[1:-1]
         # Get energies
         assert self.left_coords.e and self.right_coords.e
+        assert self._method is not None and self._n_cores is not None
         path_energies = _parallel_calc_energies(
             path_points, method=self._method, n_cores=self._n_cores
         )
@@ -462,9 +471,10 @@ class IEIP(BaseBracketMethod):
             maxiter: For i-EIP maxiter is the maximum number of macro-iterations
 
         """
-        if "cineb_at_conv" in kwargs.keys():
-            logger.warning("CI-NEB is not available for i-EIP method!")
-            kwargs.pop("cineb_at_conv")
+        assert (
+            "cineb_at_conv" not in kwargs.keys()
+        ), "CI-NEB refinement is not available for i-EIP method!"
+
         super().__init__(
             initial_species,
             final_species,
@@ -519,8 +529,7 @@ class IEIP(BaseBracketMethod):
         # of image-pair mode with Hessian eigenvalue for convergence, but
         # Hessian is expensive, so we use simpler check
         return self.imgpair.dist < self._dist_tol and all(
-            rms_grad <= self._gtol
-            for rms_grad in self.imgpair.perpendicular_gradients
+            rms_grad <= self._gtol for rms_grad in self.imgpair.perp_rms_gs
         )
 
     @property
@@ -601,7 +610,7 @@ class IEIP(BaseBracketMethod):
         # only update if target RMS force and distance has been reached
         if not all(
             rms_grad <= self._target_rms_g
-            for rms_grad in self.imgpair.perpendicular_gradients
+            for rms_grad in self.imgpair.perp_rms_gs
         ):
             return None
 
