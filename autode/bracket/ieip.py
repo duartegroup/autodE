@@ -595,9 +595,9 @@ class IEIP(BaseBracketMethod):
 
         logger.info(
             f"Completed one i-EIP macro-iteration with "
-            f"{micro_imgpair.n_micro_steps} micro-iterations; maximum"
+            f"{micro_imgpair.n_micro_steps} micro-iterations; maximum "
             f"image displacement = {micro_imgpair.max_displacement:.3f}.\n"
-            f"Left image step: {self.imgpair.last_left_step_size:.3f},"
+            f"Left image step: {self.imgpair.last_left_step_size:.3f}, "
             f"Right image step: {self.imgpair.last_right_step_size:.3f}"
         )
         return None
