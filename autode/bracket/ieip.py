@@ -456,8 +456,9 @@ class IEIP(BaseBracketMethod):
 
             max_macro_step: The maximum step size for one macro-iteration
 
-            use_ll_neb_interp: Whether to use lmethod CI-NEB for the
-                            initial interpolation
+            use_ll_neb_interp: Whether to use lmethod NEB for the
+                            initial interpolation instead of only IDPP
+                            interpolation
 
             interp_fraction: Generate image pair on both sides of the
                             interpolated peak with this fraction of the
