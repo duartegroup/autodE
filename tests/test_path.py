@@ -6,10 +6,16 @@ from autode.atoms import Atom
 from autode.methods import XTB
 from autode.path import Path, AdaptivePath
 from autode.path.adaptive import pruned_active_bonds
+from autode.path.interpolation import CubicPathSpline
+from autode.input_output import xyz_file_to_molecules
 from autode.bonds import FormingBond, BreakingBond
 from autode.species import Species, Molecule
 from autode.units import Unit, KcalMol
+from autode.geom import calc_rmsd
 from . import testutils
+
+here = os.path.dirname(os.path.abspath(__file__))
+spline_datazip = os.path.join(here, "data", "spline_fit.zip")
 
 test_species = Species(name="tmp", charge=0, mult=1, atoms=[Atom("He")])
 test_mol = Molecule(smiles="O")
@@ -199,3 +205,88 @@ def test_adaptive_path():
 
     assert path1 != 0
     assert path1 == path1
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_fitting():
+    species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    species_list[
+        0
+    ].energies.clear()  # delete one energy to prevent energy fitting
+    spline = CubicPathSpline.from_species_list(species_list)
+
+    # point locations should be normalised
+    assert min(spline.path_distances) == 0
+    assert max(spline.path_distances) == 1
+
+    # energy related methods should raise exception as energy not fitted
+    with pytest.raises(RuntimeError, match="Energy spline must be fitted"):
+        spline.energy_peak()
+
+    with pytest.raises(RuntimeError, match="Must have fitted energies"):
+        spline.energy_at(0.5)
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_energy_peak():
+    da_20_path = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    da_30_path = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+
+    peak_idx = np.argmax([mol.energy for mol in da_30_path])
+    da_30_peak_coords = da_30_path[int(peak_idx)].coordinates
+
+    path_20_spline = CubicPathSpline.from_species_list(da_20_path)
+    peak_x = path_20_spline.energy_peak()
+    peak_coords = path_20_spline.coords_at(peak_x).reshape(-1, 3)
+
+    # check that the predicted peak is close to actual peak
+    assert calc_rmsd(da_30_peak_coords, peak_coords) < 0.02
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_integral():
+    da_20_path = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    da_30_path = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+    spline_20 = CubicPathSpline.from_species_list(da_20_path)
+    spline_30 = CubicPathSpline.from_species_list(da_30_path)
+
+    length_20 = spline_20.path_integral()
+    length_30 = spline_30.path_integral()
+
+    # length should approximately be the same
+    assert np.isclose(length_20, length_30, atol=0.1)
+
+
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_ivp():
+    # initial value problem, integrate upto a certain length
+    species_list = xyz_file_to_molecules("da_neb_optimised_20.xyz")
+    spline = CubicPathSpline.from_species_list(species_list)
+
+    length_tot = spline.path_integral(0, 1)
+    # choose ten random lengths and check if the integration
+    # and ivp gives same result
+    fractions = list(np.random.uniform(0, 1, size=10))
+    for frac in fractions:
+        length = length_tot * frac
+        ivp_x = spline.integrate_upto_length(length)
+        assert np.isclose(spline.path_integral(0, ivp_x), length, atol=1e-4)
+
+
+@testutils.requires_working_xtb_install
+@testutils.work_in_zipped_dir(spline_datazip)
+def test_path_spline_energy_predictions():
+    # NEB path optimised at xTB level
+    species_list = xyz_file_to_molecules("da_neb_optimised_30.xyz")
+    spline = CubicPathSpline.from_species_list(species_list)
+
+    test_points = list(np.random.uniform(0, 1, size=10))
+    for idx, point in enumerate(test_points):
+        pred_e = spline.energy_at(point)
+        pred_coords = spline.coords_at(point)
+        tmp_spc = species_list[0].new_species(name=f"calc_{idx}")
+        tmp_spc.coordinates = pred_coords
+        tmp_spc.single_point(method=XTB())
+        actual_e = float(tmp_spc.energy.to("Ha"))
+        # does not seem to be very accurate!
+        assert np.isclose(pred_e, actual_e, atol=0.02)

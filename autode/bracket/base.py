@@ -173,6 +173,7 @@ class BaseBracketMethod(ABC):
             self._step()
 
             if self.imgpair.has_jumped_over_barrier:
+                # TODO: implement image pair regeneration
                 logger.error(
                     "One image has probably jumped over the barrier, in"
                     f" {self._name} TS search. Please check the"
