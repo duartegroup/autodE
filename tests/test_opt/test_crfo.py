@@ -9,7 +9,7 @@ from autode.methods import XTB
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.primitives import DihedralAngle
+from autode.opt.coordinates.primitives import PrimitiveDihedralAngle
 from autode.utils import work_in_tmp_dir
 from .molecules import h2o2_mol
 from ..testutils import requires_working_xtb_install
@@ -226,7 +226,7 @@ def test_baker1997_example():
         pic.append(prim.PrimitiveBondAngle(*triple))
 
     for quadruple in ((4, 1, 0, 2), (4, 1, 0, 3), (5, 1, 0, 2), (5, 1, 0, 3)):
-        pic.append(prim.DihedralAngle(*quadruple))
+        pic.append(prim.PrimitiveDihedralAngle(*quadruple))
 
     dic = DICWithConstraints.from_cartesian(
         x=CartesianCoordinates(c2h3f.coordinates), primitives=pic
@@ -349,4 +349,6 @@ def test_linear_dihedrals_are_removed():
     )
 
     dic = crfo_coords(allene)
-    assert not any(isinstance(q, DihedralAngle) for q in dic.primitives)
+    assert not any(
+        isinstance(q, PrimitiveDihedralAngle) for q in dic.primitives
+    )

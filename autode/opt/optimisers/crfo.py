@@ -16,7 +16,7 @@ from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (
     PrimitiveDistance,
     PrimitiveBondAngle,
-    DihedralAngle,
+    PrimitiveDihedralAngle,
     ConstrainedPrimitiveDistance,
 )
 
@@ -238,4 +238,4 @@ def _dihedrals(species):
                 if np.isclose(species.angle(o, p, n), Angle(np.pi), atol=0.04):
                     continue
 
-                yield DihedralAngle(m, o, p, n)
+                yield PrimitiveDihedralAngle(m, o, p, n)

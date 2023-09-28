@@ -16,7 +16,7 @@ from autode.opt.coordinates.primitives import (
     InverseDistance,
     Primitive,
     PrimitiveDistance,
-    DihedralAngle,
+    PrimitiveDihedralAngle,
 )
 
 if TYPE_CHECKING:
@@ -133,7 +133,7 @@ class PIC(list, ABC):
         self._calc_B(x)
 
         for i, primitive in enumerate(self):
-            if isinstance(primitive, DihedralAngle):
+            if isinstance(primitive, PrimitiveDihedralAngle):
 
                 dq = q[i] - other[i]
 

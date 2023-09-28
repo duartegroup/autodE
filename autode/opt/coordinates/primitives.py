@@ -341,7 +341,7 @@ class ConstrainedPrimitiveBondAngle(ConstrainedPrimitive, PrimitiveBondAngle):
         )
 
 
-class DihedralAngle(Primitive):
+class PrimitiveDihedralAngle(Primitive):
     def __init__(self, m: int, o: int, p: int, n: int):
         """Dihedral angle: m-o-p-n"""
         super().__init__(m, o, p, n)

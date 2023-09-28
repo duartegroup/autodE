@@ -15,7 +15,7 @@ from autode.opt.coordinates.primitives import (
     ConstrainedPrimitiveDistance,
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
-    DihedralAngle,
+    PrimitiveDihedralAngle,
 )
 
 
@@ -613,7 +613,7 @@ def test_angle_primitive_equality():
 def test_dihedral_value():
 
     m = h2o2_mol()
-    dihedral = DihedralAngle(2, 0, 1, 3)
+    dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
 
     assert np.isclose(
         dihedral(m.coordinates), Angle(100.8, units="deg").to("rad"), atol=1.0
@@ -633,7 +633,7 @@ def test_dihedral_primitive_derivative():
     m = h2o2_mol()
     init_coords = m.coordinates.copy()
 
-    dihedral = DihedralAngle(2, 0, 1, 3)
+    dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
 
     for atom_idx in (0, 1, 2, 3):
         for component in CartesianComponent:
@@ -649,8 +649,12 @@ def test_dihedral_primitive_derivative():
 
 def test_dihedral_equality():
 
-    assert DihedralAngle(2, 0, 1, 3) == DihedralAngle(2, 0, 1, 3)
-    assert DihedralAngle(2, 0, 1, 3) == DihedralAngle(3, 1, 0, 2)
+    assert PrimitiveDihedralAngle(2, 0, 1, 3) == PrimitiveDihedralAngle(
+        2, 0, 1, 3
+    )
+    assert PrimitiveDihedralAngle(2, 0, 1, 3) == PrimitiveDihedralAngle(
+        3, 1, 0, 2
+    )
 
 
 @pytest.mark.parametrize(
@@ -681,7 +685,7 @@ def test_dihedral_primitive_derivative_over_zero(h_coord):
     m.atoms[2].coord = h_coord
     init_coords = m.coordinates
 
-    dihedral = DihedralAngle(2, 0, 1, 3)
+    dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
 
     for atom_idx in (0, 1, 2, 3):
         for component in CartesianComponent:
@@ -699,7 +703,7 @@ def test_repr():
         ConstrainedPrimitiveDistance(0, 1, value=1e-3),
         PrimitiveBondAngle(0, 1, 2),
         ConstrainedPrimitiveBondAngle(0, 1, 2, value=1.0),
-        DihedralAngle(0, 1, 2, 3),
+        PrimitiveDihedralAngle(0, 1, 2, 3),
     ]
 
     for p in prims:
