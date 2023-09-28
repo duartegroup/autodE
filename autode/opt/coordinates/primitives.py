@@ -162,7 +162,7 @@ class InverseDistance(_DistanceFunction):
         return 1.0 / np.linalg.norm(_x[self.i] - _x[self.j])
 
 
-class Distance(_DistanceFunction):
+class PrimitiveDistance(_DistanceFunction):
     """
     Distance between two atoms:
 
@@ -203,7 +203,7 @@ class Distance(_DistanceFunction):
         return f"Distance({self.i}-{self.j})"
 
 
-class ConstrainedDistance(ConstrainedPrimitive, Distance):
+class ConstrainedPrimitiveDistance(ConstrainedPrimitive, PrimitiveDistance):
     def __init__(self, i: int, j: int, value: float):
         """
         Distance constrained to a value

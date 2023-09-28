@@ -15,7 +15,7 @@ from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (
     InverseDistance,
     Primitive,
-    Distance,
+    PrimitiveDistance,
     DihedralAngle,
 )
 
@@ -236,7 +236,7 @@ class Distances(_FunctionOfDistances):
 
     @property
     def _primitive_type(self):
-        return Distance
+        return PrimitiveDistance
 
 
 class AnyPIC(PIC):

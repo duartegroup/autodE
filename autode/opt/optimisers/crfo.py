@@ -14,10 +14,10 @@ from autode.opt.coordinates.internals import PIC, AnyPIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (
-    Distance,
+    PrimitiveDistance,
     BondAngle,
     DihedralAngle,
-    ConstrainedDistance,
+    ConstrainedPrimitiveDistance,
 )
 
 
@@ -128,7 +128,7 @@ class CRFOptimiser(RFOptimiser):
                 "additional distances"
             )
             for i, j in combinations(range(self._species.n_atoms), 2):
-                primitives.append(Distance(i, j))
+                primitives.append(PrimitiveDistance(i, j))
 
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords, primitives=primitives
@@ -161,10 +161,10 @@ class CRFOptimiser(RFOptimiser):
             ):
 
                 r = self._species.constraints.distance[(i, j)]
-                pic.append(ConstrainedDistance(i, j, value=r))
+                pic.append(ConstrainedPrimitiveDistance(i, j, value=r))
 
             else:
-                pic.append(Distance(i, j))
+                pic.append(PrimitiveDistance(i, j))
 
         for o in range(self._species.n_atoms):
             for (n, m) in combinations(graph.neighbors(o), r=2):

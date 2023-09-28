@@ -11,7 +11,7 @@ from itertools import combinations
 from typing import TYPE_CHECKING, Tuple, Any
 
 from autode.opt.coordinates import CartesianCoordinates, DIC, OptCoordinates
-from autode.opt.coordinates.primitives import Distance
+from autode.opt.coordinates.primitives import PrimitiveDistance
 from autode.opt.optimisers import CRFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.exceptions import OptimiserStepError
@@ -146,7 +146,7 @@ class HybridTRMOptimiser(CRFOptimiser):
                 "additional distances"
             )
             for i, j in combinations(range(self._species.n_atoms), 2):
-                primitives.append(Distance(i, j))
+                primitives.append(PrimitiveDistance(i, j))
 
         self._coords = DIC.from_cartesian(x=cart_coords, primitives=primitives)
         return None

@@ -11,8 +11,8 @@ from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
 from autode.opt.coordinates.primitives import (
     InverseDistance,
-    Distance,
-    ConstrainedDistance,
+    PrimitiveDistance,
+    ConstrainedPrimitiveDistance,
     BondAngle,
     ConstrainedBondAngle,
     DihedralAngle,
@@ -49,7 +49,7 @@ def test_dist_primitives():
 
     x = CartesianCoordinates(arr)
 
-    inv_dist = Distance(0, 1)
+    inv_dist = PrimitiveDistance(0, 1)
     assert np.isclose(inv_dist(x), 2.0)
 
     assert np.isclose(
@@ -565,7 +565,7 @@ def test_pic_b_no_primitives():
 
 def test_constrained_distance_satisfied():
 
-    d = ConstrainedDistance(0, 1, value=1.0)
+    d = ConstrainedPrimitiveDistance(0, 1, value=1.0)
 
     x = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.5]])
 
@@ -695,8 +695,8 @@ def test_repr():
 
     prims = [
         InverseDistance(0, 1),
-        Distance(0, 1),
-        ConstrainedDistance(0, 1, value=1e-3),
+        PrimitiveDistance(0, 1),
+        ConstrainedPrimitiveDistance(0, 1, value=1e-3),
         BondAngle(0, 1, 2),
         ConstrainedBondAngle(0, 1, 2, value=1.0),
         DihedralAngle(0, 1, 2, 3),
@@ -757,7 +757,7 @@ def test_constrained_angle_equality():
 def test_dics_cannot_be_built_with_incomplete_primitives():
 
     x = CartesianCoordinates(methane_mol().coordinates)
-    primitives = PIC(Distance(0, 1))
+    primitives = PIC(PrimitiveDistance(0, 1))
 
     with pytest.raises(RuntimeError):
         _ = DIC.from_cartesian(x=x, primitives=primitives)
