@@ -100,13 +100,20 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
     )
 
     # Run an energy + gradient evaluation in parallel across all images
-    with ProcessPool(max_workers=n_cores) as pool:
-        results = [
-            pool.submit(energy_gradient, images[i], method, n_cores_pp)
+    if isinstance(method, Method):
+        with ProcessPool(max_workers=n_cores) as pool:
+            results = [
+                pool.submit(energy_gradient, images[i], method, n_cores_pp)
+                for i in range(1, len(images) - 1)
+            ]
+
+            images[1:-1] = [res.result() for res in results]
+    else:
+        # turn off parallelisation for IDPP
+        images[1:-1] = [
+            energy_gradient(images[i], method, n_cores_pp)
             for i in range(1, len(images) - 1)
         ]
-
-        images[1:-1] = [res.result() for res in results]
 
     images.increment()
 
