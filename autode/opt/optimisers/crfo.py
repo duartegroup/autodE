@@ -15,7 +15,7 @@ from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (
     PrimitiveDistance,
-    BondAngle,
+    PrimitiveBondAngle,
     DihedralAngle,
     ConstrainedPrimitiveDistance,
 )
@@ -168,7 +168,7 @@ class CRFOptimiser(RFOptimiser):
 
         for o in range(self._species.n_atoms):
             for (n, m) in combinations(graph.neighbors(o), r=2):
-                pic.append(BondAngle(o=o, m=m, n=n))
+                pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
 
         if self._species.n_atoms > 2 and not self._species.is_planar():
             for dihedral in _dihedrals(self._species):

@@ -13,8 +13,8 @@ from autode.opt.coordinates.primitives import (
     InverseDistance,
     PrimitiveDistance,
     ConstrainedPrimitiveDistance,
-    BondAngle,
-    ConstrainedBondAngle,
+    PrimitiveBondAngle,
+    ConstrainedPrimitiveBondAngle,
     DihedralAngle,
 )
 
@@ -588,7 +588,7 @@ def test_angle_primitive_derivative():
     m = water_mol()
     init_coords = m.coordinates.copy()
 
-    angle = BondAngle(0, 1, 2)
+    angle = PrimitiveBondAngle(0, 1, 2)
 
     for atom_idx in (0, 1, 2):
         for component in CartesianComponent:
@@ -606,8 +606,8 @@ def test_angle_primitive_derivative():
 
 def test_angle_primitive_equality():
 
-    assert BondAngle(0, 1, 2) == BondAngle(0, 2, 1)
-    assert BondAngle(0, 1, 2) != BondAngle(2, 1, 0)
+    assert PrimitiveBondAngle(0, 1, 2) == PrimitiveBondAngle(0, 2, 1)
+    assert PrimitiveBondAngle(0, 1, 2) != PrimitiveBondAngle(2, 1, 0)
 
 
 def test_dihedral_value():
@@ -697,8 +697,8 @@ def test_repr():
         InverseDistance(0, 1),
         PrimitiveDistance(0, 1),
         ConstrainedPrimitiveDistance(0, 1, value=1e-3),
-        BondAngle(0, 1, 2),
-        ConstrainedBondAngle(0, 1, 2, value=1.0),
+        PrimitiveBondAngle(0, 1, 2),
+        ConstrainedPrimitiveBondAngle(0, 1, 2, value=1.0),
         DihedralAngle(0, 1, 2, 3),
     ]
 
@@ -709,7 +709,7 @@ def test_repr():
 @pytest.mark.parametrize("sign", [1, -1])
 def test_angle_normal(sign):
 
-    angle = BondAngle(0, 1, 2)
+    angle = PrimitiveBondAngle(0, 1, 2)
     x = np.array([[0.0, 0.0, 0.0], [1.0, sign * 1.0, 1.0], [1.0, 0.0, 1.0]])
 
     assert not np.isinf(angle.derivative(0, 1, x))
@@ -735,7 +735,7 @@ def test_dic_large_step_allowed_unconverged_back_transform():
 
 def test_constrained_angle_delta():
 
-    q = ConstrainedBondAngle(0, 1, 2, value=np.pi)
+    q = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
     mol = water_mol()
     theta = mol.angle(1, 0, 2)
     x = CartesianCoordinates(mol.coordinates)
@@ -745,8 +745,8 @@ def test_constrained_angle_delta():
 
 def test_constrained_angle_equality():
 
-    a = ConstrainedBondAngle(0, 1, 2, value=np.pi)
-    b = ConstrainedBondAngle(0, 2, 1, value=np.pi)
+    a = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
+    b = ConstrainedPrimitiveBondAngle(0, 2, 1, value=np.pi)
 
     assert a == b
 

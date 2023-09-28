@@ -229,7 +229,7 @@ class ConstrainedPrimitiveDistance(ConstrainedPrimitive, PrimitiveDistance):
         return f"ConstrainedDistance({self.i}-{self.j})"
 
 
-class BondAngle(Primitive):
+class PrimitiveBondAngle(Primitive):
     def __init__(self, o: int, m: int, n: int):
         """Bond angle m-o-n"""
         super().__init__(o, m, n)
@@ -306,7 +306,7 @@ class BondAngle(Primitive):
         return f"Angle({self.m}-{self.o}-{self.n})"
 
 
-class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
+class ConstrainedPrimitiveBondAngle(ConstrainedPrimitive, PrimitiveBondAngle):
     def __init__(self, o: int, m: int, n: int, value: float):
         """
         Angle (m-o-n) constrained to a value (in radians)
@@ -336,7 +336,7 @@ class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
     def __eq__(self, other: object):
         return (
             super().__eq__(other)
-            and isinstance(other, ConstrainedBondAngle)
+            and isinstance(other, ConstrainedPrimitiveBondAngle)
             and np.isclose(self._theta0, other._theta0)
         )
 
