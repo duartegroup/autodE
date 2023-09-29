@@ -6,11 +6,11 @@ from autode.species.molecule import Molecule
 from autode.values import Angle
 from autode.exceptions import CoordinateTransformFailed
 from autode.opt.coordinates.base import CartesianComponent
-from autode.opt.coordinates.internals import InverseDistances, PIC
+from autode.opt.coordinates.internals import PrimitiveInverseDistances, PIC
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
 from autode.opt.coordinates.primitives import (
-    InverseDistance,
+    PrimitiveInverseDistance,
     PrimitiveDistance,
     ConstrainedPrimitiveDistance,
     PrimitiveBondAngle,
@@ -25,7 +25,7 @@ def test_inv_dist_primitives():
 
     x = CartesianCoordinates(arr)
 
-    inv_dist = InverseDistance(0, 1)
+    inv_dist = PrimitiveInverseDistance(0, 1)
     assert np.isclose(inv_dist(x), 0.5)  # 1/2.0 = 0.5 Å-1
 
     # Check a couple of derivatives by hand
@@ -68,21 +68,23 @@ def test_dist_primitives():
 
 def test_primitive_equality():
 
-    assert InverseDistance(0, 1) != "a"
-    assert InverseDistance(0, 1) == InverseDistance(0, 1)
-    assert InverseDistance(1, 0) == InverseDistance(0, 1)
+    assert PrimitiveInverseDistance(0, 1) != "a"
+    assert PrimitiveInverseDistance(0, 1) == PrimitiveInverseDistance(0, 1)
+    assert PrimitiveInverseDistance(1, 0) == PrimitiveInverseDistance(0, 1)
 
 
 def test_primitives_equality():
 
     x = CartesianCoordinates(h2().coordinates)
-    primitives = InverseDistances.from_cartesian(x)
+    primitives = PrimitiveInverseDistances.from_cartesian(x)
 
     assert primitives != "a"
-    assert primitives == InverseDistances.from_cartesian(x)
+    assert primitives == PrimitiveInverseDistances.from_cartesian(x)
 
     # Order does not matter for equality
-    assert primitives == InverseDistances(InverseDistance(1, 0))
+    assert primitives == PrimitiveInverseDistances(
+        PrimitiveInverseDistance(1, 0)
+    )
 
 
 def test_cartesian_coordinates():
@@ -205,10 +207,10 @@ def test_basic_dic_properties():
 
 def test_invalid_pic_construction():
 
-    # Cannot construct some primitives e.g. InverseDistances from non Primitive
+    # Cannot construct some primitives e.g. PrimitiveInverseDistances from non Primitive
     # internal coordinates
     with pytest.raises(ValueError):
-        _ = InverseDistances("a")
+        _ = PrimitiveInverseDistances("a")
 
 
 def test_cart_to_dic():
@@ -218,7 +220,7 @@ def test_cart_to_dic():
     x = CartesianCoordinates(arr)
 
     # Should only have 1 internal coordinate
-    pic = InverseDistances.from_cartesian(x)
+    pic = PrimitiveInverseDistances.from_cartesian(x)
     assert len(pic) == 1
 
     # and not have a B matrix
@@ -698,7 +700,7 @@ def test_repr():
     """Test that each primitive has a representation"""
 
     prims = [
-        InverseDistance(0, 1),
+        PrimitiveInverseDistance(0, 1),
         PrimitiveDistance(0, 1),
         ConstrainedPrimitiveDistance(0, 1, value=1e-3),
         PrimitiveBondAngle(0, 1, 2),

@@ -23,7 +23,7 @@ from autode.geom import proj
 from autode.log import logger
 from autode.opt.coordinates.internals import (
     PIC,
-    InverseDistances,
+    PrimitiveInverseDistances,
     InternalCoordinates,
 )
 from autode.exceptions import CoordinateTransformFailed
@@ -114,7 +114,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         if primitives is None:
             logger.info("Building DICs from all inverse distances")
-            primitives = InverseDistances.from_cartesian(x)
+            primitives = PrimitiveInverseDistances.from_cartesian(x)
 
         q = primitives(x)
         U = cls._calc_U(primitives, x)

@@ -120,7 +120,7 @@ class _DistanceFunction(Primitive, ABC):
         )
 
 
-class InverseDistance(_DistanceFunction):
+class PrimitiveInverseDistance(_DistanceFunction):
     """
     Inverse distance between to atoms:
 

@@ -13,7 +13,7 @@ from typing import Any, Optional, Type, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (
-    InverseDistance,
+    PrimitiveInverseDistance,
     Primitive,
     PrimitiveDistance,
     PrimitiveDihedralAngle,
@@ -223,15 +223,15 @@ class _FunctionOfDistances(PIC):
         return None
 
 
-class InverseDistances(_FunctionOfDistances):
+class PrimitiveInverseDistances(_FunctionOfDistances):
     """1 / r_ij for all unique pairs i,j. Will be redundant"""
 
     @property
     def _primitive_type(self):
-        return InverseDistance
+        return PrimitiveInverseDistance
 
 
-class Distances(_FunctionOfDistances):
+class PrimitiveDistances(_FunctionOfDistances):
     """r_ij for all unique pairs i,j. Will be redundant"""
 
     @property
