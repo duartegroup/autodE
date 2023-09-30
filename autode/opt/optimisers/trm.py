@@ -434,7 +434,7 @@ class HybridTRMOptimiser(CRFOptimiser):
         elif 1.25 < ratio < 1.5:
             pass
         else:  # ratio > 1.5
-            set_trust = 0.5 * min(self.alpha, cart_step_size)
+            set_trust = 0.5 * min(self.alpha, Distance(cart_step_size))
             self.alpha = max(set_trust, self._min_alpha)
 
         if (ratio < -1.0) or (ratio > 2.0):
