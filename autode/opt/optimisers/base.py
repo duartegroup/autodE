@@ -988,7 +988,7 @@ class OptimiserHistory(UserList):
         # take a copy so that original is not modified
         tmp_spc = species.copy()
         for coords in self:
-            tmp_spc.coordinates = coords
+            tmp_spc.coordinates = coords.to("cart")
             tmp_spc.energy = coords.e
             tmp_spc.print_xyz_file(filename=filename, append=True)
 
