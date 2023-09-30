@@ -8,14 +8,14 @@ Only minimiser, this is not TS search/constrained optimiser
 import numpy as np
 from scipy.optimize import root_scalar
 from itertools import combinations
-from typing import TYPE_CHECKING, Tuple, Any
+from typing import TYPE_CHECKING, Tuple, Any, Union
 
 from autode.opt.coordinates import CartesianCoordinates, DIC, OptCoordinates
 from autode.opt.coordinates.primitives import PrimitiveDistance
 from autode.opt.optimisers import CRFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.exceptions import OptimiserStepError
-from autode.values import GradientRMS, PotentialEnergy
+from autode.values import GradientRMS, PotentialEnergy, Distance
 from autode.log import logger
 
 if TYPE_CHECKING:
@@ -46,10 +46,10 @@ class HybridTRMOptimiser(CRFOptimiser):
 
     def __init__(
         self,
-        init_trust: float = 0.1,
+        init_trust: Union[Distance, float] = 0.1,
         update_trust: bool = True,
-        min_trust: float = 0.01,
-        max_trust: float = 0.3,
+        min_trust: Union[Distance, float] = 0.01,
+        max_trust: Union[Distance, float] = 0.3,
         damp: bool = True,
         *args: Any,
         **kwargs: Any,
@@ -81,8 +81,8 @@ class HybridTRMOptimiser(CRFOptimiser):
         super().__init__(init_alpha=init_trust, *args, **kwargs)  # type: ignore
 
         assert 0.0 < min_trust < max_trust
-        self._max_alpha = float(max_trust)
-        self._min_alpha = float(min_trust)
+        self._max_alpha = Distance(max_trust, "ang")
+        self._min_alpha = Distance(min_trust, "ang")
         self._upd_alpha = bool(update_trust)
 
         self._damping_on = bool(damp)
@@ -339,7 +339,9 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         # The value of shift parameter lambda must lie within (-infinity, first_b)
         # Need to find the roots of the 1D function cart_step_length_error
-        int_step_size = self.alpha  # starting guess, so ok to use cartesian
+        int_step_size = float(
+            self.alpha
+        )  # starting guess, so ok to use cartesian
         fac = 1.0
         size_min_bound = None
         size_max_bound = None
@@ -422,13 +424,13 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         if ratio < 0.25:
             set_trust = 0.5 * min(self.alpha, cart_step_size)
-            self.alpha = max(set_trust, self._min_alpha)
+            self.alpha = max(Distance(set_trust), self._min_alpha)
         elif 0.25 < ratio < 0.75:
             pass
         elif 0.75 < ratio < 1.25:
             # if step taken is within 5% of the trust radius
             if abs(cart_step_size - self.alpha) / self.alpha < 0.05:
-                self.alpha = min(self.alpha * 1.414, self._max_alpha)
+                self.alpha = min(Distance(1.414 * self.alpha), self._max_alpha)
         elif 1.25 < ratio < 1.5:
             pass
         else:  # ratio > 1.5

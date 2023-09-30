@@ -5,10 +5,11 @@ Notation follows:
 [2] J. Baker, J. Comput. Chem., 13, 240 Ž1992
 """
 import numpy as np
+from typing import Union
 
 from itertools import combinations
 from autode.log import logger
-from autode.values import GradientRMS, Angle
+from autode.values import GradientRMS, Angle, Distance
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import PIC, AnyPIC
 from autode.opt.optimisers.rfo import RFOptimiser
@@ -22,20 +23,24 @@ from autode.opt.coordinates.primitives import (
 
 
 class CRFOptimiser(RFOptimiser):
-    def __init__(self, init_alpha: float = 0.05, *args, **kwargs):
+    def __init__(
+        self, init_alpha: Union[Distance, float] = 0.05, *args, **kwargs
+    ):
         """
         Constrained rational function optimisation
 
         -----------------------------------------------------------------------
         Arguments:
-            init_alpha: Maximum step size
+            init_alpha: Maximum step size, assumed Angstrom if units
+                        not given
 
         See Also:
             :py:meth:`RFOOptimiser <RFOOptimiser.__init__>`
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = float(init_alpha)
+        self.alpha = Distance(init_alpha, units="ang")
+        assert self.alpha > 0
         self._hessian_update_types = [BFGSDampedUpdate, NullUpdate]
 
     def _step(self) -> None:
