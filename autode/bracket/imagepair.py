@@ -128,12 +128,8 @@ class BaseImagePair(ABC):
         self._left_history = OptimiserHistory()
         self._right_history = OptimiserHistory()
         # push the first coordinates into history
-        self.left_coords = CartesianCoordinates(
-            self._left_image.coordinates.to("ang")
-        )
-        self.right_coords = CartesianCoordinates(
-            self._right_image.coordinates.to("ang")
-        )
+        self.left_coords = CartesianCoordinates(self._left_image.coordinates)
+        self.right_coords = CartesianCoordinates(self._right_image.coordinates)
 
     def _sanity_check(self) -> None:
         """
@@ -519,7 +515,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
             return None
 
         peak = cineb.images[cineb.images.peak_idx]  # type: ignore
-        ci_coords = CartesianCoordinates(peak.coordinates.to("ang"))
+        ci_coords = CartesianCoordinates(peak.coordinates)
         ci_coords.e = peak.energy
         ci_coords.update_g_from_cart_g(peak.gradient)
 

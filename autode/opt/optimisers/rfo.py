@@ -73,9 +73,9 @@ class RFOptimiser(NDOptimiser):
         """
         assert self._species is not None, "Must have a species to init"
 
-        self._coords = CartesianCoordinates(
-            self._species.coordinates.to("ang")
-        ).to("dic")
+        self._coords = CartesianCoordinates(self._species.coordinates).to(
+            "dic"
+        )
         self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
         self._coords.make_hessian_positive_definite()
         self._update_gradient_and_energy()
