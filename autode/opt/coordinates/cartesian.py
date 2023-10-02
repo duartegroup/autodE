@@ -22,7 +22,7 @@ class CartesianCoordinates(OptCoordinates):
 
         # if it has units cast into current units
         if isinstance(input_array, ValueArray):
-            input_array = input_array.to(units=units)
+            input_array = input_array.to(units)
 
         return super().__new__(
             cls, np.array(input_array).flatten(), units=units
