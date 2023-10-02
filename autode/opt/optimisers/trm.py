@@ -339,9 +339,8 @@ class HybridTRMOptimiser(CRFOptimiser):
 
         # The value of shift parameter lambda must lie within (-infinity, first_b)
         # Need to find the roots of the 1D function cart_step_length_error
-        int_step_size = float(
-            self.alpha
-        )  # starting guess, so ok to use cartesian
+        int_step_size = float(self.alpha)
+        # starting guess size
         fac = 1.0
         size_min_bound = None
         size_max_bound = None
