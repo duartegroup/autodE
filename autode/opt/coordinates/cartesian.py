@@ -19,6 +19,11 @@ class CartesianCoordinates(OptCoordinates):
 
     def __new__(cls, input_array, units="Å") -> "CartesianCoordinates":
         """New instance of these coordinates"""
+
+        # if it has units cast into current units
+        if isinstance(input_array, ValueArray):
+            input_array = ValueArray.to(input_array, units=units)
+
         return super().__new__(
             cls, np.array(input_array).flatten(), units=units
         )

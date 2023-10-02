@@ -120,7 +120,7 @@ class _DistanceFunction(Primitive, ABC):
         )
 
 
-class InverseDistance(_DistanceFunction):
+class PrimitiveInverseDistance(_DistanceFunction):
     """
     Inverse distance between to atoms:
 
@@ -162,7 +162,7 @@ class InverseDistance(_DistanceFunction):
         return 1.0 / np.linalg.norm(_x[self.i] - _x[self.j])
 
 
-class Distance(_DistanceFunction):
+class PrimitiveDistance(_DistanceFunction):
     """
     Distance between two atoms:
 
@@ -203,7 +203,7 @@ class Distance(_DistanceFunction):
         return f"Distance({self.i}-{self.j})"
 
 
-class ConstrainedDistance(ConstrainedPrimitive, Distance):
+class ConstrainedPrimitiveDistance(ConstrainedPrimitive, PrimitiveDistance):
     def __init__(self, i: int, j: int, value: float):
         """
         Distance constrained to a value
@@ -229,7 +229,7 @@ class ConstrainedDistance(ConstrainedPrimitive, Distance):
         return f"ConstrainedDistance({self.i}-{self.j})"
 
 
-class BondAngle(Primitive):
+class PrimitiveBondAngle(Primitive):
     def __init__(self, o: int, m: int, n: int):
         """Bond angle m-o-n"""
         super().__init__(o, m, n)
@@ -306,7 +306,7 @@ class BondAngle(Primitive):
         return f"Angle({self.m}-{self.o}-{self.n})"
 
 
-class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
+class ConstrainedPrimitiveBondAngle(ConstrainedPrimitive, PrimitiveBondAngle):
     def __init__(self, o: int, m: int, n: int, value: float):
         """
         Angle (m-o-n) constrained to a value (in radians)
@@ -336,12 +336,12 @@ class ConstrainedBondAngle(ConstrainedPrimitive, BondAngle):
     def __eq__(self, other: object):
         return (
             super().__eq__(other)
-            and isinstance(other, ConstrainedBondAngle)
+            and isinstance(other, ConstrainedPrimitiveBondAngle)
             and np.isclose(self._theta0, other._theta0)
         )
 
 
-class DihedralAngle(Primitive):
+class PrimitiveDihedralAngle(Primitive):
     def __init__(self, m: int, o: int, p: int, n: int):
         """Dihedral angle: m-o-p-n"""
         super().__init__(m, o, p, n)
