@@ -153,7 +153,7 @@ class Molecule(Species):
             )
 
         # Override the default name with something more descriptive
-        if self.name == "molecule" or self.name.endswith(".xyz"):
+        if self.name == "molecule" or _is_xyz_filename(self.name):
             self.name = Path(self.name).stem
 
         make_graph(self)
@@ -273,7 +273,3 @@ class Product(Molecule):
 
 def _is_xyz_filename(value: str) -> bool:
     return isinstance(value, str) and value.endswith(".xyz")
-
-
-def _is_default_charge(value: int) -> bool:
-    return value == 0
