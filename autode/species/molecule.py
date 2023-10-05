@@ -135,9 +135,11 @@ class Molecule(Species):
 
         self.atoms = xyz_file_to_atoms(xyz_filename)
         title_line_attrs = attrs_from_xyz_title_line(xyz_filename)
-        logger.info(f"Found {title_line_attrs} in title line")
+        logger.info(f"Found ({title_line_attrs}) in title line")
 
         for attr in ("charge", "mult", "solvent_name"):
+            print(override_attrs[attr], title_line_attrs[attr])
+
             if override_attrs[attr] is None and attr in title_line_attrs:
                 setattr(self, attr, title_line_attrs[attr])
 

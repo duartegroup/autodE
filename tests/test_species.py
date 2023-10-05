@@ -6,6 +6,7 @@ from autode.calculations import Calculation
 from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
+from autode.solvent.solvents import get_solvent
 from autode.geom import calc_rmsd
 from autode.values import Gradient, EnthalpyCont, PotentialEnergy
 from autode.units import ha_per_ang
@@ -714,12 +715,16 @@ def test_cant_init_with_both_xyz_and_smiles():
 
 
 @work_in_tmp_dir()
-def test_species_load_from_xyz_file_retains_spin_and_mult():
+def test_species_load_from_xyz_file_retains_spin_mult_and_solvent():
 
     filename = "tmp.xyz"
-    tmp_mol = Molecule(smiles="[O+]", mult=2, charge=1)
+    tmp_mol = Molecule(smiles="[O+]", mult=2, charge=1, solvent_name="water")
     tmp_mol.print_xyz_file(filename=filename)
 
     loaded_mol = Molecule(filename)
     assert loaded_mol.mult == 2
     assert loaded_mol.charge == 1
+    assert loaded_mol.solvent == get_solvent(
+        solvent_name="water", kind="implicit"
+    )
+    assert loaded_mol.solvent.is_implicit

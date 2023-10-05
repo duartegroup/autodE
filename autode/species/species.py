@@ -1585,5 +1585,29 @@ class Species(AtomCollection):
         """Does this species have the same chemical identity as another?"""
         return self.sorted_atomic_symbols == species.sorted_atomic_symbols
 
+    @property
+    def solvent_name(self) -> Optional[str]:
+        """
+        Name of the solvent or None
+
+        Returns:
+            (str | None):
+        """
+        return None if self._solvent is None else self._solvent.name
+
+    @solvent_name.setter
+    def solvent_name(self, value: Optional[str]) -> None:
+        """
+        Set the solvent of this species given an optional name. Setting this to None
+        removes the solvent
+
+        Arguments:
+            value (str | None): Name of the solvent to use
+        """
+        if value is None:
+            self._solvent = None
+        else:
+            self._solvent = get_solvent(value, kind="implicit")
+
     # --- Method aliases ---
     symmetry_number = sn
