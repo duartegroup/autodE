@@ -76,7 +76,7 @@ def calculate_thermo_cont(
     Arguments:
         species (autode.species.Species):
 
-        temp (float): Temperature in K. Default: 298.15 K
+        temp (autode.values.Temperature): Temperature in K. Default: 298.15 K
 
     Keyword Arguments:
         lfm_method (str | LFMethod): Method used to calculate the molecular
@@ -107,7 +107,7 @@ def calculate_thermo_cont(
     """
     params = _ThermoParams(
         default_sigma_r=species.sn,
-        T=temp if isinstance(temp, float) else float(temp.to("K")),
+        T=float(temp.to("K")) if isinstance(temp, Temperature) else temp,
         **kwargs,
     )
 
@@ -128,23 +128,19 @@ def calculate_thermo_cont(
         f"Calculating themochemistry with {params.method} at {params.T} K"
     )
 
-    S_cont = _entropy(species, params)
-    U_cont = _internal_energy(species, params)
-    H_cont = EnthalpyCont(U_cont + SIConstants.k_b * params.T, units="J").to(
-        "Ha"
-    )
+    S = _entropy(species, params)
+    U = _internal_energy(species, params)
+    H = EnthalpyCont(U + SIConstants.k_b * params.T, units="J").to("Ha")
 
     # Add a method string for how this enthalpic contribution was calculated
-    H_cont.method_str = _thermo_method_str(species, **kwargs)
-    species.energies.append(H_cont)
+    H.method_str = _thermo_method_str(species, **kwargs)
+    species.energies.append(H)
 
-    G_cont = FreeEnergyCont(H_cont.to("J") - params.T * S_cont, units="J").to(
-        "Ha"
-    )
+    G = FreeEnergyCont(H.to("J") - params.T * S, units="J").to("Ha")
 
     # Method used to calculate the free energy is the  same as the enthalpy..
-    G_cont.method_str = H_cont.method_str
-    species.energies.append(G_cont)
+    G.method_str = H.method_str
+    species.energies.append(G)
 
     return None
 
