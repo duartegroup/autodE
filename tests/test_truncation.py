@@ -154,7 +154,6 @@ def test_core_strip():
 
 
 def test_reactant_complex_truncation():
-
     # Non-sensical bond rearrangement
     bond_rearr = BondRearrangement(
         forming_bonds=[(0, 1)], breaking_bonds=[(0, 5)]
@@ -168,7 +167,6 @@ def test_reactant_complex_truncation():
 
 
 def test_product_complex_truncation():
-
     # H atom transfer from methane to ethene
     bond_rearr = BondRearrangement(
         breaking_bonds=[(0, 1)], forming_bonds=[(1, 5)]
@@ -182,7 +180,6 @@ def test_product_complex_truncation():
 
 
 def test_enone_truncation():
-
     enone = Reactant(name="enone", smiles="CC(O)=CC(=O)OC")
     reactant = ReactantComplex(enone)
 
@@ -196,7 +193,6 @@ def test_enone_truncation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "truncation.zip"))
 def test_large_truncation():
-
     mol = ReactantComplex(
         Reactant(name="product", atoms=xyz_file_to_atoms("product.xyz"))
     )
@@ -215,7 +211,6 @@ def test_large_truncation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "truncation.zip"))
 def test_two_component_truncation():
-
     propylbromide = Reactant(name="RBr", atoms=xyz_file_to_atoms("RBr.xyz"))
     chloride = Reactant(name="Cl", smiles="[Cl-]")
 

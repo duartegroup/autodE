@@ -27,7 +27,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_plot_reaction_profile():
-
     r = Reactant(name="reactant", smiles="C")
     p = Product(name="product", smiles="C")
     tsguess = TSguess(
@@ -57,7 +56,6 @@ def test_plot_reaction_profile():
 
 
 def test_stat_points():
-
     # y = (x-2)^2  has a stationary point at x = 2
 
     stationary_points = plotting.get_stationary_points(
@@ -69,7 +67,6 @@ def test_stat_points():
 
 
 def test_error_on_stat_points():
-
     energies = np.array([0, 10, 0])
 
     # Symmetric energy array shpuld give very low difference between the
@@ -78,7 +75,6 @@ def test_error_on_stat_points():
 
 
 def test_calculate_reaction_profile_energies():
-
     test_reac = Reactant(name="test", smiles="C")
     test_reac.energy = -1
 
@@ -159,7 +155,6 @@ def test_reaction_warnings():
 
 
 def test_edge_case_plot():
-
     # Some inputs cannot be plotted as a smooth profile as optimisation of the
     # energies to get the correct stationary values removes some stationary
     # points
@@ -189,7 +184,6 @@ def test_stat_point_minimisation():
     ]
 
     for energies in energies_list:
-
         result = minimize(
             plotting.error_on_stationary_points,
             x0=energies,
@@ -211,7 +205,6 @@ def test_stat_point_minimisation():
 
 
 def test_energy():
-
     energy = plotting.Energy(5, units="Ha", estimated=False)
     assert not energy.is_estimated
     assert energy == 5

@@ -278,7 +278,6 @@ class Keywords(ABC):
                 isinstance(keyword_in_list, Functional)
                 and keyword_type == WFMethod
             ):
-
                 raise ValueError(
                     "Could not set a functional with a "
                     "WF method present, or vice-versa "

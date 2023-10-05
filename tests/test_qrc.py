@@ -11,7 +11,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "qrc.zip"))
 def test_hshift_displacement():
-
     orca = ORCA()
 
     ts = Reactant(name="reactant", smiles="CC[C]([H])[H]")

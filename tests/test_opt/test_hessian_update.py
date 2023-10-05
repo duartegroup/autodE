@@ -16,14 +16,12 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def update_improves_hessian(updater, guess, true):
-
     return updater.conditions_met and (
         np.linalg.norm(updater.updated_h - true) < np.linalg.norm(guess - true)
     )
 
 
 def update_improves_inv_hessian(updater, guess, true):
-
     return updater.conditions_met and (
         np.linalg.norm(updater.updated_h_inv - true)
         < np.linalg.norm(guess - true)
@@ -31,9 +29,7 @@ def update_improves_inv_hessian(updater, guess, true):
 
 
 def check_hessian_update(update_type, grad, h_true):
-
     for pair in [(0.3, 0.3), (0.5, 0.5)]:
-
         x = np.array(pair)
 
         h = h_true(*x)
@@ -43,7 +39,6 @@ def check_hessian_update(update_type, grad, h_true):
         h_inv_guess = np.eye(2)
 
         for increment in (0.1, 0.2, 0.3):
-
             x_new = x - increment
             updater = update_type(
                 s=x_new - x,
@@ -94,7 +89,6 @@ def test_polynomial_hessian_update():
 
 
 def test_null_update():
-
     updater = NullUpdate(h=10.0 * np.eye(4))
 
     # Null update has no conditions on update
@@ -105,7 +99,6 @@ def test_null_update():
 
 
 def test_updater_class():
-
     updater = NullUpdate()
 
     # Cannot update without either an initial H or H^(-1)
@@ -164,7 +157,6 @@ def test_repr_and_strings():
         BFGSSR1Update,
         FlowchartUpdate,
     ):
-
         assert update_type().__repr__() is not None
         assert str(update_type()) is not None
 
@@ -181,7 +173,6 @@ class BFGSPDUpdateNoUpdate(BFGSPDUpdate):
 
 @pytest.mark.parametrize(("eigval", "expected"), ([-1.0, False], [1.0, True]))
 def test_bfgs_pd_update(eigval, expected):
-
     h = np.array([[1.0, 0.0], [0.0, eigval]])
 
     updater = BFGSPDUpdateNoUpdate(
@@ -195,7 +186,6 @@ def test_bfgs_pd_update(eigval, expected):
 
 @work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_bfgs_and_bfgssr1_update_water():
-
     h = np.loadtxt("water_cart_hessian0.txt")
 
     x0 = [-0.0011, 0.3631, -0.0, -0.825, -0.1819, -0.0, 0.8261, -0.1812, 0.0]
@@ -334,7 +324,6 @@ def test_bfgs_sr1_hybrid_update():
 
 
 def test_hessian_requires_at_least_one_index():
-
     h = np.eye(3)
     s = y = np.zeros(3)
     with pytest.raises(ValueError):

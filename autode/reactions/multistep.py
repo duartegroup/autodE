@@ -193,7 +193,6 @@ class MultiStepReaction:
         prev_reaction = self.reactions[step_idx - 1]
 
         for reactant in self.reactions[step_idx].reacs:
-
             try:
                 matching_prod = next(
                     p

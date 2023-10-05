@@ -25,7 +25,6 @@ method = XTB()
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "xtb.zip"))
 def test_xtb_calculation():
-
     test_mol = Molecule(
         name="test_mol", smiles="O=C(C=C1)[C@@](C2NC3C=C2)([H])[C@@]3([H])C1=O"
     )
@@ -81,7 +80,6 @@ def test_xtb_calculation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "xtb.zip"))
 def test_energy_extract_no_energy():
-
     calc = Calculation(
         name="opt",
         molecule=Molecule(smiles="[H][H]"),
@@ -98,7 +96,6 @@ def test_energy_extract_no_energy():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "xtb.zip"))
 def test_point_charge():
-
     test_mol = Molecule(name="test_mol", smiles="C")
 
     # Methane with a point charge fairly far away
@@ -116,7 +113,6 @@ def test_point_charge():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "xtb.zip"))
 def test_gradients():
-
     h2 = Molecule(name="h2", atoms=[Atom("H"), Atom("H", x=1.0)])
     h2.single_point(method)
 
@@ -176,7 +172,6 @@ def test_gradients():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "xtb.zip"))
 def test_xtb_6_3_2():
-
     mol = Molecule(name="CH3Cl", smiles="ClC")
     calc = Calculation(
         name="test", molecule=mol, method=method, keywords=method.keywords.opt
@@ -189,7 +184,6 @@ def test_xtb_6_3_2():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "xtb.zip"))
 def test_xtb_6_1_old():
-
     mol = Molecule(name="methane", smiles="C")
     calc = Calculation(
         name="test", molecule=mol, method=method, keywords=method.keywords.opt
@@ -197,7 +191,6 @@ def test_xtb_6_1_old():
 
     # TODO: check this extracts the right numbers
     for filename in ("xtb_6_1_opt.out", "xtb_no_version_opt.out"):
-
         calc.set_output_filename(filename)
 
         assert set([atom.label for atom in mol.atoms]) == {"C", "H"}
@@ -205,7 +198,6 @@ def test_xtb_6_1_old():
 
 
 class XTBautodEOpt(ExternalMethodEGH, XTB):
-
     __test__ = False
 
     def __init__(self):
@@ -251,7 +243,6 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
         return XTB.output_filename_for(calc)
 
     def generate_input_for(self, calc: "CalculationExecutor") -> None:
-
         calc.molecule.print_xyz_file(filename=calc.input.filename)
         return None
 
@@ -262,7 +253,6 @@ class XTBautodEOpt(ExternalMethodEGH, XTB):
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_with_autode_opt_method():
-
     mol = Molecule(smiles="C")
     calc = Calculation(
         name="methane",
@@ -278,7 +268,6 @@ def test_xtb_with_autode_opt_method():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_with_autode_opt_method_for_a_single_atom():
-
     mol = Molecule(atoms=[Atom("H")], mult=2)
     calc = Calculation(
         name="h_atom",
@@ -295,7 +284,6 @@ def test_xtb_with_autode_opt_method_for_a_single_atom():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_opt_non_contiguous_range_cart_constraints():
-
     mol = Molecule(smiles="CC")
     mol.constraints.cartesian = [0, 1, 2, 5]
 
@@ -316,7 +304,6 @@ def test_xtb_opt_non_contiguous_range_cart_constraints():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_errors_with_infinite_nuclear_repulsion():
-
     # H2 with a zero H-H distance
     mol = Molecule(atoms=[Atom("H"), Atom("H")])
     calc = Calculation(
@@ -332,7 +319,6 @@ def test_xtb_errors_with_infinite_nuclear_repulsion():
 
 @work_in_tmp_dir()
 def test_xtb_did_not_terminate_normally_with_blank_output():
-
     mol = Molecule(atoms=[Atom("H")], mult=2)
     calc = Calculation(
         name="h_atom",
@@ -374,7 +360,6 @@ def test_ade_opt_rerun_with_different_input_skip_saved_opt():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_cartesian_constrained_opt():
-
     init_r = 0.9
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=init_r)])
 
@@ -395,7 +380,6 @@ def test_xtb_cartesian_constrained_opt():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_etemp_and_gfn_var_params_recognised(gfn_ver, etemp):
-
     # test that the electronic_temp and gfn_version Config params are recognised
 
     mol = Molecule(smiles="O")

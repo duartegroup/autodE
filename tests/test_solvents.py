@@ -6,7 +6,6 @@ from autode.exceptions import SolventNotFound
 
 
 def test_solvent():
-
     methane = Molecule(smiles="C")
     methane.solvent = "water"
     assert "water" in repr(methane.solvent).lower()
@@ -23,12 +22,10 @@ def test_solvent():
 
 
 def test_avail_solvents():
-
     assert "water" in orca.available_implicit_solvents
 
 
 def test_get_solvent():
-
     # Solvent must be implicit or explicit
     with pytest.raises(ValueError):
         _ = get_solvent(solvent_name="water", kind="x")
@@ -56,7 +53,6 @@ def test_get_solvent():
 
 
 def test_solvent_dielectric():
-
     water = solvents.get_solvent("water", kind="implicit")
     assert abs(water.dielectric - 78) < 1
 
@@ -64,7 +60,6 @@ def test_solvent_dielectric():
 
 
 def test_unavailable_methods_for_implicit_solvents():
-
     solvent = get_solvent("water", kind="implicit")
     assert solvent.atoms is None
 
@@ -74,7 +69,6 @@ def test_unavailable_methods_for_implicit_solvents():
 
 
 def test_unavailable_methods_for_explicit_solvents():
-
     solvent = get_solvent("water", kind="explicit", num=1)
     with pytest.raises(RuntimeError):
         solvent.to_explicit(num=2)  # already explicit

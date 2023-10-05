@@ -15,7 +15,6 @@ def h2():
 
 
 def test_calculate():
-
     pes = TestPES(species=h2(), rs={(0, 1): (1.5, 10)})
 
     orca = ORCA()
@@ -29,7 +28,6 @@ def test_calculate():
 
 
 def test_plot_and_save_3d():
-
     pes = TestPES(
         rs={
             (0, 1): np.linspace(1, 2, num=10),
@@ -51,7 +49,6 @@ def test_plot_and_save_3d():
 
 
 def test_clear():
-
     pes = TestPES(species=h2(), rs={(0, 1): (1.5, 10)})
     pes._coordinates = np.ones(
         shape=(10, 2, 3)  # 10 points  # 2 atoms
@@ -66,7 +63,6 @@ def test_clear():
 
 
 def test_point_neighbour():
-
     pes = TestPES(rs={(0, 1): np.array([1.0, 2.0, 3.0])})
 
     # A point is not a neighbour if ∆p is zero
@@ -98,7 +94,6 @@ def test_spline():
 
 
 def test_relative_energies():
-
     rel_energies = harmonic_2d_pes().relative_energies
 
     # Minimum should be 0
@@ -109,7 +104,6 @@ def test_relative_energies():
 
 
 def test_reload_from_only_file():
-
     harmonic_2d_pes().save("tmp.npz")
     assert os.path.exists("tmp.npz")
 

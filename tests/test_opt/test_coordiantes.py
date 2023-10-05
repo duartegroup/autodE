@@ -20,7 +20,6 @@ from autode.opt.coordinates.primitives import (
 
 
 def test_inv_dist_primitives():
-
     arr = np.array([[0.0, 0.0, 0.0], [2.0, 0.0, 0.0]])
 
     x = CartesianCoordinates(arr)
@@ -44,7 +43,6 @@ def test_inv_dist_primitives():
 
 
 def test_dist_primitives():
-
     arr = np.array([[0.0, 0.0, 0.0], [2.0, 0.0, 0.0]])
 
     x = CartesianCoordinates(arr)
@@ -67,14 +65,12 @@ def test_dist_primitives():
 
 
 def test_primitive_equality():
-
     assert PrimitiveInverseDistance(0, 1) != "a"
     assert PrimitiveInverseDistance(0, 1) == PrimitiveInverseDistance(0, 1)
     assert PrimitiveInverseDistance(1, 0) == PrimitiveInverseDistance(0, 1)
 
 
 def test_primitives_equality():
-
     x = CartesianCoordinates(h2().coordinates)
     primitives = PrimitiveInverseDistances.from_cartesian(x)
 
@@ -107,7 +103,6 @@ def test_cartesian_coordinates():
 
 
 def test_cartesian_coordinates_hessian_update():
-
     # Simple coordinates with 2 atoms in 3 D
     coords = CartesianCoordinates(np.arange(0, 6).reshape((2, 3)))
 
@@ -127,7 +122,6 @@ def test_cartesian_coordinates_hessian_update():
 
 
 def test_cartesian_coordinate_shift_type():
-
     coords = CartesianCoordinates(np.array([0.0]))
 
     # Shifting coordinates should retain the type
@@ -138,7 +132,6 @@ def test_cartesian_coordinate_shift_type():
 
 
 def test_hessian_set():
-
     coords = CartesianCoordinates(np.array([1.0, 2.0]))
 
     # Hessian and inverse must be NxN matrix, i.e. 2x2 here
@@ -149,7 +142,6 @@ def test_hessian_set():
         np.arange(9).reshape(3, 3),
         np.arange(6).reshape(2, 3),
     ):
-
         with pytest.raises(Exception):
             coords.h = invalid_h
 
@@ -158,7 +150,6 @@ def test_hessian_set():
 
 
 def test_hessian_inv():
-
     coords = CartesianCoordinates(np.array([1.0, 2.0]))
     coords.h = 2.0 * np.eye(2)
 
@@ -170,7 +161,6 @@ def test_hessian_inv():
 
 
 def test_cartesian_update_clear():
-
     arr = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
 
     # Gradients and Hessians are initialized to None
@@ -197,7 +187,6 @@ def test_cartesian_update_clear():
 
 
 def test_basic_dic_properties():
-
     x = DIC(np.array([1.0]))
     assert "dic" in repr(x).lower()
 
@@ -206,7 +195,6 @@ def test_basic_dic_properties():
 
 
 def test_invalid_pic_construction():
-
     # Cannot construct some primitives e.g. PrimitiveInverseDistances from non Primitive
     # internal coordinates
     with pytest.raises(ValueError):
@@ -214,7 +202,6 @@ def test_invalid_pic_construction():
 
 
 def test_cart_to_dic():
-
     arr = np.array([[0.0, 0.0, 0.0], [2.0, 0.0, 0.0]])
 
     x = CartesianCoordinates(arr)
@@ -269,7 +256,6 @@ def test_simple_dic_to_cart():
 
 
 def test_methane_cart_to_dic():
-
     x = CartesianCoordinates(methane_mol().coordinates)
     dic = x.to("dic")
     assert len(dic) == 9  # 3N-6 for N=5
@@ -281,7 +267,6 @@ def test_methane_cart_to_dic():
 
 
 def test_co2_cart_to_dic():
-
     arr = np.array(
         [
             [-1.31254, 0.34625, -0.00000],
@@ -296,7 +281,6 @@ def test_co2_cart_to_dic():
 
 
 def test_grad_transform_linear():
-
     k = 1.0
     r0 = 1.0
 
@@ -318,10 +302,8 @@ def test_grad_transform_linear():
         )
 
     def num_grad(_x, h=1e-8):
-
         _g = []
         for i in range(len(_x.flatten())):
-
             x_ph = np.array(_x, copy=True)
             x_ph[i] += h
 
@@ -348,7 +330,6 @@ def test_grad_transform_linear():
 
 
 def test_hess_transform_linear():
-
     k = 1.0
     coords = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
 
@@ -380,7 +361,6 @@ def test_hess_transform_linear():
         return (energy(x_ph) - energy(_x)) / h
 
     def h_ij(_x, i, j, h=1e-8):
-
         x_ph = np.array(_x, copy=True)
         x_ph[j] += h
 
@@ -391,7 +371,6 @@ def test_hess_transform_linear():
 
         for i in range(6):
             for j in range(6):
-
                 _h[i, j] = h_ij(_x, i, j)
 
         return _h
@@ -415,7 +394,6 @@ def test_hess_positive_definite_no_hessian():
 
 
 def test_hess_positive_definite_sample():
-
     coords = CartesianCoordinates(np.array([1.0, 2.0]))
     coords.h = np.array([[1.0, 0.1], [0.1, -1.0]])
 
@@ -428,7 +406,6 @@ def test_hess_positive_definite_sample():
 
 
 def test_hess_positive_definite_h2o():
-
     # h2o = Molecule('water',
     #                atoms=[Atom('O'),
     #                       Atom('H', -0.8, 0.1),
@@ -533,7 +510,6 @@ def test_hess_positive_definite_h2o():
 
 
 def test_inplace_subtraction():
-
     coords = CartesianCoordinates(np.array([1.0]))
 
     coords -= np.array([0.1])
@@ -541,7 +517,6 @@ def test_inplace_subtraction():
 
 
 def test_coords_back_transform_tensor_clear():
-
     raw_arr = np.arange(6, dtype=float).reshape(2, 3)  # 2 atoms
     cart = CartesianCoordinates(raw_arr)
 
@@ -557,7 +532,6 @@ def test_coords_back_transform_tensor_clear():
 
 
 def test_pic_b_no_primitives():
-
     c = PIC()
 
     # Cannot calculate a B matrix with no constituent primitive internals
@@ -566,7 +540,6 @@ def test_pic_b_no_primitives():
 
 
 def test_constrained_distance_satisfied():
-
     d = ConstrainedPrimitiveDistance(0, 1, value=1.0)
 
     x = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.5]])
@@ -579,7 +552,6 @@ def test_constrained_distance_satisfied():
 
 def test_angle_primitive_derivative():
     def numerical_derivative(a, b, h=1e-8):
-
         y = angle(init_coords)
         coords = init_coords.copy()
         coords[a, int(b)] += h
@@ -607,13 +579,11 @@ def test_angle_primitive_derivative():
 
 
 def test_angle_primitive_equality():
-
     assert PrimitiveBondAngle(0, 1, 2) == PrimitiveBondAngle(0, 2, 1)
     assert PrimitiveBondAngle(0, 1, 2) != PrimitiveBondAngle(2, 1, 0)
 
 
 def test_dihedral_value():
-
     m = h2o2_mol()
     dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
 
@@ -624,7 +594,6 @@ def test_dihedral_value():
 
 def test_dihedral_primitive_derivative():
     def numerical_derivative(a, b, h=1e-8):
-
         y = dihedral(init_coords)
         coords = init_coords.copy()
         coords[a, int(b)] += h
@@ -650,7 +619,6 @@ def test_dihedral_primitive_derivative():
 
 
 def test_dihedral_equality():
-
     assert PrimitiveDihedralAngle(2, 0, 1, 3) == PrimitiveDihedralAngle(
         2, 0, 1, 3
     )
@@ -668,7 +636,6 @@ def test_dihedral_equality():
 )
 def test_dihedral_primitive_derivative_over_zero(h_coord):
     def numerical_derivative(a, b, h=1e-6):
-
         coords = init_coords.copy()
         coords[a, int(b)] += h
         y_plus = dihedral(coords)
@@ -714,7 +681,6 @@ def test_repr():
 
 @pytest.mark.parametrize("sign", [1, -1])
 def test_angle_normal(sign):
-
     angle = PrimitiveBondAngle(0, 1, 2)
     x = np.array([[0.0, 0.0, 0.0], [1.0, sign * 1.0, 1.0], [1.0, 0.0, 1.0]])
 
@@ -722,7 +688,6 @@ def test_angle_normal(sign):
 
 
 def test_dic_large_step_allowed_unconverged_back_transform():
-
     x = CartesianCoordinates(water_mol().coordinates)
     dic = DIC.from_cartesian(x)
 
@@ -740,7 +705,6 @@ def test_dic_large_step_allowed_unconverged_back_transform():
 
 
 def test_constrained_angle_delta():
-
     q = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
     mol = water_mol()
     theta = mol.angle(1, 0, 2)
@@ -750,7 +714,6 @@ def test_constrained_angle_delta():
 
 
 def test_constrained_angle_equality():
-
     a = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
     b = ConstrainedPrimitiveBondAngle(0, 2, 1, value=np.pi)
 
@@ -761,7 +724,6 @@ def test_constrained_angle_equality():
 
 
 def test_dics_cannot_be_built_with_incomplete_primitives():
-
     x = CartesianCoordinates(methane_mol().coordinates)
     primitives = PIC(PrimitiveDistance(0, 1))
 

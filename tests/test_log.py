@@ -3,7 +3,6 @@ import os
 
 
 def test_log_level():
-
     if "AUTODE_LOG_LEVEL" in os.environ:
         set_log_level = os.environ.pop("AUTODE_LOG_LEVEL")
     else:

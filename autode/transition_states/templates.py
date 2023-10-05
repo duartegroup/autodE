@@ -78,7 +78,6 @@ def get_ts_templates(folder_path=None):
     # Attempt to form transition state templates for all the .txt files in the
     # TS template folder
     for filename in os.listdir(folder_path):
-
         if not filename.endswith(".txt"):
             continue
 
@@ -169,7 +168,6 @@ def get_value_from_file(key, file_lines):
     """
 
     for i, line in enumerate(file_lines):
-
         if not line.startswith(str(key)):
             continue
 
@@ -227,7 +225,6 @@ def get_values_dict_from_file(key, file_lines):
     line_idx = file_lines.index(key_lines[0])
 
     for i, line in enumerate(file_lines[line_idx + 1 :]):
-
         # Only consider indented lines
         if not line.startswith("    "):
             break
@@ -374,7 +371,6 @@ class TStemplate:
 
         n_active_edges = 0
         for edge in self.graph.edges:
-
             if "active" not in self.graph.edges[edge].keys():
                 continue
 

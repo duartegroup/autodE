@@ -42,7 +42,6 @@ def bde_curve(smiles):
 
 
 if __name__ == "__main__":
-
     fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(8, 4))
 
     l_elements = ["C", "N", "O", "F", "Cl", "[H]", "P", "S", "Br"]

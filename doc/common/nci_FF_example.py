@@ -100,7 +100,6 @@ def set_charges_vdw(species):
 
 
 if __name__ == "__main__":
-
     h2o = ade.Molecule(smiles="O")
     set_charges_vdw(h2o)
 
@@ -111,7 +110,6 @@ if __name__ == "__main__":
     fixed_idxs = [i for i in range(water_dimer.n_atoms) if i not in shift_idxs]
 
     for conformer in water_dimer.conformers:
-
         opt = minimize(
             rotation_translation,
             x0=np.random.random(size=7),

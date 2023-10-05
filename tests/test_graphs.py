@@ -29,7 +29,6 @@ for edge in edges:
 
 
 def test_graph_generation():
-
     assert h2.graph.number_of_edges() == 1
     assert h2.graph.number_of_nodes() == 2
     assert h2.graph.nodes[0]["atom_label"] == "H"
@@ -50,7 +49,6 @@ def test_edge_cases():
 
 
 def test_remove_bonds():
-
     b3h6 = Species(
         name="diborane",
         charge=0,
@@ -84,7 +82,6 @@ def test_isomorphic_graphs():
 
 
 def test_subgraph_isomorphism():
-
     h_c = Atom(atomic_symbol="H", x=0.0, y=0.0, z=1.4)
     h_d = Atom(atomic_symbol="H", x=0.0, y=0.0, z=2.1)
     h4 = Species(name="H4", atoms=[h_a, h_b, h_c, h_d], charge=0, mult=1)
@@ -110,7 +107,6 @@ def test_subgraph_isomorphism():
 
 
 def test_ts_template():
-
     h_c = Atom(atomic_symbol="H", x=0.0, y=0.0, z=1.4)
 
     ts_template = Species(
@@ -133,7 +129,6 @@ def test_ts_template():
 
 
 def test_truncated_active_graph():
-
     h_c = Atom(atomic_symbol="H", x=0.0, y=0.0, z=1.4)
     h_d = Atom(atomic_symbol="H", x=0.0, y=0.0, z=2.1)
 
@@ -164,7 +159,6 @@ def test_mapping():
 
 
 def test_not_isomorphic():
-
     h_c = Atom(atomic_symbol="H", x=0.0, y=0.0, z=1.0)
     h2_b = Species(name="template", charge=0, mult=1, atoms=[h_a, h_c])
     mol_graphs.make_graph(species=h2_b, rel_tolerance=0.3)
@@ -173,7 +167,6 @@ def test_not_isomorphic():
 
 
 def test_not_isomorphic2():
-
     c = Atom(atomic_symbol="C", x=0.0, y=0.0, z=0.7)
     ch = Species(name="ch", atoms=[h_a, c], charge=0, mult=2)
     mol_graphs.make_graph(ch)
@@ -182,12 +175,10 @@ def test_not_isomorphic2():
 
 
 def test_find_cycles():
-
     assert mol_graphs.find_cycles(g) == [[1, 2, 0]]
 
 
 def test_reac_to_prods():
-
     rearrang = BondRearrangement([(0, 4)], [(3, 4)])
     prod_graph = mol_graphs.reac_graph_to_prod_graph(g, rearrang)
     expected_edges = [(0, 1), (1, 2), (2, 0), (0, 3), (0, 4)]
@@ -206,7 +197,6 @@ def test_split_graph():
 
 
 def test_set_pi_bonds():
-
     ethene = Species(
         name="ethene",
         charge=0,
@@ -244,7 +234,6 @@ def test_set_pi_bonds():
 
 
 def test_species_isomorphism():
-
     h2_copy = Species(name="H2", atoms=[h_a, h_b], charge=0, mult=1)
     assert mol_graphs.species_are_isomorphic(h2, h2_copy)
 
@@ -268,7 +257,6 @@ def test_species_isomorphism():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "e2_tss.zip"))
 def test_isomorphic_no_active():
-
     ts_syn = Conformer(
         name="syn_ts",
         charge=-1,
@@ -290,7 +278,6 @@ def test_isomorphic_no_active():
 
 
 def test_timeout():
-
     if platform.system() == "Windows":
         Config.use_experimental_timeout = True
 
@@ -338,7 +325,6 @@ def test_species_conformers_isomorphic():
 
 
 def test_graph_without_active_edges():
-
     mol = Molecule(name="H2", atoms=[Atom("H"), Atom("H", x=0.7)])
     mol.graph.edges[(0, 1)]["active"] = True
 
@@ -349,7 +335,6 @@ def test_graph_without_active_edges():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "complex_geoms.zip"))
 def test_not_isomorphic_metal_complexes():
-
     ene = Species(
         name="ene", charge=0, mult=1, atoms=xyz_file_to_atoms("co_ene.xyz")
     )
@@ -364,7 +349,6 @@ def test_not_isomorphic_metal_complexes():
 
 
 def test_remove_invalid():
-
     pd_ph3_mei = Molecule(
         name="PdPH3MeI",
         charge=0,
@@ -393,7 +377,6 @@ def test_remove_invalid():
 
 
 def test_expected_planar_geometry():
-
     methane = Molecule(smiles="C")
     assert methane.has_reasonable_coordinates
 
@@ -402,7 +385,6 @@ def test_expected_planar_geometry():
 
 
 def test_graph_active_bonds_property():
-
     assert len(h2.graph.active_bonds) == 0
 
     tmp_h2 = h2.copy()

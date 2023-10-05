@@ -15,7 +15,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "multistep.zip"))
 @testutils.requires_working_xtb_install
 def test_multistep_reaction():
-
     Config.num_conformers = 1
 
     # Spoof installs
@@ -86,7 +85,6 @@ def test_balancing():
 
 
 def test_impossible_balance():
-
     with pytest.raises(ValueError):
         # No previous reaction to the first
         MultiStepReaction()._set_reactants_from_previous_products(0)
@@ -123,7 +121,6 @@ def test_impossible_balance():
 
 
 def test_multistep_reaction_invalid_init():
-
     # Must form a multistep reaction out of Reaction instances
     with pytest.raises(ValueError):
         _ = MultiStepReaction("a")

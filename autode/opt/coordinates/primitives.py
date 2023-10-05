@@ -248,7 +248,6 @@ class PrimitiveBondAngle(Primitive):
         )
 
     def __call__(self, x: "CartesianCoordinates") -> float:
-
         _x = x.reshape((-1, 3))
         u = _x[self.m, :] - _x[self.o, :]
         v = _x[self.n, :] - _x[self.o, :]
@@ -262,7 +261,6 @@ class PrimitiveBondAngle(Primitive):
         component: "CartesianComponent",
         x: "CartesianCoordinates",
     ) -> float:
-
         if i not in (self.o, self.m, self.n):
             return 0.0
 

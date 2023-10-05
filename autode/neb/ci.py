@@ -97,7 +97,6 @@ class CImages(Images):
 
 
 class CINEB(NEB):
-
     _images_type = CImages
 
     def __init__(self, *args: Any, **kwargs: Any):

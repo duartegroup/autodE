@@ -61,7 +61,6 @@ class BaseUnit(Unit):
         aliases: Union[Collection, None] = None,
         plot_name: Union[str, None] = None,
     ):
-
         super().__init__(name, times=1.0, aliases=aliases, plot_name=plot_name)
 
 

@@ -48,7 +48,6 @@ def methane():
 
 
 def test_printing_ecp():
-
     tmp_file = open("tmp.com", "w")
     tmp_mol = Molecule(smiles="[H][Pd][H]")
     tmp_mol.constraints = Constraints(distance={}, cartesian=[])
@@ -87,14 +86,12 @@ def test_printing_ecp():
 
 
 def test_add_opt_option():
-
     keywds = ["Opt=Loose"]
     _add_opt_option(keywds, "MaxCycles=10")
     assert keywds[0].lower() == "opt=(loose, maxcycles=10)"
 
 
 def test_input_print_max_opt():
-
     keywds = opt_keywords.copy()
     keywds.max_opt_cycles = 10
 
@@ -106,7 +103,6 @@ def test_input_print_max_opt():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_get_gradients():
-
     ester = Molecule(
         name="ester",
         atoms=[
@@ -139,7 +135,6 @@ def test_get_gradients():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_gauss_opt_calc():
-
     methylchloride = Molecule(
         name="CH3Cl", smiles="[H]C([H])(Cl)[H]", solvent_name="water"
     )
@@ -184,7 +179,6 @@ def test_gauss_opt_calc():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_gauss_optts_calc():
-
     test_mol = Molecule(name="methane", smiles="C")
     test_mol.graph.add_active_edge(0, 1)
 
@@ -220,7 +214,6 @@ def test_gauss_optts_calc():
 
 
 def test_bad_gauss_output():
-
     calc = Calculation(
         name="no_output",
         molecule=methane(),
@@ -236,7 +229,6 @@ def test_bad_gauss_output():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_fix_angle_error():
-
     os.chdir(os.path.join(here, "data", "g09"))
 
     mol = Molecule(smiles="CC/C=C/CO")
@@ -255,7 +247,6 @@ def test_fix_angle_error():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_constraints():
-
     a = methane()
     a.constraints.distance = {(0, 1): 1.2}
     calc = Calculation(
@@ -280,7 +271,6 @@ def test_constraints():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_single_atom_opt():
-
     mol = Molecule(smiles="[H]")
     mol.name = "molecule"
 
@@ -355,7 +345,6 @@ def test_point_charge_calc():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_external_basis_set_file():
-
     """
 
     Example calculation with a custom basis set and ECP
@@ -394,7 +383,6 @@ def test_external_basis_set_file():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_xtb_optts():
-
     g09 = G09()
 
     kwd_list = [
@@ -432,7 +420,6 @@ def test_xtb_optts():
 
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_hessian_extraction_from_alt_output_file():
-
     mol = Molecule(
         atoms=[
             Atom("F", -8.22915200, 4.04133200, 0.18431300),

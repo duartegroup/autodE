@@ -10,7 +10,6 @@ folder_name = "unique_conformers"
 
 
 def get_args():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "filenames", action="store", nargs="+", help=".xyz files to compare"
@@ -95,7 +94,6 @@ def get_and_copy_unique_confs(xyz_filenames, only_heavy_atoms, threshold_rmsd):
 
 
 if __name__ == "__main__":
-
     args = get_args()
     assert all(fn.endswith(".xyz") for fn in args.filenames)
 

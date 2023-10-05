@@ -791,7 +791,6 @@ class _ListDistances1D(list):
         """
 
         if len(value) == 2:
-
             if self._species is None:
                 raise ValueError(
                     "Cannot determine initial point without "
@@ -839,7 +838,6 @@ class _ListDistances1D(list):
 
 
 class _Distances1D(ValueArray):
-
     implemented_units = [ang]
 
     def __new__(

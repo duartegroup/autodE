@@ -9,14 +9,12 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_init():
-
     # Should contain some mention of autodE by default
     assert "autodE" in str(methods)
 
 
 @work_in_zipped_dir(os.path.join(here, "data", "comp_methods.zip"))
 def test_dft():
-
     orca = ORCA()
 
     methods.clear()

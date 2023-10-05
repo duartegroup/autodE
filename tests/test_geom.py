@@ -5,7 +5,6 @@ import pytest
 
 
 def test_are_coords_reasonable():
-
     good_coords = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
     assert geom.are_coords_reasonable(coords=good_coords)
 
@@ -14,7 +13,6 @@ def test_are_coords_reasonable():
 
 
 def test_points_on_sphere():
-
     points = geom.get_points_on_sphere(n_points=4)
 
     # 4 points on a sphere equally spaced should be roughly √2 apart
@@ -30,7 +28,6 @@ def test_points_on_sphere():
 
 
 def test_calc_rmsd():
-
     atoms = [
         Atom("C", 0.0009, 0.0041, -0.0202),
         Atom("H", -0.6577, -0.8481, -0.3214),
@@ -73,7 +70,6 @@ def test_calc_rmsd():
 
 
 def test_symm_matrix_from_ltril():
-
     m = geom.symm_matrix_from_ltril(array=[0, 1, 2])
 
     assert np.allclose(m, np.array([[0, 1], [1, 2]]))

@@ -54,7 +54,6 @@ def test_reset_dir_on_error():
 
 
 def test_monitored_external():
-
     echo = ["echo", "test"]
     if platform.system() == "Windows":
         echo = ["cmd", "/c", *echo]  # echo is cmd prompt builtin
@@ -79,7 +78,6 @@ def test_monitored_external():
 
 
 def test_work_in_temp_dir():
-
     # Make a test python file echoing 'test' and printing a .dat file
     with open("echo_test.py", "w") as test_file:
         print('print("test")', file=test_file)
@@ -125,7 +123,6 @@ def test_reset_tmp_dir_on_error():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calc_output():
-
     calc = Calculation(
         name="test",
         molecule=Molecule(smiles="C"),
@@ -150,7 +147,6 @@ def test_calc_output():
 
 
 def test_conformers():
-
     methane = Molecule(name="methane", smiles="C")
 
     # Function requiring a molecule having a conformer attribute
@@ -227,7 +223,6 @@ def test_cleanup_after_timeout():
 
 
 def test_timeout():
-
     if platform.system() == "Windows":
         Config.use_experimental_timeout = True
 
@@ -282,7 +277,6 @@ def test_repeated_timeout_win_loky():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_spawn_multiprocessing_posix():
-
     if platform.system() == "Windows":
         return None
 
@@ -329,7 +323,6 @@ def test_spawn_multiprocessing_graph_posix():
 
 
 def test_spawn_loky_graph_win():
-
     if platform.system() != "Windows":
         return
 
@@ -394,7 +387,6 @@ def test_temporary_config_in_worker_proc():
 
 
 def test_time_units():
-
     with pytest.raises(ValueError):
         log_time(units="X")  # invalid time format
 
@@ -412,7 +404,6 @@ def test_requires_graph():
 
 
 def test_tmp_env():
-
     os.environ["OMP_NUM_THREADS"] = "1"
 
     @utils.run_in_tmp_environment(
@@ -430,7 +421,6 @@ def test_tmp_env():
 
 
 def test_string_dict():
-
     d = utils.StringDict("a = b solvent = water")
     assert "a" in str(d)
     assert "solvent" in str(d)
@@ -438,7 +428,6 @@ def test_string_dict():
 
 
 def test_requires_xtb_install():
-
     path_env_var = os.environ.pop("PATH")
     assert shutil.which("xtb") is None
 

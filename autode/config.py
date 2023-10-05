@@ -406,7 +406,6 @@ class _ConfigClass:
             value = Temperature(value, units="K")
 
         if key == "freq_scale_factor":
-
             if value is not None:
                 if not (0.0 < value <= 1.0):
                     raise ValueError(

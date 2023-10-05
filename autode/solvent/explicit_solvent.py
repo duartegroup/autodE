@@ -250,7 +250,6 @@ class ExplicitSolvent(AtomCollection, Solvent):
         pg = _RandomPointGenerator(random_state=rand)
 
         for i in range(self.n_solvent_molecules):
-
             idxs = self.solvent_atom_idxs(i)
             coords[idxs] -= np.average(coords[idxs], axis=0)  # -> origin
 
@@ -269,7 +268,6 @@ class ExplicitSolvent(AtomCollection, Solvent):
             while self._too_close_to_solute(
                 coords[idxs], m_coords, m_radius
             ) or self._too_close_to_solvent(coords, idxs, i):
-
                 coords[idxs] += vec
 
         # Finally, translate to be centred around the solute's origin

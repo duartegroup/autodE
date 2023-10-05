@@ -18,7 +18,6 @@ def has_single_imag_freq_at_xtb_level(mol: Molecule) -> bool:
 @requires_working_xtb_install
 @work_in_tmp_dir()
 def test_sn2_opt():
-
     mol = Molecule(
         name="sn2_ts",
         charge=-1,
@@ -45,7 +44,6 @@ def test_sn2_opt():
 @requires_working_xtb_install
 @work_in_tmp_dir()
 def test_diels_alder_ts_opt():
-
     xyz_file_string = (
         "16\n\n"
         "C   -0.00246842   1.65107949   0.05871997\n"

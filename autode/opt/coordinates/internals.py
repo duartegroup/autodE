@@ -134,7 +134,6 @@ class PIC(list, ABC):
 
         for i, primitive in enumerate(self):
             if isinstance(primitive, PrimitiveDihedralAngle):
-
                 dq = q[i] - other[i]
 
                 if np.abs(dq) > np.pi:  # Ensure |dq| < π
@@ -181,7 +180,6 @@ class PIC(list, ABC):
 
         for i, primitive in enumerate(self):
             for j in range(n_atoms):
-
                 B[i, 3 * j + 0] = primitive.derivative(
                     j, CartesianComponent.x, x=cart_coords
                 )
@@ -212,7 +210,6 @@ class _FunctionOfDistances(PIC):
         """Type of primitive coordinate defining f(r_ij)"""
 
     def _populate_all(self, x: np.ndarray):
-
         n_atoms = len(x.flatten()) // 3
 
         # Add all the unique inverse distances (i < j)

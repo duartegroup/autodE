@@ -11,7 +11,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def _sn2_reaction():
-
     r0 = Reactant(
         atoms=[
             Atom("C", -0.1087, -0.0058, -0.0015),
@@ -40,7 +39,6 @@ def _sn2_reaction():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_adapt_neb.zip"))
 @testutils.requires_working_xtb_install
 def test_ts_from_neb_optimised_after_adapt():
-
     rxn = _sn2_reaction()
     neb = NEB.from_file("dOr2Us_ll_ad_0-5_0-1_path.xyz")
 
@@ -77,7 +75,6 @@ def test_ts_from_neb_optimised_after_adapt():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_adapt_neb.zip"))
 def test_no_ts_guess_without_peak_in_ad_path():
-
     rxn = _sn2_reaction()
     ts_guess = _get_ts_neb_from_adaptive_path(
         reactant=rxn.reactant,

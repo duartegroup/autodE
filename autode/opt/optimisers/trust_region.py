@@ -365,7 +365,6 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
         tau_arr, m_arr = np.linspace(0, 10, num=1000), []
 
         for tau in tau_arr:
-
             p = z + tau * d
             m = e + np.dot(g, p) + 0.5 * np.dot(p, np.matmul(h, p))
 
@@ -400,7 +399,6 @@ class CGSteihaugTROptimiser(TrustRegionOptimiser):
             return
 
         for j in range(100):
-
             if np.dot(d, np.matmul(h, d)) <= 0:
                 self.p = self._discrete_optimised_p(z, d)
                 return

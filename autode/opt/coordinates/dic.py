@@ -191,7 +191,6 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         raise ValueError(f"Unknown conversion to {value}")
 
     def iadd(self, value: np.ndarray) -> "OptCoordinates":
-
         """
         Set some new internal coordinates and update the Cartesian coordinates
 
@@ -218,7 +217,6 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         for i in range(1, _max_back_transform_iterations + 1):
-
             x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
 
             # Rebuild the primitives & DIC from the back-transformed Cartesians
@@ -466,7 +464,6 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
 
     # and the remaining n-m columns as the orthogonalised values
     for i in range(m, n):
-
         u_i = arr[:, i]
         for j in range(0, i):
             u_i -= proj(u[:, j], arr[:, i])

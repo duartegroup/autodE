@@ -10,7 +10,6 @@ from autode.transition_states.templates import get_ts_template_folder_path
 
 
 def test_config():
-
     keywords_attr = ["low_opt", "grad", "opt", "opt_ts", "hess", "sp"]
     global_attr = ["max_core", "n_cores"]
 
@@ -31,7 +30,6 @@ def test_config():
 
 
 def test_maxcore_setter():
-
     _config = deepcopy(Config)
 
     # Cannot have a negative allocation
@@ -50,13 +48,11 @@ def test_maxcore_setter():
 
 @pytest.mark.parametrize("factor", (-0.1, 1.1, "a string"))
 def test_invalid_freq_scale_factor(factor):
-
     with pytest.raises(Exception):
         Config.freq_scale_factor = factor
 
 
 def test_unknown_attr():
-
     # Attributes not already present should raise an exception e.g. for
     # misspelling
     with pytest.raises(Exception):
@@ -64,7 +60,6 @@ def test_unknown_attr():
 
 
 def test_step_size_setter():
-
     _config = deepcopy(Config)
 
     # Distances cannot be negative
@@ -103,7 +98,6 @@ def test_config_simple_copy():
 
 
 def test_exc_if_not_class_in_config_instantiate_func():
-
     # passing instance should raise exception
     with pytest.raises(ValueError):
         _instantiate_config_opts(_ConfigClass())
@@ -114,7 +108,6 @@ def test_exc_if_not_class_in_config_instantiate_func():
 
 
 def test_invalid_get_ts_template_folder_path():
-
     Config.ts_template_folder_path = ""
 
     with pytest.raises(ValueError):

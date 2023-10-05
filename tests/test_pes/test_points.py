@@ -6,7 +6,6 @@ from .sample_pes import TestPES, harmonic_2d_pes
 
 
 class RelaxedPESnD(PESnD):
-
     __test__ = False
 
     def __init__(self, species=None, rs=None):
@@ -14,14 +13,12 @@ class RelaxedPESnD(PESnD):
 
 
 def test_point_list_1d():
-
     pes = TestPES(rs={(0, 1): (1.0, 2.0, 3)})
     assert pes.ndim == 1
     assert list(pes._points()) == [(0,), (1,), (2,)]
 
 
 def test_point_list_2d():
-
     pes = TestPES(rs={(0, 1): (1.0, 2.0, 2), (1, 2): (1.0, 2.0, 2)})
     assert pes.ndim == 2
     assert pes.shape == (2, 2)
@@ -30,7 +27,6 @@ def test_point_list_2d():
 
 
 def test_point_list_non_square():
-
     pes = TestPES(rs={(0, 1): (1.0, 2.0, 2), (1, 2): (1.0, 3.0, 3)})
 
     assert pes.ndim == 2 and pes.shape == (2, 3)
@@ -57,7 +53,6 @@ def test_point_list_non_square():
 
 
 def test_closest_coordinates():
-
     pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 3)})
 
     # Set a zero set of coordinates for 3 points
@@ -77,7 +72,6 @@ def test_closest_coordinates():
 
 
 def test_distance():
-
     pes = TestPES(rs={(0, 1): np.array([1.0, 2.0])})
 
     assert np.isclose(pes._distance(point1=(0,), point2=(1,)), 1.0, atol=1e-10)
@@ -92,7 +86,6 @@ def test_distance():
 
 
 def test_closest_coordinates_no_energy():
-
     pes = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 3)})
 
     pes._coordinates = np.zeros(shape=(3, 1, 3))
@@ -103,7 +96,6 @@ def test_closest_coordinates_no_energy():
 
 
 def test_constraints_1d():
-
     pes = RelaxedPESnD(rs={(0, 1): (0.1, 0.3, 3)})
 
     consts = pes._constraints(point=(0,))
@@ -116,7 +108,6 @@ def test_constraints_1d():
 
 
 def test_invalid_constraints_1d():
-
     pes = RelaxedPESnD(rs={(0, 1): (0.1, 0.3, 3)})
 
     # Cannot determine constraints for a point not on the surface
@@ -208,7 +199,6 @@ def test_numerical_gradient_harmonic_well():
 
 
 def test_gradient_some_undefined_energies():
-
     pes = harmonic_2d_pes()
     i, j = pes.shape
 
@@ -224,7 +214,6 @@ def test_gradient_some_undefined_energies():
 
 
 def test_grad_neither_side_has_energy():
-
     pes = TestPES(rs={(0, 1): np.array([1.0, 2.0, 3.0])})
 
     mid_point = (1,)

@@ -219,7 +219,6 @@ class Atom:
         """
 
         for group_idx in range(1, 18):
-
             if self.label in PeriodicTable.group(group_idx):
                 return group_idx
 
@@ -242,7 +241,6 @@ class Atom:
         """
 
         for period_idx in range(1, 7):
-
             if self.label in PeriodicTable.period(period_idx):
                 return period_idx
 
@@ -692,7 +690,6 @@ class Atoms(list):
         moi = MomentOfInertia(np.zeros(shape=(3, 3)), units="amu Å^2")
 
         for atom in self:
-
             mass, (x, y, z) = atom.mass, atom.coord
 
             moi[0, 0] += mass * (y**2 + z**2)
@@ -887,7 +884,6 @@ class Atoms(list):
         normal_vec = np.cross(arr[1, :] - x0, arr[2, :] - x0)
 
         for i in range(3, len(self)):
-
             # Calculate the 0->i atomic vector, which must not have any
             # component in the direction in the normal if the atoms are planar
             if np.dot(normal_vec, arr[i, :] - x0) > distance_tol_float:
@@ -1253,7 +1249,6 @@ elements = [
 
 
 class PeriodicTable:
-
     # fmt: off
     table = np.array(
         [['H',    '',   '',   '',   '',  '',    '',   '',   '',   '',   '',   '',   '',   '',   '',   '',   '', 'He'],

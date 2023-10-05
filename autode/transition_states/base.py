@@ -110,7 +110,6 @@ class TSbase(Species, ABC):
             )
 
         if self.reactant is not None:
-
             if (
                 self.solvent is not None
                 and self.reactant.solvent != self.solvent
@@ -271,11 +270,9 @@ class TSbase(Species, ABC):
         # Product could be either the forward displaced molecule or the
         # backwards equivalent
         for product in (f_species, b_species):
-
             fbond_bbond_correct_disps = []
 
             for fbond in self.bond_rearrangement.fbonds:
-
                 ts_dist = self.distance(*fbond)
                 p_dist = product.distance(*fbond)
 
@@ -288,7 +285,6 @@ class TSbase(Species, ABC):
                     fbond_bbond_correct_disps.append(False)
 
             for bbond in self.bond_rearrangement.bbonds:
-
                 ts_dist = self.distance(*bbond)
                 p_dist = product.distance(*bbond)
 
@@ -370,9 +366,7 @@ class TSbase(Species, ABC):
         # The high and low level methods may not have the same minima, so
         # optimise and recheck isomorphisms
         for method in (get_hmethod(), get_lmethod()):
-
             for mol in (f_mol, b_mol):
-
                 try:
                     mol.optimise(
                         method=method,
@@ -411,7 +405,6 @@ class TSbase(Species, ABC):
         constraints = DistanceConstraints()
 
         for edge in self.graph.edges:
-
             if self.graph.edges[edge]["active"]:
                 constraints[edge] = self.distance(*edge)
 
@@ -462,7 +455,6 @@ def displaced_species_along_mode(
     # threshold (max_atom_disp), by incrementing backwards in steps of 0.05 Å,
     # for disp_factor = 1.0 Å
     for _ in range(20):
-
         if (
             np.max(np.linalg.norm(coords - disp_coords, axis=1))
             < max_atom_disp

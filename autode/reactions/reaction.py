@@ -225,7 +225,6 @@ class Reaction:
                 return
 
             elif all([mol.solvent is not None for mol in molecules]):
-
                 if not all(
                     [mol.solvent == first_solvent for mol in molecules]
                 ):
@@ -663,7 +662,6 @@ class Reaction:
     @checkpoint_rxn_profile_step("transition_states")
     @work_in("transition_states")
     def locate_transition_state(self) -> None:
-
         assert self.type is not None, "Must have a reaction type"
         assert all(
             molecule.graph is not None for molecule in self.reacs + self.prods

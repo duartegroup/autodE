@@ -246,7 +246,6 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
     bbond_atoms = [atom for bbond in bbonds for atom in bbond]
     for fbond in fbonds:
         for idx in fbond:
-
             if (
                 reactant.graph.degree(idx)
                 == reactant.atoms[idx].maximal_valance
@@ -358,7 +357,6 @@ def get_fbonds_bbonds_2b(
         for bbond1, bbond2 in itertools.product(
             all_possible_bbonds[0], all_possible_bbonds[1]
         ):
-
             possible_brs = add_bond_rearrangment(
                 possible_brs, reac, prod, fbonds=[], bbonds=[bbond1, bbond2]
             )
@@ -672,7 +670,6 @@ def strip_equiv_bond_rearrs(possible_brs, mol, depth=6):
 
         # Compare bond_rearrang to all those already considered to be unique,
         for unique_br in unique_brs:
-
             if unique_br.get_active_atom_neighbour_lists(
                 species=mol, depth=depth
             ) == br.get_active_atom_neighbour_lists(species=mol, depth=depth):
@@ -736,7 +733,6 @@ def prune_small_ring_rearrs(possible_brs, mol):
 
         # Check against all other rearrangements
         for j, other_br in enumerate(possible_brs):
-
             # Only consider brs with the same set of elements
             if elems[i] != elems[j]:
                 continue

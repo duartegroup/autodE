@@ -15,7 +15,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_species():
-
     species = Species(name="species", atoms=None, charge=0, mult=1)
     assert species.n_atoms == 0
 
@@ -41,7 +40,6 @@ def test_species():
 
 
 def test_molecule():
-
     molecule = Molecule(name="molecule")
     assert molecule.charge == 0
     assert molecule.mult == 1

@@ -25,9 +25,7 @@ def add_core_pi_bonds(molecule, s_molecule, truncated_graph):
     curr_nodes = deepcopy(truncated_graph.nodes)
 
     while True:
-
         for bond in s_molecule.graph.edges:
-
             if (
                 s_molecule.graph.edges[bond]["pi"] is False
                 or bond in truncated_graph.edges
@@ -127,16 +125,13 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
     truncated_nodes = []
 
     while True:
-
         for i in curr_nodes:
-
             if i in truncated_nodes:
                 # Truncated atoms by definition do not have any neighbours
                 # that are not already in the graph
                 continue
 
             for n_atom_index in s_molecule.graph.neighbors(i):
-
                 if (
                     n_atom_index in curr_nodes
                     or n_atom_index in truncated_nodes
@@ -152,7 +147,6 @@ def add_capping_atoms(molecule, s_molecule, truncated_graph, curr_nodes):
                     s_molecule.atoms[n_atom_index].label == "C"
                     and n_neighbours == 4
                 ):
-
                     truncated_nodes.append(n_atom_index)
 
                     add_capping_atom(
@@ -191,7 +185,7 @@ def add_remaining_bonds(truncated_graph, full_graph):
     """Truncation by adding atoms and their nearest neighbours may miss bonds
     between sections that aren't connected initially, so add them"""
 
-    for (i, j) in full_graph.edges:
+    for i, j in full_graph.edges:
         if i not in truncated_graph.nodes:
             continue
         # At least j in the graph
@@ -222,7 +216,6 @@ def add_remaining_atoms(truncated_graph, full_graph, s_molecule):
     of the carbons is no longer has 4 nearest neighbours"""
 
     for i in deepcopy(truncated_graph.nodes):
-
         # No modification needed if the valency of this atom is retained
         n_truncated_neighbours = len(list(truncated_graph.neighbors(i)))
         n_full_neighbours = len(list(full_graph.neighbors(i)))
@@ -239,7 +232,6 @@ def add_remaining_atoms(truncated_graph, full_graph, s_molecule):
 
         logger.warning(f"Atom {i} changed valency in truncation")
         for n in nx.neighbors(full_graph, i):
-
             if (i, n) in truncated_graph.edges:
                 continue
 

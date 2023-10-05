@@ -17,7 +17,6 @@ from autode.utils import work_in_tmp_dir
 
 
 def test_prune_small_rings3():
-
     # Square H4 "molecule"
     h4 = Molecule(
         atoms=[
@@ -69,7 +68,6 @@ def test_prune_small_rings2():
 
 
 def test_n_membered_rings():
-
     h2o = Molecule(atoms=[Atom("O"), Atom("H", x=-1), Atom("H", x=1)])
     bond_rearr = BondRearrangement(forming_bonds=[(1, 2)])
 
@@ -87,7 +85,6 @@ def test_n_membered_rings():
 
 
 def test_prune_small_rings():
-
     # Cope rearrangement reactant
     cope_r = Molecule(
         atoms=[
@@ -151,7 +148,6 @@ def test_multiple_possibilities():
 
 
 def test_multiple_possibles2():
-
     # Attack on oxirane by AcO-
     reaction = ade.Reaction("[O-]C(C)=O.C1CO1>>[O-]CCOC(C)=O")
 
@@ -205,7 +201,6 @@ def test_bondrearr_class():
 
 
 def test_get_bond_rearrangs():
-
     # ethane --> Ch3 + Ch3
     reac = Molecule(smiles="CC")
     prod = Molecule(
@@ -261,7 +256,6 @@ def test_get_bond_rearrangs():
 
 
 def test_two_possibles():
-
     ch2ch3f = Molecule(
         name="radical", charge=0, mult=2, smiles="FC[C]([H])[H]"
     )
@@ -578,7 +572,6 @@ def test_2b2f():
 
 
 def test_br_from_file():
-
     path = "/a/path/that/doesnt/exist"
     assert br.get_bond_rearrangs_from_file(filename=path) is None
 

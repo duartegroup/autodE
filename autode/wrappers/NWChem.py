@@ -59,7 +59,6 @@ def get_keywords(calc_input, molecule):
     new_keywords = []
 
     for keyword in calc_input.keywords:
-
         if "scf" in keyword.lower():
             if molecule.solvent is not None:
                 raise UnsupportedCalculationInput(
@@ -103,7 +102,6 @@ def get_keywords(calc_input, molecule):
             new_keywords.append(new_keyword)
 
         elif keyword.lower().startswith("scf"):
-
             if not any("nopen" in kw for kw in new_keywords):
                 lines = keyword.split("\n")
                 lines.insert(1, f"  nopen {molecule.mult - 1}")
@@ -148,7 +146,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         keywords = get_keywords(calc.input, molecule)
 
         with open(calc.input.filename, "w") as inp_file:
-
             print(f"start {calc.name}\necho", file=inp_file)
 
             if calc.molecule.solvent is not None:
@@ -209,7 +206,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
     def version_in(self, calc: "CalculationExecutor") -> str:
         """Get the NWChem version from the output file"""
         for line in calc.output.file_lines:
-
             if "(NWChem)" in line:
                 # e.g. Northwest Computational Chemistry Package (NWChem) 6.6
                 return line.split()[-1]
@@ -241,7 +237,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         return None
 
     def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
-
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
             if any(
                 substring in line
@@ -261,7 +256,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         return False
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
-
         wf_strings = [
             "Total CCSD energy",
             "Total CCSD(T) energy",
@@ -283,7 +277,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         raise CouldNotGetProperty(name="energy")
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
-
         xyzs_section = False
         coords: List[List[float]] = []
 
@@ -336,7 +329,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         return charges
 
     def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
-
         gradients: List[np.ndarray] = []
         n_atoms = calc.molecule.n_atoms
 
@@ -372,7 +364,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         atom_lines = None
 
         for i, line in enumerate(reversed(file_lines)):
-
             if "Atom information" not in line:
                 continue
 
@@ -426,7 +417,6 @@ class NWChem(autode.wrappers.methods.ExternalMethodEGH):
         ]
 
         for hess_line in calc.output.file_lines[line_idx + 6 :]:
-
             if "NORMAL MODE EIGENVECTORS" in hess_line:
                 break  # Finished the Hessian block
 

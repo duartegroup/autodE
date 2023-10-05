@@ -178,6 +178,7 @@ class CubicPathSpline:
         Returns:
             (float): The solution
         """
+
         # Find bounds for root search
         def span_error(x):
             return self.path_integral(0, x) - span

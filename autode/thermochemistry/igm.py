@@ -42,7 +42,6 @@ class LFMethod(Enum):
 
 class _ThermoParams:
     def __init__(self, default_sigma_r: int = 1, **kwargs: Any) -> None:
-
         self.method = kwargs.get("lfm_method", LFMethod[Config.lfm_method])
         if isinstance(self.method, str):
             self.method = LFMethod[self.method.lower()]
@@ -352,7 +351,6 @@ def _truhlar_s_vib(
     shift_cm = float(shift_freq.to("cm-1"))
 
     for freq in species.vib_frequencies:
-
         # Threshold lower bound of the frequency
         freq_cm = max(float(freq.to("cm-1").real), shift_cm)
 
@@ -399,7 +397,6 @@ def _grimme_s_vib(
     b_avg = np.trace(species.moi.to("kg m^2")) / 3.0
 
     for freq in species.vib_frequencies:
-
         omega = float(freq.real.to("hz"))
 
         mu = SIConstants.h / (8.0 * np.pi**2 * omega)

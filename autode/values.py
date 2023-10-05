@@ -385,7 +385,6 @@ class FreeEnergyCont(Energy):
 
 
 class Allocation(Value):
-
     implemented_units = [byte, MB, GB, TB]
 
     def __repr__(self):
@@ -544,7 +543,6 @@ class Angle(Value):
 
 
 class Frequency(Value):
-
     implemented_units = [wavenumber, hz]
 
     @property
@@ -571,7 +569,6 @@ class Frequency(Value):
 
 
 class Mass(Value):
-
     implemented_units = [amu, kg, m_e]
 
     def __repr__(self):
@@ -582,7 +579,6 @@ class Mass(Value):
 
 
 class ForceConstant(Value):
-
     implemented_units = [
         ha_per_ang_sq,
         ha_per_a0_sq,
@@ -705,14 +701,12 @@ class ValueArray(ABC, np.ndarray):
 
 
 class Coordinate(ValueArray):
-
     implemented_units = [ang, a0, nm, pm, m]
 
     def __repr__(self):
         return f"Coordinate({np.ndarray.__str__(self)} {self.units.name})"
 
     def __new__(cls, *args, units=ang):
-
         if len(args) == 3:
             return super().__new__(cls, np.asarray(args), units)
 
@@ -747,7 +741,6 @@ class Coordinate(ValueArray):
 
 
 class Coordinates(ValueArray):
-
     implemented_units = [ang, a0, nm, pm, m]
 
     def __repr__(self):
@@ -760,7 +753,6 @@ class Coordinates(ValueArray):
 
 
 class Gradient(ValueArray):
-
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang, kcalmol_per_ang]
 
     def __repr__(self):
@@ -773,19 +765,16 @@ class Gradient(ValueArray):
 
 
 class GradientRMS(Value):
-
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
 
     def __repr__(self):
         return f"RMS(∇E)({round(self, 4)} {self.units.name})"
 
     def __init__(self, x, units: Union[Unit, str] = ha_per_ang):
-
         super().__init__(x=x, units=units)
 
 
 class MomentOfInertia(ValueArray):
-
     implemented_units = [amu_ang_sq, kg_m_sq]
 
     def __repr__(self):
@@ -796,7 +785,6 @@ class MomentOfInertia(ValueArray):
 
 
 class EnergyArray(ValueArray):
-
     implemented_units = [ha, ev, kcalmol, kjmol, J]
 
     def __repr__(self):

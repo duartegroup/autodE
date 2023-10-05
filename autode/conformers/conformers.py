@@ -133,7 +133,6 @@ class Conformers(list):
             idxs_with_energy = [j for j in idxs_with_energy if j < len(self)]
 
             if np.abs(conf.energy - avg_e) / std_dev_e > n_sigma:
-
                 logger.warning(
                     f"Conformer {idx} had an energy >{n_sigma}σ "
                     f"from the average - removing"
@@ -150,7 +149,6 @@ class Conformers(list):
                 for o_idx in idxs_with_energy
                 if o_idx != idx
             ):
-
                 logger.info(f"Conformer {idx} had a non unique energy")
                 del self[idx]
                 continue
@@ -195,7 +193,6 @@ class Conformers(list):
         # Only enumerate up to but not including the final index, as at
         # least one of the conformers must be unique in geometry
         for idx in reversed(range(len(self) - 1)):
-
             conf = self[idx]
 
             if any(
@@ -203,7 +200,6 @@ class Conformers(list):
                 for o_idx, other in enumerate(self)
                 if o_idx != idx
             ):
-
                 logger.info(
                     f"Conformer {idx} was close in geometry to at "
                     f"least one other - removing"
