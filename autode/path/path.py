@@ -115,7 +115,7 @@ class Path(list):
 
         return None
 
-    def products_made(self, product) -> bool:
+    def products_made(self, product: "Species") -> bool:
         """Are the products are made on the surface?
 
         -----------------------------------------------------------------------
@@ -127,7 +127,7 @@ class Path(list):
         """
         return self.product_idx(product) is not None
 
-    def is_saddle(self, idx) -> bool:
+    def is_saddle(self, idx: int) -> bool:
         """Is an index a saddle point"""
         if idx == 0 or idx == len(self) - 1:
             logger.warning("Cannot be saddle point, index was at the end")
@@ -143,7 +143,9 @@ class Path(list):
         energy = self[idx].energy
         return self[idx - 1].energy < energy and self[idx + 1].energy < energy
 
-    def plot_energies(self, save, name, color, xlabel) -> None:
+    def plot_energies(
+        self, save: bool, name: str, color: str, xlabel: str
+    ) -> None:
         """Plot this path"""
         if len(self) == 0 or any(item.energy is None for item in self):
             logger.error("Could not plot a surface, an energy was None")
@@ -164,7 +166,7 @@ class Path(list):
 
         return None
 
-    def print_geometries(self, name) -> None:
+    def print_geometries(self, name: str) -> None:
         """Print an xyz trajectory of the geometries in the path"""
 
         open(f"{name}.xyz", "w").close()  # Empty the file

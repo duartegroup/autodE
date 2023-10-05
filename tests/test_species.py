@@ -701,3 +701,25 @@ def test_cannot_set_multiplicity_to_invalid_value(invalid_mult):
     m = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
     with pytest.raises(Exception):
         m.mult = invalid_mult
+
+
+@work_in_tmp_dir()
+def test_cant_init_with_both_xyz_and_smiles():
+    filename = "tmp.xyz"
+    tmp_mol = Molecule(smiles="O")
+    tmp_mol.print_xyz_file(filename=filename)
+
+    with pytest.raises(AssertionError):
+        _ = Molecule("tmp.xyz", smiles="[H]S[H]")
+
+
+@work_in_tmp_dir()
+def test_species_load_from_xyz_file_retains_spin_and_mult():
+
+    filename = "tmp.xyz"
+    tmp_mol = Molecule(smiles="[O+]", mult=2, charge=1)
+    tmp_mol.print_xyz_file(filename=filename)
+
+    loaded_mol = Molecule(filename)
+    assert loaded_mol.mult == 2
+    assert loaded_mol.charge == 1
