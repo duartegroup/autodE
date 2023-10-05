@@ -138,8 +138,6 @@ class Molecule(Species):
         logger.info(f"Found ({title_line_attrs}) in title line")
 
         for attr in ("charge", "mult", "solvent_name"):
-            print(override_attrs[attr], title_line_attrs[attr])
-
             if override_attrs[attr] is None and attr in title_line_attrs:
                 setattr(self, attr, title_line_attrs[attr])
 
