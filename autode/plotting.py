@@ -320,7 +320,7 @@ def calculate_reaction_profile_energies(
             reaction_energies[i][2] + energies[-1],
         ]
 
-    return [energy * units.conversion for energy in energies]
+    return [energy * units.times for energy in energies]
 
 
 def get_stationary_points(xs, dydx):

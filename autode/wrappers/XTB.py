@@ -175,7 +175,7 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             str(calc.molecule.mult - 1),
         ]
         if self.electronic_temp is not None:
-            flags.extend(["--etemp", str(float(self.electronic_temp))])
+            flags.extend(["--etemp", str(float(self.electronic_temp.to("K")))])
         if self.gfn_version is not None:
             flags.extend(["--gfn", str(self.gfn_version)])
 

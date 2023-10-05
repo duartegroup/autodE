@@ -1246,7 +1246,7 @@ class Species(AtomCollection):
         self,
         method: Optional["Method"] = None,
         calc: Optional[Calculation] = None,
-        temp: float = 298.15,
+        temp: Union[val.Temperature, float] = val.Temperature(298.15),
         keywords: Union[Sequence[str], str, None] = None,
         **kwargs,
     ) -> None:
@@ -1262,7 +1262,7 @@ class Species(AtomCollection):
 
             keywords (autode.wrappers.keywords.Keywords):
 
-            temp (float): Temperature in K
+            temp (float | autode.values.Temperature): Temperature in K
 
         Keyword Arguments:
 
@@ -1282,6 +1282,12 @@ class Species(AtomCollection):
         logger.info(
             f"Calculating thermochemical contributions for {self.name}"
         )
+
+        if isinstance(temp, float):
+            logger.warning(
+                "Temperature defined as a float. Assuming units of K"
+            )
+            temp = val.Temperature(temp)
 
         if "lfm_method" in kwargs:
             try:

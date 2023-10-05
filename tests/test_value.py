@@ -18,6 +18,7 @@ from autode.values import (
     EnthalpyCont,
     Frequency,
     GradientRMS,
+    Temperature,
 )
 
 
@@ -313,3 +314,12 @@ def test_to_no_units():
     energy = Energy(1.0, units=None)
     with pytest.raises(RuntimeError):
         _ = energy.to("ha")
+
+
+def test_temp_conversion():
+    x = Temperature("273.15")
+    assert x.units.name == "kelvin"
+
+    y = x.to("C")
+    assert np.isclose(y, 0.0)
+    assert np.isclose(y.to("K"), x)

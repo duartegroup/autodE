@@ -60,7 +60,7 @@ class Path(list):
             logger.warning("Cannot determine relative energies with no points")
             return np.array([])
 
-        return self.units.conversion * (self.energies - np.min(self.energies))
+        return self.units.times * (self.energies - np.min(self.energies))
 
     @property
     def peak_idx(self) -> Optional[int]:

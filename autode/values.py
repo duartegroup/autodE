@@ -12,6 +12,7 @@ from autode.units import (
     ev,     J,       wavenumber,  hz,            MB,              ha_per_ang,
     ang,    a0,      amu,         kg,            GB,              kg_m_sq,
     nm,     pm,      m_e,         amu_ang_sq,    TB,              ha_per_a0_sq,
+    kelvin, celsius,
     ha_per_ang_sq,   J_per_m_sq,  J_per_ang_sq,  J_per_ang_sq_kg,
 )
 from typing import Any, Union, Type, Optional, Sequence, List, TypeVar, TYPE_CHECKING
@@ -70,11 +71,9 @@ def _to(
             "Cannot modify a value inplace as floats are immutable"
         )
 
-    # Convert to the base unit, then to the new units
-    c = float(units.conversion / value.units.conversion)
-
     new_value = value if inplace else value.copy()
-    new_value *= c
+    new_value *= units.times / value.units.times
+    new_value += value.units.add - units.add
     new_value.units = units
 
     return None if inplace else new_value
@@ -267,6 +266,18 @@ class Value(ABC, float):
             (TypeError):
         """
         return _to(self, units, inplace=False)
+
+
+class Temperature(Value):
+    """Temperature in some units, defaults to Kelvin"""
+
+    implemented_units = [kelvin, celsius]
+
+    def __init__(self, value, units=kelvin):
+        super().__init__(value, units=units)
+
+    def __repr__(self):
+        return f"Temperature({round(self, 2)} {self.units.name})"
 
 
 class Energy(Value):

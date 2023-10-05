@@ -1,6 +1,6 @@
 import os
 from typing import Any
-from autode.values import Frequency, Distance, Allocation
+from autode.values import Frequency, Distance, Allocation, Temperature
 from autode.wrappers.keywords import implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
 from autode.wrappers.keywords.basis_sets import (
@@ -401,6 +401,9 @@ class _ConfigClass:
 
         if key == "max_core":
             value = Allocation(value).to("MB")
+
+        if key == "value.units.add" and value is not None:
+            value = Temperature(value, units="K")
 
         if key == "freq_scale_factor":
 

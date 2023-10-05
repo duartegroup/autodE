@@ -34,7 +34,7 @@ def test_units():
 def test_composite_units():
 
     # More electron volts per angstrom than Hartees
-    assert 1.0 * ha_per_ang.conversion < 1.0 * ev_per_ang.conversion
+    assert 1.0 * ha_per_ang.times < 1.0 * ev_per_ang.times
 
     # and fewer per bohr
-    assert 1.0 * ha_per_ang.conversion > 1.0 * ha_per_a0.conversion
+    assert 1.0 * ha_per_ang.times > 1.0 * ha_per_a0.times
