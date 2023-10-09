@@ -42,14 +42,6 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
         elif i == n_atoms + 2:
             break
 
-        if i == 0:  # First line in an xyz file is the number of atoms
-            n_atoms = _n_atoms_from_first_xyz_line(line)
-            continue
-        elif i == 1:  # Second line of an xyz file is the tittle line
-            continue
-        elif i == n_atoms + 2:
-            break
-
         try:
             atom_label, x, y, z = line.split()[:4]
             atoms.append(Atom(atomic_symbol=atom_label, x=x, y=y, z=z))
