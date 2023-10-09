@@ -49,7 +49,7 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
 
         except (IndexError, TypeError, ValueError):
             raise XYZfileWrongFormat(
-                f"Coordinate line {i} ({line}) " f"not the correct format"
+                f"Coordinate line {i} ({line}) not the correct format"
             )
 
     if len(atoms) != n_atoms:
