@@ -719,6 +719,10 @@ class StringDict:
                 f"using delimiter *{self._delim}*"
             ) from e
 
+    def __contains__(self, item: str) -> bool:
+        split_string = self._string.split(f"{item}{self._delim}")
+        return len(split_string) == 2
+
     def get(self, item: str, default: Any) -> Any:
         """Get an item or return a default"""
 
