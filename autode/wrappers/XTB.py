@@ -5,7 +5,7 @@ import autode.wrappers.methods
 
 from typing import TYPE_CHECKING
 
-from autode.values import Coordinates, Gradient, PotentialEnergy
+from autode.values import Coordinates, Gradient, PotentialEnergy, Temperature
 from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.config import Config
@@ -162,20 +162,28 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
         return None
 
+    @property
+    def _electronic_temp_str(self) -> str:
+        assert self.electronic_temp is not None
+        if isinstance(self.electronic_temp, Temperature):
+            electronic_temp = self.electronic_temp.to("K")
+        else:
+            logger.warning("Assuming XTB electronic_temp is in K")
+            electronic_temp = self.electronic_temp
+
+        return str(electronic_temp)
+
     def execute(self, calc: "CalculationExecutor"):
         """Execute an XTB calculation using the runtime flags"""
         # XTB calculation keywords must be a class
 
-        flags = [
-            "--chrg",
-            str(calc.molecule.charge),
-            "--uhf",
-            str(calc.molecule.mult - 1),
-        ]
+        flags = ["--chrg", str(calc.molecule.charge)]
+        flags += ["--uhf", str(calc.molecule.mult - 1)]
+
         if self.electronic_temp is not None:
-            flags.extend(["--etemp", str(float(self.electronic_temp.to("K")))])
+            flags += ["--etemp", self._electronic_temp_str]
         if self.gfn_version is not None:
-            flags.extend(["--gfn", str(self.gfn_version)])
+            flags += ["--gfn", str(self.gfn_version)]
 
         if isinstance(calc.input.keywords, OptKeywords):
             if calc.input.keywords.max_opt_cycles is not None:

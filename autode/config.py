@@ -402,9 +402,6 @@ class _ConfigClass:
         if key == "max_core":
             value = Allocation(value).to("MB")
 
-        if key == "value.units.add" and value is not None:
-            value = Temperature(value, units="K")
-
         if key == "freq_scale_factor":
             if value is not None:
                 if not (0.0 < value <= 1.0):
