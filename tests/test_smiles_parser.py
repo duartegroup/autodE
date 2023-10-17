@@ -499,3 +499,7 @@ def test_parse_smiles_atom_class():
     assert is_valid("[H:1]")
     is_invalid("[H:1.1]")
     is_invalid("[H:a]")
+
+
+def test_multiple_bonds_in_ring():
+    assert is_valid(r"C1C/C=C\C=C/CC/C=C\1")

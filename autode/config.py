@@ -1,6 +1,6 @@
 import os
 from typing import Any
-from autode.values import Frequency, Distance, Allocation, Temperature
+from autode.values import Frequency, Distance, Allocation
 from autode.wrappers.keywords import implicit_solvent_types as solv
 from autode.wrappers.keywords import KeywordsSet, MaxOptCycles
 from autode.wrappers.keywords.basis_sets import (
