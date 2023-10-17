@@ -15,7 +15,6 @@ distance_constraints = {
 
 # Generate 5 conformers
 for n in range(5):
-
     # Apply random displacements to each atom and minimise under a bonded +
     # repulsive forcefield including the distance constraints
     atoms = conf_gen.get_simanl_atoms(

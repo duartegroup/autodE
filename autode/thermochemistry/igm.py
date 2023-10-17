@@ -1,4 +1,3 @@
-""""""
 """
 Thermochemistry calculation from frequencies and coordinates. Copied from
 otherm (https://github.com/duartegroup/otherm) 16/05/2021. See
@@ -13,8 +12,7 @@ from typing import TYPE_CHECKING, Any
 from autode.log import logger
 from autode.config import Config
 from autode.constants import Constants
-from autode.values import FreeEnergyCont, EnthalpyCont, Frequency
-
+from autode.values import FreeEnergyCont, EnthalpyCont, Frequency, Temperature
 
 if TYPE_CHECKING:
     from autode.species.species import Species
@@ -44,12 +42,11 @@ class LFMethod(Enum):
 
 class _ThermoParams:
     def __init__(self, default_sigma_r: int = 1, **kwargs: Any) -> None:
-
         self.method = kwargs.get("lfm_method", LFMethod[Config.lfm_method])
         if isinstance(self.method, str):
             self.method = LFMethod[self.method.lower()]
 
-        self.temp = kwargs["temp"]
+        self.T: float = kwargs["T"]
         self.ss = kwargs.get("ss", Config.standard_state)
         self.shift = Frequency(kwargs.get("freq_shift", Config.vib_freq_shift))
         self.w0 = Frequency(kwargs.get("w0", Config.grimme_w0))
@@ -58,7 +55,9 @@ class _ThermoParams:
 
 
 def calculate_thermo_cont(
-    species: "Species", temp: float = 298.15, **kwargs: Any
+    species: "Species",
+    temp: Temperature = Temperature(298.15, units="K"),
+    **kwargs: Any,
 ):
     """
     Calculate and set the thermochemical contributions (Enthalpic, Free Energy)
@@ -76,9 +75,9 @@ def calculate_thermo_cont(
     Arguments:
         species (autode.species.Species):
 
-    Keyword Arguments:
-        temp (float): Temperature in K. Default: 298.15 K
+        temp (autode.values.Temperature): Temperature in K. Default: 298.15 K
 
+    Keyword Arguments:
         lfm_method (str | LFMethod): Method used to calculate the molecular
                                     entropy by treating the low frequency modes.
                                     One of: {'igm', 'truhlar', 'grimme', 'minenkov'}.
@@ -105,7 +104,11 @@ def calculate_thermo_cont(
     Raises:
         (KeyError | ValueError): If frequencies are not defined
     """
-    params = _ThermoParams(default_sigma_r=species.sn, temp=temp, **kwargs)
+    params = _ThermoParams(
+        default_sigma_r=species.sn,
+        T=float(temp.to("K")) if isinstance(temp, Temperature) else temp,
+        **kwargs,
+    )
 
     if species.n_atoms == 0:
         logger.warning(
@@ -121,22 +124,22 @@ def calculate_thermo_cont(
         )
 
     logger.info(
-        f"Calculating themochemistry with {params.method} at {params.temp} K"
+        f"Calculating themochemistry with {params.method} at {params.T} K"
     )
 
-    S_cont = _entropy(species, params)
-    U_cont = _internal_energy(species, params)
-    H_cont = EnthalpyCont(U_cont + SIConstants.k_b * temp, units="J").to("Ha")
+    S = _entropy(species, params)
+    U = _internal_energy(species, params)
+    H = EnthalpyCont(U + SIConstants.k_b * params.T, units="J").to("Ha")
 
     # Add a method string for how this enthalpic contribution was calculated
-    H_cont.method_str = _thermo_method_str(species, **kwargs)
-    species.energies.append(H_cont)
+    H.method_str = _thermo_method_str(species, **kwargs)
+    species.energies.append(H)
 
-    G_cont = FreeEnergyCont(H_cont.to("J") - temp * S_cont, units="J").to("Ha")
+    G = FreeEnergyCont(H.to("J") - params.T * S, units="J").to("Ha")
 
     # Method used to calculate the free energy is the  same as the enthalpy..
-    G_cont.method_str = H_cont.method_str
-    species.energies.append(G_cont)
+    G.method_str = H.method_str
+    species.energies.append(G)
 
     return None
 
@@ -348,7 +351,6 @@ def _truhlar_s_vib(
     shift_cm = float(shift_freq.to("cm-1"))
 
     for freq in species.vib_frequencies:
-
         # Threshold lower bound of the frequency
         freq_cm = max(float(freq.to("cm-1").real), shift_cm)
 
@@ -395,7 +397,6 @@ def _grimme_s_vib(
     b_avg = np.trace(species.moi.to("kg m^2")) / 3.0
 
     for freq in species.vib_frequencies:
-
         omega = float(freq.real.to("hz"))
 
         mu = SIConstants.h / (8.0 * np.pi**2 * omega)
@@ -434,10 +435,10 @@ def _entropy(species: "Species", params: _ThermoParams) -> float:
         (NotImplementedError):
     """
     logger.info(f"Calculating molecular entropy. σ_R = {params.sigma_r}")
-    temp = params.temp
+    temp = params.T
 
     # Translational entropy component
-    s_trans = _s_trans_pib(species, ss=params.ss, temp=params.temp)
+    s_trans = _s_trans_pib(species, ss=params.ss, temp=params.T)
 
     if species.n_atoms < 2:
         # A molecule one or no atoms has no rotational/vibrational DOF
@@ -512,7 +513,7 @@ def _internal_vib_energy(species: "Species", params: _ThermoParams) -> float:
     """
     assert species.vib_frequencies is not None, "Must have frequenecies"
 
-    temp = params.temp
+    temp = params.T
     w0_cm = float(params.w0.to("cm-1"))
 
     u = 0.0  # Total internal vibrational energy
@@ -545,7 +546,7 @@ def _internal_energy(species: "Species", params: _ThermoParams) -> float:
     Returns:
         (float): U_cont in SI units
     """
-    temp = params.temp
+    temp = params.T
     e_trns = 1.5 * SIConstants.k_b * temp
 
     if species.n_atoms < 2:

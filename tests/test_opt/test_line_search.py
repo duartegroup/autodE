@@ -58,13 +58,11 @@ class TestSDLineSearch(LineSearchOptimiser):
         self._coords = self._coords + self.alpha * self.p
 
     def _update_gradient_and_energy(self) -> None:
-
         x, y = self._coords
         self._coords.e, self._coords.g = self.energy_grad_func(x, y)
 
 
 class TestArmijoLineSearch(ArmijoLineSearch):
-
     __test__ = False
 
     def __init__(self, init_step_size=1.0, energy_grad_func=quadratic):
@@ -83,7 +81,6 @@ class TestArmijoLineSearch(ArmijoLineSearch):
 
 
 def test_null_line_search():
-
     ls = NullLineSearch(init_alpha=0.1)
     assert ls.converged
 
@@ -95,7 +92,6 @@ def test_null_line_search():
 
 
 def test_simple_line_search():
-
     blank_mol = Molecule(name="blank")
     blank_method = Method()
 
@@ -108,7 +104,6 @@ def test_simple_line_search():
 
 
 def test_armijo_line_search_default():
-
     optimiser = TestArmijoLineSearch()
     assert not optimiser.converged
 
@@ -121,7 +116,6 @@ def test_armijo_line_search_default():
 
 
 def test_armijo_line_search_diff_step_sizes():
-
     # using different step sizes should also converge
     for init_step_size in (0.1, 0.5, 1.0, 2.0, 4.0, 10.0):
         optimiser = TestArmijoLineSearch(init_step_size=init_step_size)
@@ -151,7 +145,6 @@ def test_armijo_line_search_complex_func():
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_xtb_h2_cart_opt():
-
     optimiser = ArmijoLineSearch()
     assert not optimiser.converged
 

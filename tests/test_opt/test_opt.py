@@ -27,7 +27,6 @@ def sample_cartesian_optimiser():
 
 
 def test_optimiser_construct():
-
     # Optimiser needs a Species
     with pytest.raises(ValueError):
         sample_cartesian_optimiser().run(species=None, method=XTB())
@@ -59,7 +58,6 @@ def test_optimiser_construct():
 
 
 def test_initialise_species_and_method():
-
     optimiser = sample_cartesian_optimiser()
 
     # Species and method need to be valid
@@ -71,7 +69,6 @@ def test_initialise_species_and_method():
 
 
 def test_coords_set():
-
     optimiser = sample_cartesian_optimiser()
 
     # Internal set of coordinates must be an instance of OptCoordinate
@@ -80,7 +77,6 @@ def test_coords_set():
 
 
 def test_abs_diff_e():
-
     # Define a intermediate optimiser state with two sets of coordinates
     optimiser = sample_cartesian_optimiser()
     optimiser._history.append(CartesianCoordinates([0.0, 1.0]))
@@ -103,7 +99,6 @@ def test_abs_diff_e():
 
 
 def test_g_norm():
-
     optimiser = sample_cartesian_optimiser()
 
     # With no coordinates the norm of the gradient is infinity
@@ -117,7 +112,6 @@ def test_g_norm():
 
 
 def test_optimiser_h_update():
-
     optimiser = sample_cartesian_optimiser()
 
     # Remove any possible updater type
@@ -140,7 +134,6 @@ def test_optimiser_h_update():
 
 
 def test_history():
-
     optimiser = sample_cartesian_optimiser()
     assert optimiser.iteration < 1
     assert len(optimiser._history) < 1
@@ -164,7 +157,6 @@ def test_history():
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_xtb_h2_cart_opt():
-
     mol = h2()
     CartesianSDOptimiser.optimise(mol, method=XTB(), maxiter=50)
 
@@ -175,7 +167,6 @@ def test_xtb_h2_cart_opt():
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_xtb_h2_cart_opt():
-
     optimiser = CartesianSDOptimiser(
         maxiter=2,
         gtol=GradientRMS(0.01),
@@ -194,7 +185,6 @@ def test_xtb_h2_cart_opt():
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_xtb_h2_dic_opt():
-
     # In DICs we can use a much larger step size
     optimiser = DIC_SD_Optimiser(
         step_size=2.5,
@@ -214,7 +204,6 @@ def test_xtb_h2_dic_opt():
 
 class HarmonicPotentialOptimiser(CartesianSDOptimiser):
     def _update_gradient_and_energy(self):
-
         self._species.coordinates = self._coords.to("cart")
         r = self._species.distance(0, 1)
         self._coords.e = self._species.energy = (r - 2.0) ** 2
@@ -223,7 +212,6 @@ class HarmonicPotentialOptimiser(CartesianSDOptimiser):
 
 @work_in_tmp_dir()
 def test_callback_function():
-
     mol = h2()
 
     def func(coords, m=None):
@@ -242,7 +230,6 @@ def test_callback_function():
 
 
 def test_last_energy_change_with_no_steps():
-
     mol = h2()
     optimiser = HarmonicPotentialOptimiser(
         maxiter=2, gtol=GradientRMS(999), etol=PotentialEnergy(999)
@@ -254,7 +241,6 @@ def test_last_energy_change_with_no_steps():
 
 
 def test_value_extraction_from_string():
-
     value = 99.9
     s = f"E = {value}"  # " =" is implied
     assert np.isclose(NumericStringDict(s)["E"], value)
@@ -263,7 +249,6 @@ def test_value_extraction_from_string():
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_optimisation_is_possible_with_single_atom():
-
     mol = h_atom()
     CartesianSDOptimiser.optimise(mol, method=XTB(), maxiter=2)
     assert mol.energy is None
@@ -282,7 +267,6 @@ class UnconvergedHarmonicPotentialOptimiser(CartesianSDOptimiser):
 
 
 def test_last_energy_change_less_than_two_steps():
-
     optimiser = ConvergedHarmonicPotentialOptimiser(
         maxiter=2, gtol=GradientRMS(999), etol=PotentialEnergy(999)
     )
@@ -307,7 +291,6 @@ class HessianInTesting(Hessian):
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_hessian_is_not_recalculated_if_present():
-
     mol = h2()
     xtb = XTB()
 
@@ -329,7 +312,6 @@ def test_hessian_is_not_recalculated_if_present():
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_multiple_optimiser_saves_overrides_not_append():
-
     optimiser = CartesianSDOptimiser(
         maxiter=2,
         gtol=GradientRMS(0.01),
@@ -348,7 +330,6 @@ def test_multiple_optimiser_saves_overrides_not_append():
 
 
 def test_optimiserhistory_operations_maintain_subclass():
-
     optimiser = CartesianSDOptimiser(
         maxiter=2,
         gtol=GradientRMS(0.2),
@@ -377,7 +358,6 @@ def test_mocked_method():
 
 
 def test_null_optimiser_methods():
-
     optimiser = NullOptimiser()
     optimiser.run()
     optimiser.save(filename="None")  # run and saving does nothing

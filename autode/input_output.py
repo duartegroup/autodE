@@ -34,7 +34,6 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
     n_atoms = 0
 
     for i, line in enumerate(open(filename, "r")):
-
         if i == 0:  # First line in an xyz file is the number of atoms
             n_atoms = _n_atoms_from_first_xyz_line(line)
             continue
@@ -118,7 +117,6 @@ def xyz_file_to_molecules(filename: str) -> Sequence["Molecule"]:
     molecules = []
 
     for i in range(0, len(lines), n_atoms + 2):
-
         atoms = []
         title_line = StringDict(lines[i + 1])
         for j, line in enumerate(lines[i + 2 : i + n_atoms + 2]):
@@ -152,7 +150,6 @@ def attrs_from_xyz_title_line(filename: str) -> StringDict:
 
 
 def _check_xyz_file_exists(filename: str) -> None:
-
     if not os.path.exists(filename):
         raise XYZfileDidNotExist(f"{filename} did not exist")
 
@@ -168,7 +165,6 @@ def _set_attr_from_title_line(
     title_line: StringDict,
     key_in_line: Optional[str] = None,
 ) -> None:
-
     if key_in_line is None:
         key_in_line = attr  # Default to e.g. charge attribute is "charge = 0"
     try:

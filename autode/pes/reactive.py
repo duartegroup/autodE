@@ -101,7 +101,6 @@ class ReactivePESnD(PESnD, ABC):
         yielded_p: List[tuple] = []
 
         for idx, point in enumerate(self._sorted_saddle_points()):
-
             if any(
                 self._distance(p, point) < min_separation for p in yielded_p
             ):
@@ -136,7 +135,6 @@ class ReactivePESnD(PESnD, ABC):
         self._set_gradients()
 
         for point in self._points():
-
             if require_energy and not self._has_energy(point):
                 continue
 
@@ -248,7 +246,6 @@ class ReactivePESnD(PESnD, ABC):
         isomorphic_points = []
 
         for point in self._points():
-
             mol = self._species.new_species()
             mol.coordinates = self._coordinates[point]
             mol.reset_graph()
@@ -276,7 +273,6 @@ class ReactivePESnD(PESnD, ABC):
 
         for i in range(self.ndim):
             for j in range(i, self.ndim):
-
                 # Point plus 1 (pp) and point minus 1 (pm) in this dimension
                 pp, pm = self._neighbour(point, j, +1), self._neighbour(
                     point, j, -1
@@ -365,7 +361,6 @@ class ReactivePESnD(PESnD, ABC):
                 return False
 
             for grad in (self._gradients[pm], self._gradients[pp]):
-
                 if np.any(np.isnan(grad)):
                     # Cannot determine if it is a minimum with undefined NN
                     return False

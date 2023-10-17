@@ -14,7 +14,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 )
 @testutils.requires_working_xtb_install
 def test_constrained_opt():
-
     ts_guess = TSguess(atoms=xyz_file_to_atoms("h_shift_init.xyz"), mult=2)
     ts_guess.run_constrained_opt(
         name="const_opt",

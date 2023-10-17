@@ -40,7 +40,6 @@ if TYPE_CHECKING:
 
 
 class Hessian(ValueArray):
-
     implemented_units = [
         ha_per_ang_sq,
         ha_per_a0_sq,
@@ -220,7 +219,6 @@ class Hessian(ValueArray):
         m_half = np.diag(np.sqrt(masses))
 
         for t_i in (t1, t2, t3, t4, t5, t6):
-
             t_i[:] = np.dot(m_half, np.array(t_i))
             t_i /= np.linalg.norm(t_i)
 
@@ -427,7 +425,6 @@ class NumericalHessianCalculator:
         shift: Distance,
         n_cores: Optional[int] = None,
     ):
-
         self._species = species
         self._method = method
         self._keywords = self._validated(keywords)
@@ -467,7 +464,6 @@ class NumericalHessianCalculator:
 
         # Although n_rows may be < n_cores there will not be > n_rows processes
         with ProcessPool(max_workers=self._n_total_cores) as pool:
-
             func_name = "_cdiff_row" if self._do_c_diff else "_diff_row"
 
             jobs = [
@@ -541,7 +537,6 @@ class NumericalHessianCalculator:
         need to be calculated"""
 
         for row_idx in range(self._n_rows):
-
             if row_idx not in self._calculated_rows:
                 self._calculated_rows.append(row_idx)
 

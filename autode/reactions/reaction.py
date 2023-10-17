@@ -15,7 +15,13 @@ from autode.methods import get_hmethod
 from autode.species.complex import ReactantComplex, ProductComplex
 from autode.species.molecule import Reactant, Product
 from autode.plotting import plot_reaction_profile
-from autode.values import Energy, PotentialEnergy, Enthalpy, FreeEnergy
+from autode.values import (
+    Energy,
+    PotentialEnergy,
+    Enthalpy,
+    FreeEnergy,
+    Temperature,
+)
 from autode.utils import (
     work_in,
     requires_hl_level_methods,
@@ -35,7 +41,7 @@ class Reaction:
         name: str = "reaction",
         solvent_name: Optional[str] = None,
         smiles: Optional[str] = None,
-        temp: float = 298.15,
+        temp: Temperature = Temperature(298.15, units="K"),
     ):
         r"""
         Elementary chemical reaction formed from reactants and products.
@@ -63,7 +69,7 @@ class Reaction:
                                  "C=CC=C.C=C>>C1=CCCCC1" for the [4+2]
                                  cyclization between ethene and butadiene.
 
-            temp (float): Temperature in Kelvin.
+            temp (float | autode.values.Temperature): Temperature in Kelvin.
         """
         logger.info(f"Generating a Reaction for {name}")
 
@@ -88,7 +94,7 @@ class Reaction:
 
         self.type = reaction_types.classify(self.reacs, self.prods)
         self.solvent = get_solvent(solvent_name, kind="implicit")
-        self.temp = float(temp)
+        self.temp = temp
 
         self._check_solvent()
         self._check_balance()
@@ -219,7 +225,6 @@ class Reaction:
                 return
 
             elif all([mol.solvent is not None for mol in molecules]):
-
                 if not all(
                     [mol.solvent == first_solvent for mol in molecules]
                 ):
@@ -657,7 +662,6 @@ class Reaction:
     @checkpoint_rxn_profile_step("transition_states")
     @work_in("transition_states")
     def locate_transition_state(self) -> None:
-
         assert self.type is not None, "Must have a reaction type"
         assert all(
             molecule.graph is not None for molecule in self.reacs + self.prods

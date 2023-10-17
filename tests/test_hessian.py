@@ -274,7 +274,6 @@ def assert_correct_co2_frequencies(hessian, expected=(666, 1415, 2517)):
 
 
 def test_hessian_class():
-
     hessian = Hessian(h2o_hessian_arr, units="Ha Å^-2")
     assert "hessian" in repr(hessian).lower()
     assert hash(hessian) is not None
@@ -318,7 +317,6 @@ def test_hessian_class():
 
 
 def test_hessian_set():
-
     h2o = Molecule(smiles="O")
 
     # Cannot set the Hessian as a matrix that isn't 3Nx3N
@@ -338,7 +336,6 @@ def test_hessian_set():
 
 
 def test_hessian_freqs():
-
     h2o = Molecule(smiles="O")
     h2o.hessian = h2o_hessian_arr
 
@@ -372,7 +369,6 @@ def test_hessian_freqs():
 
 
 def test_hessian_scaled_freqs():
-
     h2o = Molecule(smiles="O")
     h2o.hessian = h2o_hessian_arr
 
@@ -389,7 +385,6 @@ def test_hessian_scaled_freqs():
 
 
 def test_hessian_scale_factor():
-
     Config.freq_scale_factor = None  # Unset..
 
     h2o = Molecule(smiles="O")
@@ -432,7 +427,6 @@ def test_hessian_modes():
         assert np.allclose(rot_mode, np.zeros(shape=(h2o.n_atoms, 3)))
 
     for i, vib_mode in enumerate(h2o.hessian.normal_modes_proj[6:]):
-
         # Vibrational modes should have no component in the z-axis
         for j, _ in enumerate(h2o.atoms):
             assert np.isclose(vib_mode[j, 2], 0.0, atol=1e-4)
@@ -482,7 +476,6 @@ def test_proj_modes():
     h2o.hessian = h2o_hessian_arr
 
     for mode_n, coords in zip((6, 7, 8), (bend_orca, symm_orca, asym_orca)):
-
         bend_f = displaced_species_along_mode(
             h2o, mode_number=mode_n, disp_factor=0.5
         )
@@ -500,7 +493,6 @@ def test_proj_modes():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_hessian_linear_freqs():
-
     co2 = Molecule("CO2_opt.xyz")
     assert co2.is_linear()
 
@@ -510,7 +502,6 @@ def test_hessian_linear_freqs():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_gaussian_hessian_extract_h2():
-
     h2 = ade.Molecule(
         atoms=[ade.Atom("H", x=0.3804), ade.Atom("H", x=-0.3804)]
     )
@@ -534,7 +525,6 @@ def test_gaussian_hessian_extract_h2():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_gaussian_hessian_extract_co2():
-
     co2 = Molecule("CO2_opt.xyz")
 
     calc = Calculation(
@@ -558,7 +548,6 @@ def test_gaussian_hessian_extract_co2():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_nwchem_hessian_extract_h2o():
-
     water = ade.Molecule(smiles="O")
     calc = Calculation(
         name="tmp",
@@ -591,7 +580,6 @@ def test_nwchem_hessian_extract_h2o():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_nwchem_hessian_co2():
-
     co2 = ade.Molecule(smiles="O=C=O")
     calc = Calculation(
         name="tmp",
@@ -665,7 +653,6 @@ def test_imag_mode():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_extract_wrong_molecule_hessian():
-
     calc = Calculation(
         name="tmp",
         molecule=ade.Molecule(smiles="[H]"),
@@ -680,7 +667,6 @@ def test_extract_wrong_molecule_hessian():
 
 
 def test_num_hess_invalid_input():
-
     water = Molecule(smiles="O")
     orca = ORCA()
 
@@ -691,7 +677,6 @@ def test_num_hess_invalid_input():
         GradientKeywords(["Freq", "PBE", "Def2-SVP"]),
         HessianKeywords(["PBE", "Def2-SVP"]),
     ):
-
         with pytest.raises(ValueError):
             nhc = NumericalHessianCalculator(
                 species=water,
@@ -705,7 +690,6 @@ def test_num_hess_invalid_input():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "num_hess.zip"))
 def test_h2_hessian():
-
     h2 = Molecule(name="H2", atoms=[Atom("H"), Atom("H", x=0.77)])
 
     h2.calc_hessian(method=ORCA(), numerical=False)
@@ -723,7 +707,6 @@ def test_h2_hessian():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "num_hess.zip"))
 def test_h2_c_diff_hessian():
-
     h2 = Molecule(name="H2", atoms=[Atom("H"), Atom("H", x=0.77)])
 
     h2.calc_hessian(method=ORCA(), numerical=False)
@@ -741,7 +724,6 @@ def test_h2_c_diff_hessian():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "num_hess.zip"))
 @testutils.requires_working_xtb_install
 def test_h2_xtb_vs_orca_hessian():
-
     h2 = Molecule(name="H2", atoms=[Atom("H"), Atom("H", x=0.77)])
 
     h2.calc_hessian(method=ORCA(), numerical=False)
@@ -764,7 +746,6 @@ def test_ind_num_hess_row():
     xtb = XTB()
 
     for flag in (True, False):
-
         calculator = NumericalHessianCalculator(
             species=h2,
             method=xtb,
@@ -785,7 +766,6 @@ def test_ind_num_hess_row():
 
 
 def test_partial_num_hess_init():
-
     # Cannot generate a PartialNumericalHessianCalculator with atom indexes
     # that are not present in the system
     mol = ade.Molecule(smiles="O")
@@ -808,7 +788,6 @@ def test_partial_num_hess_init():
 @testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "num_hess.zip"))
 def test_partial_water_num_hess():
-
     orca_num_hess = np.array(
         [
             [2.31, 0.01, 0.0, -1.16, -0.76, 0.0, -1.15, 0.75, -0.0],
@@ -892,13 +871,11 @@ def test_numerical_hessian_in_process_pool():
     calculated within a process pool
     """
     with ProcessPool(max_workers=2) as pool:
-
         res = pool.submit(_calc_num_hessian_h2)
         _ = res.result(timeout=None)
 
 
 def _calc_num_hessian_h2():
-
     assert mp.parent_process() is not None
     h2 = Molecule(smiles="[H][H]")
     h2.calc_hessian(method=XTB(), numerical=True, n_cores=1)
@@ -907,7 +884,6 @@ def _calc_num_hessian_h2():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_serial_calculation_matches_parallel():
-
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.77)])
     xtb = XTB()
 
@@ -930,7 +906,6 @@ def test_serial_calculation_matches_parallel():
 
 @work_in_tmp_dir()
 def test_hessian_pickle_and_unpickle():
-
     mol = Molecule(smiles="O")
     mol.hessian = Hessian(np.eye(3 * mol.n_atoms), atoms=mol.atoms)
 

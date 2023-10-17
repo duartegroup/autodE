@@ -368,7 +368,6 @@ class Images(Path):
         """Get a flat array of all components of every atom"""
         coords = np.array([])
         for image in self:
-
             coords = np.append(coords, image.coordinates.flatten())
         return coords
 
@@ -400,7 +399,6 @@ class Images(Path):
 
 
 class NEB:
-
     _images_type: Union[Type[Images], Type["CImages"]] = Images
 
     def __init__(
@@ -585,7 +583,6 @@ class NEB:
                 sub_neb._max_atom_distance_between_images(distance_idxs)
                 > max_delta
             ):
-
                 try:
                     sub_neb = NEB.from_end_points(
                         left_image, right_image, num=n
@@ -629,14 +626,12 @@ class NEB:
 
         # Interpolate images between the starting point i=0 and end point i=n-1
         for i in range(1, n - 1):
-
             # Use a copy of the starting point for atoms, charge etc.
             species: Species = initial.copy()
 
             # For all the atoms in the species translate an amount so the
             # spacing is even between the initial and final points
             for j, atom in enumerate(species.atoms):
-
                 # Shift vector is final minus current
                 shift = final.atoms[j].coord - atom.coord
                 # then an equal spacing is the i-th point in the grid
@@ -776,7 +771,6 @@ class NEB:
 
     @staticmethod
     def _raise_exception_if_any(kwargs: dict) -> None:
-
         if len(kwargs) == 0:
             return
         elif any(

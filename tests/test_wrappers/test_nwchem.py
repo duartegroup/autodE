@@ -32,7 +32,6 @@ opt_keywords = OptKeywords(
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_opt_calc():
-
     test_mol = Molecule(name="methane", smiles="C")
 
     calc = Calculation(
@@ -56,7 +55,6 @@ def test_opt_calc():
 
 
 def test_opt_single_atom():
-
     h = Molecule(name="H", smiles="[H]")
     calc = Calculation(
         name="opt_h", molecule=h, method=method, keywords=opt_keywords
@@ -72,7 +70,6 @@ def test_opt_single_atom():
 
 
 def test_exception_wf_solvent_calculation():
-
     solvated_mol = Molecule(name="methane", smiles="C", solvent_name="water")
 
     calc = Calculation(
@@ -89,7 +86,6 @@ def test_exception_wf_solvent_calculation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_ecp_calc():
-
     # Should have no ECP block for molecule with only light elements
     water_ecp_block = ecp_block(
         Molecule(smiles="O"), keywords=method.keywords.sp
@@ -112,7 +108,6 @@ def test_ecp_calc():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_hessian_extract_ts():
-
     ts = Molecule(
         name="ts",
         atoms=[
@@ -143,7 +138,6 @@ def test_hessian_extract_ts():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_hessian_extract_butane():
-
     Config.freq_scale_factor = 1.0
 
     butane = Molecule("butane.xyz")
@@ -177,7 +171,6 @@ def test_hessian_extract_butane():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_hf_calculation():
-
     h2o = Molecule(smiles="O", name="H2O")
     hf_kwds = [def2svp, "task scf"]
 
@@ -207,7 +200,6 @@ def test_hf_calculation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_point_charge_calculation():
-
     h = Molecule(smiles="[H]")
 
     calc = Calculation(
@@ -228,7 +220,6 @@ def test_point_charge_calculation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "nwchem.zip"))
 def test_charge_extract():
-
     h2o = Molecule(smiles="O")
     calc = Calculation(
         name="tmp", molecule=h2o, keywords=method.keywords.sp, method=method
@@ -240,7 +231,6 @@ def test_charge_extract():
 
 
 def test_no_driver_in_generated_opt_input():
-
     opt_str = (
         "driver\n"
         "  gmax 0.0003\n"
@@ -264,7 +254,6 @@ def test_no_driver_in_generated_opt_input():
 
 @work_in_tmp_dir()
 def test_single_atom_optimisation_input_file_does_not_include_opt():
-
     h_atom = Molecule(smiles="[H]")
 
     calc = Calculation(

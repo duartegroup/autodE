@@ -42,7 +42,6 @@ def water_molecule(oh_distance=1):
 
 
 def test_coordinate_setup():
-
     mol = water_molecule()
     dist_consts = mol.constraints.distance
     assert (0, 1) in dist_consts and (1, 0) in dist_consts
@@ -72,7 +71,6 @@ def crfo_water_coords():
 
 
 def test_setting_invalid_lagrange_multipliers():
-
     s = crfo_water_coords()
     # the vector of lagrange multipliers must be of length one to be
     # appropriate for a water molecule with a single constrained distance
@@ -83,7 +81,6 @@ def test_setting_invalid_lagrange_multipliers():
 
 
 def test_simple_gradient_update():
-
     coords = crfo_water_coords()
 
     cartesian_g = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]])
@@ -94,7 +91,6 @@ def test_simple_gradient_update():
 
 
 def test_simple_hessian_update():
-
     coords = crfo_water_coords()
 
     cartesian_h = 9.9 * np.eye(9)
@@ -113,7 +109,6 @@ def test_simple_hessian_update():
 
 
 def test_primitive_projection_discard():
-
     optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
     optimiser._species = water_molecule()
 
@@ -135,7 +130,6 @@ def test_primitive_projection_discard():
 
 
 def test_init_g_norm_is_none():
-
     optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
     assert optimiser._g_norm > 0
 
@@ -151,7 +145,6 @@ def test_sanitised_zero_length_step():
 @requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_opt_with_distance_constraint():
-
     water = Molecule(
         name="water",
         charge=0,
@@ -174,7 +167,6 @@ def test_xtb_opt_with_distance_constraint():
 
 
 def test_step_c2h3():
-
     m = Molecule(
         atoms=[
             Atom("C", 0.63365, 0.11934, -0.13163),
@@ -193,7 +185,6 @@ def test_step_c2h3():
 
 
 def test_baker1997_example():
-
     c2h3f = Molecule(
         atoms=[
             Atom("C", 0.061684, 0.673790, 0.0),
@@ -237,7 +228,6 @@ def test_baker1997_example():
 @requires_working_xtb_install
 @work_in_tmp_dir()
 def test_crfo_with_dihedral():
-
     mol = h2o2_mol()
     constrained_distance = mol.distance(0, 1) + 0.1
     mol.constraints.distance = {(0, 1): constrained_distance}
@@ -250,7 +240,6 @@ def test_crfo_with_dihedral():
 @requires_working_xtb_install
 @work_in_tmp_dir()
 def test_xtb_opt_with_two_distance_constraint():
-
     water = Molecule(
         name="water",
         charge=0,
@@ -275,14 +264,14 @@ def test_xtb_opt_with_two_distance_constraint():
     # Moving the angle should preserve the distances
     s = opt._coords + np.array([0.1, 0.0, 0.0])
     x = s.to("cart").reshape((3, 3))
-    for (i, j) in ((0, 1), (0, 2)):
+    for i, j in ((0, 1), (0, 2)):
         assert np.isclose(
             np.linalg.norm(x[i, :] - x[j, :]), water.distance(i, j)
         )
 
     opt._step()
     x = opt._coords.to("cart").reshape((3, 3))
-    for (i, j) in ((0, 1), (0, 2)):
+    for i, j in ((0, 1), (0, 2)):
         assert np.abs(np.linalg.norm(x[i, :] - x[j, :]) - 1.0) < np.abs(
             water.distance(i, j) - 1.0
         )
@@ -296,7 +285,6 @@ def test_xtb_opt_with_two_distance_constraint():
 
 
 def test_step_with_180degree_dihedrals():
-
     ethane = Molecule(
         atoms=[
             Atom("C", -6.05284, 0.86485, 0.00000),
@@ -338,7 +326,6 @@ def test_step_with_180degree_dihedrals():
 
 
 def test_linear_dihedrals_are_removed():
-
     allene = Molecule(
         atoms=[
             Atom("C", 0.35540, -0.20370, -0.44810),

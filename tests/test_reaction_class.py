@@ -57,7 +57,6 @@ trig_h3 = Product(
 
 
 def test_reaction_class():
-
     h1 = reaction.Reactant(name="h1", atoms=[Atom("H", 0.0, 0.0, 0.0)])
     hh_product = reaction.Product(
         name="hh", atoms=[Atom("H", 0.0, 0.0, 0.0), Atom("H", 0.7, 0.0, 0.0)]
@@ -107,7 +106,6 @@ def test_reaction_class():
 
 
 def test_reactant_product_complexes():
-
     h2_prod = Product(name="h2", atoms=[Atom("H"), Atom("H", x=1.0)])
 
     rxn = reaction.Reaction(h1, h2, h2_prod)
@@ -138,7 +136,6 @@ def test_reactant_product_complexes():
 
 
 def test_invalid_with_complexes():
-
     Config.hcode = "ORCA"
     Config.ORCA.path = here
 
@@ -158,7 +155,6 @@ def test_invalid_with_complexes():
 
 
 def test_check_rearrangement():
-
     # Linear H3 -> Trigonal H3
     make_graph(species=trig_h3, allow_invalid_valancies=True)
     reac = reaction.Reaction(lin_h3, trig_h3)
@@ -171,7 +167,6 @@ def test_check_rearrangement():
 
 
 def test_check_solvent():
-
     r = Reactant(name="r", solvent_name="water")
     p = Product(name="p")
 
@@ -184,7 +179,6 @@ def test_check_solvent():
 
 
 def test_reaction_identical_reac_prods():
-
     Config.hcode = "ORCA"
     Config.ORCA.path = here
 
@@ -202,7 +196,6 @@ def test_reaction_identical_reac_prods():
 
 
 def test_swap_reacs_prods():
-
     reactant = Reactant(name="r")
     product = Product(name="p")
 
@@ -216,7 +209,6 @@ def test_swap_reacs_prods():
 
 
 def test_bad_balance():
-
     hh_product = reaction.Product(
         name="hh", atoms=[Atom("H"), Atom("H", x=1.0)]
     )
@@ -249,7 +241,6 @@ def test_bad_balance():
 
 
 def test_calc_delta_e():
-
     r1 = reaction.Reactant(name="h", atoms=[Atom("H")])
     r1.energy = -0.5
 
@@ -295,7 +286,6 @@ def test_from_smiles():
 
 
 def test_single_points():
-
     # Spoof ORCA install
     Config.ORCA.path = here
 
@@ -321,7 +311,6 @@ def test_single_points():
 @work_in_zipped_dir(os.path.join(here, "data", "free_energy_profile.zip"))
 @requires_working_xtb_install
 def test_free_energy_profile():
-
     # Use a spoofed Gaussian09 and XTB install
     Config.lcode = "xtb"
 
@@ -381,7 +370,6 @@ def test_free_energy_profile():
 
 
 def test_barrierless_rearrangment():
-
     rxn = reaction.Reaction(Reactant(), Product())
     assert rxn.is_barrierless
     assert rxn.delta("E") is rxn.delta("E‡") is None
@@ -470,7 +458,6 @@ def test_doc_example():
 
 
 def test_barrierless_h_g():
-
     a = Reactant(atoms=[Atom("H"), Atom("H", x=-1.0), Atom("H", x=1.0)])
     a.energies.extend(
         [PotentialEnergy(-1), EnthalpyCont(0.1), FreeEnergyCont(0.3)]
@@ -495,7 +482,6 @@ def test_barrierless_h_g():
 
 
 def test_same_composition():
-
     r1 = reaction.Reaction(
         Reactant(atoms=[Atom("C"), Atom("H", x=1)]),
         Product(atoms=[Atom("C"), Atom("H", x=10)]),
@@ -516,7 +502,6 @@ def test_same_composition():
 
 
 def test_name_uniqueness():
-
     rxn = reaction.Reaction(
         Reactant(smiles="CC[C]([H])[H]"), Product(smiles="C[C]([H])C")
     )
@@ -536,7 +521,6 @@ def test_identity_reaction_is_supported_with_labels():
 
 
 def test_cannot_run_locate_ts_with_no_reactants_or_products():
-
     Config.lcode = Config.hcode = "ORCA"
     Config.ORCA.path = here
 

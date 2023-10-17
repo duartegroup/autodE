@@ -47,7 +47,6 @@ def has_matching_ts_templates(
     ts_guess_templates = get_ts_templates()
 
     for ts_template in ts_guess_templates:
-
         if template_matches(
             reactant=reactant,
             ts_template=ts_template,
@@ -93,7 +92,6 @@ def get_template_ts_guess(
     )
 
     for ts_template in get_ts_templates():
-
         if not template_matches(
             reactant=reactant,
             ts_template=ts_template,
@@ -209,7 +207,6 @@ class TSguess(TSbase):
             return
 
         for i in range(1, n_steps + 1):
-
             constraints = {}
             for atom_idx_pair, c_dist in current_constraints.items():
                 delta_dist = final_constraints[atom_idx_pair] - c_dist  # ∆r

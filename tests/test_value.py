@@ -18,6 +18,7 @@ from autode.values import (
     EnthalpyCont,
     Frequency,
     GradientRMS,
+    Temperature,
 )
 
 
@@ -27,7 +28,6 @@ class TmpValue(Value):
 
 
 def test_base_value():
-
     val = TmpValue(0.0)
     assert val == 0.0
     assert val != None
@@ -47,14 +47,12 @@ def test_base_value():
 
 
 def test_base_value_numpy_add():
-
     res = np.array([0.0, 0.0]) + TmpValue(0.1)
     assert isinstance(res, np.ndarray)
     assert np.allclose(res, np.array([0.1, 0.1]), atol=1e-10)
 
 
 def test_energy():
-
     with pytest.raises(ValueError):
         Energy(0.0, units="not_an_energy_unit")
 
@@ -152,20 +150,17 @@ def test_energy_equality():
 
 
 def test_enthalpy():
-
     assert Enthalpy(1.0) != PotentialEnergy(1.0)
     assert PotentialEnergy(1.0) != Enthalpy(1.0)
 
 
 def test_free_energy():
-
     assert FreeEnergy(1.0) != PotentialEnergy(1.0)
     assert FreeEnergy(1.0) != Enthalpy(1.0)
     assert PotentialEnergy(1.0) != FreeEnergy(1.0)
 
 
 def test_distance():
-
     assert "dist" in repr(Distance(1.0)).lower()
     assert all(w in repr(MWDistance(1.0)).lower() for w in ("dist", "mass"))
 
@@ -180,14 +175,12 @@ def test_distance():
 
 
 def test_angle():
-
     assert "ang" in repr(Angle(1.0)).lower()
 
     assert Angle(np.pi, units=rad) == Angle(180.0, units=deg)
 
 
 def test_energies():
-
     energies = Energies()
     energies.append(Energy(1.0))
     energies.append(Energy(1.0))
@@ -215,7 +208,6 @@ def test_energies():
 
 
 def test_freqs():
-
     # Negative frequencies are actually imaginary (accepted convention in QM
     # codes)
     assert Frequency(-1.0).is_imaginary
@@ -227,7 +219,6 @@ def test_freqs():
 
 
 def test_mass():
-
     one_amu = Mass(1.0, units="amu")
     assert "mass" in repr(one_amu).lower()
 
@@ -250,12 +241,10 @@ def test_contrib_guidelines():
 
 
 def test_gradient_norm():
-
     assert repr(GradientRMS(0.1)) is not None
 
 
 def test_to_wrong_type():
-
     from autode.values import _to
 
     # To function must have either a Value or a ValueArray
@@ -270,7 +259,6 @@ def test_to_wrong_type():
 
 
 def test_div_mul_generate_floats():
-
     e = PotentialEnergy(1.0)
     assert isinstance(e / e, float)
     assert isinstance(e // e, float)
@@ -282,7 +270,6 @@ def test_div_mul_generate_floats():
 
 
 def test_operations_maintain_other_attrs():
-
     e = Energy(1, estimated=True, units="eV")
     assert e.is_estimated and e.units == ev
 
@@ -297,7 +284,6 @@ def test_operations_maintain_other_attrs():
 
 
 def test_inplace_value_modification_raises():
-
     e = Energy(1, units="Ha")
     with pytest.raises(ValueError):  # floats are immutable
         _to(e, units="eV", inplace=True)
@@ -309,7 +295,15 @@ def test_energy_no_units_has_valid_repr():
 
 
 def test_to_no_units():
-
     energy = Energy(1.0, units=None)
     with pytest.raises(RuntimeError):
         _ = energy.to("ha")
+
+
+def test_temp_conversion():
+    x = Temperature("273.15")
+    assert x.units.name == "kelvin"
+
+    y = x.to("C")
+    assert np.isclose(y, 0.0)
+    assert np.isclose(y.to("K"), x)

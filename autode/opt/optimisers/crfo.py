@@ -153,18 +153,16 @@ class CRFOptimiser(RFOptimiser):
         # single molecule if those distances are approaching dissociation
         if self._species.constraints.distance is not None:
             logger.info("Adding distance constraints as primitives")
-            for (i, j) in self._species.constraints.distance:
+            for i, j in self._species.constraints.distance:
                 graph.add_edge(i, j)
 
         pic = AnyPIC()
 
-        for (i, j) in sorted(graph.edges):
-
+        for i, j in sorted(graph.edges):
             if (
                 self._species.constraints.distance
                 and (i, j) in self._species.constraints.distance
             ):
-
                 r = self._species.constraints.distance[(i, j)]
                 pic.append(ConstrainedPrimitiveDistance(i, j, value=r))
 
@@ -172,7 +170,7 @@ class CRFOptimiser(RFOptimiser):
                 pic.append(PrimitiveDistance(i, j))
 
         for o in range(self._species.n_atoms):
-            for (n, m) in combinations(graph.neighbors(o), r=2):
+            for n, m in combinations(graph.neighbors(o), r=2):
                 pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
 
         if self._species.n_atoms > 2 and not self._species.is_planar():
@@ -228,7 +226,7 @@ def _dihedrals(species):
     bond angles close to 180 degrees (tolerance <179)
     """
 
-    for (o, p) in species.graph.edges:
+    for o, p in species.graph.edges:
         for m in species.graph.neighbors(o):
             if m == p:
                 continue

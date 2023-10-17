@@ -7,7 +7,6 @@ from ..testutils import requires_working_xtb_install
 
 @requires_working_xtb_install
 def test_h2o_opt():
-
     mol = Molecule(smiles="O")
 
     optimiser = CGSteihaugTROptimiser(

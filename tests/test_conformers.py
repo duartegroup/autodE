@@ -25,7 +25,6 @@ orca = ORCA()
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "conformers.zip"))
 def test_conf_class():
-
     h2_conf = Conformer(
         name="h2_conf",
         charge=0,
@@ -61,7 +60,6 @@ def test_conf_class():
 
 
 def test_conf_from_species():
-
     h2o = Molecule(smiles="O")
     conformer = Conformer(species=h2o)
     assert conformer.n_atoms == 3
@@ -82,7 +80,6 @@ def test_conf_from_species():
 
 
 def test_rdkit_atoms():
-
     mol = Chem.MolFromSmiles("C")
     mol = Chem.AddHs(mol)
 
@@ -102,7 +99,6 @@ def test_rdkit_atoms():
 
 
 def test_confs_energy_pruning1():
-
     conf1 = Conformer(atoms=[Atom("H")])
     confs = Conformers([conf1])
 
@@ -137,7 +133,6 @@ def test_confs_energy_pruning1():
 
 
 def test_confs_energy_pruning2():
-
     conf1 = Conformer(atoms=[Atom("H")])
     conf1.energy = 1
     assert conf1.energy.units == "Ha"
@@ -158,7 +153,6 @@ def test_confs_energy_pruning2():
 
 
 def test_confs_energy_pruning3():
-
     n = 100
 
     #                              μ         α
@@ -189,7 +183,6 @@ def test_confs_no_energy_pruning():
 
 
 def test_confs_rmsd_pruning1():
-
     confs = Conformers(
         [Conformer(atoms=[Atom("H")]), Conformer(atoms=[Atom("H")])]
     )
@@ -200,7 +193,6 @@ def test_confs_rmsd_pruning1():
 
 
 def test_confs_rmsd_pruning2():
-
     confs = Conformers(
         [
             Conformer(atoms=[Atom("H", x=-1.0), Atom("O"), Atom("H", x=1.0)]),
@@ -215,7 +207,6 @@ def test_confs_rmsd_pruning2():
 
 
 def test_confs_rmsd_puning3():
-
     # Butane molecules, without hydrogen atoms
     trans_butane = Conformer(
         atoms=[
@@ -246,7 +237,6 @@ def test_confs_rmsd_puning3():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "sp_conformers.zip"))
 def test_sp_hmethod():
-
     Config.hmethod_sp_conformers = True
     orca.keywords.low_sp = SinglePointKeywords(["PBE", "D3BJ", "def2-SVP"])
 
@@ -260,7 +250,6 @@ def test_sp_hmethod():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "sp_conformers.zip"))
 def test_sp_hmethod_ranking():
-
     Config.hmethod_sp_conformers = True
     orca.keywords.low_sp = None
 
@@ -284,7 +273,6 @@ def test_sp_hmethod_ranking():
 
 
 def test_calculation_over_no_conformers():
-
     confs = Conformers()
     confs.single_point(method=orca)
 
@@ -293,7 +281,6 @@ def test_calculation_over_no_conformers():
 
 
 def test_complex_conformers_diff_names():
-
     Config.num_complex_sphere_points = 2
     Config.num_complex_random_rotations = 2
 
@@ -309,7 +296,6 @@ def test_complex_conformers_diff_names():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calc_conformer():
-
     h2_conf = Conformer(
         name="h2_conf",
         charge=0,
@@ -346,7 +332,6 @@ def test_conformers_inherit_atom_classes():
 
 
 def test_conformer_coordinate_setting_no_atoms():
-
     conf = Conformer()
     assert conf.atoms is None
     assert conf.coordinates is None
@@ -389,7 +374,6 @@ def test_conformer_coordinate_setting_with_different_atomic_attr():
 
 
 def test_pruning_conformers_without_energy_raises():
-
     conformers = Conformers(
         [Conformer(atoms=[Atom("H")]), Conformer(atoms=[Atom("H")])]
     )
@@ -401,6 +385,5 @@ def test_pruning_conformers_without_energy_raises():
 
 
 def test_pruning_no_energy_with_no_conformers_is_possible():
-
     conformers = Conformers()
     conformers.remove_no_energy()

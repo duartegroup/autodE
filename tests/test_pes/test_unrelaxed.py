@@ -12,7 +12,6 @@ from autode.pes.unrelaxed import UnRelaxedPES1D
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_h2_points():
-
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.8)])
 
     pes = UnRelaxedPES1D(h2, rs={(0, 1): (1.5, 10)})  # -> 1.5 Å in 10 steps
@@ -25,7 +24,6 @@ def test_h2_points():
 
 
 def test_species_at():
-
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.8)])
 
     pes = UnRelaxedPES1D(h2, rs={(0, 1): (1.5, 3)})
@@ -47,7 +45,6 @@ def test_non_bond_unrelaxed():
 
 
 def test_unrelaxed_kwd_type():
-
     pes = UnRelaxedPES1D(
         Molecule(atoms=[Atom("H"), Atom("H", x=0.8)]), rs={(0, 1): (1.5, 10)}
     )
@@ -57,7 +54,6 @@ def test_unrelaxed_kwd_type():
 
 @testutils.requires_working_xtb_install
 def test_unrelaxed_must_be_over_a_single_dim():
-
     h3 = Molecule(atoms=[Atom("H"), Atom("H", x=0.8), Atom("H", x=-0.8)])
 
     pes = UnRelaxedPES1D(h3, rs={(0, 1): (1.5, 10), (1, 2): (1.5, 10)})

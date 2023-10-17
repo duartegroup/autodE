@@ -161,7 +161,6 @@ def get_neighbour_list(
 
     dists_and_atom_labels = {}
     for atom_j, dist in enumerate(distance_vector):
-
         if index_set is not None and atom_j not in index_set:
             continue
 

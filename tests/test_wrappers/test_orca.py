@@ -38,7 +38,6 @@ opt_keywords = OptKeywords(["Opt", "PBE", "def2-SVP"])
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_orca_opt_calculation():
-
     methylchloride = Molecule(
         name="CH3Cl", smiles="[H]C([H])(Cl)[H]", solvent_name="water"
     )
@@ -83,7 +82,6 @@ def test_orca_opt_calculation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_orca_optts_calculation():
-
     ts = TransitionState.from_species(
         Molecule("test_ts_reopt_optts_orca.xyz", charge=-1)
     )
@@ -123,7 +121,6 @@ def test_orca_optts_calculation():
 
 
 def test_bad_orca_output():
-
     calc = Calculation(
         name="no_output",
         molecule=test_mol,
@@ -139,13 +136,11 @@ def test_bad_orca_output():
 
 
 def test_solvation():
-
     methane = Molecule(
         name="solvated_methane", smiles="C", solvent_name="water"
     )
 
     with pytest.raises(ex.UnsupportedCalculationInput):
-
         # Should raise on unsupported calculation type
         method.implicit_solvation_type = "xxx"
         calc = Calculation(
@@ -202,7 +197,6 @@ def test_vdw_solvent_not_present():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_gradients():
-
     h2 = Molecule(name="h2", atoms=[Atom("H"), Atom("H", x=1.0)])
     calc = Calculation(
         name="h2_grad",
@@ -246,7 +240,6 @@ def test_gradients():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_mp2_numerical_gradients():
-
     mol = Molecule("tmp_orca.xyz", charge=-1)
     calc = Calculation(
         name="tmp",
@@ -278,7 +271,6 @@ def test_mp2_numerical_gradients():
 
 @utils.work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_keyword_setting():
-
     orca = ORCA()
     kwds = orca.keywords.sp
     kwds.functional = "B3LYP"
@@ -323,7 +315,6 @@ def test_keyword_setting():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_hessian_extraction():
-
     h2o = Molecule(smiles="O")
     calc = Calculation(
         name="tmp",
@@ -358,7 +349,6 @@ def test_hessian_extraction():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_charges_from_v5_output_file():
-
     water = Molecule(smiles="O")
     calc = Calculation(
         name="h2_grad",
@@ -373,7 +363,6 @@ def test_charges_from_v5_output_file():
 
 
 def test_unsupported_freq_scaling():
-
     kwds = HessianKeywords(
         ["Freq", "PBE0", "def2-SVP", "%freq\nscalfreq 0.95\nend"]
     )
@@ -388,7 +377,6 @@ def test_unsupported_freq_scaling():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "orca.zip"))
 def test_orca_optimiser_from_output_file():
-
     optimiser = ORCAOptimiser(output_lines=[])
     assert not optimiser.converged
     assert not np.isfinite(optimiser.last_energy_change)
@@ -405,7 +393,6 @@ def test_orca_optimiser_from_output_file():
 
 @utils.work_in_tmp_dir()
 def test_cartesian_constraints_are_printed():
-
     idxs = [0, 1]
     with open("tmp.inp", "w") as inp_file:
         mol = Molecule(smiles="O")
@@ -419,7 +406,6 @@ def test_cartesian_constraints_are_printed():
 
 @utils.work_in_tmp_dir()
 def test_point_charges_are_printed():
-
     calc_input = CalculationInput(
         keywords=SinglePointKeywords(), point_charges=[PointCharge(0.1)]
     )
@@ -434,7 +420,6 @@ def test_point_charges_are_printed():
 
 @utils.work_in_tmp_dir()
 def test_getting_version_from_blank_output():
-
     calc = Calculation(
         name="tmp",
         molecule=Molecule(smiles="O"),

@@ -75,7 +75,6 @@ def get_substc_and_add_dummy_atoms(reactant, bond_rearrangement, shift_factor):
 
     for fbond in bond_rearrangement.fbonds:
         for bbond in bond_rearrangement.bbonds:
-
             if len(set(fbond).intersection(bbond)) == 0:
                 # If there are no common atoms between the forming and
                 # breaking bonds continue
@@ -225,7 +224,6 @@ def attack_cost(
     cost = 0
 
     for subst_centre in subst_centres:
-
         r_ac = reactant.distance(i=subst_centre.a_atom, j=subst_centre.c_atom)
 
         cost += a * (r_ac - subst_centre.r0_ac) ** 2

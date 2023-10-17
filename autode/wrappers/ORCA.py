@@ -51,7 +51,7 @@ def print_added_internals(inp_file, calc_input):
     if calc_input.added_internals is None:
         return
 
-    for (i, j) in calc_input.added_internals:
+    for i, j in calc_input.added_internals:
         print(
             "%geom\n" "modify_internal\n" "{ B",
             i,
@@ -235,7 +235,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         return ORCAOptimiser(output_lines=calc.output.file_lines)
 
     def terminated_normally_in(self, calc: "CalculationExecutor") -> bool:
-
         termination_strings = [
             "$end",  # at the end of a .hess file
             "ORCA TERMINATED NORMALLY",
@@ -243,7 +242,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         ]
 
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
-
             if any(substring in line for substring in termination_strings):
                 logger.info("orca terminated normally")
                 return True
@@ -276,7 +274,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         # First try the .xyz file generated
         xyz_file_name = calc.output.filename.replace(fn_ext, ".xyz")
         if os.path.exists(xyz_file_name):
-
             try:
                 return xyz_file_to_atoms(xyz_file_name).coordinates
 
@@ -370,7 +367,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
                     first, last = i + 2, i + 2 + calc.molecule.n_atoms
 
                 for grad_line in calc.output.file_lines[first:last]:
-
                     if len(grad_line.split()) <= 3:
                         continue
 
@@ -397,7 +393,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         """
 
         for i, line in enumerate(file_lines):
-
             if "$hessian" not in line:
                 continue
 
@@ -439,7 +434,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         start_line = self._start_line_hessian(calc, file_lines)
 
         for j, h_line in enumerate(file_lines[start_line:]):
-
             if len(h_line.split()) == 0:
                 # Assume we're at the end of the Hessian
                 break
@@ -493,7 +487,6 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         new_keywords = kwds_cls()
 
         for keyword in calc_input.keywords:
-
             if "scalfreq" in keyword.lower():
                 raise UnsupportedCalculationInput(
                     "Frequency scaling within ORCA will not alter the "

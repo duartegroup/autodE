@@ -13,7 +13,6 @@ def h3_ts_guess():
 
 
 def test_invalid_init_different_reactants_products():
-
     with pytest.raises(ValueError):
         _ = TSguess(
             atoms=[Atom("H")],
@@ -23,7 +22,6 @@ def test_invalid_init_different_reactants_products():
 
 
 def test_invalid_init_different_reactant():
-
     with pytest.raises(ValueError):
         _ = TSguess(
             atoms=[Atom("H")],
@@ -33,7 +31,6 @@ def test_invalid_init_different_reactant():
 
 
 def test_mode_checking_without_bond_rearr():
-
     ts_guess = h3_ts_guess()
 
     with pytest.raises(Exception):

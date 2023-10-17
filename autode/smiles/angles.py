@@ -66,8 +66,7 @@ class SAngle:
                 graph.remove_node(idx)
 
         # Delete edges that are too far away (i.e. unclosed rings)
-        for (idx_i, idx_j) in graph.edges:
-
+        for idx_i, idx_j in graph.edges:
             if {idx_i, idx_j} == set(pair):
                 logger.error("Cannot cut across a ring")
                 continue
@@ -182,7 +181,6 @@ class SDihedrals(SAngles):
 
     @property
     def origins(self):
-
         origins = []
         for dihedral in self:
             idx_i, idx_j = dihedral.mid_idxs

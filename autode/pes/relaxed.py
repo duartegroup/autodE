@@ -27,7 +27,6 @@ class RelaxedPESnD(ReactivePESnD):
         assert self._coordinates is not None, "Coordinates must be set"
 
         for points in self._points_generator():
-
             n_cores_pp = max(self._n_cores // len(points), 1)
             logger.info(
                 f"Calculating tranche {points} on the surface, using "
@@ -35,7 +34,6 @@ class RelaxedPESnD(ReactivePESnD):
             )
 
             with ProcessPool(max_workers=self._n_cores) as pool:
-
                 func = hashable("_single_energy_coordinates", self)
 
                 jobs = [
@@ -144,12 +142,10 @@ class RelaxedPESnD(ReactivePESnD):
 
         # Increment out from the nearest neighbours ('distance' 1)
         for n in range(1, max(self.shape)):
-
             # Construct a ∆-point tuple, which can be added to the current
             # point to generate one close by, which may have an energy and thus
             # should be selected
             for d_point in it.product(range(-n, n + 1), repeat=self.ndim):
-
                 close_point = tuple(np.array(point) + np.array(d_point))
 
                 if not self._is_contained(close_point):
@@ -198,10 +194,8 @@ class RelaxedPESnD(ReactivePESnD):
         all_points = list(self._points())
 
         for i in range(0, sum(self.shape)):
-
             points: List[tuple] = []
             while all_points:
-
                 # Next point is the next step in the grid
                 if len(points) > 0 and sum(all_points[0]) > i:
                     break

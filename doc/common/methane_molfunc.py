@@ -11,7 +11,6 @@ fragments = {
 methane = CoreMolecule(xyz_filename="CH4.xyz", atoms_to_del=[2])
 
 for name, smiles in fragments.items():
-
     combined = CombinedMolecule(
         core_mol=methane, frag_smiles=smiles, name=f"CH3_{name}"
     )

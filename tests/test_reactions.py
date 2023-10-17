@@ -39,6 +39,5 @@ def test_classify():
 
 
 def test_equality():
-
     assert Addition == Addition
     assert Addition != 0

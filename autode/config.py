@@ -403,7 +403,6 @@ class _ConfigClass:
             value = Allocation(value).to("MB")
 
         if key == "freq_scale_factor":
-
             if value is not None:
                 if not (0.0 < value <= 1.0):
                     raise ValueError(

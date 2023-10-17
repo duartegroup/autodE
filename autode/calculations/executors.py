@@ -41,7 +41,6 @@ class CalculationExecutor:
         n_cores: int = 1,
         point_charges: Optional[List[PointCharge]] = None,
     ):
-
         # Calculation names that start with "-" can break EST methods
         self.name = f"{_string_without_leading_hyphen(name)}_{method.name}"
 
@@ -185,7 +184,6 @@ class CalculationExecutor:
         self.molecule.hessian = self.method.hessian_from(self)
 
     def clean_up(self, force: bool = False, everything: bool = False) -> None:
-
         if not self.method.uses_external_io:  # Then there are no i/o files
             return None
 
@@ -203,7 +201,6 @@ class CalculationExecutor:
         logger.info(f"Deleting: {set(filenames)}")
 
         for filename in [fn for fn in set(filenames) if fn is not None]:
-
             try:
                 os.remove(filename)
             except FileNotFoundError:

@@ -41,7 +41,6 @@ class TestRFOOptimiser2D(RFOptimiser):
         print(f"{x:.4f}, {y:.4f}", f"E = {round(self._coords.e, 5)}")
 
     def _update_gradient_and_energy(self) -> None:
-
         x, y = self._coords
         self._coords.e = self.e_func(x, y)
         self._coords.g = self.g_func(x, y)
@@ -51,7 +50,6 @@ class TestRFOOptimiser2D(RFOptimiser):
 
 
 def test_simple_quadratic_opt():
-
     optimiser = TestRFOOptimiser2D(
         e_func=lambda x, y: x**2 + y**2,
         g_func=lambda x, y: np.array([2.0 * x, 2.0 * y]),
@@ -91,7 +89,6 @@ def test_branin_opt():
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 @requires_working_xtb_install
 def test_molecular_opt():
-
     mol = Molecule(smiles="O")
     assert [atom.label for atom in mol.atoms] == ["O", "H", "H"]
 

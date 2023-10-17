@@ -4,7 +4,6 @@ from autode.point_charges import PointCharge
 
 
 def test_pc():
-
     pc = PointCharge(1.0)
     # Should initialise close to the origin
     assert np.linalg.norm(pc.coord) < 1e-6
@@ -23,6 +22,5 @@ def test_pc():
 
 
 def test_pc_wrong_shape_coord():
-
     with pytest.raises(Exception):
         _ = PointCharge(charge=0, coord=np.zeros(4))

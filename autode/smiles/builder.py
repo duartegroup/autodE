@@ -152,7 +152,6 @@ class Builder(AtomCollection):
         dn = atom.group - atom.charge  # Initial number of d electrons
 
         for bond in self.bonds.involving(idx):
-
             # Only remove an electron if a ligand is singly bonded (X) and
             # treat all double bonds as L2 ligands, rather than X2
             if bond.order % 2 == 1:
@@ -166,7 +165,6 @@ class Builder(AtomCollection):
 
         h_atoms = []
         for idx, atom in enumerate(self.atoms):
-
             if not hasattr(atom, "n_hydrogens") or atom.n_hydrogens is None:
                 logger.warning(
                     f"{atom} did not have a defined number of "
@@ -200,7 +198,6 @@ class Builder(AtomCollection):
         logger.info(f"Have {len(self.rings_idxs)} ring(s)")
 
         for i, atom in enumerate(self.atoms):
-
             atom.coord = np.zeros(3)
             atom.neighbours = list(self.graph.neighbors(i))
             atom.in_ring = len(self._ring_idxs([i], return_empty=True)) > 0
@@ -233,7 +230,6 @@ class Builder(AtomCollection):
                     atom.type = atom_types.TrigonalAtom()
 
             elif atom.n_bonded == 4:  # e.g. CH4
-
                 if atom.atomic_symbol == "Xe":  # e.g. XeF4
                     atom.type = atom_types.SquarePlanarAtom()
 
@@ -326,7 +322,6 @@ class Builder(AtomCollection):
         )
 
         for possible_path in paths:
-
             # Can always have a path that traverses the ring bond (C1-C4 above)
             if len(possible_path) == 2:
                 continue
@@ -361,7 +356,6 @@ class Builder(AtomCollection):
 
         # so only add the indexes where the bond (edge) order is one
         for i, dihedral_idxs in enumerate(dihedral_idxs):
-
             dihedral = SDihedral(dihedral_idxs)
 
             # Optimum distance between the two middle atoms, used for
@@ -393,7 +387,6 @@ class Builder(AtomCollection):
             self.queued_atoms
             + list(other_idxs if other_idxs is not None else [])
         ):
-
             logger.info(f"Resetting sites on atom {idx_i}")
 
             atom = self.atoms[idx_i]
@@ -456,7 +449,6 @@ class Builder(AtomCollection):
         angles = SAngles()
 
         for angle_idxs in angles_idxs:
-
             graph = self.graph.copy()
             graph.remove_edge(ring_bond[0], ring_bond[1])
 
@@ -643,7 +635,6 @@ class Builder(AtomCollection):
 
         dihedrals = SDihedrals()
         for dihedral in self._ring_dihedrals(ring_bond):
-
             # Generate a graph without the ring or this dihedral to locate
             # the indexes that should be rotated
             graph = self.graph.copy()
@@ -703,7 +694,6 @@ class Builder(AtomCollection):
         dihedrals = SDihedrals()
 
         for bond in self.bonds:
-
             if bond.order != 1:
                 continue
 
@@ -947,7 +937,6 @@ class Builder(AtomCollection):
             bonded_idx = bond[0] if bond[1] == idx else bond[1]
 
             if bonded_idx in self.queued_atoms:
-
                 # Delete one of the empty sites
                 if atom.type.n_empty_sites > 0:
                     _ = atom.type.empty_site()
@@ -956,7 +945,6 @@ class Builder(AtomCollection):
                 continue
 
             if self.atoms[bonded_idx].is_shifted:
-
                 # Dihedrals over double bonds need to be 0 or π, queue the
                 # rotation to be performed after all other atoms have been
                 # added
@@ -1066,7 +1054,6 @@ class Builder(AtomCollection):
         self.set_atoms_bonds(atoms, bonds)
 
         while not self.built:
-
             idx = self.queued_atoms.pop(0)
             self._add_bonded_atoms(idx)
             self._rotate_dihedrals()

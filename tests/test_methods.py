@@ -11,7 +11,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_get_hmethod():
-
     Config.hcode = None
     Config.ORCA.path = here  # A path that exists
 
@@ -56,7 +55,6 @@ def test_get_lmethod():
 
 
 def test_method_unavailable():
-
     Config.hcode = None
 
     Config.ORCA.path = "/an/incorrect/path"
@@ -75,7 +73,6 @@ def test_method_unavailable():
 
 
 def test_nwchem_ecps():
-
     nwchem = methods.NWChem()
     assert nwchem.keywords.opt.ecp is not None
     assert nwchem.keywords.sp.ecp is not None
@@ -83,7 +80,6 @@ def test_nwchem_ecps():
 
 
 def test_method_equality():
-
     orca = methods.ORCA()
     g09 = methods.G09()
 
@@ -99,7 +95,6 @@ def test_method_equality():
 
 
 def test_get_method_or_default_lmethod():  # l <=> lower
-
     Config.lcode = None
     Config.XTB.path = here  # spoof an XTB install
 
@@ -108,7 +103,6 @@ def test_get_method_or_default_lmethod():  # l <=> lower
 
 
 def test_get_method_or_default_hmethod():  # h <=> higher
-
     Config.hcode = None
     Config.ORCA.path = here  # spoof an XTB install
 
@@ -117,7 +111,6 @@ def test_get_method_or_default_hmethod():  # h <=> higher
 
 
 def test_methods_in_base_class_raise_runtime_errors():
-
     method_names = [
         "optimiser_from",
         "energy_from",

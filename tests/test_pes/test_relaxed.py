@@ -19,7 +19,6 @@ class RelaxedPESnD(PESnD):
 
 
 def test_points_gen_idxs_1d():
-
     pes1d = RelaxedPESnD(rs={(0, 1): (1.0, 2.0, 3)})
 
     expected_points = [[(0,)], [(1,)], [(2,)]]
@@ -65,7 +64,6 @@ def test_points_gen_idxs_3d():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
 def test_relaxed_with_keywords():
-
     pes = RelaxedPESnD(
         Molecule(atoms=[Atom("H"), Atom("H", x=0.70)]), rs={(0, 1): (1.5, 5)}
     )
@@ -90,7 +88,6 @@ def test_relaxed_with_keywords():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calculate_single_without_est():
-
     pes = RelaxedPESnD(
         Molecule(atoms=[Atom("H"), Atom("H", x=0.70)]), rs={(0, 1): (1.5, 5)}
     )
@@ -105,7 +102,6 @@ def test_calculate_single_without_est():
 
 
 def test_units_name_to_units():
-
     unit = energy_unit_from_name("eV")
     assert isinstance(unit, Unit)
     assert unit.name.lower() == "ev"
@@ -116,7 +112,6 @@ def test_units_name_to_units():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
 def test_sn2_ts_guesses():
-
     reac = Molecule(
         name="reac",
         charge=-1,
@@ -152,7 +147,6 @@ def test_sn2_ts_guesses():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
 def test_da_ts_guesses():
-
     cyclohexene = Molecule(
         atoms=[
             Atom("C", -1.25524, 0.55843, -0.45127),
@@ -195,7 +189,6 @@ def test_da_ts_guesses():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
 def test_1d_pes_acetone_cn():
-
     species = Molecule("acetone_cn.xyz", charge=-1, solvent_name="water")
     pes = RelaxedPESnD(species=species, rs={(1, 10): (1.5, 15)})
 
@@ -211,7 +204,6 @@ def test_1d_pes_acetone_cn():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
 def test_calculating_a_point_with_broken_method_fails():
-
     orca = ORCA()
     orca.path = None
     assert not orca.is_available

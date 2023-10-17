@@ -31,7 +31,6 @@ bond_rearr = BondRearrangement(breaking_bonds=[(2, 1)], forming_bonds=[(0, 2)])
 
 
 def test_subst_centre():
-
     subst_centers = get_substc_and_add_dummy_atoms(
         reactant=reac_complex, bond_rearrangement=bond_rearr, shift_factor=2
     )
@@ -53,7 +52,6 @@ def test_subst_centre():
 
 
 def test_attack_cost():
-
     subst_centers = get_substc_and_add_dummy_atoms(
         reactant=reac_complex, bond_rearrangement=bond_rearr, shift_factor=2
     )

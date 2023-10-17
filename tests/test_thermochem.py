@@ -20,7 +20,6 @@ g09 = G09()
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "symm.zip"))
 def test_symmetry_number():
-
     assert Molecule().symmetry_number == 1
 
     assert Molecule("BH3.xyz").symmetry_number == 6
@@ -38,7 +37,6 @@ def test_symmetry_number():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_h2o():
-
     h2o = Molecule(smiles="O")
 
     calc = Calculation(
@@ -91,7 +89,6 @@ def test_h2o():
 
 
 def test_single_atom():
-
     f_entropy_g09 = Energy(0.011799 / 298.15, units="Ha")  # T S from g09
 
     f_atom = Molecule(atoms=[Atom("F")])
@@ -111,7 +108,6 @@ def test_single_atom():
 
 
 def test_no_atoms():
-
     mol = Molecule()
     assert mol.g_cont is None and mol.h_cont is None
 
@@ -121,7 +117,6 @@ def test_no_atoms():
 
 
 def test_no_frequencies():
-
     mol = Molecule(smiles="O")
 
     # Cannot calculate the vibrational component without vibrational
@@ -133,7 +128,6 @@ def test_no_frequencies():
 
 
 def test_linear_non_linear_rot():
-
     h2_tri = Molecule(atoms=[Atom("H"), Atom("H", x=1), Atom("H", x=1, y=1)])
     h2_lin = Molecule(atoms=[Atom("H"), Atom("H", x=1), Atom("H", x=2)])
 
@@ -147,7 +141,6 @@ def test_linear_non_linear_rot():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_freq_shift():
-
     # Needs to have lots of atoms so there are frequencies <100 cm-1
     alkane = Molecule(smiles="CCCCCCC")
     alkane_s = alkane.copy()
@@ -170,7 +163,6 @@ def test_freq_shift():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_acetylene():
-
     mol = Molecule("C2H2.xyz")
     assert np.isclose(mol.weight.to("amu"), 26.01565, atol=0.03)
 
@@ -203,7 +195,6 @@ def test_acetylene():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_sn2_ts():
-
     ts = TransitionState(
         TSguess(atoms=xyz_file_to_atoms("TS_sn2.xyz"), charge=-1)
     )
@@ -227,7 +218,6 @@ def test_sn2_ts():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_long_alkane():
-
     mol = Molecule("alkane_hess_orca.xyz")
     calc = Calculation(
         name="tmp", molecule=mol, method=orca, keywords=orca.keywords.hess
@@ -248,7 +238,6 @@ def test_long_alkane():
 
 
 def test_unknown_entropy_method():
-
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=0.7)])
 
     with pytest.raises(KeyError):
@@ -266,7 +255,6 @@ def test_unknown_entropy_method():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_calc_thermo_with_keywords():
-
     water = Molecule(smiles="O", name="water_pbe")
     water.calc_thermo(
         keywords=HessianKeywords(["PBE", "def2-SVP", "Freq"]), method=orca
@@ -284,7 +272,6 @@ def test_calc_thermo_with_keywords():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_calc_thermo_with_calc():
-
     mol = Molecule(smiles="[H][H]", name="h2_calc")
 
     calc = Calculation(
@@ -304,7 +291,6 @@ def test_calc_thermo_with_calc():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
 def test_themochem_minenkov_is_close_to_grimme():
-
     mol = Molecule("alkane_hess_orca.xyz")
     calc = Calculation(
         name="tmp", molecule=mol, method=orca, keywords=orca.keywords.hess

@@ -173,7 +173,6 @@ class Conformer(Species):
             return
 
         for i, atom in enumerate(value):
-
             parent_atom = self._parent_atoms[i]
             if atom.label != parent_atom.label:
                 raise ValueError(

@@ -16,7 +16,6 @@ orca = ORCA()
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mode_checking.zip"))
 def test_imag_modes():
-
     assert not has_correct_mode(
         "incorrect_ts_mode", bbonds=[(1, 6)], fbonds=[(2, 6)]
     )
@@ -44,7 +43,6 @@ def test_imag_modes():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mode_checking.zip"))
 def test_graph_no_other_bonds():
-
     ts = TSbase(
         atoms=xyz_file_to_atoms("h_shift_correct_ts_mode.xyz"),
         mult=2,
@@ -73,7 +71,6 @@ def test_graph_no_other_bonds():
 
 
 def has_correct_mode(name, fbonds, bbonds):
-
     calc = Calculation(
         name=name,
         molecule=Reactant(atoms=[Atom("H")], mult=2),

@@ -48,7 +48,6 @@ def get_complex_conformer_atoms(molecules, rotations, points):
     # For each molecule add it to the current set of atoms with the centroid
     # ~ COM located at the origin
     for i, molecule in enumerate(molecules[1:]):
-
         centroid = np.average(np.array([atom.coord for atom in atoms]), axis=0)
 
         # Shift to the origin and rotate randomly, by the same amount
@@ -78,7 +77,6 @@ def get_complex_conformer_atoms(molecules, rotations, points):
         # (which has length 1) until the
         # minimum distance to the rest of the complex is 2.0 Å
         while not far_enough_apart:
-
             for atom in shifted_mol_atoms:
                 atom.coord += points[i] * 0.1
 
@@ -149,7 +147,6 @@ class Complex(Species):
 
     @Species.atoms.setter
     def atoms(self, value: Union[List[Atom], Atoms, None]):
-
         if value is None:
             self.graph = None
             self._molecules.clear()
@@ -240,7 +237,6 @@ class Complex(Species):
             ]
 
             for points in iterprod(points_on_sphere, repeat=n - 1):
-
                 conf = Conformer(
                     name=f"{self.name}_conf{m}",
                     charge=self.charge,

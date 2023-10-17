@@ -28,7 +28,6 @@ h_h = Complex(h, h)
 
 
 def test_complex_class():
-
     blank_complex = Complex()
     assert blank_complex.n_molecules == 0
     assert blank_complex.solvent is None
@@ -63,7 +62,6 @@ def test_complex_class():
 
 
 def test_complex_class_set():
-
     h2_complex = Complex(hydrogen, hydrogen, copy=True)
     assert h2_complex.charge == 0
     assert h2_complex.mult == 1
@@ -96,7 +94,6 @@ def test_complex_class_set():
 
 
 def test_translation():
-
     # Monomer translation
     monomer_copy = deepcopy(monomer)
     monomer_copy.translate_mol(vec=np.array([1.0, 0.0, 0.0]), mol_index=0)
@@ -129,7 +126,6 @@ def test_translation():
 
 
 def test_rotation():
-
     dimer_copy = deepcopy(dimer)
     with pytest.raises(Exception):
         dimer_copy.rotate_mol(mol_index=3, axis=[1.0, 1.0, 1.0], theta=0)
@@ -147,7 +143,6 @@ def test_rotation():
 
 
 def test_graph():
-
     hydrogen2 = deepcopy(hydrogen)
     hydrogen2.translate(vec=np.array([10, 0, 0]))
 
@@ -158,7 +153,6 @@ def test_graph():
 
 
 def test_init_geometry():
-
     water = Molecule(smiles="O")
     assert are_coords_reasonable(coords=Complex(water).coordinates)
 
@@ -168,7 +162,6 @@ def test_init_geometry():
 
 
 def test_conformer_generation():
-
     Config.num_complex_random_rotations = 2
     Config.num_complex_sphere_points = 6
     Config.max_num_complex_conformers = 10000
@@ -185,7 +178,6 @@ def test_conformer_generation():
 
 
 def test_conformer_generation2():
-
     Config.num_complex_random_rotations = 1
     Config.num_complex_sphere_points = 6
     Config.max_num_complex_conformers = 10000
@@ -201,7 +193,6 @@ def test_conformer_generation2():
 
 
 def test_complex_init():
-
     h2o = Molecule(
         name="water", atoms=[Atom("O"), Atom("H", x=-1), Atom("H", x=1)]
     )
@@ -230,7 +221,6 @@ def test_complex_init():
 
 
 def test_complex_atom_reorder():
-
     hf_dimer = Complex(
         Molecule(name="HF", atoms=[Atom("H"), Atom("F", x=1.0)]),
         Molecule(name="HF", atoms=[Atom("H"), Atom("F", x=1.0)]),
@@ -249,7 +239,6 @@ def test_complex_atom_reorder():
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 @testutils.requires_working_xtb_install
 def test_allow_connectivity_change():
-
     xtb = XTB()
     xtb.path = shutil.which("xtb")
     assert xtb.is_available

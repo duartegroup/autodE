@@ -24,7 +24,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 @work_in_tmp_dir()
 def test_neb_properties():
-
     # H-H  H
     reac = Species(
         name="reac",
@@ -47,7 +46,6 @@ def test_neb_properties():
 
     # Should move monotonically from 0.7 -> 1.3 Angstroms
     for i in range(1, len(neb.images)):
-
         prev_bb_dist = neb.images[i - 1].distance(0, 1)
         curr_bb_dist = neb.images[i].distance(0, 1)
 
@@ -55,7 +53,6 @@ def test_neb_properties():
 
 
 def test_image_properties():
-
     k = ForceConstant(0.1)
     images = CImages(images=Images(init_k=k))
     assert images != 0
@@ -71,7 +68,6 @@ def test_image_properties():
 
 
 def test_contains_peak():
-
     species_list = Path()
     for i in range(5):
         h2 = Species(
@@ -94,7 +90,6 @@ def test_contains_peak():
 @testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
 def test_full_calc_with_xtb():
-
     sn2_neb = NEB.from_end_points(
         initial=Species(
             name="inital",
@@ -129,7 +124,6 @@ def test_full_calc_with_xtb():
 @testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
 def test_get_ts_guess_neb():
-
     reactant = Reactant(
         name="inital",
         charge=-1,
@@ -172,7 +166,6 @@ def test_get_ts_guess_neb():
 
 
 def test_climbing_image():
-
     k = ForceConstant(0.1)
     images = CImages(images=Images(init_k=k))
     images.append_species(Molecule(atoms=[Atom("H")], mult=2))
@@ -195,7 +188,6 @@ def _simple_h2_images(num, shift, increment):
 
 
 def test_energy_gradient_type():
-
     k = ForceConstant(1.0)
     image = Image(species=Molecule(atoms=[Atom("H")], mult=2), name="tmp", k=k)
 
@@ -217,7 +209,6 @@ def test_iddp_init():
 
 
 def test_iddp_energy():
-
     images = _simple_h2_images(num=3, shift=0.5, increment=0.1)
     idpp = IDPP(images)
 
@@ -234,7 +225,6 @@ def test_iddp_energy():
 
 
 def test_iddp_gradient():
-
     images = _simple_h2_images(num=3, shift=0.5, increment=0.1)
     image = images[1]
     idpp = IDPP(images)
@@ -268,7 +258,6 @@ def test_iddp_gradient():
 
 @work_in_tmp_dir()
 def test_neb_interpolate_and_idpp_relax():
-
     mol = Molecule(
         name="methane",
         atoms=[
@@ -290,7 +279,6 @@ def test_neb_interpolate_and_idpp_relax():
 
 
 def test_max_delta_between_images():
-
     _list = [
         Molecule(atoms=[Atom("H"), Atom("H", x=2.7)]),
         Molecule(atoms=[Atom("H"), Atom("H", x=1.7)]),
@@ -307,7 +295,6 @@ def test_max_delta_between_images():
 
 
 def test_max_delta_between_images_h3():
-
     _list = [
         Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
         Molecule(atoms=[Atom("H"), Atom("H", x=0.70657), Atom("H", x=2.7)]),
@@ -323,7 +310,6 @@ def test_max_delta_between_images_h3():
 
 
 def test_partition_max_delta():
-
     # Set of molecules that are like: [H-H...H, H--H--H, H...H-H]
     _list = [
         Molecule(atoms=[Atom("H"), Atom("H", x=0.7), Atom("H", x=2.7)]),
@@ -343,7 +329,7 @@ def test_partition_max_delta():
 
     h2_h.partition(max_delta=max_delta)
 
-    for (i, j) in [(0, 1), (1, 2)]:
+    for i, j in [(0, 1), (1, 2)]:
         assert (
             np.max(
                 np.linalg.norm(
@@ -365,7 +351,6 @@ def _h_xyz_string():
 
 @work_in_tmp_dir()
 def test_init_from_file_sets_force_constant():
-
     with open("tmp.xyz", "w") as file:
         print(
             _h_xyz_string_with_energy(0.1),
@@ -400,7 +385,6 @@ def test_init_from_file_sets_force_constant():
 
 @work_in_tmp_dir()
 def test_init_from_file_sets_force_constant_no_energies():
-
     with open("tmp.xyz", "w") as file:
         print(_h_xyz_string(), _h_xyz_string(), sep="\n", file=file)
 
@@ -410,13 +394,11 @@ def test_init_from_file_sets_force_constant_no_energies():
 
 
 def test_neb_constructor_with_kwargs_raises():
-
     with pytest.raises(Exception):
         _ = NEB(init_k=ForceConstant(0.1), another_arg="a string")
 
 
 def test_constructing_neb_from_endpoints_with_different_atoms_raises():
-
     with pytest.raises(Exception):
         _ = NEB.from_end_points(
             Molecule(smiles="O"), Molecule(smiles="C"), num=4
@@ -424,7 +406,6 @@ def test_constructing_neb_from_endpoints_with_different_atoms_raises():
 
 
 def test_neb_from_endpoints_requires_at_least_2_images():
-
     with pytest.raises(Exception):
         _ = NEB.from_end_points(
             Molecule(smiles=r"C\C=C\C"), Molecule(smiles=r"C\C=C/C"), num=1
@@ -434,7 +415,6 @@ def test_neb_from_endpoints_requires_at_least_2_images():
 @testutils.requires_working_xtb_install
 @work_in_tmp_dir()
 def test_neb_ts_guess_is_none_if_no_peak():
-
     init = Molecule(smiles="C")
     final = init.copy()
     final.rotate(axis=[0.1, 0.2, 0.3], theta=0.4)

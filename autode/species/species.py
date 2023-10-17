@@ -178,7 +178,6 @@ class Species(AtomCollection):
 
     @mult.setter
     def mult(self, value: Any) -> None:
-
         try:
             assert int(value) > 0
         except (ValueError, AssertionError, TypeError):
@@ -1246,7 +1245,7 @@ class Species(AtomCollection):
         self,
         method: Optional["Method"] = None,
         calc: Optional[Calculation] = None,
-        temp: float = 298.15,
+        temp: Union[val.Temperature, float] = val.Temperature(298.15),
         keywords: Union[Sequence[str], str, None] = None,
         **kwargs,
     ) -> None:
@@ -1262,7 +1261,7 @@ class Species(AtomCollection):
 
             keywords (autode.wrappers.keywords.Keywords):
 
-            temp (float): Temperature in K
+            temp (float | autode.values.Temperature): Temperature in K
 
         Keyword Arguments:
 
@@ -1282,6 +1281,12 @@ class Species(AtomCollection):
         logger.info(
             f"Calculating thermochemical contributions for {self.name}"
         )
+
+        if isinstance(temp, float):
+            logger.warning(
+                "Temperature defined as a float. Assuming units of K"
+            )
+            temp = val.Temperature(temp)
 
         if "lfm_method" in kwargs:
             try:
@@ -1426,7 +1431,6 @@ class Species(AtomCollection):
         self.conformers.prune(remove_no_energy=True)
 
         if hmethod is not None:
-
             if Config.hmethod_sp_conformers:
                 # Use only single point energies on lmethod geometries
                 assert hmethod.keywords.low_sp is not None
@@ -1548,7 +1552,6 @@ class Species(AtomCollection):
                 keywords = method.keywords.grad
 
         if numerical:
-
             if not isinstance(coordinate_shift, val.Distance):
                 logger.warning(
                     f"Calculating numerical Hessian with "

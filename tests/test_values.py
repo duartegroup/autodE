@@ -14,7 +14,6 @@ from autode.values import (
 
 
 class TmpValues(ValueArray):
-
     implemented_units = [ha, ev]
 
     def __repr__(self):
@@ -22,7 +21,6 @@ class TmpValues(ValueArray):
 
 
 def test_base_arr():
-
     tmp_values = TmpValues(np.arange(2))
     assert tmp_values.units is None
 
@@ -30,7 +28,6 @@ def test_base_arr():
     assert tmp_values.units == ha
 
     for item in (None, "a", 0, np.zeros(2)):
-
         # These are not the same! != calls __ne__
         assert not tmp_values == item
         assert tmp_values != item
@@ -57,7 +54,6 @@ def test_coordinate():
 
 
 def test_coordinates():
-
     arr = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.1]])
     coords = Coordinates(arr)
     assert coords.units == ang
@@ -70,13 +66,11 @@ def test_coordinates():
 
 
 def test_moi():
-
     moi = MomentOfInertia(np.zeros(shape=(3, 3)))
     assert "i" in repr(moi).lower()
 
 
 def test_gradients():
-
     # Default gradient units are Ha Å^-1
     gradients = Gradient(np.arange(3, dtype="f8"))
     assert gradients.units == ha_per_ang
@@ -105,13 +99,11 @@ class InvalidValue(float):
 
 
 def test_to_unsupported():
-
     with pytest.raises(ValueError):
         _ = _to(InvalidValue(), Unit(), inplace=True)
 
 
 def test_inplace_modification():
-
     x = Gradient([[1.0, 1.0, 1.0]], units="Ha / Å")
     return_value = x.to_("eV / Å")
     assert return_value is None
@@ -120,7 +112,6 @@ def test_inplace_modification():
 
 
 def test_copy_conversion():
-
     x = Gradient([[1.0, 1.0, 1.0]], units="Ha / Å")
     y = x.to("eV / Å")
 
@@ -129,7 +120,6 @@ def test_copy_conversion():
 
 
 def test_force_constant():
-
     fc = ForceConstant(0.1)
     assert "force" in repr(fc).lower()
 

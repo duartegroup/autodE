@@ -16,7 +16,6 @@ def branin_energy(x, y):
 
 
 class BraninCauchyTROptimiser(CauchyTROptimiser):
-
     __test__ = False
 
     def _space_has_degrees_of_freedom(self) -> bool:
@@ -51,7 +50,6 @@ class BraninCauchyTROptimiser(CauchyTROptimiser):
         self._coords.h = np.array([[h_xx, h_xy], [h_xy, h_yy]])
 
     def _log_convergence(self) -> None:
-
         attrs = [
             self.iteration,
             self._coords.e,
@@ -155,7 +153,6 @@ def test_branin_minimisation():
 
 
 def test_branin_dogleg_minimisation():
-
     # Dogleg optimiser doesn't seem to be so efficient - TODO: Check
     optimiser = BraninDoglegTROptimiser(
         maxiter=1000,
@@ -178,7 +175,6 @@ def test_branin_dogleg_minimisation():
 
 
 def test_branin_cg_minimisation():
-
     optimiser = BraninCGSteihaugTROptimiser(
         maxiter=1000,
         etol=100,  # Some large value
@@ -212,7 +208,6 @@ def test_branin_cg_minimisation():
 
 
 def test_base_cg_properties():
-
     optimiser = CGSteihaugTROptimiser(
         maxiter=10,
         trust_radius=1.0,

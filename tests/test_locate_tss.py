@@ -14,7 +14,6 @@ from autode.transition_states.locate_tss import (
 
 
 def test_one_to_three_dissociation():
-
     r = Reactant(name="tet_int", smiles="CC(OS(Cl)=O)(Cl)O")
     p1 = Product(name="acyl", smiles="CC(Cl)=[OH+]")
     p2 = Product(name="so2", smiles="O=S=O")
@@ -48,7 +47,6 @@ def test_one_to_three_dissociation():
 
 
 def test_more_forming_than_breaking():
-
     h_a = Reactant(atoms=[Atom("H")], name="h_a")
     h_b = Reactant(atoms=[Atom("H")], name="h_b")
     h2_sep = ReactantComplex(h_a, h_b)
@@ -70,7 +68,6 @@ def test_more_forming_than_breaking():
 
 
 def test_find_tss_no_products():
-
     reaction = Reaction(Reactant(smiles="O"), Product(smiles="O"))
 
     # Check for no reactant and product before anything else

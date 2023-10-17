@@ -22,7 +22,6 @@ test_mol = Molecule(smiles="O")
 
 
 def test_path_properties_empty():
-
     path = Path()
 
     assert len(path) == 0
@@ -83,7 +82,6 @@ def test_path_properties():
 
 
 def test_point_properties():
-
     point = test_species.copy()
 
     assert point.energy is None
@@ -93,7 +91,6 @@ def test_point_properties():
 
 
 def test_pruning_bonds():
-
     h3 = Species(
         name="h3",
         charge=0,
@@ -151,7 +148,6 @@ def test_pruning_bonds():
 
 
 def test_pruning_bonds2():
-
     h2 = Species(
         name="h2", charge=0, mult=2, atoms=[Atom("H"), Atom("H", x=1)]
     )
@@ -170,7 +166,6 @@ def test_pruning_bonds2():
 
 
 def test_products_made():
-
     path = Path(test_mol)
 
     assert not path.products_made(product=None)
@@ -188,7 +183,6 @@ def test_products_made():
 
 @testutils.requires_working_xtb_install
 def test_adaptive_path():
-
     species_no_atoms = Species(name="tmp", charge=0, mult=1, atoms=[])
 
     with pytest.raises(Exception):

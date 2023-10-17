@@ -6,7 +6,6 @@ from autode.geom import are_coords_reasonable
 
 
 def rb_minimised_is_reasonable(molecule):
-
     n_atoms = molecule.n_atoms
     coords = opt_rb_coords(
         py_coords=molecule.coordinates,
@@ -38,13 +37,11 @@ def test_h2():
 
 
 def test_alkanes():
-
     rb_minimised_is_reasonable(molecule=Molecule(smiles="C"))
     rb_minimised_is_reasonable(molecule=Molecule(smiles="CCCC"))
 
 
 def _test_tmp():
-
     butane = Molecule(smiles="CCCCCCCC")
 
     from autode.conformers.conf_gen import get_simanl_conformer

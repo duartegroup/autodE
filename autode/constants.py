@@ -1,5 +1,4 @@
 class Constants:
-
     n_a = 6.022140857e23  # molecules mol-1
 
     ha_to_kcalmol = ha2kcalmol = 627.509  # Hartree^-1 kcal mol^-1

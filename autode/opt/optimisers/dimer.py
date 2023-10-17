@@ -400,7 +400,6 @@ class Dimer(Optimiser):
         )
 
         for i in range(self._ratio_rot_iters):
-
             result = self._rotate()
 
             if (
@@ -418,7 +417,6 @@ class Dimer(Optimiser):
 
 
 class _StepResult(Enum):
-
     did_rotation = 0
     skipped_rotation = 1
 

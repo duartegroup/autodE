@@ -11,7 +11,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 )
 @testutils.requires_working_xtb_install
 def test_reaction_w_complexes():
-
     ade.Config.n_cores = 1  # Ensure only a single core is used
 
     ade.Config.hcode = "orca"

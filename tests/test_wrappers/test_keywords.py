@@ -24,7 +24,6 @@ from autode.wrappers.keywords import (
 
 
 def test_keywords():
-
     keywords = OptKeywords(keyword_list=None)
     assert keywords._list == []
 
@@ -64,12 +63,10 @@ def test_keywords():
 
 
 def test_wf_keywords_string():
-
     assert "hf" in OptKeywords([hf]).method_string.lower()
 
 
 def test_set_keywordsset():
-
     kwset = deepcopy(Config.G09.keywords)
     assert hasattr(kwset, "opt")
     assert "keywords" in repr(kwset).lower()
@@ -99,7 +96,6 @@ def test_set_keywordsset():
 
 
 def test_keyword_repr():
-
     assert "basis" in repr(BasisSet("pbe")).lower()
     assert "disp" in repr(DispersionCorrection("d3")).lower()
     assert "func" in repr(Functional("pbe")).lower()
@@ -111,7 +107,6 @@ def test_keyword_repr():
 
 
 def test_ecp():
-
     kwds_set = KeywordsSet()
     assert kwds_set.opt.ecp is None
 
@@ -137,7 +132,6 @@ def test_ecp():
 
 
 def test_max_opt_cycles():
-
     with pytest.raises(ValueError):
         _ = MaxOptCycles("a")
 
@@ -161,7 +155,6 @@ def test_max_opt_cycles():
 
 
 def test_type_init():
-
     keyword_set = Config.ORCA.keywords.copy()
 
     for opt_type in ("low_opt", "opt", "opt_ts"):
@@ -208,7 +201,6 @@ def test_type_inference():
 
 
 def test_keywords_contain():
-
     kwds = SinglePointKeywords(["PBE", "Opt"])
 
     assert kwds.contain_any_of("pbe")
@@ -219,13 +211,11 @@ def test_keywords_contain():
 
 
 def test_functional_equality():
-
     assert Functional("PBE0") == Functional("PBE0")
     assert Functional("PBE0") != 1
 
 
 def test_keyword_addition():
-
     a = OptKeywords("a")
     b = OptKeywords("b")
 

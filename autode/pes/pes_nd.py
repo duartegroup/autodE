@@ -561,7 +561,7 @@ class PESnD(ABC):
         """
         r_x = self._rs[0]
         energies, units = self._energies, energy_unit_from_name(units_name)
-        energies = units.conversion * (energies - np.min(energies))
+        energies = units.times * (energies - np.min(energies))
 
         plt.scatter(
             r_x,
@@ -622,7 +622,7 @@ class PESnD(ABC):
 
         # Convert the energies in the 2D array from the base Hartree units
         units = energy_unit_from_name(units_name)
-        energies = units.conversion * (energies - np.min(energies))
+        energies = units.times * (energies - np.min(energies))
 
         ax0.plot_surface(
             *np.meshgrid(r_x, r_y), energies.T, cmap=plt.get_cmap("plasma")
@@ -791,7 +791,6 @@ class _ListDistances1D(list):
         """
 
         if len(value) == 2:
-
             if self._species is None:
                 raise ValueError(
                     "Cannot determine initial point without "
@@ -839,7 +838,6 @@ class _ListDistances1D(list):
 
 
 class _Distances1D(ValueArray):
-
     implemented_units = [ang]
 
     def __new__(
