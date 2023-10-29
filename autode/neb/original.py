@@ -99,14 +99,20 @@ def total_energy(flat_coords, images, method, n_cores, plot_energies):
         f"{n_cores} total cores and {n_cores_pp} per process"
     )
 
-    # Run an energy + gradient evaluation in parallel across all images
-    with ProcessPool(max_workers=n_cores) as pool:
-        results = [
-            pool.submit(energy_gradient, images[i], method, n_cores_pp)
+    # Run an energy + gradient evaluation across all images (parallel for EST)
+    if isinstance(method, IDPP):
+        images[1:-1] = [
+            energy_gradient(images[i], method, n_cores_pp)
             for i in range(1, len(images) - 1)
         ]
+    else:
+        with ProcessPool(max_workers=n_cores) as pool:
+            results = [
+                pool.submit(energy_gradient, images[i], method, n_cores_pp)
+                for i in range(1, len(images) - 1)
+            ]
 
-        images[1:-1] = [res.result() for res in results]
+            images[1:-1] = [res.result() for res in results]
 
     images.increment()
 
