@@ -18,12 +18,12 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
@@ -32,8 +32,9 @@
     <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6" />
+  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=365ca57ee442770a23c6"></script>
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/doctools.js"></script>
@@ -52,6 +53,15 @@
   
   
   <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
   
   <input type="checkbox"
           class="sidebar-toggle"
@@ -108,6 +118,7 @@
   
 
 <a class="navbar-brand logo" href="index.html">
+  
   
   
   
@@ -300,10 +311,10 @@
 
 <script>
 document.write(`
-  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
   </button>
 `);
 </script>
@@ -311,7 +322,7 @@ document.write(`
 <script>
 document.write(`
   <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
   </button>
 `);
 </script>
@@ -424,15 +435,15 @@ document.write(`
 </li>
         <li><a href="reference/neb/original.html#autode.neb.original.NEB.__init__">(autode.neb.original.NEB method)</a>
 </li>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.BondAngle.__init__">(autode.opt.coordinates.primitives.BondAngle method)</a>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitiveBondAngle.__init__">(autode.opt.coordinates.primitives.ConstrainedPrimitiveBondAngle method)</a>
 </li>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedBondAngle.__init__">(autode.opt.coordinates.primitives.ConstrainedBondAngle method)</a>
-</li>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedDistance.__init__">(autode.opt.coordinates.primitives.ConstrainedDistance method)</a>
-</li>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.DihedralAngle.__init__">(autode.opt.coordinates.primitives.DihedralAngle method)</a>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitiveDistance.__init__">(autode.opt.coordinates.primitives.ConstrainedPrimitiveDistance method)</a>
 </li>
         <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive.__init__">(autode.opt.coordinates.primitives.Primitive method)</a>
+</li>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveBondAngle.__init__">(autode.opt.coordinates.primitives.PrimitiveBondAngle method)</a>
+</li>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveDihedralAngle.__init__">(autode.opt.coordinates.primitives.PrimitiveDihedralAngle method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.__init__">(autode.opt.optimisers.base.NDOptimiser method)</a>
 </li>
@@ -559,6 +570,8 @@ document.write(`
         <li><a href="reference/values.html#autode.values.Mass.__init__">(autode.values.Mass method)</a>
 </li>
         <li><a href="reference/values.html#autode.values.MWDistance.__init__">(autode.values.MWDistance method)</a>
+</li>
+        <li><a href="reference/values.html#autode.values.Temperature.__init__">(autode.values.Temperature method)</a>
 </li>
         <li><a href="reference/values.html#autode.values.Value.__init__">(autode.values.Value method)</a>
 </li>
@@ -822,6 +835,8 @@ document.write(`
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.AtomType">AtomType (class in autode.smiles.atom_types)</a>
 </li>
       <li><a href="reference/substitution.html#autode.substitution.attack_cost">attack_cost() (in module autode.substitution)</a>
+</li>
+      <li><a href="reference/input_output.html#autode.input_output.attrs_from_xyz_title_line">attrs_from_xyz_title_line() (in module autode.input_output)</a>
 </li>
       <li>
     autode.atoms
@@ -1356,15 +1371,13 @@ document.write(`
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSSR1Update">BFGSSR1Update (class in autode.opt.optimisers.hessian_update)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate">BFGSUpdate (class in autode.opt.optimisers.hessian_update)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate">BFGSUpdate (class in autode.opt.optimisers.hessian_update)</a>
+</li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate">BofillUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.bond_matrix">bond_matrix (autode.species.species.Species property)</a>
-</li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.BondAngle">BondAngle (class in autode.opt.coordinates.primitives)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement">BondRearrangement (class in autode.bond_rearrangement)</a>
 </li>
@@ -1520,11 +1533,11 @@ document.write(`
 </li>
       <li><a href="reference/constants.html#autode.constants.Constants">Constants (class in autode.constants)</a>
 </li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedBondAngle">ConstrainedBondAngle (class in autode.opt.coordinates.primitives)</a>
-</li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedDistance">ConstrainedDistance (class in autode.opt.coordinates.primitives)</a>
-</li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitive">ConstrainedPrimitive (class in autode.opt.coordinates.primitives)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitiveBondAngle">ConstrainedPrimitiveBondAngle (class in autode.opt.coordinates.primitives)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.ConstrainedPrimitiveDistance">ConstrainedPrimitiveDistance (class in autode.opt.coordinates.primitives)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keywords.contain_any_of">contain_any_of() (autode.wrappers.keywords.Keywords method)</a>
 </li>
@@ -1654,16 +1667,16 @@ document.write(`
       </ul></li>
       <li><a href="reference/utils.html#autode.utils.deprecated">deprecated() (in module autode.utils)</a>
 </li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.BondAngle.derivative">derivative() (autode.opt.coordinates.primitives.BondAngle method)</a>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive.derivative">derivative() (autode.opt.coordinates.primitives.Primitive method)</a>
 
       <ul>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.DihedralAngle.derivative">(autode.opt.coordinates.primitives.DihedralAngle method)</a>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveBondAngle.derivative">(autode.opt.coordinates.primitives.PrimitiveBondAngle method)</a>
 </li>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Distance.derivative">(autode.opt.coordinates.primitives.Distance method)</a>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveDihedralAngle.derivative">(autode.opt.coordinates.primitives.PrimitiveDihedralAngle method)</a>
 </li>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.InverseDistance.derivative">(autode.opt.coordinates.primitives.InverseDistance method)</a>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveDistance.derivative">(autode.opt.coordinates.primitives.PrimitiveDistance method)</a>
 </li>
-        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive.derivative">(autode.opt.coordinates.primitives.Primitive method)</a>
+        <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveInverseDistance.derivative">(autode.opt.coordinates.primitives.PrimitiveInverseDistance method)</a>
 </li>
         <li><a href="reference/neb/original.html#autode.neb.original.derivative">(in module autode.neb.original)</a>
 </li>
@@ -1679,8 +1692,6 @@ document.write(`
       <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.Solvent.dielectric">dielectric (autode.solvent.solvents.Solvent property)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.AtomCollection.dihedral">dihedral() (autode.atoms.AtomCollection method)</a>
-</li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.DihedralAngle">DihedralAngle (class in autode.opt.coordinates.primitives)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -1698,12 +1709,8 @@ document.write(`
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.dist">dist (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Distance">Distance (class in autode.opt.coordinates.primitives)</a>
-
-      <ul>
-        <li><a href="reference/values.html#autode.values.Distance">(class in autode.values)</a>
+      <li><a href="reference/values.html#autode.values.Distance">Distance (class in autode.values)</a>
 </li>
-      </ul></li>
       <li><a href="reference/atoms.html#autode.atoms.AtomCollection.distance">distance() (autode.atoms.AtomCollection method)</a>
 
       <ul>
@@ -2285,6 +2292,8 @@ document.write(`
 </li>
         <li><a href="reference/values.html#autode.values.MWDistance.implemented_units">(autode.values.MWDistance attribute)</a>
 </li>
+        <li><a href="reference/values.html#autode.values.Temperature.implemented_units">(autode.values.Temperature attribute)</a>
+</li>
         <li><a href="reference/values.html#autode.values.Value.implemented_units">(autode.values.Value attribute)</a>
 </li>
         <li><a href="reference/values.html#autode.values.ValueArray.implemented_units">(autode.values.ValueArray attribute)</a>
@@ -2339,8 +2348,6 @@ document.write(`
       <li><a href="reference/exceptions.html#autode.exceptions.InvalidSmilesString">InvalidSmilesString</a>
 </li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SAngle.inverse_rot_idxs">inverse_rot_idxs() (autode.smiles.angles.SAngle method)</a>
-</li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.InverseDistance">InverseDistance (class in autode.opt.coordinates.primitives)</a>
 </li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESAtom.invert_stereochem">invert_stereochem() (autode.smiles.base.SMILESAtom method)</a>
 </li>
@@ -2569,6 +2576,8 @@ document.write(`
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerPoint.midpoint">midpoint (autode.opt.coordinates.dimer.DimerPoint attribute)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate.min_update_tol">min_update_tol (autode.opt.optimisers.hessian_update.BofillUpdate attribute)</a>
+</li>
+      <li><a href="reference/thermochemistry/igm.html#autode.thermochemistry.igm.LFMethod.minenkov">minenkov (autode.thermochemistry.igm.LFMethod attribute)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.minimum">minimum (autode.opt.optimisers.base.OptimiserHistory property)</a>
 </li>
@@ -3025,6 +3034,14 @@ document.write(`
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive">Primitive (class in autode.opt.coordinates.primitives)</a>
 </li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveBondAngle">PrimitiveBondAngle (class in autode.opt.coordinates.primitives)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveDihedralAngle">PrimitiveDihedralAngle (class in autode.opt.coordinates.primitives)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveDistance">PrimitiveDistance (class in autode.opt.coordinates.primitives)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveInverseDistance">PrimitiveInverseDistance (class in autode.opt.coordinates.primitives)</a>
+</li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_added_internals">print_added_internals() (in module autode.wrappers.ORCA)</a>
 </li>
       <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.print_atoms">print_atoms() (in module autode.wrappers.MOPAC)</a>
@@ -3311,6 +3328,8 @@ document.write(`
 </li>
       <li><a href="reference/solvent/explicit_solvent.html#autode.solvent.explicit_solvent.ExplicitSolvent.solvent_atom_idxs">solvent_atom_idxs() (autode.solvent.explicit_solvent.ExplicitSolvent method)</a>
 </li>
+      <li><a href="reference/species/species.html#autode.species.species.Species.solvent_name">solvent_name (autode.species.species.Species property)</a>
+</li>
       <li><a href="reference/exceptions.html#autode.exceptions.SolventNotFound">SolventNotFound</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.SolventsDontMatch">SolventsDontMatch</a>
@@ -3368,6 +3387,8 @@ document.write(`
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.tau_hat">tau_hat (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
       <li><a href="reference/units.html#autode.units.TB">TB (in module autode.units)</a>
+</li>
+      <li><a href="reference/values.html#autode.values.Temperature">Temperature (class in autode.values)</a>
 </li>
       <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.template_matches">template_matches() (in module autode.transition_states.templates)</a>
 </li>
@@ -3669,16 +3690,12 @@ document.write(`
 
               
               
-                <footer class="bd-footer-article">
-                  
-<div class="footer-article-items footer-article__inner">
-  
-    <div class="footer-article-item"><!-- Previous / next buttons -->
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
 <div class="prev-next-area">
-</div></div>
-  
 </div>
-
                 </footer>
               
             </div>
@@ -3727,8 +3744,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+  <script src="_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6"></script>
 
   <footer class="bd-footer">
   </footer>

@@ -1,6 +1,25 @@
 Changelog
 =========
 
+
+1.4.1
+------
+-------
+
+Functionality improvements
+**************************
+- Adds the thermochemistry method from A. Otlyotov, Y. Minenkov in https://doi.org/10.1002/jcc.27129
+- Adds the improved Elastic Image Pair (i-EIP) method for double-ended transition state search
+- Adds a :code:`autode.Species.solvent_name` property and setter for setting solvents from a string
+- Enables reloading molecules from xyz files with their previously defined charge/multiplicity/solvent
+
+Bug Fixes
+*********
+- Fixes Hessian extraction in some G16 output files
+- Fixes large step sizes in DHSGS
+- Fixes the ability to define both a SMILES string and a xyz file without raising an exception
+
+
 1.4.0
 --------
 ----------
