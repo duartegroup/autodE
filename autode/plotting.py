@@ -231,7 +231,6 @@ def get_reaction_profile_warnings(reactions):
     warnings = ""
 
     for reaction in reactions:
-
         if reaction.delta("E") is None:
             warnings += (
                 f"∆Er not calculated for {reaction.name}, "
@@ -246,7 +245,6 @@ def get_reaction_profile_warnings(reactions):
             )
 
         if reaction.ts is not None:
-
             if reaction.ts.has_imaginary_frequencies:
                 n_imag_freqs = len(reaction.ts.imaginary_frequencies)
 
@@ -291,7 +289,6 @@ def calculate_reaction_profile_energies(
     energy_type = "H" if enthalpy else ("G" if free_energy else "E")
 
     for reaction in reactions:
-
         de = reaction.delta(energy_type)
 
         # If ∆Er cannot be calculated then assume isoenergetic and add a
@@ -320,7 +317,7 @@ def calculate_reaction_profile_energies(
             reaction_energies[i][2] + energies[-1],
         ]
 
-    return [energy * units.conversion for energy in energies]
+    return [energy * units.times for energy in energies]
 
 
 def get_stationary_points(xs, dydx):
@@ -338,7 +335,6 @@ def get_stationary_points(xs, dydx):
     stationary_points = []
 
     for i in range(1, len(xs) - 1):
-
         if dydx(xs[i - 1]) * dydx(xs[i]) < 0:
             stationary_points.append(xs[i])
 

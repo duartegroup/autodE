@@ -17,7 +17,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "input_output.zip"))
 def test_xyz_file_to_atoms():
-
     atoms = xyz_file_to_atoms(filename="opt_orca.xyz")
     assert len(atoms) == 5
     assert type(atoms) == Atoms
@@ -39,7 +38,6 @@ def test_xyz_file_to_atoms():
 
 @work_in_tmp_dir()
 def test_xyz_file_incorrect_n_atoms():
-
     with open("test.xyz", "w") as xyz_file:
         print(
             "2",
@@ -70,7 +68,6 @@ def test_xyz_file_incorrect_first_line():
 
 @work_in_tmp_dir()
 def test_making_xyz_file():
-
     atoms = [Atom("H"), Atom("H")]
 
     atoms_to_xyz_file(atoms, filename="test.xyz")
@@ -95,7 +92,6 @@ def test_making_xyz_file():
 
 
 def _print_xyz_file_two_h_molecules(title_line: str = "title line") -> None:
-
     xyz_file_string = "1\n" f"{title_line}\n" "H 0.0 0.0 0.0"
 
     with open("tmp.xyz", "w") as file:
@@ -104,7 +100,6 @@ def _print_xyz_file_two_h_molecules(title_line: str = "title line") -> None:
 
 @work_in_tmp_dir()
 def test_reading_multi_molecule_file_no_defined_values():
-
     _print_xyz_file_two_h_molecules()
     molecules = xyz_file_to_molecules("tmp.xyz")
     assert len(molecules) == 2
@@ -118,7 +113,6 @@ def test_reading_multi_molecule_file_no_defined_values():
 
 @work_in_tmp_dir()
 def test_reading_multi_molecule_file_defined_charge_mult_energy():
-
     _print_xyz_file_two_h_molecules(title_line="E = -0.5 charge = 0 mult = 2")
     m = xyz_file_to_molecules("tmp.xyz")[0]
     assert m.energy is not None and np.isclose(m.energy, -0.5)

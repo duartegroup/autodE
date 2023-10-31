@@ -1,11 +1,11 @@
 import re
 import rdkit
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Any
 from rdkit.Chem import AllChem
 
 from autode.log.methods import methods
-from autode.input_output import xyz_file_to_atoms
+from autode.input_output import xyz_file_to_atoms, attrs_from_xyz_title_line
 from autode.conformers.conformer import Conformer
 from autode.conformers.conf_gen import get_simanl_conformer
 from autode.conformers.conformers import atoms_from_rdkit_mol
@@ -26,8 +26,8 @@ class Molecule(Species):
         smiles: Optional[str] = None,
         atoms: Optional[List["Atom"]] = None,
         solvent_name: Optional[str] = None,
-        charge: int = 0,
-        mult: int = 1,
+        charge: Optional[int] = None,
+        mult: Optional[int] = None,
         **kwargs,
     ):
         """
@@ -44,31 +44,42 @@ class Molecule(Species):
 
             solvent_name: Solvent that the molecule is immersed in
 
-            charge: Charge on the molecule. Default = 0
+            charge: Charge on the molecule. If unspecified defaults to, if
+                    present, that defined in a xyz file or 0
 
-            mult: Spin multiplicity on the molecule. Default = 1
+            mult: Spin multiplicity on the molecule. If unspecified defaults to, if
+                  present, that defined in a xyz file or 1
 
         Keyword Arguments:
             name: Name of the molecule. Overrides arg if arg is not a .xyz
                   filename
         """
         logger.info(f"Generating a Molecule object for {arg}")
-        name = arg if "name" not in kwargs else kwargs["name"]
-
-        super().__init__(name, atoms, charge, mult, solvent_name)
-
-        if arg.endswith(".xyz"):
-            self._init_xyz_file(xyz_filename=arg)
-
+        super().__init__(
+            name=arg if "name" not in kwargs else kwargs["name"],
+            atoms=atoms,
+            charge=charge if charge is not None else 0,
+            mult=mult if mult is not None else 1,
+            solvent_name=solvent_name,
+        )
         self.smiles = smiles
         self.rdkit_mol_obj = None
         self.rdkit_conf_gen_is_fine = True
 
+        if _is_xyz_filename(arg):
+            self._init_xyz_file(
+                xyz_filename=arg,
+                charge=charge,
+                mult=mult,
+                solvent_name=solvent_name,
+            )
+
         if smiles is not None:
-            self._init_smiles(smiles)
+            assert not _is_xyz_filename(arg), "Can't be both SMILES and file"
+            self._init_smiles(smiles, charge=charge)
 
         # If the name is unassigned use a more interpretable chemical formula
-        if name == "molecule" and self.atoms is not None:
+        if self.name == "molecule" and self.atoms is not None:
             self.name = self.formula
 
     def __repr__(self):
@@ -78,7 +89,7 @@ class Molecule(Species):
         """Equality of two molecules is only dependent on the identity"""
         return super().__eq__(other)
 
-    def _init_smiles(self, smiles: str):
+    def _init_smiles(self, smiles: str, charge: Optional[int]):
         """Initialise a molecule from a SMILES string using RDKit if it's
         purely organic.
 
@@ -87,7 +98,6 @@ class Molecule(Species):
             smiles (str):
         """
         at_strings = re.findall(r"\[.*?]", smiles)
-        init_charge = self._charge
 
         if any(metal in string for metal in metals for string in at_strings):
             init_smiles(self, smiles)
@@ -95,10 +105,10 @@ class Molecule(Species):
         else:
             init_organic_smiles(self, smiles)
 
-        if not _is_default_charge(init_charge) and init_charge != self._charge:
+        if charge is not None and charge != self._charge:
             raise ValueError(
                 "SMILES charge was not the same as the "
-                f"defined value. {self._charge} ≠ {init_charge}"
+                f"defined value. {self._charge} ≠ {charge}"
             )
 
         logger.info(
@@ -108,20 +118,28 @@ class Molecule(Species):
         )
         return None
 
-    def _init_xyz_file(self, xyz_filename: str):
+    def _init_xyz_file(self, xyz_filename: str, **override_attrs: Any):
         """
         Initialise a molecule from a .xyz file
 
         -----------------------------------------------------------------------
         Arguments:
             xyz_filename (str):
+            charge (int | None):
+            mult (int | None):
 
         Raises:
             (ValueError)
         """
-        logger.info("Generating species from .xyz file")
+        logger.info("Generating a species from .xyz file")
 
         self.atoms = xyz_file_to_atoms(xyz_filename)
+        title_line_attrs = attrs_from_xyz_title_line(xyz_filename)
+        logger.info(f"Found ({title_line_attrs}) in title line")
+
+        for attr in ("charge", "mult", "solvent_name"):
+            if override_attrs[attr] is None and attr in title_line_attrs:
+                setattr(self, attr, title_line_attrs[attr])
 
         if (
             sum(atom.atomic_number for atom in self.atoms) % 2 != 0
@@ -135,7 +153,7 @@ class Molecule(Species):
             )
 
         # Override the default name with something more descriptive
-        if self.name == "molecule" or self.name.endswith(".xyz"):
+        if self.name == "molecule" or _is_xyz_filename(self.name):
             self.name = Path(self.name).stem
 
         make_graph(self)
@@ -253,5 +271,5 @@ class Product(Molecule):
     """Product molecule"""
 
 
-def _is_default_charge(value) -> bool:
-    return value == 0
+def _is_xyz_filename(value: str) -> bool:
+    return isinstance(value, str) and value.endswith(".xyz")

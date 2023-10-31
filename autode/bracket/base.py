@@ -76,10 +76,8 @@ class BaseBracketMethod(ABC):
         """Whether the bracketing method has converged or not"""
         assert self.imgpair is not None, "Must have an image pair"
 
-        # NOTE: In bracketing methods, usually the geometry
-        # optimisation is done in separate micro-iterations,
-        # which means that the gradient tolerance is checked
-        # elsewhere, and only distance criteria is checked here
+        # NOTE: Usually geometry optimisation is done in separate
+        # micro-iters, so gradient is checked elsewhere
         return self.imgpair.dist <= self._dist_tol
 
     @property
@@ -175,6 +173,7 @@ class BaseBracketMethod(ABC):
             self._step()
 
             if self.imgpair.has_jumped_over_barrier:
+                # TODO: implement image pair regeneration
                 logger.error(
                     "One image has probably jumped over the barrier, in"
                     f" {self._name} TS search. Please check the"
@@ -209,7 +208,7 @@ class BaseBracketMethod(ABC):
 
         self.print_geometries()
         self.plot_energies()
-        if self.ts_guess is not None:
+        if self.converged and self.ts_guess is not None:
             self.ts_guess.print_xyz_file(filename=f"{self._name}_ts_guess.xyz")
         return None
 

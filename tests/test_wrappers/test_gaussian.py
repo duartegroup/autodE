@@ -16,13 +16,18 @@ from autode.wrappers import keywords as kwds
 from autode.values import PotentialEnergy
 from autode.wrappers.keywords.basis_sets import def2tzecp, def2tzvp
 from autode.wrappers.keywords.functionals import pbe0
-from autode.wrappers.keywords.keywords import OptKeywords, SinglePointKeywords
-from autode.exceptions import NoInputError, CalculationException
+from autode.wrappers.keywords.keywords import (
+    OptKeywords,
+    SinglePointKeywords,
+    HessianKeywords,
+)
+from autode.exceptions import CalculationException
 from autode.point_charges import PointCharge
 from autode.atoms import Atom
 from .. import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
+g09_zip_path = os.path.join(here, "data", "g09.zip")
 method = G09()
 
 opt_keywords = OptKeywords(["PBE1PBE/Def2SVP", "Opt"])
@@ -43,7 +48,6 @@ def methane():
 
 
 def test_printing_ecp():
-
     tmp_file = open("tmp.com", "w")
     tmp_mol = Molecule(smiles="[H][Pd][H]")
     tmp_mol.constraints = Constraints(distance={}, cartesian=[])
@@ -82,14 +86,12 @@ def test_printing_ecp():
 
 
 def test_add_opt_option():
-
     keywds = ["Opt=Loose"]
     _add_opt_option(keywds, "MaxCycles=10")
     assert keywds[0].lower() == "opt=(loose, maxcycles=10)"
 
 
 def test_input_print_max_opt():
-
     keywds = opt_keywords.copy()
     keywds.max_opt_cycles = 10
 
@@ -99,9 +101,8 @@ def test_input_print_max_opt():
     assert sum("maxcycles=10" in kw.lower() for kw in str_keywords) == 1
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_get_gradients():
-
     ester = Molecule(
         name="ester",
         atoms=[
@@ -132,9 +133,8 @@ def test_get_gradients():
     assert gradients.shape == (ester.n_atoms, 3)
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_gauss_opt_calc():
-
     methylchloride = Molecule(
         name="CH3Cl", smiles="[H]C([H])(Cl)[H]", solvent_name="water"
     )
@@ -177,9 +177,8 @@ def test_gauss_opt_calc():
     assert calc.optimiser.last_energy_change == PotentialEnergy(1.127e-5, "Ha")
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_gauss_optts_calc():
-
     test_mol = Molecule(name="methane", smiles="C")
     test_mol.graph.add_active_edge(0, 1)
 
@@ -215,7 +214,6 @@ def test_gauss_optts_calc():
 
 
 def test_bad_gauss_output():
-
     calc = Calculation(
         name="no_output",
         molecule=methane(),
@@ -229,9 +227,8 @@ def test_bad_gauss_output():
         calc.set_output_filename("no_output")
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_fix_angle_error():
-
     os.chdir(os.path.join(here, "data", "g09"))
 
     mol = Molecule(smiles="CC/C=C/CO")
@@ -248,9 +245,8 @@ def test_fix_angle_error():
     assert calc.terminated_normally
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_constraints():
-
     a = methane()
     a.constraints.distance = {(0, 1): 1.2}
     calc = Calculation(
@@ -273,9 +269,8 @@ def test_constraints():
     assert np.linalg.norm(methane().atoms[0].coord - opt_atoms[0].coord) < 1e-3
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_single_atom_opt():
-
     mol = Molecule(smiles="[H]")
     mol.name = "molecule"
 
@@ -297,7 +292,7 @@ def test_single_atom_opt():
     assert n_cores_set
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_point_charge_calc():
     # Methane single point using a point charge with a unit positive charge
     # located at (10, 10, 10)
@@ -348,9 +343,8 @@ def test_point_charge_calc():
                 break
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_external_basis_set_file():
-
     """
 
     Example calculation with a custom basis set and ECP
@@ -387,9 +381,8 @@ def test_external_basis_set_file():
     assert np.abs(pd_cl2.energy - -1046.7287) < 1e-2
 
 
-@testutils.work_in_zipped_dir(os.path.join(here, "data", "g09.zip"))
+@testutils.work_in_zipped_dir(g09_zip_path)
 def test_xtb_optts():
-
     g09 = G09()
 
     kwd_list = [
@@ -423,3 +416,27 @@ def test_xtb_optts():
     # Even though a Hessian is not requested it should be added
     assert orca_ts.hessian is not None
     assert np.isclose(orca_ts.energy.to("Ha"), -13.1297380, atol=1e-5)
+
+
+@testutils.work_in_zipped_dir(g09_zip_path)
+def test_hessian_extraction_from_alt_output_file():
+    mol = Molecule(
+        atoms=[
+            Atom("F", -8.22915200, 4.04133200, 0.18431300),
+            Atom("Cl", -0.50976200, 4.77416000, -0.11240000),
+            Atom("C", -2.37030200, 4.53188200, 0.00287900),
+            Atom("H", -2.64812000, 3.88176700, -0.81515200),
+            Atom("H", -2.56235600, 4.07947800, 0.96591700),
+            Atom("H", -2.81607800, 5.51287000, -0.08505800),
+        ],
+        charge=-1,
+    )
+
+    calc = Calculation(
+        name="tmp",
+        molecule=mol,
+        method=G09(),
+        keywords=HessianKeywords(),
+    )
+    calc.set_output_filename("tmp_g09_hess_alt.log")
+    assert mol.hessian is not None

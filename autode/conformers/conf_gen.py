@@ -148,7 +148,7 @@ def _get_atoms_rotated_stereocentres(species, atoms, rand):
     ]
 
     # Check on every pair of stereocenters
-    for (i, j) in combinations(stereocentres, 2):
+    for i, j in combinations(stereocentres, 2):
         if (i, j) not in species.graph.edges:
             continue
 
@@ -232,8 +232,7 @@ def _add_dist_consts_for_stereocentres(species, dist_consts):
             dist_consts[(atom_i, atom_j)] = species.distance(atom_i, atom_j)
 
     # Check on every pair of stereocenters
-    for (atom_i, atom_j) in combinations(stereocentres, 2):
-
+    for atom_i, atom_j in combinations(stereocentres, 2):
         # If they are not bonded don't alter
         if (atom_i, atom_j) not in species.graph.edges:
             continue
@@ -243,7 +242,6 @@ def _add_dist_consts_for_stereocentres(species, dist_consts):
         for i_neighbour in species.graph.neighbors(atom_i):
             for j_neighbour in species.graph.neighbors(atom_j):
                 if i_neighbour != atom_j and j_neighbour != atom_i:
-
                     # Fix the distance to the current value
                     dist = species.distance(i_neighbour, j_neighbour)
                     dist_consts[(i_neighbour, j_neighbour)] = dist

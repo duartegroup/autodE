@@ -123,7 +123,6 @@ def check_sufficient_memory(func: Callable):
 
     @wraps(func)
     def wrapped_function(*args, **kwargs):
-
         physical_mem = None
         required_mem = int(Config.n_cores) * Config.max_core
 
@@ -209,7 +208,6 @@ def run_external_monitored(
         return None
 
     with open(output_filename, "w") as output_file:
-
         proc = Popen(params, stdout=PIPE, stderr=STDOUT)
 
         try:
@@ -229,7 +227,6 @@ def work_in(dir_ext: str) -> Callable:
     def func_decorator(func):
         @wraps(func)
         def wrapped_function(*args, **kwargs):
-
             here = os.getcwd()
             dir_path = os.path.join(here, dir_ext)
 
@@ -313,7 +310,6 @@ def work_in_tmp_dir(
                 logger.info("           ...done")
 
                 for filename in os.listdir(tmpdir_path):
-
                     if any([filename.endswith(ext) for ext in kept_file_exts]):
                         logger.info(f"Copying back {filename}")
                         shutil.copy(filename, here)
@@ -368,7 +364,6 @@ def requires_atoms(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapped_function(*args, **kwargs):
-
         # Species must be the first argument
         assert hasattr(args[0], "n_atoms")
 
@@ -385,7 +380,6 @@ def requires_graph(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapped_function(*args, **kwargs):
-
         # Species must be the first argument
         assert hasattr(args[0], "graph")
 
@@ -402,7 +396,6 @@ def requires_conformers(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapped_function(*args, **kwargs):
-
         # Species must be the first argument
         assert hasattr(args[0], "n_conformers")
 
@@ -480,7 +473,6 @@ def no_exceptions(func) -> Any:
 
     @wraps(func)
     def wrapped_function(*args, **kwargs) -> Any:
-
         try:
             return func(*args, **kwargs)
         except (ValueError, IndexError, TypeError, AutodeException):
@@ -563,7 +555,6 @@ def _timeout_default(
 
     def decorator(func):
         def wrapper(*args, **kwargs):
-
             q = multiprocessing.Queue()
             p = multiprocessing.Process(
                 target=handler, args=(q, func, args, kwargs)
@@ -621,7 +612,6 @@ def run_in_tmp_environment(**kwargs) -> Callable:
     def func_decorator(func):
         @wraps(func)
         def wrapped_function(*args, **_kwargs):
-
             for env_var in env_vars:
                 logger.info(f"Setting the {env_var.name} to {env_var.new_val}")
                 os.environ[env_var.name] = env_var.new_val
@@ -667,7 +657,6 @@ def checkpoint_rxn_profile_step(name: str) -> Callable:
     def func_decorator(func: Callable[["Reaction"], Any]):
         @wraps(func)
         def wrapped_function(reaction: "Reaction"):
-
             filepath = os.path.join(
                 "checkpoints", f"{str(reaction)}_{name}.chk"
             )
@@ -703,12 +692,10 @@ class StringDict:
     _value_type: type = str
 
     def __init__(self, string: str, delim: str = " = "):
-
         self._string = string
         self._delim = delim
 
     def __getitem__(self, item: str) -> Any:
-
         split_string = self._string.split(f"{item}{self._delim}")
         try:
             return self._value_type(split_string[1].split()[0])
@@ -718,6 +705,10 @@ class StringDict:
                 f"Failed to extract {item} from {self._string} "
                 f"using delimiter *{self._delim}*"
             ) from e
+
+    def __contains__(self, item: str) -> bool:
+        split_string = self._string.split(f"{item}{self._delim}")
+        return len(split_string) == 2
 
     def get(self, item: str, default: Any) -> Any:
         """Get an item or return a default"""

@@ -41,7 +41,6 @@ def h2o() -> Molecule:
 
 @work_in_tmp_dir()
 def test_calc_class():
-
     xtb = XTB()
     test_mol = h2o()
 
@@ -100,7 +99,6 @@ def test_calc_class():
 
 
 def test_calc_copy():
-
     orca = ORCA()
     test_mol = h2o()
 
@@ -116,7 +114,6 @@ def test_calc_copy():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_clear_output():
-
     with open("tmp.out", "w") as out_file:
         print("some", "test", "output", sep="\n", file=out_file)
 
@@ -142,7 +139,6 @@ def test_clear_output():
 
 
 def test_distance_const_check():
-
     # Cannot have distance constraints between identical atoms
     assert Constraints(distance={(0, 0): 0.0}, cartesian=None).distance is None
 
@@ -157,7 +153,6 @@ def test_distance_const_check():
 
 
 def test_calc_string():
-
     xtb = XTB()
     test_mol = h2o()
 
@@ -252,7 +247,6 @@ def test_solvent_get():
 
 @work_in_tmp_dir()
 def test_input_gen():
-
     xtb = XTB()
     test_mol = h2o()
 
@@ -286,7 +280,6 @@ def test_input_gen():
 
 @work_in_tmp_dir()
 def test_exec_not_avail_method():
-
     orca = ORCA()
     test_mol = h2o()
 
@@ -307,7 +300,6 @@ def test_exec_not_avail_method():
 
 @work_in_tmp_dir()
 def test_exec_too_much_memory_requested_above_py39():
-
     if sys.version_info.minor < 9:
         return  # Only supported on Python 3.9 and above
 
@@ -324,7 +316,6 @@ def test_exec_too_much_memory_requested_above_py39():
 @requires_working_xtb_install
 @work_in_tmp_dir()
 def test_calculations_have_unique_names():
-
     xtb = XTB()
     mol = Molecule(smiles="O")
 
@@ -344,7 +335,6 @@ def test_calculations_have_unique_names():
 @requires_working_xtb_install
 @work_in_tmp_dir()
 def test_numerical_hessian_evaluation():
-
     h2 = Molecule(atoms=[Atom("H"), Atom("H", x=1.0)])
     calc = Calculation(
         name="h2_hess", molecule=h2, method=XTB(), keywords=HessianKeywords()
@@ -419,7 +409,6 @@ def test_numerical_hessian_evaluation():
 
 @work_in_tmp_dir()
 def test_check_properties_exist_did_not_terminate_normally():
-
     calc = Calculation(
         name="tmp",
         molecule=h_atom(),
@@ -432,7 +421,6 @@ def test_check_properties_exist_did_not_terminate_normally():
 
 
 class TestCalculator(Method):
-
     __test__ = False
 
     def __init__(self):
@@ -477,18 +465,15 @@ def _test_calc():
 
 
 def test_generate_input_for_method_with_no_external_io():
-
     calc = _test_calc_with_keywords_type(SinglePointKeywords)
     # should be able to call generate input without any exceptions
     calc.generate_input()
 
 
 def test_exception_raised_when_properties_dont_exist_after_run():
-
     h = h_atom()
 
     for _type in (SinglePointKeywords, GradientKeywords, HessianKeywords):
-
         # Test method does not set any properties so these should fail
         calc = _test_calc_with_keywords_type(_type, mol=h)
         with pytest.raises(ex.CouldNotGetProperty):
@@ -496,7 +481,6 @@ def test_exception_raised_when_properties_dont_exist_after_run():
 
 
 def test_exception_raised_when_energy_but_no_grad_after_run():
-
     calc = Calculation(
         name="tmp",
         molecule=h_atom(),
@@ -509,7 +493,6 @@ def test_exception_raised_when_energy_but_no_grad_after_run():
 
 
 def test_exception_raised_when_energy_grad_but_no_hess_after_run():
-
     calc = Calculation(
         name="tmp",
         molecule=h_atom(),
@@ -522,7 +505,6 @@ def test_exception_raised_when_energy_grad_but_no_hess_after_run():
 
 
 def test_blank_calculation_output_with_no_external_io():
-
     h = h_atom()
     assert h.energy is None
 
@@ -541,7 +523,6 @@ def test_blank_calculation_output_with_no_external_io():
 
 @work_in_tmp_dir()
 def test_deleting_output_that_doesnt_exist():
-
     xtb = XTB()
     calc = Calculation(
         name="tmp2", molecule=h_atom(), method=xtb, keywords=xtb.keywords.sp
@@ -558,7 +539,6 @@ def test_blank_calculation_output_always_exists():
 
 @work_in_tmp_dir()
 def test_fix_unique_with_resigter():
-
     env_var = os.environ.get("AUTODE_FIXUNIQUE", "False")
 
     calc = _test_calc()._executor
@@ -581,7 +561,6 @@ def test_fix_unique_with_resigter():
 
 
 def test_non_external_io_method_can_force_cleanup():
-
     calc = _test_calc()
     # No exceptions should be raised
     calc.clean_up(force=True, everything=True)
@@ -599,14 +578,12 @@ def test_init_a_calculation_without_a_valid_spin_state_throws():
 
 
 def test_cannot_set_filename_on_a_blank_output():
-
     output = BlankCalculationOutput()
     with pytest.raises(ValueError):
         output.filename = "test"
 
 
 def test_cannot_set_output_of_indirect_executor():
-
     orca = ORCA()
     test_mol = h2o()
 

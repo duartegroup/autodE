@@ -30,7 +30,6 @@ def mecl():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_mopac_opt_calculation():
-
     mol = mecl()
     calc = Calculation(
         name="opt",
@@ -59,7 +58,6 @@ def test_mopac_opt_calculation():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_mopac_with_pc():
-
     mol = mecl()
     calc = Calculation(
         name="opt_pc",
@@ -81,7 +79,6 @@ def test_mopac_with_pc():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_other_spin_states():
-
     o_singlet = Molecule(atoms=[Atom("O")], mult=1)
     o_singlet.name = "molecule"
 
@@ -137,7 +134,6 @@ def test_other_spin_states():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_bad_geometry():
-
     # Calculation with the wrong spin state should fail
     calc = Calculation(
         name="h2_overlap_opt",
@@ -155,7 +151,6 @@ def test_bad_geometry():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_constrained_opt():
-
     methane = Molecule(name="methane", smiles="C")
 
     calc = Calculation(
@@ -186,7 +181,6 @@ def test_constrained_opt():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_grad():
-
     h2 = Molecule(name="h2", atoms=[Atom("H"), Atom("H", x=0.5)])
 
     grad_calc = Calculation(
@@ -216,7 +210,6 @@ def test_grad():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_broken_grad():
-
     h2 = Molecule(name="h2", atoms=[Atom("H"), Atom("H", x=0.5)])
     grad_calc_broken = Calculation(
         name="h2_grad",
@@ -231,7 +224,6 @@ def test_broken_grad():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "mopac.zip"))
 def test_new_energy():
-
     h2o = Molecule(smiles="O")
     calc = Calculation(
         name="H2O",
@@ -245,7 +237,6 @@ def test_new_energy():
 
 
 def test_termination_short():
-
     calc = Calculation(
         name="test",
         molecule=mecl(),
@@ -262,7 +253,6 @@ def test_termination_short():
 
 
 def test_mopac_keywords():
-
     calc_input = CalculationInput(
         keywords=Config.MOPAC.keywords.sp,
         added_internals=None,
@@ -284,7 +274,6 @@ def test_mopac_keywords():
 
 
 def test_get_version_no_output():
-
     calc = Calculation(
         name="test",
         molecule=mecl(),
@@ -303,7 +292,6 @@ def test_get_version_no_output():
 
 
 def test_mopac_solvent_no_dielectric():
-
     mol = mecl()
     mol.solvent = ImplicitSolvent("X", smiles="X", aliases=["X"], mopac="X")
 
@@ -321,7 +309,6 @@ def test_mopac_solvent_no_dielectric():
 
 
 def test_shifted_atoms():
-
     atoms = [Atom("H", 0.0, 0.0, 0.0), Atom("H", 0.0, 0.0, 2.0)]
 
     new_atoms = _get_atoms_linear_interp(

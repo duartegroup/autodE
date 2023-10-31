@@ -15,7 +15,6 @@ def _single_atom_dimer_coords():
 
 
 def test_dimer_coord_init():
-
     # Dimer coordinates must be a 3xn matrix of the mid and two end points
     with pytest.raises(ValueError):
         _ = DimerCoordinates(np.array([0.0, 0.1]))
@@ -31,7 +30,6 @@ def test_dimer_coord_init():
 
 
 def test_dimer_coord_mol_init():
-
     mol1 = Molecule()
     mol2 = Molecule(atoms=[Atom("H")], mult=2)
 
@@ -49,7 +47,6 @@ def test_dimer_coord_mol_init():
 
 
 def test_dimer_coord_init_polyatomic():
-
     mol1 = Molecule(atoms=[Atom("H"), Atom("H", x=1.0)])
     mol2 = Molecule(atoms=[Atom("H", 0.1), Atom("H", x=1.1)])
 
@@ -75,7 +72,6 @@ def test_dimer_coord_init_polyatomic():
 
 
 def test_dimer_invalid_update():
-
     coords = _single_atom_dimer_coords()
 
     # Cannot update the gradient from an individual cartesian gradient, as the
@@ -93,12 +89,10 @@ def test_dimer_invalid_update():
 
 
 def test_repr():
-
     assert "dimer" in repr(_single_atom_dimer_coords()).lower()
 
 
 def test_mass_weighting_no_masses():
-
     coords = _single_atom_dimer_coords()
 
     with pytest.raises(Exception):
@@ -111,7 +105,6 @@ def test_mass_weighting_no_masses():
 
 
 def test_dimer_init_zero_distance():
-
     a = Molecule(atoms=[Atom("H")], mult=2)
 
     dimer = Dimer(maxiter=10, coords=DimerCoordinates.from_species(a, a))
@@ -123,7 +116,6 @@ def test_dimer_init_zero_distance():
 
 
 def test_dimer_coords_phi_set():
-
     coords = _single_atom_dimer_coords()
 
     # Phi must be an angle with defined units
@@ -221,7 +213,6 @@ def test_dimer_2d():
 
 @requires_working_xtb_install
 def test_dimer_sn2():
-
     left_point = Molecule(
         name="sn2_left",
         charge=-1,
@@ -269,8 +260,6 @@ def test_dimer_sn2():
 
 
 def test_dimer_optimise_no_coordinates():
-
     # Cannot use a dimer optimiser on a single species, unlike other optimisers
     with pytest.raises(Exception):
-
         Dimer.optimise(species=methane_mol(), method=XTB())

@@ -3,7 +3,6 @@ from autode.constraints import Constraints, DistanceConstraints
 
 
 def test_base_properties():
-
     consts = Constraints()
 
     assert "constraints" in str(consts).lower()
@@ -60,7 +59,6 @@ def test_base_properties():
 
 
 def test_multiple_update():
-
     consts = Constraints()
     consts.update(distance={(0, 1): 1.0})
     consts.update(distance={(1, 0): 1.0})
@@ -76,7 +74,6 @@ def test_multiple_update():
 
 
 def test_cartesian_update():
-
     conts = Constraints(cartesian=[0, 1])
 
     assert conts.any
@@ -88,7 +85,6 @@ def test_cartesian_update():
 
 
 def test_clear():
-
     # Like species.conformers setting to None should still allow future updates
 
     consts = Constraints(distance={(0, 1): 1.0})
@@ -113,7 +109,6 @@ def test_clear():
 
 
 def test_copy():
-
     constraints = DistanceConstraints({(0, 1): 1.0})
     copied_constraints = constraints.copy()
     constraints[(0, 1)] = 1.1

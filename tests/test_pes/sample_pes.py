@@ -4,7 +4,6 @@ from autode.pes.reactive import ReactivePESnD
 
 
 class TestPES(ReactivePESnD):
-
     __test__ = False
 
     def __init__(self, rs, species=None):

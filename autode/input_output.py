@@ -1,6 +1,6 @@
 import os
 
-from typing import Collection, Sequence, Optional, TYPE_CHECKING
+from typing import Collection, Sequence, Optional, Any, TYPE_CHECKING
 
 from autode.atoms import Atom, Atoms
 from autode.exceptions import XYZfileDidNotExist
@@ -21,6 +21,9 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
     Arguments:
         filename: .xyz filename
 
+    Raises:
+        (autode.exceptions.XYZfileWrongFormat): If the file is the wrong format
+
     Returns:
         (autode.atoms.Atoms): Atoms
     """
@@ -28,36 +31,36 @@ def xyz_file_to_atoms(filename: str) -> Atoms:
 
     _check_xyz_file_exists(filename)
     atoms = Atoms()
+    n_atoms = 0
 
-    with open(filename, "r") as xyz_file:
+    for i, line in enumerate(open(filename, "r")):
+        if i == 0:  # First line in an xyz file is the number of atoms
+            n_atoms = _n_atoms_from_first_xyz_line(line)
+            continue
+        elif i == 1:  # Second line of an xyz file is the tittle line
+            continue
+        elif i == n_atoms + 2:
+            break
 
         try:
-            # First item in an xyz file is the number of atoms
-            n_atoms = int(xyz_file.readline().split()[0])
+            atom_label, x, y, z = line.split()[:4]
+            atoms.append(Atom(atomic_symbol=atom_label, x=x, y=y, z=z))
 
-        except (IndexError, ValueError):
-            raise XYZfileWrongFormat("Number of atoms not found")
-
-        # XYZ lines should be the following 2 + n_atoms lines
-        xyz_lines = xyz_file.readlines()[1 : n_atoms + 1]
-
-        for i, line in enumerate(xyz_lines):
-
-            try:
-                atom_label, x, y, z = line.split()[:4]
-                atoms.append(Atom(atomic_symbol=atom_label, x=x, y=y, z=z))
-
-            except (IndexError, TypeError, ValueError):
-                raise XYZfileWrongFormat(
-                    f"Coordinate line {i} ({line}) " f"not the correct format"
-                )
-
-        if len(atoms) != n_atoms:
+        except (IndexError, TypeError, ValueError):
             raise XYZfileWrongFormat(
-                f"Number of atoms declared ({n_atoms}) "
-                f"not equal to the number of atoms found "
-                f"{len(atoms)}"
+                f"Coordinate line {i} ({line}) not the correct format"
             )
+
+    if len(atoms) != n_atoms:
+        raise XYZfileWrongFormat(
+            f"Number of atoms declared ({n_atoms}) "
+            f"not equal to the number of atoms found "
+            f"{len(atoms)}"
+        )
+
+    if n_atoms == 0:
+        raise XYZfileWrongFormat(f"XYZ file ({filename}) had no atoms!")
+
     return atoms
 
 
@@ -114,7 +117,6 @@ def xyz_file_to_molecules(filename: str) -> Sequence["Molecule"]:
     molecules = []
 
     for i in range(0, len(lines), n_atoms + 2):
-
         atoms = []
         title_line = StringDict(lines[i + 1])
         for j, line in enumerate(lines[i + 2 : i + n_atoms + 2]):
@@ -127,15 +129,27 @@ def xyz_file_to_molecules(filename: str) -> Sequence["Molecule"]:
 
         _set_attr_from_title_line(molecule, "charge", title_line)
         _set_attr_from_title_line(molecule, "mult", title_line)
-        _set_attr_from_title_line(molecule, "energy", title_line, "E")
+        _set_attr_from_title_line(
+            molecule, "energy", title_line, key_in_line="E"
+        )
 
         molecules.append(molecule)
 
     return molecules
 
 
-def _check_xyz_file_exists(filename: str) -> None:
+def attrs_from_xyz_title_line(filename: str) -> StringDict:
+    title_line = ""
 
+    for i, line in enumerate(open(filename, "r")):
+        if i == 1:
+            title_line = line.strip()
+            break
+
+    return StringDict(title_line)
+
+
+def _check_xyz_file_exists(filename: str) -> None:
     if not os.path.exists(filename):
         raise XYZfileDidNotExist(f"{filename} did not exist")
 
@@ -151,7 +165,6 @@ def _set_attr_from_title_line(
     title_line: StringDict,
     key_in_line: Optional[str] = None,
 ) -> None:
-
     if key_in_line is None:
         key_in_line = attr  # Default to e.g. charge attribute is "charge = 0"
     try:
@@ -160,3 +173,10 @@ def _set_attr_from_title_line(
         logger.warning(f"Failed to set the species {attr} from xyz file")
 
     return None
+
+
+def _n_atoms_from_first_xyz_line(line: str) -> int:
+    try:
+        return int(line.strip())
+    except (IndexError, ValueError):
+        raise XYZfileWrongFormat("Number of atoms not found")

@@ -12,6 +12,7 @@ from autode.units import (
     ev,     J,       wavenumber,  hz,            MB,              ha_per_ang,
     ang,    a0,      amu,         kg,            GB,              kg_m_sq,
     nm,     pm,      m_e,         amu_ang_sq,    TB,              ha_per_a0_sq,
+    kelvin, celsius,
     ha_per_ang_sq,   J_per_m_sq,  J_per_ang_sq,  J_per_ang_sq_kg,
 )
 from typing import Any, Union, Type, Optional, Sequence, List, TypeVar, TYPE_CHECKING
@@ -70,11 +71,9 @@ def _to(
             "Cannot modify a value inplace as floats are immutable"
         )
 
-    # Convert to the base unit, then to the new units
-    c = float(units.conversion / value.units.conversion)
-
     new_value = value if inplace else value.copy()
-    new_value *= c
+    new_value *= units.times / value.units.times
+    new_value += value.units.add - units.add
     new_value.units = units
 
     return None if inplace else new_value
@@ -269,6 +268,18 @@ class Value(ABC, float):
         return _to(self, units, inplace=False)
 
 
+class Temperature(Value):
+    """Temperature in some units, defaults to Kelvin"""
+
+    implemented_units = [kelvin, celsius]
+
+    def __init__(self, value, units=kelvin):
+        super().__init__(value, units=units)
+
+    def __repr__(self):
+        return f"Temperature({round(self, 2)} {self.units.name})"
+
+
 class Energy(Value):
     """Type of energy in some units e.g. Potential, Free etc.
     defaults to Hartrees"""
@@ -374,7 +385,6 @@ class FreeEnergyCont(Energy):
 
 
 class Allocation(Value):
-
     implemented_units = [byte, MB, GB, TB]
 
     def __repr__(self):
@@ -533,7 +543,6 @@ class Angle(Value):
 
 
 class Frequency(Value):
-
     implemented_units = [wavenumber, hz]
 
     @property
@@ -560,7 +569,6 @@ class Frequency(Value):
 
 
 class Mass(Value):
-
     implemented_units = [amu, kg, m_e]
 
     def __repr__(self):
@@ -571,7 +579,6 @@ class Mass(Value):
 
 
 class ForceConstant(Value):
-
     implemented_units = [
         ha_per_ang_sq,
         ha_per_a0_sq,
@@ -694,14 +701,12 @@ class ValueArray(ABC, np.ndarray):
 
 
 class Coordinate(ValueArray):
-
     implemented_units = [ang, a0, nm, pm, m]
 
     def __repr__(self):
         return f"Coordinate({np.ndarray.__str__(self)} {self.units.name})"
 
     def __new__(cls, *args, units=ang):
-
         if len(args) == 3:
             return super().__new__(cls, np.asarray(args), units)
 
@@ -736,7 +741,6 @@ class Coordinate(ValueArray):
 
 
 class Coordinates(ValueArray):
-
     implemented_units = [ang, a0, nm, pm, m]
 
     def __repr__(self):
@@ -749,7 +753,6 @@ class Coordinates(ValueArray):
 
 
 class Gradient(ValueArray):
-
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang, kcalmol_per_ang]
 
     def __repr__(self):
@@ -762,19 +765,16 @@ class Gradient(ValueArray):
 
 
 class GradientRMS(Value):
-
     implemented_units = [ha_per_ang, ha_per_a0, ev_per_ang]
 
     def __repr__(self):
         return f"RMS(∇E)({round(self, 4)} {self.units.name})"
 
     def __init__(self, x, units: Union[Unit, str] = ha_per_ang):
-
         super().__init__(x=x, units=units)
 
 
 class MomentOfInertia(ValueArray):
-
     implemented_units = [amu_ang_sq, kg_m_sq]
 
     def __repr__(self):
@@ -785,7 +785,6 @@ class MomentOfInertia(ValueArray):
 
 
 class EnergyArray(ValueArray):
-
     implemented_units = [ha, ev, kcalmol, kjmol, J]
 
     def __repr__(self):

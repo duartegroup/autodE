@@ -29,7 +29,6 @@ class UnRelaxedPES1D(ReactivePESnD):
         n_cores_pp = max(self._n_cores // len(points), 1)
 
         with ProcessPool(max_workers=self._n_cores) as pool:
-
             results = [
                 pool.submit(
                     hashable("_single_energy", self),

@@ -5,7 +5,7 @@ import autode.wrappers.methods
 
 from typing import TYPE_CHECKING
 
-from autode.values import Coordinates, Gradient, PotentialEnergy
+from autode.values import Coordinates, Gradient, PotentialEnergy, Temperature
 from autode.utils import run_external
 from autode.wrappers.keywords import OptKeywords, GradientKeywords
 from autode.config import Config
@@ -111,7 +111,6 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
         xcontrol_filename = f"xcontrol_{calc.name}"
         with open(xcontrol_filename, "w") as xcontrol_file:
-
             self.print_distance_constraints(xcontrol_file, molecule)
             self.print_cartesian_constraints(xcontrol_file, molecule)
 
@@ -129,7 +128,6 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         return
 
     def generate_input_for(self, calc: "CalculationExecutor"):
-
         molecule = calc.molecule
         calc.molecule.print_xyz_file(filename=calc.input.filename)
 
@@ -164,20 +162,28 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
         return None
 
+    @property
+    def _electronic_temp_str(self) -> str:
+        assert self.electronic_temp is not None
+        if isinstance(self.electronic_temp, Temperature):
+            electronic_temp = self.electronic_temp.to("K")
+        else:
+            logger.warning("Assuming XTB electronic_temp is in K")
+            electronic_temp = self.electronic_temp
+
+        return str(electronic_temp)
+
     def execute(self, calc: "CalculationExecutor"):
         """Execute an XTB calculation using the runtime flags"""
         # XTB calculation keywords must be a class
 
-        flags = [
-            "--chrg",
-            str(calc.molecule.charge),
-            "--uhf",
-            str(calc.molecule.mult - 1),
-        ]
+        flags = ["--chrg", str(calc.molecule.charge)]
+        flags += ["--uhf", str(calc.molecule.mult - 1)]
+
         if self.electronic_temp is not None:
-            flags.extend(["--etemp", str(float(self.electronic_temp))])
+            flags += ["--etemp", self._electronic_temp_str]
         if self.gfn_version is not None:
-            flags.extend(["--gfn", str(self.gfn_version)])
+            flags += ["--gfn", str(self.gfn_version)]
 
         if isinstance(calc.input.keywords, OptKeywords):
             if calc.input.keywords.max_opt_cycles is not None:
@@ -211,7 +217,6 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
             OMP_NUM_THREADS=calc.n_cores, GFORTRAN_UNBUFFERED_ALL=1
         )
         def execute_xtb():
-
             logger.info(f'Running XTB with: {" ".join(flags)}')
             run_external(
                 params=[calc.method.path, calc.input.filename] + flags,
@@ -227,7 +232,6 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         return None
 
     def terminated_normally_in(self, calc):
-
         for n_line, line in enumerate(reversed(calc.output.file_lines)):
             if "ERROR" in line:
                 return False
@@ -239,7 +243,6 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         return False
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
-
         for line in reversed(calc.output.file_lines):
             if "total E" in line:
                 return PotentialEnergy(line.split()[-1], units="Ha")
@@ -250,7 +253,6 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
 
     @staticmethod
     def converged_line_in_output(calc):
-
         for line in reversed(calc.output.file_lines):
             if "GEOMETRY OPTIMIZATION CONVERGED" in line:
                 return True
@@ -307,7 +309,6 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         geom_section = False
 
         for line in calc.output.file_lines:
-
             if "$coord" in line:
                 geom_section = True
 
@@ -321,16 +322,13 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
         return Coordinates(matrix, units="a0").to("Å")
 
     def coordinates_from(self, calc: "CalculationExecutor"):
-
         for i, line in enumerate(calc.output.file_lines):
-
             # XTB 6.2.x have a slightly different way of printing the atoms
             if (
                 "xtb version" in line
                 or "Version" in line
                 and len(line.split()) >= 4
             ):
-
                 if line.split()[3] == "6.2.2" or "6.1" in line.split()[2]:
                     return self._get_final_coords_old(calc)
 

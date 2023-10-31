@@ -29,7 +29,6 @@ def built_molecule_is_usually_reasonable(smiles, n_trys=3):
     """Is building this molecule mostly sensible?"""
 
     for _ in range(n_trys):
-
         if built_molecule_is_reasonable(smiles):
             return True
 
@@ -37,7 +36,6 @@ def built_molecule_is_usually_reasonable(smiles, n_trys=3):
 
 
 def test_base_builder():
-
     # Builder needs SMILESAtom-s
     with pytest.raises(SMILESBuildFailed):
         builder.build(atoms=[Atom("H")], bonds=SMILESBonds())
@@ -75,7 +73,6 @@ def test_build_single_atom():
 
 
 def test_ring_path():
-
     parser.parse(smiles="C1C1")
     builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
 
@@ -89,7 +86,6 @@ def test_ring_path():
 
 
 def test_too_high_valance():
-
     parser.parse(smiles="CC(C)(C)(C)(C)(C)(C)(C)(C)C")
 
     with pytest.raises(Exception):
@@ -97,7 +93,6 @@ def test_too_high_valance():
 
 
 def test_explicit_hs():
-
     parser.parse(smiles="C")
     builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
 
@@ -132,7 +127,6 @@ def test_d8():
     ]
 
     for smiles in d8_smiles_list:
-
         parser.parse(smiles)
         builder.set_atoms_bonds(atoms=parser.atoms, bonds=parser.bonds)
 
@@ -143,7 +137,6 @@ def test_d8():
 
 
 def test_angle():
-
     water = Molecule(smiles="O")
     angle = SAngle(idxs=[1, 0, 2])  # H, O, H
 
@@ -155,7 +148,6 @@ def test_angle():
 
 
 def test_dihedrals():
-
     trans = [
         Atom("C", -0.94807, -1.38247, -0.02522),
         Atom("C", 0.54343, -1.02958, -0.02291),
@@ -187,7 +179,6 @@ def test_dihedrals():
 
 
 def test_cdihedral_rotation():
-
     try:
         # from ade_dihedrals import rotate
         from ade_dihedrals import rotate
@@ -288,7 +279,6 @@ def test_simple_ring():
 
 
 def test_double_bonds():
-
     assert built_molecule_is_reasonable(smiles="C=C")
     assert built_molecule_is_reasonable(smiles="CC/C=C/CCC")
 
@@ -344,7 +334,6 @@ def test_chiral_tetrahedral():
 
 
 def test_chiral_tetrahedral2():
-
     s_smiles = "F[C@]([H])(C)Cl"
     parser.parse(s_smiles)
     builder.build(parser.atoms, parser.bonds)
@@ -391,7 +380,6 @@ def test_chiral_tetrahedral3():
 
 
 def test_sq_planar_xe():
-
     parser.parse(smiles="F[Xe](F)(F)F")
     builder.build(atoms=parser.atoms, bonds=parser.bonds)
     coords = builder.coordinates
@@ -410,7 +398,6 @@ def test_sq_planar_xe():
 
 
 def test_macrocycle():
-
     # Large linear structure with stereochemistry
     lin_smiles = (
         "C/C=C/[C@@H](C)[C@H](O[Si](C)(C)C)[C@@H](OC)/C=C" "/CC/C=C/C(OC)=O"
@@ -433,7 +420,6 @@ def test_branches_on_rings():
 
 
 def test_aromatics():
-
     assert built_molecule_is_reasonable(smiles="C1=CC=CC=C1")  # benzene
     assert built_molecule_is_reasonable(smiles="c1ccccc1")  # benzene
 
@@ -466,7 +452,6 @@ def test_wikipedia_examples():
 
 
 def test_metal_complexes():
-
     # Check some simple complexes with CN > 4                      [Co(Cl)5]2-
     assert built_molecule_is_reasonable(smiles="Cl[Co-2](Cl)(Cl)(Cl)Cl")
     #                                                              [Co(Cl)6]3-
@@ -522,7 +507,6 @@ def test_trans_small_rings():
 
 
 def test_dihedral_force():
-
     parser.parse(smiles="CCCC")
     builder.build(atoms=parser.atoms, bonds=parser.bonds)
 
@@ -534,7 +518,6 @@ def test_dihedral_force():
 
 
 def test_close_flat_ring():
-
     unclosed_coords = np.array(
         [
             [2.227521, -0.038228, -2.175656],
@@ -573,7 +556,6 @@ def test_close_flat_ring():
 
 
 def test_close_non_flat_ring():
-
     parser.parse("C1CCCCCC1")
     builder.build(atoms=parser.atoms, bonds=parser.bonds)
     mol = Molecule(atoms=builder.atoms)
@@ -609,7 +591,6 @@ def test_fused_ring_system():
 
 
 def test_build_exceptions():
-
     builder.set_atoms_bonds(atoms=[SMILESAtom("H")], bonds=SMILESBonds())
 
     # Cannot find a ring with no atoms
@@ -624,7 +605,6 @@ def test_build_exceptions():
 
 
 def test_ff_dist_matrix():
-
     parser.parse(smiles="C=O")
     builder_ = Builder()
     builder_.build(atoms=parser.atoms, bonds=parser.bonds)
@@ -636,7 +616,6 @@ def test_ff_dist_matrix():
 
 
 def test_difficult_reset_onto():
-
     points = np.array(
         [
             [5.32654, 0.20363, -1.54392],
@@ -661,7 +640,6 @@ def test_difficult_reset_onto():
 
 
 def test_max_ring_size():
-
     parser.parse(
         smiles="O=C1C2=C(O[Si](C)(C)C)C[C@H](CCCC3)C3=C4C2CC[C@@H]4O1"
     )
@@ -706,6 +684,5 @@ def test_cis_dihedral_force():
 
 
 def test_many_ring_double_bonds():
-
     assert built_molecule_is_reasonable(smiles=r"C1=C\N=C/C=N\C=C/C/1")
     assert built_molecule_is_reasonable(smiles=r"C1=CC=C/N=N\C=C1")

@@ -8,7 +8,6 @@ from autode.smiles.parser import Parser
 
 
 def test_base_properties():
-
     parser = Parser()
 
     assert parser.mult == 1
@@ -29,7 +28,6 @@ def test_base_properties():
 
 
 def test_sq_brackets_parser():
-
     parser = Parser()
     with pytest.raises(InvalidSmilesString):
         parser.parse(smiles="[C")
@@ -99,7 +97,6 @@ def test_sq_brackets_parser():
 
 
 def test_multiple_atoms():
-
     parser = Parser()
     parser.parse(smiles="CC")
     assert parser.n_atoms == 2
@@ -134,7 +131,6 @@ def test_multiple_atoms():
 
 
 def test_branches():
-
     # Propane, but with a branch from the first atom
     parser = Parser()
     parser.parse(smiles="C(C)C")
@@ -170,7 +166,6 @@ def test_branches():
 
 
 def test_rings():
-
     parser = Parser()
 
     # cyclohexane
@@ -186,7 +181,6 @@ def test_rings():
 
     cychexene_smiles = ["C=1CCCCC=1", "C=1CCCCC1", "C1CCCCC=1 "]
     for smiles in cychexene_smiles:
-
         parser.parse(smiles)
         assert parser.n_atoms == parser.n_bonds == 6
         assert n_double_bonds() == 1
@@ -219,7 +213,6 @@ def test_rings():
 
 
 def test_aromatic():
-
     parser = Parser()
     parser.parse(smiles="c1occc1")
     assert parser.n_atoms == 5
@@ -227,7 +220,6 @@ def test_aromatic():
 
 
 def test_hydrogens():
-
     parser = Parser()
 
     # H atoms defined explicitly are treated as atoms
@@ -239,7 +231,6 @@ def test_hydrogens():
 
 
 def test_cis_trans():
-
     parser = Parser()
 
     # Check that without defined stereochem the C-C double bond is present
@@ -280,7 +271,6 @@ def test_cis_trans():
 
 
 def test_is_pi_atom():
-
     parser = Parser()
 
     parser.parse(smiles="C1=CC=CC=C1")  # benzene
@@ -291,7 +281,6 @@ def test_is_pi_atom():
 
 
 def test_implicit_hydrogens():
-
     parser = Parser()
     parser.parse(smiles="CC")
     # ethane carbons should have three hydrogens each
@@ -356,7 +345,6 @@ def test_implicit_hydrogens():
 
 
 def test_multiplicity():
-
     parser = Parser()
 
     # Test some simple examples
@@ -372,7 +360,6 @@ def test_multiplicity():
 
 
 def test_double_bond_stereo_branch():
-
     parser = Parser()
     parser.parse(smiles=r"C/C([H])=C([H])/C")
 
@@ -382,7 +369,6 @@ def test_double_bond_stereo_branch():
 
 
 def test_alt_ring_branch():
-
     parser = Parser()
     smiles = (
         "O=C=[Rh]12(CC2)([H])=P(C3=CC=CC=C3)(C4=CC=CC=C4)C(C=CC=C5C6"
@@ -396,7 +382,6 @@ def test_alt_ring_branch():
 
 
 def test_ring_connectivity():
-
     parser = Parser()
     # Structure has a C-S(O2)-C motif
     parser.parse("CC12[C@@]3(CCC4)C4=C[C@@H](C1C=CO2)S(=O)3=O")
@@ -414,7 +399,6 @@ def test_ring_connectivity():
 
 
 def test_multiplicity_metals():
-
     parser = Parser()
 
     parser.parse(smiles="[Na]C1=CC=CC=C1")
@@ -422,7 +406,6 @@ def test_multiplicity_metals():
 
 
 def test_aromatic_heteroatoms():
-
     parser = Parser()
     parser.parse(smiles="[nH]1cnnc1")
 
@@ -448,7 +431,6 @@ def test_metal_in_smiles():
 
 
 def test_lots_of_smiles_rings():
-
     parser = Parser()
 
     # Should be able to parse a SMILES with ring closures with multiple
@@ -464,19 +446,16 @@ def test_lots_of_smiles_rings():
 
 
 def is_invalid(smiles):
-
     with pytest.raises(InvalidSmilesString):
         Parser().parse(smiles)
 
 
 def is_valid(smiles):
-
     Parser().parse(smiles)  # Throws if invalid
     return True
 
 
 def test_parse_ring_idx():
-
     # % ring closures must be followed by two numbers
     is_invalid("C%9CC")
 
@@ -496,7 +475,6 @@ def test_parse_ring_idx():
 
 
 def test_parse_smiles_with_labels_no_h():
-
     parser = Parser()
     parser.parse("C[Br:777]")
 
@@ -507,7 +485,6 @@ def test_parse_smiles_with_labels_no_h():
 
 
 def test_parse_smiles_with_labels_with_h():
-
     parser = Parser()
 
     parser.parse("[CH4:2]")
@@ -515,12 +492,14 @@ def test_parse_smiles_with_labels_with_h():
 
 
 def test_parse_h3o_cation_smiles():
-
     assert is_valid("[O+H2]")
 
 
 def test_parse_smiles_atom_class():
-
     assert is_valid("[H:1]")
     is_invalid("[H:1.1]")
     is_invalid("[H:a]")
+
+
+def test_multiple_bonds_in_ring():
+    assert is_valid(r"C1C/C=C\C=C/CC/C=C\1")

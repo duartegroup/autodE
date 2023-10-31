@@ -62,14 +62,12 @@ def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.1):
 
     for i in range(n_atoms):
         for j in range(n_atoms):
-
             if i > j:  # For the unique pairs add the i–j vector
                 vec = coords[j] - coords[i]
                 vec /= np.linalg.norm(vec)
                 possible_axes.append(vec)
 
             for k in range(n_atoms):
-
                 # Triple must not have any of the same atoms
                 if any((i == j, i == k, j == k)):
                     continue
@@ -80,7 +78,6 @@ def get_possible_axes(coords, max_triple_dist=2.0, sim_axis_tol=0.1):
                     np.linalg.norm(vec) < max_triple_dist
                     for vec in (vec1, vec2)
                 ):
-
                     avg_vec = (vec1 + vec2) / 2.0
                     possible_axes.append(avg_vec / np.linalg.norm(avg_vec))
 
@@ -126,7 +123,6 @@ def is_same_under_n_fold(
     excluded = [False for _ in range(n_unique)]
 
     for i in range(n_unique):
-
         # Rotate these coordinates
         rotated_coords[i] = rot_mat.dot(rotated_coords[i].T).T
 
@@ -142,7 +138,6 @@ def is_same_under_n_fold(
             return False
 
         if excluded_pcoords is not None:
-
             # If these rotated coordinates are similar to those on the excluded
             # list then these should not be considered identical
             if any(
@@ -184,10 +179,8 @@ def cn_and_axes(species, pcoords, max_n, dist_tol):
     cn_assos_axes = {i: [] for i in range(2, max_n + 1)}
 
     for axis in axes:
-
         # Minimum n-fold rotation is 2
         for n in range(2, max_n + 1):
-
             if is_same_under_n_fold(pcoords, axis, n=n, tol=dist_tol):
                 cn_assos_axes[n].append(axis)
 
@@ -209,7 +202,6 @@ def create_pcoords(species):
 
     for i in range(n_symbols):
         for j in range(species.n_atoms):
-
             # Atom symbol needs to match the leading dimension
             if species.atoms[j].label != atom_symbols[i]:
                 continue
@@ -255,7 +247,6 @@ def symmetry_number(species, max_n_fold_rot_searched=6, dist_tol=0.25):
         for axis in axes:
             # Apply this rotation m times e.g. once for a C2 etc.
             for m in range(1, n):
-
                 # If the structure is the same but and has *not* been generated
                 # by another rotation increment the symmetry number by 1
                 if is_same_under_n_fold(

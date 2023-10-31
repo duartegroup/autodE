@@ -1,6 +1,9 @@
 """Partitioned rational function optimisation"""
 import numpy as np
+from typing import Union
+
 from autode.log import logger
+from autode.values import Distance
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.coordinates.cartesian import CartesianCoordinates
@@ -10,7 +13,7 @@ from autode.exceptions import CalculationException
 class PRFOptimiser(CRFOptimiser):
     def __init__(
         self,
-        init_alpha: float = 0.05,
+        init_alpha: Union[Distance, float] = 0.05,
         recalc_hessian_every: int = 10,
         *args,
         **kwargs,
@@ -22,7 +25,7 @@ class PRFOptimiser(CRFOptimiser):
 
         -----------------------------------------------------------------------
         Arguments:
-            init_alpha: Maximum step size (Å)
+            init_alpha: Maximum step size (default Å if unit not given)
 
             imag_mode_idx: Index of the imaginary mode to follow. Default = 0,
                            the most imaginary mode (i.e. most negative
@@ -33,7 +36,8 @@ class PRFOptimiser(CRFOptimiser):
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = float(init_alpha)
+        self.alpha = Distance(init_alpha, units="ang")
+        assert self.alpha > 0
         self.recalc_hessian_every = int(recalc_hessian_every)
         self._hessian_update_types = [BofillUpdate]
 

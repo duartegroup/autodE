@@ -18,7 +18,6 @@ def work_in_zipped_dir(zip_path, chdir=True):
     def func_decorator(func):
         @wraps(func)
         def wrapped_function(*args, **kwargs):
-
             # Remove the .zip extension - rstrip doesn't seem to work
             # consistently(?)
             dir_path = zip_path[:-4]

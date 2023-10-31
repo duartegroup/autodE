@@ -2,7 +2,7 @@ import numpy as np
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
 
-from typing import Optional, List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 from copy import deepcopy
 from autode.constants import Constants
 from autode.utils import run_external
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 
 
 def _add_opt_option(keywords, new_option):
-
     for keyword in keywords:
         if "opt" not in keyword.lower():
             continue
@@ -82,7 +81,6 @@ def _get_keywords(calc_input, molecule):
     new_keywords = []  # List of keywords as strings for this calculation
 
     for keyword in calc_input.keywords.copy():
-
         # Replace the basis set file specification with genecp
         if str(keyword).endswith(".gbs"):
             logger.info("Found a custom basis set file adding genecp")
@@ -130,7 +128,6 @@ def _get_keywords(calc_input, molecule):
     # Remove the optimisation keyword if there is only a single atom
     opt = False
     for keyword in new_keywords:
-
         if "opt" not in keyword.lower():
             continue
 
@@ -184,7 +181,7 @@ def _print_added_internals(inp_file, calc_input):
     if calc_input.added_internals is None:
         return
 
-    for (i, j) in calc_input.added_internals:
+    for i, j in calc_input.added_internals:
         # Gaussian indexes atoms from 1
         print("B", i + 1, j + 1, file=inp_file)
 
@@ -195,14 +192,12 @@ def _print_constraints(inp_file, molecule):
     """Add any distance or cartesian constraints to the input file"""
 
     if molecule.constraints.distance is not None:
-
         for (i, j), dist in molecule.constraints.distance.items():
             # Gaussian indexes atoms from 1
             print("B", i + 1, j + 1, dist, "B", file=inp_file)
             print("B", i + 1, j + 1, "F", file=inp_file)
 
     if molecule.constraints.cartesian is not None:
-
         for i in molecule.constraints.cartesian:
             # Gaussian indexes atoms from 1
             print("X", i + 1, "F", file=inp_file)
@@ -414,7 +409,6 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         molecule = calc.molecule
 
         with open(calc.input.filename, "w") as inp_file:
-
             # Gaussian defines the total memory for the whole calculation, not
             # per core
             total_mem = int(Config.max_core.to("MB") * calc.n_cores)
@@ -469,7 +463,6 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         """Get the version of Gaussian used in this calculation"""
 
         for line in calc.output.file_lines:
-
             if line.startswith("Gaussian ") and "Revision" in line:
                 return line.lstrip("Gaussian ")
 
@@ -491,7 +484,6 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         return None
 
     def terminated_normally_in(self, calc, rerun_if_failed=True):
-
         termination_strings = [
             "Normal termination of Gaussian",
             "Number of steps exceeded",
@@ -499,7 +491,6 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         bend_ok = True  # Gaussian can fail when 180º bends are encountered
         for line in reversed(calc.output.file_lines):
-
             if any(string in line for string in termination_strings):
                 logger.info("Gaussian terminated normally")
                 return True
@@ -532,7 +523,6 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         return False
 
     def _energy_from(self, calc: "CalculationExecutor") -> PotentialEnergy:
-
         for line in reversed(calc.output.file_lines):
             if "SCF Done" in line or "E(CIS)" in line:
                 return PotentialEnergy((line.split()[4]), units="Ha")
@@ -556,9 +546,7 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         coords: List[List[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
-
             if "Input orientation" in line:
-
                 coords.clear()
                 xyz_lines = calc.output.file_lines[
                     i + 5 : i + 5 + calc.molecule.n_atoms
@@ -571,7 +559,6 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         return Coordinates(coords, units="Å")
 
     def partial_charges_from(self, calc: "CalculationExecutor") -> List[float]:
-
         charges_section = False
         charges: List[float] = []
         for line in reversed(calc.output.file_lines):
@@ -603,14 +590,12 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         raw_gradient: List[np.ndarray] = []
 
         for i, line in enumerate(calc.output.file_lines):
-
             if "Forces (Hartrees/Bohr)" not in line:
                 continue
 
             raw_gradient = []  # NOTE: possibly multiple gradients in a file
 
             for force_line in calc.output.file_lines[i + 3 : i + 3 + n_atoms]:
-
                 try:
                     _, _, fx, fy, fz = force_line.split()
                     force = np.array([float(fx), float(fy), float(fz)])
@@ -651,8 +636,11 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         append_line = False
 
         for line in reversed(calc.output.file_lines):
-
-            if r"\\@" in line or line.startswith(" @"):
+            if (
+                r"\\@" in line
+                or line.startswith(" @")
+                or line.startswith(r" \@")
+            ):
                 append_line = True
 
             if append_line:

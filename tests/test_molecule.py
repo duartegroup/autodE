@@ -17,7 +17,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_basic_attributes():
-
     methane = Molecule(name="methane", smiles="C")
 
     assert methane.name == "methane"
@@ -58,7 +57,6 @@ def test_basic_attributes():
 
 
 def test_bond_matrix():
-
     water = Molecule(smiles="O")
     # check there are bonds where they are expected
 
@@ -77,7 +75,6 @@ def test_bond_matrix():
 
 
 def test_gen_conformers():
-
     ethane = Molecule(name="ethane", smiles="CC")
     ethane._generate_conformers(n_confs=2)
 
@@ -117,7 +114,6 @@ def test_siman_conf_gen(tmpdir):
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "molecule.zip"))
 def test_molecule_opt():
-
     mol = Molecule(name="H2", smiles="[H][H]")
 
     # Set the orca path to something that exists
@@ -133,7 +129,6 @@ def test_molecule_opt():
 
 
 def calc_mult():
-
     h = Molecule(name="H", smiles="[H]")
     assert h.mult == 2
 
@@ -150,7 +145,6 @@ def calc_mult():
 
 
 def test_reactant_to_product_and_visa_versa():
-
     prod = Reactant().to_product()
     assert type(prod) is Product
 
@@ -160,7 +154,6 @@ def test_reactant_to_product_and_visa_versa():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "molecule.zip"))
 def test_molecule_from_xyz():
-
     h2 = Molecule("h2_conf0.xyz")
     assert h2.name == "h2_conf0"
     assert h2.n_atoms == 2
@@ -195,7 +188,6 @@ def test_rdkit_possible_fail():
 
 
 def test_multi_ring_smiles_init():
-
     cr_complex = Molecule(
         smiles="[N+]12=CC=CC3=C1C(C(C=C3)=CC=C4)=[N+]4[Cr]25"
         "6([N+]7=CC=CC8=C7C9=[N+]6C=CC=C9C=C8)[N+]%10"
@@ -206,7 +198,6 @@ def test_multi_ring_smiles_init():
 
 
 def test_prune_diff_graphs():
-
     h2 = Molecule(smiles="[H][H]")
     h2.energy = -1.0
     assert h2.graph is not None
@@ -225,7 +216,6 @@ def test_prune_diff_graphs():
 
 
 def test_lowest_energy_conformer_set_ok():
-
     h2 = Molecule(smiles="[H][H]")
     h2.energy = -1.0
 
@@ -243,7 +233,6 @@ def test_lowest_energy_conformer_set_ok():
 
 
 def test_lowest_energy_conformer_set_no_energy():
-
     h2 = Molecule(smiles="[H][H]")
     h2.energy = -1.0
 
@@ -262,25 +251,21 @@ def test_lowest_energy_conformer_set_no_energy():
 
 
 def test_defined_metal_spin_state():
-
     mol = Molecule(smiles="[Sc]C", mult=3)
     assert mol.mult == 3
 
 
 def test_atom_class_defined_for_organic():
-
     mol = Molecule(smiles="[Br-:1]")
     assert mol.atoms[0].atom_class is not None
 
 
 def test_smiles_and_user_defined_charge_raises_exception():
-
     with pytest.raises(Exception):
         _ = Molecule(smiles="[Cl-]", charge=1)
 
 
 def test_user_defined_charge_overrides_smiles_mult():
-
     ch2 = Molecule(smiles="[H][C][H]")
     default_mult = ch2.mult
 

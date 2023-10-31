@@ -56,7 +56,6 @@ product_complex = ProductComplex(ch3f, cl)
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_guess.zip"))
 def test_ts_template_save():
-
     ts_graph = reac_complex.graph.copy()
 
     # Add the F-C bond as active
@@ -97,7 +96,6 @@ def test_ts_template_save():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_guess.zip"))
 def test_ts_template():
-
     # Spoof XTB install, if not installed
     if shutil.which("xtb") is None:
         Config.XTB.path = here
@@ -140,7 +138,6 @@ def test_ts_template():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_guess.zip"))
 def test_ts_template_with_scan():
-
     if shutil.which("xtb") is None or not shutil.which("xtb").endswith("xtb"):
         return
 
@@ -172,7 +169,6 @@ def test_ts_template_with_scan():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_template.zip"))
 def test_truncated_mol_graph_atom_types():
-
     ir_ts = TransitionState(
         TSguess(atoms=xyz_file_to_atoms("vaskas_TS.xyz"), charge=0, mult=1)
     )
@@ -201,7 +197,6 @@ def test_truncated_mol_graph_atom_types():
 
 
 def test_ts_template_parse():
-
     # No value
     with pytest.raises(TemplateLoadingFailed):
         _ = get_value_from_file("solvent", file_lines=["solvent:"])
@@ -218,7 +213,6 @@ def test_ts_template_parse():
 
 @work_in_tmp_dir()
 def test_ts_templates_find():
-
     templates = get_ts_templates(folder_path="/a/path/that/doesnt/exist")
     assert len(templates) == 0
 
@@ -231,7 +225,6 @@ def test_ts_templates_find():
 
 
 def test_inactive_graph():
-
     # Should fail to get a active graph from a graph with no active edges
     with pytest.raises(ValueError):
         _ = get_truncated_active_mol_graph(ch3f.graph)
@@ -245,7 +238,6 @@ def test_inactive_graph():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "ts_template.zip"))
 def test_ts_from_species_is_same_as_from_ts_guess():
-
     ts = TransitionState(
         TSguess(atoms=xyz_file_to_atoms("vaskas_TS.xyz"), charge=0, mult=1)
     )

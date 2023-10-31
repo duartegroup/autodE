@@ -128,12 +128,8 @@ class BaseImagePair(ABC):
         self._left_history = OptimiserHistory()
         self._right_history = OptimiserHistory()
         # push the first coordinates into history
-        self.left_coords = CartesianCoordinates(
-            self._left_image.coordinates.to("ang")
-        )
-        self.right_coords = CartesianCoordinates(
-            self._right_image.coordinates.to("ang")
-        )
+        self.left_coords = CartesianCoordinates(self._left_image.coordinates)
+        self.right_coords = CartesianCoordinates(self._right_image.coordinates)
 
     def _sanity_check(self) -> None:
         """
@@ -339,7 +335,7 @@ class BaseImagePair(ABC):
         """
         assert self._method is not None
         assert self._n_cores is not None
-        n_cores_per_pp = self._n_cores // 2 if self._n_cores > 2 else 1
+        n_cores_per_pp = self._n_cores // 2 if self._n_cores > 1 else 1
         n_procs = 1 if self._n_cores < 2 else 2
         with ProcessPool(max_workers=n_procs) as pool:
             jobs = [
@@ -363,9 +359,10 @@ class BaseImagePair(ABC):
         """
         Update the molecular hessian of both images by calculation
         """
+        # TODO: refactor into ll_hessian code
         assert self._hess_method is not None
         assert self._n_cores is not None
-        n_cores_per_pp = self._n_cores // 2 if self._n_cores < 2 else 1
+        n_cores_per_pp = self._n_cores // 2 if self._n_cores > 1 else 1
         n_procs = 1 if self._n_cores < 2 else 2
         with ProcessPool(max_workers=n_procs) as pool:
             jobs = [
@@ -518,7 +515,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
             return None
 
         peak = cineb.images[cineb.images.peak_idx]  # type: ignore
-        ci_coords = CartesianCoordinates(peak.coordinates.to("ang"))
+        ci_coords = CartesianCoordinates(peak.coordinates)
         ci_coords.e = peak.energy
         ci_coords.update_g_from_cart_g(peak.gradient)
 

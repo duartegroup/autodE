@@ -20,7 +20,8 @@ class Unit:
     def __init__(
         self,
         name: str,
-        conversion: float,
+        times: float = 1.0,
+        add: float = 0.0,
         aliases: Optional[Collection] = None,
         plot_name: Optional[str] = None,
     ):
@@ -31,7 +32,7 @@ class Unit:
         Arguments:
             name (str):
 
-            conversion (float): Conversion from default units to the new
+            times (float): Conversion from default units to the new
 
         Keyword Arguments:
             aliases (list | set | tuple | None): Set of name aliases for this
@@ -41,7 +42,8 @@ class Unit:
         """
 
         self.name = name
-        self.conversion = conversion
+        self.times = times
+        self.add = add
 
         self.aliases = [name.lower()]
         if aliases is not None:
@@ -59,10 +61,7 @@ class BaseUnit(Unit):
         aliases: Union[Collection, None] = None,
         plot_name: Union[str, None] = None,
     ):
-
-        super().__init__(
-            name, conversion=1.0, aliases=aliases, plot_name=plot_name
-        )
+        super().__init__(name, times=1.0, aliases=aliases, plot_name=plot_name)
 
 
 class CompositeUnit(Unit):
@@ -90,12 +89,12 @@ class CompositeUnit(Unit):
 
         conversion: float = 1.0
         for unit in args:
-            conversion *= unit.conversion
+            conversion *= unit.times
 
         for unit in per_units:
-            conversion /= unit.conversion
+            conversion /= unit.times
 
-        super().__init__(name=name, conversion=conversion, aliases=aliases)
+        super().__init__(name=name, times=conversion, aliases=aliases)
 
 
 # ----------------------------- Energies -------------------------------
@@ -106,7 +105,7 @@ ha = BaseUnit(name="Ha", aliases=["hartree", "Eh"], plot_name="Ha")
 
 ev = Unit(
     name="eV",
-    conversion=Constants.ha_to_eV,
+    times=Constants.ha_to_eV,
     aliases=["electron volt", "electronvolt"],
     plot_name="eV",
 )
@@ -115,7 +114,7 @@ ev = Unit(
 # Upper case name to maintain backwards compatibility
 kjmol = KjMol = Unit(
     name="kJ mol-1",
-    conversion=Constants.ha_to_kJmol,
+    times=Constants.ha_to_kJmol,
     aliases=["kjmol", "kjmol-1", "kj mol^-1", "kj", "kj mol"],
     plot_name="kJ mol$^{-1}$",
 )
@@ -123,12 +122,12 @@ kjmol = KjMol = Unit(
 
 kcalmol = KcalMol = Unit(
     name="kcal mol-1",
-    conversion=Constants.ha_to_kcalmol,
+    times=Constants.ha_to_kcalmol,
     aliases=["kcalmol", "kcalmol-1", "kcal mol^-1", "kcal", "kcal mol"],
     plot_name="kcal mol$^{-1}$",
 )
 
-J = Unit(name="J", conversion=Constants.ha_to_J, aliases=["joule"])
+J = Unit(name="J", times=Constants.ha_to_J, aliases=["joule"])
 
 
 def energy_unit_from_name(name: str) -> "Unit":
@@ -160,7 +159,7 @@ rad = BaseUnit(name="rad", aliases=["radians", "rads", "radian"])
 
 
 deg = Unit(
-    name="°", conversion=Constants.rad_to_deg, aliases=["deg", "degrees", "º"]
+    name="°", times=Constants.rad_to_deg, aliases=["deg", "degrees", "º"]
 )
 
 # ----------------------------------------------------------------------
@@ -169,21 +168,21 @@ deg = Unit(
 ang = BaseUnit(name="Å", aliases=["ang", "angstrom"])
 
 
-a0 = Unit(name="bohr", conversion=Constants.ang_to_a0, aliases=["a0"])
+a0 = Unit(name="bohr", times=Constants.ang_to_a0, aliases=["a0"])
 
 nm = Unit(
     name="nm",
-    conversion=Constants.ang_to_nm,
+    times=Constants.ang_to_nm,
     aliases=["nanometer", "nano meter"],
 )
 
 pm = Unit(
     name="pm",
-    conversion=Constants.ang_to_pm,
+    times=Constants.ang_to_pm,
     aliases=["picometer", "pico meter"],
 )
 
-m = Unit(name="m", conversion=Constants.ang_to_m, aliases=["meter"])
+m = Unit(name="m", times=Constants.ang_to_m, aliases=["meter"])
 
 
 ang_amu_half = BaseUnit(
@@ -195,9 +194,9 @@ ang_amu_half = BaseUnit(
 
 amu = BaseUnit(name="amu", aliases=["Da", "g mol-1", "g mol^-1", "g/mol"])
 
-kg = Unit(name="kg", conversion=Constants.amu_to_kg)
+kg = Unit(name="kg", times=Constants.amu_to_kg)
 
-m_e = Unit(name="m_e", conversion=Constants.amu_to_me, aliases=["me"])
+m_e = Unit(name="m_e", times=Constants.amu_to_me, aliases=["me"])
 
 # ----------------------------------------------------------------------
 # -------------------- Mass-weighted distance squared ------------------
@@ -269,7 +268,7 @@ J_per_ang_sq_kg = CompositeUnit(J, per=[ang, ang, kg], name="J m^-2 kg^-1")
 wavenumber = BaseUnit(name="cm^-1", aliases=["cm-1", "per cm", "/cm"])
 
 hz = Unit(
-    name="s^-1", conversion=Constants.per_cm_to_hz, aliases=["hz", "s-1", "/s"]
+    name="s^-1", times=Constants.per_cm_to_hz, aliases=["hz", "s-1", "/s"]
 )
 
 
@@ -278,11 +277,18 @@ hz = Unit(
 
 
 byte = Unit(
-    name="byte", conversion=1e6, aliases=["bytes"]
+    name="byte", times=1e6, aliases=["bytes"]
 )  # 1,000,000 bytes = 1 MB
 
 MB = BaseUnit(name="mb", aliases=["megabyte"])
 
-GB = Unit(name="gb", conversion=1e-3, aliases=["gigabyte"])  # 1000 MB = 1 GB
+GB = Unit(name="gb", times=1e-3, aliases=["gigabyte"])  # 1000 MB = 1 GB
 
-TB = Unit(name="tb", conversion=1e-6, aliases=["terabyte"])  # 1000 GB = 1 TB
+TB = Unit(name="tb", times=1e-6, aliases=["terabyte"])  # 1000 GB = 1 TB
+
+
+# ----------------------------------------------------------------------
+# --------------------------- Temperature ------------------------------
+
+kelvin = BaseUnit(name="kelvin", aliases=["K", "°K"])
+celsius = Unit(name="celsius", add=273.15, aliases=["C", "oC", "°C"])

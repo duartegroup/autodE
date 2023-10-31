@@ -52,7 +52,6 @@ def get_keywords(calc_input, molecule):
         keywords.append("QMMM")
 
     if molecule.solvent is not None:
-
         if molecule.solvent.dielectric is None:
             err_str = (
                 f"Could not use solvent {molecule.solvent} for MOPAC "
@@ -243,7 +242,6 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
         """Get the version of MOPAC used to execute this calculation"""
 
         for line in calc.output.file_lines:
-
             if "(Version:" in line and len(line.split()) >= 3:
                 # e.g.        MOPAC2016 (Version: 19.144L)
 
@@ -281,7 +279,6 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
         n_errors = 0
 
         for i, line in enumerate(reversed(calc.output.file_lines)):
-
             if "Error" in line:
                 n_errors += 1
 
@@ -304,7 +301,6 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
         raise CouldNotGetProperty(name="energy")
 
     def optimiser_from(self, calc: "CalculationExecutor") -> "BaseOptimiser":
-
         is_converged = any(
             "GRADIENT" in l and "IS LESS THAN CUTOFF" in l
             for l in reversed(calc.output.file_lines)
@@ -312,12 +308,10 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
         return MOPACOptimiser(converged=is_converged)
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
-
         coords: List[List[float]] = []
         n_atoms = calc.molecule.n_atoms
 
         for i, line in enumerate(calc.output.file_lines):
-
             if i == len(calc.output.file_lines) - 3:
                 # At the end of the file
                 break
@@ -344,7 +338,6 @@ class MOPAC(autode.wrappers.methods.ExternalMethodOEG):
         gradients_section = False
         raw = []
         for line in calc.output.file_lines:
-
             if "FINAL  POINT  AND  DERIVATIVES" in line:
                 gradients_section = True
 

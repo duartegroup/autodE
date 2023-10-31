@@ -9,7 +9,6 @@ from autode.pes import pes_nd
 
 
 class PESnD(pes_nd.PESnD):
-
     __test__ = False
 
     def _calculate(self):
@@ -24,7 +23,6 @@ class PESnD(pes_nd.PESnD):
 
 
 def test_distances1d():
-
     rs = _Distances1D([0.1, 0.2, -0.1], atom_idxs=(0, 1))
 
     assert np.isclose(rs.min, -0.1)
@@ -52,7 +50,6 @@ def test_distances1d():
 
 
 def test_pes_nd_attrs():
-
     pes = PESnD()
 
     # Empty PES has an empty tuple for a shape
@@ -63,7 +60,6 @@ def test_pes_nd_attrs():
 
 
 def test_pes_nd_rs_init():
-
     # For a step-size of 0.1 Å there should be 10 steps in a single dimension
     pes = PESnD(rs={(0, 1): (1.0, 2.0, 0.11)})
     assert pes.shape == (10,)
@@ -105,7 +101,6 @@ def test_pes_nd_rs_init():
 
 
 def test_pes_nd_rs_species_init():
-
     # Defining only the final distance and step size is
     # not supported without a species
     with pytest.raises(ValueError):
@@ -138,7 +133,6 @@ def test_pes_nd_rs_species_init():
 
 
 def test_pes_nd_rs_rounding():
-
     pes = PESnD(rs={(0, 1): (1.0, 1.87, 0.1)}, allow_rounding=True)
     assert pes.shape == (10,)
 
@@ -163,7 +157,6 @@ def test_pes_nd_rs_rounding():
 
 
 def test_mesh():
-
     pes = PESnD(rs={(0, 1): (0.1, 0.3, 0.1), (1, 2): (0.1, 0.3, 0.1)})
     assert pes.shape == (3, 3)
 
@@ -189,7 +182,6 @@ def test_mesh():
 
 
 def test_unset_values():
-
     pes = PESnD(rs={(0, 1): (0.1, 0.3, 3), (1, 2): (0.1, 0.3, 3)})
 
     # All elements on a non-calculated surface are initialised to nan

@@ -35,7 +35,6 @@ class MolecularGraph(nx.Graph):
         """
 
         for node in self.nodes:
-
             n_neighbours = len(list(self.neighbors(node)))
 
             if n_neighbours < 4:
@@ -65,8 +64,7 @@ class MolecularGraph(nx.Graph):
         n_atoms = self.number_of_nodes()
         matrix = np.zeros((n_atoms, n_atoms))
 
-        for (i, j) in self.edges:
-
+        for i, j in self.edges:
             r0 = float(self._covalent_radius(i) + self._covalent_radius(j))
             matrix[i, j] = matrix[j, i] = r0
 
@@ -179,7 +177,7 @@ def make_graph(
         logger.debug(
             f"Bonds have been specified. Adding {len(bond_list)} edges"
         )
-        for (i, j) in bond_list:
+        for i, j in bond_list:
             graph.add_edge(i, j, pi=False, active=False)
 
         species.graph = graph
@@ -193,10 +191,8 @@ def make_graph(
     for i, _ in enumerate(
         sorted(species.atoms, key=lambda _atom: _atom.weight)
     ):
-
         # Iterate through the closest atoms to atom i
         for j in np.argsort(dist_mat[i]):
-
             if i == j:  # Don't bond atoms to themselves
                 continue
 
@@ -231,7 +227,6 @@ def remove_bonds_invalid_valancies(species):
     """
 
     for i in species.graph.nodes:
-
         max_valance = species.atoms[i].maximal_valance
         neighbours = list(species.graph.neighbors(i))
 
@@ -274,8 +269,7 @@ def _set_graph_attributes(graph):
     # List of atom indexes that are rings in the species
     rings = find_cycles(graph)
 
-    for (i, j) in graph.edges:
-
+    for i, j in graph.edges:
         if graph.edges[(i, j)]["pi"] is False:
             continue
 
@@ -354,7 +348,6 @@ def species_are_isomorphic(species1, species2):
     # Check on all pairs of conformers between the two species
     for conformer1 in conformers_or_self(species1):
         for conformer2 in conformers_or_self(species2):
-
             if is_isomorphic(conformer1.graph, conformer2.graph):
                 return True
 
@@ -493,7 +486,7 @@ def get_graph_no_active_edges(graph):
         edge for edge in graph.edges if graph.edges[edge]["active"] is True
     ]
 
-    for (i, j) in active_edges:
+    for i, j in active_edges:
         graph_no_ae.remove_edge(i, j)
 
     return graph_no_ae
@@ -516,10 +509,8 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     g1, g2 = graph1.copy(), graph2.copy()
 
     # Iterate through the pairs removing any active edges from both ga and gb
-    for (ga, gb) in [(g1, g2), (g2, g1)]:
-
+    for ga, gb in [(g1, g2), (g2, g1)]:
         for edge in ga.edges:
-
             if ga.edges[edge]["active"] is False:
                 continue
 
@@ -759,10 +750,8 @@ def get_truncated_active_mol_graph(graph, active_bonds=None):
 
     # Add all nodes that connect active bonds
     for bond in active_bonds:
-
         for idx in bond:
             if idx not in t_graph.nodes:
-
                 label = graph.nodes[idx]["atom_label"]
                 t_graph.add_node(idx, atom_label=label)
 

@@ -18,7 +18,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_detection():
-
     # F- + H2CCHCH2Cl -> FCH2CHCH2 + Cl-
     reaction = Reaction(
         Reactant(name="F-", charge=-1, atoms=[Atom("F")]),
@@ -40,7 +39,6 @@ def test_detection():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "sn2prime.zip"))
 def test_subst():
-
     reactant = Reactant(name="sn2_r", atoms=xyz_file_to_atoms("reactant.xyz"))
 
     # SN2' bond rearrangement
@@ -61,7 +59,6 @@ def test_subst():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "sn2prime.zip"))
 def test_translate_rotate():
-
     reactant = ReactantComplex(
         Reactant(name="F-", charge=-1, atoms=[Atom("F")]),
         Reactant(name="alkeneCl", atoms=xyz_file_to_atoms("alkene.xyz")),

@@ -1,10 +1,11 @@
 import numpy as np
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from autode.log import logger
 from autode.utils import work_in_tmp_dir
 from autode.opt.optimisers.base import NDOptimiser
 from autode.opt.coordinates import CartesianCoordinates
+from autode.values import Distance
 from autode.opt.optimisers.hessian_update import BFGSPDUpdate, NullUpdate
 
 if TYPE_CHECKING:
@@ -14,14 +15,16 @@ if TYPE_CHECKING:
 class RFOptimiser(NDOptimiser):
     """Rational function optimisation in delocalised internal coordinates"""
 
-    def __init__(self, *args, init_alpha: float = 0.1, **kwargs):
+    def __init__(
+        self, *args, init_alpha: Union[Distance, float] = 0.1, **kwargs
+    ):
         """
         Rational function optimiser (RFO) using a maximum step size of alpha
 
         -----------------------------------------------------------------------
         Arguments:
             init_alpha: Maximum step size, which controls the maximum component
-                        of the step
+                        of the step. If units not given, Angstrom assumed.
 
             args: Additional arguments for ``NDOptimiser``
 
@@ -32,7 +35,8 @@ class RFOptimiser(NDOptimiser):
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = init_alpha
+        self.alpha = Distance(init_alpha, units="ang")
+        assert self.alpha > 0
         self._hessian_update_types = [BFGSPDUpdate, NullUpdate]
 
     def _step(self) -> None:

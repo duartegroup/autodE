@@ -375,7 +375,6 @@ class AdaptivePath(Path):
 
         logger.info("Adaptively adding points to the path")
         while not (reached_final_point() or self.contains_suitable_peak()):
-
             point = self[-1].new_species(with_constraints=True)
             self._adjust_constraints(point=point)
             self.append(point)

@@ -35,15 +35,19 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         activate-environment: test
-        mamba-version: "*"
         channels: conda-forge
+
+    - name: Install mamba solver
+      run: |
+        conda install -n base conda-libmamba-solver
 
     - name: Install
       run: |
-        mamba install \
+        conda install \
           --file requirements.txt \
           --file tests/requirements.txt \
-          --channel conda-forge
+          --channel conda-forge \
+          --solver=libmamba
         python -m pip install . --no-deps
 
     - name: Test

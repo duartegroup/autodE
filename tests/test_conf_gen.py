@@ -311,14 +311,12 @@ def test_metal_eta_complex(tmpdir):
 
 
 def test_salt():
-
     salt = Molecule(name="salt", smiles="[Li][Br]")
     assert salt.n_atoms == 2
     assert are_coords_reasonable(coords=salt.coordinates)
 
 
 def test_potential():
-
     # Approximate H2 coordinates
     bond_length = 0.7
     coords = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, bond_length]])

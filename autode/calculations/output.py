@@ -8,7 +8,6 @@ from autode.log import logger
 
 class CalculationOutput:
     def __init__(self, filename: Optional[str] = None):
-
         self._filename = filename
 
     @property
@@ -17,7 +16,6 @@ class CalculationOutput:
 
     @filename.setter
     def filename(self, value: str):
-
         self._filename = str(value)
         self.clear()
 

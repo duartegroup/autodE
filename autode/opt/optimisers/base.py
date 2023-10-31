@@ -149,7 +149,6 @@ class Optimiser(BaseOptimiser, ABC):
         logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
 
         while not self.converged:
-
             self._callback(self._coords)
             self._step()  # Update self._coords
             self._update_gradient_and_energy()  # Update self._coords.g
@@ -623,7 +622,6 @@ class NDOptimiser(Optimiser, ABC):
             open(filename, "w").close()
 
         for i, coordinates in enumerate(self._history):
-
             energy = coordinates.e
             cart_coords = coordinates.to("cartesian").reshape((-1, 3))
             gradient = cart_coords.g.reshape((-1, 3))
@@ -988,7 +986,7 @@ class OptimiserHistory(UserList):
         # take a copy so that original is not modified
         tmp_spc = species.copy()
         for coords in self:
-            tmp_spc.coordinates = coords
+            tmp_spc.coordinates = coords.to("cart")
             tmp_spc.energy = coords.e
             tmp_spc.print_xyz_file(filename=filename, append=True)
 

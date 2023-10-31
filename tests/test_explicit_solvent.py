@@ -30,7 +30,6 @@ def water_mol():
 
 
 def test_explicit_solvent_gen():
-
     mol = Molecule(smiles="C", solvent_name="water")
     mol.explicitly_solvate(num=10)
     assert mol.solvent.is_explicit
@@ -58,7 +57,6 @@ def test_explicit_solvent_gen():
 
 
 def test_invalid_solvation():
-
     mol = Molecule(smiles="C", solvent_name="water")
 
     with pytest.raises(ValueError):
@@ -84,7 +82,6 @@ def test_invalid_solvation():
 
 
 def test_too_close_to_solute():
-
     solute = methane_mol()
     water = water_mol()
 
@@ -95,7 +92,6 @@ def test_too_close_to_solute():
 
 
 def test_too_close_to_solvent():
-
     solv = ExplicitSolvent(solute=methane_mol(), solvent=water_mol(), num=2)
     assert solv.n_solvent_molecules == 2
     assert solv.solvent_n_atoms == 3
@@ -121,7 +117,6 @@ def test_too_close_to_solvent():
 
 
 def test_equality():
-
     solv1 = ExplicitSolvent(solute=methane_mol(), solvent=water_mol(), num=2)
 
     solv2 = ExplicitSolvent(solute=methane_mol(), solvent=water_mol(), num=1)
@@ -132,7 +127,6 @@ def test_equality():
 
 
 def test_solvate_with_molecule():
-
     solute = methane_mol()
 
     # Solvent should be able to be any valid solvent molecule

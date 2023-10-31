@@ -112,7 +112,6 @@ def get_first_available_method(
         (autode.exceptions.MethodUnavailable):
     """
     for method in possibilities:
-
         if method.is_available:
             return method
 
@@ -137,7 +136,6 @@ def get_defined_method(name, possibilities) -> "Method":
 
     for method in possibilities:
         if method.name.lower() == name.lower():
-
             if method.is_available:
                 return method
 

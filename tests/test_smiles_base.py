@@ -9,7 +9,6 @@ from autode.smiles.base import (
 
 
 def test_smiles_atom():
-
     atom = SMILESAtom("C", stereochem=SMILESStereoChem.TET_NORMAL)
     atom.invert_stereochem()
     assert atom.stereochem == SMILESStereoChem.TET_INVERTED
@@ -20,7 +19,6 @@ def test_smiles_atom():
 
 
 def test_smiles_bond():
-
     atoms = [
         SMILESAtom("C", stereochem=SMILESStereoChem.ALKENE_UP),
         SMILESAtom("C", stereochem=SMILESStereoChem.ALKENE_UP),

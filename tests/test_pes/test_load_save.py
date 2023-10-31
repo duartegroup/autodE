@@ -10,7 +10,6 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_save_empty():
-
     pes = TestPES(rs={})
 
     with pytest.raises(ValueError):
@@ -45,7 +44,6 @@ def test_save_1d():
 
 
 def save_3d_as_text_file():
-
     pes = TestPES(
         rs={
             (0, 1): (0.1, 0.2, 3),

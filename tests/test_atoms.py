@@ -7,7 +7,6 @@ from autode.values import Angle, Coordinate, Mass, Distance
 
 
 def test_valency():
-
     assert Atom("C").maximal_valance == 4
 
     # Default to 6 if the atom does not have a hard-coded maximum valency
@@ -16,7 +15,6 @@ def test_valency():
 
 
 def test_vdw_radius():
-
     assert 0.9 < Atom("H").vdw_radius < 1.2
 
     # Defaults to ~2.5 Å if the van der Waals radius is unknown
@@ -24,7 +22,6 @@ def test_vdw_radius():
 
 
 def test_is_pi():
-
     assert Atom("C").is_pi(valency=3)
     assert not Atom("H").is_pi(valency=1)
 
@@ -33,7 +30,6 @@ def test_is_pi():
 
 
 def test_atoms():
-
     empty_atoms = Atoms()
     assert "atoms" in repr(empty_atoms).lower()
     assert not empty_atoms.are_linear()
@@ -73,7 +69,6 @@ def test_atoms():
 
 
 def test_atoms_are_planar_simple():
-
     no_h_atom = Atoms([])
     h_atom = Atoms([Atom("H")])
     h_dimer = Atoms([Atom("H"), Atom("H", x=1.0)])
@@ -84,7 +79,6 @@ def test_atoms_are_planar_simple():
 
 
 def test_c2h4_atoms_are_planar():
-
     c2h4_atoms = Atoms(
         [
             Atom("C", -4.99490, 1.95320, 0.00000),
@@ -111,7 +105,6 @@ def test_c2h4_atoms_are_planar():
 
 
 def test_atoms_are_not_planar():
-
     h_atoms = Atoms(
         [
             Atom("H"),
@@ -132,7 +125,6 @@ def test_atoms_are_not_planar():
 
 
 def test_atom_collection_base():
-
     h2 = atoms.AtomCollection()
     assert h2.n_atoms == 0
     assert np.isclose(h2.weight, 0.0)  # 0 weight for 0 atoms
@@ -181,7 +173,6 @@ def test_atom_collection_base():
 
 
 def test_atom_collection_angles():
-
     h2o = atoms.AtomCollection()
     h2o.atoms = [Atom("H", x=-1.0), Atom("O"), Atom("H", x=1.0)]
 
@@ -214,7 +205,6 @@ def test_atom_collection_angles():
 
 
 def test_atom_collection_dihedral():
-
     h2o2 = atoms.AtomCollection()
     h2o2.atoms = [
         Atom("O", -0.85156, -0.20464, 0.31961),
@@ -238,7 +228,6 @@ def test_atom_collection_dihedral():
 
 
 def test_atom_h():
-
     h = Atom(atomic_symbol="H", x=0.0, y=0.0, z=0.0)
     assert h.label == "H"
     assert h.atomic_number == 1
@@ -298,7 +287,6 @@ def test_atom_other():
 
 
 def test_atom_coord_setting():
-
     atom = Atom("H", 0.0, 0.0, 0.0)
 
     with pytest.raises(ValueError):
@@ -315,7 +303,6 @@ def test_atom_coord_setting():
 
 
 def test_periodic_table():
-
     for invalid_period in (0, 8):
         with pytest.raises(ValueError):
             _ = atoms.PeriodicTable.period(n=invalid_period)
@@ -407,7 +394,6 @@ def test_atom_doc_examples():
 
 
 def test_atoms_collection_doc_examples():
-
     from autode import Atom, Molecule
 
     h2o = Molecule(atoms=[Atom("H", x=-1), Atom("O"), Atom("H", x=1)])
@@ -426,7 +412,6 @@ def test_atoms_collection_doc_examples():
 
 
 def test_atom_copy():
-
     a = atoms.Atom("H")
     b = a.copy()
     a.label = "C"
@@ -435,14 +420,12 @@ def test_atom_copy():
 
 
 def test_dummy_atom_radii():
-
     atom = DummyAtom(0.0, 0.0, 0.0)
     assert np.isclose(atom.covalent_radius, 0.0)
     assert np.isclose(atom.vdw_radius, 0.0)
 
 
 def test_eqm_bond_distance():
-
     h2_atoms = Atoms([Atom("H"), Atom("H")])
 
     assert np.isclose(h2_atoms.eqm_bond_distance(0, 0), 0.0)
@@ -456,7 +439,6 @@ def test_eqm_bond_distance():
 
 
 def test_atom_equality():
-
     assert Atom("H") == Atom("H")
     assert Atom("H") != Atom("H", partial_charge=0.1)
     assert Atom("H", partial_charge=0.1) != Atom("H")

@@ -24,7 +24,6 @@ def flat_h2_pes():
 
 
 def test_simple_peak():
-
     pes = TestPES(
         rs={
             (0, 1): np.linspace(-1, 1, num=11),
@@ -43,7 +42,6 @@ def test_simple_peak():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data.zip"))
 def test_sn2_ts_guesses():
-
     r = Molecule(
         name="reac",
         charge=-1,
@@ -86,7 +84,6 @@ def test_sn2_ts_guesses():
 
 
 def test_mep_ts_guess_no_graph():
-
     pes = flat_h2_pes()
 
     h2_no_graph = Molecule(atoms=[Atom("H"), Atom("H", x=1.0)])
@@ -97,7 +94,6 @@ def test_mep_ts_guess_no_graph():
 
 
 def test_mep_ts_guess_no_isomorphism():
-
     pes = flat_h2_pes()
 
     h2_no_bond = Molecule(atoms=[Atom("H"), Atom("H", x=2.0)])

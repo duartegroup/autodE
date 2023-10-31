@@ -38,7 +38,6 @@ make_graph(ch3cl)
 
 
 def test_attack():
-
     reactant = ReactantComplex(nh3, ch3cl)
     subst_centre = SubstitutionCentre(
         a_atom_idx=0, c_atom_idx=5, x_atom_idx=4, a_atom_nn_idxs=[1, 2, 3]

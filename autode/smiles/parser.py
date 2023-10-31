@@ -351,7 +351,6 @@ class Parser:
         }
 
         for idx, atom in enumerate(self.atoms):
-
             # Only consider atoms with undefined number of hydrogens
             if atom.n_hydrogens is not None:
                 continue
@@ -394,7 +393,6 @@ class Parser:
 
         # Enumerate over the string until all characters have been parsed
         for i, char in enumerate(self._string):
-
             # Determine the type of bond the next added atom is bonded with
             if i > 0 and self._string[i - 1] in bond_order_symbols:
                 bond_symbol = self._string[i - 1]  # double, triple etc.
@@ -410,12 +408,10 @@ class Parser:
 
             # Integer for a dangling bond e.g. C1, C=1, N3 etc.
             elif char.isdigit() or char == "%":
-
                 ring_idx = self._parse_ring_idx(idx=i)
 
                 # This bond is in the dictionary and can be closed and removed
                 if ring_idx in unclosed_bonds.keys():
-
                     ring_bond = unclosed_bonds.pop(ring_idx)
                     ring_bond.close(prev_idx, symbol=bond_symbol)
                     self.atoms[-1].invert_stereochem()
@@ -500,7 +496,6 @@ def atomic_charge(string):
     """
     charge = 0
     for i, item in enumerate(string):
-
         if item == "+":
             sign = 1
 
@@ -542,7 +537,6 @@ def atomic_sterochem(string):
         (SMILESStereoChem): Type of point stereochemistry
     """
     for i, item in enumerate(string):
-
         if item == "@":
             if next_char(string, i) == "@":
                 return SMILESStereoChem.TET_INVERTED
@@ -568,7 +562,6 @@ def atomic_n_hydrogens(string):
         (int): Number of hydrogens
     """
     for i, item in enumerate(string):
-
         if item == "H":
             # e.g. [CH3]  where rest = H3  or [OH-]
             if next_char(string, i).isdigit():

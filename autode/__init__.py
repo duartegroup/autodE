@@ -1,3 +1,5 @@
+import importlib.metadata
+
 from autode import methods
 from autode import geom
 from autode import pes
@@ -25,13 +27,9 @@ from autode.wrappers.keywords import (
 from autode.utils import temporary_config
 
 """
-Bumping the version number requires following the release proceedure:
-
-- Update changelog (doc/changelog.rst)
+Bumping the version number requires following the release procedure:
 
 - Run tests/benchmark.py with both organic and organometallic sets
-
-- Change __version__ here and in setup.py
 
 - Release on conda-forge
   - Fork https://github.com/conda-forge/autode-feedstock
@@ -41,8 +39,7 @@ Bumping the version number requires following the release proceedure:
   - Merge when tests pass
 """
 
-__version__ = "1.4.0"
-
+__version__ = importlib.metadata.version("autode")
 
 __all__ = [
     "KeywordsSet",

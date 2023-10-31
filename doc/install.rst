@@ -5,7 +5,7 @@ Dependencies
 ------------
 **autodE** is a Python package that relies on external electronic structure codes and requires:
 
-- `Python <https://www.python.org/>`_ > v. 3.6
+- `Python <https://www.python.org/>`_ > v. 3.7
 
 - One of:
 

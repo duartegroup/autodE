@@ -23,7 +23,7 @@ from autode.geom import proj
 from autode.log import logger
 from autode.opt.coordinates.internals import (
     PIC,
-    InverseDistances,
+    PrimitiveInverseDistances,
     InternalCoordinates,
 )
 from autode.exceptions import CoordinateTransformFailed
@@ -114,7 +114,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         if primitives is None:
             logger.info("Building DICs from all inverse distances")
-            primitives = InverseDistances.from_cartesian(x)
+            primitives = PrimitiveInverseDistances.from_cartesian(x)
 
         q = primitives(x)
         U = cls._calc_U(primitives, x)
@@ -191,7 +191,6 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         raise ValueError(f"Unknown conversion to {value}")
 
     def iadd(self, value: np.ndarray) -> "OptCoordinates":
-
         """
         Set some new internal coordinates and update the Cartesian coordinates
 
@@ -218,7 +217,6 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         for i in range(1, _max_back_transform_iterations + 1):
-
             x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
 
             # Rebuild the primitives & DIC from the back-transformed Cartesians
@@ -466,7 +464,6 @@ def _schmidt_orthogonalise(arr: np.ndarray, *indexes: int) -> np.ndarray:
 
     # and the remaining n-m columns as the orthogonalised values
     for i in range(m, n):
-
         u_i = arr[:, i]
         for j in range(0, i):
             u_i -= proj(u[:, j], arr[:, i])

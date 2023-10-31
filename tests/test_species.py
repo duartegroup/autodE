@@ -6,6 +6,7 @@ from autode.calculations import Calculation
 from autode.conformers import Conformers
 from autode.atoms import Atom
 from autode.solvent.solvents import Solvent
+from autode.solvent.solvents import get_solvent
 from autode.geom import calc_rmsd
 from autode.values import Gradient, EnthalpyCont, PotentialEnergy
 from autode.units import ha_per_ang
@@ -27,7 +28,6 @@ mol = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
 
 
 def test_species_class():
-
     blank_mol = Species(name="tmp", atoms=None, charge=0, mult=1)
 
     assert blank_mol.n_atoms == 0
@@ -95,7 +95,6 @@ def test_species_class():
 
 
 def test_species_energies_reset():
-
     tmp_species = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
     tmp_species.energy = 1.0
 
@@ -131,7 +130,6 @@ def test_species_energies_reset():
 
 
 def test_connectivity():
-
     _h2 = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
     _h2.reset_graph()
 
@@ -155,7 +153,6 @@ def test_connectivity():
 
 
 def test_species_xyz_file():
-
     mol.print_xyz_file()
     assert os.path.exists("H2.xyz")
     xyz_file_lines = open("H2.xyz", "r").readlines()
@@ -176,7 +173,6 @@ def test_species_xyz_file():
 
 
 def test_species_translate():
-
     m = Species(
         name="H2", atoms=[Atom("H"), Atom("H", z=1.0)], charge=0, mult=1
     )
@@ -196,7 +192,6 @@ def test_species_translate():
 
 
 def test_species_rotate():
-
     m = Species(
         name="H2", atoms=[Atom("H"), Atom("H", z=1.0)], charge=0, mult=1
     )
@@ -208,7 +203,6 @@ def test_species_rotate():
 
 
 def test_get_coordinates():
-
     coords = mol.coordinates
     assert isinstance(coords, np.ndarray)
     assert coords.shape == (2, 3)
@@ -240,7 +234,6 @@ def test_set_coords():
 
 
 def test_set_gradients():
-
     test_mol = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
 
     # Gradient must be a Nx3 array for N atoms
@@ -262,7 +255,6 @@ def test_set_gradients():
 
 
 def test_species_solvent():
-
     assert mol.solvent is None
 
     solvated_mol = Species(
@@ -295,7 +287,6 @@ def test_reorder():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "species.zip"))
 def test_species_single_point():
-
     mol.single_point(method=orca)
     assert mol.energy == -1.138965730007
 
@@ -307,7 +298,6 @@ def test_species_single_point():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "species.zip"))
 def test_species_optimise():
-
     orca.path = here
     assert orca.is_available
 
@@ -326,7 +316,6 @@ def test_species_optimise():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "species.zip"))
 def test_find_lowest_energy_conformer():
-
     # Spoof XTB availability
     xtb.path = here
 
@@ -341,7 +330,6 @@ def test_find_lowest_energy_conformer():
 
 
 def test_species_copy():
-
     species = Species(name="h", charge=0, mult=2, atoms=[Atom("H")])
 
     species_copy = species.copy()
@@ -358,7 +346,6 @@ def test_species_copy():
 
 
 def test_species_formula():
-
     assert mol.formula == "H2"
 
     mol_no_atoms = Molecule()
@@ -366,13 +353,11 @@ def test_species_formula():
 
 
 def test_generate_conformers():
-
     with pytest.raises(NotImplementedError):
         mol._generate_conformers()
 
 
 def test_set_lowest_energy_conformer():
-
     hb = Atom("H", z=0.7)
     hydrogen = Species(name="H2", atoms=[h1, hb], charge=0, mult=1)
 
@@ -397,7 +382,6 @@ def test_set_lowest_energy_conformer():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_thermal_cont_without_hess_run():
-
     calc = Calculation(
         name="test", molecule=mol, method=orca, keywords=orca.keywords.hess
     )
@@ -421,7 +405,6 @@ def test_thermal_cont_without_hess_run():
 
 
 def test_is_linear():
-
     h_atom = Species(name="h", atoms=[Atom("H")], charge=0, mult=1)
     assert not h_atom.is_linear()
 
@@ -472,7 +455,6 @@ def test_is_linear():
 
 
 def test_unique_conformer_set():
-
     test_mol = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
     test_mol.energy = -1.0
 
@@ -487,7 +469,6 @@ def test_unique_conformer_set():
 
 
 def test_unique_conformer_set_energy():
-
     # or where one conformer has a very different energy
     test_mol = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
     test_mol.energy = -1.0
@@ -503,7 +484,6 @@ def test_unique_conformer_set_energy():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "species.zip"))
 def test_hessian_calculation():
-
     h2o = Species(
         name="H2O",
         charge=0,
@@ -525,13 +505,11 @@ def test_hessian_calculation():
 
 
 def test_numerical_hessian_invalid_delta():
-
     with pytest.raises(ValueError):
         mol.calc_hessian(method=orca, coordinate_shift="a", numerical=True)
 
 
 def test_enthalpy_doc_example():
-
     _h2 = Molecule(smiles="[H][H]")
     _h2.energies.append(EnthalpyCont(0.0133, units="Ha"))
     _h2.energy = PotentialEnergy(
@@ -547,7 +525,6 @@ def test_enthalpy_doc_example():
 
 
 def test_species_rotation_preserves_internals():
-
     methane = Molecule(smiles="C")
     init_coords = methane.coordinates
 
@@ -562,7 +539,6 @@ def test_species_rotation_preserves_internals():
 
     for axis in axes:
         for theta in thetas:
-
             methane.rotate(axis=axis, theta=theta)
             # Rotation should preserve the relative positions i.e. a small RMSD
             assert calc_rmsd(methane.coordinates, init_coords) < 0.01
@@ -572,7 +548,6 @@ def test_species_rotation_preserves_internals():
 
 
 def test_species_rotation_is_same_as_atom():
-
     water = Molecule(smiles="O")
     water_atoms = water.atoms.copy()
 
@@ -586,7 +561,6 @@ def test_species_rotation_is_same_as_atom():
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "species.zip"))
 def test_keywords_opt_sp_thermo():
-
     h2o = Molecule(smiles="O", name="water_tmp")
     orca.path = here
     assert orca.is_available
@@ -611,7 +585,6 @@ def test_keywords_opt_sp_thermo():
 
 
 def test_flat_species_has_reasonable_coordinates():
-
     c2h4 = Molecule(
         atoms=[
             Atom("C", -4.99490, 1.95320, 0.00000),
@@ -643,7 +616,6 @@ def test_flat_species_has_reasonable_coordinates():
 
 
 def test_species_does_not_have_reasonable_coordinates():
-
     ch4_flat = Molecule(
         atoms=[
             Atom("C", 0.0, 0.0, 0.0),
@@ -663,7 +635,6 @@ def test_species_does_not_have_reasonable_coordinates():
 
 @testutils.requires_working_xtb_install
 def test_calc_thermo_not_run_calculation():
-
     m = Molecule(smiles="O")
     calc = Calculation(
         name="water", molecule=m, method=xtb, keywords=xtb.keywords.hess
@@ -688,7 +659,6 @@ def test_hydrogen_has_invalid_spin_state(mult: int, charge: int = 0):
 
 
 def test_has_valid_spin_state_docstring():
-
     assert not Molecule(
         atoms=[Atom("H")], charge=0, mult=1
     ).has_valid_spin_state
@@ -697,7 +667,31 @@ def test_has_valid_spin_state_docstring():
 
 @pytest.mark.parametrize("invalid_mult", [0, -1, "a", (0, 2)])
 def test_cannot_set_multiplicity_to_invalid_value(invalid_mult):
-
     m = Species(name="H2", atoms=[h1, h2], charge=0, mult=1)
     with pytest.raises(Exception):
         m.mult = invalid_mult
+
+
+@work_in_tmp_dir()
+def test_cant_init_with_both_xyz_and_smiles():
+    filename = "tmp.xyz"
+    tmp_mol = Molecule(smiles="O")
+    tmp_mol.print_xyz_file(filename=filename)
+
+    with pytest.raises(AssertionError):
+        _ = Molecule("tmp.xyz", smiles="[H]S[H]")
+
+
+@work_in_tmp_dir()
+def test_species_load_from_xyz_file_retains_spin_mult_and_solvent():
+    filename = "tmp.xyz"
+    tmp_mol = Molecule(smiles="[O+]", mult=2, charge=1, solvent_name="water")
+    tmp_mol.print_xyz_file(filename=filename)
+
+    loaded_mol = Molecule(filename)
+    assert loaded_mol.mult == 2
+    assert loaded_mol.charge == 1
+    assert loaded_mol.solvent == get_solvent(
+        solvent_name="water", kind="implicit"
+    )
+    assert loaded_mol.solvent.is_implicit

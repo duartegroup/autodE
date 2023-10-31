@@ -13,10 +13,10 @@ from typing import Any, Optional, Type, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
 from autode.opt.coordinates.primitives import (
-    InverseDistance,
+    PrimitiveInverseDistance,
     Primitive,
-    Distance,
-    DihedralAngle,
+    PrimitiveDistance,
+    PrimitiveDihedralAngle,
 )
 
 if TYPE_CHECKING:
@@ -133,8 +133,7 @@ class PIC(list, ABC):
         self._calc_B(x)
 
         for i, primitive in enumerate(self):
-            if isinstance(primitive, DihedralAngle):
-
+            if isinstance(primitive, PrimitiveDihedralAngle):
                 dq = q[i] - other[i]
 
                 if np.abs(dq) > np.pi:  # Ensure |dq| < π
@@ -181,7 +180,6 @@ class PIC(list, ABC):
 
         for i, primitive in enumerate(self):
             for j in range(n_atoms):
-
                 B[i, 3 * j + 0] = primitive.derivative(
                     j, CartesianComponent.x, x=cart_coords
                 )
@@ -212,7 +210,6 @@ class _FunctionOfDistances(PIC):
         """Type of primitive coordinate defining f(r_ij)"""
 
     def _populate_all(self, x: np.ndarray):
-
         n_atoms = len(x.flatten()) // 3
 
         # Add all the unique inverse distances (i < j)
@@ -223,20 +220,20 @@ class _FunctionOfDistances(PIC):
         return None
 
 
-class InverseDistances(_FunctionOfDistances):
+class PrimitiveInverseDistances(_FunctionOfDistances):
     """1 / r_ij for all unique pairs i,j. Will be redundant"""
 
     @property
     def _primitive_type(self):
-        return InverseDistance
+        return PrimitiveInverseDistance
 
 
-class Distances(_FunctionOfDistances):
+class PrimitiveDistances(_FunctionOfDistances):
     """r_ij for all unique pairs i,j. Will be redundant"""
 
     @property
     def _primitive_type(self):
-        return Distance
+        return PrimitiveDistance
 
 
 class AnyPIC(PIC):

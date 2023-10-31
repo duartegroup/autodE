@@ -23,7 +23,6 @@ ade.Config.min_imag_freq = -10
 
 
 def get_args():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-a", "--all", action="store_true", help="Run all the benchmark sets"
@@ -105,7 +104,6 @@ def reactions_in_args():
 
 
 if __name__ == "__main__":
-
     args = get_args()
     out_file = open(
         f"autode_benchmark_" f'{"so" if args.smallorganic else "sm"}.txt', "w"
@@ -113,7 +111,6 @@ if __name__ == "__main__":
 
     print(f"Name      v_imag / cm-1    Time / min     Success", file=out_file)
     for reaction in reactions_in_args():
-
         start_time = time()
 
         # Work in a separate directory for neatness

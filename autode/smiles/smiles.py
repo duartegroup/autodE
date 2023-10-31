@@ -93,7 +93,6 @@ def init_organic_smiles(molecule, smiles):
 
     # Revert to RR if RDKit fails to return a sensible geometry
     if not molecule.has_reasonable_coordinates:
-
         molecule.rdkit_conf_gen_is_fine = False
         molecule.atoms = get_simanl_atoms(molecule, save_xyz=False)
 

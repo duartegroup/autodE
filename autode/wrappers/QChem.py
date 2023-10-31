@@ -104,7 +104,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             return "???"
 
         for line in calc.output.file_lines:
-
             if "Q-Chem" in line and len(line.split()) > 1:
                 # e.g.  Q-Chem 5.4.1 for Intel X86 EM64T Linux
                 str0, str1 = line.split()[:2]
@@ -158,7 +157,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
         return QChemOptimiser(output_lines=calc.output.file_lines)
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
-
         if not isinstance(calc.input.keywords, kws.OptKeywords):
             logger.warning(
                 "Non-optimisation calculation performed - no change"
@@ -173,7 +171,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
         coords: list[list[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
-
             if "Coordinates (Angstroms)" in line:
                 start_idx = i + 2
             elif "Standard Nuclear Orientation (Angstroms)" in line:
@@ -205,7 +202,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
         """Get the total electronic energy from the calculation"""
 
         for line in reversed(calc.output.file_lines):
-
             if "Total energy" in line:
                 try:
                     return PotentialEnergy(line.split()[-1], units="Ha")
@@ -249,11 +245,9 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
     @staticmethod
     def _raw_opt_gradient(calc) -> list:
-
         grad = []
 
         for i, line in enumerate(calc.output.file_lines):
-
             if "Cartesian Gradient" not in line:
                 continue
 
@@ -285,7 +279,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
         n_grad_lines = (calc.molecule.n_atoms // 6 + 1) * 4
 
         for i, line in enumerate(calc.output.file_lines):
-
             if "Gradient of SCF Energy" not in line:
                 continue
 
@@ -305,13 +298,11 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             grad = []
 
             for j in range(len(lines_slice) // 4):
-
                 x_line = lines_slice[4 * j + 1]
                 y_line = lines_slice[4 * j + 2]
                 z_line = lines_slice[4 * j + 3]
 
                 for k in range(1, len(x_line.split())):
-
                     grad.append(
                         [
                             float(x_line.split()[k]),
@@ -327,10 +318,8 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
 
     @staticmethod
     def _extract_atomic_masses(calc) -> np.ndarray:
-
         masses = []
         for line in calc.output.file_lines:
-
             if "Has Mass" in line:
                 # e.g.
                 #   Atom    1 Element O  Has Mass   15.99491
@@ -357,7 +346,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             )
 
         for i, line in enumerate(lines):
-
             if "Mass-Weighted Hessian Matrix" not in line:
                 continue
 
@@ -370,7 +358,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             ]
 
             while not correct_shape(hess):
-
                 try:
                     start_idx = end_idx + 2
                     end_idx = start_idx + 3 * n_atoms
@@ -472,7 +459,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             if calc.input.added_internals is not None:
                 self.write("CONNECT")
 
-                for (i, j) in calc.input.added_internals:
+                for i, j in calc.input.added_internals:
                     self.write(f"{i+1} 1 {j+1}")
 
                 self.write("ENDCONNECT")
@@ -547,9 +534,7 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             return None
 
         def _write_keywords(self, keywords, molecule) -> None:
-
             for word in keywords:
-
                 if isinstance(word, kws.BasisSet):
                     self.write(f"basis {word.qchem}")
 
@@ -566,7 +551,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
                     self._write_ecp(word, molecule=molecule)
 
                 elif isinstance(word, kws.ImplicitSolventType):
-
                     if word.lower() != "smd":
                         err = f"Only SMD solvent is supported. Had: {word}"
                         raise UnsupportedCalculationInput(err)
@@ -591,7 +575,6 @@ class QChem(autode.wrappers.methods.ExternalMethodOEGH):
             return None
 
         def _write_job_type(self, keywords) -> None:
-
             if any("jobtype" in word.lower() for word in keywords):
                 logger.info("QChem *jobtype* already defined - not appending")
 

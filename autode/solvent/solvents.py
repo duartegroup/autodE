@@ -48,7 +48,6 @@ def get_solvent(
         )
 
     for solvent in solvents:
-
         # Comparisons of solvents are not case sensitive
         if solvent_name.lower() not in solvent.aliases:
             continue

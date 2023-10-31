@@ -35,7 +35,6 @@ def _blank_calc(name="test"):
 
 
 def _completed_thf_calc():
-
     calc = _blank_calc()
     calc.set_output_filename("smd_thf.out")
 
@@ -65,7 +64,6 @@ def _broken_output_calc2():
 
 
 def test_base_method():
-
     assert "qchem" in repr(method).lower()
 
     # TODO: Implement, if it's useful
@@ -81,7 +79,6 @@ def test_base_method():
 
 
 def test_in_out_name():
-
     calc = _blank_calc(name="test")._executor
     assert method.input_filename_for(calc) == "test_qchem.in"
     assert method.output_filename_for(calc) == "test_qchem.out"
@@ -89,7 +86,6 @@ def test_in_out_name():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_version_extract():
-
     # Version extraction from a blank calculation should not raise an error
     assert isinstance(method.version_in(_blank_calc()), str)
 
@@ -100,7 +96,6 @@ def test_version_extract():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_version_extract_broken_output_file():
-
     # Should not raise an exception
     version = method.version_in(_broken_output_calc())
     assert isinstance(version, str)
@@ -108,13 +103,11 @@ def test_version_extract_broken_output_file():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_thf_calc_terminated_normally():
-
     assert _completed_thf_calc().terminated_normally
 
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_terminated_abnormally():
-
     # Without any output the calculation cannot have terminated normally
     calc = _blank_calc()
     assert not method.terminated_normally_in(calc)
@@ -139,7 +132,6 @@ def test_terminated_abnormally():
 
 
 def test_blank_input_generation():
-
     calc = _blank_calc()
     calc.input.filename = None
 
@@ -149,7 +141,6 @@ def test_blank_input_generation():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_unsupported_keywords():
-
     calc = Calculation(
         name="test",
         molecule=Molecule(atoms=[Atom("H")], mult=2),
@@ -165,7 +156,6 @@ def test_unsupported_keywords():
 
 
 def test_simple_input_generation():
-
     expected_inp = (
         "$molecule\n"
         "0 2\n"
@@ -205,7 +195,6 @@ def test_simple_input_generation():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_energy_extraction():
-
     calc = _completed_thf_calc()
 
     assert np.isclose(calc.molecule.energy.to("Ha"), -232.45463628, atol=1e-8)
@@ -232,7 +221,6 @@ def test_jobtype_inference():
     """Check that the jobtype can be infered from the keyword type"""
 
     def kwd_type_has_job_type(kwd_type, job_type, remove_explicit=True):
-
         calc = _blank_calc()
         calc.molecule = Molecule(atoms=[Atom("H"), Atom("H", x=0.77)])
 
@@ -260,7 +248,6 @@ def test_jobtype_inference():
 
 
 def test_ecp_writing():
-
     calc = _blank_calc()
     calc.input.keywords = method.keywords.sp
 
@@ -296,7 +283,6 @@ def test_h2o_opt():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_gradient_extraction_h2o():
-
     h2o = Molecule(smiles="O")
     calc = Calculation(
         name="test",
@@ -320,7 +306,6 @@ def test_gradient_extraction_h2o():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_gradient_extraction_h2():
-
     calc = _blank_calc()
     calc.molecule = Molecule(atoms=[Atom("H"), Atom("H", x=0.77)])
     calc.set_output_filename("H2_qchem.out")
@@ -330,7 +315,6 @@ def test_gradient_extraction_h2():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_butane_gradient_extraction():
-
     calc = _blank_calc()
     calc.output.filename = "partial_C4H10_opt_qchem.out"
     calc.molecule = Molecule(smiles="CCCC")
@@ -343,7 +327,6 @@ def test_butane_gradient_extraction():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_h2o_hessian_extraction():
-
     h2o = Molecule(smiles="O")
     calc = _blank_calc()
     calc.input.keywords = method.keywords.hess
@@ -383,7 +366,6 @@ def test_broken_hessian_extraction():
 
 
 def test_broken_gradient_extraction():
-
     calc = _broken_output_calc()
 
     with pytest.raises(CalculationException):
@@ -402,7 +384,6 @@ def test_broken_gradient_extraction():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_calc_terminated_normally_max_opt_cycles():
-
     # h2o.optimise(method=ade.methods.QChem(),
     # keywords=['method pbe', 'basis def2-SVP', 'geom_opt_max_cycle 2'])
 
@@ -416,7 +397,6 @@ def test_calc_terminated_normally_max_opt_cycles():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_ts_opt():
-
     Config.freq_scale_factor = 1.0
 
     ts_mol = Molecule(
@@ -459,7 +439,6 @@ def test_ts_opt():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_constrained_distance_opt():
-
     mol = Molecule(
         name="water_const_opt",
         atoms=[
@@ -501,7 +480,6 @@ def test_constrained_cartesian_opt():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_opt_single_atom():
-
     calc = _blank_calc()
     calc.molecule = Molecule(name="H", mult=2, atoms=[Atom("H")])
 
@@ -519,7 +497,6 @@ def test_opt_single_atom():
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_unsupported_solvent_type():
-
     calc = _blank_calc()
 
     # Cannot generate a calculation with an unsupported solvent type
@@ -531,7 +508,6 @@ def test_unsupported_solvent_type():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_butane_grad_extract():
-
     calc = _blank_calc()
     calc.molecule = Molecule(smiles="CCCC")
     calc.set_output_filename("C4H10_sp_qchem.out")
@@ -550,7 +526,6 @@ def test_butane_grad_extract():
 
 @work_in_zipped_dir(qchem_data_zip_path)
 def test_h2_coordinate_extraction_qchem_v6():
-
     calc = _blank_calc()
     calc.input.keywords = method.keywords.opt
     calc.molecule = Molecule(smiles="[H][H]")
@@ -563,7 +538,6 @@ def test_h2_coordinate_extraction_qchem_v6():
 
 
 def test_coordinate_extract_from_single_point_calculation():
-
     calc = _blank_calc()
     calc.input.keywords = method.keywords.sp
     calc.molecule = Molecule(smiles="O")
@@ -573,7 +547,6 @@ def test_coordinate_extract_from_single_point_calculation():
 
 
 def test_coordinate_extract_from_single_atom_calculation():
-
     calc = _blank_calc()
     calc.input.keywords = method.keywords.opt
     calc.molecule = Molecule(atoms=[Atom("H", x=0, y=0, z=0)])
@@ -583,7 +556,6 @@ def test_coordinate_extract_from_single_atom_calculation():
 
 @work_in_tmp_dir()
 def test_total_memory_is_printed_in_input_file():
-
     with temporary_config():
         Config.n_cores = 3
         Config.max_core = Allocation(900, "MB")

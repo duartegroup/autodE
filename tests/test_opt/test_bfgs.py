@@ -56,13 +56,11 @@ class TestBFGSOptimiser2D(BFGSOptimiser):
         )
 
     def _update_gradient_and_energy(self) -> None:
-
         x, y = self._coords
         self._coords.e = self.e_func(x, y)
         self._coords.g = self.g_func(x, y)
 
     def _initialise_run(self) -> None:
-
         # Guess the Hessian as the identity matrix
         self._update_gradient_and_energy()
         self._coords.h = np.eye(len(self._coords))
@@ -84,7 +82,6 @@ class TestBFGSOptimiser(TestBFGSOptimiser2D):
 
 
 def test_simple_quadratic_opt():
-
     optimiser = TestBFGSOptimiser()
     method = Method()
     assert method.is_available
@@ -94,7 +91,6 @@ def test_simple_quadratic_opt():
 
 
 def test_inv_hessian_update():
-
     # Initial imperfect guess of the Hessian matrix for E = x^2 + y^2
     init_h = np.array([[1.0, 0.0], [0.0, 1.0]])
 
@@ -192,8 +188,7 @@ def check_gaussian_well_opt(init_x, init_y):
 
 
 def test_gaussian_well_opt():
-
-    for (x, y) in [(-0.1, 0.0), (-1.0, 0.0), (2.0, 1.0), (2.0, -2.0)]:
+    for x, y in [(-0.1, 0.0), (-1.0, 0.0), (2.0, 1.0), (2.0, -2.0)]:
         check_gaussian_well_opt(init_x=x, init_y=y)
 
 
