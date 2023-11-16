@@ -89,14 +89,14 @@ class Primitive(ABC):
     @abstractmethod
     def __call__(self, x: "CartesianCoordinates") -> float:
         """Return the value of this PIC given a set of cartesian coordinates"""
+        _x = x.ravel()
+        res = self._evaluate(_x, deriv_order=0)
+        return res.value
 
-    @abstractmethod
     def derivative(
         self,
-        i: int,
-        component: "CartesianComponent",
         x: "CartesianCoordinates",
-    ) -> float:
+    ) -> np.ndarray:
         r"""
         Calculate the derivative with respect to a cartesian coordinate
 
@@ -110,17 +110,21 @@ class Primitive(ABC):
 
         -----------------------------------------------------------------------
         Arguments:
-            i: Cartesian index to take the derivative with respect to. [0-N),
-               for N atoms
 
-            component: Cartesian component (x, y, z) to take the derivative
-                       with respect to
-
-            x: Cartesian coordinates
+            x: Cartesian coordinate array of shape (N, )
 
         Returns:
-            (float): Derivative
+            (np.ndarray): Derivative array of shape (N, )
         """
+        _x = x.ravel()
+        res = self._evaluate(_x, deriv_order=1)
+        derivs = np.zeros_like(_x, dtype=float)
+        for i in range(_x.shape[0]):
+            dqdx_i = res.differentiate_wrt(str(i))
+            if dqdx_i is not None:
+                derivs[i] = dqdx_i
+
+        return derivs
 
     @abstractmethod
     def __eq__(self, other):
@@ -209,7 +213,7 @@ class PrimitiveInverseDistance(_DistanceFunction):
         )
         return 1.0 / _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
 
-    def derivative(
+    def legacy_derivative(
         self,
         i: int,
         component: "CartesianComponent",
@@ -250,7 +254,7 @@ class PrimitiveDistance(_DistanceFunction):
         q = |\boldsymbol{X}_i - \boldsymbol{X}_j|
     """
 
-    def derivative(
+    def legacy_derivative(
         self,
         i: int,
         component: "CartesianComponent",
@@ -355,7 +359,7 @@ class PrimitiveBondAngle(Primitive):
         theta = np.arccos(u.dot(v) / (np.linalg.norm(u) * np.linalg.norm(v)))
         return theta
 
-    def derivative(
+    def legacy_derivative(
         self,
         i: int,
         component: "CartesianComponent",
@@ -453,7 +457,7 @@ class PrimitiveDihedralAngle(Primitive):
         """Value of the dihedral"""
         return self._value(x, return_derivative=False)
 
-    def derivative(
+    def legacy_derivative(
         self,
         i: int,
         component: "CartesianComponent",
