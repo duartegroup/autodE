@@ -1,10 +1,27 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Tuple, TYPE_CHECKING
+from typing import Tuple, TYPE_CHECKING, List
+from autode.opt.coordinates.autodiff import (
+    get_differentiable_vars,
+    DifferentiableMath,
+)
 
 if TYPE_CHECKING:
     from autode.opt.coordinates import CartesianCoordinates, CartesianComponent
+    from autode.opt.coordinates.autodiff import VectorHyperDual
+
+
+def _norm_vec3(vec: List["VectorHyperDual"]):
+    """Norm of a 3D vector"""
+    assert len(vec) == 3
+    return DifferentiableMath.sqrt(vec[0] ** 2 + vec[1] ** 2 + vec[2] ** 2)
+
+
+def _sub_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
+    """Evaluate vec1 - vec2 for 3D vectors"""
+    assert len(vec1) == len(vec2) == 3
+    return [vec1[i] - vec2[i] for i in range(3)]
 
 
 class Primitive(ABC):
@@ -15,6 +32,21 @@ class Primitive(ABC):
     def __init__(self, *atom_indexes: int):
         """A primitive internal coordinate that involves a number of atoms"""
         self._atom_indexes = atom_indexes
+
+    def _evaluate(self, x: "CartesianCoordinates", deriv_order: int):
+        """
+        The function that performs the main evaluation of the PIC,
+        and optionally returns derivative or second derivatives.
+        The returned hyper-dual must have the proper cartesian idxs
+        set.
+
+        Args:
+            x: Cartesian coordinates
+            deriv_order: The order of derivatives requested - 0, 1 or 2
+
+        Returns:
+            (VectorHyperDual): The result, optionally containing derivatives
+        """
 
     @abstractmethod
     def __call__(self, x: "CartesianCoordinates") -> float:
@@ -129,6 +161,22 @@ class PrimitiveInverseDistance(_DistanceFunction):
         q = \frac{1}
                 {|\boldsymbol{X}_i - \boldsymbol{X}_j|}
     """
+
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: int
+    ) -> "VectorHyperDual":
+        """Inverse distance"""
+        _x = x.ravel()
+        idxs = []
+        for atom in [self.i, self.j]:
+            for k in range(3):
+                idxs.append(3 * atom + k)
+        i_0, i_1, i_2, j_0, j_1, j_2 = get_differentiable_vars(
+            values=[_x[idx] for idx in idxs],
+            deriv_order=deriv_order,
+            symbols=[str(idx) for idx in idxs],
+        )
+        return 1.0 / _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
 
     def derivative(
         self,
