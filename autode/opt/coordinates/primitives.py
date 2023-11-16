@@ -30,6 +30,17 @@ def _dot_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
     return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2]
 
 
+def _cross_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
+    """Evaluate vec1 x vec2 for 3D vectors"""
+    assert len(vec1) == len(vec2) == 3
+    # a cross b = a1 b2 - a2 b1, a2 b0 - a0 b2, a0 b1 - a1 b0
+    return [
+        vec1[1] * vec2[2] - vec1[2] * vec2[1],
+        vec1[2] * vec2[0] - vec1[0] * vec2[2],
+        vec1[0] * vec2[1] - vec1[1] * vec2[0],
+    ]
+
+
 def get_vars_from_atom_idxs(
     *args,
     x: "CartesianCoordinates",
@@ -470,6 +481,39 @@ class PrimitiveDihedralAngle(Primitive):
         return isinstance(other, self.__class__) and (
             self._atom_indexes == other._atom_indexes
             or self._atom_indexes == tuple(reversed(other._atom_indexes))
+        )
+
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: int
+    ) -> "VectorHyperDual":
+        """Dihedral m-o-p-n"""
+        _x = x.ravel()
+        variables = get_vars_from_atom_idxs(
+            self.m, self.o, self.p, self.n, x=_x, deriv_order=deriv_order
+        )
+        _m = variables[:3]
+        _o = variables[3:6]
+        _p = variables[6:9]
+        _n = variables[9:12]
+
+        # todo do we need to normalise these vectors?
+        u = _sub_vec3(_m, _o)
+        lambda_u = _norm_vec3(u)
+        u = [k / lambda_u for k in u]
+
+        v = _sub_vec3(_n, _p)
+        lambda_v = _norm_vec3(v)
+        v = [k / lambda_v for k in v]
+
+        w = _sub_vec3(_p, _o)
+        lambda_w = _norm_vec3(w)
+        w = [k / lambda_w for k in w]
+
+        v1 = _cross_vec3(u, w)
+        v2 = _cross_vec3([-k for k in w], v)
+
+        return DifferentiableMath.atan2(
+            _dot_vec3(_cross_vec3(v1, w), v2), _dot_vec3(v1, v2)
         )
 
     def _value(self, x, i=None, component=None, return_derivative=False):
