@@ -1,7 +1,7 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Tuple, TYPE_CHECKING, List
+from typing import Tuple, TYPE_CHECKING, List, Optional
 from autode.opt.coordinates.autodiff import (
     get_differentiable_vars,
     DifferentiableMath,
@@ -22,6 +22,44 @@ def _sub_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
     """Evaluate vec1 - vec2 for 3D vectors"""
     assert len(vec1) == len(vec2) == 3
     return [vec1[i] - vec2[i] for i in range(3)]
+
+
+def _dot_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
+    """Evaluate vec1.vec2 for 3D vectors"""
+    assert len(vec1) == len(vec2) == 3
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2]
+
+
+def get_vars_from_atom_idxs(
+    *args,
+    x: "CartesianCoordinates",
+    deriv_order: int,
+) -> List["VectorHyperDual"]:
+    """
+    Obtain differentiable variables from the Cartesian components
+    of each atom, given by atomic indices in order. The symbols are
+    strings denoting their position in the flat Cartesian coordinate.
+
+    Args:
+        *args: Integers denoting the atom positions
+        x: Cartesian coordinate array
+        deriv_order: Order of derivatives for initialising variables
+
+    Returns:
+        (list[VectorHyperDual]): A list of differentiable variables
+    """
+    assert all(isinstance(atom, int) and atom > 0 for atom in args)
+    # get positions in the flat Cartesian array
+    _x = x.ravel()
+    cart_idxs = []
+    for atom in args:
+        for k in range(3):
+            cart_idxs.append(3 * atom + k)
+    return get_differentiable_vars(
+        values=[_x[idx] for idx in cart_idxs],
+        deriv_order=deriv_order,
+        symbols=[str(idx) for idx in cart_idxs],
+    )
 
 
 class Primitive(ABC):
@@ -165,16 +203,9 @@ class PrimitiveInverseDistance(_DistanceFunction):
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: int
     ) -> "VectorHyperDual":
-        """Inverse distance"""
-        _x = x.ravel()
-        idxs = []
-        for atom in [self.i, self.j]:
-            for k in range(3):
-                idxs.append(3 * atom + k)
-        i_0, i_1, i_2, j_0, j_1, j_2 = get_differentiable_vars(
-            values=[_x[idx] for idx in idxs],
-            deriv_order=deriv_order,
-            symbols=[str(idx) for idx in idxs],
+        """1 / |x_i - x_j|"""
+        i_0, i_1, i_2, j_0, j_1, j_2 = get_vars_from_atom_idxs(
+            self.i, self.j, x=x, deriv_order=deriv_order
         )
         return 1.0 / _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
 
@@ -242,6 +273,15 @@ class PrimitiveDistance(_DistanceFunction):
 
         return val if i == self.i else -val
 
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: int
+    ) -> "VectorHyperDual":
+        """|x_i - x_j|"""
+        i_0, i_1, i_2, j_0, j_1, j_2 = get_vars_from_atom_idxs(
+            self.i, self.j, x=x, deriv_order=deriv_order
+        )
+        return _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
+
     def __call__(self, x: "CartesianCoordinates") -> float:
         """|x_i - x_j|"""
         _x = x.reshape((-1, 3))
@@ -294,6 +334,18 @@ class PrimitiveBondAngle(Primitive):
             and self.o == other.o
             and other._ordered_idxs == self._ordered_idxs
         )
+
+    def _evaluate(self, x: "CartesianCoordinates", deriv_order: int):
+        """m - o - n angle"""
+        m_0, m_1, m_2, o_0, o_1, o_2, n_0, n_1, n_2 = get_vars_from_atom_idxs(
+            self.m, self.o, self.n, x=x, deriv_order=deriv_order
+        )
+        u = _sub_vec3([m_0, m_1, m_2], [o_0, o_1, o_2])
+        v = _sub_vec3([n_0, n_1, n_2], [o_0, o_1, o_2])
+        theta = DifferentiableMath.acos(
+            _dot_vec3(u, v) / (_norm_vec3(u) * _norm_vec3(v))
+        )
+        return theta
 
     def __call__(self, x: "CartesianCoordinates") -> float:
         _x = x.reshape((-1, 3))
