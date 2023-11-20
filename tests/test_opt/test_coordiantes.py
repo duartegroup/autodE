@@ -28,18 +28,12 @@ def test_inv_dist_primitives():
     assert np.isclose(inv_dist(x), 0.5)  # 1/2.0 = 0.5 Å-1
 
     # Check a couple of derivatives by hand
-    assert np.isclose(
-        inv_dist.derivative(0, CartesianComponent.x, x=x), 2 * inv_dist(x) ** 3
-    )
-    assert np.isclose(
-        inv_dist.derivative(1, CartesianComponent.x, x=x),
-        -2 * inv_dist(x) ** 3,
-    )
+    derivs = inv_dist.derivative(x=x)
+    assert np.isclose(derivs[3 * 0 + 0], 2 * inv_dist(x) ** 3)
+    assert np.isclose(derivs[3 * 1 + 0], -2 * inv_dist(x) ** 3)
 
     # Derivatives with respect to zero components
-    assert np.isclose(inv_dist.derivative(0, CartesianComponent.y, x=x), 0)
-    # or those that are not present in the system should be zero
-    assert np.isclose(inv_dist.derivative(2, CartesianComponent.x, x=x), 0)
+    assert np.isclose(derivs[3 * 0 + 1], 0)
 
 
 def test_dist_primitives():

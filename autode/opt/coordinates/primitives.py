@@ -59,7 +59,7 @@ def get_vars_from_atom_idxs(
     Returns:
         (list[VectorHyperDual]): A list of differentiable variables
     """
-    assert all(isinstance(atom, int) and atom > 0 for atom in args)
+    assert all(isinstance(atom, int) and atom >= 0 for atom in args)
     # get positions in the flat Cartesian array
     _x = x.ravel()
     cart_idxs = []
