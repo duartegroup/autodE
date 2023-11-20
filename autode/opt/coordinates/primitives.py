@@ -97,7 +97,6 @@ class Primitive(ABC):
             (VectorHyperDual): The result, optionally containing derivatives
         """
 
-    @abstractmethod
     def __call__(self, x: "CartesianCoordinates") -> float:
         """Return the value of this PIC given a set of cartesian coordinates"""
         _x = x.ravel()
@@ -109,7 +108,7 @@ class Primitive(ABC):
         x: "CartesianCoordinates",
     ) -> np.ndarray:
         r"""
-        Calculate the derivative with respect to a cartesian coordinate
+        Calculate the derivatives with respect to cartesian coordinates
 
         .. math::
 
@@ -134,6 +133,41 @@ class Primitive(ABC):
             dqdx_i = res.differentiate_wrt(str(i))
             if dqdx_i is not None:
                 derivs[i] = dqdx_i
+
+        return derivs
+
+    def second_derivative(
+        self,
+        x: "CartesianCoordinates",
+    ) -> np.ndarray:
+        r"""
+        Calculate the second derivatives with respect to cartesian coordinates
+
+        .. math::
+
+            \frac{d^2 q}
+                  {d\boldsymbol{X}_{i, k}^2} {\Bigg\rvert}_{X=X0}
+
+        where :math:`q` is the primitive coordinate and :math:`\boldsymbol{X}`
+        are the cartesian coordinates.
+
+        -----------------------------------------------------------------------
+        Arguments:
+
+            x: Cartesian coordinate array of shape (N, )
+
+        Returns:
+            (np.ndarray): Second derivative matrix of shape (N, N)
+        """
+        _x = x.ravel()
+        x_n, _ = _x.shape
+        res = self._evaluate(_x, deriv_order=2)
+        derivs = np.zeros(shape=(x_n, x_n), dtype=float)
+        for i in range(x_n):
+            for j in range(x_n):
+                d2q_dx2_ij = res.differentiate_wrt(str(i), str(j))
+                if d2q_dx2_ij is not None:
+                    derivs[i, j] = d2q_dx2_ij
 
         return derivs
 
@@ -207,7 +241,7 @@ class _DistanceFunction(Primitive, ABC):
 
 class PrimitiveInverseDistance(_DistanceFunction):
     """
-    Inverse distance between to atoms:
+    Inverse distance between two atoms:
 
     .. math::
 
