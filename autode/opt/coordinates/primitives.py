@@ -531,24 +531,15 @@ class PrimitiveDihedralAngle(Primitive):
         _n = variables[9:12]
 
         # todo do we need to normalise these vectors?
-        u = _sub_vec3(_m, _o)
-        lambda_u = _norm_vec3(u)
-        u = [k / lambda_u for k in u]
+        u_1 = _sub_vec3(_o, _m)
+        u_2 = _sub_vec3(_p, _o)
+        u_3 = _sub_vec3(_n, _p)
 
-        v = _sub_vec3(_n, _p)
-        lambda_v = _norm_vec3(v)
-        v = [k / lambda_v for k in v]
-
-        w = _sub_vec3(_p, _o)
-        lambda_w = _norm_vec3(w)
-        w = [k / lambda_w for k in w]
-
-        v1 = _cross_vec3(u, w)
-        v2 = _cross_vec3([-k for k in w], v)
-
-        return DifferentiableMath.atan2(
-            _dot_vec3(_cross_vec3(v1, w), v2), _dot_vec3(v1, v2)
-        )
+        norm_u2 = _norm_vec3(u_2)
+        v1 = _cross_vec3(u_2, u_3)
+        v2 = _cross_vec3(u_1, u_2)
+        v3 = [k * norm_u2 for k in u_1]
+        return DifferentiableMath.atan2(_dot_vec3(v3, v1), _dot_vec3(v2, v1))
 
     def _value(self, x, i=None, component=None, return_derivative=False):
         """Evaluate either the value or the derivative. Shared function
