@@ -646,6 +646,22 @@ def test_dihedral_primitive_derivative_over_zero(h_coord):
             assert np.isclose(analytic, numerical, atol=1e-6)
 
 
+def test_primitive_first_derivs(init_coords, prim):
+    def numerical_first_deriv(coords, h=1e-6):
+        coords = coords.flatten()
+        init_prim = prim(coords)
+        derivs = np.zeros_like(coords)
+        for i in range(coords.shape[0]):
+            coords[i] += h
+            derivs[i] = prim(coords) - init_prim
+            coords[i] -= h
+        return derivs
+
+    analytic = prim.derivative(init_coords)
+    numeric = numerical_first_deriv(init_coords)
+    assert np.allclose(analytic, numeric, atol=1e-6)
+
+
 def test_repr():
     """Test that each primitive has a representation"""
 
