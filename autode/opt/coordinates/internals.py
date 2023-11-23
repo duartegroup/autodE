@@ -82,6 +82,16 @@ class PIC(list, ABC):
                 f"from {args}. Must be primitive internals"
             )
 
+    def append(self, item) -> None:
+        """Append an item to this set of primitives"""
+        if isinstance(item, Primitive):
+            super().append(item)
+        else:
+            raise TypeError(
+                f"Can only append Primitive type but"
+                f" {type(item)} was provided"
+            )
+
     @property
     def B(self) -> np.ndarray:
         """Wilson B matrix"""
@@ -179,16 +189,7 @@ class PIC(list, ABC):
         B = np.zeros(shape=(len(self), 3 * n_atoms))
 
         for i, primitive in enumerate(self):
-            for j in range(n_atoms):
-                B[i, 3 * j + 0] = primitive.derivative(
-                    j, CartesianComponent.x, x=cart_coords
-                )
-                B[i, 3 * j + 1] = primitive.derivative(
-                    j, CartesianComponent.y, x=cart_coords
-                )
-                B[i, 3 * j + 2] = primitive.derivative(
-                    j, CartesianComponent.z, x=cart_coords
-                )
+            B[i] = primitive.derivative(x=cart_coords)
 
         self._B = B
         return None
