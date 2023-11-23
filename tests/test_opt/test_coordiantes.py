@@ -44,18 +44,12 @@ def test_dist_primitives():
     inv_dist = PrimitiveDistance(0, 1)
     assert np.isclose(inv_dist(x), 2.0)
 
-    assert np.isclose(
-        inv_dist.derivative(0, CartesianComponent.x, x=x), -2 / 2
-    )
+    derivs = inv_dist.derivative(x)
+    assert np.isclose(derivs[3 * 0 + 0], -2 / 2)
+    assert np.isclose(derivs[3 * 1 + 0], +2 / 2)
 
-    assert np.isclose(
-        inv_dist.derivative(1, CartesianComponent.x, x=x), +2 / 2
-    )
-
-    for component in (CartesianComponent.y, CartesianComponent.z):
-        assert np.isclose(inv_dist.derivative(1, component, x=x), 0)
-
-    assert np.isclose(inv_dist.derivative(2, CartesianComponent.x, x=x), 0)
+    for k in (1, 2):
+        assert np.isclose(derivs[3 * 1 + k], 0)
 
 
 def test_primitive_equality():
@@ -557,19 +551,14 @@ def test_angle_primitive_derivative():
     init_coords = m.coordinates.copy()
 
     angle = PrimitiveBondAngle(0, 1, 2)
-
+    derivs = angle.derivative(init_coords)
     for atom_idx in (0, 1, 2):
-        for component in CartesianComponent:
-            analytic = angle.derivative(atom_idx, component, init_coords)
+        for component in (0, 1, 2):
+            analytic = derivs[3 * atom_idx + component]
 
             assert np.isclose(
                 analytic, numerical_derivative(atom_idx, component), atol=1e-6
             )
-
-    # Derivative should be zero for an atom not present the bond angle
-    assert np.isclose(
-        angle.derivative(3, CartesianComponent.x, init_coords), 0.0
-    )
 
 
 def test_angle_primitive_equality():
