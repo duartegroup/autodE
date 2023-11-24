@@ -160,7 +160,7 @@ class Primitive(ABC):
             (np.ndarray): Second derivative matrix of shape (N, N)
         """
         _x = x.ravel()
-        x_n, _ = _x.shape
+        x_n = _x.shape[0]
         res = self._evaluate(_x, deriv_order=2)
         derivs = np.zeros(shape=(x_n, x_n), dtype=float)
         for i in range(x_n):

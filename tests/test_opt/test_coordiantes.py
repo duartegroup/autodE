@@ -588,17 +588,11 @@ def test_dihedral_primitive_derivative():
     init_coords = m.coordinates.copy()
 
     dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
-
+    analytic = dihedral.derivative(init_coords)
     for atom_idx in (0, 1, 2, 3):
-        for component in CartesianComponent:
-            analytic = dihedral.derivative(atom_idx, component, init_coords)
-            numerical = numerical_derivative(atom_idx, component)
-
-            assert np.isclose(analytic, numerical, atol=1e-6)
-
-    assert np.isclose(
-        dihedral.derivative(5, CartesianComponent.x, init_coords), 0.0
-    )
+        for k in [0, 1, 2]:
+            numerical = numerical_derivative(atom_idx, k)
+            assert np.isclose(analytic[3 * atom_idx + k], numerical, atol=1e-6)
 
 
 def test_dihedral_equality():
@@ -610,55 +604,76 @@ def test_dihedral_equality():
     )
 
 
-@pytest.mark.parametrize(
-    "h_coord",
-    [
-        np.array([1.08517, 1.07993, 0.05600]),
-        np.array([1.28230, -0.63391, -0.54779]),
-    ],
-)
-def test_dihedral_primitive_derivative_over_zero(h_coord):
-    def numerical_derivative(a, b, h=1e-6):
-        coords = init_coords.copy()
-        coords[a, int(b)] += h
-        y_plus = dihedral(coords)
-        coords[a, int(b)] -= 2 * h
-        y_minus = dihedral(coords)
-        return (y_plus - y_minus) / (2 * h)
-
-    m = Molecule(
+# fmt: off
+dihedral_mols = [
+    Molecule(
         atoms=[
             Atom("C", 0.63365, 0.11934, -0.13163),
             Atom("C", -0.63367, -0.11938, 0.13153),
-            Atom("H", 0.0, 0.0, 0.0),
+            Atom("H", 1.08517, 1.07993, 0.05600),
             Atom("H", -1.08517, -1.07984, -0.05599),
         ]
-    )
-    m.atoms[2].coord = h_coord
-    init_coords = m.coordinates
+    ),
+    Molecule(
+        atoms=[
+            Atom("C", 0.63365, 0.11934, -0.13163),
+            Atom("C", -0.63367, -0.11938, 0.13153),
+            Atom("H", 1.28230, -0.63391, -0.54779),
+            Atom("H", -1.08517, -1.07984, -0.05599),
+        ]
+    )  # for testing dihedral derivatives over zero
+]
 
-    dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
+test_mols = [
+    h2o2_mol(), h2o2_mol(), water_mol(),
+    water_mol(), water_mol(), *dihedral_mols
+]
+test_prims = [
+    PrimitiveDihedralAngle(2, 0, 1, 3), PrimitiveBondAngle(2, 0, 1),
+    PrimitiveBondAngle(0, 1, 2), PrimitiveDistance(0, 1),
+    PrimitiveInverseDistance(0, 1), PrimitiveDihedralAngle(2, 0, 1, 3),
+    PrimitiveDihedralAngle(2, 0, 1, 3)
+]
+# fmt: on
 
-    for atom_idx in (0, 1, 2, 3):
-        for component in CartesianComponent:
-            analytic = dihedral.derivative(atom_idx, component, init_coords)
-            numerical = numerical_derivative(atom_idx, component)
-            assert np.isclose(analytic, numerical, atol=1e-6)
 
+@pytest.mark.parametrize("mol,prim", list(zip(test_mols, test_prims)))
+def test_primitive_first_derivs(mol, prim):
+    init_coords = CartesianCoordinates(mol.coordinates)
+    init_prim = prim(init_coords)
 
-def test_primitive_first_derivs(init_coords, prim):
-    def numerical_first_deriv(coords, h=1e-6):
+    def numerical_first_deriv(coords, h=1e-8):
         coords = coords.flatten()
-        init_prim = prim(coords)
         derivs = np.zeros_like(coords)
         for i in range(coords.shape[0]):
             coords[i] += h
-            derivs[i] = prim(coords) - init_prim
+            derivs[i] = (prim(coords) - init_prim) / h
             coords[i] -= h
         return derivs
 
     analytic = prim.derivative(init_coords)
     numeric = numerical_first_deriv(init_coords)
+    assert np.allclose(analytic, numeric, atol=1e-6)
+
+
+@pytest.mark.parametrize("mol,prim", list(zip(test_mols, test_prims)))
+def test_primitve_second_deriv(mol, prim):
+    init_coords = CartesianCoordinates(mol.coordinates)
+    init_first_der = prim.derivative(init_coords)
+
+    def numerical_second_deriv(coords, h=1e-8):
+        coords = coords.flatten()
+        derivs = np.zeros((coords.shape[0], coords.shape[0]))
+        for i in range(coords.shape[0]):
+            coords[i] += h
+            derivs[i] = (prim.derivative(coords) - init_first_der) / h
+            coords[i] -= h
+        return derivs
+
+    analytic = prim.second_derivative(init_coords)
+    # second derivative matrix should be symmetric
+    assert np.allclose(analytic, analytic.T)
+    numeric = numerical_second_deriv(init_coords)
     assert np.allclose(analytic, numeric, atol=1e-6)
 
 
@@ -676,14 +691,6 @@ def test_repr():
 
     for p in prims:
         assert repr(p) is not None
-
-
-@pytest.mark.parametrize("sign", [1, -1])
-def test_angle_normal(sign):
-    angle = PrimitiveBondAngle(0, 1, 2)
-    x = np.array([[0.0, 0.0, 0.0], [1.0, sign * 1.0, 1.0], [1.0, 0.0, 1.0]])
-
-    assert not np.isinf(angle.derivative(0, 1, x))
 
 
 def test_dic_large_step_allowed_unconverged_back_transform():
