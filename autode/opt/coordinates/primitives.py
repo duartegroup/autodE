@@ -371,9 +371,9 @@ class PrimitiveBondAngle(Primitive):
         """Bond angle m-o-n"""
         super().__init__(o, m, n)
 
-        self.o = o
-        self.m = m
-        self.n = n
+        self.o = int(o)
+        self.m = int(m)
+        self.n = int(n)
 
     def __eq__(self, other) -> bool:
         """Equality of two distance functions"""
@@ -493,10 +493,10 @@ class PrimitiveDihedralAngle(Primitive):
         """Dihedral angle: m-o-p-n"""
         super().__init__(m, o, p, n)
 
-        self.m = m
-        self.o = o
-        self.p = p
-        self.n = n
+        self.m = int(m)
+        self.o = int(o)
+        self.p = int(p)
+        self.n = int(n)
 
     def __call__(self, x: "CartesianCoordinates") -> float:
         """Value of the dihedral"""
