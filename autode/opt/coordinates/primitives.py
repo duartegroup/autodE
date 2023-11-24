@@ -258,6 +258,9 @@ class PrimitiveInverseDistance(_DistanceFunction):
         )
         return 1.0 / _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
 
+    def __repr__(self):
+        return f"InverseDistance({self.i}-{self.j})"
+
     def legacy_derivative(
         self,
         i: int,
@@ -283,11 +286,6 @@ class PrimitiveInverseDistance(_DistanceFunction):
 
         else:  # i == self.idx_j:
             return (_x[self.i, k] - _x[self.j, k]) * self(x) ** 3
-
-    def __call__(self, x: "CartesianCoordinates") -> float:
-        """1 / |x_i - x_j|"""
-        _x = x.reshape((-1, 3))
-        return 1.0 / np.linalg.norm(_x[self.i] - _x[self.j])
 
 
 class PrimitiveDistance(_DistanceFunction):
@@ -330,11 +328,6 @@ class PrimitiveDistance(_DistanceFunction):
             self.i, self.j, x=x, deriv_order=deriv_order
         )
         return _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
-
-    def __call__(self, x: "CartesianCoordinates") -> float:
-        """|x_i - x_j|"""
-        _x = x.reshape((-1, 3))
-        return np.linalg.norm(_x[self.i] - _x[self.j])
 
     def __repr__(self):
         return f"Distance({self.i}-{self.j})"
@@ -394,14 +387,6 @@ class PrimitiveBondAngle(Primitive):
         theta = DifferentiableMath.acos(
             _dot_vec3(u, v) / (_norm_vec3(u) * _norm_vec3(v))
         )
-        return theta
-
-    def __call__(self, x: "CartesianCoordinates") -> float:
-        _x = x.reshape((-1, 3))
-        u = _x[self.m, :] - _x[self.o, :]
-        v = _x[self.n, :] - _x[self.o, :]
-
-        theta = np.arccos(u.dot(v) / (np.linalg.norm(u) * np.linalg.norm(v)))
         return theta
 
     def legacy_derivative(
@@ -497,10 +482,7 @@ class PrimitiveDihedralAngle(Primitive):
         self.o = int(o)
         self.p = int(p)
         self.n = int(n)
-
-    def __call__(self, x: "CartesianCoordinates") -> float:
-        """Value of the dihedral"""
-        return self._value(x, return_derivative=False)
+        # TODO: check the sign matches with mol.dihedral()
 
     def legacy_derivative(
         self,
@@ -530,7 +512,6 @@ class PrimitiveDihedralAngle(Primitive):
         _p = variables[6:9]
         _n = variables[9:12]
 
-        # todo do we need to normalise these vectors?
         u_1 = _sub_vec3(_o, _m)
         u_2 = _sub_vec3(_p, _o)
         u_3 = _sub_vec3(_n, _p)
