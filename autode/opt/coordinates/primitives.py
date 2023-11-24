@@ -12,25 +12,31 @@ if TYPE_CHECKING:
     from autode.opt.coordinates.autodiff import VectorHyperDual
 
 
-def _norm_vec3(vec: List["VectorHyperDual"]):
+def _norm_vec3(vec: List["VectorHyperDual"]) -> "VectorHyperDual":
     """Norm of a 3D vector"""
     assert len(vec) == 3
     return DifferentiableMath.sqrt(vec[0] ** 2 + vec[1] ** 2 + vec[2] ** 2)
 
 
-def _sub_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
+def _sub_vec3(
+    vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]
+) -> List["VectorHyperDual"]:
     """Evaluate vec1 - vec2 for 3D vectors"""
     assert len(vec1) == len(vec2) == 3
     return [vec1[i] - vec2[i] for i in range(3)]
 
 
-def _dot_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
+def _dot_vec3(
+    vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]
+) -> "VectorHyperDual":
     """Evaluate vec1.vec2 for 3D vectors"""
     assert len(vec1) == len(vec2) == 3
     return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2]
 
 
-def _cross_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
+def _cross_vec3(
+    vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]
+) -> List["VectorHyperDual"]:
     """Evaluate vec1 x vec2 for 3D vectors"""
     assert len(vec1) == len(vec2) == 3
     # a cross b = a1 b2 - a2 b1, a2 b0 - a0 b2, a0 b1 - a1 b0
@@ -41,7 +47,7 @@ def _cross_vec3(vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]):
     ]
 
 
-def get_vars_from_atom_idxs(
+def _get_vars_from_atom_idxs(
     *args,
     x: "CartesianCoordinates",
     deriv_order: int,
@@ -253,7 +259,7 @@ class PrimitiveInverseDistance(_DistanceFunction):
         self, x: "CartesianCoordinates", deriv_order: int
     ) -> "VectorHyperDual":
         """1 / |x_i - x_j|"""
-        i_0, i_1, i_2, j_0, j_1, j_2 = get_vars_from_atom_idxs(
+        i_0, i_1, i_2, j_0, j_1, j_2 = _get_vars_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
         return 1.0 / _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
@@ -324,7 +330,7 @@ class PrimitiveDistance(_DistanceFunction):
         self, x: "CartesianCoordinates", deriv_order: int
     ) -> "VectorHyperDual":
         """|x_i - x_j|"""
-        i_0, i_1, i_2, j_0, j_1, j_2 = get_vars_from_atom_idxs(
+        i_0, i_1, i_2, j_0, j_1, j_2 = _get_vars_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
         return _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
@@ -379,11 +385,14 @@ class PrimitiveBondAngle(Primitive):
 
     def _evaluate(self, x: "CartesianCoordinates", deriv_order: int):
         """m - o - n angle"""
-        m_0, m_1, m_2, o_0, o_1, o_2, n_0, n_1, n_2 = get_vars_from_atom_idxs(
+        variables = _get_vars_from_atom_idxs(
             self.m, self.o, self.n, x=x, deriv_order=deriv_order
         )
-        u = _sub_vec3([m_0, m_1, m_2], [o_0, o_1, o_2])
-        v = _sub_vec3([n_0, n_1, n_2], [o_0, o_1, o_2])
+        _m = variables[0:3]
+        _o = variables[3:6]
+        _n = variables[6:9]
+        u = _sub_vec3(_m, _o)
+        v = _sub_vec3(_n, _o)
         theta = DifferentiableMath.acos(
             _dot_vec3(u, v) / (_norm_vec3(u) * _norm_vec3(v))
         )
@@ -504,7 +513,7 @@ class PrimitiveDihedralAngle(Primitive):
     ) -> "VectorHyperDual":
         """Dihedral m-o-p-n"""
         _x = x.ravel()
-        variables = get_vars_from_atom_idxs(
+        variables = _get_vars_from_atom_idxs(
             self.m, self.o, self.p, self.n, x=_x, deriv_order=deriv_order
         )
         _m = variables[:3]
