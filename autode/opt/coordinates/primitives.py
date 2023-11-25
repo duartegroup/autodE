@@ -246,7 +246,7 @@ class _DistanceFunction(Primitive, ABC):
 
 
 class PrimitiveInverseDistance(_DistanceFunction):
-    """
+    r"""
     Inverse distance between two atoms:
 
     .. math::
@@ -267,64 +267,15 @@ class PrimitiveInverseDistance(_DistanceFunction):
     def __repr__(self):
         return f"InverseDistance({self.i}-{self.j})"
 
-    def legacy_derivative(
-        self,
-        i: int,
-        component: "CartesianComponent",
-        x: "CartesianCoordinates",
-    ) -> float:
-        """
-        Derivative with respect to Cartesian displacement
-
-        -----------------------------------------------------------------------
-        See Also:
-            :py:meth:`Primitive.derivative <Primitive.derivative>`
-        """
-
-        _x = x.reshape((-1, 3))
-        k = int(component)
-
-        if i != self.i and i != self.j:
-            return 0  # Atom does not form part of this distance
-
-        elif i == self.i:
-            return -(_x[i, k] - _x[self.j, k]) * self(x) ** 3
-
-        else:  # i == self.idx_j:
-            return (_x[self.i, k] - _x[self.j, k]) * self(x) ** 3
-
 
 class PrimitiveDistance(_DistanceFunction):
-    """
+    r"""
     Distance between two atoms:
 
     .. math::
 
         q = |\boldsymbol{X}_i - \boldsymbol{X}_j|
     """
-
-    def legacy_derivative(
-        self,
-        i: int,
-        component: "CartesianComponent",
-        x: "CartesianCoordinates",
-    ) -> float:
-        """
-        Derivative with respect to Cartesian displacement
-
-        -----------------------------------------------------------------------
-        See Also:
-            :py:meth:`Primitive.derivative <Primitive.derivative>`
-        """
-        _x = x.reshape((-1, 3))
-        k = int(component)
-
-        if i != self.i and i != self.j:
-            return 0  # Atom does not form part of this distance
-
-        val = (_x[self.i, k] - _x[self.j, k]) / self(x)
-
-        return val if i == self.i else -val
 
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: int
@@ -366,6 +317,11 @@ class ConstrainedPrimitiveDistance(ConstrainedPrimitive, PrimitiveDistance):
 
 
 class PrimitiveBondAngle(Primitive):
+    """
+    Bond angle between three atoms, calculated with the
+    arccosine of the normalised dot product
+    """
+
     def __init__(self, o: int, m: int, n: int):
         """Bond angle m-o-n"""
         super().__init__(o, m, n)
@@ -397,51 +353,6 @@ class PrimitiveBondAngle(Primitive):
             _dot_vec3(u, v) / (_norm_vec3(u) * _norm_vec3(v))
         )
         return theta
-
-    def legacy_derivative(
-        self,
-        i: int,
-        component: "CartesianComponent",
-        x: "CartesianCoordinates",
-    ) -> float:
-        if i not in (self.o, self.m, self.n):
-            return 0.0
-
-        k = int(component)
-
-        _x = x.reshape((-1, 3))
-        u = _x[self.m, :] - _x[self.o, :]
-        lambda_u = np.linalg.norm(u)
-        u /= lambda_u
-
-        v = _x[self.n, :] - _x[self.o, :]
-        lambda_v = np.linalg.norm(v)
-        v /= lambda_v
-
-        t0, t1 = np.array([1.0, -1.0, 1.0]), np.array([-1.0, 1.0, 1.0])
-
-        if not np.isclose(np.abs(np.arccos(u.dot(v))), 1.0):
-            w = np.cross(u, v)
-        elif not np.isclose(
-            np.abs(np.arccos(u.dot(t0))), 1.0
-        ) and not np.isclose(np.abs(np.arccos(v.dot(t0))), 1.0):
-            w = np.cross(u, t0)
-        else:
-            w = np.cross(u, t1)
-
-        w /= np.linalg.norm(w)
-
-        dqdx = 0.0
-
-        if i in (self.m, self.o):
-            sign = 1 if i == self.m else -1
-            dqdx += sign * np.cross(u, w)[k] / lambda_u
-
-        if i in (self.n, self.o):
-            sign = 1 if i == self.n else -1
-            dqdx += sign * np.cross(w, v)[k] / lambda_v
-
-        return dqdx
 
     def __repr__(self):
         return f"Angle({self.m}-{self.o}-{self.n})"
@@ -491,15 +402,6 @@ class PrimitiveDihedralAngle(Primitive):
         self.o = int(o)
         self.p = int(p)
         self.n = int(n)
-        # TODO: check the sign matches with mol.dihedral()
-
-    def legacy_derivative(
-        self,
-        i: int,
-        component: "CartesianComponent",
-        x: "CartesianCoordinates",
-    ) -> float:
-        return self._value(x, i=i, component=component, return_derivative=True)
 
     def __eq__(self, other) -> bool:
         """Equality of two distance functions"""
@@ -512,6 +414,7 @@ class PrimitiveDihedralAngle(Primitive):
         self, x: "CartesianCoordinates", deriv_order: int
     ) -> "VectorHyperDual":
         """Dihedral m-o-p-n"""
+        # https://en.wikipedia.org/wiki/Dihedral_angle#In_polymer_physics
         _x = x.ravel()
         variables = _get_vars_from_atom_idxs(
             self.m, self.o, self.p, self.n, x=_x, deriv_order=deriv_order
@@ -530,65 +433,6 @@ class PrimitiveDihedralAngle(Primitive):
         v2 = _cross_vec3(u_1, u_2)
         v3 = [k * norm_u2 for k in u_1]
         return DifferentiableMath.atan2(_dot_vec3(v3, v1), _dot_vec3(v2, v1))
-
-    def _value(self, x, i=None, component=None, return_derivative=False):
-        """Evaluate either the value or the derivative. Shared function
-        to reuse local variables"""
-
-        _x = x.reshape((-1, 3))
-        u = _x[self.m, :] - _x[self.o, :]
-        lambda_u = np.linalg.norm(u)
-        u /= lambda_u
-
-        v = _x[self.n, :] - _x[self.p, :]
-        lambda_v = np.linalg.norm(v)
-        v /= lambda_v
-
-        w = _x[self.p, :] - _x[self.o, :]
-        lambda_w = np.linalg.norm(w)
-        w /= lambda_w
-
-        phi_u = np.arccos(u.dot(w))
-        phi_v = np.arccos(w.dot(v))
-
-        if not return_derivative:
-            v1 = np.cross(u, w)
-            v2 = np.cross(-w, v)
-            return -np.arctan2(np.cross(v1, w).dot(v2), (v1.dot(v2)))
-
-        # are now computing the derivative..
-        if i not in self._atom_indexes:
-            return 0.0
-
-        k = int(component)
-        dqdx = 0.0
-
-        if i in (self.m, self.o):
-            sign = 1 if i == self.m else -1
-            dqdx += sign * (
-                np.cross(u, w)[k] / (lambda_u * np.sin(phi_u) ** 2)
-            )
-
-        if i in (self.p, self.n):
-            sign = 1 if i == self.p else -1
-            dqdx += sign * (
-                np.cross(v, w)[k] / (lambda_v * np.sin(phi_v) ** 2)
-            )
-
-        if i in (self.o, self.p):
-            sign = 1 if i == self.o else -1
-            dqdx += sign * (
-                (
-                    (np.cross(u, w)[k] * np.cos(phi_u))
-                    / (lambda_w * np.sin(phi_u) ** 2)
-                )
-                - (
-                    (np.cross(v, w)[k] * np.cos(phi_v))
-                    / (lambda_w * np.sin(phi_v) ** 2)
-                )
-            )
-
-        return dqdx
 
     def __repr__(self):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
