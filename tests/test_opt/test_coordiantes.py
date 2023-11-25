@@ -604,6 +604,20 @@ def test_dihedral_equality():
     )
 
 
+def test_primitives_consistent_with_mol_values():
+    # test that the primitive values are the same as the mol.distance etc.
+    h2o2 = h2o2_mol()
+    coords = h2o2.coordinates
+    dist = PrimitiveDistance(0, 1)
+    assert np.isclose(dist(coords), h2o2.distance(0, 1), rtol=1e-8)
+    invdist = PrimitiveInverseDistance(1, 2)
+    assert np.isclose(invdist(coords), 1 / h2o2.distance(1, 2), rtol=1e-8)
+    ang = PrimitiveBondAngle(2, 0, 1)  # bond is defined in a different way
+    assert np.isclose(ang(coords), h2o2.angle(0, 2, 1), rtol=1e-8)
+    dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
+    assert np.isclose(dihedral(coords), h2o2.dihedral(2, 0, 1, 3), rtol=1e-8)
+
+
 # fmt: off
 dihedral_mols = [
     Molecule(
