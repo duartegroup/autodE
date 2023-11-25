@@ -74,8 +74,8 @@ def _get_vars_from_atom_idxs(
             cart_idxs.append(3 * atom + k)
     return get_differentiable_vars(
         values=[_x[idx] for idx in cart_idxs],
-        deriv_order=deriv_order,
         symbols=[str(idx) for idx in cart_idxs],
+        deriv_order=deriv_order,
     )
 
 

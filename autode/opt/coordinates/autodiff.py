@@ -12,24 +12,20 @@ numeric_type = Union[float, int]
 
 def get_differentiable_vars(
     values: Sequence[numeric_type],
+    symbols: Sequence[str],
     deriv_order: int = 2,
-    symbols: Optional[Sequence[str]] = None,
 ):
     """
     Obtain differentiable variables from a series of numbers
 
     Args:
         values: The values of the variables (numbers)
+        symbols: List of symbols (strings) of the numbers
         deriv_order: Order of differentiation
-        symbols: Optional list of symbols for the numbers,
-                 if not given, numeric strings ('0', '1', '2', ...)
-                 are generated in order
 
     Returns:
         (list[VectorHyperDual]): A list of hyper dual numbers
     """
-    if symbols is None:
-        symbols = [str(idx) for idx in range(len(values))]
     assert all(isinstance(sym, str) for sym in symbols)
     assert len(symbols) == len(values)
     symbols = list(symbols)
