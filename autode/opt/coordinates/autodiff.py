@@ -205,7 +205,9 @@ class VectorHyperDual:
         assert self._second_der is not None
         return self._second_der[idx_1, idx_2]
 
-    def __add__(self, other):
+    def __add__(
+        self, other: Union["VectorHyperDual", numeric_type]
+    ) -> "VectorHyperDual":
         """Adding a hyper dual number"""
 
         # add to a float
@@ -222,10 +224,14 @@ class VectorHyperDual:
             if self._order == 0:
                 return VectorHyperDual(val, self._symbols)
 
+            assert self._first_der is not None
+            assert other._first_der is not None
             first_der = self._first_der + other._first_der
             if self._order == 1:
                 return VectorHyperDual(val, self._symbols, first_der)
 
+            assert self._second_der is not None
+            assert other._second_der is not None
             second_der = self._second_der + other._second_der
             return VectorHyperDual(val, self._symbols, first_der, second_der)
 
@@ -236,7 +242,7 @@ class VectorHyperDual:
         """Addition is commutative"""
         return self.__add__(other)
 
-    def __neg__(self):
+    def __neg__(self) -> "VectorHyperDual":
         """Unary negative operation"""
         new = self.copy()
         new._val = -new._val
@@ -254,7 +260,7 @@ class VectorHyperDual:
         """Reverse subtraction"""
         return other + (-self)
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> "VectorHyperDual":
         """Multiply a hyper dual number with float or another hyper dual"""
         if isinstance(other, numeric):
             new = self.copy()
@@ -269,12 +275,16 @@ class VectorHyperDual:
             if self._order == 0:
                 return VectorHyperDual(val, self._symbols)
 
+            assert self._first_der is not None
+            assert other._first_der is not None
             first_der = (
                 self._val * other._first_der + other._val * self._first_der
             )
             if self._order == 1:
                 return VectorHyperDual(val, self._symbols, first_der)
 
+            assert self._second_der is not None
+            assert other._second_der is not None
             second_der = (
                 self._val * other._second_der
                 + np.outer(self._first_der, other._first_der)
@@ -296,7 +306,7 @@ class VectorHyperDual:
         """Reverse true division"""
         return DifferentiableMath.pow(self, -1).__mul__(other)
 
-    def __pow__(self, power, modulo=None):
+    def __pow__(self, power, modulo=None) -> "VectorHyperDual":
         if modulo is not None:
             raise NotImplementedError("Modulo inverse is not implemented")
 
@@ -501,6 +511,8 @@ class DifferentiableMath:
         num_x: Union[VectorHyperDual, numeric_type],
     ):
         """Calculate the arctan2 of two hyper dual numbers"""
+        if isinstance(num_y, numeric) and isinstance(num_x, numeric):
+            return math.atan2(num_y, num_x)
 
         def atan2_derivs_x_not_0(y, x):
             return DifferentiableMath.atan(y / x)
