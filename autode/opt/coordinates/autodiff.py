@@ -2,6 +2,7 @@
 Automatic differentiation routines in pure Python
 """
 from typing import Union, Callable, Sequence, Optional
+from enum import Enum
 from copy import deepcopy
 import numpy as np
 import math
@@ -10,10 +11,18 @@ numeric = (float, int)
 numeric_type = Union[float, int]
 
 
+class DerivativeOrder(Enum):
+    """Order of derivative"""
+
+    zeroth = 0
+    first = 1
+    second = 2
+
+
 def get_differentiable_vars(
     values: Sequence[numeric_type],
     symbols: Sequence[str],
-    deriv_order: int = 2,
+    deriv_order: DerivativeOrder = DerivativeOrder.second,
 ):
     """
     Obtain differentiable variables from a series of numbers
@@ -74,7 +83,7 @@ class VectorHyperDual:
         # load the derivatives with sanity checks
         self._first_der: Optional[np.ndarray] = None
         self._second_der: Optional[np.ndarray] = None
-        self._order = 0
+        self._order = DerivativeOrder.zeroth
         if first_der is None:
             return
         assert isinstance(first_der, np.ndarray)
@@ -85,7 +94,7 @@ class VectorHyperDual:
                 f" shape of derivative array {first_der.shape}"
             )
         self._first_der = first_der.astype(float)
-        self._order = 1
+        self._order = DerivativeOrder.first
 
         if second_der is None:
             return
@@ -96,7 +105,7 @@ class VectorHyperDual:
                 f" shape of second derivative matrix {first_der.shape}"
             )
         self._second_der = second_der.astype(float)
-        self._order = 2
+        self._order = DerivativeOrder.second
 
     @property
     def n_vars(self) -> int:
@@ -132,7 +141,11 @@ class VectorHyperDual:
 
     @classmethod
     def from_variable(
-        cls, value: float, symbol: str, all_symbols: Sequence[str], order: int
+        cls,
+        value: float,
+        symbol: str,
+        all_symbols: Sequence[str],
+        order: DerivativeOrder,
     ):
         """
         Create a hyper-dual number from one variable, requires
@@ -159,10 +172,10 @@ class VectorHyperDual:
         n = len(all_symbols)
         idx = list(all_symbols).index(symbol)
 
-        if order >= 1:
+        if order == DerivativeOrder.first or order == DerivativeOrder.second:
             first_der = np.zeros(shape=n, dtype=float)
             first_der[idx] = 1.0
-        if order == 2:
+        if order == DerivativeOrder.second:
             second_der = np.zeros(shape=(n, n), dtype=float)
 
         return VectorHyperDual(val, all_symbols, first_der, second_der)
@@ -187,7 +200,7 @@ class VectorHyperDual:
         if symbol1 not in self._symbols:
             return None
 
-        if self._order == 0:
+        if self._order == DerivativeOrder.zeroth:
             return None
 
         idx_1 = self._symbols.index(symbol1)
@@ -200,7 +213,7 @@ class VectorHyperDual:
             return None
         idx_2 = self._symbols.index(symbol2)
         # check if second derivs are available
-        if self._order == 1:
+        if self._order == DerivativeOrder.first:
             return None
         assert self._second_der is not None
         return self._second_der[idx_1, idx_2]
@@ -221,13 +234,13 @@ class VectorHyperDual:
             self._check_compatible(other)
 
             val = self._val + other._val
-            if self._order == 0:
+            if self._order == DerivativeOrder.zeroth:
                 return VectorHyperDual(val, self._symbols)
 
             assert self._first_der is not None
             assert other._first_der is not None
             first_der = self._first_der + other._first_der
-            if self._order == 1:
+            if self._order == DerivativeOrder.first:
                 return VectorHyperDual(val, self._symbols, first_der)
 
             assert self._second_der is not None
@@ -246,9 +259,10 @@ class VectorHyperDual:
         """Unary negative operation"""
         new = self.copy()
         new._val = -new._val
-        if self._order >= 1:
+        if self._order == DerivativeOrder.first:
             new._first_der = -new._first_der
-        if self._order == 2:
+        elif self._order == DerivativeOrder.second:
+            new._first_der = -new._first_der
             new._second_der = -new._second_der
         return new
 
@@ -272,7 +286,7 @@ class VectorHyperDual:
             self._check_compatible(other)
 
             val = self._val * other._val
-            if self._order == 0:
+            if self._order == DerivativeOrder.zeroth:
                 return VectorHyperDual(val, self._symbols)
 
             assert self._first_der is not None
@@ -280,7 +294,7 @@ class VectorHyperDual:
             first_der = (
                 self._val * other._first_der + other._val * self._first_der
             )
-            if self._order == 1:
+            if self._order == DerivativeOrder.first:
                 return VectorHyperDual(val, self._symbols, first_der)
 
             assert self._second_der is not None
@@ -340,14 +354,14 @@ class VectorHyperDual:
 
         val = operator(num._val)
 
-        if num._order == 0:
+        if num._order == DerivativeOrder.zeroth:
             return VectorHyperDual(val, num._symbols)
 
         assert num._first_der is not None
         f_dash_x0 = operator_first_deriv(num._val)
         first_der = num._first_der * f_dash_x0
 
-        if num._order == 1:
+        if num._order == DerivativeOrder.first:
             return VectorHyperDual(val, num._symbols, first_der)
 
         assert num._second_der is not None

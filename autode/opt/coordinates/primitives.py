@@ -1,10 +1,11 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Tuple, TYPE_CHECKING, List, Optional
+from typing import Tuple, TYPE_CHECKING, List
 from autode.opt.coordinates.autodiff import (
     get_differentiable_vars,
     DifferentiableMath,
+    DerivativeOrder,
 )
 
 if TYPE_CHECKING:
@@ -50,7 +51,7 @@ def _cross_vec3(
 def _get_vars_from_atom_idxs(
     *args: int,
     x: "CartesianCoordinates",
-    deriv_order: int,
+    deriv_order: DerivativeOrder,
 ) -> List["VectorHyperDual"]:
     """
     Obtain differentiable variables from the Cartesian components
@@ -88,7 +89,10 @@ class Primitive(ABC):
         """A primitive internal coordinate that involves a number of atoms"""
         self._atom_indexes = atom_indexes
 
-    def _evaluate(self, x: "CartesianCoordinates", deriv_order: int):
+    @abstractmethod
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ):
         """
         The function that performs the main evaluation of the PIC,
         and optionally returns derivative or second derivatives.
@@ -106,7 +110,7 @@ class Primitive(ABC):
     def __call__(self, x: "CartesianCoordinates") -> float:
         """Return the value of this PIC given a set of cartesian coordinates"""
         _x = x.ravel()
-        res = self._evaluate(_x, deriv_order=0)
+        res = self._evaluate(_x, deriv_order=DerivativeOrder.zeroth)
         return res.value
 
     def derivative(
@@ -133,7 +137,7 @@ class Primitive(ABC):
             (np.ndarray): Derivative array of shape (N, )
         """
         _x = x.ravel()
-        res = self._evaluate(_x, deriv_order=1)
+        res = self._evaluate(_x, deriv_order=DerivativeOrder.first)
         derivs = np.zeros_like(_x, dtype=float)
         for i in range(_x.shape[0]):
             dqdx_i = res.differentiate_wrt(str(i))
@@ -167,7 +171,7 @@ class Primitive(ABC):
         """
         _x = x.ravel()
         x_n = _x.shape[0]
-        res = self._evaluate(_x, deriv_order=2)
+        res = self._evaluate(_x, deriv_order=DerivativeOrder.second)
         derivs = np.zeros(shape=(x_n, x_n), dtype=float)
         for i in range(x_n):
             for j in range(x_n):
@@ -256,7 +260,7 @@ class PrimitiveInverseDistance(_DistanceFunction):
     """
 
     def _evaluate(
-        self, x: "CartesianCoordinates", deriv_order: int
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ) -> "VectorHyperDual":
         """1 / |x_i - x_j|"""
         i_0, i_1, i_2, j_0, j_1, j_2 = _get_vars_from_atom_idxs(
@@ -278,7 +282,7 @@ class PrimitiveDistance(_DistanceFunction):
     """
 
     def _evaluate(
-        self, x: "CartesianCoordinates", deriv_order: int
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ) -> "VectorHyperDual":
         """|x_i - x_j|"""
         i_0, i_1, i_2, j_0, j_1, j_2 = _get_vars_from_atom_idxs(
@@ -339,7 +343,9 @@ class PrimitiveBondAngle(Primitive):
             and other._ordered_idxs == self._ordered_idxs
         )
 
-    def _evaluate(self, x: "CartesianCoordinates", deriv_order: int):
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ):
         """m - o - n angle"""
         variables = _get_vars_from_atom_idxs(
             self.m, self.o, self.n, x=x, deriv_order=deriv_order
@@ -411,7 +417,7 @@ class PrimitiveDihedralAngle(Primitive):
         )
 
     def _evaluate(
-        self, x: "CartesianCoordinates", deriv_order: int
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ) -> "VectorHyperDual":
         """Dihedral m-o-p-n"""
         # https://en.wikipedia.org/wiki/Dihedral_angle#In_polymer_physics
