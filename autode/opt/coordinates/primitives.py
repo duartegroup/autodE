@@ -48,7 +48,7 @@ def _cross_vec3(
 
 
 def _get_vars_from_atom_idxs(
-    *args,
+    *args: int,
     x: "CartesianCoordinates",
     deriv_order: int,
 ) -> List["VectorHyperDual"]:
@@ -65,13 +65,13 @@ def _get_vars_from_atom_idxs(
     Returns:
         (list[VectorHyperDual]): A list of differentiable variables
     """
-    assert all(isinstance(atom, int) and atom >= 0 for atom in args)
+    assert all(isinstance(idx, int) and idx >= 0 for idx in args)
     # get positions in the flat Cartesian array
     _x = x.ravel()
     cart_idxs = []
-    for atom in args:
+    for atom_idx in args:
         for k in range(3):
-            cart_idxs.append(3 * atom + k)
+            cart_idxs.append(3 * atom_idx + k)
     return get_differentiable_vars(
         values=[_x[idx] for idx in cart_idxs],
         symbols=[str(idx) for idx in cart_idxs],

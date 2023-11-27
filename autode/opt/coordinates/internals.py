@@ -82,15 +82,10 @@ class PIC(list, ABC):
                 f"from {args}. Must be primitive internals"
             )
 
-    def append(self, item) -> None:
+    def append(self, item: Primitive) -> None:
         """Append an item to this set of primitives"""
-        if isinstance(item, Primitive):
-            super().append(item)
-        else:
-            raise TypeError(
-                f"Can only append Primitive type but"
-                f" {type(item)} was provided"
-            )
+        assert isinstance(item, Primitive), "Must be a Primitive type!"
+        super().append(item)
 
     @property
     def B(self) -> np.ndarray:
