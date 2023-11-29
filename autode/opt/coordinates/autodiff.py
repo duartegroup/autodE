@@ -171,6 +171,7 @@ class VectorHyperDual:
         second_der = None
         n = len(all_symbols)
         idx = list(all_symbols).index(symbol)
+        assert isinstance(order, DerivativeOrder)
 
         if order == DerivativeOrder.first or order == DerivativeOrder.second:
             first_der = np.zeros(shape=n, dtype=float)

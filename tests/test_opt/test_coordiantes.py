@@ -531,7 +531,7 @@ def test_pic_append_type_checking():
     c = PIC()
     # append should check for primitive type
     c.append(PrimitiveDistance(0, 1))
-    with pytest.raises(TypeError):
+    with pytest.raises(AssertionError):
         c.append(3)
 
 
