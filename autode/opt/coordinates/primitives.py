@@ -5,6 +5,7 @@ from typing import Tuple, TYPE_CHECKING, List
 from autode.opt.coordinates.autodiff import (
     get_differentiable_vars,
     DifferentiableMath,
+    DifferentiableVector3D,
     DerivativeOrder,
 )
 
@@ -13,48 +14,13 @@ if TYPE_CHECKING:
     from autode.opt.coordinates.autodiff import VectorHyperDual
 
 
-def _norm_vec3(vec: List["VectorHyperDual"]) -> "VectorHyperDual":
-    """Norm of a 3D vector"""
-    assert len(vec) == 3
-    return DifferentiableMath.sqrt(vec[0] ** 2 + vec[1] ** 2 + vec[2] ** 2)
-
-
-def _sub_vec3(
-    vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]
-) -> List["VectorHyperDual"]:
-    """Evaluate vec1 - vec2 for 3D vectors"""
-    assert len(vec1) == len(vec2) == 3
-    return [vec1[i] - vec2[i] for i in range(3)]
-
-
-def _dot_vec3(
-    vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]
-) -> "VectorHyperDual":
-    """Evaluate vec1.vec2 for 3D vectors"""
-    assert len(vec1) == len(vec2) == 3
-    return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2]
-
-
-def _cross_vec3(
-    vec1: List["VectorHyperDual"], vec2: List["VectorHyperDual"]
-) -> List["VectorHyperDual"]:
-    """Evaluate vec1 x vec2 for 3D vectors"""
-    assert len(vec1) == len(vec2) == 3
-    # a cross b = a1 b2 - a2 b1, a2 b0 - a0 b2, a0 b1 - a1 b0
-    return [
-        vec1[1] * vec2[2] - vec1[2] * vec2[1],
-        vec1[2] * vec2[0] - vec1[0] * vec2[2],
-        vec1[0] * vec2[1] - vec1[1] * vec2[0],
-    ]
-
-
-def _get_vars_from_atom_idxs(
+def _get_3d_vecs_from_atom_idxs(
     *args: int,
     x: "CartesianCoordinates",
     deriv_order: DerivativeOrder,
-) -> List["VectorHyperDual"]:
+) -> List[DifferentiableVector3D]:
     """
-    Obtain differentiable variables from the Cartesian components
+    Obtain differentiable 3D vectors from the Cartesian components
     of each atom, given by atomic indices in order. The symbols are
     strings denoting their position in the flat Cartesian coordinate.
 
@@ -73,11 +39,17 @@ def _get_vars_from_atom_idxs(
     for atom_idx in args:
         for k in range(3):
             cart_idxs.append(3 * atom_idx + k)
-    return get_differentiable_vars(
+    variables = get_differentiable_vars(
         values=[_x[idx] for idx in cart_idxs],
         symbols=[str(idx) for idx in cart_idxs],
         deriv_order=deriv_order,
     )
+    atom_vecs = []
+    for pos_idx in range(len(args)):
+        atom_vecs.append(
+            DifferentiableVector3D(variables[pos_idx * 3 : pos_idx * 3 + 3])
+        )
+    return atom_vecs
 
 
 class Primitive(ABC):
@@ -263,10 +235,10 @@ class PrimitiveInverseDistance(_DistanceFunction):
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ) -> "VectorHyperDual":
         """1 / |x_i - x_j|"""
-        i_0, i_1, i_2, j_0, j_1, j_2 = _get_vars_from_atom_idxs(
+        vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
-        return 1.0 / _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
+        return 1.0 / (vec_i - vec_j).norm()
 
     def __repr__(self):
         return f"InverseDistance({self.i}-{self.j})"
@@ -285,10 +257,10 @@ class PrimitiveDistance(_DistanceFunction):
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ) -> "VectorHyperDual":
         """|x_i - x_j|"""
-        i_0, i_1, i_2, j_0, j_1, j_2 = _get_vars_from_atom_idxs(
+        vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
-        return _norm_vec3(_sub_vec3([i_0, i_1, i_2], [j_0, j_1, j_2]))
+        return (vec_i - vec_j).norm()
 
     def __repr__(self):
         return f"Distance({self.i}-{self.j})"
@@ -347,18 +319,12 @@ class PrimitiveBondAngle(Primitive):
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ):
         """m - o - n angle"""
-        variables = _get_vars_from_atom_idxs(
+        vec_m, vec_o, vec_n = _get_3d_vecs_from_atom_idxs(
             self.m, self.o, self.n, x=x, deriv_order=deriv_order
         )
-        _m = variables[0:3]
-        _o = variables[3:6]
-        _n = variables[6:9]
-        u = _sub_vec3(_m, _o)
-        v = _sub_vec3(_n, _o)
-        theta = DifferentiableMath.acos(
-            _dot_vec3(u, v) / (_norm_vec3(u) * _norm_vec3(v))
-        )
-        return theta
+        u = vec_m - vec_o
+        v = vec_n - vec_o
+        return DifferentiableMath.acos(u.dot(v) / (u.norm() * v.norm()))
 
     def __repr__(self):
         return f"Angle({self.m}-{self.o}-{self.n})"
@@ -422,23 +388,18 @@ class PrimitiveDihedralAngle(Primitive):
         """Dihedral m-o-p-n"""
         # https://en.wikipedia.org/wiki/Dihedral_angle#In_polymer_physics
         _x = x.ravel()
-        variables = _get_vars_from_atom_idxs(
+        vec_m, vec_o, vec_p, vec_n = _get_3d_vecs_from_atom_idxs(
             self.m, self.o, self.p, self.n, x=_x, deriv_order=deriv_order
         )
-        _m = variables[:3]
-        _o = variables[3:6]
-        _p = variables[6:9]
-        _n = variables[9:12]
+        u_1 = vec_o - vec_m
+        u_2 = vec_p - vec_o
+        u_3 = vec_n - vec_p
 
-        u_1 = _sub_vec3(_o, _m)
-        u_2 = _sub_vec3(_p, _o)
-        u_3 = _sub_vec3(_n, _p)
-
-        norm_u2 = _norm_vec3(u_2)
-        v1 = _cross_vec3(u_2, u_3)
-        v2 = _cross_vec3(u_1, u_2)
-        v3 = [k * norm_u2 for k in u_1]
-        return DifferentiableMath.atan2(_dot_vec3(v3, v1), _dot_vec3(v2, v1))
+        norm_u2 = u_2.norm()
+        v1 = u_2.cross(u_3)
+        v2 = u_1.cross(u_2)
+        v3 = u_1 * norm_u2
+        return DifferentiableMath.atan2(v3.dot(v1), v2.dot(v1))
 
     def __repr__(self):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
