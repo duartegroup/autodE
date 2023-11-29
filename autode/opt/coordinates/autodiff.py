@@ -1,5 +1,8 @@
 """
 Automatic differentiation routines in pure Python
+
+References:
+    1. P. Rehner, G. Bauer, Front. Chem. Eng., 2021, 3, 758090
 """
 from typing import Union, Callable, Sequence, Optional
 from enum import Enum
@@ -224,7 +227,6 @@ class VectorHyperDual:
     ) -> "VectorHyperDual":
         """Adding a hyper dual number"""
 
-        # add to a float
         if isinstance(other, numeric):
             new = self.copy()
             new._val += float(other)
@@ -282,7 +284,7 @@ class VectorHyperDual:
             new._val *= float(other)
             return new
 
-        # multiply with another dual
+        # Product rule for derivatives, Eqn (24) in ref. [1]
         elif isinstance(other, VectorHyperDual):
             self._check_compatible(other)
 
@@ -358,6 +360,7 @@ class VectorHyperDual:
         if num._order == DerivativeOrder.zeroth:
             return VectorHyperDual(val, num._symbols)
 
+        # Eqn (25) in reference [1]
         assert num._first_der is not None
         f_dash_x0 = operator_first_deriv(num._val)
         first_der = num._first_der * f_dash_x0
@@ -389,34 +392,22 @@ class DifferentiableMath:
         else:
             assert num.value > 0
 
-        def value(x0: float):
-            return math.sqrt(x0)
-
-        def derivative(x0: float):
-            return 1 / (2 * math.sqrt(x0))
-
-        def second_derivative(x0: float):
-            return -1 / (4 * math.pow(x0, 3 / 2))
-
         return VectorHyperDual.apply_operation(
-            num, value, derivative, second_derivative
+            num,
+            operator=lambda x0: math.sqrt(x0),
+            operator_first_deriv=lambda x0: 1 / (2 * math.sqrt(x0)),
+            operator_second_deriv=lambda x0: -1 / (4 * math.pow(x0, 3 / 2)),
         )
 
     @staticmethod
     def exp(num: Union[VectorHyperDual, numeric_type]):
         """Raise e to the power of num"""
 
-        def value(x0: float):
-            return math.exp(x0)
-
-        def derivative(x0: float):
-            return math.exp(x0)
-
-        def second_derivative(x0: float):
-            return math.exp(x0)
-
         return VectorHyperDual.apply_operation(
-            num, value, derivative, second_derivative
+            num,
+            operator=lambda x0: math.exp(x0),
+            operator_first_deriv=lambda x0: math.exp(x0),
+            operator_second_deriv=lambda x0: math.exp(x0),
         )
 
     @staticmethod
@@ -424,7 +415,7 @@ class DifferentiableMath:
         num: Union[VectorHyperDual, numeric_type],
         power: Union[VectorHyperDual, numeric_type],
     ):
-        """Exponentiation"""
+        """Exponentiation of one hyperdual to another"""
 
         if isinstance(num, numeric) and isinstance(power, numeric):
             return math.pow(num, power)
@@ -434,18 +425,14 @@ class DifferentiableMath:
                 raise ValueError(
                     "Math error, can't raise negative number to fractional power"
                 )
-
-            def value(x0: float):
-                return math.pow(x0, power)
-
-            def derivative(x0: float):
-                return power * math.pow(x0, power - 1)
-
-            def second_derivative(x0: float):
-                return power * (power - 1) * math.pow(x0, power - 2)
-
             return VectorHyperDual.apply_operation(
-                num, value, derivative, second_derivative
+                num,
+                operator=lambda x0: math.pow(x0, power),  # type: ignore
+                operator_first_deriv=lambda x0: power  # type: ignore
+                * math.pow(x0, power - 1),
+                operator_second_deriv=lambda x0: power  # type: ignore
+                * (power - 1)
+                * math.pow(x0, power - 2),
             )
 
         elif isinstance(power, VectorHyperDual):
@@ -468,17 +455,11 @@ class DifferentiableMath:
         else:
             assert num.value > 0
 
-        def value(x0: float):
-            return math.log(x0)
-
-        def derivative(x0: float):
-            return 1.0 / x0
-
-        def second_derivative(x0: float):
-            return -1.0 / (x0**2)
-
         return VectorHyperDual.apply_operation(
-            num, value, derivative, second_derivative
+            num,
+            operator=lambda x0: math.log(x0),
+            operator_first_deriv=lambda x0: 1.0 / x0,
+            operator_second_deriv=lambda x0: -1.0 / (x0**2),
         )
 
     @staticmethod
@@ -490,34 +471,23 @@ class DifferentiableMath:
         else:
             assert -1 < num < 1
 
-        def value(x0: float):
-            return math.acos(x0)
-
-        def derivative(x0: float):
-            return -1 / math.sqrt(1 - x0**2)
-
-        def second_derivative(x0: float):
-            return -x0 / math.pow(1 - x0**2, 3 / 2)
-
         return VectorHyperDual.apply_operation(
-            num, value, derivative, second_derivative
+            num,
+            operator=lambda x0: math.acos(x0),
+            operator_first_deriv=lambda x0: -1 / math.sqrt(1 - x0**2),
+            operator_second_deriv=lambda x0: -x0
+            / math.pow(1 - x0**2, 3 / 2),
         )
 
     @staticmethod
     def atan(num: Union[VectorHyperDual, numeric_type]):
         """Calculate the arctangent of a hyperdual number"""
 
-        def value(x0: float):
-            return math.atan(x0)
-
-        def derivative(x0: float):
-            return 1 / (1 + x0**2)
-
-        def second_derivative(x0: float):
-            return (-2 * x0) / (x0**2 + 1) ** 2
-
         return VectorHyperDual.apply_operation(
-            num, value, derivative, second_derivative
+            num,
+            operator=lambda x0: math.atan(x0),
+            operator_first_deriv=lambda x0: 1 / (1 + x0**2),
+            operator_second_deriv=lambda x0: (-2 * x0) / (x0**2 + 1) ** 2,
         )
 
     @staticmethod
@@ -529,6 +499,7 @@ class DifferentiableMath:
         if isinstance(num_y, numeric) and isinstance(num_x, numeric):
             return math.atan2(num_y, num_x)
 
+        # https://en.wikipedia.org/wiki/Atan2 four overlapping half-planes
         def atan2_derivs_x_not_0(y, x):
             return DifferentiableMath.atan(y / x)
 
