@@ -529,17 +529,34 @@ class DifferentiableVector3D:
     """
 
     def __init__(self, items: Sequence["VectorHyperDual"]):
+        """
+        Initialise the 3D vector from a list of 3 hyperdual numbers
+
+        Args:
+            items: A list of 3 hyper-dual numbers
+        """
         if len(items) != 3:
             raise ValueError("A 3D vector must have only 3 components")
         assert all(isinstance(item, VectorHyperDual) for item in items)
         self._data = list(items)
 
     @staticmethod
-    def _check_same_type(other):
+    def _check_same_type(other) -> None:
+        """Check that another object is also a 3D differentiable vector"""
         if not isinstance(other, DifferentiableVector3D):
             raise ValueError("Operation must be done with another 3D vector!")
+        return None
 
     def dot(self, other: "DifferentiableVector3D") -> "VectorHyperDual":
+        """
+        Dot product of two 3D vectors
+
+        Args:
+            other (DifferentiableVector3D):
+
+        Returns:
+            (VectorHyperDual): A scalar number (with derivatives)
+        """
         self._check_same_type(other)
         dot = 0
         for k in range(3):
@@ -548,6 +565,12 @@ class DifferentiableVector3D:
         return dot
 
     def norm(self) -> "VectorHyperDual":
+        """
+        Euclidean (l2) norm of this 3D vector
+
+        Returns:
+            (VectorHyperDual): A scalar number (with derivatives)
+        """
         return DifferentiableMath.sqrt(
             self._data[0] ** 2 + self._data[1] ** 2 + self._data[2] ** 2
         )
@@ -555,27 +578,75 @@ class DifferentiableVector3D:
     def __add__(
         self, other: "DifferentiableVector3D"
     ) -> "DifferentiableVector3D":
+        """
+        Vector addition in 3D, returns a vector
+
+        Args:
+            other (DifferentiableVector3D):
+
+        Returns:
+            (DifferentiableVector3D):
+        """
         self._check_same_type(other)
         return DifferentiableVector3D(
             [self._data[k] + other._data[k] for k in range(3)]
         )
 
     def __neg__(self) -> "DifferentiableVector3D":
+        """
+        Unary negation of a vector, returns another vector
+
+        Returns:
+            (DifferentiableVector3D):
+        """
         return DifferentiableVector3D([-self._data[k] for k in range(3)])
 
     def __sub__(self, other) -> "DifferentiableVector3D":
+        """
+        Vector subtraction in 3D, defined in terms of addition
+        and negation
+
+        Args:
+            other (DifferentiableVector3D):
+
+        Returns:
+            (DifferentiableVector3D):
+        """
         return self.__add__(-other)
 
-    def __mul__(self, other: Union[VectorHyperDual, numeric_type]):
+    def __mul__(
+        self, other: Union[VectorHyperDual, numeric_type]
+    ) -> "DifferentiableVector3D":
+        """
+        Multiplication of a 3D vector with a scalar
+
+        Args:
+            other (VectorHyperDual|float|int):
+
+        Returns:
+            (DifferentiableVector3D):
+        """
         assert isinstance(other, numeric) or isinstance(other, VectorHyperDual)
         return DifferentiableVector3D(
             [self._data[k] * other for k in range(3)]
         )
 
     def __rmul__(self, other):
+        """Multiplication of scalar and vector is commutative"""
         return self.__mul__(other)
 
-    def cross(self, other) -> "DifferentiableVector3D":
+    def cross(
+        self, other: "DifferentiableVector3D"
+    ) -> "DifferentiableVector3D":
+        """
+        Cross-product of two 3D vectors, produces another vector
+
+        Args:
+            other (DifferentiableVector3D):
+
+        Returns:
+            (DifferentiableVector3D):
+        """
         return DifferentiableVector3D(
             [
                 self._data[1] * other._data[2]
