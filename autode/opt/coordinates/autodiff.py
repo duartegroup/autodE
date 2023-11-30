@@ -87,8 +87,18 @@ class VectorHyperDual:
         self._first_der: Optional[np.ndarray] = None
         self._second_der: Optional[np.ndarray] = None
         self._order = DerivativeOrder.zeroth
+        self._init_deriv_arrays(first_der, second_der)
+
+    def _init_deriv_arrays(
+        self, first_der: Optional[np.ndarray], second_der: Optional[np.ndarray]
+    ) -> None:
+        """
+        Initialise the derivative matrices, checking they have the
+        correct shape, and set the derivative order for this
+        hyper-dual number
+        """
         if first_der is None:
-            return
+            return None
         assert isinstance(first_der, np.ndarray)
         first_der = first_der.flatten()
         if not first_der.shape == (self.n_vars,):
@@ -100,7 +110,7 @@ class VectorHyperDual:
         self._order = DerivativeOrder.first
 
         if second_der is None:
-            return
+            return None
         assert isinstance(second_der, np.ndarray)
         if not second_der.shape == (self.n_vars, self.n_vars):
             raise ValueError(
@@ -115,10 +125,20 @@ class VectorHyperDual:
         """Number of variables in this hyper-dual"""
         return len(self._symbols)
 
-    def copy(self):
+    def copy(self) -> "VectorHyperDual":
         return deepcopy(self)
 
-    def _check_compatible(self, other: "VectorHyperDual"):
+    def _check_compatible(self, other: "VectorHyperDual") -> None:
+        """
+        Check the compatibility of two VectorHyperDual numbers for
+        any operation that involves the two.
+
+        Args:
+            other (VectorHyperDual):
+
+        Raises:
+            (ValueError): If they are incompatible
+        """
         if self.n_vars != other.n_vars:
             raise ValueError(
                 "Incompatible number of differentiable variables, "
@@ -134,11 +154,12 @@ class VectorHyperDual:
         return None
 
     @property
-    def value(self):
+    def value(self) -> float:
+        """Return the value of the hyper-dual number"""
         return self._val
 
     @value.setter
-    def value(self, value):
+    def value(self, value: float):
         assert isinstance(value, numeric)
         self._val = float(value)
 
@@ -263,8 +284,11 @@ class VectorHyperDual:
         new = self.copy()
         new._val = -new._val
         if self._order == DerivativeOrder.first:
+            assert new._first_der is not None
             new._first_der = -new._first_der
         elif self._order == DerivativeOrder.second:
+            assert new._first_der is not None
+            assert new._second_der is not None
             new._first_der = -new._first_der
             new._second_der = -new._second_der
         return new
@@ -423,7 +447,7 @@ class DifferentiableMath:
 
         elif isinstance(num, VectorHyperDual) and isinstance(power, numeric):
             if num.value < 0 and isinstance(power, float):
-                raise ValueError(
+                raise AssertionError(
                     "Math error, can't raise negative number to fractional power"
                 )
             return VectorHyperDual.apply_operation(
@@ -440,7 +464,7 @@ class DifferentiableMath:
             if (isinstance(num, numeric) and num) < 0 or (
                 isinstance(num, VectorHyperDual) and num.value < 0
             ):
-                raise ValueError(
+                raise AssertionError(
                     "Only positive numbers can be used with"
                     " differentiable exponent"
                 )
