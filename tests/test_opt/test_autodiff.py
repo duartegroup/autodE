@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 import pytest
 from autode.opt.coordinates.autodiff import (
     get_differentiable_vars,
@@ -38,10 +38,6 @@ def test_hyperdual_sanity_checks():
             symbols=["a", "a"],
             deriv_order=DerivativeOrder.first,
         )
-
-
-def x_to_the_y(x, y):
-    return x**y
 
 
 def x_to_the_y_derivs(x, y):
@@ -88,3 +84,69 @@ def test_math_funcs_work_with_native_types():
     res = DifferentiableMath.atan2(1, 0)
     assert isinstance(res, float)
     assert math.isclose(DifferentiableMath.pow(0.9, 1.3), math.pow(0.9, 1.3))
+
+    # however, python's complex type is not supported
+    with pytest.raises(TypeError, match="Unknown type for addition"):
+        _ = y + (4 + 1j)
+    with pytest.raises(TypeError, match="Unknown type for multiplication"):
+        _ = y * (1 + 2j)
+    with pytest.raises(TypeError, match="Unknown type for exponentiation"):
+        _ = y ** (1 + 2j)
+
+
+def test_hyperdual_init_checks():
+    with pytest.raises(ValueError):
+        _ = VectorHyperDual(
+            0.1, symbols=["x", "y"], first_der=np.array([0.1, 0.2, 0.3])
+        )
+
+    with pytest.raises(ValueError):
+        _ = VectorHyperDual(
+            0.1,
+            symbols=["x", "y"],
+            first_der=np.array([0.1, 0.2]),
+            second_der=np.zeros(shape=(2, 3)),
+        )
+
+
+def test_hyperdual_order():
+    symbols = ["x", "y"]
+    x = VectorHyperDual(
+        0.1,
+        symbols=symbols,
+    )
+    assert x._order == DerivativeOrder.zeroth
+    x = VectorHyperDual(0.1, symbols=symbols, first_der=np.zeros(2))
+    assert x._order == DerivativeOrder.first
+    # will ignore second derivatives if first is not present
+    x = VectorHyperDual(0.1, symbols=symbols, second_der=np.zeros((3, 2)))
+    assert x._order == DerivativeOrder.zeroth
+    x = VectorHyperDual(
+        0.1,
+        symbols=symbols,
+        first_der=np.zeros(2),
+        second_der=np.zeros((2, 2)),
+    )
+
+
+def test_derivative_not_available():
+    x, y = get_differentiable_vars(
+        [1.0, 2.0], symbols=["x", "y"], deriv_order=DerivativeOrder.first
+    )
+    res = 1 - x**2 + y
+    assert isinstance(res, VectorHyperDual)
+    assert math.isclose(res.value, 2)
+    assert math.isclose(res.differentiate_wrt("x"), -2)
+    # higher order derivatives are not available
+    assert res.differentiate_wrt("x", "y") is None
+    # unknown variables
+    assert res.differentiate_wrt("z") is None
+    assert res.differentiate_wrt("y", "z") is None
+
+    # with zero order, only value is present
+    (x,) = get_differentiable_vars(
+        [1.0], symbols=["x"], deriv_order=DerivativeOrder.zeroth
+    )
+    res = 1 + x**2
+    assert isinstance(res, VectorHyperDual)
+    assert res.differentiate_wrt("x") is None

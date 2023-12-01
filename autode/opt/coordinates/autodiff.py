@@ -471,6 +471,9 @@ class DifferentiableMath:
             # use identity x^y = e^(y log_x) for x > 0
             return DifferentiableMath.exp(power * DifferentiableMath.log(num))
 
+        else:
+            raise TypeError("Unknown type for exponentiation")
+
     @staticmethod
     def log(num: Union[VectorHyperDual, numeric_type]):
         """Natural logarithm"""
