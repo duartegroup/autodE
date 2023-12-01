@@ -127,6 +127,7 @@ def test_hyperdual_order():
         first_der=np.zeros(2),
         second_der=np.zeros((2, 2)),
     )
+    assert x._order == DerivativeOrder.second
 
 
 def test_derivative_not_available():
