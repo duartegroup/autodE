@@ -351,7 +351,9 @@ class VectorHyperDual:
         if modulo is not None:
             raise NotImplementedError("Modulo inverse is not implemented")
 
-        return DifferentiableMath.pow(self, power)
+        result = DifferentiableMath.pow(self, power)
+        assert isinstance(result, VectorHyperDual)
+        return result
 
     def __rpow__(self, other):
         return DifferentiableMath.pow(other, self)
@@ -379,6 +381,8 @@ class VectorHyperDual:
         # pass through numeric types
         if isinstance(num, numeric):
             return operator(float(num))
+
+        assert isinstance(num, VectorHyperDual)
 
         val = operator(num._val)
 
@@ -409,7 +413,9 @@ class DifferentiableMath:
     """
 
     @staticmethod
-    def sqrt(num: Union[VectorHyperDual, numeric_type]):
+    def sqrt(
+        num: Union[VectorHyperDual, numeric_type]
+    ) -> Union[VectorHyperDual, numeric_type]:
         """Calculate the square root of a hyperdual number"""
 
         if isinstance(num, numeric):
@@ -425,7 +431,9 @@ class DifferentiableMath:
         )
 
     @staticmethod
-    def exp(num: Union[VectorHyperDual, numeric_type]):
+    def exp(
+        num: Union[VectorHyperDual, numeric_type]
+    ) -> Union[VectorHyperDual, numeric_type]:
         """Raise e to the power of num"""
 
         return VectorHyperDual.apply_operation(
@@ -439,7 +447,7 @@ class DifferentiableMath:
     def pow(
         num: Union[VectorHyperDual, numeric_type],
         power: Union[VectorHyperDual, numeric_type],
-    ):
+    ) -> Union[VectorHyperDual, numeric_type]:
         """Exponentiation of one hyperdual to another"""
 
         if isinstance(num, numeric) and isinstance(power, numeric):
@@ -460,7 +468,9 @@ class DifferentiableMath:
                 * math.pow(x0, power - 2),
             )
 
-        elif isinstance(power, VectorHyperDual):
+        elif isinstance(power, VectorHyperDual) and isinstance(
+            num, (numeric, VectorHyperDual)
+        ):
             if (isinstance(num, numeric) and num) < 0 or (
                 isinstance(num, VectorHyperDual) and num.value < 0
             ):
@@ -475,7 +485,9 @@ class DifferentiableMath:
             raise TypeError("Unknown type for exponentiation")
 
     @staticmethod
-    def log(num: Union[VectorHyperDual, numeric_type]):
+    def log(
+        num: Union[VectorHyperDual, numeric_type]
+    ) -> Union[VectorHyperDual, numeric_type]:
         """Natural logarithm"""
 
         if isinstance(num, numeric):
@@ -491,7 +503,9 @@ class DifferentiableMath:
         )
 
     @staticmethod
-    def acos(num: Union[VectorHyperDual, numeric_type]):
+    def acos(
+        num: Union[VectorHyperDual, numeric_type]
+    ) -> Union[VectorHyperDual, numeric_type]:
         """Calculate the arccosine of a hyperdual number"""
 
         if isinstance(num, VectorHyperDual):
@@ -508,7 +522,9 @@ class DifferentiableMath:
         )
 
     @staticmethod
-    def atan(num: Union[VectorHyperDual, numeric_type]):
+    def atan(
+        num: Union[VectorHyperDual, numeric_type]
+    ) -> Union[VectorHyperDual, numeric_type]:
         """Calculate the arctangent of a hyperdual number"""
 
         return VectorHyperDual.apply_operation(
@@ -522,7 +538,7 @@ class DifferentiableMath:
     def atan2(
         num_y: Union[VectorHyperDual, numeric_type],
         num_x: Union[VectorHyperDual, numeric_type],
-    ):
+    ) -> Union[VectorHyperDual, numeric_type]:
         """Calculate the arctan2 of two hyper dual numbers"""
         if isinstance(num_y, numeric) and isinstance(num_x, numeric):
             return math.atan2(num_y, num_x)
@@ -598,9 +614,11 @@ class DifferentiableVector3D:
         Returns:
             (VectorHyperDual): A scalar number (with derivatives)
         """
-        return DifferentiableMath.sqrt(
+        norm = DifferentiableMath.sqrt(
             self._data[0] ** 2 + self._data[1] ** 2 + self._data[2] ** 2
         )
+        assert isinstance(norm, VectorHyperDual)
+        return norm
 
     def __add__(
         self, other: "DifferentiableVector3D"

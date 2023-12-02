@@ -399,7 +399,9 @@ class PrimitiveDihedralAngle(Primitive):
         v1 = u_2.cross(u_3)
         v2 = u_1.cross(u_2)
         v3 = u_1 * norm_u2
-        return DifferentiableMath.atan2(v3.dot(v1), v2.dot(v1))
+        dihedral = DifferentiableMath.atan2(v3.dot(v1), v2.dot(v1))
+        assert isinstance(dihedral, VectorHyperDual)
+        return dihedral
 
     def __repr__(self):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
