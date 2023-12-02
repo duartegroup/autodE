@@ -6,6 +6,7 @@ from autode.opt.coordinates.autodiff import (
     DifferentiableMath,
     VectorHyperDual,
     DerivativeOrder,
+    DifferentiableVector3D,
 )
 
 
@@ -72,6 +73,20 @@ def test_autodiff_exponential_func():
     assert math.isclose(result.differentiate_wrt("y", "y"), d2_dy2)
     # check the second derivatives are symmetric
     assert math.isclose(d2_dydx, d2_dxdy)
+
+
+def test_exponential_math_sanity_checks():
+    x, y = get_differentiable_vars([-0.1, -0.2], ["x", "y"])
+    assert x**2 is not None
+    assert x**-1 is not None
+    # negative number raised to fractional power is complex
+    with pytest.raises(AssertionError):
+        _ = x**0.2
+    # negative number cannot be raised to differentiable power
+    with pytest.raises(AssertionError):
+        _ = (-2) ** y
+    with pytest.raises(AssertionError):
+        _ = x**y
 
 
 def test_math_funcs_work_with_native_types():
@@ -151,3 +166,24 @@ def test_derivative_not_available():
     res = 1 + x**2
     assert isinstance(res, VectorHyperDual)
     assert res.differentiate_wrt("x") is None
+
+
+def test_hyperdual_3d_vector_sanity_checks():
+    x, y, z = get_differentiable_vars(
+        [0.1, 0.2, 0.3],
+        ["x", "y", "z"],
+    )
+
+    with pytest.raises(ValueError):
+        _ = DifferentiableVector3D([x, y])
+
+    vec1 = DifferentiableVector3D([x, y, z])
+    vec2 = DifferentiableVector3D([x, y, z])
+
+    with pytest.raises(ValueError):
+        _ = vec1.dot(2)
+
+    with pytest.raises(AssertionError):
+        _ = vec1 * vec2
+
+    assert 2 * vec1 is not None

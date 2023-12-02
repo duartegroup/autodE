@@ -471,7 +471,7 @@ class DifferentiableMath:
         elif isinstance(power, VectorHyperDual) and isinstance(
             num, (numeric, VectorHyperDual)
         ):
-            if (isinstance(num, numeric) and num) < 0 or (
+            if (isinstance(num, numeric) and num < 0) or (
                 isinstance(num, VectorHyperDual) and num.value < 0
             ):
                 raise AssertionError(
@@ -578,10 +578,11 @@ class DifferentiableVector3D:
         Args:
             items: A list of 3 hyper-dual numbers
         """
+        items = list(items)
         if len(items) != 3:
             raise ValueError("A 3D vector must have only 3 components")
         assert all(isinstance(item, VectorHyperDual) for item in items)
-        self._data = list(items)
+        self._data = items
 
     @staticmethod
     def _check_same_type(other) -> None:

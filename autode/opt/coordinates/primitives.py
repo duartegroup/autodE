@@ -7,11 +7,11 @@ from autode.opt.coordinates.autodiff import (
     DifferentiableMath,
     DifferentiableVector3D,
     DerivativeOrder,
+    VectorHyperDual,
 )
 
 if TYPE_CHECKING:
     from autode.opt.coordinates import CartesianCoordinates, CartesianComponent
-    from autode.opt.coordinates.autodiff import VectorHyperDual
 
 
 def _get_3d_vecs_from_atom_idxs(
