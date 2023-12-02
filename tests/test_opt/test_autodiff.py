@@ -14,6 +14,7 @@ def test_hyperdual_sanity_checks():
     a, b = get_differentiable_vars(
         values=[1, 2], symbols=["a", "b"], deriv_order=DerivativeOrder.first
     )
+    assert repr(a) is not None
 
     c = get_differentiable_vars(
         values=[1], symbols=["c"], deriv_order=DerivativeOrder.first

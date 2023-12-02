@@ -120,6 +120,15 @@ class VectorHyperDual:
         self._second_der = second_der.astype(float)
         self._order = DerivativeOrder.second
 
+    def __repr__(self):
+        rstring = f"HyperDual({self.value}"
+        if self._order in [DerivativeOrder.first, DerivativeOrder.second]:
+            rstring += f", f'[{self.n_vars}]"
+        if self._order == DerivativeOrder.second:
+            rstring += f', f"[{self.n_vars}, {self.n_vars}]'
+        rstring += ")"
+        return rstring
+
     @property
     def n_vars(self) -> int:
         """Number of variables in this hyper-dual"""
@@ -195,7 +204,7 @@ class VectorHyperDual:
         second_der = None
         n = len(all_symbols)
         idx = list(all_symbols).index(symbol)
-        assert isinstance(order, DerivativeOrder)
+        order = DerivativeOrder(order)
 
         if order == DerivativeOrder.first or order == DerivativeOrder.second:
             first_der = np.zeros(shape=n, dtype=float)
