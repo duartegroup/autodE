@@ -238,6 +238,10 @@ def _dihedrals(species):
                 if n == o:
                     continue
 
+                # avoid triangular rings like cyclopropane
+                if m == n:
+                    continue
+
                 if np.isclose(species.angle(o, p, n), Angle(np.pi), atol=0.04):
                     continue
 
