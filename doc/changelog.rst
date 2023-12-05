@@ -7,7 +7,7 @@ Changelog
 
 Functionality improvements
 **************************
-- Replaces hand-coded derivatives for primitive internal coordinates with automatic differentiation
+- Replaces hard-coded derivatives for primitive internal coordinates with automatic differentiation
 
 Bug Fixes
 *********
