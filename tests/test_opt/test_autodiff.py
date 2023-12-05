@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import pytest
-from autode.opt.coordinates.autodiff import (
+from autode.opt.coordinates._autodiff import (
     get_differentiable_vars,
     DifferentiableMath,
     VectorHyperDual,

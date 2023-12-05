@@ -2,7 +2,7 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from typing import Tuple, TYPE_CHECKING, List
-from autode.opt.coordinates.autodiff import (
+from autode.opt.coordinates._autodiff import (
     get_differentiable_vars,
     DifferentiableMath,
     DifferentiableVector3D,

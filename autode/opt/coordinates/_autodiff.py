@@ -2,7 +2,7 @@
 Automatic differentiation routines in pure Python
 
 References:
-    1. P. Rehner, G. Bauer, Front. Chem. Eng., 2021, 3, 758090
+[1] P. Rehner, G. Bauer, Front. Chem. Eng., 2021, 3, 758090
 """
 from typing import Union, Callable, Sequence, Optional
 from enum import Enum
