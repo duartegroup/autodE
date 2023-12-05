@@ -11,7 +11,7 @@ Functionality improvements
 
 Bug Fixes
 *********
-- ...
+- Fixes triangular rings being incorrectly treated as dihedral angles
 
 
 1.4.1
