@@ -7,11 +7,11 @@ Changelog
 
 Functionality improvements
 **************************
-- ...
+- Replaces hard-coded derivatives for primitive internal coordinates with automatic differentiation
 
 Bug Fixes
 *********
-- ...
+- Fixes triangular rings being incorrectly treated as dihedral angles
 
 
 1.4.1
