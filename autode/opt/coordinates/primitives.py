@@ -11,7 +11,7 @@ from autode.opt.coordinates._autodiff import (
 )
 
 if TYPE_CHECKING:
-    from autode.opt.coordinates import CartesianCoordinates, CartesianComponent
+    from autode.opt.coordinates import CartesianCoordinates
 
 
 def _get_3d_vecs_from_atom_idxs(

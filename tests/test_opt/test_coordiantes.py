@@ -5,7 +5,6 @@ from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.values import Angle
 from autode.exceptions import CoordinateTransformFailed
-from autode.opt.coordinates.base import CartesianComponent
 from autode.opt.coordinates.internals import PrimitiveInverseDistances, PIC
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC

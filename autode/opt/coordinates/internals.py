@@ -7,19 +7,26 @@ B : Wilson B matrix
 q : Primitive internal coordinates
 G : Spectroscopic G matrix
 """
-import numpy as np
+import copy
 
+import numpy as np
+from enum import Enum
+import itertools
 from typing import Any, Optional, Type, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
-from autode.opt.coordinates.base import OptCoordinates, CartesianComponent
+from autode.values import Angle
+from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.coordinates.primitives import (
     PrimitiveInverseDistance,
     Primitive,
     PrimitiveDistance,
+    ConstrainedPrimitiveDistance,
+    PrimitiveBondAngle,
     PrimitiveDihedralAngle,
 )
 
 if TYPE_CHECKING:
+    from autode.species import Species
     from autode.opt.coordinates.cartesian import CartesianCoordinates
     from autode.opt.coordinates.primitives import (
         ConstrainedPrimitive,
@@ -234,3 +241,130 @@ class PrimitiveDistances(_FunctionOfDistances):
 class AnyPIC(PIC):
     def _populate_all(self, x: np.ndarray) -> None:
         raise RuntimeError("Cannot populate all on an AnyPIC instance")
+
+
+class LinearAngleType(Enum):
+    linear_bend = 1
+    cos_angle = 2
+    remove = 3
+
+
+def build_pic_from_species(
+    species,
+    aux_bonds=False,
+    linear_angles=LinearAngleType.remove,
+    robust_dihedrals=False,
+):
+    pic = AnyPIC()
+    core_graph = species.graph.copy()
+    _add_distances_from_species(pic, species, core_graph, aux_bonds=aux_bonds)
+    _add_bends_from_species(
+        pic, species, core_graph, linear_angles=linear_angles
+    )
+    _add_dihedrals_from_species(
+        pic, species, core_graph, robust_dihedrals=robust_dihedrals
+    )
+
+
+def _get_connected_graph_from_species(mol: "Species"):
+    if mol.graph is None:
+        mol.reset_graph()
+
+    assert mol.graph is not None
+    core_graph = copy.deepcopy(mol.graph)
+
+    # join disconnected graphs
+    if core_graph.is_connected:
+        for components in core_graph.get_components():
+            pass
+
+    # The constraints should be counted as bonds
+    if mol.constraints.distance is not None:
+        for i, j in mol.constraints.distance:
+            if not core_graph.has_edge(i, j):
+                core_graph.add_edge(i, j, pi=False, active=False)
+
+
+def _add_distances_from_species(pic, species, core_graph, aux_bonds=True):
+    n = 0
+    for i, j in sorted(core_graph.edges):
+        if (
+            species.constraints.distance is not None
+            and (i, j) in species.constraints.distance
+        ):
+            r = species.constraints.distance[(i, j)]
+            pic.append(ConstrainedPrimitiveDistance(i, j, r))
+            n += 1
+        else:
+            pic.append(PrimitiveDistance(i, j))
+    assert n == species.constraints.n_distance
+
+    if not aux_bonds:
+        return None
+
+    for i, j in itertools.combinations(range(species.n_atoms), r=2):
+        if core_graph.has_edge(i, j):
+            continue
+        if species.distance(i, j) < 2.5 * species.eqm_bond_distance(i, j):
+            pic.append(PrimitiveDistance(i, j))
+    return None
+
+
+def _add_bends_from_species(
+    pic, species, core_graph, linear_angles=LinearAngleType.linear_bend
+):
+    for o in range(species.n_atoms):
+        for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
+            if species.angle(m, o, n) < Angle(175, "deg"):
+                pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
+            elif linear_angles == LinearAngleType.linear_bend:
+                pass  # todo linear bends
+            elif linear_angles == LinearAngleType.cos_angle:
+                pass
+            elif linear_angles == LinearAngleType.remove:
+                pass
+            else:
+                raise Exception(
+                    "Linear angle handling method not properly defined"
+                )
+
+    return None
+
+
+def _add_dihedrals_from_species(
+    pic, species, core_graph, robust_dihedrals=False
+):
+    # no dihedrals possible with less than 4 atoms
+    if species.n_atoms < 4:
+        return
+
+    for o, p in core_graph.edges:
+        for m in species.graph.neighbors(o):
+            if m == p:
+                continue
+
+            if species.angle(m, o, p) > Angle(175, "deg"):
+                continue
+
+            for n in species.graph.neighbors(p):
+                if n == o:
+                    continue
+
+                # avoid triangle rings like cyclopropane
+                if n == m:
+                    continue
+
+                is_linear_1 = species.angle(m, o, p) > Angle(175, "deg")
+                is_linear_2 = species.angle(o, p, n) > Angle(175, "deg")
+
+                # don't add when both angles are linear
+                if is_linear_1 and is_linear_2:
+                    continue
+
+                # if only one angle almost linear, add robust dihedral
+                if (is_linear_1 or is_linear_2) and robust_dihedrals:
+                    pass  # todo robust dihedrals
+                else:
+                    pic.append(PrimitiveDihedralAngle(m, o, p, n))
+
+    return None
