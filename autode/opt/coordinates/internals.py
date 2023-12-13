@@ -246,22 +246,15 @@ class AnyPIC(PIC):
         raise RuntimeError("Cannot populate all on an AnyPIC instance")
 
 
-class LinearAngleType(Enum):
-    linear_bend = 1
-    cos_angle = 2
-    remove = 3
-
-
 def build_pic_from_species(
     mol: "Species",
     aux_bonds=False,
-    linear_angles=LinearAngleType.remove,
     robust_dihedrals=False,
 ):
     pic = AnyPIC()
     core_graph = _get_connected_graph_from_species(mol)
     _add_bonds_from_species(pic, mol, core_graph, aux_bonds=aux_bonds)
-    _add_angles_from_species(pic, mol, core_graph, linear_angles=linear_angles)
+    _add_angles_from_species(pic, mol, core_graph)
     _add_dihedrals_from_species(
         pic, mol, core_graph, robust_dihedrals=robust_dihedrals
     )
@@ -357,43 +350,65 @@ def _add_bonds_from_species(pic, mol, core_graph, aux_bonds=False):
     return None
 
 
+class LinearAngleType(Enum):
+    linear_bend = 1
+    cos_angle = 2
+    remove = 3
+
+
 def _add_angles_from_species(
-    pic, species, core_graph, linear_angles=LinearAngleType.linear_bend
-):
-    for o in range(species.n_atoms):
+    pic: AnyPIC, mol: "Species", core_graph: "MolecularGraph"
+) -> None:
+    """
+    Modify the set of primitives in-place by adding angles, from the
+    connectivity graph supplied
+
+    Args:
+        pic: The AnyPIC instance (modified in-place)
+        mol: The species object
+        core_graph: The connectivity graph
+    """
+    for o in range(mol.n_atoms):
         for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
-            if species.angle(m, o, n) < Angle(175, "deg"):
+            # avoid almost linear angles
+            if mol.angle(m, o, n) < Angle(175, "deg"):
                 pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
-            elif linear_angles == LinearAngleType.linear_bend:
-                pass  # todo linear bends
-            elif linear_angles == LinearAngleType.cos_angle:
-                pass
-            elif linear_angles == LinearAngleType.remove:
-                pass
-            else:
-                raise Exception(
-                    "Linear angle handling method not properly defined"
-                )
 
     return None
 
 
 def _add_dihedrals_from_species(
-    pic, species, core_graph, robust_dihedrals=False
+    pic: AnyPIC,
+    mol: "Species",
+    core_graph: "MolecularGraph",
+    robust_dihedrals=False,
 ):
+    """
+    Modify the set of primitives in-place by adding dihedrals (torsions),
+    from the connectivity graph supplied
+
+    Args:
+        pic: The AnyPIC instance (modified in-place)
+        mol: The species
+        core_graph: The connectivity graph
+        robust_dihedrals:
+
+    Returns:
+
+    """
     # no dihedrals possible with less than 4 atoms
-    if species.n_atoms < 4:
+    if mol.n_atoms < 4:
         return
 
     for o, p in core_graph.edges:
-        for m in species.graph.neighbors(o):
+        for m in core_graph.neighbors(o):
             if m == p:
                 continue
 
-            if species.angle(m, o, p) > Angle(175, "deg"):
+            if mol.angle(m, o, p) > Angle(175, "deg"):
                 continue
 
-            for n in species.graph.neighbors(p):
+            for n in core_graph.neighbors(p):
                 if n == o:
                     continue
 
@@ -401,8 +416,8 @@ def _add_dihedrals_from_species(
                 if n == m:
                     continue
 
-                is_linear_1 = species.angle(m, o, p) > Angle(175, "deg")
-                is_linear_2 = species.angle(o, p, n) > Angle(175, "deg")
+                is_linear_1 = mol.angle(m, o, p) > Angle(175, "deg")
+                is_linear_2 = mol.angle(o, p, n) > Angle(175, "deg")
 
                 # don't add when both angles are linear
                 if is_linear_1 and is_linear_2:
