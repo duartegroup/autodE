@@ -6,6 +6,8 @@ x : Cartesian coordinates
 B : Wilson B matrix
 q : Primitive internal coordinates
 G : Spectroscopic G matrix
+
+Set-up of redundant primitives is based on J. Chem. Phys., 117, 2002, 9160
 """
 import copy
 
@@ -27,6 +29,7 @@ from autode.opt.coordinates.primitives import (
 
 if TYPE_CHECKING:
     from autode.species import Species
+    from autode.mol_graphs import MolecularGraph
     from autode.opt.coordinates.cartesian import CartesianCoordinates
     from autode.opt.coordinates.primitives import (
         ConstrainedPrimitive,
@@ -250,33 +253,64 @@ class LinearAngleType(Enum):
 
 
 def build_pic_from_species(
-    species,
+    mol: "Species",
     aux_bonds=False,
     linear_angles=LinearAngleType.remove,
     robust_dihedrals=False,
 ):
     pic = AnyPIC()
-    core_graph = species.graph.copy()
-    _add_distances_from_species(pic, species, core_graph, aux_bonds=aux_bonds)
-    _add_bends_from_species(
-        pic, species, core_graph, linear_angles=linear_angles
-    )
+    core_graph = _get_connected_graph_from_species(mol)
+    _add_bonds_from_species(pic, mol, core_graph, aux_bonds=aux_bonds)
+    _add_angles_from_species(pic, mol, core_graph, linear_angles=linear_angles)
     _add_dihedrals_from_species(
-        pic, species, core_graph, robust_dihedrals=robust_dihedrals
+        pic, mol, core_graph, robust_dihedrals=robust_dihedrals
     )
 
 
-def _get_connected_graph_from_species(mol: "Species"):
+def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
+    """
+    Creates a fully connected graph from a species, by (1) joining
+    disconnected fragments by their shortest distance, (2) connecting
+    constrained bonds, (3) joining hydrogen bonds, if present.
+
+    Args:
+        mol: A species containing atoms and coordinates
+
+    Returns:
+        (MolecularGraph):
+    """
+    # if graph does not exist, create one
     if mol.graph is None:
         mol.reset_graph()
 
     assert mol.graph is not None
     core_graph = copy.deepcopy(mol.graph)
 
-    # join disconnected graphs
-    if core_graph.is_connected:
-        for components in core_graph.get_components():
-            pass
+    # join disconnected graph components
+    if not core_graph.is_connected:
+        components = core_graph.get_components()
+        for comp_i, comp_j in itertools.combinations(components, r=2):
+            min_dist = float("inf")
+            min_pair = (-1, -1)
+            for i, j in itertools.product(list(comp_i), list(comp_j)):
+                if mol.distance(i, j) < min_dist:
+                    min_dist = mol.distance(i, j)
+                    min_pair = (i, j)
+            core_graph.add_edge(*min_pair, pi=False, active=False)
+
+    # join hydrogen bonds
+    h_bond_x = ["N", "O", "F", "P", "S", "Cl"]
+    for i, j in itertools.combinations(range(mol.n_atoms), r=2):
+        if (
+            mol.atoms[i].label in h_bond_x
+            and mol.atoms[j].label == "H"
+            or mol.atoms[j].label in h_bond_x
+            and mol.atoms[i].label == "H"
+        ):
+            vdw_sum = mol.atoms[i].vdw_radius + mol.atoms[j].vdw_radius
+            if mol.distance(i, j) < 0.9 * vdw_sum:
+                if not core_graph.has_edge(i, j):
+                    core_graph.add_edge(i, j, pi=False, active=False)
 
     # The constraints should be counted as bonds
     if mol.constraints.distance is not None:
@@ -284,33 +318,46 @@ def _get_connected_graph_from_species(mol: "Species"):
             if not core_graph.has_edge(i, j):
                 core_graph.add_edge(i, j, pi=False, active=False)
 
+    return core_graph
 
-def _add_distances_from_species(pic, species, core_graph, aux_bonds=True):
+
+def _add_bonds_from_species(pic, mol, core_graph, aux_bonds=False):
+    """
+    Modify the supplied AnyPIC instance in-place by adding bonds, from the
+    connectivity graph supplied
+
+    Args:
+        pic: The AnyPIC instance (modified in-place)
+        mol: The species object
+        core_graph: The connectivity graph
+        aux_bonds: Whether to add auxiliary bonds (< 2.5 * covalent radii sum)
+    """
     n = 0
     for i, j in sorted(core_graph.edges):
         if (
-            species.constraints.distance is not None
-            and (i, j) in species.constraints.distance
+            mol.constraints.distance is not None
+            and (i, j) in mol.constraints.distance
         ):
-            r = species.constraints.distance[(i, j)]
+            r = mol.constraints.distance[(i, j)]
             pic.append(ConstrainedPrimitiveDistance(i, j, r))
             n += 1
         else:
             pic.append(PrimitiveDistance(i, j))
-    assert n == species.constraints.n_distance
+    assert n == mol.constraints.n_distance
 
     if not aux_bonds:
         return None
 
-    for i, j in itertools.combinations(range(species.n_atoms), r=2):
+    # add auxiliary bonds if specified
+    for i, j in itertools.combinations(range(mol.n_atoms), r=2):
         if core_graph.has_edge(i, j):
             continue
-        if species.distance(i, j) < 2.5 * species.eqm_bond_distance(i, j):
+        if mol.distance(i, j) < 2.5 * mol.eqm_bond_distance(i, j):
             pic.append(PrimitiveDistance(i, j))
     return None
 
 
-def _add_bends_from_species(
+def _add_angles_from_species(
     pic, species, core_graph, linear_angles=LinearAngleType.linear_bend
 ):
     for o in range(species.n_atoms):
