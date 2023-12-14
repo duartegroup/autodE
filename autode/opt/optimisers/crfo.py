@@ -1,4 +1,5 @@
-"""Constrained rational function optimisation
+"""
+Constrained rational function optimisation
 
 Notation follows:
 [1] J. Baker, J. Comput. Chem., 18, 8 1080
@@ -11,7 +12,11 @@ from itertools import combinations
 from autode.log import logger
 from autode.values import GradientRMS, Angle, Distance
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.internals import PIC, AnyPIC
+from autode.opt.coordinates.internals import (
+    PIC,
+    AnyPIC,
+    build_pic_from_species,
+)
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
 from autode.opt.coordinates.primitives import (
@@ -125,63 +130,13 @@ class CRFOptimiser(RFOptimiser):
             )
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
-        primitives = self._primitives
-
-        if len(primitives) < cartesian_coords.expected_number_of_dof:
-            logger.info(
-                "Had an incomplete set of primitives. Adding "
-                "additional distances"
-            )
-            for i, j in combinations(range(self._species.n_atoms), 2):
-                primitives.append(PrimitiveDistance(i, j))
+        primitives = build_pic_from_species(self._species)
 
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords, primitives=primitives
         )
         self._coords.zero_lagrangian_multipliers()
         return None
-
-    @property
-    def _primitives(self) -> PIC:
-        """Primitive internal coordinates in this molecule"""
-        assert self._species and self._species.graph
-        logger.info("Generating primitive internal coordinates")
-        graph = self._species.graph.copy()
-
-        # Any distance constraints should also count as 'bonds' when forming
-        # the set of primitive internal coordinates, so that there is a
-        # single molecule if those distances are approaching dissociation
-        if self._species.constraints.distance is not None:
-            logger.info("Adding distance constraints as primitives")
-            for i, j in self._species.constraints.distance:
-                graph.add_edge(i, j)
-
-        pic = AnyPIC()
-
-        for i, j in sorted(graph.edges):
-            if (
-                self._species.constraints.distance
-                and (i, j) in self._species.constraints.distance
-            ):
-                r = self._species.constraints.distance[(i, j)]
-                pic.append(ConstrainedPrimitiveDistance(i, j, value=r))
-
-            else:
-                pic.append(PrimitiveDistance(i, j))
-
-        for o in range(self._species.n_atoms):
-            for n, m in combinations(graph.neighbors(o), r=2):
-                pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
-
-        if self._species.n_atoms > 2 and not self._species.is_planar():
-            for dihedral in _dihedrals(self._species):
-                pic.append(dihedral)
-
-        logger.info(
-            f"Using {pic.n_constrained} constraints in {len(pic)} "
-            f"primitive internal coordinates"
-        )
-        return pic
 
     def _lambda_p_from_eigvals_and_gradient(
         self, b: np.ndarray, f: np.ndarray

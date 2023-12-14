@@ -249,15 +249,26 @@ class AnyPIC(PIC):
 def build_pic_from_species(
     mol: "Species",
     aux_bonds=False,
-    robust_dihedrals=False,
-):
+) -> AnyPIC:
+    """
+    Build a set of primitives from the species, using the graph as
+    a starting point for the connectivity of the species. Also joins
+    any disjoint parts of the graph, and adds hydrogen bonds to
+    ensure that the primitives are redundant
+
+    Args:
+        mol:
+        aux_bonds:
+
+    Returns:
+        (AnyPIC): The set of primitive internals
+    """
     pic = AnyPIC()
     core_graph = _get_connected_graph_from_species(mol)
     _add_bonds_from_species(pic, mol, core_graph, aux_bonds=aux_bonds)
     _add_angles_from_species(pic, mol, core_graph)
-    _add_dihedrals_from_species(
-        pic, mol, core_graph, robust_dihedrals=robust_dihedrals
-    )
+    _add_dihedrals_from_species(pic, mol, core_graph)
+    return pic
 
 
 def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
@@ -314,7 +325,12 @@ def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
     return core_graph
 
 
-def _add_bonds_from_species(pic, mol, core_graph, aux_bonds=False):
+def _add_bonds_from_species(
+    pic: AnyPIC,
+    mol: "Species",
+    core_graph: "MolecularGraph",
+    aux_bonds: bool = False,
+):
     """
     Modify the supplied AnyPIC instance in-place by adding bonds, from the
     connectivity graph supplied
@@ -381,8 +397,7 @@ def _add_dihedrals_from_species(
     pic: AnyPIC,
     mol: "Species",
     core_graph: "MolecularGraph",
-    robust_dihedrals=False,
-):
+) -> None:
     """
     Modify the set of primitives in-place by adding dihedrals (torsions),
     from the connectivity graph supplied
@@ -391,10 +406,6 @@ def _add_dihedrals_from_species(
         pic: The AnyPIC instance (modified in-place)
         mol: The species
         core_graph: The connectivity graph
-        robust_dihedrals:
-
-    Returns:
-
     """
     # no dihedrals possible with less than 4 atoms
     if mol.n_atoms < 4:
@@ -419,13 +430,9 @@ def _add_dihedrals_from_species(
                 is_linear_1 = mol.angle(m, o, p) > Angle(175, "deg")
                 is_linear_2 = mol.angle(o, p, n) > Angle(175, "deg")
 
-                # don't add when both angles are linear
-                if is_linear_1 and is_linear_2:
+                # if any angle is linear, don't add dihedral
+                if is_linear_1 or is_linear_2:
                     continue
-
-                # if only one angle almost linear, add robust dihedral
-                if (is_linear_1 or is_linear_2) and robust_dihedrals:
-                    pass  # todo robust dihedrals
                 else:
                     pic.append(PrimitiveDihedralAngle(m, o, p, n))
 
