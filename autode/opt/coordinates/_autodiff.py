@@ -580,7 +580,9 @@ class DifferentiableVector3D:
     hyper-dual numbers
     """
 
-    def __init__(self, items: Sequence["VectorHyperDual"]):
+    def __init__(
+        self, items: Sequence[Union["VectorHyperDual", numeric_type]]
+    ):
         """
         Initialise the 3D vector from a list of 3 hyperdual numbers
 
@@ -590,7 +592,9 @@ class DifferentiableVector3D:
         items = list(items)
         if len(items) != 3:
             raise ValueError("A 3D vector must have only 3 components")
-        assert all(isinstance(item, VectorHyperDual) for item in items)
+        assert all(
+            isinstance(item, (VectorHyperDual, *numeric)) for item in items
+        )
         self._data = items
 
     @staticmethod
@@ -611,7 +615,7 @@ class DifferentiableVector3D:
             (VectorHyperDual): A scalar number (with derivatives)
         """
         self._check_same_type(other)
-        dot = 0
+        dot: Union[VectorHyperDual, numeric_type] = 0
         for k in range(3):
             dot = dot + self._data[k] * other._data[k]
         assert isinstance(dot, VectorHyperDual)
@@ -702,6 +706,7 @@ class DifferentiableVector3D:
         Returns:
             (DifferentiableVector3D):
         """
+        self._check_same_type(other)
         return DifferentiableVector3D(
             [
                 self._data[1] * other._data[2]

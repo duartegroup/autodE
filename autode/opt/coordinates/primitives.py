@@ -1,7 +1,7 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Tuple, TYPE_CHECKING, List
+from typing import Tuple, TYPE_CHECKING, List, Optional
 from autode.opt.coordinates._autodiff import (
     get_differentiable_vars,
     DifferentiableMath,
@@ -405,3 +405,68 @@ class PrimitiveDihedralAngle(Primitive):
 
     def __repr__(self):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
+
+
+class PrimitiveLinearAngle(Primitive):
+    def __init__(self, m: int, o: int, n: int, axis: int):
+        """Linear Bend: m-o-n"""
+        super().__init__(m, o, n)
+        self.m = int(m)
+        self.o = int(o)
+        self.n = int(n)
+
+        self.axis = int(axis)
+        if self.axis not in [1, 2]:
+            raise ValueError("The axis must be 1 or 2")
+
+        self.axis_vec: Optional[DifferentiableVector3D] = None
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and (
+            self._ordered_idxs == other._ordered_idxs
+            and self.o == other.o
+            and self.axis == other.axis
+        )
+        # todo check the sign of the bends if m and n swapped
+
+    def _init_axis(self, x: "CartesianCoordinates") -> None:
+        _x = x.reshape(-1, 3)
+        cart_axes = [
+            np.array([1.0, 0.0, 0.0]),
+            np.array([0.0, 1.0, 0.0]),
+            np.array([0.0, 0.0, 1.0]),
+        ]
+        # choose cartesian axis with the lowest overlap with m-n vector
+        _m, _n = _x[self.m], _x[self.n]
+        w = _m - _n
+        w /= np.linalg.norm(w)
+        overlaps = []
+        for axis in cart_axes:
+            overlaps.append(np.dot(w, axis))
+        cart_ax = cart_axes[np.argmin(overlaps)]
+        # make the axis completely perpendicular
+        perp_axis = cart_ax - np.dot(cart_ax, w) * w
+        self.axis_vec = DifferentiableVector3D(list(perp_axis))
+        return None
+
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ):
+        """Linear Bend angle m-o-n against a Cartesian axis"""
+        if self.axis_vec is None:
+            self._init_axis(x)
+
+        assert self.axis_vec is not None
+        _x = x.ravel()
+        vec_m, vec_o, vec_n = _get_3d_vecs_from_atom_idxs(
+            self.m, self.o, self.n, x=_x, deriv_order=deriv_order
+        )
+        w = vec_m - vec_n
+
+        cross_vec = w.cross(self.axis_vec)
+        if self.axis == 2:
+            cross_vec = w.cross(cross_vec)
+
+        u = vec_m - vec_o
+        v = vec_n - vec_o
+        return cross_vec.dot(u.cross(v)) / (u.norm() * v.norm())
