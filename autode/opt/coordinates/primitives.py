@@ -470,3 +470,6 @@ class PrimitiveLinearAngle(Primitive):
         u = vec_m - vec_o
         v = vec_n - vec_o
         return cross_vec.dot(u.cross(v)) / (u.norm() * v.norm())
+
+    def __repr__(self):
+        return f"LinearBend{self.axis}({self.m}-{self.o}-{self.n})"

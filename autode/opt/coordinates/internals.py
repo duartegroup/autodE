@@ -24,6 +24,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveDistance,
     ConstrainedPrimitiveDistance,
     PrimitiveBondAngle,
+    PrimitiveLinearAngle,
     PrimitiveDihedralAngle,
 )
 
@@ -389,6 +390,10 @@ def _add_angles_from_species(
             # avoid almost linear angles
             if mol.angle(m, o, n) < Angle(175, "deg"):
                 pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
+            else:
+                # stabilise linear angles by two orthogonal bends
+                pic.append(PrimitiveLinearAngle(m, o, n, 1))
+                pic.append(PrimitiveLinearAngle(m, o, n, 2))
 
     return None
 
