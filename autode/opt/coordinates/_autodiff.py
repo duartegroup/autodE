@@ -694,6 +694,18 @@ class DifferentiableVector3D:
         """Multiplication of scalar and vector is commutative"""
         return self.__mul__(other)
 
+    def __truediv__(self, other: Union[VectorHyperDual, numeric_type]):
+        """
+        Division of a 3D vector with a scalar
+
+        Args:
+            other (VectorHyperDual|float|int):
+
+        Returns:
+            (DifferentiableVector3D):
+        """
+        return self.__mul__(1 / other)
+
     def cross(
         self, other: "DifferentiableVector3D"
     ) -> "DifferentiableVector3D":

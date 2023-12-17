@@ -1,6 +1,7 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Tuple, TYPE_CHECKING, List, Optional
 from autode.opt.coordinates._autodiff import (
     get_differentiable_vars,
@@ -407,18 +408,23 @@ class PrimitiveDihedralAngle(Primitive):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
 
 
+class LinearBendType(Enum):
+    """For linear angles, there are two orthogonal directions"""
+
+    BEND = 0
+    COMPLEMENT = 1
+
+
 class PrimitiveLinearAngle(Primitive):
-    def __init__(self, m: int, o: int, n: int, axis: int):
+    def __init__(self, m: int, o: int, n: int, axis: LinearBendType):
         """Linear Bend: m-o-n"""
         super().__init__(m, o, n)
         self.m = int(m)
         self.o = int(o)
         self.n = int(n)
 
-        self.axis = int(axis)
-        if self.axis not in [1, 2]:
-            raise ValueError("The axis must be 1 or 2")
-
+        assert isinstance(axis, LinearBendType)
+        self.axis = axis
         self.axis_vec: Optional[DifferentiableVector3D] = None
 
     def __eq__(self, other):
@@ -427,7 +433,7 @@ class PrimitiveLinearAngle(Primitive):
             and self.o == other.o
             and self.axis == other.axis
         )
-        # todo check the sign of the bends if m and n swapped
+        # TODO: check the sign of the bends if m and n swapped
 
     def _init_axis(self, x: "CartesianCoordinates") -> None:
         _x = x.reshape(-1, 3)
@@ -436,6 +442,7 @@ class PrimitiveLinearAngle(Primitive):
             np.array([0.0, 1.0, 0.0]),
             np.array([0.0, 0.0, 1.0]),
         ]
+
         # choose cartesian axis with the lowest overlap with m-n vector
         _m, _n = _x[self.m], _x[self.n]
         w = _m - _n
@@ -443,9 +450,11 @@ class PrimitiveLinearAngle(Primitive):
         overlaps = []
         for axis in cart_axes:
             overlaps.append(np.dot(w, axis))
-        cart_ax = cart_axes[np.argmin(overlaps)]
-        # make the axis completely perpendicular
+        cart_ax = cart_axes[np.argmin(np.abs(overlaps))]
+
+        # make the axis completely perpendicular to m-n vector
         perp_axis = cart_ax - np.dot(cart_ax, w) * w
+        perp_axis /= np.linalg.norm(perp_axis)
         self.axis_vec = DifferentiableVector3D(list(perp_axis))
         return None
 
@@ -462,9 +471,12 @@ class PrimitiveLinearAngle(Primitive):
             self.m, self.o, self.n, x=_x, deriv_order=deriv_order
         )
         w = vec_m - vec_n
+        w = w / w.norm()
+        # TODO: does w need to be normalised?
 
         cross_vec = w.cross(self.axis_vec)
-        if self.axis == 2:
+        # if complement is requested, perform another cross product
+        if self.axis == LinearBendType.COMPLEMENT:
             cross_vec = w.cross(cross_vec)
 
         u = vec_m - vec_o

@@ -15,6 +15,8 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
     PrimitiveDihedralAngle,
+    PrimitiveLinearAngle,
+    LinearBendType,
 )
 
 
@@ -611,6 +613,35 @@ def test_dihedral_equality():
     )
 
 
+def test_linear_angle():
+    acetylene = Molecule(
+        atoms=[
+            Atom("C", 0.35540, -0.20370, -0.44810),
+            Atom("C", -0.37180, 0.21470, 0.40200),
+            Atom("H", 1.01560, -0.60550, -1.23530),
+            Atom("H", -0.99920, 0.59450, 1.15720),
+        ]
+    )
+    x = CartesianCoordinates(acetylene.coordinates)
+    angle = PrimitiveLinearAngle(0, 1, 2, LinearBendType.BEND)
+    assert angle.axis_vec is None
+    angle._init_axis(x)
+    assert angle.axis_vec is not None
+    axis_vec = np.array(angle.axis_vec._data)
+    m_n_vec = acetylene.coordinates[0] - acetylene.coordinates[2]
+    assert np.dot(axis_vec, m_n_vec) < 0.001
+
+    # the atom order can be reversed without any change in the values
+    angle2 = PrimitiveLinearAngle(2, 1, 0, LinearBendType.BEND)
+    assert np.isclose(angle(x), angle2(x))
+    assert angle == angle2
+
+    # however, linear bend complement would not be the same
+    angle3 = PrimitiveLinearAngle(0, 1, 2, LinearBendType.COMPLEMENT)
+    assert angle != angle3
+    assert not np.isclose(angle(x), angle3(x), rtol=1e-3)
+
+
 def test_primitives_consistent_with_mol_values():
     # test that the primitive values are the same as the mol.distance etc.
     h2o2 = h2o2_mol()
@@ -626,7 +657,7 @@ def test_primitives_consistent_with_mol_values():
 
 
 # fmt: off
-dihedral_mols = [
+extra_mols = [
     Molecule(
         atoms=[
             Atom("C", 0.63365, 0.11934, -0.13163),
@@ -642,18 +673,27 @@ dihedral_mols = [
             Atom("H", 1.28230, -0.63391, -0.54779),
             Atom("H", -1.08517, -1.07984, -0.05599),
         ]
-    )  # for testing dihedral derivatives over zero
+    ),  # for testing dihedral derivatives over zero
+    Molecule(
+        atoms=[
+            Atom("C", 0.35540, -0.20370, -0.44810),
+            Atom("C", -0.37180, 0.21470, 0.40200),
+            Atom("H", 1.01560, -0.60550, -1.23530),
+            Atom("H", -0.99920, 0.59450, 1.15720),
+        ]
+    )  # for testing linear angles
 ]
 
 test_mols = [
     h2o2_mol(), h2o2_mol(), water_mol(),
-    water_mol(), water_mol(), *dihedral_mols
+    water_mol(), water_mol(), *extra_mols
 ]
 test_prims = [
     PrimitiveDihedralAngle(2, 0, 1, 3), PrimitiveBondAngle(2, 0, 1),
     PrimitiveBondAngle(0, 1, 2), PrimitiveDistance(0, 1),
     PrimitiveInverseDistance(0, 1), PrimitiveDihedralAngle(2, 0, 1, 3),
-    PrimitiveDihedralAngle(2, 0, 1, 3)
+    PrimitiveDihedralAngle(2, 0, 1, 3),
+    PrimitiveLinearAngle(0, 1, 2, LinearBendType.BEND)
 ]
 # fmt: on
 

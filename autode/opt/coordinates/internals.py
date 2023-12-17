@@ -26,6 +26,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     PrimitiveLinearAngle,
     PrimitiveDihedralAngle,
+    LinearBendType,
 )
 
 if TYPE_CHECKING:
@@ -367,12 +368,6 @@ def _add_bonds_from_species(
     return None
 
 
-class LinearAngleType(Enum):
-    linear_bend = 1
-    cos_angle = 2
-    remove = 3
-
-
 def _add_angles_from_species(
     pic: AnyPIC, mol: "Species", core_graph: "MolecularGraph"
 ) -> None:
@@ -392,8 +387,10 @@ def _add_angles_from_species(
                 pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
             else:
                 # stabilise linear angles by two orthogonal bends
-                pic.append(PrimitiveLinearAngle(m, o, n, 1))
-                pic.append(PrimitiveLinearAngle(m, o, n, 2))
+                pic.append(PrimitiveLinearAngle(m, o, n, LinearBendType.BEND))
+                pic.append(
+                    PrimitiveLinearAngle(m, o, n, LinearBendType.COMPLEMENT)
+                )
 
     return None
 
