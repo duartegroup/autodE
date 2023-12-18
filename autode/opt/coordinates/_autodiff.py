@@ -604,7 +604,9 @@ class DifferentiableVector3D:
             raise ValueError("Operation must be done with another 3D vector!")
         return None
 
-    def dot(self, other: "DifferentiableVector3D") -> "VectorHyperDual":
+    def dot(
+        self, other: "DifferentiableVector3D"
+    ) -> Union["VectorHyperDual", numeric_type]:
         """
         Dot product of two 3D vectors
 
@@ -618,10 +620,9 @@ class DifferentiableVector3D:
         dot: Union[VectorHyperDual, numeric_type] = 0
         for k in range(3):
             dot = dot + self._data[k] * other._data[k]
-        assert isinstance(dot, VectorHyperDual)
         return dot
 
-    def norm(self) -> "VectorHyperDual":
+    def norm(self) -> Union["VectorHyperDual", numeric_type]:
         """
         Euclidean (l2) norm of this 3D vector
 
@@ -631,7 +632,6 @@ class DifferentiableVector3D:
         norm = DifferentiableMath.sqrt(
             self._data[0] ** 2 + self._data[1] ** 2 + self._data[2] ** 2
         )
-        assert isinstance(norm, VectorHyperDual)
         return norm
 
     def __add__(

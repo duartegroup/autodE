@@ -239,7 +239,7 @@ class PrimitiveInverseDistance(_DistanceFunction):
         vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
-        return 1.0 / (vec_i - vec_j).norm()
+        return 1.0 / (vec_i - vec_j).norm()  # type: ignore
 
     def __repr__(self):
         return f"InverseDistance({self.i}-{self.j})"
@@ -261,7 +261,7 @@ class PrimitiveDistance(_DistanceFunction):
         vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
-        return (vec_i - vec_j).norm()
+        return (vec_i - vec_j).norm()  # type: ignore
 
     def __repr__(self):
         return f"Distance({self.i}-{self.j})"
@@ -446,6 +446,7 @@ class PrimitiveLinearAngle(Primitive):
         # choose cartesian axis with the lowest overlap with m-n vector
         _m, _n = _x[self.m], _x[self.n]
         w = _m - _n
+        w /= np.linalg.norm(w)
         overlaps = []
         for axis in cart_axes:
             overlaps.append(np.dot(w, axis))
@@ -483,4 +484,5 @@ class PrimitiveLinearAngle(Primitive):
         return self.axis_vec.dot(u.cross(v)) / (u.norm() * v.norm())
 
     def __repr__(self):
-        return f"LinearBend{self.axis}({self.m}-{self.o}-{self.n})"
+        axis_str = "B" if self.axis == LinearBendType.BEND else "C"
+        return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n})"
