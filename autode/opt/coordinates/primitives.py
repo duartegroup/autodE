@@ -477,9 +477,6 @@ class PrimitiveLinearAngle(Primitive):
         vec_m, vec_o, vec_n = _get_3d_vecs_from_atom_idxs(
             self.m, self.o, self.n, x=_x, deriv_order=deriv_order
         )
-        w = vec_m - vec_n
-        w = w / w.norm()
-        # TODO: does w need to be normalised?
 
         u = vec_m - vec_o
         v = vec_n - vec_o
