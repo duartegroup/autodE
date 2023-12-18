@@ -446,16 +446,23 @@ class PrimitiveLinearAngle(Primitive):
         # choose cartesian axis with the lowest overlap with m-n vector
         _m, _n = _x[self.m], _x[self.n]
         w = _m - _n
-        w /= np.linalg.norm(w)
         overlaps = []
         for axis in cart_axes:
             overlaps.append(np.dot(w, axis))
         cart_ax = cart_axes[np.argmin(np.abs(overlaps))]
 
-        # make the axis completely perpendicular to m-n vector
-        perp_axis = cart_ax - np.dot(cart_ax, w) * w
-        perp_axis /= np.linalg.norm(perp_axis)
-        self.axis_vec = DifferentiableVector3D(list(perp_axis))
+        # generate perpendicular axis by cross product
+        first_axis = np.cross(cart_ax, w)
+        if self.axis == LinearBendType.BEND:
+            axis_vec = first_axis / np.linalg.norm(first_axis)
+        elif self.axis == LinearBendType.COMPLEMENT:
+            second_axis = np.cross(first_axis, w)
+            axis_vec = second_axis / np.linalg.norm(second_axis)
+        else:
+            raise ValueError("Unknown axis type for linear bend")
+
+        self.axis_vec = DifferentiableVector3D(list(axis_vec))
+
         return None
 
     def _evaluate(
@@ -474,14 +481,9 @@ class PrimitiveLinearAngle(Primitive):
         w = w / w.norm()
         # TODO: does w need to be normalised?
 
-        cross_vec = w.cross(self.axis_vec)
-        # if complement is requested, perform another cross product
-        if self.axis == LinearBendType.COMPLEMENT:
-            cross_vec = w.cross(cross_vec)
-
         u = vec_m - vec_o
         v = vec_n - vec_o
-        return cross_vec.dot(u.cross(v)) / (u.norm() * v.norm())
+        return self.axis_vec.dot(u.cross(v)) / (u.norm() * v.norm())
 
     def __repr__(self):
         return f"LinearBend{self.axis}({self.m}-{self.o}-{self.n})"
