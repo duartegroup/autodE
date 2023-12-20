@@ -415,7 +415,7 @@ class LinearBendType(Enum):
     COMPLEMENT = 1
 
 
-class AbstractLinearAngle(Primitive, ABC):
+class LinearAngleBase(Primitive, ABC):
     def __init__(self, m: int, o: int, n: int, r: int, axis: LinearBendType):
         """Linear Bend: m-o-n"""
         super().__init__(m, o, n, r)
@@ -470,13 +470,17 @@ class AbstractLinearAngle(Primitive, ABC):
             return u.dot(o_n) / o_n.norm()
         elif self.axis == LinearBendType.COMPLEMENT:
             return u.dot(o_n.cross(o_m)) / (o_n.norm() * o_m.norm())
+        else:
+            raise ValueError("Unknown axis for linear bend")
 
 
-class PrimitiveLinearAngle(AbstractLinearAngle):
+class PrimitiveLinearAngle(LinearAngleBase):
+    """Linear Angle w.r.t. a reference atom"""
+
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ):
-        """Linear Bend angle m-o-n against a Cartesian axis"""
+        """Linear Bend angle m-o-n against reference atom r"""
 
         _x = x.ravel()
         vec_m, vec_o, vec_n, vec_r = _get_3d_vecs_from_atom_idxs(
@@ -490,16 +494,18 @@ class PrimitiveLinearAngle(AbstractLinearAngle):
         return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, {self.r})"
 
 
-class PrimitiveDummyLinearAngle(AbstractLinearAngle):
+class PrimitiveDummyLinearAngle(LinearAngleBase):
     """Linear bend with a dummy atom"""
 
     def __init__(self, m: int, o: int, n: int, axis: LinearBendType):
         super().__init__(m, o, n, -1, axis)
 
-        self._dummy: Optional[DifferentiableVector3D] = None
+        self._vec_r: Optional[DifferentiableVector3D] = None
 
-    def _init_dummy_atom(self, x: "CartesianCoordinates") -> None:
-        """Create the dummy atom"""
+    def _get_dummy_atom(
+        self, x: "CartesianCoordinates"
+    ) -> DifferentiableVector3D:
+        """Create the dummy atom r"""
         _x = x.reshape(-1, 3)
         cart_axes = [
             np.array([1.0, 0.0, 0.0]),
@@ -507,33 +513,32 @@ class PrimitiveDummyLinearAngle(AbstractLinearAngle):
             np.array([0.0, 0.0, 1.0]),
         ]
 
-        # choose cartesian axis with the lowest overlap with m-n vector
-        _m, _n = _x[self.m], _x[self.n]
-        w = _m - _n
+        # choose cartesian axis with the lowest overlap with m-o vector
+        w = _x[self.m] - _x[self.o]
         w /= np.linalg.norm(w)
         overlaps = []
         for axis in cart_axes:
             overlaps.append(np.dot(w, axis))
         cart_ax = cart_axes[np.argmin(np.abs(overlaps))]
 
-        # generate perpendicular axis by cross product
-        first_axis = np.cross(cart_ax, w)
-        if self.axis == LinearBendType.BEND:
-            axis_vec = first_axis / np.linalg.norm(first_axis)
-        elif self.axis == LinearBendType.COMPLEMENT:
-            second_axis = np.cross(first_axis, w)
-            axis_vec = second_axis / np.linalg.norm(second_axis)
-        else:
-            raise ValueError("Unknown axis type for linear bend")
-
-        self.axis_vec = DifferentiableVector3D(list(axis_vec))
-
-        return None
+        # place dummy atom perpendicular to m-o bond 1 A away
+        perp_axis = np.cross(cart_ax, w)
+        _o = _x[self.o]
+        dummy_point = _o + perp_axis / np.linalg.norm(perp_axis)
+        return DifferentiableVector3D(list(dummy_point))
 
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ):
-        pass
+        if self._vec_r is None:
+            self._vec_r = self._get_dummy_atom(x)
+
+        _x = x.ravel()
+        vec_m, vec_o, vec_n = _get_3d_vecs_from_atom_idxs(
+            self.m, self.o, self.n, x=_x, deriv_order=deriv_order
+        )
+
+        return self._calc_linear_bend(vec_m, vec_o, vec_n, self._vec_r)
 
     def __repr__(self):
         axis_str = "B" if self.axis == LinearBendType.BEND else "C"
