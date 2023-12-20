@@ -16,7 +16,7 @@ from enum import Enum
 import itertools
 from typing import Any, Optional, Type, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
-from autode.values import Angle
+from autode.values import Angle, Distance
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.coordinates.primitives import (
     PrimitiveInverseDistance,
@@ -24,6 +24,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveDistance,
     ConstrainedPrimitiveDistance,
     PrimitiveBondAngle,
+    PrimitiveDummyLinearAngle,
     PrimitiveLinearAngle,
     PrimitiveDihedralAngle,
     LinearBendType,
@@ -391,6 +392,33 @@ def _add_angles_from_species(
         mol: The species object
         core_graph: The connectivity graph
     """
+
+    def get_ref_atom(a, b, c):
+        """get a reference atom for a-b-c linear angle"""
+        # all atoms in 4 A radius
+        near_atoms = [
+            idx
+            for idx in range(mol.n_atoms)
+            if mol.distance(b, idx) < Distance(4.0, "ang")
+        ]
+        deviations_from_90 = []
+        for atom in near_atoms:
+            i_b_a = mol.angle(atom, b, a)
+            if i_b_a > lin_thresh or i_b_a < 180 - lin_thresh:
+                continue
+            i_b_c = mol.angle(atom, b, c)
+            if i_b_c > lin_thresh or i_b_c < 180 - lin_thresh:
+                continue
+            deviation_a = abs(i_b_a - Angle(90, "deg"))
+            deviation_c = abs(i_b_c - Angle(90, "deg"))
+            avg_dev = (deviation_a + deviation_c) / 2
+            deviations_from_90.append(avg_dev)
+
+        if len(deviations_from_90) == 0:
+            return None
+
+        return near_atoms[np.argmin(deviations_from_90)]
+
     for o in range(mol.n_atoms):
         for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
             # avoid almost linear angles
@@ -407,8 +435,28 @@ def _add_angles_from_species(
                     mol.angle(n, o, x) < lin_thresh for x in other_neighbours
                 ):
                     continue
-                # TODO: use other atoms for linear bend instead
-                # stabilise linear angles by two orthogonal bends
+
+                # for linear bends, ideally a reference atom is needed
+                r = get_ref_atom(m, o, n)
+                if r is not None:
+                    pic.append(
+                        PrimitiveLinearAngle(m, o, n, r, LinearBendType.BEND)
+                    )
+                    pic.append(
+                        PrimitiveLinearAngle(
+                            m, o, n, r, LinearBendType.COMPLEMENT
+                        )
+                    )
+                else:  # these use dummy atom for reference
+                    pic.append(
+                        PrimitiveDummyLinearAngle(m, o, n, LinearBendType.BEND)
+                    )
+                    pic.append(
+                        PrimitiveDummyLinearAngle(
+                            m, o, n, LinearBendType.COMPLEMENT
+                        )
+                    )
+
     return None
 
 
@@ -481,5 +529,4 @@ def _add_dihedrals_from_species(
                     continue
                 else:
                     pic.append(PrimitiveDihedralAngle(m, o, p, n))
-    pass
     return None

@@ -542,4 +542,4 @@ class PrimitiveDummyLinearAngle(LinearAngleBase):
 
     def __repr__(self):
         axis_str = "B" if self.axis == LinearBendType.BEND else "C"
-        return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n})"
+        return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, D)"
