@@ -415,17 +415,17 @@ class LinearBendType(Enum):
     COMPLEMENT = 1
 
 
-class PrimitiveLinearAngle(Primitive):
-    def __init__(self, m: int, o: int, n: int, axis: LinearBendType):
+class AbstractLinearAngle(Primitive, ABC):
+    def __init__(self, m: int, o: int, n: int, r: int, axis: LinearBendType):
         """Linear Bend: m-o-n"""
-        super().__init__(m, o, n)
+        super().__init__(m, o, n, r)
         self.m = int(m)
         self.o = int(o)
         self.n = int(n)
+        self.r = int(r)
 
         assert isinstance(axis, LinearBendType)
         self.axis = axis
-        self.axis_vec: Optional[DifferentiableVector3D] = None
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and (
@@ -435,7 +435,71 @@ class PrimitiveLinearAngle(Primitive):
         )
         # TODO: check the sign of the bends if m and n swapped
 
-    def _init_axis(self, x: "CartesianCoordinates") -> None:
+    def _calc_linear_bend(
+        self,
+        m_vec: DifferentiableVector3D,
+        o_vec: DifferentiableVector3D,
+        n_vec: DifferentiableVector3D,
+        r_vec: DifferentiableVector3D,
+    ):
+        """
+        Evaluate the linear bend from the vector positions of the
+        atoms involved in the angle m, o, n, and the reference
+        atom (or dummy atom) r
+
+        Args:
+            m_vec:
+            o_vec:
+            n_vec:
+            r_vec:
+
+        Returns:
+            (VectorHyperDual): The value, optionally containing derivatives
+        """
+        # As defined in J. Comput. Chem., 20(10), 1999, 1067
+        o_m = m_vec - o_vec
+        o_n = n_vec - o_vec
+        o_r = r_vec - o_vec
+
+        # eq.(44) p 1073
+        u = o_m.cross(o_r)
+        u = u / u.norm()
+
+        # eq. (46) and (47) p 1074
+        if self.axis == LinearBendType.BEND:
+            return u.dot(o_n) / o_n.norm()
+        elif self.axis == LinearBendType.COMPLEMENT:
+            return u.dot(o_n.cross(o_m)) / (o_n.norm() * o_m.norm())
+
+
+class PrimitiveLinearAngle(AbstractLinearAngle):
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ):
+        """Linear Bend angle m-o-n against a Cartesian axis"""
+
+        _x = x.ravel()
+        vec_m, vec_o, vec_n, vec_r = _get_3d_vecs_from_atom_idxs(
+            self.m, self.o, self.n, self.r, x=_x, deriv_order=deriv_order
+        )
+
+        return self._calc_linear_bend(vec_m, vec_o, vec_n, vec_r)
+
+    def __repr__(self):
+        axis_str = "B" if self.axis == LinearBendType.BEND else "C"
+        return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, {self.r})"
+
+
+class PrimitiveDummyLinearAngle(AbstractLinearAngle):
+    """Linear bend with a dummy atom"""
+
+    def __init__(self, m: int, o: int, n: int, axis: LinearBendType):
+        super().__init__(m, o, n, -1, axis)
+
+        self._dummy: Optional[DifferentiableVector3D] = None
+
+    def _init_dummy_atom(self, x: "CartesianCoordinates") -> None:
+        """Create the dummy atom"""
         _x = x.reshape(-1, 3)
         cart_axes = [
             np.array([1.0, 0.0, 0.0]),
@@ -469,19 +533,7 @@ class PrimitiveLinearAngle(Primitive):
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ):
-        """Linear Bend angle m-o-n against a Cartesian axis"""
-        if self.axis_vec is None:
-            self._init_axis(x)
-
-        assert self.axis_vec is not None
-        _x = x.ravel()
-        vec_m, vec_o, vec_n = _get_3d_vecs_from_atom_idxs(
-            self.m, self.o, self.n, x=_x, deriv_order=deriv_order
-        )
-
-        u = vec_m - vec_o
-        v = vec_n - vec_o
-        return self.axis_vec.dot(u.cross(v)) / (u.norm() * v.norm())
+        pass
 
     def __repr__(self):
         axis_str = "B" if self.axis == LinearBendType.BEND else "C"

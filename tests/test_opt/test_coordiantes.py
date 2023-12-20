@@ -15,7 +15,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
     PrimitiveDihedralAngle,
-    PrimitiveLinearAngle,
+    PrimitiveDummyLinearAngle,
     LinearBendType,
 )
 
@@ -623,21 +623,21 @@ def test_linear_angle():
         ]
     )
     x = CartesianCoordinates(acetylene.coordinates)
-    angle = PrimitiveLinearAngle(0, 1, 3, LinearBendType.BEND)
+    angle = PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND)
     assert angle.axis_vec is None
-    angle._init_axis(x)
+    # TODO: check position of dummy atom
     assert angle.axis_vec is not None
     axis_vec = np.array(angle.axis_vec._data)
     m_n_vec = acetylene.coordinates[0] - acetylene.coordinates[2]
     assert np.dot(axis_vec, m_n_vec) < 0.001
 
     # the atom order can be reversed without any change in the values
-    angle2 = PrimitiveLinearAngle(3, 1, 0, LinearBendType.BEND)
+    angle2 = PrimitiveDummyLinearAngle(3, 1, 0, LinearBendType.BEND)
     assert np.isclose(angle(x), angle2(x))
     assert angle == angle2
 
     # however, linear bend complement would not be the same
-    angle3 = PrimitiveLinearAngle(0, 1, 3, LinearBendType.COMPLEMENT)
+    angle3 = PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.COMPLEMENT)
     assert angle != angle3
     assert not np.isclose(angle(x), angle3(x), rtol=1e-3)
 
@@ -693,7 +693,7 @@ test_prims = [
     PrimitiveBondAngle(0, 1, 2), PrimitiveDistance(0, 1),
     PrimitiveInverseDistance(0, 1), PrimitiveDihedralAngle(2, 0, 1, 3),
     PrimitiveDihedralAngle(2, 0, 1, 3),
-    PrimitiveLinearAngle(0, 1, 3, LinearBendType.BEND)
+    PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND)
 ]
 # fmt: on
 

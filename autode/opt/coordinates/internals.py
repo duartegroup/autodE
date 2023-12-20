@@ -407,12 +407,8 @@ def _add_angles_from_species(
                     mol.angle(n, o, x) < lin_thresh for x in other_neighbours
                 ):
                     continue
-
+                # TODO: use other atoms for linear bend instead
                 # stabilise linear angles by two orthogonal bends
-                pic.append(PrimitiveLinearAngle(m, o, n, LinearBendType.BEND))
-                pic.append(
-                    PrimitiveLinearAngle(m, o, n, LinearBendType.COMPLEMENT)
-                )
     return None
 
 
