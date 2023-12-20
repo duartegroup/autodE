@@ -452,9 +452,7 @@ def _add_angles_from_species(
                         PrimitiveDummyLinearAngle(m, o, n, LinearBendType.BEND)
                     )
                     pic.append(
-                        PrimitiveDummyLinearAngle(
-                            m, o, n, LinearBendType.COMPLEMENT
-                        )
+                        PrimitiveDummyLinearAngle(m, o, n, LinearBendType.COMPLEMENT)  # fmt: skip
                     )
 
     return None
