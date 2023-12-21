@@ -8,23 +8,12 @@ Notation follows:
 import numpy as np
 from typing import Union
 
-from itertools import combinations
 from autode.log import logger
-from autode.values import GradientRMS, Angle, Distance
+from autode.values import GradientRMS, Distance
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.internals import (
-    PIC,
-    AnyPIC,
-    build_pic_from_species,
-)
+from autode.opt.coordinates.internals import build_pic_from_species
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSDampedUpdate, NullUpdate
-from autode.opt.coordinates.primitives import (
-    PrimitiveDistance,
-    PrimitiveBondAngle,
-    PrimitiveDihedralAngle,
-    ConstrainedPrimitiveDistance,
-)
 
 
 class CRFOptimiser(RFOptimiser):

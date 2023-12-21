@@ -377,7 +377,7 @@ class PrimitiveDihedralAngle(Primitive):
         self.n = int(n)
 
     def __eq__(self, other) -> bool:
-        """Equality of two distance functions"""
+        """Equality of two dihedral angles"""
         return isinstance(other, self.__class__) and (
             self._atom_indexes == other._atom_indexes
             or self._atom_indexes == tuple(reversed(other._atom_indexes))
@@ -428,12 +428,11 @@ class LinearAngleBase(Primitive, ABC):
         self.axis = axis
 
     def __eq__(self, other):
+        """Equality of two linear bend angles"""
         return isinstance(other, self.__class__) and (
-            self._ordered_idxs == other._ordered_idxs
-            and self.o == other.o
+            self._atom_indexes == other._atom_indexes
             and self.axis == other.axis
         )
-        # TODO: check the sign of the bends if m and n swapped
 
     def _calc_linear_bend(
         self,

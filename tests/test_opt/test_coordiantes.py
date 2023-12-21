@@ -624,22 +624,27 @@ def test_linear_angle():
     )
     x = CartesianCoordinates(acetylene.coordinates)
     angle = PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND)
-    assert angle.axis_vec is None
-    # TODO: check position of dummy atom
-    assert angle.axis_vec is not None
-    axis_vec = np.array(angle.axis_vec._data)
-    m_n_vec = acetylene.coordinates[0] - acetylene.coordinates[2]
-    assert np.dot(axis_vec, m_n_vec) < 0.001
+    assert angle._vec_r is None
+    _ = angle(x)
+    assert angle._vec_r is not None
+    old_r_vec = angle._vec_r
+    # the dummy atom should not change after the first call
+    _ = angle(x)
+    _ = angle(x)
+    assert angle._vec_r is old_r_vec
 
-    # the atom order can be reversed without any change in the values
-    angle2 = PrimitiveDummyLinearAngle(3, 1, 0, LinearBendType.BEND)
-    assert np.isclose(angle(x), angle2(x))
-    assert angle == angle2
+    axis_vec = np.array(np.array(angle._vec_r._data) - x.reshape(-1, 3)[1])
+    m_n_vec = acetylene.coordinates[0] - acetylene.coordinates[1]
+    assert abs(np.dot(axis_vec, m_n_vec)) < 0.001
 
-    # however, linear bend complement would not be the same
-    angle3 = PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.COMPLEMENT)
-    assert angle != angle3
-    assert not np.isclose(angle(x), angle3(x), rtol=1e-3)
+    # check that the linear bond complement does not have the same value
+    angle2 = PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.COMPLEMENT)
+    assert angle != angle2
+    assert not np.isclose(angle(x), angle2(x), rtol=1e-3)
+
+    # for linear angle, swapping the end points changes the definition
+    angle3 = PrimitiveDummyLinearAngle(3, 1, 0, LinearBendType.BEND)
+    assert angle3 != angle
 
 
 def test_primitives_consistent_with_mol_values():

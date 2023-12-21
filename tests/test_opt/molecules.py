@@ -6,6 +6,17 @@ def h_atom():
     return Molecule(atoms=[Atom("H")], mult=2)
 
 
+def acetylene_mol():
+    return Molecule(
+        atoms=[
+            Atom("C", 0.3800, -0.2049, -0.4861),
+            Atom("C", -0.3727, 0.1836, 0.4744),
+            Atom("H", 1.0156, -0.6055, -1.2353),
+            Atom("H", -0.9992, 0.5945, 1.1572),
+        ]
+    )
+
+
 def methane_mol():
     return Molecule(
         atoms=[
