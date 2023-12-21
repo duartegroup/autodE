@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from .molecules import h2, methane_mol, water_mol, h2o2_mol
+from .molecules import h2, methane_mol, water_mol, h2o2_mol, feco5_mol
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.values import Angle
@@ -15,6 +15,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
     PrimitiveDihedralAngle,
+    PrimitiveLinearAngle,
     PrimitiveDummyLinearAngle,
     LinearBendType,
 )
@@ -686,7 +687,8 @@ extra_mols = [
             Atom("H", 1.01560, -0.60550, -1.23530),
             Atom("H", -0.99920, 0.59450, 1.15720),
         ]
-    )  # for testing linear angles
+    ),
+    feco5_mol(), # for testing linear angles
 ]
 
 test_mols = [
@@ -698,7 +700,8 @@ test_prims = [
     PrimitiveBondAngle(0, 1, 2), PrimitiveDistance(0, 1),
     PrimitiveInverseDistance(0, 1), PrimitiveDihedralAngle(2, 0, 1, 3),
     PrimitiveDihedralAngle(2, 0, 1, 3),
-    PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND)
+    PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND),
+    PrimitiveLinearAngle(2, 3, 4, 8, LinearBendType.BEND),
 ]
 # fmt: on
 
