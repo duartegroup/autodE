@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 import numpy as np
 from .molecules import h2, methane_mol, water_mol, h2o2_mol, feco5_mol
@@ -5,7 +7,11 @@ from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.values import Angle
 from autode.exceptions import CoordinateTransformFailed
-from autode.opt.coordinates.internals import PrimitiveInverseDistances, PIC
+from autode.opt.coordinates.internals import (
+    PrimitiveInverseDistances,
+    PIC,
+    build_pic_from_species,
+)
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
 from autode.opt.coordinates.primitives import (
@@ -756,6 +762,9 @@ def test_repr():
         PrimitiveBondAngle(0, 1, 2),
         ConstrainedPrimitiveBondAngle(0, 1, 2, value=1.0),
         PrimitiveDihedralAngle(0, 1, 2, 3),
+        PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.BEND),
+        PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.COMPLEMENT),
+        PrimitiveDummyLinearAngle(0, 1, 2, LinearBendType.BEND),
     ]
 
     for p in prims:
@@ -804,3 +813,11 @@ def test_dics_cannot_be_built_with_incomplete_primitives():
 
     with pytest.raises(RuntimeError):
         _ = DIC.from_cartesian(x=x, primitives=primitives)
+
+
+def test_pic_generation():
+    m = feco5_mol()
+    pic = build_pic_from_species(m)
+
+    # check that there are no duplicates
+    assert not any(ic1 == ic2 for ic1, ic2 in itertools.combinations(pic, r=2))

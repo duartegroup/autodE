@@ -116,7 +116,8 @@ def test_primitive_projection_discard():
     r_initial = optimiser._species.distance(0, 1)
 
     x = CartesianCoordinates(optimiser._species.coordinates)
-    s = DICWithConstraints.from_cartesian(x, optimiser._primitives)
+    optimiser._build_internal_coordinates()
+    s = optimiser._coords
     assert len(s) == 3
 
     # Shift on the first couple of DIC but nothing on the final one
