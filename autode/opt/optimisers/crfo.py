@@ -173,31 +173,3 @@ class CRFOptimiser(RFOptimiser):
 
         eigenvalues = np.linalg.eigvalsh(aug_h)
         return eigenvalues[0]
-
-
-def _dihedrals(species):
-    """
-    Iterator over the dihedrals in a species. Skipping those that contain
-    bond angles close to 180 degrees (tolerance <179)
-    """
-
-    for o, p in species.graph.edges:
-        for m in species.graph.neighbors(o):
-            if m == p:
-                continue
-
-            if np.isclose(species.angle(m, o, p), Angle(np.pi), atol=0.04):
-                continue  # Don't add potentially ill-defined dihedrals
-
-            for n in species.graph.neighbors(p):
-                if n == o:
-                    continue
-
-                # avoid triangular rings like cyclopropane
-                if m == n:
-                    continue
-
-                if np.isclose(species.angle(o, p, n), Angle(np.pi), atol=0.04):
-                    continue
-
-                yield PrimitiveDihedralAngle(m, o, p, n)

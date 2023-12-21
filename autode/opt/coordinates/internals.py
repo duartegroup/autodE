@@ -381,7 +381,7 @@ def _add_angles_from_species(
     pic: AnyPIC,
     mol: "Species",
     core_graph: "MolecularGraph",
-    lin_thresh=Angle(175, "deg"),
+    lin_thresh=Angle(170, "deg"),
 ) -> None:
     """
     Modify the set of primitives in-place by adding angles, from the
@@ -395,12 +395,14 @@ def _add_angles_from_species(
 
     def get_ref_atom(a, b, c):
         """get a reference atom for a-b-c linear angle"""
-        # all atoms in 4 A radius
+        # all atoms in 4 A radius except a, b, c
         near_atoms = [
             idx
             for idx in range(mol.n_atoms)
             if mol.distance(b, idx) < Distance(4.0, "ang")
+            and idx not in (a, b, c)
         ]
+        # get atoms closest to perpendicular
         deviations_from_90 = []
         for atom in near_atoms:
             i_b_a = mol.angle(atom, b, a)
@@ -452,7 +454,9 @@ def _add_angles_from_species(
                         PrimitiveDummyLinearAngle(m, o, n, LinearBendType.BEND)
                     )
                     pic.append(
-                        PrimitiveDummyLinearAngle(m, o, n, LinearBendType.COMPLEMENT)  # fmt: skip
+                        PrimitiveDummyLinearAngle(
+                            m, o, n, LinearBendType.COMPLEMENT
+                        )
                     )
 
     return None
@@ -462,7 +466,7 @@ def _add_dihedrals_from_species(
     pic: AnyPIC,
     mol: "Species",
     core_graph: "MolecularGraph",
-    lin_thresh=Angle(175, "deg"),
+    lin_thresh=Angle(170, "deg"),
 ) -> None:
     """
     Modify the set of primitives in-place by adding dihedrals (torsions),
