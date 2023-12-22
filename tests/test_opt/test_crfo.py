@@ -161,7 +161,7 @@ def test_xtb_opt_with_distance_constraint():
 
     assert np.isclose(water.distance(0, 1), 0.99, atol=0.01)
 
-    CRFOptimiser.optimise(species=water, method=XTB())
+    CRFOptimiser.optimise(species=water, method=XTB(), etol=1e-6)
 
     # Optimisation should generate an O-H distance *very* close to 1.1 Å
     assert np.isclose(water.distance(0, 1).to("Å"), 1.1, atol=1e-4)
