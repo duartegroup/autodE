@@ -824,3 +824,5 @@ def test_pic_generation_linear_angle_ref():
     assert not any(ic1 == ic2 for ic1, ic2 in itertools.combinations(pic, r=2))
     # check that linear bends use reference atoms, not dummy
     assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
+    # there should not be any dihedral for this geometry
+    assert not any(isinstance(ic, PrimitiveDihedralAngle) for ic in pic)

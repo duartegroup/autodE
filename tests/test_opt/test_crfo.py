@@ -11,7 +11,7 @@ from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.primitives import PrimitiveDihedralAngle
 from autode.utils import work_in_tmp_dir
-from .molecules import h2o2_mol, acetylene_mol
+from .molecules import h2o2_mol, acetylene_mol, feco5_mol
 from ..testutils import requires_working_xtb_install
 
 
@@ -354,3 +354,15 @@ def test_optimise_linear_molecule():
     assert opt.converged
     assert mol.angle(0, 1, 3) > val.Angle(179, "deg")
     assert mol.angle(2, 0, 1) > val.Angle(179, "deg")
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_optimise_linear_bend_with_ref():
+    mol = feco5_mol()
+    # the Fe-C-O angle are manually deviated
+    assert val.Angle(170, "deg") < mol.angle(2, 3, 4) < val.Angle(176, "deg")
+    # large molecule so allow few iters, no need to converge fully
+    opt = CRFOptimiser(maxiter=10, gtol=1e-4, etol=1e-5)
+    opt.run(mol, XTB())
+    assert mol.angle(2, 3, 4) > val.Angle(178, "deg")
