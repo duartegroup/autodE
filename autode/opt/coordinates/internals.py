@@ -482,36 +482,22 @@ def _add_dihedrals_from_species(
     if mol.n_atoms < 4:
         return
 
-    # find all linear atom chains A--B--C--D... and add dihedrals to terminal atoms
-    linear_chains = []
-    for b in range(mol.n_atoms):
-        for a, c in itertools.combinations(core_graph.neighbors(b), r=2):
-            if mol.angle(a, b, c) > lin_thresh:
-                linear_chains.append((a, b, c))
+    zero_angle_thresh = Angle(180, "deg") - lin_thresh
 
-    def concatenate_adjacent_chains(chains_list):
-        for chain1, chain2 in itertools.combinations(chains_list, r=2):
-            if chain1[0] == chain2[0]:
-                new_chain = list(reversed(chain2)) + list(chain1)
-            elif chain1[0] == chain2[-1]:
-                new_chain = list(chain2) + list(chain1)
-            elif chain1[-1] == chain2[0]:
-                new_chain = list(chain1) + list(chain2)
-            elif chain1[-1] == chain2[-1]:
-                new_chain = list(chain1) + list(reversed(chain2))
-            else:
-                continue
+    def is_dihedral_well_defined(w, x, y, z):
+        """A dihedral is well-defined if any angle is not linear"""
+        is_linear_1 = (
+            mol.angle(w, x, y) > lin_thresh
+            or mol.angle(w, x, y) < zero_angle_thresh
+        )
+        is_linear_2 = (
+            mol.angle(x, y, z) > lin_thresh
+            or mol.angle(x, y, z) < zero_angle_thresh
+        )
+        return not (is_linear_1 or is_linear_2)
 
-            chains_list.remove(chain1)
-            chains_list.remove(chain2)
-            chains_list.append(tuple(new_chain))
-            return concatenate_adjacent_chains(chains_list)
-
-    concatenate_adjacent_chains(linear_chains)
-    terminal_points = [(chain[0], chain[-1]) for chain in linear_chains]
-
-    # add normal + linear chain dihedrals
-    for o, p in list(core_graph.edges) + terminal_points:
+    # add normal dihedrals
+    for o, p in list(core_graph.edges):
         for m in core_graph.neighbors(o):
             if m == p:
                 continue
@@ -523,19 +509,59 @@ def _add_dihedrals_from_species(
                 # avoid triangle rings like cyclopropane
                 if n == m:
                     continue
-                zero_angle_thresh = Angle(180, "deg") - lin_thresh
-                is_linear_1 = (
-                    mol.angle(m, o, p) > lin_thresh
-                    or mol.angle(m, o, p) < zero_angle_thresh
-                )
-                is_linear_2 = (
-                    mol.angle(o, p, n) > lin_thresh
-                    or mol.angle(o, p, n) < zero_angle_thresh
-                )
 
-                # if any angle is linear, don't add dihedral
-                if is_linear_1 or is_linear_2:
+                if is_dihedral_well_defined(m, o, p, n):
+                    pic.append(PrimitiveDihedralAngle(m, o, p, n))
+
+    # find all linear atom chains A--B--C--D... and add dihedrals to terminal atoms
+
+    def extend_chain(chain: List[int]):
+        for idx in range(mol.n_atoms):
+            if idx in chain:
+                continue
+            # if idx -- 0 -- 1 > 170 degrees
+            if mol.angle(chain[1], chain[0], idx) > lin_thresh:
+                chain.insert(0, idx)
+                continue
+            # if (-2) -- (-1) -- idx > 170 degrees
+            if mol.angle(chain[-2], chain[-1], idx) > lin_thresh:
+                chain.append(idx)
+                continue
+
+    linear_chains: List[list] = []
+    for b in range(mol.n_atoms):
+        if any(b in chain for chain in linear_chains):
+            continue
+        for a, c in itertools.combinations(core_graph.neighbors(b), r=2):
+            if any(a in chain for chain in linear_chains) or any(
+                c in chain for chain in linear_chains
+            ):
+                continue
+            if mol.angle(a, b, c) > lin_thresh:
+                chain = [a, b, c]
+                extend_chain(chain)
+                linear_chains.append(chain)
+
+    # add linear chain dihedrals
+    for chain in linear_chains:
+        o, p = chain[0], chain[-1]
+        for m in core_graph.neighbors(o):
+            if m == p:
+                continue
+
+            if m in chain:
+                continue
+
+            for n in core_graph.neighbors(p):
+                if n == o:
                     continue
-                else:
+
+                if n == m:
+                    continue
+
+                if n in chain:
+                    continue
+
+                if is_dihedral_well_defined(m, o, p, n):
                     pic.append(PrimitiveDihedralAngle(m, o, p, n))
     return None
