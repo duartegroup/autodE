@@ -815,9 +815,12 @@ def test_dics_cannot_be_built_with_incomplete_primitives():
         _ = DIC.from_cartesian(x=x, primitives=primitives)
 
 
-def test_pic_generation():
+def test_pic_generation_linear_angle_ref():
+    # Fe(CO)5 with linear Fe-C-O bonds
     m = feco5_mol()
     pic = build_pic_from_species(m)
 
     # check that there are no duplicates
     assert not any(ic1 == ic2 for ic1, ic2 in itertools.combinations(pic, r=2))
+    # check that linear bends use reference atoms, not dummy
+    assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)

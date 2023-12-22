@@ -11,7 +11,7 @@ from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.primitives import PrimitiveDihedralAngle
 from autode.utils import work_in_tmp_dir
-from .molecules import h2o2_mol
+from .molecules import h2o2_mol, acetylene_mol
 from ..testutils import requires_working_xtb_install
 
 
@@ -340,3 +340,17 @@ def test_linear_dihedrals_are_removed():
     assert not any(
         isinstance(q, PrimitiveDihedralAngle) for q in dic.primitives
     )
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_optimise_linear_molecule():
+    mol = acetylene_mol()
+    # the two H-C-C angles are almost linear
+    assert val.Angle(170, "deg") < mol.angle(0, 1, 3) < val.Angle(176, "deg")
+    assert val.Angle(170, "deg") < mol.angle(2, 0, 1) < val.Angle(176, "deg")
+    opt = CRFOptimiser(maxiter=10, gtol=1e-4, etol=1e-5)
+    opt.run(mol, XTB())
+    assert opt.converged
+    assert mol.angle(0, 1, 3) > val.Angle(179, "deg")
+    assert mol.angle(2, 0, 1) > val.Angle(179, "deg")

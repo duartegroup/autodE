@@ -388,9 +388,10 @@ def _add_angles_from_species(
     connectivity graph supplied
 
     Args:
-        pic: The AnyPIC instance (modified in-place)
-        mol: The species object
-        core_graph: The connectivity graph
+        pic (AnyPIC): The AnyPIC instance (modified in-place)
+        mol (Species): The species object
+        core_graph (MolecularGraph): The connectivity graph
+        lin_thresh (Angle): The angle threshold for linearity
     """
 
     def get_ref_atom(a, b, c):
@@ -406,10 +407,10 @@ def _add_angles_from_species(
         deviations_from_90 = []
         for atom in near_atoms:
             i_b_a = mol.angle(atom, b, a)
-            if i_b_a > lin_thresh or i_b_a < 180 - lin_thresh:
+            if i_b_a > lin_thresh or i_b_a < (Angle(180, "deg") - lin_thresh):
                 continue
             i_b_c = mol.angle(atom, b, c)
-            if i_b_c > lin_thresh or i_b_c < 180 - lin_thresh:
+            if i_b_c > lin_thresh or i_b_c < (Angle(180, "deg") - lin_thresh):
                 continue
             deviation_a = abs(i_b_a - Angle(90, "deg"))
             deviation_c = abs(i_b_c - Angle(90, "deg"))
