@@ -523,9 +523,15 @@ def _add_dihedrals_from_species(
                 # avoid triangle rings like cyclopropane
                 if n == m:
                     continue
-
-                is_linear_1 = mol.angle(m, o, p) > lin_thresh
-                is_linear_2 = mol.angle(o, p, n) > lin_thresh
+                zero_angle_thresh = Angle(180, "deg") - lin_thresh
+                is_linear_1 = (
+                    mol.angle(m, o, p) > lin_thresh
+                    or mol.angle(m, o, p) < zero_angle_thresh
+                )
+                is_linear_2 = (
+                    mol.angle(o, p, n) > lin_thresh
+                    or mol.angle(o, p, n) < zero_angle_thresh
+                )
 
                 # if any angle is linear, don't add dihedral
                 if is_linear_1 or is_linear_2:
