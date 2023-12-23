@@ -826,3 +826,42 @@ def test_pic_generation_linear_angle_ref():
     assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
     # there should not be any dihedral for this geometry
     assert not any(isinstance(ic, PrimitiveDihedralAngle) for ic in pic)
+
+
+def test_pic_generation_disjoin_graph():
+    # the algorithm should fully connect the graph
+    xyz_string = (
+        "16\n\n"
+        "C      -0.00247        1.65108        0.05872\n"
+        "C       1.19010        1.11169        0.27709\n"
+        "C       1.58519       -0.30014        0.31049\n"
+        "C       0.05831       -1.54292       -0.45110\n"
+        "C      -1.18798       -1.04262        0.13551\n"
+        "C      -1.28206        0.99883       -0.23631\n"
+        "H      -0.07432        2.73634        0.08639\n"
+        "H       2.01755        1.78921        0.47735\n"
+        "H       1.70503       -0.70916        1.30550\n"
+        "H       2.40398       -0.55376       -0.34855\n"
+        "H       0.44229       -2.48695       -0.08638\n"
+        "H       0.15289       -1.41865       -1.51944\n"
+        "H      -1.25410       -1.13318        1.21833\n"
+        "H      -2.09996       -1.35918       -0.36715\n"
+        "H      -2.09462        1.29055        0.41495\n"
+        "H      -1.56001        1.00183       -1.28217\n"
+    )
+    with open("diels_alder_complex.xyz", "w") as fh:
+        fh.write(xyz_string)
+
+    mol = Molecule("diels_alder_complex.xyz")
+    assert not mol.graph.is_connected
+    pic = build_pic_from_species(mol)
+
+    # shortest bond is between 4, 5 which should also generate angle, torsion
+    assert PrimitiveDistance(4, 5) in pic
+    assert PrimitiveBondAngle(3, 4, 5) in pic
+    assert PrimitiveBondAngle(4, 5, 0) in pic
+    assert PrimitiveDihedralAngle(3, 4, 5, 0) in pic
+
+    # the other distance between fragments is 2, 3 which should not be connected
+    assert PrimitiveDistance(2, 3) not in pic
+    assert PrimitiveBondAngle(1, 2, 3) not in pic

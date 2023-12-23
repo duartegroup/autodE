@@ -318,13 +318,13 @@ def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
                     min_dist = mol.distance(i, j)
                     min_pair = (i, j)
             # avoid connecting distant components
-            if min_dist < 5.0:
+            if min_dist < Distance(4.0, "ang"):
                 core_graph.add_edge(*min_pair, pi=False, active=False)
 
     if not core_graph.is_connected:
         raise RuntimeError(
             "Unable to join all the fragments, distance between "
-            "one or more pairs of fragments is too high (>5.0 Å)"
+            "one or more pairs of fragments is too high (>4.0 Å)"
         )
 
     # The constraints should be counted as bonds
