@@ -566,7 +566,7 @@ def test_angle_primitive_derivative():
     m = water_mol()
     init_coords = m.coordinates.copy()
 
-    angle = PrimitiveBondAngle(0, 1, 2)
+    angle = PrimitiveBondAngle(1, 0, 2)
     derivs = angle.derivative(init_coords)
     for atom_idx in (0, 1, 2):
         for component in (0, 1, 2):
@@ -578,8 +578,8 @@ def test_angle_primitive_derivative():
 
 
 def test_angle_primitive_equality():
-    assert PrimitiveBondAngle(0, 1, 2) == PrimitiveBondAngle(0, 2, 1)
-    assert PrimitiveBondAngle(0, 1, 2) != PrimitiveBondAngle(2, 1, 0)
+    assert PrimitiveBondAngle(1, 0, 2) == PrimitiveBondAngle(2, 0, 1)
+    assert PrimitiveBondAngle(1, 0, 2) != PrimitiveBondAngle(1, 2, 0)
 
 
 def test_dihedral_value():
@@ -662,7 +662,7 @@ def test_primitives_consistent_with_mol_values():
     assert np.isclose(dist(coords), h2o2.distance(0, 1), rtol=1e-8)
     invdist = PrimitiveInverseDistance(1, 2)
     assert np.isclose(invdist(coords), 1 / h2o2.distance(1, 2), rtol=1e-8)
-    ang = PrimitiveBondAngle(2, 0, 1)  # bond is defined in a different way
+    ang = PrimitiveBondAngle(0, 2, 1)
     assert np.isclose(ang(coords), h2o2.angle(0, 2, 1), rtol=1e-8)
     dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
     assert np.isclose(dihedral(coords), h2o2.dihedral(2, 0, 1, 3), rtol=1e-8)
@@ -702,8 +702,8 @@ test_mols = [
     water_mol(), water_mol(), *extra_mols
 ]
 test_prims = [
-    PrimitiveDihedralAngle(2, 0, 1, 3), PrimitiveBondAngle(2, 0, 1),
-    PrimitiveBondAngle(0, 1, 2), PrimitiveDistance(0, 1),
+    PrimitiveDihedralAngle(2, 0, 1, 3), PrimitiveBondAngle(0, 2, 1),
+    PrimitiveBondAngle(1, 0, 2), PrimitiveDistance(0, 1),
     PrimitiveInverseDistance(0, 1), PrimitiveDihedralAngle(2, 0, 1, 3),
     PrimitiveDihedralAngle(2, 0, 1, 3),
     PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND),
@@ -759,8 +759,8 @@ def test_repr():
         PrimitiveInverseDistance(0, 1),
         PrimitiveDistance(0, 1),
         ConstrainedPrimitiveDistance(0, 1, value=1e-3),
-        PrimitiveBondAngle(0, 1, 2),
-        ConstrainedPrimitiveBondAngle(0, 1, 2, value=1.0),
+        PrimitiveBondAngle(1, 0, 2),
+        ConstrainedPrimitiveBondAngle(1, 0, 2, value=1.0),
         PrimitiveDihedralAngle(0, 1, 2, 3),
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.BEND),
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.COMPLEMENT),
@@ -789,7 +789,7 @@ def test_dic_large_step_allowed_unconverged_back_transform():
 
 
 def test_constrained_angle_delta():
-    q = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
+    q = ConstrainedPrimitiveBondAngle(1, 0, 2, value=np.pi)
     mol = water_mol()
     theta = mol.angle(1, 0, 2)
     x = CartesianCoordinates(mol.coordinates)
@@ -798,8 +798,8 @@ def test_constrained_angle_delta():
 
 
 def test_constrained_angle_equality():
-    a = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
-    b = ConstrainedPrimitiveBondAngle(0, 2, 1, value=np.pi)
+    a = ConstrainedPrimitiveBondAngle(1, 0, 2, value=np.pi)
+    b = ConstrainedPrimitiveBondAngle(2, 0, 1, value=np.pi)
 
     assert a == b
 

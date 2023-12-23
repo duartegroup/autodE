@@ -200,7 +200,7 @@ def test_baker1997_example():
     r1 = prim.ConstrainedPrimitiveDistance(0, 1, value=1.5)
     r2 = prim.ConstrainedPrimitiveDistance(3, 4, value=2.5)
     theta = prim.ConstrainedPrimitiveBondAngle(
-        1, 0, 5, value=val.Angle(123.0, "º").to("rad")
+        0, 1, 5, value=val.Angle(123.0, "º").to("rad")
     )
 
     pic = PIC(r1, r2, theta)
@@ -208,12 +208,12 @@ def test_baker1997_example():
         pic.append(prim.PrimitiveDistance(*pair))
 
     for triple in (
-        (1, 0, 3),
-        (1, 0, 3),
-        (2, 0, 3),
-        (4, 1, 0),
-        (5, 1, 0),
-        (4, 1, 5),
+        (0, 1, 3),
+        (0, 1, 3),
+        (0, 2, 3),
+        (1, 4, 0),
+        (1, 5, 0),
+        (1, 4, 5),
     ):
         pic.append(prim.PrimitiveBondAngle(*triple))
 

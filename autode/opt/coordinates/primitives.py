@@ -299,12 +299,12 @@ class PrimitiveBondAngle(Primitive):
     arccosine of the normalised dot product
     """
 
-    def __init__(self, o: int, m: int, n: int):
+    def __init__(self, m: int, o: int, n: int):
         """Bond angle m-o-n"""
-        super().__init__(o, m, n)
+        super().__init__(m, o, n)
 
-        self.o = int(o)
         self.m = int(m)
+        self.o = int(o)
         self.n = int(n)
 
     def __eq__(self, other) -> bool:
@@ -332,22 +332,22 @@ class PrimitiveBondAngle(Primitive):
 
 
 class ConstrainedPrimitiveBondAngle(ConstrainedPrimitive, PrimitiveBondAngle):
-    def __init__(self, o: int, m: int, n: int, value: float):
+    def __init__(self, m: int, o: int, n: int, value: float):
         """
         Angle (m-o-n) constrained to a value (in radians)
 
         -----------------------------------------------------------------------
         Arguments:
 
-            o: Atom index
-
             m: Atom index
+
+            o: Atom index
 
             n: Atom index
 
             value: Required value of the constrained angle
         """
-        super().__init__(o=o, m=m, n=n)
+        super().__init__(m=m, o=o, n=n)
 
         self._theta0 = value
 

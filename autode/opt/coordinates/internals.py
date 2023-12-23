@@ -426,7 +426,7 @@ def _add_angles_from_species(
         for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
             # avoid almost linear angles
             if mol.angle(m, o, n) < lin_thresh:
-                pic.append(PrimitiveBondAngle(o=o, m=m, n=n))
+                pic.append(PrimitiveBondAngle(m=m, o=o, n=n))
             else:
                 # if central atom is connected to another, no need to include
                 other_neighbours = list(core_graph.neighbors(o))
