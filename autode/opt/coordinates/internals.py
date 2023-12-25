@@ -404,7 +404,7 @@ def _add_angles_from_species(
             and idx not in (a, b, c)
         ]
         # get atoms closest to perpendicular
-        deviations_from_90 = []
+        deviations_from_90 = {}
         for atom in near_atoms:
             i_b_a = mol.angle(atom, b, a)
             if i_b_a > lin_thresh or i_b_a < (Angle(180, "deg") - lin_thresh):
@@ -415,12 +415,12 @@ def _add_angles_from_species(
             deviation_a = abs(i_b_a - Angle(90, "deg"))
             deviation_c = abs(i_b_c - Angle(90, "deg"))
             avg_dev = (deviation_a + deviation_c) / 2
-            deviations_from_90.append(avg_dev)
+            deviations_from_90[atom] = avg_dev
 
         if len(deviations_from_90) == 0:
             return None
 
-        return near_atoms[np.argmin(deviations_from_90)]
+        return min(deviations_from_90, key=deviations_from_90.get)
 
     for o in range(mol.n_atoms):
         for n, m in itertools.combinations(core_graph.neighbors(o), r=2):

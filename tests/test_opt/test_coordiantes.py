@@ -2,7 +2,14 @@ import itertools
 
 import pytest
 import numpy as np
-from .molecules import h2, methane_mol, water_mol, h2o2_mol, feco5_mol
+from .molecules import (
+    h2,
+    methane_mol,
+    water_mol,
+    h2o2_mol,
+    feco5_mol,
+    cumulene_mol,
+)
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.values import Angle
@@ -828,7 +835,7 @@ def test_pic_generation_linear_angle_ref():
     assert not any(isinstance(ic, PrimitiveDihedralAngle) for ic in pic)
 
 
-def test_pic_generation_disjoin_graph():
+def test_pic_generation_disjoint_graph():
     # the algorithm should fully connect the graph
     xyz_string = (
         "16\n\n"
@@ -865,3 +872,18 @@ def test_pic_generation_disjoin_graph():
     # the other distance between fragments is 2, 3 which should not be connected
     assert PrimitiveDistance(2, 3) not in pic
     assert PrimitiveBondAngle(1, 2, 3) not in pic
+
+
+def test_pic_generation_chain_dihedrals():
+    # extra dihedrals are needed for ends of linear chains like allene
+    cumulene = cumulene_mol()
+    pic = build_pic_from_species(cumulene)
+
+    assert PrimitiveDihedralAngle(5, 3, 4, 8) in pic
+    assert PrimitiveDihedralAngle(6, 3, 4, 7) in pic
+    assert PrimitiveDihedralAngle(8, 4, 3, 6) in pic
+    assert PrimitiveDihedralAngle(7, 4, 3, 6) in pic
+
+    # check that the 3N-6 degrees of freedom are maintained
+    _ = pic(cumulene.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * cumulene.n_atoms - 6
