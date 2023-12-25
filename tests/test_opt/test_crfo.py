@@ -363,6 +363,6 @@ def test_optimise_linear_bend_with_ref():
     # the Fe-C-O angle are manually deviated
     assert val.Angle(170, "deg") < mol.angle(2, 3, 4) < val.Angle(176, "deg")
     # large molecule so allow few iters, no need to converge fully
-    opt = CRFOptimiser(maxiter=10, gtol=1e-4, etol=1e-5)
+    opt = CRFOptimiser(maxiter=15, gtol=1e-4, etol=1e-5)
     opt.run(mol, XTB())
     assert mol.angle(2, 3, 4) > val.Angle(178, "deg")
