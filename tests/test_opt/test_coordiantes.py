@@ -9,7 +9,9 @@ from .molecules import (
     h2o2_mol,
     feco5_mol,
     cumulene_mol,
+    acetylene_mol,
 )
+from autode.utils import work_in_tmp_dir
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.values import Angle
@@ -831,10 +833,31 @@ def test_pic_generation_linear_angle_ref():
     assert not any(ic1 == ic2 for ic1, ic2 in itertools.combinations(pic, r=2))
     # check that linear bends use reference atoms, not dummy
     assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
-    # there should not be any dihedral for this geometry
-    assert not any(isinstance(ic, PrimitiveDihedralAngle) for ic in pic)
+    # for C-Fe-C, one out-of-plane dihedral should be present
+    assert PrimitiveDihedralAngle(3, 5, 2, 1) in pic
+    # check degrees of freedom = 3N - 6
+    _ = pic(m.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * m.n_atoms - 6
 
 
+def test_pic_generation_linear_angle_dummy():
+    # acetylene molecule
+    mol = acetylene_mol()
+    pic = build_pic_from_species(mol)
+
+    # there should not be any usual bond angles
+    assert not any(isinstance(ic, PrimitiveBondAngle) for ic in pic)
+    # there should not be any linear angles with reference atom
+    assert not any(isinstance(ic, PrimitiveLinearAngle) for ic in pic)
+    # there should be linear angles with dummy
+    assert any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
+
+    # degrees of freedom = 3N - 5 for linear molecules
+    _ = pic(mol.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 5
+
+
+@work_in_tmp_dir()
 def test_pic_generation_disjoint_graph():
     # the algorithm should fully connect the graph
     xyz_string = (
@@ -872,6 +895,15 @@ def test_pic_generation_disjoint_graph():
     # the other distance between fragments is 2, 3 which should not be connected
     assert PrimitiveDistance(2, 3) not in pic
     assert PrimitiveBondAngle(1, 2, 3) not in pic
+    # check degrees of freedom = 3N - 6
+    _ = pic(mol.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 6
+
+    # if the bond between 2, 3 is made into a constraint, it will generate angles
+    mol.constraints.distance = {(2, 3): mol.distance(2, 3)}
+    pic = build_pic_from_species(mol)
+    assert ConstrainedPrimitiveDistance(2, 3, mol.distance(2, 3)) in pic
+    assert PrimitiveBondAngle(1, 2, 3) in pic
 
 
 def test_pic_generation_chain_dihedrals():
