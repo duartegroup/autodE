@@ -15,7 +15,7 @@ from autode.opt.coordinates.internals import build_pic_from_species
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import (
     BFGSDampedUpdate,
-    BofillUpdate,
+    BFGSSR1Update,
 )
 
 
@@ -38,7 +38,7 @@ class CRFOptimiser(RFOptimiser):
 
         self.alpha = Distance(init_alpha, units="ang")
         assert self.alpha > 0
-        self._hessian_update_types = [BFGSDampedUpdate, BofillUpdate]
+        self._hessian_update_types = [BFGSDampedUpdate, BFGSSR1Update]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
