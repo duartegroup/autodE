@@ -1043,7 +1043,7 @@ class AtomCollection:
 
         # Catch errors due to incomplete float precision
         cos_value = np.dot(vec1, vec2) / norms
-        if -1 < cos_value < 1:
+        if -1 <= cos_value <= 1:
             pass
         elif cos_value > 1 and np.isclose(cos_value, 1, rtol=1e-8):
             cos_value = 1
