@@ -919,3 +919,22 @@ def test_pic_generation_chain_dihedrals():
     # check that the 3N-6 degrees of freedom are maintained
     _ = pic(cumulene.coordinates.flatten())
     assert np.linalg.matrix_rank(pic.B) == 3 * cumulene.n_atoms - 6
+
+
+def test_pic_generation_square_planar():
+    ptcl4 = Molecule(
+        atoms=[
+            Atom("Pt", -0.1467, -0.2594, -0.0294),
+            Atom("Cl", -0.4597, -2.5963, -0.0523),
+            Atom("Cl", 2.1804, -0.5689, -0.2496),
+            Atom("Cl", -2.4738, 0.0501, 0.1908),
+            Atom("Cl", 0.1663, 2.0776, -0.0066),
+        ],
+        charge=-2,
+    )
+
+    # for sq planar, out-of-plane dihedrals are needed to have
+    # all degrees of freedom
+    pic = build_pic_from_species(ptcl4)
+    _ = pic(ptcl4.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * 5 - 6

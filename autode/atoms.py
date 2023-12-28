@@ -1041,7 +1041,18 @@ class AtomCollection:
                 f"least one zero vector"
             )
 
-        value = np.arccos(np.dot(vec1, vec2) / norms)
+        # Catch errors due to incomplete float precision
+        cos_value = np.dot(vec1, vec2) / norms
+        if -1 < cos_value < 1:
+            pass
+        elif cos_value > 1 and np.isclose(cos_value, 1, rtol=1e-8):
+            cos_value = 1
+        elif cos_value < -1 and np.isclose(cos_value, -1, rtol=1e-8):
+            cos_value = -1
+        else:
+            raise ValueError("Cos(angle) must be in [-1, 1] range!")
+
+        value = np.arccos(cos_value)
 
         return Angle(value)
 
