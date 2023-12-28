@@ -275,21 +275,18 @@ def build_pic_from_species(
 
 def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
     """
-    Creates a fully connected graph from a species, by (1) joining
-    disconnected fragments by their shortest distance, (2) connecting
-    constrained bonds, (3) joining hydrogen bonds, if present.
+    Creates a fully connected graph from the graph of a species, by
+    (1) joining disconnected fragments by their shortest distance,
+    (2) connecting constrained bonds, (3) joining hydrogen bonds,
+    if present.
 
     Args:
-        mol: A species containing atoms and coordinates
+        mol: A species (must have atoms and graph)
 
     Returns:
         (MolecularGraph):
     """
-    # if graph does not exist, create one
-    if mol.graph is None:
-        mol.reset_graph()
-
-    assert mol.graph is not None
+    assert mol.graph is not None, "Species must have graph!"
     core_graph = copy.deepcopy(mol.graph)
 
     # join hydrogen bonds

@@ -11,7 +11,7 @@ from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.primitives import PrimitiveDihedralAngle
 from autode.utils import work_in_tmp_dir
-from .molecules import h2o2_mol, acetylene_mol, feco5_mol
+from .molecules import h2o2_mol, acetylene_mol, feco5_mol, cumulene_mol
 from ..testutils import requires_working_xtb_install
 
 
@@ -366,3 +366,15 @@ def test_optimise_linear_bend_with_ref():
     opt = CRFOptimiser(maxiter=15, gtol=1e-4, etol=1e-5)
     opt.run(mol, XTB())
     assert mol.angle(2, 3, 4) > val.Angle(178, "deg")
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_optimise_chain_dihedrals():
+    mol = cumulene_mol()
+    assert abs(mol.dihedral(6, 3, 4, 8)) < val.Angle(40, "deg")
+    opt = CRFOptimiser(maxiter=15, gtol=1e-4, etol=1e-4)
+    opt.run(mol, XTB())
+    # 5-C chain, should be close to 90 degrees
+    assert abs(mol.dihedral(6, 3, 4, 8)) > val.Angle(85, "deg")
+    assert abs(mol.dihedral(6, 3, 4, 8)) < val.Angle(95, "deg")
