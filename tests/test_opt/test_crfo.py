@@ -205,7 +205,7 @@ def test_baker1997_example():
 
     pic = PIC(r1, r2, theta)
     for pair in ((2, 0), (3, 0), (4, 1), (5, 1)):
-        pic.append(prim.PrimitiveDistance(*pair))
+        pic.add(prim.PrimitiveDistance(*pair))
 
     for triple in (
         (0, 1, 3),
@@ -215,10 +215,10 @@ def test_baker1997_example():
         (1, 5, 0),
         (1, 4, 5),
     ):
-        pic.append(prim.PrimitiveBondAngle(*triple))
+        pic.add(prim.PrimitiveBondAngle(*triple))
 
     for quadruple in ((4, 1, 0, 2), (4, 1, 0, 3), (5, 1, 0, 2), (5, 1, 0, 3)):
-        pic.append(prim.PrimitiveDihedralAngle(*quadruple))
+        pic.add(prim.PrimitiveDihedralAngle(*quadruple))
 
     dic = DICWithConstraints.from_cartesian(
         x=CartesianCoordinates(c2h3f.coordinates), primitives=pic

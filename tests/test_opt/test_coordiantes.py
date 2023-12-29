@@ -544,12 +544,17 @@ def test_pic_b_no_primitives():
         c._calc_B(np.arange(6, dtype=float).reshape(2, 3))
 
 
-def test_pic_append_type_checking():
+def test_pic_add_sanity_checking():
     c = PIC()
-    # append should check for primitive type
-    c.append(PrimitiveDistance(0, 1))
+    # pic add should check for primitive type
+    c.add(PrimitiveDistance(0, 1))
     with pytest.raises(AssertionError):
-        c.append(3)
+        c.add(3)
+
+    # pic should not allow duplicate coordinates to be added
+    assert len(c) == 1
+    c.add(PrimitiveDistance(1, 0))
+    assert len(c) == 1
 
 
 def test_constrained_distance_satisfied():

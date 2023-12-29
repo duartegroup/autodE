@@ -120,7 +120,7 @@ class MolecularGraph(nx.Graph):
         """Is this graph fully connected (i.e. not separate parts)"""
         return nx.is_connected(self)
 
-    def get_components(self):
+    def connected_components(self):
         """Generate the separate connected components"""
         return nx.connected_components(self)
 

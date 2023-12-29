@@ -1041,20 +1041,10 @@ class AtomCollection:
                 f"least one zero vector"
             )
 
-        # Catch errors due to incomplete float precision
-        cos_value = np.dot(vec1, vec2) / norms
-        if -1 <= cos_value <= 1:
-            pass
-        elif cos_value > 1 and np.isclose(cos_value, 1, rtol=1e-8):
-            cos_value = 1
-        elif cos_value < -1 and np.isclose(cos_value, -1, rtol=1e-8):
-            cos_value = -1
-        else:
-            raise ValueError("Cos(angle) must be in [-1, 1] range!")
+        # Cos(theta) must lie within [-1, 1]
+        cos_value = np.clip(np.dot(vec1, vec2) / norms, a_min=-1, a_max=1)
 
-        value = np.arccos(cos_value)
-
-        return Angle(value)
+        return Angle(np.arccos(cos_value))
 
     def dihedral(self, w: int, x: int, y: int, z: int) -> Angle:
         r"""

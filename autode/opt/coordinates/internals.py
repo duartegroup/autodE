@@ -94,12 +94,18 @@ class PIC(list, ABC):
                 f"from {args}. Must be primitive internals"
             )
 
-    def append(self, item: Primitive) -> None:
-        """Append an item to this set of primitives"""
-        assert isinstance(item, Primitive), "Must be a Primitive type!"
-        # prevent duplicate primitives
+    def add(self, item: Primitive) -> None:
+        """Add a primitive to this set of primitive coordinates"""
+        assert isinstance(item, Primitive), "Must be a primitive"
+        # prevent duplication of primitives
         if item not in self:
             super().append(item)
+
+    def append(self, item: Primitive) -> None:
+        """Append an item to this set of primitives"""
+        raise NotImplementedError(
+            "Please use PIC.add() to add new primitives to the set"
+        )
 
     @property
     def B(self) -> np.ndarray:
@@ -224,7 +230,7 @@ class _FunctionOfDistances(PIC):
         # Add all the unique inverse distances (i < j)
         for i in range(n_atoms):
             for j in range(i + 1, n_atoms):
-                self.append(self._primitive_type(i, j))
+                self.add(self._primitive_type(i, j))
 
         return None
 
@@ -305,7 +311,7 @@ def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
 
     # join disconnected graph components
     if not core_graph.is_connected:
-        components = core_graph.get_components()
+        components = core_graph.connected_components()
         for comp_i, comp_j in itertools.combinations(components, r=2):
             min_dist = float("inf")
             min_pair = (-1, -1)
@@ -353,10 +359,10 @@ def _add_bonds_from_species(
             and (i, j) in mol.constraints.distance
         ):
             r = mol.constraints.distance[(i, j)]
-            pic.append(ConstrainedPrimitiveDistance(i, j, r))
+            pic.add(ConstrainedPrimitiveDistance(i, j, r))
             n += 1
         else:
-            pic.append(PrimitiveDistance(i, j))
+            pic.add(PrimitiveDistance(i, j))
     assert n == mol.constraints.n_distance
 
     return None
@@ -419,24 +425,24 @@ def _add_angles_from_species(
     for o in range(mol.n_atoms):
         for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
             if mol.angle(m, o, n) < lin_thresh:
-                pic.append(PrimitiveBondAngle(m=m, o=o, n=n))
+                pic.add(PrimitiveBondAngle(m=m, o=o, n=n))
             else:
                 # If central atom is connected to another atom, then the
                 # linear angle is skipped and instead an out-of-plane
                 # (improper dihedral) coordinate is used
                 r = get_ref_atom(m, o, n, bonded=True)
                 if r is not None:
-                    pic.append(PrimitiveDihedralAngle(m, r, o, n))
+                    pic.add(PrimitiveDihedralAngle(m, r, o, n))
                     continue
 
                 # Otherwise, we use a nearby (< 4.0 A) reference atom to
                 # define two orthogonal linear bends
                 r = get_ref_atom(m, o, n, bonded=False)
                 if r is not None:
-                    pic.append(
+                    pic.add(
                         PrimitiveLinearAngle(m, o, n, r, LinearBendType.BEND)
                     )
-                    pic.append(
+                    pic.add(
                         PrimitiveLinearAngle(
                             m, o, n, r, LinearBendType.COMPLEMENT
                         )
@@ -445,10 +451,10 @@ def _add_angles_from_species(
                 # For completely linear molecules (CO2), there will be no such
                 # reference atoms, so use dummy atoms instead
                 else:
-                    pic.append(
+                    pic.add(
                         PrimitiveDummyLinearAngle(m, o, n, LinearBendType.BEND)
                     )
-                    pic.append(
+                    pic.add(
                         PrimitiveDummyLinearAngle(
                             m, o, n, LinearBendType.COMPLEMENT
                         )
@@ -507,7 +513,7 @@ def _add_dihedrals_from_species(
                     continue
 
                 if is_dihedral_well_defined(m, o, p, n):
-                    pic.append(PrimitiveDihedralAngle(m, o, p, n))
+                    pic.add(PrimitiveDihedralAngle(m, o, p, n))
 
     # find all linear atom chains A--B--C--D... and add dihedrals to terminal atoms
 
@@ -559,5 +565,5 @@ def _add_dihedrals_from_species(
                     continue
 
                 if is_dihedral_well_defined(m, o, p, n):
-                    pic.append(PrimitiveDihedralAngle(m, o, p, n))
+                    pic.add(PrimitiveDihedralAngle(m, o, p, n))
     return None
