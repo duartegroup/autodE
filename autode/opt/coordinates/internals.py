@@ -9,8 +9,6 @@ G : Spectroscopic G matrix
 
 Set-up of redundant primitives is based on J. Chem. Phys., 117, 2002, 9160
 """
-import copy
-
 import numpy as np
 import itertools
 from typing import Any, Optional, Type, List, TYPE_CHECKING
@@ -31,7 +29,6 @@ from autode.opt.coordinates.primitives import (
 
 if TYPE_CHECKING:
     from autode.species import Species
-    from autode.mol_graphs import MolecularGraph
     from autode.opt.coordinates.cartesian import CartesianCoordinates
     from autode.opt.coordinates.primitives import (
         ConstrainedPrimitive,
@@ -44,6 +41,9 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
         """New instance of these internal coordinates"""
 
         arr = super().__new__(cls, input_array, units="Å")
+
+        arr._x = None
+        arr.primitives = None
 
         for attr in ("_x", "primitives"):
             setattr(arr, attr, getattr(input_array, attr, None))
@@ -270,86 +270,29 @@ class AnyPIC(PIC):
             (AnyPIC): The set of primitive internals
         """
         pic = cls()
-        core_graph = pic._get_connected_graph_from_species(mol)
-        pic._add_bonds_from_species(mol, core_graph)
-        pic._add_angles_from_species(mol, core_graph)
-        pic._add_dihedrals_from_species(mol, core_graph)
+        # take a copy of mol as mol.graph might be changed
+        mol = mol.copy()
+        _connect_graph_for_species(mol)
+        pic._add_bonds_from_species(mol)
+        pic._add_angles_from_species(mol)
+        pic._add_dihedrals_from_species(mol)
         return pic
-
-    @staticmethod
-    def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
-        """
-        Creates a fully connected graph from the graph of a species, by
-        (1) joining disconnected fragments by their shortest distance,
-        (2) connecting constrained bonds, (3) joining hydrogen bonds,
-        if present.
-
-        Args:
-            mol: A species (must have atoms and graph)
-
-        Returns:
-            (MolecularGraph):
-        """
-        assert mol.graph is not None, "Species must have graph!"
-        core_graph = copy.deepcopy(mol.graph)
-
-        # join hydrogen bonds
-        h_bond_x = ["N", "O", "F", "P", "S", "Cl"]
-        for i, j in itertools.combinations(range(mol.n_atoms), r=2):
-            if (
-                mol.atoms[i].label in h_bond_x
-                and mol.atoms[j].label == "H"
-                or mol.atoms[j].label in h_bond_x
-                and mol.atoms[i].label == "H"
-            ):
-                vdw_sum = mol.atoms[i].vdw_radius + mol.atoms[j].vdw_radius
-                if mol.distance(i, j) < 0.9 * vdw_sum:
-                    if not core_graph.has_edge(i, j):
-                        core_graph.add_edge(i, j, pi=False, active=False)
-
-        # join disconnected graph components
-        if not core_graph.is_connected:
-            components = core_graph.connected_components()
-            for comp_i, comp_j in itertools.combinations(components, r=2):
-                min_dist = float("inf")
-                min_pair = (-1, -1)
-                for i, j in itertools.product(list(comp_i), list(comp_j)):
-                    if mol.distance(i, j) < min_dist:
-                        min_dist = mol.distance(i, j)
-                        min_pair = (i, j)
-                # avoid connecting distant components
-                if min_dist < Distance(4.0, "ang"):
-                    core_graph.add_edge(*min_pair, pi=False, active=False)
-
-        if not core_graph.is_connected:
-            raise RuntimeError(
-                "Unable to join all the fragments, distance between "
-                "one or more pairs of fragments is too high (>4.0 Å)"
-            )
-
-        # The constraints should be counted as bonds
-        if mol.constraints.distance is not None:
-            for i, j in mol.constraints.distance:
-                if not core_graph.has_edge(i, j):
-                    core_graph.add_edge(i, j, pi=False, active=False)
-
-        return core_graph
 
     def _add_bonds_from_species(
         self,
         mol: "Species",
-        core_graph: "MolecularGraph",
     ):
         """
         Add bonds to the current set of primitives, from the
-        connectivity graph supplied
+        connectivity graph of the species
 
         Args:
             mol: The species object
-            core_graph: The connectivity graph
         """
+        assert mol.graph is not None
+
         n = 0
-        for i, j in sorted(core_graph.edges):
+        for i, j in sorted(mol.graph.edges):
             if (
                 mol.constraints.distance is not None
                 and (i, j) in mol.constraints.distance
@@ -366,7 +309,6 @@ class AnyPIC(PIC):
     @staticmethod
     def _get_ref_for_linear_angle(
         mol,
-        core_graph,
         lin_thresh,
         a,
         b,
@@ -381,7 +323,6 @@ class AnyPIC(PIC):
 
         Args:
             mol:
-            core_graph:
             lin_thresh:
             a:
             b:
@@ -395,7 +336,7 @@ class AnyPIC(PIC):
         """
         # only check bonded atoms if requested
         if bonded:
-            near_atoms = list(core_graph.neighbors(b))
+            near_atoms = list(mol.graph.neighbors(b))
             near_atoms.remove(a)
             near_atoms.remove(c)
 
@@ -429,7 +370,6 @@ class AnyPIC(PIC):
     def _add_angles_from_species(
         self,
         mol: "Species",
-        core_graph: "MolecularGraph",
         lin_thresh: Angle = Angle(170, "deg"),
     ) -> None:
         """
@@ -438,13 +378,13 @@ class AnyPIC(PIC):
 
         Args:
             mol (Species): The species object
-            core_graph (MolecularGraph): The connectivity graph
             lin_thresh (Angle): The angle threshold for linearity
         """
+        assert mol.graph is not None
         lin_thresh = lin_thresh.to("rad")
 
         for o in range(mol.n_atoms):
-            for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
+            for n, m in itertools.combinations(mol.graph.neighbors(o), r=2):
                 if mol.angle(m, o, n) < lin_thresh:
                     self.add(PrimitiveBondAngle(m=m, o=o, n=n))
                 else:
@@ -452,7 +392,7 @@ class AnyPIC(PIC):
                     # linear angle is skipped and instead an out-of-plane
                     # (improper dihedral) coordinate is used
                     r = self._get_ref_for_linear_angle(
-                        mol, core_graph, lin_thresh, m, o, n, bonded=True
+                        mol, lin_thresh, m, o, n, bonded=True
                     )
                     if r is not None:
                         self.add(PrimitiveDihedralAngle(m, r, o, n))
@@ -461,7 +401,7 @@ class AnyPIC(PIC):
                     # Otherwise, we use a nearby (< 4.0 A) reference atom to
                     # define two orthogonal linear bends
                     r = self._get_ref_for_linear_angle(
-                        mol, core_graph, lin_thresh, m, o, n, bonded=False
+                        mol, lin_thresh, m, o, n, bonded=False
                     )
                     if r is not None:
                         self.add(
@@ -494,7 +434,6 @@ class AnyPIC(PIC):
     def _add_dihedrals_from_species(
         self,
         mol: "Species",
-        core_graph: "MolecularGraph",
         lin_thresh: Angle = Angle(170, "deg"),
     ) -> None:
         """
@@ -503,13 +442,13 @@ class AnyPIC(PIC):
 
         Args:
             mol (Species): The species
-            core_graph (MolecularGraph): The connectivity graph
             lin_thresh (Angle): The threshold for linearity
         """
         # no dihedrals possible with less than 4 atoms
         if mol.n_atoms < 4:
             return
 
+        assert mol.graph is not None
         lin_thresh = lin_thresh.to("rad")
         zero_angle_thresh = np.pi - lin_thresh
 
@@ -526,12 +465,12 @@ class AnyPIC(PIC):
             return not (is_linear_1 or is_linear_2)
 
         # add normal dihedrals
-        for o, p in list(core_graph.edges):
-            for m in core_graph.neighbors(o):
+        for o, p in list(mol.graph.edges):
+            for m in mol.graph.neighbors(o):
                 if m == p:
                     continue
 
-                for n in core_graph.neighbors(p):
+                for n in mol.graph.neighbors(p):
                     if n == o:
                         continue
 
@@ -561,7 +500,7 @@ class AnyPIC(PIC):
         for b in range(mol.n_atoms):
             if any(b in chain for chain in linear_chains):
                 continue
-            for a, c in itertools.combinations(core_graph.neighbors(b), r=2):
+            for a, c in itertools.combinations(mol.graph.neighbors(b), r=2):
                 if any(a in chain for chain in linear_chains) or any(
                     c in chain for chain in linear_chains
                 ):
@@ -574,14 +513,14 @@ class AnyPIC(PIC):
         # add linear chain dihedrals
         for chain in linear_chains:
             o, p = chain[0], chain[-1]
-            for m in core_graph.neighbors(o):
+            for m in mol.graph.neighbors(o):
                 if m == p:
                     continue
 
                 if m in chain:
                     continue
 
-                for n in core_graph.neighbors(p):
+                for n in mol.graph.neighbors(p):
                     if n == o:
                         continue
 
@@ -594,3 +533,58 @@ class AnyPIC(PIC):
                     if is_dihedral_well_defined(m, o, p, n):
                         self.add(PrimitiveDihedralAngle(m, o, p, n))
         return None
+
+
+def _connect_graph_for_species(mol: "Species") -> None:
+    """
+    Creates a fully connected graph from the graph of a species, by
+    (1) joining disconnected fragments by their shortest distance,
+    (2) connecting constrained bonds, (3) joining hydrogen bonds,
+    if present. The molecular graph is modified in-place.
+
+    Args:
+        mol: A species (must have atoms and graph)
+    """
+    assert mol.graph is not None, "Species must have graph!"
+
+    # join hydrogen bonds
+    h_bond_x = ["N", "O", "F", "P", "S", "Cl"]
+    for i, j in itertools.combinations(range(mol.n_atoms), r=2):
+        if (
+            mol.atoms[i].label in h_bond_x
+            and mol.atoms[j].label == "H"
+            or mol.atoms[j].label in h_bond_x
+            and mol.atoms[i].label == "H"
+        ):
+            vdw_sum = mol.atoms[i].vdw_radius + mol.atoms[j].vdw_radius
+            if mol.distance(i, j) < 0.9 * vdw_sum:
+                if not mol.graph.has_edge(i, j):
+                    mol.graph.add_edge(i, j, pi=False, active=False)
+
+    # join disconnected graph components
+    if not mol.graph.is_connected:
+        components = mol.graph.connected_components()
+        for comp_i, comp_j in itertools.combinations(components, r=2):
+            min_dist = float("inf")
+            min_pair = (-1, -1)
+            for i, j in itertools.product(list(comp_i), list(comp_j)):
+                if mol.distance(i, j) < min_dist:
+                    min_dist = mol.distance(i, j)
+                    min_pair = (i, j)
+            # avoid connecting distant components
+            if min_dist < Distance(4.0, "ang"):
+                mol.graph.add_edge(*min_pair, pi=False, active=False)
+
+    if not mol.graph.is_connected:
+        raise RuntimeError(
+            "Unable to join all the fragments, distance between "
+            "one or more pairs of fragments is too high (>4.0 Å)"
+        )
+
+    # The constraints should be counted as bonds
+    if mol.constraints.distance is not None:
+        for i, j in mol.constraints.distance:
+            if not mol.graph.has_edge(i, j):
+                mol.graph.add_edge(i, j, pi=False, active=False)
+
+    return None
