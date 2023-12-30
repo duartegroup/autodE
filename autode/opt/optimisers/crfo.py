@@ -11,7 +11,7 @@ from typing import Union
 from autode.log import logger
 from autode.values import GradientRMS, Distance
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.internals import build_pic_from_species
+from autode.opt.coordinates.internals import AnyPIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import (
     BFGSDampedUpdate,
@@ -122,7 +122,7 @@ class CRFOptimiser(RFOptimiser):
             )
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
-        primitives = build_pic_from_species(self._species)
+        primitives = AnyPIC.from_species(self._species)
 
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords, primitives=primitives

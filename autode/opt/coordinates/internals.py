@@ -255,28 +255,181 @@ class AnyPIC(PIC):
     def _populate_all(self, x: np.ndarray) -> None:
         raise RuntimeError("Cannot populate all on an AnyPIC instance")
 
+    @classmethod
+    def from_species(cls, mol: "Species") -> "AnyPIC":
+        """
+        Build a set of primitives from the species, using the graph as
+        a starting point for the connectivity of the species. Also joins
+        any disjoint parts of the graph, and adds hydrogen bonds to
+        ensure that the primitives are redundant.
 
-def build_pic_from_species(
-    mol: "Species",
-) -> AnyPIC:
-    """
-    Build a set of primitives from the species, using the graph as
-    a starting point for the connectivity of the species. Also joins
-    any disjoint parts of the graph, and adds hydrogen bonds to
-    ensure that the primitives are redundant
+        Args:
+            mol: The species object
 
-    Args:
-        mol:
+        Returns:
+            (AnyPIC): The set of primitive internals
+        """
+        pic = cls()
+        core_graph = _get_connected_graph_from_species(mol)
+        pic._add_bonds_from_species(mol, core_graph)
+        pic._add_angles_from_species(mol, core_graph)
+        _add_dihedrals_from_species(pic, mol, core_graph)
+        return pic
 
-    Returns:
-        (AnyPIC): The set of primitive internals
-    """
-    pic = AnyPIC()
-    core_graph = _get_connected_graph_from_species(mol)
-    _add_bonds_from_species(pic, mol, core_graph)
-    _add_angles_from_species(pic, mol, core_graph)
-    _add_dihedrals_from_species(pic, mol, core_graph)
-    return pic
+    def _add_bonds_from_species(
+        self,
+        mol: "Species",
+        core_graph: "MolecularGraph",
+    ):
+        """
+        Add bonds to the current set of primitives, from the
+        connectivity graph supplied
+
+        Args:
+            mol: The species object
+            core_graph: The connectivity graph
+        """
+        n = 0
+        for i, j in sorted(core_graph.edges):
+            if (
+                mol.constraints.distance is not None
+                and (i, j) in mol.constraints.distance
+            ):
+                r = mol.constraints.distance[(i, j)]
+                self.add(ConstrainedPrimitiveDistance(i, j, r))
+                n += 1
+            else:
+                self.add(PrimitiveDistance(i, j))
+        assert n == mol.constraints.n_distance
+
+        return None
+
+    @staticmethod
+    def _get_ref_for_linear_angle(
+        mol,
+        core_graph,
+        lin_thresh,
+        a,
+        b,
+        c,
+        bonded: bool,
+        dist_thresh=Distance(4, "ang"),
+    ) -> Optional[int]:
+        """
+        Get a reference atom for describing a linear angle, which
+        must not itself be linear to the atoms in the angle in
+        any combination. The linear angle is a--b--c here.
+
+        Args:
+            mol:
+            core_graph:
+            lin_thresh:
+            a:
+            b:
+            c:
+            bonded: Whether to look for only atoms bonded to the central
+                    atom (b) for reference
+
+        Returns:
+            (int|None): The index of the ref. atom if found, else None
+        """
+        # only check bonded atoms if requested
+        if bonded:
+            near_atoms = list(core_graph.neighbors(b))
+            near_atoms.remove(a)
+            near_atoms.remove(c)
+
+        # otherwise get all atoms in 4 A radius except a, b, c
+        else:
+            near_atoms = [
+                idx
+                for idx in range(mol.n_atoms)
+                if mol.distance(b, idx) < dist_thresh and idx not in (a, b, c)
+            ]
+
+        # get atoms closest to perpendicular
+        deviations_from_90 = {}
+        for atom in near_atoms:
+            i_b_a = mol.angle(atom, b, a)
+            if i_b_a > lin_thresh or i_b_a < (np.pi - lin_thresh):
+                continue
+            i_b_c = mol.angle(atom, b, c)
+            if i_b_c > lin_thresh or i_b_c < (np.pi - lin_thresh):
+                continue
+            deviation_a = abs(i_b_a - np.pi / 2)
+            deviation_c = abs(i_b_c - np.pi / 2)
+            avg_dev = (deviation_a + deviation_c) / 2
+            deviations_from_90[atom] = avg_dev
+
+        if len(deviations_from_90) == 0:
+            return None
+
+        return min(deviations_from_90, key=deviations_from_90.get)  # type: ignore
+
+    def _add_angles_from_species(
+        self,
+        mol: "Species",
+        core_graph: "MolecularGraph",
+        lin_thresh: Angle = Angle(170, "deg"),
+    ) -> None:
+        """
+        Modify the set of primitives in-place by adding angles, from the
+        connectivity graph supplied
+
+        Args:
+            mol (Species): The species object
+            core_graph (MolecularGraph): The connectivity graph
+            lin_thresh (Angle): The angle threshold for linearity
+        """
+        lin_thresh = lin_thresh.to("rad")
+
+        for o in range(mol.n_atoms):
+            for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
+                if mol.angle(m, o, n) < lin_thresh:
+                    self.add(PrimitiveBondAngle(m=m, o=o, n=n))
+                else:
+                    # If central atom is connected to another atom, then the
+                    # linear angle is skipped and instead an out-of-plane
+                    # (improper dihedral) coordinate is used
+                    r = self._get_ref_for_linear_angle(
+                        mol, core_graph, lin_thresh, m, o, n, bonded=True
+                    )
+                    if r is not None:
+                        self.add(PrimitiveDihedralAngle(m, r, o, n))
+                        continue
+
+                    # Otherwise, we use a nearby (< 4.0 A) reference atom to
+                    # define two orthogonal linear bends
+                    r = self._get_ref_for_linear_angle(
+                        mol, core_graph, lin_thresh, m, o, n, bonded=False
+                    )
+                    if r is not None:
+                        self.add(
+                            PrimitiveLinearAngle(
+                                m, o, n, r, LinearBendType.BEND
+                            )
+                        )
+                        self.add(
+                            PrimitiveLinearAngle(
+                                m, o, n, r, LinearBendType.COMPLEMENT
+                            )
+                        )
+
+                    # For completely linear molecules (CO2), there will be no such
+                    # reference atoms, so use dummy atoms instead
+                    else:
+                        self.add(
+                            PrimitiveDummyLinearAngle(
+                                m, o, n, LinearBendType.BEND
+                            )
+                        )
+                        self.add(
+                            PrimitiveDummyLinearAngle(
+                                m, o, n, LinearBendType.COMPLEMENT
+                            )
+                        )
+
+        return None
 
 
 def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
@@ -336,131 +489,6 @@ def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
                 core_graph.add_edge(i, j, pi=False, active=False)
 
     return core_graph
-
-
-def _add_bonds_from_species(
-    pic: AnyPIC,
-    mol: "Species",
-    core_graph: "MolecularGraph",
-):
-    """
-    Modify the supplied AnyPIC instance in-place by adding bonds, from the
-    connectivity graph supplied
-
-    Args:
-        pic: The AnyPIC instance (modified in-place)
-        mol: The species object
-        core_graph: The connectivity graph
-    """
-    n = 0
-    for i, j in sorted(core_graph.edges):
-        if (
-            mol.constraints.distance is not None
-            and (i, j) in mol.constraints.distance
-        ):
-            r = mol.constraints.distance[(i, j)]
-            pic.add(ConstrainedPrimitiveDistance(i, j, r))
-            n += 1
-        else:
-            pic.add(PrimitiveDistance(i, j))
-    assert n == mol.constraints.n_distance
-
-    return None
-
-
-def _add_angles_from_species(
-    pic: AnyPIC,
-    mol: "Species",
-    core_graph: "MolecularGraph",
-    lin_thresh: Angle = Angle(170, "deg"),
-) -> None:
-    """
-    Modify the set of primitives in-place by adding angles, from the
-    connectivity graph supplied
-
-    Args:
-        pic (AnyPIC): The AnyPIC instance (modified in-place)
-        mol (Species): The species object
-        core_graph (MolecularGraph): The connectivity graph
-        lin_thresh (Angle): The angle threshold for linearity
-    """
-    lin_thresh = lin_thresh.to("rad")
-
-    def get_ref_atom(a, b, c, bonded=False):
-        """get a reference atom for a-b-c linear angle"""
-        # only check bonded atoms if requested
-        if bonded:
-            near_atoms = list(core_graph.neighbors(b))
-            near_atoms.remove(a)
-            near_atoms.remove(c)
-
-        # otherwise get all atoms in 4 A radius except a, b, c
-        else:
-            near_atoms = [
-                idx
-                for idx in range(mol.n_atoms)
-                if mol.distance(b, idx) < Distance(4.0, "ang")
-                and idx not in (a, b, c)
-            ]
-
-        # get atoms closest to perpendicular
-        deviations_from_90 = {}
-        for atom in near_atoms:
-            i_b_a = mol.angle(atom, b, a)
-            if i_b_a > lin_thresh or i_b_a < (np.pi - lin_thresh):
-                continue
-            i_b_c = mol.angle(atom, b, c)
-            if i_b_c > lin_thresh or i_b_c < (np.pi - lin_thresh):
-                continue
-            deviation_a = abs(i_b_a - np.pi / 2)
-            deviation_c = abs(i_b_c - np.pi / 2)
-            avg_dev = (deviation_a + deviation_c) / 2
-            deviations_from_90[atom] = avg_dev
-
-        if len(deviations_from_90) == 0:
-            return None
-
-        return min(deviations_from_90, key=deviations_from_90.get)
-
-    for o in range(mol.n_atoms):
-        for n, m in itertools.combinations(core_graph.neighbors(o), r=2):
-            if mol.angle(m, o, n) < lin_thresh:
-                pic.add(PrimitiveBondAngle(m=m, o=o, n=n))
-            else:
-                # If central atom is connected to another atom, then the
-                # linear angle is skipped and instead an out-of-plane
-                # (improper dihedral) coordinate is used
-                r = get_ref_atom(m, o, n, bonded=True)
-                if r is not None:
-                    pic.add(PrimitiveDihedralAngle(m, r, o, n))
-                    continue
-
-                # Otherwise, we use a nearby (< 4.0 A) reference atom to
-                # define two orthogonal linear bends
-                r = get_ref_atom(m, o, n, bonded=False)
-                if r is not None:
-                    pic.add(
-                        PrimitiveLinearAngle(m, o, n, r, LinearBendType.BEND)
-                    )
-                    pic.add(
-                        PrimitiveLinearAngle(
-                            m, o, n, r, LinearBendType.COMPLEMENT
-                        )
-                    )
-
-                # For completely linear molecules (CO2), there will be no such
-                # reference atoms, so use dummy atoms instead
-                else:
-                    pic.add(
-                        PrimitiveDummyLinearAngle(m, o, n, LinearBendType.BEND)
-                    )
-                    pic.add(
-                        PrimitiveDummyLinearAngle(
-                            m, o, n, LinearBendType.COMPLEMENT
-                        )
-                    )
-
-    return None
 
 
 def _add_dihedrals_from_species(
