@@ -36,6 +36,10 @@ if TYPE_CHECKING:
     )
 
 
+# Angle threshold for linearity (should be in radians)
+_lin_thresh = Angle(170, "deg").to("rad")
+
+
 class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
     def __new__(cls, input_array) -> "InternalCoordinates":
         """New instance of these internal coordinates"""
@@ -309,7 +313,6 @@ class AnyPIC(PIC):
     @staticmethod
     def _get_ref_for_linear_angle(
         mol,
-        lin_thresh,
         a,
         b,
         c,
@@ -323,7 +326,6 @@ class AnyPIC(PIC):
 
         Args:
             mol:
-            lin_thresh:
             a:
             b:
             c:
@@ -334,6 +336,7 @@ class AnyPIC(PIC):
         Returns:
             (int|None): The index of the ref. atom if found, else None
         """
+
         # only check bonded atoms if requested
         if bonded:
             near_atoms = list(mol.graph.neighbors(b))
@@ -352,10 +355,10 @@ class AnyPIC(PIC):
         deviations_from_90 = {}
         for atom in near_atoms:
             i_b_a = mol.angle(atom, b, a)
-            if i_b_a > lin_thresh or i_b_a < (np.pi - lin_thresh):
+            if i_b_a > _lin_thresh or i_b_a < (np.pi - _lin_thresh):
                 continue
             i_b_c = mol.angle(atom, b, c)
-            if i_b_c > lin_thresh or i_b_c < (np.pi - lin_thresh):
+            if i_b_c > _lin_thresh or i_b_c < (np.pi - _lin_thresh):
                 continue
             deviation_a = abs(i_b_a - np.pi / 2)
             deviation_c = abs(i_b_c - np.pi / 2)
@@ -370,7 +373,6 @@ class AnyPIC(PIC):
     def _add_angles_from_species(
         self,
         mol: "Species",
-        lin_thresh: Angle = Angle(170, "deg"),
     ) -> None:
         """
         Modify the set of primitives in-place by adding angles, from the
@@ -378,21 +380,19 @@ class AnyPIC(PIC):
 
         Args:
             mol (Species): The species object
-            lin_thresh (Angle): The angle threshold for linearity
         """
         assert mol.graph is not None
-        lin_thresh = lin_thresh.to("rad")
 
         for o in range(mol.n_atoms):
             for n, m in itertools.combinations(mol.graph.neighbors(o), r=2):
-                if mol.angle(m, o, n) < lin_thresh:
+                if mol.angle(m, o, n) < _lin_thresh:
                     self.add(PrimitiveBondAngle(m=m, o=o, n=n))
                 else:
                     # If central atom is connected to another atom, then the
                     # linear angle is skipped and instead an out-of-plane
                     # (improper dihedral) coordinate is used
                     r = self._get_ref_for_linear_angle(
-                        mol, lin_thresh, m, o, n, bonded=True
+                        mol, m, o, n, bonded=True
                     )
                     if r is not None:
                         self.add(PrimitiveDihedralAngle(m, r, o, n))
@@ -401,7 +401,7 @@ class AnyPIC(PIC):
                     # Otherwise, we use a nearby (< 4.0 A) reference atom to
                     # define two orthogonal linear bends
                     r = self._get_ref_for_linear_angle(
-                        mol, lin_thresh, m, o, n, bonded=False
+                        mol, m, o, n, bonded=False
                     )
                     if r is not None:
                         self.add(
@@ -434,7 +434,6 @@ class AnyPIC(PIC):
     def _add_dihedrals_from_species(
         self,
         mol: "Species",
-        lin_thresh: Angle = Angle(170, "deg"),
     ) -> None:
         """
         Modify the set of primitives in-place by adding dihedrals (torsions),
@@ -442,24 +441,22 @@ class AnyPIC(PIC):
 
         Args:
             mol (Species): The species
-            lin_thresh (Angle): The threshold for linearity
         """
         # no dihedrals possible with less than 4 atoms
         if mol.n_atoms < 4:
             return
 
         assert mol.graph is not None
-        lin_thresh = lin_thresh.to("rad")
-        zero_angle_thresh = np.pi - lin_thresh
+        zero_angle_thresh = np.pi - _lin_thresh
 
         def is_dihedral_well_defined(w, x, y, z):
             """A dihedral is well-defined if any angle is not linear"""
             is_linear_1 = (
-                mol.angle(w, x, y) > lin_thresh
+                mol.angle(w, x, y) > _lin_thresh
                 or mol.angle(w, x, y) < zero_angle_thresh
             )
             is_linear_2 = (
-                mol.angle(x, y, z) > lin_thresh
+                mol.angle(x, y, z) > _lin_thresh
                 or mol.angle(x, y, z) < zero_angle_thresh
             )
             return not (is_linear_1 or is_linear_2)
@@ -488,11 +485,11 @@ class AnyPIC(PIC):
                 if idx in chain:
                     continue
                 # if idx -- 0 -- 1 > 170 degrees
-                if mol.angle(chain[1], chain[0], idx) > lin_thresh:
+                if mol.angle(chain[1], chain[0], idx) > _lin_thresh:
                     chain.insert(0, idx)
                     continue
                 # if (-2) -- (-1) -- idx > 170 degrees
-                if mol.angle(chain[-2], chain[-1], idx) > lin_thresh:
+                if mol.angle(chain[-2], chain[-1], idx) > _lin_thresh:
                     chain.append(idx)
                     continue
 
@@ -505,7 +502,7 @@ class AnyPIC(PIC):
                     c in chain for chain in linear_chains
                 ):
                     continue
-                if mol.angle(a, b, c) > lin_thresh:
+                if mol.angle(a, b, c) > _lin_thresh:
                     chain = [a, b, c]
                     extend_chain(chain)
                     linear_chains.append(chain)
