@@ -19,7 +19,7 @@ from autode.exceptions import CoordinateTransformFailed
 from autode.opt.coordinates.internals import (
     PrimitiveInverseDistances,
     PIC,
-    build_pic_from_species,
+    AnyPIC,
 )
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
@@ -545,7 +545,7 @@ def test_pic_b_no_primitives():
 
 
 def test_pic_add_sanity_checking():
-    c = PIC()
+    c = AnyPIC()
     # pic add should check for primitive type
     c.add(PrimitiveDistance(0, 1))
     with pytest.raises(AssertionError):
@@ -832,7 +832,7 @@ def test_dics_cannot_be_built_with_incomplete_primitives():
 def test_pic_generation_linear_angle_ref():
     # Fe(CO)5 with linear Fe-C-O bonds
     m = feco5_mol()
-    pic = build_pic_from_species(m)
+    pic = AnyPIC.from_species(m)
 
     # check that there are no duplicates
     assert not any(ic1 == ic2 for ic1, ic2 in itertools.combinations(pic, r=2))
@@ -848,7 +848,7 @@ def test_pic_generation_linear_angle_ref():
 def test_pic_generation_linear_angle_dummy():
     # acetylene molecule
     mol = acetylene_mol()
-    pic = build_pic_from_species(mol)
+    pic = AnyPIC.from_species(mol)
 
     # there should not be any usual bond angles
     assert not any(isinstance(ic, PrimitiveBondAngle) for ic in pic)
@@ -889,7 +889,7 @@ def test_pic_generation_disjoint_graph():
 
     mol = Molecule("diels_alder_complex.xyz")
     assert not mol.graph.is_connected
-    pic = build_pic_from_species(mol)
+    pic = AnyPIC.from_species(mol)
 
     # shortest bond is between 4, 5 which should also generate angle, torsion
     assert PrimitiveDistance(4, 5) in pic
@@ -906,7 +906,7 @@ def test_pic_generation_disjoint_graph():
 
     # if the bond between 2, 3 is made into a constraint, it will generate angles
     mol.constraints.distance = {(2, 3): mol.distance(2, 3)}
-    pic = build_pic_from_species(mol)
+    pic = AnyPIC.from_species(mol)
     assert ConstrainedPrimitiveDistance(2, 3, mol.distance(2, 3)) in pic
     assert PrimitiveBondAngle(1, 2, 3) in pic
 
@@ -914,7 +914,7 @@ def test_pic_generation_disjoint_graph():
 def test_pic_generation_chain_dihedrals():
     # extra dihedrals are needed for ends of linear chains like allene
     cumulene = cumulene_mol()
-    pic = build_pic_from_species(cumulene)
+    pic = AnyPIC.from_species(cumulene)
 
     assert PrimitiveDihedralAngle(5, 3, 4, 8) in pic
     assert PrimitiveDihedralAngle(6, 3, 4, 7) in pic
@@ -940,6 +940,6 @@ def test_pic_generation_square_planar():
 
     # for sq planar, out-of-plane dihedrals are needed to have
     # all degrees of freedom
-    pic = build_pic_from_species(ptcl4)
+    pic = AnyPIC.from_species(ptcl4)
     _ = pic(ptcl4.coordinates.flatten())
     assert np.linalg.matrix_rank(pic.B) == 3 * 5 - 6
