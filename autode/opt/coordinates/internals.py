@@ -270,11 +270,70 @@ class AnyPIC(PIC):
             (AnyPIC): The set of primitive internals
         """
         pic = cls()
-        core_graph = _get_connected_graph_from_species(mol)
+        core_graph = pic._get_connected_graph_from_species(mol)
         pic._add_bonds_from_species(mol, core_graph)
         pic._add_angles_from_species(mol, core_graph)
-        _add_dihedrals_from_species(pic, mol, core_graph)
+        pic._add_dihedrals_from_species(mol, core_graph)
         return pic
+
+    @staticmethod
+    def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
+        """
+        Creates a fully connected graph from the graph of a species, by
+        (1) joining disconnected fragments by their shortest distance,
+        (2) connecting constrained bonds, (3) joining hydrogen bonds,
+        if present.
+
+        Args:
+            mol: A species (must have atoms and graph)
+
+        Returns:
+            (MolecularGraph):
+        """
+        assert mol.graph is not None, "Species must have graph!"
+        core_graph = copy.deepcopy(mol.graph)
+
+        # join hydrogen bonds
+        h_bond_x = ["N", "O", "F", "P", "S", "Cl"]
+        for i, j in itertools.combinations(range(mol.n_atoms), r=2):
+            if (
+                mol.atoms[i].label in h_bond_x
+                and mol.atoms[j].label == "H"
+                or mol.atoms[j].label in h_bond_x
+                and mol.atoms[i].label == "H"
+            ):
+                vdw_sum = mol.atoms[i].vdw_radius + mol.atoms[j].vdw_radius
+                if mol.distance(i, j) < 0.9 * vdw_sum:
+                    if not core_graph.has_edge(i, j):
+                        core_graph.add_edge(i, j, pi=False, active=False)
+
+        # join disconnected graph components
+        if not core_graph.is_connected:
+            components = core_graph.connected_components()
+            for comp_i, comp_j in itertools.combinations(components, r=2):
+                min_dist = float("inf")
+                min_pair = (-1, -1)
+                for i, j in itertools.product(list(comp_i), list(comp_j)):
+                    if mol.distance(i, j) < min_dist:
+                        min_dist = mol.distance(i, j)
+                        min_pair = (i, j)
+                # avoid connecting distant components
+                if min_dist < Distance(4.0, "ang"):
+                    core_graph.add_edge(*min_pair, pi=False, active=False)
+
+        if not core_graph.is_connected:
+            raise RuntimeError(
+                "Unable to join all the fragments, distance between "
+                "one or more pairs of fragments is too high (>4.0 Å)"
+            )
+
+        # The constraints should be counted as bonds
+        if mol.constraints.distance is not None:
+            for i, j in mol.constraints.distance:
+                if not core_graph.has_edge(i, j):
+                    core_graph.add_edge(i, j, pi=False, active=False)
+
+        return core_graph
 
     def _add_bonds_from_species(
         self,
@@ -329,6 +388,7 @@ class AnyPIC(PIC):
             c:
             bonded: Whether to look for only atoms bonded to the central
                     atom (b) for reference
+            dist_thresh: The distance threshold to connect
 
         Returns:
             (int|None): The index of the ref. atom if found, else None
@@ -431,167 +491,106 @@ class AnyPIC(PIC):
 
         return None
 
+    def _add_dihedrals_from_species(
+        self,
+        mol: "Species",
+        core_graph: "MolecularGraph",
+        lin_thresh: Angle = Angle(170, "deg"),
+    ) -> None:
+        """
+        Modify the set of primitives in-place by adding dihedrals (torsions),
+        from the connectivity graph supplied
 
-def _get_connected_graph_from_species(mol: "Species") -> "MolecularGraph":
-    """
-    Creates a fully connected graph from the graph of a species, by
-    (1) joining disconnected fragments by their shortest distance,
-    (2) connecting constrained bonds, (3) joining hydrogen bonds,
-    if present.
+        Args:
+            mol (Species): The species
+            core_graph (MolecularGraph): The connectivity graph
+            lin_thresh (Angle): The threshold for linearity
+        """
+        # no dihedrals possible with less than 4 atoms
+        if mol.n_atoms < 4:
+            return
 
-    Args:
-        mol: A species (must have atoms and graph)
+        lin_thresh = lin_thresh.to("rad")
+        zero_angle_thresh = np.pi - lin_thresh
 
-    Returns:
-        (MolecularGraph):
-    """
-    assert mol.graph is not None, "Species must have graph!"
-    core_graph = copy.deepcopy(mol.graph)
+        def is_dihedral_well_defined(w, x, y, z):
+            """A dihedral is well-defined if any angle is not linear"""
+            is_linear_1 = (
+                mol.angle(w, x, y) > lin_thresh
+                or mol.angle(w, x, y) < zero_angle_thresh
+            )
+            is_linear_2 = (
+                mol.angle(x, y, z) > lin_thresh
+                or mol.angle(x, y, z) < zero_angle_thresh
+            )
+            return not (is_linear_1 or is_linear_2)
 
-    # join hydrogen bonds
-    h_bond_x = ["N", "O", "F", "P", "S", "Cl"]
-    for i, j in itertools.combinations(range(mol.n_atoms), r=2):
-        if (
-            mol.atoms[i].label in h_bond_x
-            and mol.atoms[j].label == "H"
-            or mol.atoms[j].label in h_bond_x
-            and mol.atoms[i].label == "H"
-        ):
-            vdw_sum = mol.atoms[i].vdw_radius + mol.atoms[j].vdw_radius
-            if mol.distance(i, j) < 0.9 * vdw_sum:
-                if not core_graph.has_edge(i, j):
-                    core_graph.add_edge(i, j, pi=False, active=False)
-
-    # join disconnected graph components
-    if not core_graph.is_connected:
-        components = core_graph.connected_components()
-        for comp_i, comp_j in itertools.combinations(components, r=2):
-            min_dist = float("inf")
-            min_pair = (-1, -1)
-            for i, j in itertools.product(list(comp_i), list(comp_j)):
-                if mol.distance(i, j) < min_dist:
-                    min_dist = mol.distance(i, j)
-                    min_pair = (i, j)
-            # avoid connecting distant components
-            if min_dist < Distance(4.0, "ang"):
-                core_graph.add_edge(*min_pair, pi=False, active=False)
-
-    if not core_graph.is_connected:
-        raise RuntimeError(
-            "Unable to join all the fragments, distance between "
-            "one or more pairs of fragments is too high (>4.0 Å)"
-        )
-
-    # The constraints should be counted as bonds
-    if mol.constraints.distance is not None:
-        for i, j in mol.constraints.distance:
-            if not core_graph.has_edge(i, j):
-                core_graph.add_edge(i, j, pi=False, active=False)
-
-    return core_graph
-
-
-def _add_dihedrals_from_species(
-    pic: AnyPIC,
-    mol: "Species",
-    core_graph: "MolecularGraph",
-    lin_thresh: Angle = Angle(170, "deg"),
-) -> None:
-    """
-    Modify the set of primitives in-place by adding dihedrals (torsions),
-    from the connectivity graph supplied
-
-    Args:
-        pic (AnyPIC): The AnyPIC instance (modified in-place)
-        mol (Species): The species
-        core_graph (MolecularGraph): The connectivity graph
-        lin_thresh (Angle): The threshold for linearity
-    """
-    # no dihedrals possible with less than 4 atoms
-    if mol.n_atoms < 4:
-        return
-
-    lin_thresh = lin_thresh.to("rad")
-    zero_angle_thresh = np.pi - lin_thresh
-
-    def is_dihedral_well_defined(w, x, y, z):
-        """A dihedral is well-defined if any angle is not linear"""
-        is_linear_1 = (
-            mol.angle(w, x, y) > lin_thresh
-            or mol.angle(w, x, y) < zero_angle_thresh
-        )
-        is_linear_2 = (
-            mol.angle(x, y, z) > lin_thresh
-            or mol.angle(x, y, z) < zero_angle_thresh
-        )
-        return not (is_linear_1 or is_linear_2)
-
-    # add normal dihedrals
-    for o, p in list(core_graph.edges):
-        for m in core_graph.neighbors(o):
-            if m == p:
-                continue
-
-            for n in core_graph.neighbors(p):
-                if n == o:
+        # add normal dihedrals
+        for o, p in list(core_graph.edges):
+            for m in core_graph.neighbors(o):
+                if m == p:
                     continue
 
-                # avoid triangle rings like cyclopropane
-                if n == m:
+                for n in core_graph.neighbors(p):
+                    if n == o:
+                        continue
+
+                    # avoid triangle rings like cyclopropane
+                    if n == m:
+                        continue
+
+                    if is_dihedral_well_defined(m, o, p, n):
+                        self.add(PrimitiveDihedralAngle(m, o, p, n))
+
+        # find all linear atom chains A--B--C--D... and add dihedrals to terminal atoms
+
+        def extend_chain(chain: List[int]):
+            for idx in range(mol.n_atoms):
+                if idx in chain:
+                    continue
+                # if idx -- 0 -- 1 > 170 degrees
+                if mol.angle(chain[1], chain[0], idx) > lin_thresh:
+                    chain.insert(0, idx)
+                    continue
+                # if (-2) -- (-1) -- idx > 170 degrees
+                if mol.angle(chain[-2], chain[-1], idx) > lin_thresh:
+                    chain.append(idx)
                     continue
 
-                if is_dihedral_well_defined(m, o, p, n):
-                    pic.add(PrimitiveDihedralAngle(m, o, p, n))
-
-    # find all linear atom chains A--B--C--D... and add dihedrals to terminal atoms
-
-    def extend_chain(chain: List[int]):
-        for idx in range(mol.n_atoms):
-            if idx in chain:
+        linear_chains: List[list] = []
+        for b in range(mol.n_atoms):
+            if any(b in chain for chain in linear_chains):
                 continue
-            # if idx -- 0 -- 1 > 170 degrees
-            if mol.angle(chain[1], chain[0], idx) > lin_thresh:
-                chain.insert(0, idx)
-                continue
-            # if (-2) -- (-1) -- idx > 170 degrees
-            if mol.angle(chain[-2], chain[-1], idx) > lin_thresh:
-                chain.append(idx)
-                continue
+            for a, c in itertools.combinations(core_graph.neighbors(b), r=2):
+                if any(a in chain for chain in linear_chains) or any(
+                    c in chain for chain in linear_chains
+                ):
+                    continue
+                if mol.angle(a, b, c) > lin_thresh:
+                    chain = [a, b, c]
+                    extend_chain(chain)
+                    linear_chains.append(chain)
 
-    linear_chains: List[list] = []
-    for b in range(mol.n_atoms):
-        if any(b in chain for chain in linear_chains):
-            continue
-        for a, c in itertools.combinations(core_graph.neighbors(b), r=2):
-            if any(a in chain for chain in linear_chains) or any(
-                c in chain for chain in linear_chains
-            ):
-                continue
-            if mol.angle(a, b, c) > lin_thresh:
-                chain = [a, b, c]
-                extend_chain(chain)
-                linear_chains.append(chain)
-
-    # add linear chain dihedrals
-    for chain in linear_chains:
-        o, p = chain[0], chain[-1]
-        for m in core_graph.neighbors(o):
-            if m == p:
-                continue
-
-            if m in chain:
-                continue
-
-            for n in core_graph.neighbors(p):
-                if n == o:
+        # add linear chain dihedrals
+        for chain in linear_chains:
+            o, p = chain[0], chain[-1]
+            for m in core_graph.neighbors(o):
+                if m == p:
                     continue
 
-                if n == m:
+                if m in chain:
                     continue
 
-                if n in chain:
-                    continue
+                for n in core_graph.neighbors(p):
+                    if n == o:
+                        continue
 
-                if is_dihedral_well_defined(m, o, p, n):
-                    pic.add(PrimitiveDihedralAngle(m, o, p, n))
-    return None
+                    if n == m:
+                        continue
+
+                    if n in chain:
+                        continue
+
+                    if is_dihedral_well_defined(m, o, p, n):
+                        self.add(PrimitiveDihedralAngle(m, o, p, n))
+        return None
