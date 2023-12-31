@@ -587,15 +587,9 @@ def _connect_graph_for_species(mol: "Species") -> None:
                 if mol.distance(i, j) < min_dist:
                     min_dist = mol.distance(i, j)
                     min_pair = (i, j)
-            # avoid connecting distant components
-            if min_dist < Distance(4.0, "ang"):
-                mol.graph.add_edge(*min_pair, pi=False, active=False)
+            mol.graph.add_edge(*min_pair, pi=False, active=False)
 
-    if not mol.graph.is_connected:
-        raise RuntimeError(
-            "Unable to join all the fragments, distance between "
-            "one or more pairs of fragments is too high (>4.0 Å)"
-        )
+    assert mol.graph.is_connected, "Unknown error in connecting graph"
 
     # The constraints should be counted as bonds
     if mol.constraints.distance is not None:
