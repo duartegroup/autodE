@@ -331,7 +331,8 @@ class AnyPIC(PIC):
             c:
             bonded: Whether to look for only atoms bonded to the central
                     atom (b) for reference
-            dist_thresh: The distance threshold to connect
+            dist_thresh: The distance threshold to check for atoms if
+                    bonded = False
 
         Returns:
             (int|None): The index of the ref. atom if found, else None
@@ -431,6 +432,51 @@ class AnyPIC(PIC):
 
         return None
 
+    @staticmethod
+    def _get_linear_chains(mol: "Species") -> List[List[int]]:
+        """
+        Obtain a list of all the continuous chains of linear atoms
+        present in the species i.e. A--B--C--D--E...
+
+        Args:
+            mol: The species
+
+        Returns:
+            (list[list[int]): A list of lists, each containing indices
+                            of the atoms of linear chains in order
+        """
+        assert mol.graph is not None
+
+        def extend_chain(chain: List[int]):
+            """Extend a chain in-place"""
+            for idx in range(mol.n_atoms):
+                if idx in chain:
+                    continue
+
+                if mol.angle(chain[1], chain[0], idx) > _lin_thresh:
+                    chain.insert(0, idx)
+                    continue
+
+                if mol.angle(chain[-2], chain[-1], idx) > _lin_thresh:
+                    chain.append(idx)
+                    continue
+            return None
+
+        linear_chains: List[list] = []
+        for b in range(mol.n_atoms):
+            for a, c in itertools.combinations(mol.graph.neighbors(b), r=2):
+                if any(
+                    a in chain and b in chain and c in chain
+                    for chain in linear_chains
+                ):
+                    continue
+                if mol.angle(a, b, c) > _lin_thresh:
+                    chain = [a, b, c]
+                    extend_chain(chain)
+                    linear_chains.append(chain)
+
+        return linear_chains
+
     def _add_dihedrals_from_species(
         self,
         mol: "Species",
@@ -450,7 +496,7 @@ class AnyPIC(PIC):
         zero_angle_thresh = np.pi - _lin_thresh
 
         def is_dihedral_well_defined(w, x, y, z):
-            """A dihedral is well-defined if any angle is not linear"""
+            """A dihedral is not well-defined if any angle is linear"""
             is_linear_1 = (
                 mol.angle(w, x, y) > _lin_thresh
                 or mol.angle(w, x, y) < zero_angle_thresh
@@ -478,36 +524,9 @@ class AnyPIC(PIC):
                     if is_dihedral_well_defined(m, o, p, n):
                         self.add(PrimitiveDihedralAngle(m, o, p, n))
 
-        # find all linear atom chains A--B--C--D... and add dihedrals to terminal atoms
+        # add linear chain terminal dihedrals
+        linear_chains = self._get_linear_chains(mol)
 
-        def extend_chain(chain: List[int]):
-            for idx in range(mol.n_atoms):
-                if idx in chain:
-                    continue
-                # if idx -- 0 -- 1 > 170 degrees
-                if mol.angle(chain[1], chain[0], idx) > _lin_thresh:
-                    chain.insert(0, idx)
-                    continue
-                # if (-2) -- (-1) -- idx > 170 degrees
-                if mol.angle(chain[-2], chain[-1], idx) > _lin_thresh:
-                    chain.append(idx)
-                    continue
-
-        linear_chains: List[list] = []
-        for b in range(mol.n_atoms):
-            if any(b in chain for chain in linear_chains):
-                continue
-            for a, c in itertools.combinations(mol.graph.neighbors(b), r=2):
-                if any(a in chain for chain in linear_chains) or any(
-                    c in chain for chain in linear_chains
-                ):
-                    continue
-                if mol.angle(a, b, c) > _lin_thresh:
-                    chain = [a, b, c]
-                    extend_chain(chain)
-                    linear_chains.append(chain)
-
-        # add linear chain dihedrals
         for chain in linear_chains:
             o, p = chain[0], chain[-1]
             for m in mol.graph.neighbors(o):
