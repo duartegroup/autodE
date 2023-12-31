@@ -280,6 +280,7 @@ class AnyPIC(PIC):
         pic._add_bonds_from_species(mol)
         pic._add_angles_from_species(mol)
         pic._add_dihedrals_from_species(mol)
+        pic._add_chain_dihedrals_from_species(mol)
         return pic
 
     def _add_bonds_from_species(
@@ -361,10 +362,8 @@ class AnyPIC(PIC):
             i_b_c = mol.angle(atom, b, c)
             if i_b_c > _lin_thresh or i_b_c < (np.pi - _lin_thresh):
                 continue
-            deviation_a = abs(i_b_a - np.pi / 2)
-            deviation_c = abs(i_b_c - np.pi / 2)
-            avg_dev = (deviation_a + deviation_c) / 2
-            deviations_from_90[atom] = avg_dev
+            deviation = abs(i_b_a - np.pi / 2)
+            deviations_from_90[atom] = deviation
 
         if len(deviations_from_90) == 0:
             return None
@@ -432,6 +431,41 @@ class AnyPIC(PIC):
 
         return None
 
+    def _add_dihedrals_from_species(
+        self,
+        mol: "Species",
+    ) -> None:
+        """
+        Modify the set of primitives in-place by adding dihedrals (torsions),
+        from the connectivity graph supplied
+
+        Args:
+            mol (Species): The species
+        """
+        # no dihedrals possible with less than 4 atoms
+        if mol.n_atoms < 4:
+            return
+
+        assert mol.graph is not None
+
+        for o, p in list(mol.graph.edges):
+            for m in mol.graph.neighbors(o):
+                if m == p:
+                    continue
+
+                for n in mol.graph.neighbors(p):
+                    if n == o:
+                        continue
+
+                    # avoid triangle rings like cyclopropane
+                    if n == m:
+                        continue
+
+                    if _is_dihedral_well_defined(mol, m, o, p, n):
+                        self.add(PrimitiveDihedralAngle(m, o, p, n))
+
+        return None
+
     @staticmethod
     def _get_linear_chains(mol: "Species") -> List[List[int]]:
         """
@@ -477,54 +511,18 @@ class AnyPIC(PIC):
 
         return linear_chains
 
-    def _add_dihedrals_from_species(
-        self,
-        mol: "Species",
-    ) -> None:
+    def _add_chain_dihedrals_from_species(self, mol: "Species"):
         """
-        Modify the set of primitives in-place by adding dihedrals (torsions),
-        from the connectivity graph supplied
+        Add extra dihedrals for chain molecules like allene, which
+        are required to cover all degrees of freedom
 
         Args:
-            mol (Species): The species
+            mol:
+
+        Returns:
+
         """
-        # no dihedrals possible with less than 4 atoms
-        if mol.n_atoms < 4:
-            return
-
         assert mol.graph is not None
-        zero_angle_thresh = np.pi - _lin_thresh
-
-        def is_dihedral_well_defined(w, x, y, z):
-            """A dihedral is not well-defined if any angle is linear"""
-            is_linear_1 = (
-                mol.angle(w, x, y) > _lin_thresh
-                or mol.angle(w, x, y) < zero_angle_thresh
-            )
-            is_linear_2 = (
-                mol.angle(x, y, z) > _lin_thresh
-                or mol.angle(x, y, z) < zero_angle_thresh
-            )
-            return not (is_linear_1 or is_linear_2)
-
-        # add normal dihedrals
-        for o, p in list(mol.graph.edges):
-            for m in mol.graph.neighbors(o):
-                if m == p:
-                    continue
-
-                for n in mol.graph.neighbors(p):
-                    if n == o:
-                        continue
-
-                    # avoid triangle rings like cyclopropane
-                    if n == m:
-                        continue
-
-                    if is_dihedral_well_defined(m, o, p, n):
-                        self.add(PrimitiveDihedralAngle(m, o, p, n))
-
-        # add linear chain terminal dihedrals
         linear_chains = self._get_linear_chains(mol)
 
         for chain in linear_chains:
@@ -546,8 +544,9 @@ class AnyPIC(PIC):
                     if n in chain:
                         continue
 
-                    if is_dihedral_well_defined(m, o, p, n):
+                    if _is_dihedral_well_defined(mol, m, o, p, n):
                         self.add(PrimitiveDihedralAngle(m, o, p, n))
+
         return None
 
 
@@ -598,3 +597,30 @@ def _connect_graph_for_species(mol: "Species") -> None:
                 mol.graph.add_edge(i, j, pi=False, active=False)
 
     return None
+
+
+def _is_dihedral_well_defined(mol, a, b, c, d) -> bool:
+    """
+    A dihedral a--b--c--d is only well-defined when the
+    two constituent angles are not linear
+
+    Args:
+        mol:
+        a:
+        b:
+        c:
+        d:
+
+    Returns:
+        (bool): True if well-defined otherwise False
+    """
+    zero_angle_thresh = np.pi - _lin_thresh
+    is_linear_1 = (
+        mol.angle(a, b, c) > _lin_thresh
+        or mol.angle(a, b, c) < zero_angle_thresh
+    )
+    is_linear_2 = (
+        mol.angle(b, c, d) > _lin_thresh
+        or mol.angle(b, c, d) < zero_angle_thresh
+    )
+    return not (is_linear_1 or is_linear_2)

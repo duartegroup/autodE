@@ -838,8 +838,10 @@ def test_pic_generation_linear_angle_ref():
     assert not any(ic1 == ic2 for ic1, ic2 in itertools.combinations(pic, r=2))
     # check that linear bends use reference atoms, not dummy
     assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
-    # for C-Fe-C, one out-of-plane dihedral should be present
-    assert PrimitiveDihedralAngle(3, 5, 2, 1) in pic
+    assert PrimitiveLinearAngle(4, 3, 2, 8, LinearBendType.BEND) in pic
+    # for C-Fe-C, only one out-of-plane dihedral should be present
+    assert PrimitiveDihedralAngle(3, 7, 2, 1) in pic
+    assert sum(isinstance(ic, PrimitiveDihedralAngle) for ic in pic) == 1
     # check degrees of freedom = 3N - 6
     _ = pic(m.coordinates.flatten())
     assert np.linalg.matrix_rank(pic.B) == 3 * m.n_atoms - 6
