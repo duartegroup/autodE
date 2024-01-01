@@ -362,8 +362,10 @@ class AnyPIC(PIC):
             i_b_c = mol.angle(atom, b, c)
             if i_b_c > _lin_thresh or i_b_c < (np.pi - _lin_thresh):
                 continue
-            deviation = abs(i_b_a - np.pi / 2)
-            deviations_from_90[atom] = deviation
+            deviation_a = abs(i_b_a - np.pi / 2)
+            deviation_b = abs(i_b_c - np.pi / 2)
+            avg_dev = (deviation_a + deviation_b) / 2
+            deviations_from_90[atom] = avg_dev
 
         if len(deviations_from_90) == 0:
             return None
