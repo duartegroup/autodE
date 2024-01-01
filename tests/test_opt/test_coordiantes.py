@@ -944,4 +944,4 @@ def test_pic_generation_square_planar():
     # all degrees of freedom
     pic = AnyPIC.from_species(ptcl4)
     _ = pic(ptcl4.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * 5 - 6
+    assert np.linalg.matrix_rank(pic.B) == 3 * ptcl4.n_atoms - 6
