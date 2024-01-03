@@ -551,6 +551,10 @@ def test_pic_add_sanity_checking():
     with pytest.raises(AssertionError):
         c.add(3)
 
+    # pic append is disallowed
+    with pytest.raises(NotImplementedError, match="Please use PIC.add()"):
+        c.append(PrimitiveDistance(0, 1))
+
     # pic should not allow duplicate coordinates to be added
     assert len(c) == 1
     c.add(PrimitiveDistance(1, 0))
