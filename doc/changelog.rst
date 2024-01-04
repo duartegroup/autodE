@@ -8,6 +8,8 @@ Changelog
 Functionality improvements
 **************************
 - Replaces hard-coded derivatives for primitive internal coordinates with automatic differentiation
+- More comprehensive primitive internal coordinate generation
+- Adds the capacity to handle linear molecules in internal coordinate system
 
 Bug Fixes
 *********

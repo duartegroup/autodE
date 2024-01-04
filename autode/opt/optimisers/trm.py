@@ -130,27 +130,6 @@ class HybridTRMOptimiser(CRFOptimiser):
         ), "HybridTRMOptimiser cannot work with constraints!"
         return None
 
-    def _build_internal_coordinates(self) -> None:
-        """ "Build delocalised internal coordinates"""
-        if self._species is None:
-            raise RuntimeError(
-                "Cannot set initial coordinates. No species set"
-            )
-
-        cart_coords = CartesianCoordinates(self._species.coordinates)
-        primitives = self._primitives
-
-        if len(primitives) < cart_coords.expected_number_of_dof:
-            logger.info(
-                "Had an incomplete set of primitives. Adding "
-                "additional distances"
-            )
-            for i, j in combinations(range(self._species.n_atoms), 2):
-                primitives.append(PrimitiveDistance(i, j))
-
-        self._coords = DIC.from_cartesian(x=cart_coords, primitives=primitives)
-        return None
-
     def _step(self) -> None:
         """
         Hybrid RFO/TRM step; if the RFO step is larger than the trust

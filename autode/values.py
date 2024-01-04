@@ -240,6 +240,10 @@ class Value(ABC, float):
     def __sub__(self, other) -> TypeValue:
         return self.__add__(-other)
 
+    def __neg__(self) -> TypeValue:
+        """Unary negation operation"""
+        return self._like_self_from_float(-float(self))
+
     def __floordiv__(self, other) -> Union[float, TypeValue]:
         x = float(self) // self._other_same_units(other)
         return x if isinstance(other, Value) else self._like_self_from_float(x)

@@ -1,7 +1,6 @@
 # mypy: disable-error-code="has-type"
 import numpy as np
 from copy import deepcopy
-from enum import IntEnum, unique
 from typing import Optional, Union, Sequence, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
 
@@ -13,15 +12,6 @@ if TYPE_CHECKING:
     from autode.units import Unit
     from autode.values import Gradient
     from autode.hessians import Hessian
-
-
-@unique
-class CartesianComponent(IntEnum):
-    """Cartesian component in 3D space"""
-
-    x = 0
-    y = 1
-    z = 2
 
 
 class OptCoordinates(ValueArray, ABC):

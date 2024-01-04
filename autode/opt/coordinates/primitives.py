@@ -1,7 +1,8 @@
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Tuple, TYPE_CHECKING, List
+from enum import Enum
+from typing import Tuple, TYPE_CHECKING, List, Optional
 from autode.opt.coordinates._autodiff import (
     get_differentiable_vars,
     DifferentiableMath,
@@ -11,7 +12,7 @@ from autode.opt.coordinates._autodiff import (
 )
 
 if TYPE_CHECKING:
-    from autode.opt.coordinates import CartesianCoordinates, CartesianComponent
+    from autode.opt.coordinates import CartesianCoordinates
 
 
 def _get_3d_vecs_from_atom_idxs(
@@ -238,7 +239,7 @@ class PrimitiveInverseDistance(_DistanceFunction):
         vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
-        return 1.0 / (vec_i - vec_j).norm()
+        return 1.0 / (vec_i - vec_j).norm()  # type: ignore
 
     def __repr__(self):
         return f"InverseDistance({self.i}-{self.j})"
@@ -260,7 +261,7 @@ class PrimitiveDistance(_DistanceFunction):
         vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
         )
-        return (vec_i - vec_j).norm()
+        return (vec_i - vec_j).norm()  # type: ignore
 
     def __repr__(self):
         return f"Distance({self.i}-{self.j})"
@@ -298,12 +299,12 @@ class PrimitiveBondAngle(Primitive):
     arccosine of the normalised dot product
     """
 
-    def __init__(self, o: int, m: int, n: int):
+    def __init__(self, m: int, o: int, n: int):
         """Bond angle m-o-n"""
-        super().__init__(o, m, n)
+        super().__init__(m, o, n)
 
-        self.o = int(o)
         self.m = int(m)
+        self.o = int(o)
         self.n = int(n)
 
     def __eq__(self, other) -> bool:
@@ -331,22 +332,22 @@ class PrimitiveBondAngle(Primitive):
 
 
 class ConstrainedPrimitiveBondAngle(ConstrainedPrimitive, PrimitiveBondAngle):
-    def __init__(self, o: int, m: int, n: int, value: float):
+    def __init__(self, m: int, o: int, n: int, value: float):
         """
         Angle (m-o-n) constrained to a value (in radians)
 
         -----------------------------------------------------------------------
         Arguments:
 
-            o: Atom index
-
             m: Atom index
+
+            o: Atom index
 
             n: Atom index
 
             value: Required value of the constrained angle
         """
-        super().__init__(o=o, m=m, n=n)
+        super().__init__(m=m, o=o, n=n)
 
         self._theta0 = value
 
@@ -376,7 +377,7 @@ class PrimitiveDihedralAngle(Primitive):
         self.n = int(n)
 
     def __eq__(self, other) -> bool:
-        """Equality of two distance functions"""
+        """Equality of two dihedral angles"""
         return isinstance(other, self.__class__) and (
             self._atom_indexes == other._atom_indexes
             or self._atom_indexes == tuple(reversed(other._atom_indexes))
@@ -405,3 +406,139 @@ class PrimitiveDihedralAngle(Primitive):
 
     def __repr__(self):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
+
+
+class LinearBendType(Enum):
+    """For linear angles, there are two orthogonal directions"""
+
+    BEND = 0
+    COMPLEMENT = 1
+
+
+class LinearAngleBase(Primitive, ABC):
+    def __init__(self, m: int, o: int, n: int, r: int, axis: LinearBendType):
+        """Linear Bend: m-o-n"""
+        super().__init__(m, o, n, r)
+        self.m = int(m)
+        self.o = int(o)
+        self.n = int(n)
+        self.r = int(r)
+
+        assert isinstance(axis, LinearBendType)
+        self.axis = axis
+
+    def __eq__(self, other):
+        """Equality of two linear bend angles"""
+        return isinstance(other, self.__class__) and (
+            self._atom_indexes == other._atom_indexes
+            and self.axis == other.axis
+        )
+
+    def _calc_linear_bend(
+        self,
+        m_vec: DifferentiableVector3D,
+        o_vec: DifferentiableVector3D,
+        n_vec: DifferentiableVector3D,
+        r_vec: DifferentiableVector3D,
+    ):
+        """
+        Evaluate the linear bend from the vector positions of the
+        atoms involved in the angle m, o, n, and the reference
+        atom (or dummy atom) r
+
+        Args:
+            m_vec:
+            o_vec:
+            n_vec:
+            r_vec:
+
+        Returns:
+            (VectorHyperDual): The value, optionally containing derivatives
+        """
+        # As defined in J. Comput. Chem., 20(10), 1999, 1067
+        o_m = m_vec - o_vec
+        o_n = n_vec - o_vec
+        o_r = r_vec - o_vec
+
+        # eq.(44) p 1073
+        u = o_m.cross(o_r)
+        u = u / u.norm()
+
+        # eq. (46) and (47) p 1074
+        if self.axis == LinearBendType.BEND:
+            return u.dot(o_n) / o_n.norm()
+        elif self.axis == LinearBendType.COMPLEMENT:
+            return u.dot(o_n.cross(o_m)) / (o_n.norm() * o_m.norm())
+        else:
+            raise ValueError("Unknown axis for linear bend")
+
+
+class PrimitiveLinearAngle(LinearAngleBase):
+    """Linear Angle w.r.t. a reference atom"""
+
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ):
+        """Linear Bend angle m-o-n against reference atom r"""
+
+        _x = x.ravel()
+        vec_m, vec_o, vec_n, vec_r = _get_3d_vecs_from_atom_idxs(
+            self.m, self.o, self.n, self.r, x=_x, deriv_order=deriv_order
+        )
+
+        return self._calc_linear_bend(vec_m, vec_o, vec_n, vec_r)
+
+    def __repr__(self):
+        axis_str = "B" if self.axis == LinearBendType.BEND else "C"
+        return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, {self.r})"
+
+
+class PrimitiveDummyLinearAngle(LinearAngleBase):
+    """Linear bend with a dummy atom"""
+
+    def __init__(self, m: int, o: int, n: int, axis: LinearBendType):
+        super().__init__(m, o, n, -1, axis)
+
+        self._vec_r: Optional[DifferentiableVector3D] = None
+
+    def _get_dummy_atom(
+        self, x: "CartesianCoordinates"
+    ) -> DifferentiableVector3D:
+        """Create the dummy atom r"""
+        _x = x.reshape(-1, 3)
+        cart_axes = [
+            np.array([1.0, 0.0, 0.0]),
+            np.array([0.0, 1.0, 0.0]),
+            np.array([0.0, 0.0, 1.0]),
+        ]
+
+        # choose cartesian axis with the lowest overlap with m-o vector
+        w = _x[self.m] - _x[self.o]
+        w /= np.linalg.norm(w)
+        overlaps = []
+        for axis in cart_axes:
+            overlaps.append(np.dot(w, axis))
+        cart_ax = cart_axes[np.argmin(np.abs(overlaps))]
+
+        # place dummy atom perpendicular to m-o bond 1 A away
+        perp_axis = np.cross(cart_ax, w)
+        _o = _x[self.o]
+        dummy_point = _o + perp_axis / np.linalg.norm(perp_axis)
+        return DifferentiableVector3D(list(dummy_point))
+
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ):
+        if self._vec_r is None:
+            self._vec_r = self._get_dummy_atom(x)
+
+        _x = x.ravel()
+        vec_m, vec_o, vec_n = _get_3d_vecs_from_atom_idxs(
+            self.m, self.o, self.n, x=_x, deriv_order=deriv_order
+        )
+
+        return self._calc_linear_bend(vec_m, vec_o, vec_n, self._vec_r)
+
+    def __repr__(self):
+        axis_str = "B" if self.axis == LinearBendType.BEND else "C"
+        return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, D)"

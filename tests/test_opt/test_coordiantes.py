@@ -1,12 +1,26 @@
+import itertools
+
 import pytest
 import numpy as np
-from .molecules import h2, methane_mol, water_mol, h2o2_mol
+from .molecules import (
+    h2,
+    methane_mol,
+    water_mol,
+    h2o2_mol,
+    feco5_mol,
+    cumulene_mol,
+    acetylene_mol,
+)
+from autode.utils import work_in_tmp_dir
 from autode.atoms import Atom
 from autode.species.molecule import Molecule
 from autode.values import Angle
 from autode.exceptions import CoordinateTransformFailed
-from autode.opt.coordinates.base import CartesianComponent
-from autode.opt.coordinates.internals import PrimitiveInverseDistances, PIC
+from autode.opt.coordinates.internals import (
+    PrimitiveInverseDistances,
+    PIC,
+    AnyPIC,
+)
 from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.dic import DIC
 from autode.opt.coordinates.primitives import (
@@ -16,6 +30,9 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
     PrimitiveDihedralAngle,
+    PrimitiveLinearAngle,
+    PrimitiveDummyLinearAngle,
+    LinearBendType,
 )
 
 
@@ -527,12 +544,21 @@ def test_pic_b_no_primitives():
         c._calc_B(np.arange(6, dtype=float).reshape(2, 3))
 
 
-def test_pic_append_type_checking():
-    c = PIC()
-    # append should check for primitive type
-    c.append(PrimitiveDistance(0, 1))
+def test_pic_add_sanity_checking():
+    c = AnyPIC()
+    # pic add should check for primitive type
+    c.add(PrimitiveDistance(0, 1))
     with pytest.raises(AssertionError):
-        c.append(3)
+        c.add(3)
+
+    # pic append is disallowed
+    with pytest.raises(NotImplementedError, match="Please use PIC.add()"):
+        c.append(PrimitiveDistance(0, 1))
+
+    # pic should not allow duplicate coordinates to be added
+    assert len(c) == 1
+    c.add(PrimitiveDistance(1, 0))
+    assert len(c) == 1
 
 
 def test_constrained_distance_satisfied():
@@ -558,7 +584,7 @@ def test_angle_primitive_derivative():
     m = water_mol()
     init_coords = m.coordinates.copy()
 
-    angle = PrimitiveBondAngle(0, 1, 2)
+    angle = PrimitiveBondAngle(1, 0, 2)
     derivs = angle.derivative(init_coords)
     for atom_idx in (0, 1, 2):
         for component in (0, 1, 2):
@@ -570,8 +596,8 @@ def test_angle_primitive_derivative():
 
 
 def test_angle_primitive_equality():
-    assert PrimitiveBondAngle(0, 1, 2) == PrimitiveBondAngle(0, 2, 1)
-    assert PrimitiveBondAngle(0, 1, 2) != PrimitiveBondAngle(2, 1, 0)
+    assert PrimitiveBondAngle(1, 0, 2) == PrimitiveBondAngle(2, 0, 1)
+    assert PrimitiveBondAngle(1, 0, 2) != PrimitiveBondAngle(1, 2, 0)
 
 
 def test_dihedral_value():
@@ -612,6 +638,40 @@ def test_dihedral_equality():
     )
 
 
+def test_linear_angle():
+    acetylene = Molecule(
+        atoms=[
+            Atom("C", 0.35540, -0.20370, -0.44810),
+            Atom("C", -0.37180, 0.21470, 0.40200),
+            Atom("H", 1.01560, -0.60550, -1.23530),
+            Atom("H", -0.99920, 0.59450, 1.15720),
+        ]
+    )
+    x = CartesianCoordinates(acetylene.coordinates)
+    angle = PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND)
+    assert angle._vec_r is None
+    _ = angle(x)
+    assert angle._vec_r is not None
+    old_r_vec = angle._vec_r
+    # the dummy atom should not change after the first call
+    _ = angle(x)
+    _ = angle(x)
+    assert angle._vec_r is old_r_vec
+
+    axis_vec = np.array(np.array(angle._vec_r._data) - x.reshape(-1, 3)[1])
+    m_n_vec = acetylene.coordinates[0] - acetylene.coordinates[1]
+    assert abs(np.dot(axis_vec, m_n_vec)) < 0.001
+
+    # check that the linear bond complement does not have the same value
+    angle2 = PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.COMPLEMENT)
+    assert angle != angle2
+    assert not np.isclose(angle(x), angle2(x), rtol=1e-3)
+
+    # for linear angle, swapping the end points changes the definition
+    angle3 = PrimitiveDummyLinearAngle(3, 1, 0, LinearBendType.BEND)
+    assert angle3 != angle
+
+
 def test_primitives_consistent_with_mol_values():
     # test that the primitive values are the same as the mol.distance etc.
     h2o2 = h2o2_mol()
@@ -620,14 +680,14 @@ def test_primitives_consistent_with_mol_values():
     assert np.isclose(dist(coords), h2o2.distance(0, 1), rtol=1e-8)
     invdist = PrimitiveInverseDistance(1, 2)
     assert np.isclose(invdist(coords), 1 / h2o2.distance(1, 2), rtol=1e-8)
-    ang = PrimitiveBondAngle(2, 0, 1)  # bond is defined in a different way
+    ang = PrimitiveBondAngle(0, 2, 1)
     assert np.isclose(ang(coords), h2o2.angle(0, 2, 1), rtol=1e-8)
     dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
     assert np.isclose(dihedral(coords), h2o2.dihedral(2, 0, 1, 3), rtol=1e-8)
 
 
 # fmt: off
-dihedral_mols = [
+extra_mols = [
     Molecule(
         atoms=[
             Atom("C", 0.63365, 0.11934, -0.13163),
@@ -643,18 +703,29 @@ dihedral_mols = [
             Atom("H", 1.28230, -0.63391, -0.54779),
             Atom("H", -1.08517, -1.07984, -0.05599),
         ]
-    )  # for testing dihedral derivatives over zero
+    ),  # for testing dihedral derivatives over zero
+    Molecule(
+        atoms=[
+            Atom("C", 0.35540, -0.20370, -0.44810),
+            Atom("C", -0.37180, 0.21470, 0.40200),
+            Atom("H", 1.01560, -0.60550, -1.23530),
+            Atom("H", -0.99920, 0.59450, 1.15720),
+        ]
+    ),
+    feco5_mol(), # for testing linear angles
 ]
 
 test_mols = [
     h2o2_mol(), h2o2_mol(), water_mol(),
-    water_mol(), water_mol(), *dihedral_mols
+    water_mol(), water_mol(), *extra_mols
 ]
 test_prims = [
-    PrimitiveDihedralAngle(2, 0, 1, 3), PrimitiveBondAngle(2, 0, 1),
-    PrimitiveBondAngle(0, 1, 2), PrimitiveDistance(0, 1),
+    PrimitiveDihedralAngle(2, 0, 1, 3), PrimitiveBondAngle(0, 2, 1),
+    PrimitiveBondAngle(1, 0, 2), PrimitiveDistance(0, 1),
     PrimitiveInverseDistance(0, 1), PrimitiveDihedralAngle(2, 0, 1, 3),
-    PrimitiveDihedralAngle(2, 0, 1, 3)
+    PrimitiveDihedralAngle(2, 0, 1, 3),
+    PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND),
+    PrimitiveLinearAngle(2, 3, 4, 8, LinearBendType.BEND),
 ]
 # fmt: on
 
@@ -706,9 +777,12 @@ def test_repr():
         PrimitiveInverseDistance(0, 1),
         PrimitiveDistance(0, 1),
         ConstrainedPrimitiveDistance(0, 1, value=1e-3),
-        PrimitiveBondAngle(0, 1, 2),
-        ConstrainedPrimitiveBondAngle(0, 1, 2, value=1.0),
+        PrimitiveBondAngle(1, 0, 2),
+        ConstrainedPrimitiveBondAngle(1, 0, 2, value=1.0),
         PrimitiveDihedralAngle(0, 1, 2, 3),
+        PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.BEND),
+        PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.COMPLEMENT),
+        PrimitiveDummyLinearAngle(0, 1, 2, LinearBendType.BEND),
     ]
 
     for p in prims:
@@ -733,7 +807,7 @@ def test_dic_large_step_allowed_unconverged_back_transform():
 
 
 def test_constrained_angle_delta():
-    q = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
+    q = ConstrainedPrimitiveBondAngle(1, 0, 2, value=np.pi)
     mol = water_mol()
     theta = mol.angle(1, 0, 2)
     x = CartesianCoordinates(mol.coordinates)
@@ -742,8 +816,8 @@ def test_constrained_angle_delta():
 
 
 def test_constrained_angle_equality():
-    a = ConstrainedPrimitiveBondAngle(0, 1, 2, value=np.pi)
-    b = ConstrainedPrimitiveBondAngle(0, 2, 1, value=np.pi)
+    a = ConstrainedPrimitiveBondAngle(1, 0, 2, value=np.pi)
+    b = ConstrainedPrimitiveBondAngle(2, 0, 1, value=np.pi)
 
     assert a == b
 
@@ -757,3 +831,121 @@ def test_dics_cannot_be_built_with_incomplete_primitives():
 
     with pytest.raises(RuntimeError):
         _ = DIC.from_cartesian(x=x, primitives=primitives)
+
+
+def test_pic_generation_linear_angle_ref():
+    # Fe(CO)5 with linear Fe-C-O bonds
+    m = feco5_mol()
+    pic = AnyPIC.from_species(m)
+
+    # check that there are no duplicates
+    assert not any(ic1 == ic2 for ic1, ic2 in itertools.combinations(pic, r=2))
+    # check that linear bends use reference atoms, not dummy
+    assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
+    assert PrimitiveLinearAngle(4, 3, 2, 8, LinearBendType.BEND) in pic
+    # for C-Fe-C, only one out-of-plane dihedral should be present
+    assert PrimitiveDihedralAngle(3, 5, 2, 1) in pic
+    assert sum(isinstance(ic, PrimitiveDihedralAngle) for ic in pic) == 1
+    # check degrees of freedom = 3N - 6
+    _ = pic(m.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * m.n_atoms - 6
+
+
+def test_pic_generation_linear_angle_dummy():
+    # acetylene molecule
+    mol = acetylene_mol()
+    pic = AnyPIC.from_species(mol)
+
+    # there should not be any usual bond angles
+    assert not any(isinstance(ic, PrimitiveBondAngle) for ic in pic)
+    # there should not be any linear angles with reference atom
+    assert not any(isinstance(ic, PrimitiveLinearAngle) for ic in pic)
+    # there should be linear angles with dummy
+    assert any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
+
+    # degrees of freedom = 3N - 5 for linear molecules
+    _ = pic(mol.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 5
+
+
+@work_in_tmp_dir()
+def test_pic_generation_disjoint_graph():
+    # the algorithm should fully connect the graph
+    xyz_string = (
+        "16\n\n"
+        "C      -0.00247        1.65108        0.05872\n"
+        "C       1.19010        1.11169        0.27709\n"
+        "C       1.58519       -0.30014        0.31049\n"
+        "C       0.05831       -1.54292       -0.45110\n"
+        "C      -1.18798       -1.04262        0.13551\n"
+        "C      -1.28206        0.99883       -0.23631\n"
+        "H      -0.07432        2.73634        0.08639\n"
+        "H       2.01755        1.78921        0.47735\n"
+        "H       1.70503       -0.70916        1.30550\n"
+        "H       2.40398       -0.55376       -0.34855\n"
+        "H       0.44229       -2.48695       -0.08638\n"
+        "H       0.15289       -1.41865       -1.51944\n"
+        "H      -1.25410       -1.13318        1.21833\n"
+        "H      -2.09996       -1.35918       -0.36715\n"
+        "H      -2.09462        1.29055        0.41495\n"
+        "H      -1.56001        1.00183       -1.28217\n"
+    )
+    with open("diels_alder_complex.xyz", "w") as fh:
+        fh.write(xyz_string)
+
+    mol = Molecule("diels_alder_complex.xyz")
+    assert not mol.graph.is_connected
+    pic = AnyPIC.from_species(mol)
+
+    # shortest bond is between 4, 5 which should also generate angle, torsion
+    assert PrimitiveDistance(4, 5) in pic
+    assert PrimitiveBondAngle(3, 4, 5) in pic
+    assert PrimitiveBondAngle(4, 5, 0) in pic
+    assert PrimitiveDihedralAngle(3, 4, 5, 0) in pic
+
+    # the other distance between fragments is 2, 3 which should not be connected
+    assert PrimitiveDistance(2, 3) not in pic
+    assert PrimitiveBondAngle(1, 2, 3) not in pic
+    # check degrees of freedom = 3N - 6
+    _ = pic(mol.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 6
+
+    # if the bond between 2, 3 is made into a constraint, it will generate angles
+    mol.constraints.distance = {(2, 3): mol.distance(2, 3)}
+    pic = AnyPIC.from_species(mol)
+    assert ConstrainedPrimitiveDistance(2, 3, mol.distance(2, 3)) in pic
+    assert PrimitiveBondAngle(1, 2, 3) in pic
+
+
+def test_pic_generation_chain_dihedrals():
+    # extra dihedrals are needed for ends of linear chains like allene
+    cumulene = cumulene_mol()
+    pic = AnyPIC.from_species(cumulene)
+
+    assert PrimitiveDihedralAngle(5, 3, 4, 8) in pic
+    assert PrimitiveDihedralAngle(6, 3, 4, 7) in pic
+    assert PrimitiveDihedralAngle(8, 4, 3, 6) in pic
+    assert PrimitiveDihedralAngle(7, 4, 3, 6) in pic
+
+    # check that the 3N-6 degrees of freedom are maintained
+    _ = pic(cumulene.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * cumulene.n_atoms - 6
+
+
+def test_pic_generation_square_planar():
+    ptcl4 = Molecule(
+        atoms=[
+            Atom("Pt", -0.1467, -0.2594, -0.0294),
+            Atom("Cl", -0.4597, -2.5963, -0.0523),
+            Atom("Cl", 2.1804, -0.5689, -0.2496),
+            Atom("Cl", -2.4738, 0.0501, 0.1908),
+            Atom("Cl", 0.1663, 2.0776, -0.0066),
+        ],
+        charge=-2,
+    )
+
+    # for sq planar, out-of-plane dihedrals are needed to have
+    # all degrees of freedom
+    pic = AnyPIC.from_species(ptcl4)
+    _ = pic(ptcl4.coordinates.flatten())
+    assert np.linalg.matrix_rank(pic.B) == 3 * ptcl4.n_atoms - 6

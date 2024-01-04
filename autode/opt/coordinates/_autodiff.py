@@ -580,7 +580,9 @@ class DifferentiableVector3D:
     hyper-dual numbers
     """
 
-    def __init__(self, items: Sequence["VectorHyperDual"]):
+    def __init__(
+        self, items: Sequence[Union["VectorHyperDual", numeric_type]]
+    ):
         """
         Initialise the 3D vector from a list of 3 hyperdual numbers
 
@@ -590,7 +592,9 @@ class DifferentiableVector3D:
         items = list(items)
         if len(items) != 3:
             raise ValueError("A 3D vector must have only 3 components")
-        assert all(isinstance(item, VectorHyperDual) for item in items)
+        assert all(
+            isinstance(item, (VectorHyperDual, *numeric)) for item in items
+        )
         self._data = items
 
     @staticmethod
@@ -600,7 +604,9 @@ class DifferentiableVector3D:
             raise ValueError("Operation must be done with another 3D vector!")
         return None
 
-    def dot(self, other: "DifferentiableVector3D") -> "VectorHyperDual":
+    def dot(
+        self, other: "DifferentiableVector3D"
+    ) -> Union["VectorHyperDual", numeric_type]:
         """
         Dot product of two 3D vectors
 
@@ -611,13 +617,12 @@ class DifferentiableVector3D:
             (VectorHyperDual): A scalar number (with derivatives)
         """
         self._check_same_type(other)
-        dot = 0
+        dot: Union[VectorHyperDual, numeric_type] = 0
         for k in range(3):
             dot = dot + self._data[k] * other._data[k]
-        assert isinstance(dot, VectorHyperDual)
         return dot
 
-    def norm(self) -> "VectorHyperDual":
+    def norm(self) -> Union["VectorHyperDual", numeric_type]:
         """
         Euclidean (l2) norm of this 3D vector
 
@@ -627,7 +632,6 @@ class DifferentiableVector3D:
         norm = DifferentiableMath.sqrt(
             self._data[0] ** 2 + self._data[1] ** 2 + self._data[2] ** 2
         )
-        assert isinstance(norm, VectorHyperDual)
         return norm
 
     def __add__(
@@ -690,6 +694,18 @@ class DifferentiableVector3D:
         """Multiplication of scalar and vector is commutative"""
         return self.__mul__(other)
 
+    def __truediv__(self, other: Union[VectorHyperDual, numeric_type]):
+        """
+        Division of a 3D vector with a scalar
+
+        Args:
+            other (VectorHyperDual|float|int):
+
+        Returns:
+            (DifferentiableVector3D):
+        """
+        return self.__mul__(1 / other)
+
     def cross(
         self, other: "DifferentiableVector3D"
     ) -> "DifferentiableVector3D":
@@ -702,6 +718,7 @@ class DifferentiableVector3D:
         Returns:
             (DifferentiableVector3D):
         """
+        self._check_same_type(other)
         return DifferentiableVector3D(
             [
                 self._data[1] * other._data[2]

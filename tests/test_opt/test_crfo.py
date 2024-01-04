@@ -11,7 +11,7 @@ from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.primitives import PrimitiveDihedralAngle
 from autode.utils import work_in_tmp_dir
-from .molecules import h2o2_mol
+from .molecules import h2o2_mol, acetylene_mol, feco5_mol, cumulene_mol
 from ..testutils import requires_working_xtb_install
 
 
@@ -116,7 +116,8 @@ def test_primitive_projection_discard():
     r_initial = optimiser._species.distance(0, 1)
 
     x = CartesianCoordinates(optimiser._species.coordinates)
-    s = DICWithConstraints.from_cartesian(x, optimiser._primitives)
+    optimiser._build_internal_coordinates()
+    s = optimiser._coords
     assert len(s) == 3
 
     # Shift on the first couple of DIC but nothing on the final one
@@ -160,7 +161,7 @@ def test_xtb_opt_with_distance_constraint():
 
     assert np.isclose(water.distance(0, 1), 0.99, atol=0.01)
 
-    CRFOptimiser.optimise(species=water, method=XTB())
+    CRFOptimiser.optimise(species=water, method=XTB(), etol=1e-6)
 
     # Optimisation should generate an O-H distance *very* close to 1.1 Å
     assert np.isclose(water.distance(0, 1).to("Å"), 1.1, atol=1e-4)
@@ -199,25 +200,25 @@ def test_baker1997_example():
     r1 = prim.ConstrainedPrimitiveDistance(0, 1, value=1.5)
     r2 = prim.ConstrainedPrimitiveDistance(3, 4, value=2.5)
     theta = prim.ConstrainedPrimitiveBondAngle(
-        1, 0, 5, value=val.Angle(123.0, "º").to("rad")
+        0, 1, 5, value=val.Angle(123.0, "º").to("rad")
     )
 
     pic = PIC(r1, r2, theta)
     for pair in ((2, 0), (3, 0), (4, 1), (5, 1)):
-        pic.append(prim.PrimitiveDistance(*pair))
+        pic.add(prim.PrimitiveDistance(*pair))
 
     for triple in (
-        (1, 0, 3),
-        (1, 0, 3),
-        (2, 0, 3),
-        (4, 1, 0),
-        (5, 1, 0),
-        (4, 1, 5),
+        (0, 1, 3),
+        (0, 1, 3),
+        (0, 2, 3),
+        (1, 4, 0),
+        (1, 5, 0),
+        (1, 4, 5),
     ):
-        pic.append(prim.PrimitiveBondAngle(*triple))
+        pic.add(prim.PrimitiveBondAngle(*triple))
 
     for quadruple in ((4, 1, 0, 2), (4, 1, 0, 3), (5, 1, 0, 2), (5, 1, 0, 3)):
-        pic.append(prim.PrimitiveDihedralAngle(*quadruple))
+        pic.add(prim.PrimitiveDihedralAngle(*quadruple))
 
     dic = DICWithConstraints.from_cartesian(
         x=CartesianCoordinates(c2h3f.coordinates), primitives=pic
@@ -339,3 +340,41 @@ def test_linear_dihedrals_are_removed():
     assert not any(
         isinstance(q, PrimitiveDihedralAngle) for q in dic.primitives
     )
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_optimise_linear_molecule():
+    mol = acetylene_mol()
+    # the two H-C-C angles are almost linear
+    assert val.Angle(170, "deg") < mol.angle(0, 1, 3) < val.Angle(176, "deg")
+    assert val.Angle(170, "deg") < mol.angle(2, 0, 1) < val.Angle(176, "deg")
+    opt = CRFOptimiser(maxiter=10, gtol=1e-4, etol=1e-5)
+    opt.run(mol, XTB())
+    assert opt.converged
+    assert mol.angle(0, 1, 3) > val.Angle(179, "deg")
+    assert mol.angle(2, 0, 1) > val.Angle(179, "deg")
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_optimise_linear_bend_with_ref():
+    mol = feco5_mol()
+    # the Fe-C-O angle are manually deviated
+    assert val.Angle(170, "deg") < mol.angle(2, 3, 4) < val.Angle(176, "deg")
+    # large molecule so allow few iters, no need to converge fully
+    opt = CRFOptimiser(maxiter=15, gtol=1e-5, etol=1e-6)
+    opt.run(mol, XTB())
+    assert mol.angle(2, 3, 4) > val.Angle(178, "deg")
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_optimise_chain_dihedrals():
+    mol = cumulene_mol()
+    assert abs(mol.dihedral(6, 3, 4, 8)) < val.Angle(40, "deg")
+    opt = CRFOptimiser(maxiter=15, gtol=1e-4, etol=1e-4)
+    opt.run(mol, XTB())
+    # 5-C chain, should be close to 90 degrees
+    assert abs(mol.dihedral(6, 3, 4, 8)) > val.Angle(85, "deg")
+    assert abs(mol.dihedral(6, 3, 4, 8)) < val.Angle(95, "deg")
