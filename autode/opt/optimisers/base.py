@@ -3,7 +3,7 @@ from zipfile import ZipFile
 import numpy as np
 
 from abc import ABC, abstractmethod
-from collections import UserList
+from collections import UserList, deque
 from typing import Type, List, Union, Optional, Callable, Any, TYPE_CHECKING
 
 from autode.log import logger
@@ -897,17 +897,25 @@ class OptimiserTrajectory:
     def __init__(self) -> None:
         self._filename: Optional[str] = None  # filename with absolute path
         self._iter = 0  # current number of coordinates
+        self._memory: deque = deque(
+            maxlen=2
+        )  # two coordinates stored in memory
 
-    def initialise(self, filename: str):
-        if not filename.endswith(".zip"):
-            filename = filename + ".zip"
+    def initialise(self, filename: str, optimiser_params: dict):
+        # filename should not be a path
+        assert "\\" not in filename or "/" not in filename
+        if not filename.endswith(".adeopt"):
+            filename = filename + ".adeopt"
 
         if os.path.exists(filename):
             logger.warning(f"File {filename} already exists, overwriting")
             os.remove(filename)
 
-        with ZipFile(filename, "w") as file:
-            pass
+        with open(filename, "w") as fh:
+            print("$opt_params", file=fh)
+            for key, value in optimiser_params.items():
+                print(f"{key}={value}", end=" ", file=fh)
+                print("\n", end="", file=fh)
 
         # get the full path so that it is robust to os.chdir
         self._filename = os.path.abspath(filename)
@@ -930,22 +938,24 @@ class OptimiserTrajectory:
         assert self._filename is not None
 
         cart_coords = coords.to("cart").reshape((-1, 3))
+        en = coords.e
         cart_g = coords.to("cart").g
-        assert cart_g is not None
+        cart_h = coords.to("cart").h
+        assert en is not None and cart_g is not None
         cart_g = cart_g.reshape((-1, 3))
         assert cart_coords.shape == cart_g.shape
-        # TODO: what if gradient is None
 
-        with ZipFile(self._filename, "a") as file:
-            with file.open(f"coords_{self._iter}", "w") as fh:
-                for i in range(cart_coords.shape[0]):
-                    x, y, z = cart_coords[i]
-                    dedx, dedy, dedz = cart_g[i]
-                    string = (
-                        f"{x:.8f} {y:.8f} {z:.8f} "
-                        f"{dedx:.8f} {dedy:.8f} {dedz:.8f}"
-                    )
-                    fh.write(string.encode("utf-8"))
+        with open(self._filename, "a") as fh:
+            print("$coordinates", file=fh)
+            print(en.to("Ha"), file=fh)
+            for i in range(cart_coords.shape[0]):
+                x, y, z = cart_coords[i]
+                dedx, dedy, dedz = cart_g[i]
+                print(
+                    f"{x:.8f} {y:.8f} {z:.8f} "
+                    f"{dedx:.8f} {dedy:.8f} {dedz:.8f}",
+                    file=fh,
+                )
 
         self._iter += 1
         return None
