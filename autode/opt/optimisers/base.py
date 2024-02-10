@@ -1,4 +1,5 @@
-import os.path
+import os
+from zipfile import ZipFile
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -887,6 +888,66 @@ class NDOptimiser(Optimiser, ABC):
         )
 
         self._history.print_geometries(self._species, filename=filename)
+        return None
+
+
+class OptimiserTrajectory:
+    """Sequential trajectory of coordinates stored on disk"""
+
+    def __init__(self) -> None:
+        self._filename: Optional[str] = None  # filename with absolute path
+        self._iter = 0  # current number of coordinates
+
+    def initialise(self, filename: str):
+        if not filename.endswith(".zip"):
+            filename = filename + ".zip"
+
+        if os.path.exists(filename):
+            logger.warning(f"File {filename} already exists, overwriting")
+            os.remove(filename)
+
+        with ZipFile(filename, "w") as file:
+            pass
+
+        # get the full path so that it is robust to os.chdir
+        self._filename = os.path.abspath(filename)
+
+    def add(self, coords: "OptCoordinates"):
+        """
+        Add a new set of coordinates to this trajectory file
+
+        Args:
+            coords:
+
+        Returns:
+
+        """
+        if coords is None:
+            return
+        elif not isinstance(coords, OptCoordinates):
+            raise ValueError("item added must be OptCoordinates")
+
+        assert self._filename is not None
+
+        cart_coords = coords.to("cart").reshape((-1, 3))
+        cart_g = coords.to("cart").g
+        assert cart_g is not None
+        cart_g = cart_g.reshape((-1, 3))
+        assert cart_coords.shape == cart_g.shape
+        # TODO: what if gradient is None
+
+        with ZipFile(self._filename, "a") as file:
+            with file.open(f"coords_{self._iter}", "w") as fh:
+                for i in range(cart_coords.shape[0]):
+                    x, y, z = cart_coords[i]
+                    dedx, dedy, dedz = cart_g[i]
+                    string = (
+                        f"{x:.8f} {y:.8f} {z:.8f} "
+                        f"{dedx:.8f} {dedy:.8f} {dedz:.8f}"
+                    )
+                    fh.write(string.encode("utf-8"))
+
+        self._iter += 1
         return None
 
 
