@@ -3,7 +3,6 @@ The theory behind this original NEB implementation is taken from
 Henkelman and H. J ́onsson, J. Chem. Phys. 113, 9978 (2000)
 """
 import numpy as np
-import matplotlib.pyplot as plt
 
 from typing import Optional, Sequence, List, Any, TYPE_CHECKING, Union, Type
 from copy import deepcopy
@@ -361,6 +360,8 @@ class Images(Path):
         self, save=False, name="None", color=None, xlabel="NEB coordinate"
     ):
         """Plot the NEB surface"""
+        import matplotlib.pyplot as plt
+
         blues = plt.get_cmap("Blues")
 
         color = (
@@ -673,6 +674,8 @@ class NEB:
             etol_per_image: Energy tolerance per image to use in the L-BFGS-B
                             minimisation
         """
+        import matplotlib.pyplot as plt
+
         self.print_geometries(name=f"{name_prefix}neb_init")
 
         # Calculate energy on the first and final points as these will not be recalc-ed
