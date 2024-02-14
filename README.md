@@ -7,10 +7,20 @@
 **autodE** is a Python module initially designed for the automated calculation of reaction profiles from SMILES strings of
 reactant(s) and product(s). Current features include: transition state location, conformer searching, atom mapping,
 Python wrappers for a range of electronic structure theory codes, SMILES parsing, association complex generation, and
- reaction profile generation.
+reaction profile generation.
 
+**autodE** harnesses computational practices to transform mechanistic hypotheses into conformationally sampled 3D geometries, culminating in the automated generation of full reaction profiles for intricate reactions.
+
+### Features
+
+Graph-based Approach for Reaction Analysis
+* Utilizes a graph-based approach for analyzing and mapping reaction processes, facilitating the understanding of complex chemical transformations.
+Comprehensive Reaction Profile Calculations
+* autodE offers the capability to automate the calculation of reaction energy profiles from 1D or 2D chemical representations
+   * This includes addition, substitution, elimination, migratory insertion, oxidative addition, and reductive elimination reactions.
 
 ### Dependencies
+
 * [Python](https://www.python.org/) > v. 3.7
 * One of:
    * [ORCA](https://sites.google.com/site/orcainputlibrary/home/) > v. 4.0
@@ -26,10 +36,16 @@ The Python dependencies are listed in requirements.txt are best satisfied using 
 
 ## Installation
 
+Ensure you have one of the following quantum chemistry packages installed:
+* ORCA (v4.0+), Gaussian (G09 or G16), NWChem (v6.6+), QChem (v5.4+)
+* For semi-empirical calculations: XTB (v6.1+) or MOPAC (2016)
+
 To install **autodE** with [conda](https://anaconda.org/conda-forge/autode):
 ```
 conda install autode -c conda-forge
 ```
+autodE requires **Python 3.7** or higher and can be installed either via Conda or directly from the source. It is compatible with various quantum chemistry software packages.
+
 see the [installation guide](https://duartegroup.github.io/autodE/install.html) for installing from source.
 
 ## Usage
@@ -63,6 +79,17 @@ See the [todo list](https://github.com/duartegroup/autodE/projects/1) for featur
 Bugs and feature requests should be raised on the [issue page](https://github.com/duartegroup/autodE/issues).
 
 > **_NOTE:_**  We'd love more contributors to this project!
+
+## How to Contribute
+
+Interested in contributing to autodE? We welcome contributions from the community, be it in the form of bug reports, feature requests, documentation improvements, or code contributions. Here's how you can get started:
+
+Check out our [Issues] (https://github.com/duartegroup/autodE/issues) for known bugs or feature requests.
+**Fork** the repository and make your changes.
+Submit a **Pull Request** with a detailed description of the changes.
+Participate in the discussion until your PR is merged.
+For more information, join our [Slack workspace] (https://autodeworkspace.slack.com) (email to be added) or consult the CONTRIBUTING.md guide in our repository.
+
 
 
 ## Citation
