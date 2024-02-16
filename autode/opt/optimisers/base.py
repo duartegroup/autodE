@@ -897,9 +897,27 @@ class OptimiserTrajectory:
     def __init__(self) -> None:
         self._filename: Optional[str] = None  # filename with absolute path
         self._iter = 0  # current number of coordinates
-        self._memory: deque = deque(
-            maxlen=2
-        )  # two coordinates stored in memory
+        self._memory: deque = deque(maxlen=2)  # two coords in mem
+
+    @property
+    def final(self):
+        return self._memory[-1]
+
+    @property
+    def penultimate(self):
+        """
+        Last but one set of coordinates (the penultimate set)
+
+        -----------------------------------------------------------------------
+        Returns:
+            (OptCoordinates):
+        """
+        if len(self._memory) < 2:
+            raise IndexError(
+                "Cannot obtain the penultimate set of "
+                f"coordinates, only had {len(self._memory)}"
+            )
+        return self._memory[-2]
 
     def initialise(self, filename: str, optimiser_params: dict):
         # filename should not be a path
@@ -916,6 +934,7 @@ class OptimiserTrajectory:
             for key, value in optimiser_params.items():
                 print(f"{key}={value}", end=" ", file=fh)
                 print("\n", end="", file=fh)
+            print("$end", file=fh)
 
         # get the full path so that it is robust to os.chdir
         self._filename = os.path.abspath(filename)
@@ -956,8 +975,20 @@ class OptimiserTrajectory:
                     f"{dedx:.8f} {dedy:.8f} {dedz:.8f}",
                     file=fh,
                 )
+            print("$end", file=fh)
 
-        self._iter += 1
+        if cart_h is None:
+            return None
+
+        with open(self._filename, "a") as fh:
+            print("$hess", file=fh)
+            for i in range(cart_h.shape[0]):
+                for j in range(cart_h.shape[1]):
+                    print(cart_h[i, j], end=" ", file=fh)
+                print("\n", end="", file=fh)
+            print("$end")
+
+        self._iter += 1  # TODO do we need iter?
         return None
 
 
