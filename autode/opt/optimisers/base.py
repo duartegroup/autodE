@@ -920,29 +920,24 @@ class OptimiserTrajectory:
             )
         return self._memory[-2]
 
-    def initialise(
-        self, filename: str, optimiser_params: dict, species: "Species"
-    ):
+    def initialise(self, filename: str, optimiser_params: dict):
         # filename should not be a path
-        assert "\\" not in filename or "/" not in filename
-        if not filename.endswith(".adeopt"):
-            filename = filename + ".adeopt"
+        assert "\\" not in filename and "/" not in filename
+        if not filename.endswith(".zip"):
+            filename = filename + ".zip"
 
         if os.path.exists(filename):
             logger.warning(f"File {filename} already exists, overwriting")
             os.remove(filename)
 
-        with open(filename, "w") as fh:
-            print("$opt_params", file=fh)
-            for key, value in optimiser_params.items():
-                print(f"{key}={value}", end=" ", file=fh)
-            print("\n$end", file=fh)
+        # write the optimiser params
+        params = ""
+        for key, value in optimiser_params.items():
+            params += f"{key}={value} "
 
-            print("$species", file=fh)
-            print(f"{species.n_atoms}", file=fh)
-            for atom in species.atoms:
-                print(atom.label, end=" ", file=fh)
-            print("\n$end", file=fh)
+        with ZipFile(filename, "w") as file:
+            with file.open("opt_params", "w") as fh:
+                fh.write(params.encode("utf-8"))
 
         # get the full path so that it is robust to os.chdir
         self._filename = os.path.abspath(filename)
@@ -965,6 +960,15 @@ class OptimiserTrajectory:
         self._memory.append(coords)
 
         assert self._filename is not None
+        with ZipFile(self._filename, "a") as file:
+            with file.open(f"coords_{self._iter}", "w") as fh:
+                fh.write(self._coords_to_bytes(coords))
+
+        self._iter += 1  # TODO do we need iter?
+        return None
+
+    @staticmethod
+    def _coords_to_bytes(coords: OptCoordinates) -> bytes:
         cart_coords = coords.to("cart").reshape((-1, 3))
         en = coords.e
         cart_g = coords.to("cart").g
@@ -973,32 +977,31 @@ class OptimiserTrajectory:
         cart_g = cart_g.reshape((-1, 3))
         assert cart_coords.shape == cart_g.shape
 
-        with open(self._filename, "a") as fh:
-            print("$coordinates", file=fh)
-            print(en.to("Ha"), file=fh)
-            for i in range(cart_coords.shape[0]):
-                x, y, z = cart_coords[i]
-                dedx, dedy, dedz = cart_g[i]
-                print(
-                    f"{x:.10f} {y:.10f} {z:.10f} "
-                    f"{dedx:.10f} {dedy:.10f} {dedz:.10f}",
-                    file=fh,
-                )
-            print("$end", file=fh)
+        coords_txt = str(en.to("Ha")) + "\n"
+        for i in range(cart_coords.shape[0]):
+            x, y, z = cart_coords[i]
+            dedx, dedy, dedz = cart_g[i]
+            coords_txt += (
+                f"{x:.10f} {y:.10f} {z:.10f} "
+                f"{dedx:.10f} {dedy:.10f} {dedz:.10f}\n"
+            )
 
         if cart_h is None:
-            return None
+            return coords_txt.encode("utf-8")
 
-        with open(self._filename, "a") as fh:
-            print("$hess", file=fh)
-            for i in range(cart_h.shape[0]):
-                for j in range(cart_h.shape[1]):
-                    print(f"{cart_h[i, j]:.10f}", end=" ", file=fh)
-                print("\n", end="", file=fh)
-            print("$end")
+        coords_txt += "---hess---\n"
+        for i in range(cart_h.shape[0]):
+            for j in range(cart_h.shape[1]):
+                coords_txt += f"{cart_h[i, j]:.10f} "
+            coords_txt += "\n"
 
-        self._iter += 1  # TODO do we need iter?
-        return None
+        return coords_txt.encode("utf-8")
+
+    @staticmethod
+    def _bytes_to_coords(coords_byte: bytes):
+        coords_txt = coords_byte.decode("utf-8")
+
+        pass
 
     def __iter__(self):
         """
@@ -1006,24 +1009,9 @@ class OptimiserTrajectory:
         Will only return Cartesian coordinates, gradient and
         Hessian
         """
-        with open(self._filename, "r") as fh:
-            line = None
-            while line != "":  # read until EOF
-                coords, grad = [], []
-                line = fh.readline().strip()
-                if line == "$coordinates":
-                    while True:
-                        line = fh.readline().strip()
-                        if line == "$end":
-                            break
-                        data = line.split()
-                        coords.append([data[:4]])
-                        grad.append([data[4:]])
-
-                new_coords = CartesianCoordinates(np.array(coords))
-                new_grad = np.array(grad)
-                new_coords.update_g_from_cart_g(new_grad)
-                yield new_coords
+        with ZipFile(self._filename, "r") as file:
+            for i in range(self._iter):
+                coords_byte = file.read(f"coords_{i}")
 
 
 class OptimiserHistory(UserList):
