@@ -15,6 +15,9 @@ Bug Fixes
 *********
 - Fixes triangular rings being incorrectly treated as dihedral angles
 
+Usability improvements/Changes
+******************************
+- Faster import of autode package by lazily loading matplotlib
 
 1.4.1
 ------
