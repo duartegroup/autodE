@@ -999,9 +999,29 @@ class OptimiserTrajectory:
 
     @staticmethod
     def _bytes_to_coords(coords_byte: bytes):
-        coords_txt = coords_byte.decode("utf-8")
+        coords_lines = coords_byte.decode("utf-8").splitlines()
+        en = PotentialEnergy(float(coords_lines[0].strip()), "Ha")
+        coords, grad = [], []
+        hessian_line = None
+        for line_idx in range(len(coords_lines)):
+            line = coords_lines[line_idx]
+            if "---hess---" in line:
+                hessian_line = line_idx
+                break
+            data = line.strip().split()
+            coords.append([float(x) for x in data[:4]])
+            grad.append([float(x) for x in data[4:]])
+        coords = CartesianCoordinates(np.array(coords))
+        coords.update_g_from_cart_g(np.array(grad))
 
-        pass
+        if hessian_line is None:
+            return coords
+
+        hess = []
+        for line in coords_lines[hessian_line + 1]:
+            hess.append([float(x) for x in line.strip().split()])
+        coords.update_h_from_cart_h(np.array(hess))
+        return coords
 
     def __iter__(self):
         """
