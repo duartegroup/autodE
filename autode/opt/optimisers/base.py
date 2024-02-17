@@ -10,6 +10,7 @@ from autode.log import logger
 from autode.utils import NumericStringDict
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy, method_string
+from autode.opt.coordinates.cartesian import CartesianCoordinates
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
 from autode.exceptions import CalculationException
@@ -919,7 +920,9 @@ class OptimiserTrajectory:
             )
         return self._memory[-2]
 
-    def initialise(self, filename: str, optimiser_params: dict):
+    def initialise(
+        self, filename: str, optimiser_params: dict, species: "Species"
+    ):
         # filename should not be a path
         assert "\\" not in filename or "/" not in filename
         if not filename.endswith(".adeopt"):
@@ -933,8 +936,13 @@ class OptimiserTrajectory:
             print("$opt_params", file=fh)
             for key, value in optimiser_params.items():
                 print(f"{key}={value}", end=" ", file=fh)
-                print("\n", end="", file=fh)
-            print("$end", file=fh)
+            print("\n$end", file=fh)
+
+            print("$species", file=fh)
+            print(f"{species.n_atoms}", file=fh)
+            for atom in species.atoms:
+                print(atom.label, end=" ", file=fh)
+            print("\n$end", file=fh)
 
         # get the full path so that it is robust to os.chdir
         self._filename = os.path.abspath(filename)
@@ -954,8 +962,9 @@ class OptimiserTrajectory:
         elif not isinstance(coords, OptCoordinates):
             raise ValueError("item added must be OptCoordinates")
 
-        assert self._filename is not None
+        self._memory.append(coords)
 
+        assert self._filename is not None
         cart_coords = coords.to("cart").reshape((-1, 3))
         en = coords.e
         cart_g = coords.to("cart").g
@@ -971,8 +980,8 @@ class OptimiserTrajectory:
                 x, y, z = cart_coords[i]
                 dedx, dedy, dedz = cart_g[i]
                 print(
-                    f"{x:.8f} {y:.8f} {z:.8f} "
-                    f"{dedx:.8f} {dedy:.8f} {dedz:.8f}",
+                    f"{x:.10f} {y:.10f} {z:.10f} "
+                    f"{dedx:.10f} {dedy:.10f} {dedz:.10f}",
                     file=fh,
                 )
             print("$end", file=fh)
@@ -984,12 +993,37 @@ class OptimiserTrajectory:
             print("$hess", file=fh)
             for i in range(cart_h.shape[0]):
                 for j in range(cart_h.shape[1]):
-                    print(cart_h[i, j], end=" ", file=fh)
+                    print(f"{cart_h[i, j]:.10f}", end=" ", file=fh)
                 print("\n", end="", file=fh)
             print("$end")
 
         self._iter += 1  # TODO do we need iter?
         return None
+
+    def __iter__(self):
+        """
+        Iterate through all coordinates stored in trajectory.
+        Will only return Cartesian coordinates, gradient and
+        Hessian
+        """
+        with open(self._filename, "r") as fh:
+            line = None
+            while line != "":  # read until EOF
+                coords, grad = [], []
+                line = fh.readline().strip()
+                if line == "$coordinates":
+                    while True:
+                        line = fh.readline().strip()
+                        if line == "$end":
+                            break
+                        data = line.split()
+                        coords.append([data[:4]])
+                        grad.append([data[4:]])
+
+                new_coords = CartesianCoordinates(np.array(coords))
+                new_grad = np.array(grad)
+                new_coords.update_g_from_cart_g(new_grad)
+                yield new_coords
 
 
 class OptimiserHistory(UserList):
