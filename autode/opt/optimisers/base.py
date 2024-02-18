@@ -1,5 +1,5 @@
 import os
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -893,7 +893,10 @@ class NDOptimiser(Optimiser, ABC):
 
 
 class OptimiserTrajectory:
-    """Sequential trajectory of coordinates stored on disk"""
+    """
+    Sequential trajectory of coordinates stored on disk, with the
+    last two coordinates stored in memory
+    """
 
     def __init__(self) -> None:
         self._filename: Optional[str] = None  # filename with absolute path
@@ -902,6 +905,13 @@ class OptimiserTrajectory:
 
     @property
     def final(self):
+        """
+        Last set of coordinates
+
+        -----------------------------------------------------------------------
+        Returns:
+            (OptCoordinates):
+        """
         return self._memory[-1]
 
     @property
@@ -924,7 +934,7 @@ class OptimiserTrajectory:
         # filename should not be a path
         assert "\\" not in filename and "/" not in filename
         if not filename.endswith(".zip"):
-            filename = filename + ".zip"
+            filename += ".zip"
 
         if os.path.exists(filename):
             logger.warning(f"File {filename} already exists, overwriting")
@@ -942,15 +952,42 @@ class OptimiserTrajectory:
         # get the full path so that it is robust to os.chdir
         self._filename = os.path.abspath(filename)
 
-    def add(self, coords: "OptCoordinates"):
+    def load(self, filename: str):
+        if not filename.endswith(".zip"):
+            filename += ".zip"
+        if not os.path.isfile(filename):
+            raise FileNotFoundError(f"The file {filename} does not exist!")
+        if not is_zipfile(filename):
+            raise ValueError(
+                f"The file {filename} is not a valid trajectory file"
+            )
+
+        self._filename = filename
+        with ZipFile(filename, "r") as file:
+            names = file.namelist()
+            n_iter = 0
+            for name in names:
+                if name.startswith("coords_") and int(name[7:]) > 0:
+                    n_iter += 1
+            final_data = file.read(f"coords_{n_iter-1}")
+            penultimate_data = file.read(f"coords_{n_iter-2}")
+
+        self._iter = n_iter
+        self._memory.append(self._bytes_to_coords(penultimate_data))
+        self._memory.append(self._bytes_to_coords(final_data))
+
+        return None
+
+    def __len__(self):
+        """How many coordinates are stored here"""
+        return self._iter
+
+    def add(self, coords: "OptCoordinates") -> None:
         """
-        Add a new set of coordinates to this trajectory file
+        Add a new set of coordinates to this trajectory file and memory
 
         Args:
-            coords:
-
-        Returns:
-
+            coords (OptCoordinates): The set of coordinates to be added
         """
         if coords is None:
             return
@@ -969,6 +1006,17 @@ class OptimiserTrajectory:
 
     @staticmethod
     def _coords_to_bytes(coords: OptCoordinates) -> bytes:
+        """
+        Convert a set of coordinates into bytes (UTF-8) which
+        can be written into a file. Only extracts the Cartesian
+        coordinates, gradient and Hessian (if available)
+
+        Args:
+            coords (OptCoordinates): The coordinates
+
+        Returns:
+            (bytes):
+        """
         cart_coords = coords.to("cart").reshape((-1, 3))
         en = coords.e
         cart_g = coords.to("cart").g
@@ -998,7 +1046,18 @@ class OptimiserTrajectory:
         return coords_txt.encode("utf-8")
 
     @staticmethod
-    def _bytes_to_coords(coords_byte: bytes):
+    def _bytes_to_coords(coords_byte: bytes) -> CartesianCoordinates:
+        """
+        Convert bytes read from a saved file into Cartesian
+        coordinates, holding the gradient and if available,
+        Hessian
+
+        Args:
+            coords_byte (bytes): The bytes read from file (UTF-8)
+
+        Returns:
+            (CartesianCoordinates):
+        """
         coords_lines = coords_byte.decode("utf-8").splitlines()
         en = PotentialEnergy(float(coords_lines[0].strip()), "Ha")
         coords, grad = [], []
@@ -1032,6 +1091,18 @@ class OptimiserTrajectory:
         with ZipFile(self._filename, "r") as file:
             for i in range(self._iter):
                 coords_byte = file.read(f"coords_{i}")
+                yield self._bytes_to_coords(coords_byte)
+
+    def __reversed__(self):
+        """
+        Iterate through all coordinates stored in trajectory
+        in reverse order. Will only return Cartesian coordinates
+        with corresponding gradient and if available, Hessian
+        """
+        with ZipFile(self._filename, "r") as file:
+            for i in reversed(range(self._iter)):
+                coords_bytes = file.read(f"coords_{i}")
+                yield self._bytes_to_coords(coords_bytes)
 
 
 class OptimiserHistory(UserList):
