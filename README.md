@@ -94,3 +94,4 @@ If **autodE** is used in a publication please consider citing the [paper](https:
 - Domen Pregeljc ([@dpregeljc](https://github.com/dpregeljc))
 - Jonathon Vandezande ([@jevandezande](https://github.com/jevandezande))
 - Shoubhik Maiti ([@shoubhikraj](https://github.com/shoubhikraj))
+- Daniel Hollas ([@danielhollas](https://github.com/danielhollas))
