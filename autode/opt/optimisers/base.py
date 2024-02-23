@@ -931,6 +931,17 @@ class OptimiserTrajectory:
         return self._memory[-2]
 
     def initialise(self, filename: str, optimiser_params: dict):
+        """
+        Initialise the trajectory file and write the optimiser
+        parameters like gradient tolerance etc.
+
+        Args:
+            filename (str): The name of the trajectory file,
+                        should be .zip, and NOT a path
+            optimiser_params (dict): A dictionary containing the
+                        keyword arguments that set the tolerance
+                        and other parameters for optimiser
+        """
         # filename should not be a path
         assert "\\" not in filename and "/" not in filename
         if not filename.endswith(".zip"):
@@ -943,7 +954,7 @@ class OptimiserTrajectory:
         # write the optimiser params
         params = ""
         for key, value in optimiser_params.items():
-            params += f"{key}={value} "
+            params += f"{key} = {value} "
 
         with ZipFile(filename, "w") as file:
             with file.open("opt_params", "w") as fh:
@@ -952,7 +963,19 @@ class OptimiserTrajectory:
         # get the full path so that it is robust to os.chdir
         self._filename = os.path.abspath(filename)
 
-    def load(self, filename: str):
+    @classmethod
+    def load(cls, filename: str):
+        """
+        Reload the state of the trajectory from a file
+
+        Args:
+            filename: The name of the trajectory .zip file,
+                    could also be a relative path
+
+        Returns:
+
+        """
+        trj = cls()
         if not filename.endswith(".zip"):
             filename += ".zip"
         if not os.path.isfile(filename):
@@ -962,7 +985,7 @@ class OptimiserTrajectory:
                 f"The file {filename} is not a valid trajectory file"
             )
 
-        self._filename = filename
+        trj._filename = os.path.abspath(filename)
         with ZipFile(filename, "r") as file:
             names = file.namelist()
             n_iter = 0
@@ -972,11 +995,30 @@ class OptimiserTrajectory:
             final_data = file.read(f"coords_{n_iter-1}")
             penultimate_data = file.read(f"coords_{n_iter-2}")
 
-        self._iter = n_iter
-        self._memory.append(self._bytes_to_coords(penultimate_data))
-        self._memory.append(self._bytes_to_coords(final_data))
+        trj._iter = n_iter
+        trj._memory.append(trj._bytes_to_coords(penultimate_data))
+        trj._memory.append(trj._bytes_to_coords(final_data))
 
-        return None
+        return trj
+
+    def get_optimiser_params(self) -> dict:
+        """
+        Retrieve the stored optimiser parameters from the trajectory
+        file
+
+        Returns:
+            (dict): Dictionary of optimiser parameters
+        """
+        assert self._filename is not None
+        with ZipFile(self._filename, "r") as file:
+            params = file.read("opt_params").decode("utf-8")
+
+        all_params = NumericStringDict(params)
+        opt_params = {}
+        for key in ["maxiter", "gtol", "etol"]:
+            opt_params[key] = all_params[key]
+
+        return opt_params
 
     def __len__(self):
         """How many coordinates are stored here"""
