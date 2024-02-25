@@ -198,6 +198,9 @@ class _ConfigClass:
         #
         # Path can be unset and will be assigned if it can be found in $PATH
         path = None
+        #
+        # File extensions to copy when a calculation completes
+        copied_output_exts = [".out", ".hess", ".xyz", ".inp", ".pc"]
 
         optts_block = (
             "\n%geom\n"
