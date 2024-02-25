@@ -18,6 +18,7 @@ Bug Fixes
 Usability improvements/Changes
 ******************************
 - Faster import of autode package by lazily loading matplotlib
+- ORCA output files copied after a calculation are configurable
 
 1.4.1
 ------
