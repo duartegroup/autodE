@@ -420,8 +420,8 @@ class HybridTRMOptimiser(CRFOptimiser):
                 "Energy increased/decreased by large amount,"
                 "rejecting last geometry step"
             )
-            # remove the last geometry from history
-            self._history.pop()
+            # take the penultimate point and start again
+            self._history.add(self._history.penultimate)
 
         logger.info(
             f"Ratio = {ratio:.3f}, Current trust radius = {self.alpha:.3f} Å"
