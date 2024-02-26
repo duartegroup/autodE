@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" >
+<html lang="en" data-content_root="../../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>3D Geometry Builder &#8212; autodE  documentation</title>
   
@@ -19,28 +18,28 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
 
   
-  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="../../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=384b581d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6" />
-  <script src="../../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=365ca57ee442770a23c6"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/smiles/builder';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -55,10 +54,9 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
   
   <div id="pst-scroll-pixel-helper"></div>
-
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>
@@ -99,11 +97,14 @@
 </form></div>
   </div>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
-    </nav>
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+    </header>
   
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
+      
+      
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -118,6 +119,7 @@
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item">
+
   
 
 <a class="navbar-brand logo" href="../../index.html">
@@ -130,7 +132,18 @@
     <p class="title logo__title">autodE  documentation</p>
   
 </a></div>
-        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../install.html">Install</a></li>
@@ -360,6 +373,7 @@
 </button>
 
 
+
 <script>
 document.write(`
   <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
@@ -369,6 +383,7 @@ document.write(`
   </button>
 `);
 </script>
+
 
 <script>
 document.write(`
@@ -421,13 +436,13 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section id="module-autode.smiles.builder">
-<span id="d-geometry-builder"></span><h1>3D Geometry Builder<a class="headerlink" href="#module-autode.smiles.builder" title="Permalink to this heading">#</a></h1>
+<span id="d-geometry-builder"></span><h1>3D Geometry Builder<a class="headerlink" href="#module-autode.smiles.builder" title="Link to this heading">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.smiles.builder.</span></span><span class="sig-name descname"><span class="pre">Builder</span></span><a class="headerlink" href="#autode.smiles.builder.Builder" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.smiles.builder.</span></span><span class="sig-name descname"><span class="pre">Builder</span></span><a class="headerlink" href="#autode.smiles.builder.Builder" title="Link to this definition">#</a></dt>
 <dd><p>3D geometry builder:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Atoms</span><span class="p">:</span>  <span class="n">C</span><span class="p">,</span> <span class="mi">4</span><span class="n">H</span>               <span class="n">H</span>  <span class="n">H</span>
 <span class="n">Bonds</span><span class="p">:</span>  <span class="mi">4</span> <span class="n">x</span> <span class="n">C</span><span class="o">-</span><span class="n">H</span>      <span class="o">--&gt;</span>     <span class="n">C</span>
@@ -436,7 +451,7 @@ document.write(`
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.__init__" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.__init__" title="Link to this definition">#</a></dt>
 <dd><p>Coordinate builder initialised from a set of atoms and bonds connecting
 them. This builder should generate something <em>reasonable</em> that can
 be cleaned up with a forcefield</p>
@@ -444,7 +459,7 @@ be cleaned up with a forcefield</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.build" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.build" title="Link to this definition">#</a></dt>
 <dd><p>Build a molecule by iterating through all the atoms adding it and
 each of it’s neighbours. i.e.</p>
 <p>atoms = [C, H, H, H]</p>
@@ -468,44 +483,44 @@ that has been translated but needs it’s neighbours adding to it</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.built">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">built</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.built" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">built</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.built" title="Link to this definition">#</a></dt>
 <dd><p>Have all the atoms been shifted appropriately?</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.built_atom_idxs">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">built_atom_idxs</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.built_atom_idxs" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">built_atom_idxs</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.built_atom_idxs" title="Link to this definition">#</a></dt>
 <dd><p>Atom indexes that have been built</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.canonical_atoms">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">canonical_atoms</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">canonical_atoms</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms" title="Link to this definition">#</a></dt>
 <dd><p>Generate canonical autodE atoms from this set</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.canonical_atoms_at_origin">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">canonical_atoms_at_origin</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms_at_origin" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">canonical_atoms_at_origin</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.canonical_atoms_at_origin" title="Link to this definition">#</a></dt>
 <dd><p>Canonical set of autodE atoms all located at the origin</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.max_ring_n">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max_ring_n</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.max_ring_n" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">max_ring_n</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.max_ring_n" title="Link to this definition">#</a></dt>
 <dd><p>Maximum ring size in this molecule</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.non_bonded_idx_matrix">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">non_bonded_idx_matrix</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.non_bonded_idx_matrix" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">non_bonded_idx_matrix</span></span><a class="headerlink" href="#autode.smiles.builder.Builder.non_bonded_idx_matrix" title="Link to this definition">#</a></dt>
 <dd><p>Generate a matrix of ones if atoms are non-bonded and zero if for
 self pairs or they are bonded</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.smiles.builder.Builder.set_atoms_bonds">
-<span class="sig-name descname"><span class="pre">set_atoms_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.set_atoms_bonds" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">set_atoms_bonds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.smiles.builder.Builder.set_atoms_bonds" title="Link to this definition">#</a></dt>
 <dd><p>From a list of SMILESAtoms, and SMILESBonds set the required attributes
 and convert all implicit hydrogens into explicit atoms</p>
 <dl class="field-list simple">
@@ -528,7 +543,7 @@ and convert all implicit hydrogens into explicit atoms</p>
               
               
                 <footer class="prev-next-footer">
-                  <!-- Previous / next buttons -->
+                  
 <div class="prev-next-area">
     <a class="left-prev"
        href="parser.html"
@@ -556,6 +571,7 @@ and convert all implicit hydrogens into explicit atoms</p>
             
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
 
   <div class="sidebar-secondary-item">
   <div class="page-toc tocsection onthispage">
@@ -596,6 +612,7 @@ By Tom Young, Joseph Silcock
   
   <div class="footer-item">
     
+
   <p class="copyright">
     
       © Copyright 2020-2021, Tom Young, Joseph Silcock.
@@ -622,8 +639,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
 
   <footer class="bd-footer">
   </footer>

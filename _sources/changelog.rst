@@ -1,6 +1,24 @@
 Changelog
 =========
 
+1.4.2
+------
+-------
+
+Functionality improvements
+**************************
+- Replaces hard-coded derivatives for primitive internal coordinates with automatic differentiation
+- More comprehensive primitive internal coordinate generation
+- Adds the capacity to handle linear molecules in internal coordinate system
+
+Bug Fixes
+*********
+- Fixes triangular rings being incorrectly treated as dihedral angles
+
+Usability improvements/Changes
+******************************
+- Faster import of autode package by lazily loading matplotlib
+- ORCA output files copied after a calculation are configurable
 
 1.4.1
 ------

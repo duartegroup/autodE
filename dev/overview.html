@@ -1,13 +1,12 @@
 
-
 <!DOCTYPE html>
 
 
-<html lang="en" >
+<html lang="en" data-content_root="../" >
 
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Code Structure &#8212; autodE  documentation</title>
   
@@ -19,28 +18,28 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=384b581d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6" />
-  <script src="../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=365ca57ee442770a23c6"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'dev/overview';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -55,10 +54,9 @@
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
   
   <div id="pst-scroll-pixel-helper"></div>
-
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>
@@ -99,11 +97,14 @@
 </form></div>
   </div>
   
-    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
-    </nav>
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+    </header>
   
+
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
+      
+      
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -118,6 +119,7 @@
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item">
+
   
 
 <a class="navbar-brand logo" href="../index.html">
@@ -130,7 +132,18 @@
     <p class="title logo__title">autodE  documentation</p>
   
 </a></div>
-        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Install</a></li>
@@ -360,6 +373,7 @@
 </button>
 
 
+
 <script>
 document.write(`
   <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
@@ -369,6 +383,7 @@ document.write(`
   </button>
 `);
 </script>
+
 
 <script>
 document.write(`
@@ -418,12 +433,12 @@ document.write(`
               
                 
 <div id="searchbox"></div>
-                <article class="bd-article" role="main">
+                <article class="bd-article">
                   
   <section id="code-structure">
-<h1>Code Structure<a class="headerlink" href="#code-structure" title="Permalink to this heading">#</a></h1>
+<h1>Code Structure<a class="headerlink" href="#code-structure" title="Link to this heading">#</a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading">#</a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
 <p>The <strong>autodE</strong> code base is structured around a <code class="code docutils literal notranslate"><span class="pre">Reaction</span></code> class, due to
 the initial singular goal of calculating reaction profiles.</p>
 <a class="reference external image-reference" href="../_images/reaction_simple_uml.svg"><img alt="../_images/reaction_simple_uml.svg" class="align-center" src="../_images/reaction_simple_uml.svg" width="550" /></a>
@@ -440,7 +455,7 @@ simply the lowest energy transition state and <code class="code docutils literal
 <code class="code docutils literal notranslate"><span class="pre">len(reaction.tss)</span> <span class="pre">==</span> <span class="pre">0</span></code>.</p>
 </section>
 <section id="overall-class-structure">
-<h2>Overall class structure<a class="headerlink" href="#overall-class-structure" title="Permalink to this heading">#</a></h2>
+<h2>Overall class structure<a class="headerlink" href="#overall-class-structure" title="Link to this heading">#</a></h2>
 <p>Zooming out, the composition and inheritance between of some of the
 classes arising from <code class="code docutils literal notranslate"><span class="pre">Reaction</span></code> (center) is shown below.</p>
 <div class="line-block">
@@ -451,7 +466,7 @@ classes arising from <code class="code docutils literal notranslate"><span class
 <div class="line"><br /></div>
 </div>
 <section id="species">
-<h3>Species<a class="headerlink" href="#species" title="Permalink to this heading">#</a></h3>
+<h3>Species<a class="headerlink" href="#species" title="Link to this heading">#</a></h3>
 <p>Individual atoms are collected into a <code class="code docutils literal notranslate"><span class="pre">Atoms</span></code> class which becomes an
 (effective) attribute of an <code class="code docutils literal notranslate"><span class="pre">AtomCollection</span></code>, which serves as a base
 class for all objects with associated <code class="code docutils literal notranslate"><span class="pre">atoms</span></code>. A <code class="code docutils literal notranslate"><span class="pre">Species</span></code> adds
@@ -459,7 +474,7 @@ a molecular graph, solvent and name attributes and is the parent class of
 a <code class="code docutils literal notranslate"><span class="pre">Molecule</span></code>, <code class="code docutils literal notranslate"><span class="pre">Complex</span></code> and <code class="code docutils literal notranslate"><span class="pre">TransitionState</span></code>.</p>
 </section>
 <section id="values">
-<h3>Values<a class="headerlink" href="#values" title="Permalink to this heading">#</a></h3>
+<h3>Values<a class="headerlink" href="#values" title="Link to this heading">#</a></h3>
 <p>Quantities with associated units e.g. an angle or energy are subclasses of
 <code class="code docutils literal notranslate"><span class="pre">autode.values.Value</span></code>, which facilitate the conversion between units
 (using <code class="code docutils literal notranslate"><span class="pre">value.to()</span></code>). For example, <code class="code docutils literal notranslate"><span class="pre">species.energy</span></code> returns a
@@ -467,14 +482,14 @@ a <code class="code docutils literal notranslate"><span class="pre">Molecule</sp
 <code class="code docutils literal notranslate"><span class="pre">species.single_point()</span></code>).</p>
 </section>
 <section id="solvent">
-<h3>Solvent<a class="headerlink" href="#solvent" title="Permalink to this heading">#</a></h3>
+<h3>Solvent<a class="headerlink" href="#solvent" title="Link to this heading">#</a></h3>
 <p>Species in the gas phase have <code class="code docutils literal notranslate"><span class="pre">species.solvent</span> <span class="pre">==</span> <span class="pre">None</span></code> while solvated
 ones have an instance of either <code class="code docutils literal notranslate"><span class="pre">ImplicitSolvent</span></code> or <code class="code docutils literal notranslate"><span class="pre">ExplicitSolvent</span></code>,
 inheriting from the base <code class="code docutils literal notranslate"><span class="pre">autode.solvent.Solvent</span></code> class. Explicit solvent
 contains defined atoms, thus inherits also from <code class="code docutils literal notranslate"><span class="pre">AtomCollecion</span></code>.</p>
 </section>
 <section id="calculation">
-<h3>Calculation<a class="headerlink" href="#calculation" title="Permalink to this heading">#</a></h3>
+<h3>Calculation<a class="headerlink" href="#calculation" title="Link to this heading">#</a></h3>
 <p>Energies and derivatives thereof are obtained but running calculations using
 external QM packages (e.g. Gaussian, etc.) through a <code class="code docutils literal notranslate"><span class="pre">Calculation</span></code> instance.
 A <code class="code docutils literal notranslate"><span class="pre">Calculation</span></code> is initialised with a <code class="code docutils literal notranslate"><span class="pre">Species</span></code>, using a
@@ -482,7 +497,7 @@ A <code class="code docutils literal notranslate"><span class="pre">Calculation<
 perform. Please reach out via <a class="reference external" href="mailto:autodE-gh&#37;&#52;&#48;outlook&#46;com?subject=autodE%20EST%20method">email</a> or slack to add a a new method.</p>
 </section>
 <section id="calculate-reaction-profile">
-<h3>calculate_reaction_profile<a class="headerlink" href="#calculate-reaction-profile" title="Permalink to this heading">#</a></h3>
+<h3>calculate_reaction_profile<a class="headerlink" href="#calculate-reaction-profile" title="Link to this heading">#</a></h3>
 <p>From the description of a reaction (e.g SMILES strings), <strong>autodE</strong> can generate
 the reaction profile. It starts by building a <code class="xref py py-class docutils literal notranslate"><span class="pre">Reaction</span></code> instance,
 describing the reactants/products involved (see <code class="xref py py-class docutils literal notranslate"><span class="pre">Molecule</span></code>) as well as
@@ -517,7 +532,7 @@ final geometries.</p>
               
               
                 <footer class="prev-next-footer">
-                  <!-- Previous / next buttons -->
+                  
 <div class="prev-next-area">
     <a class="left-prev"
        href="index.html"
@@ -545,6 +560,7 @@ final geometries.</p>
             
               
                 <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
 
   <div class="sidebar-secondary-item">
   <div class="page-toc tocsection onthispage">
@@ -582,6 +598,7 @@ By Tom Young, Joseph Silcock
   
   <div class="footer-item">
     
+
   <p class="copyright">
     
       © Copyright 2020-2021, Tom Young, Joseph Silcock.
@@ -608,8 +625,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
 
   <footer class="bd-footer">
   </footer>
