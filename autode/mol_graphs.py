@@ -115,6 +115,15 @@ class MolecularGraph(nx.Graph):
 
         return matcher
 
+    @property
+    def is_connected(self) -> bool:
+        """Is this graph fully connected (i.e. not separate parts)"""
+        return nx.is_connected(self)
+
+    def connected_components(self):
+        """Generate the separate connected components"""
+        return nx.connected_components(self)
+
 
 def make_graph(
     species: "Species",

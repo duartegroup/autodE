@@ -5,7 +5,6 @@ surface and connecting minima and saddle points
 """
 import numpy as np
 import itertools as it
-import matplotlib.pyplot as plt
 
 from abc import ABC, abstractmethod
 from typing import (
@@ -196,6 +195,7 @@ class PESnD(ABC):
 
             units: Units of the surface. One of {'Ha', 'eV', 'kcal', 'kJ'}
         """
+        import matplotlib.pyplot as plt
 
         if interp_factor < 0:
             raise ValueError(
@@ -559,6 +559,8 @@ class PESnD(ABC):
             interp_factor:
             units_name:
         """
+        import matplotlib.pyplot as plt
+
         r_x = self._rs[0]
         energies, units = self._energies, energy_unit_from_name(units_name)
         energies = units.times * (energies - np.min(energies))
@@ -605,6 +607,7 @@ class PESnD(ABC):
             interp_factor:
             units_name:
         """
+        import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
         from matplotlib.ticker import FormatStrFormatter
 

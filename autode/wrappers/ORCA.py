@@ -220,7 +220,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
     def execute(self, calc):
         @work_in_tmp_dir(
             filenames_to_copy=calc.input.filenames,
-            kept_file_exts=(".out", ".hess", ".xyz", ".inp", ".pc"),
+            kept_file_exts=Config.ORCA.copied_output_exts,
         )
         def execute_orca():
             run_external(

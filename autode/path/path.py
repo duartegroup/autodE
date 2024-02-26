@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from autode.species import Species
 from autode.input_output import atoms_to_xyz_file
@@ -147,6 +146,8 @@ class Path(list):
         self, save: bool, name: str, color: str, xlabel: str
     ) -> None:
         """Plot this path"""
+        import matplotlib.pyplot as plt
+
         if len(self) == 0 or any(item.energy is None for item in self):
             logger.error("Could not plot a surface, an energy was None")
             return
