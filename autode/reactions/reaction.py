@@ -431,10 +431,17 @@ class Reaction:
         """
 
         def delta_type_matches(*args):
-            return any(s in delta_type.lower() for s in args)
+            return any(
+                s
+                in delta_type.lower()
+                .replace("ddagger", "")
+                .replace("double dagger", "")
+                for s in args
+            )
 
         def is_ts_delta():
-            return delta_type_matches("ddagger", "‡", "double dagger")
+            ts_synonyms = ["ddagger", "‡", "double dagger"]
+            return any(s in delta_type.lower() for s in ts_synonyms)
 
         # Determine the species on the left and right-hand sides of the equation
         lhs: List[Species] = self.reacs
