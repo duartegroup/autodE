@@ -1098,68 +1098,6 @@ class OptimiserHistory:
                 coords_bytes = file.read(f"coords_{i}")
                 yield self._bytes_to_coords(coords_bytes)
 
-    def __getitem__(self, item):
-        if isinstance(item, slice):
-            raise NotImplementedError
-
-        assert isinstance(item, int)
-        if item < 0:
-            item += len(self)
-        if item < 0 or item >= len(self):
-            raise IndexError(f"Index {item} is out of range")
-        with ZipFile(self._filename, "r") as file:
-            coords_bytes = file.read(f"coords_{item}")
-            return self._bytes_to_coords(coords_bytes)
-
-    @property
-    def minimum(self) -> OptCoordinates:
-        """
-        Minimum energy coordinates in the history
-
-        -----------------------------------------------------------------------
-        Returns:
-            (OptCoordinates):
-        """
-        if len(self) == 0:
-            raise IndexError("No minimum with no history")
-
-        min_coords = self.final.to("cart")
-        for coords in self:
-            if coords.e < min_coords.e:
-                min_coords = coords
-
-        return min_coords
-
-    @property
-    def contains_energy_rise(self) -> bool:
-        r"""
-        Does this history contain a 'well' in the energy?::
-
-          |
-        E |    -----   /          <-- Does contain a rise in the energy
-          |         \/
-          |_________________
-               Iteration
-
-        -----------------------------------------------------------------------
-        Returns:
-            (bool): Presence of an explicit minima
-        """
-        if len(self) == 0:
-            raise IndexError("Cannot check for energy rise with no history")
-
-        min_e = self.final.e
-        min_idx = -1
-        for idx, coords in enumerate(self):
-            if coords.e < min_e:
-                min_e = coords.e
-                min_idx = idx
-
-        if min_idx < len(self) - 1:
-            return True
-        else:
-            return False
-
     def print_geometries(self, species: "Species", filename: str) -> None:
         """
         Print geometries from this history of coordinates as a .xyz

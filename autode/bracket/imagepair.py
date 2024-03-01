@@ -3,6 +3,7 @@ Base classes for implementing all bracketing methods
 that require a pair of images
 """
 import numpy as np
+import os
 
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING, List
@@ -125,8 +126,8 @@ class BaseImagePair(ABC):
         self._n_cores = None
         self._hessian_update_type = BofillUpdate
 
-        self._left_history = OptimiserHistory()
-        self._right_history = OptimiserHistory()
+        self._left_history: List[CartesianCoordinates] = list()
+        self._right_history: List[CartesianCoordinates] = list()
         # push the first coordinates into history
         self.left_coords = CartesianCoordinates(self._left_image.coordinates)
         self.right_coords = CartesianCoordinates(self._right_image.coordinates)
@@ -523,12 +524,12 @@ class EuclideanImagePair(BaseImagePair, ABC):
         return None
 
     @property
-    def _total_history(self) -> OptimiserHistory:
+    def _total_history(self) -> list:
         """
         The total history of the image-pair, including any CI run
         from the endpoints
         """
-        history = OptimiserHistory()
+        history = list()
         history.extend(self._left_history)
         if self._cineb_coords is not None:
             history.append(self._cineb_coords)
@@ -550,15 +551,23 @@ class EuclideanImagePair(BaseImagePair, ABC):
             logger.warning("Cannot write trajectory, not enough points")
             return None
 
-        self._left_history.print_geometries(
-            species=self._left_image, filename=init_trj_filename
-        )
-        self._right_history.print_geometries(
-            species=self._right_image, filename=final_trj_filename
-        )
-        self._total_history.print_geometries(
-            species=self._left_image, filename=total_trj_filename
-        )
+        def print_from_list(filename, coords_list):
+            if not filename.endswith(".xyz"):
+                filename += ".xyz"
+            if os.path.isfile(filename):
+                logger.warning(f"{filename} exists, overwriting...")
+                os.remove(filename)
+            tmp_spc = self._left_image.copy()
+
+            for coords in coords_list:
+                tmp_spc.coordinates = coords.to("cart")
+                tmp_spc.energy = coords.e
+                tmp_spc.print_xyz_file(filename=filename, append=True)
+            return None
+
+        print_from_list(init_trj_filename, self._left_history)
+        print_from_list(final_trj_filename, self._right_history)
+        print_from_list(total_trj_filename, self._total_history)
 
         return None
 

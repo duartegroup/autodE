@@ -300,7 +300,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
 
         # Eq (12) to (15) in J. Chem. Phys., 90, 1989, 2154
         # Notation follows the publication
-        last_coords = self._history[-2]
+        last_coords = self._history.penultimate
 
         p_prime = self.dist_vec
         g_prime_per = self._coords.g - p_prime * (
