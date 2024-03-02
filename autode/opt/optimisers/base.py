@@ -994,8 +994,7 @@ class OptimiserHistory:
             raise ValueError("item added must be OptCoordinates")
 
         # check if we need to push last coords to disk or can skip
-        can_skip = len(self._memory) < 2 or self._len < self._n_stored + 2
-        if can_skip:
+        if len(self._memory) < 2 or self._len < self._n_stored + 2:
             self._memory.append(coords)
             self._len += 1
             return None
