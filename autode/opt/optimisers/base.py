@@ -1000,7 +1000,7 @@ class OptimiserHistory:
         """
         Convert a set of coordinates into bytes (UTF-8) which
         can be written into a file. Only extracts the Cartesian
-        coordinates, gradient and Hessian (if available)
+        coordinates, energy, gradient and Hessian (if available)
 
         Args:
             coords (OptCoordinates): The coordinates
@@ -1008,30 +1008,33 @@ class OptimiserHistory:
         Returns:
             (bytes):
         """
-        cart_coords = coords.to("cart").reshape((-1, 3))
-        en = coords.e
-        cart_g = coords.to("cart").g
-        cart_h = coords.to("cart").h
-        assert en is not None and cart_g is not None
-        cart_g = cart_g.reshape((-1, 3))
-        assert cart_coords.shape == cart_g.shape
-
-        coords_txt = str(en.to("Ha")) + "\n"
+        cart_coords = coords.to("cart").ravel()
+        coords_txt = ""
         for i in range(cart_coords.shape[0]):
-            x, y, z = cart_coords[i]
-            dedx, dedy, dedz = cart_g[i]
-            coords_txt += (
-                f"{x:.10f} {y:.10f} {z:.10f} "
-                f"{dedx:.10f} {dedy:.10f} {dedz:.10f}\n"
-            )
+            coords_txt += f"{cart_coords[i]:.15f} "
+        coords_txt += "\n"
 
-        if cart_h is None:
-            return coords_txt.encode("utf-8")
+        en = coords.e
+        if en is not None:
+            coords_txt += "---energy---\n"
+            coords_txt += str(en.to("Ha")) + "\n"
 
-        coords_txt += "---hess---\n"
-        for i in range(cart_h.shape[0]):
-            for j in range(cart_h.shape[1]):
-                coords_txt += f"{cart_h[i, j]:.10f} "
+        cart_g = coords.to("cart").g
+        if cart_g is not None:
+            cart_g = cart_g.ravel()
+            coords_txt += "---grad---\n"
+            for i in range(cart_g.shape[0]):
+                coords_txt += f"{cart_g[i]:.15f}"
+            coords_txt += "\n"
+
+        cart_h = coords.to("cart").h
+        if cart_h is not None:
+            n_h = cart_coords.shape[0]
+            assert cart_h.shape == (n_h, n_h)
+            coords_txt += "---hess---\n"
+            cart_h = cart_h.ravel()
+            for i in range(cart_h.shape[0]):
+                coords_txt += f"{cart_h[i]}:.15f"
             coords_txt += "\n"
 
         return coords_txt.encode("utf-8")
@@ -1040,8 +1043,8 @@ class OptimiserHistory:
     def _bytes_to_coords(coords_byte: bytes) -> CartesianCoordinates:
         """
         Convert bytes read from a saved file into Cartesian
-        coordinates, holding the gradient and if available,
-        Hessian
+        coordinates, reading the energy, gradient and Hessian,
+        if available
 
         Args:
             coords_byte (bytes): The bytes read from file (UTF-8)
@@ -1050,28 +1053,37 @@ class OptimiserHistory:
             (CartesianCoordinates):
         """
         coords_lines = coords_byte.decode("utf-8").splitlines()
-        en = PotentialEnergy(float(coords_lines[0].strip()), "Ha")
-        coords, grad = [], []
-        hessian_line = None
-        for line_idx in range(len(coords_lines)):
-            line = coords_lines[line_idx]
+
+        en_line, grad_line, hess_line = None, None, None
+        for line_idx, line in enumerate(coords_lines):
+            if "---energy---" in line:
+                en_line = line_idx
+            if "---grad---" in line:
+                grad_line = line_idx
             if "---hess---" in line:
-                hessian_line = line_idx
-                break
-            data = line.strip().split()
-            coords.append([float(x) for x in data[:4]])
-            grad.append([float(x) for x in data[4:]])
-        coords = CartesianCoordinates(np.array(coords))
-        coords.e = en
-        coords.update_g_from_cart_g(np.array(grad))
+                hess_line = line_idx
 
-        if hessian_line is None:
-            return coords
+        coords_data = [float(x) for x in coords_lines[0].strip().split()]
+        coords = CartesianCoordinates(np.array(coords_data))
 
-        hess = []
-        for line in coords_lines[hessian_line + 1]:
-            hess.append([float(x) for x in line.strip().split()])
-        coords.update_h_from_cart_h(np.array(hess))
+        if en_line is not None:
+            en_data = coords_lines[en_line + 1].strip()
+            coords.e = PotentialEnergy(float(en_data), "Ha")
+
+        if grad_line is not None:
+            grad_data = [
+                float(x) for x in coords_lines[grad_line + 1].strip().split()
+            ]
+            coords.update_g_from_cart_g(np.array(grad_data))
+
+        if hess_line is not None:
+            hess_data = [
+                float(x) for x in coords_lines[hess_line + 1].strip().split()
+            ]
+            h_n = coords.ravel().shape[0]
+            hess = np.array(hess_data).reshape(h_n, h_n)
+            coords.update_h_from_cart_h(hess)
+
         return coords
 
     def __iter__(self) -> Iterator[CartesianCoordinates]:
