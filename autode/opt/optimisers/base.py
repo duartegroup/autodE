@@ -849,24 +849,29 @@ class OptimiserHistory:
 
     def __init__(self) -> None:
         self._filename: Optional[str] = None  # filename with absolute path
-        self._iter = 0  # current number of coordinates
         self._memory: deque = deque(maxlen=2)  # two coords in mem
+        self._len = 0  # total number of coords (disk or memory)
 
     @property
     def final(self):
         """
-        Last set of coordinates
+        Last set of coordinates in memory
 
         -----------------------------------------------------------------------
         Returns:
             (OptCoordinates):
         """
+        if len(self._memory) < 1:
+            raise IndexError(
+                "Cannot obtain the final set of "
+                f"coordinates, memory is empty"
+            )
         return self._memory[-1]
 
     @property
     def penultimate(self):
         """
-        Last but one set of coordinates (the penultimate set)
+        Last but one set of coordinates from memory (the penultimate set)
 
         -----------------------------------------------------------------------
         Returns:
@@ -878,6 +883,22 @@ class OptimiserHistory:
                 f"coordinates, only had {len(self._memory)}"
             )
         return self._memory[-2]
+
+    @property
+    def _n_stored(self):
+        """Number of coordinates stored on disk"""
+        assert self._filename is not None
+        with ZipFile(self._filename, "r") as file:
+            names = file.namelist()
+        n_coords = 0
+        for name in names:
+            if name.startswith("coords_") and int(name[7:]) > 0:
+                n_coords += 1
+        return n_coords
+
+    def __len__(self):
+        """How many coordinates are stored here"""
+        return self._len
 
     def initialise(self, filename: str, optimiser_params: dict):
         """
@@ -935,19 +956,10 @@ class OptimiserHistory:
             )
 
         trj._filename = os.path.abspath(filename)
-        with ZipFile(filename, "r") as file:
-            names = file.namelist()
-            n_iter = 0
-            for name in names:
-                if name.startswith("coords_") and int(name[7:]) > 0:
-                    n_iter += 1
-            final_data = file.read(f"coords_{n_iter-1}")
-            penultimate_data = file.read(f"coords_{n_iter-2}")
-
-        trj._iter = n_iter
-        trj._memory.append(trj._bytes_to_coords(penultimate_data))
-        trj._memory.append(trj._bytes_to_coords(final_data))
-
+        reversed_trj = reversed(trj)
+        trj._memory.appendleft(next(reversed_trj))
+        trj._memory.appendleft(next(reversed_trj))
+        trj._len = trj._n_stored
         return trj
 
     def get_optimiser_params(self) -> dict:
@@ -969,30 +981,31 @@ class OptimiserHistory:
 
         return opt_params
 
-    def __len__(self):
-        """How many coordinates are stored here"""
-        return self._iter
-
     def add(self, coords: "OptCoordinates") -> None:
         """
-        Add a new set of coordinates to this trajectory file and memory
+        Add a new set of coordinates to this trajectory
 
         Args:
             coords (OptCoordinates): The set of coordinates to be added
         """
         if coords is None:
-            return
+            return None
         elif not isinstance(coords, OptCoordinates):
             raise ValueError("item added must be OptCoordinates")
 
-        self._memory.append(coords)
+        # check if we need to push last coords to disk or can skip
+        can_skip = len(self._memory) < 2 or self._len < self._n_stored + 2
+        if can_skip:
+            self._memory.append(coords)
+            self._len += 1
+            return None
 
         assert self._filename is not None
         with ZipFile(self._filename, "a") as file:
-            with file.open(f"coords_{self._iter}", "w") as fh:
-                fh.write(self._coords_to_bytes(coords))
-
-        self._iter += 1  # TODO do we need iter?
+            with file.open(f"coords_{self._n_stored}", "w") as fh:
+                fh.write(self._coords_to_bytes(self.penultimate))
+        self._memory.append(coords)
+        self._len += 1
         return None
 
     @staticmethod
@@ -1088,25 +1101,25 @@ class OptimiserHistory:
 
     def __iter__(self) -> Iterator[CartesianCoordinates]:
         """
-        Iterate through all coordinates stored in trajectory.
-        Will only return Cartesian coordinates, gradient and
-        Hessian
+        Iterate through all coordinates stored in trajectory file
+        on disk. Will only return Cartesian coordinates, gradient
+        and Hessian
         """
         assert self._filename is not None
         with ZipFile(self._filename, "r") as file:
-            for i in range(self._iter):
+            for i in range(self._n_stored):
                 coords_byte = file.read(f"coords_{i}")
                 yield self._bytes_to_coords(coords_byte)
 
     def __reversed__(self) -> Iterator[CartesianCoordinates]:
         """
-        Iterate through all coordinates stored in trajectory
-        in reverse order. Will only return Cartesian coordinates
+        Iterate through all coordinates stored in trajectory file on
+        disk, in reverse order. Will only return Cartesian coordinates
         with corresponding gradient and if available, Hessian
         """
         assert self._filename is not None
         with ZipFile(self._filename, "r") as file:
-            for i in reversed(range(self._iter)):
+            for i in reversed(range(self._n_stored)):
                 coords_bytes = file.read(f"coords_{i}")
                 yield self._bytes_to_coords(coords_bytes)
 

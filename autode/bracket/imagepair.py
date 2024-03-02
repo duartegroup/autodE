@@ -386,7 +386,7 @@ class BaseImagePair(ABC):
         Update the molecular hessian for both images by update formula
         """
         for history in [self._left_history, self._right_history]:
-            coords_l, coords_k = history.final, history.penultimate
+            coords_l, coords_k = history[-1], history[-2]
             assert coords_l.g is not None, "Gradient is not set!"
             assert coords_l.h is None, "Hessian already exists!"
 
