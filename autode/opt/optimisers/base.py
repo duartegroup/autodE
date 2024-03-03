@@ -816,6 +816,12 @@ class NDOptimiser(Optimiser, ABC):
         )
         return None
 
+    def clean_up(self):
+        """
+        Remove any files on disk associated with this optimiser
+        """
+        self._history.clean_up()
+
     def print_geometries(self, filename: Optional[str] = None) -> None:
         """
         Writes the trajectory of the optimiser in .xyz format
@@ -900,7 +906,9 @@ class OptimiserHistory:
         """How many coordinates are stored here"""
         return self._len
 
-    def initialise(self, filename: str, optimiser_params: dict):
+    def initialise(
+        self, filename: str, optimiser_params: Optional[dict] = None
+    ):
         """
         Initialise the trajectory file and write the optimiser
         parameters like gradient tolerance etc.
@@ -912,6 +920,9 @@ class OptimiserHistory:
                         keyword arguments that set the tolerance
                         and other parameters for optimiser
         """
+        if self._filename is not None:
+            raise RuntimeError("Already initialised, cannot initialise again!")
+
         # filename should not be a path
         assert "\\" not in filename and "/" not in filename
         if not filename.endswith(".zip"):
@@ -921,7 +932,13 @@ class OptimiserHistory:
             logger.warning(f"File {filename} already exists, overwriting")
             os.remove(filename)
 
+        # get the full path so that it is robust to os.chdir
+        self._filename = os.path.abspath(filename)
+
         # write the optimiser params
+        if optimiser_params is None:
+            return None
+
         params = ""
         for key, value in optimiser_params.items():
             params += f"{key} = {value} "
@@ -929,9 +946,7 @@ class OptimiserHistory:
         with ZipFile(filename, "w") as file:
             with file.open("opt_params", "w") as fh:
                 fh.write(params.encode("utf-8"))
-
-        # get the full path so that it is robust to os.chdir
-        self._filename = os.path.abspath(filename)
+        return None
 
     @classmethod
     def load(cls, filename: str):
@@ -962,6 +977,12 @@ class OptimiserHistory:
         trj._len = trj._n_stored
         return trj
 
+    def clean_up(self):
+        """Remove the disk file associated with this history"""
+        os.remove(self._filename)
+        # TODO: Use pathlib instead of os.remove? is it safer?
+        return None
+
     def get_optimiser_params(self) -> dict:
         """
         Retrieve the stored optimiser parameters from the trajectory
@@ -971,6 +992,12 @@ class OptimiserHistory:
             (dict): Dictionary of optimiser parameters
         """
         assert self._filename is not None
+        with ZipFile(self._filename, "r") as file:
+            names = file.namelist()
+
+        if "opt_params" not in names:
+            return dict()
+
         with ZipFile(self._filename, "r") as file:
             params = file.read("opt_params").decode("utf-8")
 
@@ -995,17 +1022,17 @@ class OptimiserHistory:
         elif not isinstance(coords, OptCoordinates):
             raise ValueError("item added must be OptCoordinates")
 
-        if self._filename is None:
-            raise RuntimeError(
-                "Must initialise the OptimiserHistory object"
-                "before adding coordinates"
-            )
-
         # check if we need to push last coords to disk or can skip
         if len(self._memory) < 2 or self._len < self._n_stored + 2:
             self._memory.append(coords)
             self._len += 1
             return None
+
+        if self._filename is None:
+            raise RuntimeError(
+                "Must initialise the OptimiserHistory object"
+                "before adding more than two coordinates"
+            )
 
         n_stored = self._n_stored
         with ZipFile(self._filename, "a") as file:

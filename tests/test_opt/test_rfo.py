@@ -58,6 +58,7 @@ def test_simple_quadratic_opt():
         init_alpha=0.5,
     )
     optimiser.run(Molecule(name="blank"), method=Method())
+    optimiser.clean_up()
     assert optimiser.converged
     assert optimiser.iteration < 10
 
@@ -84,6 +85,7 @@ def test_branin_opt():
     assert np.allclose(optimiser._coords, np.array([3.138, 2.252]), atol=0.02)
 
     assert optimiser.iteration < 30
+    optimiser.clean_up()
 
 
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])

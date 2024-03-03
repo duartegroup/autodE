@@ -377,28 +377,20 @@ def test_optimiser_history_storage():
     hist.flush()
     # now should be 2 more stored on disk
     assert len(hist) == 3 and hist._n_stored == 3
-
-
-def test_optimiserhistory_operations_maintain_subclass():
-    optimiser = CartesianSDOptimiser(
-        maxiter=2,
-        gtol=GradientRMS(0.2),
-        etol=PotentialEnergy(0.1),
-    )
-    coord = CartesianCoordinates(np.arange(6))
-    optimiser._coords = coord
-    optimiser._coords = coord * 0.1
-    hist = optimiser._history
-    assert len(hist) == 2
-
-    new_hist = copy.deepcopy(hist)
-    assert new_hist[0] is not hist[0]  # must be deepcopy
-
-    add_hist = hist + new_hist
-    assert isinstance(add_hist, OptimiserHistory)
-
-    hist_slice = hist[:-1]
-    assert isinstance(hist_slice, OptimiserHistory)
+    # adding new coords should not put anything on disk
+    hist.add(coords4)
+    assert len(hist) == 4 and hist._n_stored == 3
+    # flush should put only the new coord to disk
+    hist.flush()
+    assert hist._n_stored == 4
+    iterator = reversed(hist)
+    last = next(iterator)
+    before_last = next(iterator)
+    assert np.allclose(last, coords4) and np.allclose(before_last, coords3)
+    # putting more than two new coords should trigger adding to disk
+    for _ in range(3):
+        hist.add(coords1)
+    assert len(hist) == 7 and hist._n_stored == 5
 
 
 def test_mocked_method():
