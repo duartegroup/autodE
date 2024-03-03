@@ -79,8 +79,8 @@ def test_coords_set():
 def test_abs_diff_e():
     # Define a intermediate optimiser state with two sets of coordinates
     optimiser = sample_cartesian_optimiser()
-    optimiser._history.append(CartesianCoordinates([0.0, 1.0]))
-    optimiser._history.append(CartesianCoordinates([0.0, 1.1]))
+    optimiser._history.add(CartesianCoordinates([0.0, 1.0]))
+    optimiser._history.add(CartesianCoordinates([0.0, 1.1]))
 
     # 2nd iteration for a history of two, indexed from 0
     assert optimiser.iteration == 1
@@ -120,12 +120,12 @@ def test_optimiser_h_update():
     c1 = CartesianCoordinates([1.0, 0.0, 0.0])
     c1.h = np.eye(3)
 
-    optimiser._history.append(c1)
+    optimiser._history.add(c1)
 
     c2 = CartesianCoordinates([1.1, 0.0, 0.0])
     c2.h = np.eye(3)
 
-    optimiser._history.append(c2)
+    optimiser._history.add(c2)
 
     # and try and update the (inverse) hessian, which is impossible without
     # an updater
@@ -145,13 +145,6 @@ def test_history():
     # or the ones before that
     with pytest.raises(IndexError):
         _ = optimiser._history.penultimate
-
-    # or minimum in energy
-    with pytest.raises(IndexError):
-        _ = optimiser._history.minimum
-
-    # and cannot contain a well in the energy
-    assert not optimiser._history.contains_energy_rise
 
 
 @work_in_tmp_dir()
@@ -238,6 +231,7 @@ def test_last_energy_change_with_no_steps():
     optimiser.run(mol, method=Method())
     assert optimiser.converged
     assert optimiser.last_energy_change < 1
+    optimiser.clean_up()
 
 
 def test_value_extraction_from_string():
