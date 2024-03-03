@@ -892,7 +892,7 @@ class OptimiserHistory:
             names = file.namelist()
         n_coords = 0
         for name in names:
-            if name.startswith("coords_") and int(name[7:]) > 0:
+            if name.startswith("coords_") and int(name[7:]) >= 0:
                 n_coords += 1
         return n_coords
 
@@ -977,7 +977,9 @@ class OptimiserHistory:
         all_params = NumericStringDict(params)
         opt_params = {}
         for key in ["maxiter", "gtol", "etol"]:
-            opt_params[key] = all_params[key]
+            res = all_params.get(key, None)
+            if res is not None:
+                opt_params[key] = res
 
         return opt_params
 
@@ -993,13 +995,18 @@ class OptimiserHistory:
         elif not isinstance(coords, OptCoordinates):
             raise ValueError("item added must be OptCoordinates")
 
+        if self._filename is None:
+            raise RuntimeError(
+                "Must initialise the OptimiserHistory object"
+                "before adding coordinates"
+            )
+
         # check if we need to push last coords to disk or can skip
         if len(self._memory) < 2 or self._len < self._n_stored + 2:
             self._memory.append(coords)
             self._len += 1
             return None
 
-        assert self._filename is not None
         n_stored = self._n_stored
         with ZipFile(self._filename, "a") as file:
             with file.open(f"coords_{n_stored}", "w") as fh:
@@ -1012,8 +1019,24 @@ class OptimiserHistory:
         """
         Put the coordinates that are in memory on disk
         """
+        # prevent duplication of coords on disk
         n_stored = self._n_stored
-        # TODO how many coords do we need to put in memory?
+        n_to_flush = self._len - self._n_stored
+        assert n_to_flush <= 2
+        if n_to_flush == 0:
+            return None
+        elif n_to_flush == 1:
+            idxs = [n_stored]
+            coords_list = [self.final]
+        else:
+            idxs = [n_stored, n_stored + 1]
+            coords_list = [self.penultimate, self.final]
+
+        with ZipFile(self._filename, "a") as file:
+            for idx, coords in zip(idxs, coords_list):
+                with file.open(f"coords_{idx}", "w") as fh:
+                    fh.write(self._coords_to_bytes(coords))
+        return None
 
     @staticmethod
     def _coords_to_bytes(coords: OptCoordinates) -> bytes:

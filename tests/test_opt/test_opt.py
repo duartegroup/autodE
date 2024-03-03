@@ -355,6 +355,30 @@ def test_optimiser_history_coords_to_byte():
     assert new_coords.e is not None and new_coords.h is not None
 
 
+@work_in_tmp_dir()
+def test_optimiser_history_storage():
+    coords1 = CartesianCoordinates(np.random.rand(6))
+    coords2 = CartesianCoordinates(np.random.rand(6))
+    coords3 = CartesianCoordinates(np.random.rand(6))
+    coords4 = CartesianCoordinates(np.random.rand(6))
+
+    hist = OptimiserHistory()
+    # must initialise in order to have storage
+    with pytest.raises(RuntimeError):
+        hist.add(coords1)
+    hist.initialise("test.zip", dict())
+    hist.add(coords1)
+    hist.add(coords2)
+    # nothing should be on disk
+    assert len(hist) == 2 and hist._n_stored == 0
+
+    hist.add(coords3)
+    assert len(hist) == 3 and hist._n_stored == 1
+    hist.flush()
+    # now should be 2 more stored on disk
+    assert len(hist) == 3 and hist._n_stored == 3
+
+
 def test_optimiserhistory_operations_maintain_subclass():
     optimiser = CartesianSDOptimiser(
         maxiter=2,
