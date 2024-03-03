@@ -1000,12 +1000,20 @@ class OptimiserHistory:
             return None
 
         assert self._filename is not None
+        n_stored = self._n_stored
         with ZipFile(self._filename, "a") as file:
-            with file.open(f"coords_{self._n_stored}", "w") as fh:
+            with file.open(f"coords_{n_stored}", "w") as fh:
                 fh.write(self._coords_to_bytes(self.penultimate))
         self._memory.append(coords)
         self._len += 1
         return None
+
+    def flush(self):
+        """
+        Put the coordinates that are in memory on disk
+        """
+        n_stored = self._n_stored
+        # TODO how many coords do we need to put in memory?
 
     @staticmethod
     def _coords_to_bytes(coords: OptCoordinates) -> bytes:
