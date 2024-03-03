@@ -329,6 +329,32 @@ def test_multiple_optimiser_saves_overrides_not_append():
     assert n_lines_in_traj_file() == n_init_lines
 
 
+def test_optimiser_history_coords_to_byte():
+    coords = CartesianCoordinates(np.arange(6))
+    coords.e = PotentialEnergy(0.1, "Ha")
+    coords.g = np.arange(6)
+    coords.h = np.arange(36).reshape(6, 6)
+    tmp = OptimiserHistory._coords_to_bytes(coords)
+    new_coords = OptimiserHistory._bytes_to_coords(tmp)
+    assert np.allclose(new_coords.raw, coords.raw)
+    assert np.allclose(new_coords.g, coords.g)
+    assert np.allclose(new_coords.h, coords.h)
+
+    # check that it can deal with missing grad or hess
+    coords.e = None
+    tmp = OptimiserHistory._coords_to_bytes(coords)
+    new_coords = OptimiserHistory._bytes_to_coords(tmp)
+    assert new_coords.e is None
+    assert new_coords.g is not None and new_coords.h is not None
+
+    coords.g = None
+    coords.e = PotentialEnergy(0.1, "Ha")
+    tmp = OptimiserHistory._coords_to_bytes(coords)
+    new_coords = OptimiserHistory._bytes_to_coords(tmp)
+    assert new_coords.g is None
+    assert new_coords.e is not None and new_coords.h is not None
+
+
 def test_optimiserhistory_operations_maintain_subclass():
     optimiser = CartesianSDOptimiser(
         maxiter=2,

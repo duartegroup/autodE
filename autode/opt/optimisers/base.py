@@ -1036,7 +1036,7 @@ class OptimiserHistory:
             cart_g = cart_g.ravel()
             coords_txt += "---grad---\n"
             for i in range(cart_g.shape[0]):
-                coords_txt += f"{cart_g[i]:.15f}"
+                coords_txt += f"{cart_g[i]:.15f} "
             coords_txt += "\n"
 
         cart_h = coords.to("cart").h
@@ -1046,7 +1046,7 @@ class OptimiserHistory:
             coords_txt += "---hess---\n"
             cart_h = cart_h.ravel()
             for i in range(cart_h.shape[0]):
-                coords_txt += f"{cart_h[i]}:.15f"
+                coords_txt += f"{cart_h[i]:.15f} "
             coords_txt += "\n"
 
         return coords_txt.encode("utf-8")
