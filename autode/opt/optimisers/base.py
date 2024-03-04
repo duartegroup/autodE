@@ -536,6 +536,7 @@ class NDOptimiser(Optimiser, ABC):
             if self._exceeded_maximum_iteration:
                 break
 
+        self._history.flush()
         logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
         return None
 
