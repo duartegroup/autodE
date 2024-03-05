@@ -3,8 +3,7 @@ from zipfile import ZipFile, is_zipfile
 import numpy as np
 
 from abc import ABC, abstractmethod
-from collections import UserList, deque
-from collections.abc import Iterator
+from collections import deque
 from typing import (
     Type,
     List,
@@ -1157,29 +1156,51 @@ class OptimiserHistory:
 
         return coords
 
-    def __iter__(self) -> Iterator[CartesianCoordinates]:
+    def __getitem__(self, item: int) -> CartesianCoordinates:
         """
-        Iterate through all coordinates stored in trajectory file
-        on disk. Will only return Cartesian coordinates, gradient
-        and Hessian
-        """
-        assert self._filename is not None
-        with ZipFile(self._filename, "r") as file:
-            for i in range(self._n_stored):
-                coords_byte = file.read(f"coords_{i}")
-                yield self._bytes_to_coords(coords_byte)
+        Access a coordinate from this trajectory, either from stored
+        data on disk, or from the memory. Only returns Cartesian
+        coordinates to ensure type consistency.
 
-    def __reversed__(self) -> Iterator[CartesianCoordinates]:
+        Args:
+            item (int): Must be integer and not a slice
+
+        Returns:
+            (CartesianCoordinates):
+
+        Raises:
+            NotImplementedError: If slice is used
+            IndexError: If requested index does not exist
         """
-        Iterate through all coordinates stored in trajectory file on
-        disk, in reverse order. Will only return Cartesian coordinates
-        with corresponding gradient and if available, Hessian
-        """
+        if isinstance(item, slice):
+            raise NotImplementedError
+        elif isinstance(item, int):
+            pass
+        else:
+            raise ValueError("Index has to be type int")
+
+        if item < 0:
+            item += self._len
+        if item < 0 or item >= self._len:
+            raise IndexError("Array index out of range")
+
+        if item == self._len - 1:
+            return self._memory[-1].to("cart")
+        if item == self._len - 2:
+            return self._memory[-2].to("cart")
+
         assert self._filename is not None
         with ZipFile(self._filename, "r") as file:
-            for i in reversed(range(self._n_stored)):
-                coords_bytes = file.read(f"coords_{i}")
-                yield self._bytes_to_coords(coords_bytes)
+            coords_byte = file.read(f"coords_{item}")
+
+        return self._bytes_to_coords(coords_byte)
+
+    def __iter__(self):
+        """
+        Iterate through the coordinates of this trajectory
+        """
+        for i in range(len(self)):
+            yield self[i]
 
     def print_geometries(self, species: "Species", filename: str) -> None:
         """
