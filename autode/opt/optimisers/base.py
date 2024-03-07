@@ -40,9 +40,6 @@ class BaseOptimiser(ABC):
     def run(self, *args: Any, **kwargs: Any) -> None:
         raise NotImplementedError
 
-    def save(self, filename: str) -> None:
-        raise NotImplementedError
-
     @property
     def final_coordinates(self):
         raise NotImplementedError
@@ -113,55 +110,6 @@ class Optimiser(BaseOptimiser, ABC):
           >>> mol = ade.Molecule(smiles='C')
           >>> Optimiser.optimise(mol,method=ade.methods.ORCA())
         """
-
-    def run(
-        self,
-        species: "Species",
-        method: "Method",
-        n_cores: Optional[int] = None,
-    ) -> None:
-        """
-        Run the optimiser. Updates species.atoms and species.energy
-
-        ----------------------------------------------------------------------
-        Arguments:
-            species: Species to optimise
-
-            method: Method to use to calculate energies/gradients/hessians.
-                    Calculations will use method.keywords.grad for gradient
-                    calculations
-
-            n_cores: Number of cores to use for calculations. If None then use
-                     autode.Config.n_cores
-        """
-        self._n_cores = n_cores if n_cores is not None else Config.n_cores
-        self._initialise_species_and_method(species, method)
-        assert self._species is not None, "Species must be set"
-
-        if not self._space_has_degrees_of_freedom:
-            logger.info("Optimisation is in a 0D space – terminating")
-            return None
-
-        self._initialise_run()
-
-        logger.info(
-            f"Using {self._method} to optimise {self._species.name} "
-            f"with {self._n_cores} cores using {self._maxiter} max "
-            f"iterations"
-        )
-        logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
-
-        while not self.converged:
-            self._callback(self._coords)
-            self._step()  # Update self._coords
-            self._update_gradient_and_energy()  # Update self._coords.g
-            self._log_convergence()
-
-            if self._exceeded_maximum_iteration:
-                break
-
-        logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
-        return None
 
     @property
     def iteration(self) -> int:
@@ -439,9 +387,6 @@ class NullOptimiser(BaseOptimiser):
     def run(self, **kwargs: Any) -> None:
         pass
 
-    def save(self, filename: str) -> None:
-        pass
-
     @property
     def final_coordinates(self):
         raise RuntimeError("A NullOptimiser has no coordinates")
@@ -527,6 +472,70 @@ class NDOptimiser(Optimiser, ABC):
 
         self._etol = PotentialEnergy(value)
 
+    def run(
+        self,
+        species: "Species",
+        method: "Method",
+        n_cores: Optional[int] = None,
+        name: Optional[str] = None,
+    ) -> None:
+        """
+        Run the optimiser. Updates species.atoms and species.energy
+
+        ----------------------------------------------------------------------
+        Arguments:
+            species: Species to optimise
+
+            method: Method to use to calculate energies/gradients/hessians.
+                    Calculations will use method.keywords.grad for gradient
+                    calculations
+
+            n_cores: Number of cores to use for calculations. If None then use
+                     autode.Config.n_cores
+
+            name: The name of the optimisation save file
+        """
+        self._n_cores = n_cores if n_cores is not None else Config.n_cores
+        self._initialise_species_and_method(species, method)
+        assert self._species is not None, "Species must be set"
+
+        if not self._space_has_degrees_of_freedom:
+            logger.info("Optimisation is in a 0D space – terminating")
+            return None
+
+        if name is None:
+            name = f"{self._species.name}_opt_trj.zip"
+
+        self._history.initialise(
+            filename=name,
+            optimiser_params={
+                "maxiter": self._maxiter,
+                "gtol": self.gtol,
+                "etol": self.etol,
+            },
+        )
+        self._initialise_run()
+
+        logger.info(
+            f"Using {self._method} to optimise {self._species.name} "
+            f"with {self._n_cores} cores using {self._maxiter} max "
+            f"iterations"
+        )
+        logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
+
+        while not self.converged:
+            self._callback(self._coords)
+            self._step()  # Update self._coords
+            self._update_gradient_and_energy()  # Update self._coords.g
+            self._log_convergence()
+
+            if self._exceeded_maximum_iteration:
+                break
+
+        logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
+        self._history.flush()
+        return None
+
     @classmethod
     def optimise(
         cls,
@@ -603,86 +612,14 @@ class NDOptimiser(Optimiser, ABC):
 
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
 
-    def save(self, filename: str) -> None:
-        """
-        Save the entire state of the optimiser to a file
-        """
-        assert self._species is not None, "Must have a species to save"
-
-        if len(self._history) == 0:
-            logger.warning("Optimiser did no steps. Not saving a trajectory")
-            return None
-
-        atomic_symbols = self._species.atomic_symbols
-        title_str = (
-            f" etol = {self.etol.to('Ha')} Ha"
-            f" gtol = {self.gtol.to('Ha Å^-1')} Ha Å^-1"
-            f" maxiter = {self._maxiter}"
-        )
-
-        if os.path.exists(filename):
-            logger.warning(f"FIle {filename} existed. Overwriting")
-            open(filename, "w").close()
-
-        for i, coordinates in enumerate(self._history):
-            energy = coordinates.e
-            cart_coords = coordinates.to("cartesian").reshape((-1, 3))
-            gradient = cart_coords.g.reshape((-1, 3))
-
-            n_atoms = len(atomic_symbols)
-            assert n_atoms == len(cart_coords) == len(gradient)
-
-            with open(filename, "a") as file:
-                print(
-                    n_atoms,
-                    f"E = {energy} Ha" + (title_str if i == 0 else ""),
-                    sep="\n",
-                    file=file,
-                )
-
-                for j, symbol in enumerate(atomic_symbols):
-                    x, y, z = cart_coords[j]
-                    dedx, dedy, dedz = gradient[j]
-
-                    print(
-                        f"{symbol:<3}{x:10.5f}{y:10.5f}{z:10.5f}"
-                        f"{dedx:15.5f}{dedy:10.5f}{dedz:10.5f}",
-                        file=file,
-                    )
-        return None
-
     @classmethod
     def from_file(cls, filename: str) -> "NDOptimiser":
         """
-        Create an optimiser from a file i.e. reload a saved state
+        Create an optimiser from a trajectory file i.e. reload a saved state
         """
-        from autode.opt.coordinates.cartesian import CartesianCoordinates
-
-        lines = open(filename, "r").readlines()
-        n_atoms = int(lines[0].split()[0])
-
-        title_line = NumericStringDict(lines[1])
-        optimiser = cls(
-            maxiter=int(title_line["maxiter"]),
-            gtol=GradientRMS(title_line["gtol"]),
-            etol=PotentialEnergy(title_line["etol"]),
-        )
-
-        for i in range(0, len(lines), n_atoms + 2):
-            raw_coordinates = np.zeros(shape=(n_atoms, 3))
-            gradient = np.zeros(shape=(n_atoms, 3))
-
-            for j, line in enumerate(lines[i + 2 : i + n_atoms + 2]):
-                _, x, y, z, dedx, dedy, dedz = line.split()
-                raw_coordinates[j, :] = [float(x), float(y), float(z)]
-                gradient[j, :] = [float(dedx), float(dedy), float(dedz)]
-
-            coords = CartesianCoordinates(raw_coordinates)
-            coords.e = NumericStringDict(lines[i + 1])["E"]
-            coords.g = gradient.flatten()
-
-            optimiser._history.add(coords)
-
+        hist = OptimiserHistory.load(filename)
+        optimiser = cls(**hist.get_optimiser_params())
+        optimiser._history = hist
         return optimiser
 
     @property

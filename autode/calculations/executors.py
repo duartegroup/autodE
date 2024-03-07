@@ -373,10 +373,11 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         method.keywords.grad = kws.GradientKeywords(self.input.keywords)
 
         self.optimiser.run(
-            species=self.molecule, method=method, n_cores=self.n_cores
+            species=self.molecule,
+            method=method,
+            n_cores=self.n_cores,
+            name=self._opt_trajectory_name,
         )
-
-        self.optimiser.save(self._opt_trajectory_name)
 
         if self.molecule.n_atoms == 1:
             return self._run_single_energy_evaluation()
@@ -445,7 +446,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
 
     @property
     def _opt_trajectory_name(self) -> str:
-        return f"{self.name}_opt_trj.xyz"
+        return f"{self.name}_opt_trj.zip"
 
     @property
     def _opt_trajectory_exists(self) -> bool:
