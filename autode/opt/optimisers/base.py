@@ -1,8 +1,11 @@
-import os.path
+import os
+import pickle
+
 import numpy as np
 
 from abc import ABC, abstractmethod
-from collections import UserList
+from zipfile import ZipFile, is_zipfile
+from collections import deque
 from typing import Type, List, Union, Optional, Callable, Any, TYPE_CHECKING
 
 from autode.log import logger
@@ -337,7 +340,7 @@ class Optimiser(BaseOptimiser, ABC):
             return
 
         elif isinstance(value, OptCoordinates):
-            self._history.append(value.copy())
+            self._history.add(value.copy())
 
         else:
             raise ValueError(
@@ -678,7 +681,7 @@ class NDOptimiser(Optimiser, ABC):
             coords.e = NumericStringDict(lines[i + 1])["E"]
             coords.g = gradient.flatten()
 
-            optimiser._history.append(coords)
+            optimiser._history.add(coords)
 
         return optimiser
 
@@ -890,78 +893,274 @@ class NDOptimiser(Optimiser, ABC):
         return None
 
 
-class OptimiserHistory(UserList):
-    """Sequential history of coordinates"""
+class OptimiserHistory:
+    """
+    Sequential trajectory of coordinates stored on disk, with the
+    last two coordinates stored in memory
+    """
+
+    def __init__(self) -> None:
+        self._filename: Optional[str] = None  # filename with absolute path
+        self._memory: deque = deque(maxlen=2)  # two coords in mem
+        self._len = 0  # total number of coords (disk or memory)
 
     @property
-    def penultimate(self) -> OptCoordinates:
+    def final(self):
         """
-        Last but one set of coordinates (the penultimate set)
+        Last set of coordinates in memory
 
         -----------------------------------------------------------------------
         Returns:
             (OptCoordinates):
         """
-        if len(self) < 2:
+        if len(self._memory) < 1:
+            raise IndexError(
+                "Cannot obtain the final set of "
+                f"coordinates, memory is empty"
+            )
+        return self._memory[-1]
+
+    @property
+    def penultimate(self):
+        """
+        Last but one set of coordinates from memory (the penultimate set)
+
+        -----------------------------------------------------------------------
+        Returns:
+            (OptCoordinates):
+        """
+        if len(self._memory) < 2:
             raise IndexError(
                 "Cannot obtain the penultimate set of "
-                f"coordinates, only had {len(self)}"
+                f"coordinates, only had {len(self._memory)}"
+            )
+        return self._memory[-2]
+
+    @property
+    def _n_stored(self):
+        """Number of coordinates stored on disk"""
+        assert self._filename is not None
+        with ZipFile(self._filename, "r") as file:
+            names = file.namelist()
+        n_coords = 0
+        for name in names:
+            if name.startswith("coords_") and int(name[7:]) >= 0:
+                n_coords += 1
+        return n_coords
+
+    def __len__(self):
+        """How many coordinates are stored here"""
+        return self._len
+
+    def initialise(
+        self, filename: str, optimiser_params: Optional[dict] = None
+    ):
+        """
+        Initialise the trajectory file and write the optimiser
+        parameters like gradient tolerance etc.
+
+        Args:
+            filename (str): The name of the trajectory file,
+                        should be .zip, and NOT a path
+            optimiser_params (dict): A dictionary containing the
+                        keyword arguments that set the tolerance
+                        and other parameters for optimiser
+        """
+        if self._filename is not None:
+            raise RuntimeError("Already initialised, cannot initialise again!")
+
+        # filename should not be a path
+        assert "\\" not in filename and "/" not in filename
+        if not filename.endswith(".zip"):
+            filename += ".zip"
+
+        if os.path.exists(filename):
+            logger.warning(f"File {filename} already exists, overwriting")
+            os.remove(filename)
+
+        # get the full path so that it is robust to os.chdir
+        self._filename = os.path.abspath(filename)
+
+        # write the optimiser params
+        if optimiser_params is None:
+            return None
+
+        params = ""
+        for key, value in optimiser_params.items():
+            params += f"{key} = {value} "
+
+        with ZipFile(filename, "w") as file:
+            with file.open("ade_opt_params", "w") as fh:
+                fh.write(params.encode("utf-8"))
+        return None
+
+    @classmethod
+    def load(cls, filename: str):
+        """
+        Reload the state of the trajectory from a file
+
+        Args:
+            filename: The name of the trajectory .zip file,
+                    could also be a relative path
+
+        Returns:
+
+        """
+        trj = cls()
+        if not filename.endswith(".zip"):
+            filename += ".zip"
+        if not os.path.isfile(filename):
+            raise FileNotFoundError(f"The file {filename} does not exist!")
+        if not is_zipfile(filename):
+            raise ValueError(
+                f"The file {filename} is not a valid trajectory file"
+            )
+        # handle paths with env vars or w.r.t. home dir
+        trj._filename = os.path.abspath(
+            os.path.expanduser(os.path.expandvars(filename))
+        )
+        reversed_trj = reversed(trj)
+        try:
+            trj._memory.appendleft(next(reversed_trj))
+            trj._memory.appendleft(next(reversed_trj))
+        except StopIteration:
+            pass
+        trj._len = trj._n_stored
+        return trj
+
+    def clean_up(self):
+        """Remove the disk file associated with this history"""
+        os.remove(self._filename)
+        return None
+
+    def get_optimiser_params(self) -> dict:
+        """
+        Retrieve the stored optimiser parameters from the trajectory
+        file
+
+        Returns:
+            (dict): Dictionary of optimiser parameters
+        """
+        assert self._filename is not None
+        with ZipFile(self._filename, "r") as file:
+            names = file.namelist()
+
+        if "opt_params" not in names:
+            return dict()
+
+        with ZipFile(self._filename, "r") as file:
+            params = file.read("opt_params").decode("utf-8")
+
+        all_params = NumericStringDict(params)
+        opt_params = {}
+        for key in ["maxiter", "gtol", "etol"]:
+            res = all_params.get(key, None)
+            if res is not None:
+                opt_params[key] = res
+
+        return opt_params
+
+    def add(self, coords: "OptCoordinates") -> None:
+        """
+        Add a new set of coordinates to this trajectory
+
+        Args:
+            coords (OptCoordinates): The set of coordinates to be added
+        """
+        if coords is None:
+            return None
+        elif not isinstance(coords, OptCoordinates):
+            raise ValueError("item added must be OptCoordinates")
+
+        # check if we need to push last coords to disk or can skip
+        if len(self._memory) < 2 or self._len < self._n_stored + 2:
+            self._memory.append(coords)
+            self._len += 1
+            return None
+
+        if self._filename is None:
+            raise RuntimeError(
+                "Must initialise the OptimiserHistory object"
+                "before adding more than two coordinates"
             )
 
-        return self[-2]
+        n_stored = self._n_stored
+        with ZipFile(self._filename, "a") as file:
+            with file.open(f"coords_{n_stored}", "w") as fh:
+                pickle.dump(self.penultimate, fh, pickle.HIGHEST_PROTOCOL)
+        self._memory.append(coords)
+        self._len += 1
+        return None
 
-    @property
-    def final(self) -> OptCoordinates:
+    def flush(self):
         """
-        Last set of coordinates
+        Put the coordinates that are in memory on disk
+        """
+        # prevent duplication of coords on disk
+        n_stored = self._n_stored
+        n_to_flush = self._len - self._n_stored
+        assert n_to_flush <= 2
+        if n_to_flush == 0:
+            return None
+        elif n_to_flush == 1:
+            idxs = [n_stored]
+            coords_list = [self.final]
+        else:
+            idxs = [n_stored, n_stored + 1]
+            coords_list = [self.penultimate, self.final]
 
-        -----------------------------------------------------------------------
+        with ZipFile(self._filename, "a") as file:
+            for idx, coords in zip(idxs, coords_list):
+                with file.open(f"coords_{idx}", "w") as fh:
+                    pickle.dump(coords, fh, pickle.HIGHEST_PROTOCOL)
+        return None
+
+    def __getitem__(self, item: int) -> OptCoordinates:
+        """
+        Access a coordinate from this trajectory, either from stored
+        data on disk, or from the memory. Only returns Cartesian
+        coordinates to ensure type consistency.
+
+        Args:
+            item (int): Must be integer and not a slice
+
         Returns:
-            (OptCoordinates):
+            (CartesianCoordinates):
+
+        Raises:
+            NotImplementedError: If slice is used
+            IndexError: If requested index does not exist
         """
-        if len(self) < 1:
-            raise IndexError(
-                "Cannot obtain the final set of coordinates from "
-                "an empty history"
-            )
+        if isinstance(item, slice):
+            raise NotImplementedError
+        elif isinstance(item, int):
+            pass
+        else:
+            raise ValueError("Index has to be type int")
 
-        return self[-1]
+        if item < 0:
+            item += self._len
+        if item < 0 or item >= self._len:
+            raise IndexError("Array index out of range")
 
-    @property
-    def minimum(self) -> OptCoordinates:
+        if item == self._len - 1:
+            return self._memory[-1]
+        if item == self._len - 2:
+            return self._memory[-2]
+
+        assert self._filename is not None
+        with ZipFile(self._filename, "r") as file:
+            with file.open(f"coords_{item}") as fh:
+                coords = pickle.load(fh)
+
+        return coords
+
+    def __iter__(self):
         """
-        Minimum energy coordinates in the history
-
-        -----------------------------------------------------------------------
-        Returns:
-            (OptCoordinates):
+        Iterate through the coordinates of this trajectory
         """
-        if len(self) == 0:
-            raise IndexError("No minimum with no history")
-
-        return self[np.argmin([coords.e for coords in self])]
-
-    @property
-    def contains_energy_rise(self) -> bool:
-        r"""
-        Does this history contain a 'well' in the energy?::
-
-          |
-        E |    -----   /          <-- Does contain a rise in the energy
-          |         \/
-          |_________________
-               Iteration
-
-        -----------------------------------------------------------------------
-        Returns:
-            (bool): Presence of an explicit minima
-        """
-
-        for idx in range(1, len(self) - 1):
-            if self[idx].e < self[idx + 1].e:
-                return True
-
-        return False
+        for i in range(len(self)):
+            yield self[i]
 
     def print_geometries(self, species: "Species", filename: str) -> None:
         """
