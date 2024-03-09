@@ -329,26 +329,63 @@ def test_multiple_optimiser_saves_overrides_not_append():
     assert n_lines_in_traj_file() == n_init_lines
 
 
-def test_optimiserhistory_operations_maintain_subclass():
-    optimiser = CartesianSDOptimiser(
-        maxiter=2,
-        gtol=GradientRMS(0.2),
-        etol=PotentialEnergy(0.1),
-    )
-    coord = CartesianCoordinates(np.arange(6))
-    optimiser._coords = coord
-    optimiser._coords = coord * 0.1
-    hist = optimiser._history
-    assert len(hist) == 2
+@work_in_tmp_dir()
+def test_optimiser_history_storage():
+    coords1 = CartesianCoordinates(np.random.rand(6))
+    coords2 = CartesianCoordinates(np.random.rand(6))
+    coords3 = CartesianCoordinates(np.random.rand(6))
+    coords4 = CartesianCoordinates(np.random.rand(6))
 
-    new_hist = copy.deepcopy(hist)
-    assert new_hist[0] is not hist[0]  # must be deepcopy
+    hist = OptimiserHistory(maxlen=3)
+    hist.open("test.zip")
+    hist.add(coords1)
+    hist.add(coords2)
+    hist.add(coords3)
+    # nothing should be on disk yet
+    assert len(hist) == 3 and hist._n_stored == 0
+    # now last coord is put on disk
+    hist.add(coords4)
+    assert len(hist) == 4 and hist._n_stored == 1
+    assert len(hist._memory) == 3
+    hist.flush()
+    # now should be 3 more stored on disk
+    assert len(hist) == 4 and hist._n_stored == 4
+    # adding new coords should not put anything on disk
+    hist.add(coords1)
+    assert len(hist) == 5 and hist._n_stored == 4
+    # flush should put only the new coord to disk
+    hist.flush()
+    assert hist._n_stored == 5
+    iterator = reversed(hist)
+    last = next(iterator)
+    before_last = next(iterator)
+    assert np.allclose(last, coords1) and np.allclose(before_last, coords4)
+    # putting more than three new coords should trigger adding to disk
+    for _ in range(4):
+        hist.add(coords1)
+    assert len(hist) == 9 and hist._n_stored == 6
 
-    add_hist = hist + new_hist
-    assert isinstance(add_hist, OptimiserHistory)
 
-    hist_slice = hist[:-1]
-    assert isinstance(hist_slice, OptimiserHistory)
+@work_in_tmp_dir()
+def test_optimiser_history_getitem():
+    coords0 = CartesianCoordinates(np.random.rand(6))
+    coords1 = CartesianCoordinates(np.random.rand(6))
+    coords2 = CartesianCoordinates(np.random.rand(6))
+    coords3 = CartesianCoordinates(np.random.rand(6))
+    hist = OptimiserHistory(maxlen=2)
+    hist.open("test.zip")
+    hist.add(coords0)
+    hist.add(coords1)
+    hist.add(coords2)
+    hist.flush()
+    hist.add(coords3)
+    assert np.allclose(hist[0], coords0)  # from disk
+    hist[0].e = PotentialEnergy(0.001, "Ha")
+    assert hist[0].e is None  # cannot modify disk
+    assert np.allclose(hist[2], coords2)  # from memory
+    assert hist[2].e is None
+    hist[2].e = PotentialEnergy(0.01, "Ha")
+    assert np.isclose(hist[2].e, 0.01)
 
 
 def test_mocked_method():

@@ -5,8 +5,17 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from zipfile import ZipFile, is_zipfile
-from collections import deque, Iterator
-from typing import Type, List, Union, Optional, Callable, Any, TYPE_CHECKING
+from collections import deque
+from typing import (
+    Type,
+    List,
+    Union,
+    Optional,
+    Callable,
+    Any,
+    TYPE_CHECKING,
+    Iterator,
+)
 
 from autode.log import logger
 from autode.utils import NumericStringDict
@@ -1046,6 +1055,9 @@ class OptimiserHistory:
         """
         Put the coordinates that are in memory on disk
         """
+        if self._filename is None:
+            raise RuntimeError("Cannot flush - had no trajectory file!")
+
         # prevent duplication of coords on disk
         n_stored = self._n_stored
         n_to_flush = self._len - self._n_stored
