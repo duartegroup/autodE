@@ -278,7 +278,7 @@ class Optimiser(BaseOptimiser, ABC):
             logger.warning("Optimiser had no history, thus no coordinates")
             return None
 
-        return self._history[-1]
+        return self._history.final
 
     @_coords.setter
     def _coords(self, value: Optional[OptCoordinates]) -> None:
