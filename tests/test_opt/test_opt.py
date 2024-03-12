@@ -224,6 +224,7 @@ def test_callback_function():
     optimiser.run(species=mol, method=Method())
 
 
+@work_in_tmp_dir()
 def test_last_energy_change_with_no_steps():
     mol = h2()
     optimiser = HarmonicPotentialOptimiser(
@@ -392,6 +393,13 @@ def test_optimiser_history_getitem():
     hist[2].e = PotentialEnergy(0.01, "Ha")
     assert np.isclose(hist[2].e, 0.01)
 
+    # if no disk backend, then old coordinates are lost
+    hist_nodisk = OptimiserHistory(maxlen=2)
+    hist_nodisk.add(coords0)
+    hist_nodisk.add(coords1)
+    hist_nodisk.add(coords2)
+    assert hist_nodisk[0] is None
+
 
 def test_mocked_method():
     method = Method()
@@ -402,7 +410,7 @@ def test_mocked_method():
 def test_null_optimiser_methods():
     optimiser = NullOptimiser()
     optimiser.run()
-    optimiser.save(filename="None")  # run and saving does nothing
+    # run does nothing
 
     with pytest.raises(RuntimeError):
         _ = optimiser.final_coordinates

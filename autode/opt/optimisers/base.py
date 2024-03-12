@@ -617,13 +617,19 @@ class NDOptimiser(Optimiser, ABC):
 
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
 
+    def clean_up(self) -> None:
+        """
+        Clean up by removing the trajectory file on disk
+        """
+        self._history.clean_up()
+
     @classmethod
     def from_file(cls, filename: str) -> "NDOptimiser":
         """
         Create an optimiser from a trajectory file i.e. reload a saved state
         """
         hist = OptimiserHistory.load(filename)
-        optimiser = cls(**hist.get_optimiser_params())
+        optimiser = cls(**hist.get_opt_params())
         optimiser._history = hist
         return optimiser
 

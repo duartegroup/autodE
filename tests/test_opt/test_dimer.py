@@ -6,6 +6,7 @@ from autode.methods import XTB
 from autode.values import MWDistance
 from autode.opt.coordinates.dimer import DimerCoordinates, DimerPoint
 from autode.opt.optimisers.dimer import Dimer
+from autode.utils import work_in_tmp_dir
 from .molecules import methane_mol
 from ..testutils import requires_working_xtb_install
 
@@ -164,6 +165,7 @@ class Dimer2D(Dimer):
         return None
 
 
+@work_in_tmp_dir()
 def test_dimer_2d():
     arr = np.array(
         [
@@ -186,6 +188,7 @@ def test_dimer_2d():
     )
 
     # optimise the rotation, should be able to be very accurate
+    dimer._history.open("dimer_test.zip")
     dimer._initialise_run()
     dimer._optimise_rotation()
 
@@ -212,6 +215,7 @@ def test_dimer_2d():
 
 
 @requires_working_xtb_install
+@work_in_tmp_dir()
 def test_dimer_sn2():
     left_point = Molecule(
         name="sn2_left",
