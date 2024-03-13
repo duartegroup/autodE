@@ -9,7 +9,7 @@ import numpy as np
 from typing import Tuple, Union, Optional, Any, TYPE_CHECKING
 from enum import Enum
 
-from autode.values import Distance, Angle, GradientRMS
+from autode.values import Distance, Angle, GradientRMS, PotentialEnergy
 from autode.bracket.imagepair import EuclideanImagePair
 from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
@@ -301,6 +301,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # Eq (12) to (15) in J. Chem. Phys., 90, 1989, 2154
         # Notation follows the publication
         last_coords = self._history[-2]
+        assert last_coords is not None
 
         p_prime = self.dist_vec
         g_prime_per = self._coords.g - p_prime * (
@@ -394,18 +395,25 @@ class DHSImagePair(EuclideanImagePair):
         # jumping over the barrier. So we iterate through all coords
 
         energies = []
+        max_en = PotentialEnergy(-np.inf)
+        peak_coords: Optional[CartesianCoordinates] = None
         for coord in self._total_history:
             energies.append(coord.e)
-        if any(x is None for x in energies):
-            logger.error(
-                "Energy values are missing in the trajectory of this"
-                " image-pair. Unable to obtain transition state guess"
-            )
-            return None
-        peak_coords = self._total_history[np.argmax(energies)]
+            if coord.e is None:
+                logger.error(
+                    "Energy values are missing in the trajectory of this"
+                    " image-pair. Unable to obtain transition state guess"
+                )
+                return None
+            if coord.e > max_en:
+                max_en = coord.e
+                peak_coords = coord
+
+        assert peak_coords is not None
         tmp_spc.coordinates = peak_coords
         tmp_spc.energy = peak_coords.e
-        tmp_spc.gradient = peak_coords.g.reshape(-1, 3).copy()
+        if peak_coords.g is not None:
+            tmp_spc.gradient = peak_coords.g.reshape(-1, 3).copy()
         return tmp_spc
 
     def get_coord_by_side(self, side: ImageSide) -> CartesianCoordinates:
@@ -449,7 +457,7 @@ class DHSImagePair(EuclideanImagePair):
 
         if len(hist) < 2:
             return None
-        return hist[-1] - hist[-2]
+        return hist.final - hist.penultimate
 
     def get_dhs_step_by_side(
         self, side: ImageSide, step_size: float

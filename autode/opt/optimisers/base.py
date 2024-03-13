@@ -18,7 +18,6 @@ from typing import (
 )
 
 from autode.log import logger
-from autode.utils import NumericStringDict
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy, method_string
 from autode.opt.coordinates.base import OptCoordinates
@@ -836,9 +835,8 @@ class NDOptimiser(Optimiser, ABC):
             if filename is None
             else str(filename)
         )
-
-        OptimiserHistory.print_geometries(
-            self._history, self._species, filename=filename
+        print_geometries_from(
+            self._history, species=self._species, filename=filename
         )
         return None
 
@@ -1133,40 +1131,6 @@ class OptimiserHistory:
         for i in reversed(range(len(self))):
             yield self[i]
 
-    @staticmethod
-    def print_geometries(
-        coords_trj: Union["OptimiserHistory", Iterator[OptCoordinates]],
-        species: "Species",
-        filename: str,
-    ) -> None:
-        """
-        Print geometries from an iterator over a series of coordinates
-
-        Args:
-            coords_trj: The iterator for coordinates, can be OptimiserHistory
-            species: The Species for which the coordinate history is generated
-            filename: Name of file
-        """
-        from autode.species import Species
-
-        assert isinstance(species, Species)
-
-        if not filename.lower().endswith(".xyz"):
-            filename = filename + ".xyz"
-
-        if os.path.isfile(filename):
-            logger.warning(f"{filename} already exists, overwriting...")
-            os.remove(filename)
-
-        # take a copy so that original is not modified
-        tmp_spc = species.copy()
-        for coords in coords_trj:
-            tmp_spc.coordinates = coords.to("cart")
-            tmp_spc.energy = coords.e
-            tmp_spc.print_xyz_file(filename=filename, append=True)
-
-        return None
-
 
 class ExternalOptimiser(BaseOptimiser, ABC):
     @property
@@ -1199,3 +1163,37 @@ class _OptimiserCallbackFunction:
 
 def _energy_method_string(species: "Species") -> str:
     return "" if species.energy is None else species.energy.method_str
+
+
+def print_geometries_from(
+    coords_trj: Union[Iterator[OptCoordinates], OptimiserHistory],
+    species: "Species",
+    filename: str,
+) -> None:
+    """
+    Print geometries from an iterator over a series of coordinates
+
+    Args:
+        coords_trj: The iterator for coordinates, can be OptimiserHistory
+        species: The Species for which the coordinate history is generated
+        filename: Name of file
+    """
+    from autode.species import Species
+
+    assert isinstance(species, Species)
+
+    if not filename.lower().endswith(".xyz"):
+        filename = filename + ".xyz"
+
+    if os.path.isfile(filename):
+        logger.warning(f"{filename} already exists, overwriting...")
+        os.remove(filename)
+
+    # take a copy so that original is not modified
+    tmp_spc = species.copy()
+    for coords in coords_trj:
+        tmp_spc.coordinates = coords.to("cart")
+        tmp_spc.energy = coords.e
+        tmp_spc.print_xyz_file(filename=filename, append=True)
+
+    return None

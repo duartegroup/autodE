@@ -2,10 +2,12 @@
 Base classes for implementing all bracketing methods
 that require a pair of images
 """
+import itertools
+
 import numpy as np
 
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, TYPE_CHECKING, List
+from typing import Optional, Tuple, TYPE_CHECKING, List, Iterator
 from enum import Enum
 
 from autode.values import Distance, PotentialEnergy, Gradient
@@ -14,7 +16,7 @@ from autode.methods import get_lmethod
 from autode.neb import CINEB
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
-from autode.opt.optimisers.base import OptimiserHistory
+from autode.opt.optimisers.base import OptimiserHistory, print_geometries_from
 from autode.plotting import plot_bracket_method_energy_profile
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
@@ -195,6 +197,30 @@ class BaseImagePair(ABC):
         rotated_p_mat = np.dot(rot_mat, p_mat.T).T
         self._left_image.coordinates = rotated_p_mat
 
+    def initialise_trj(
+        self,
+        left_history_name: str = "left_history_save.zip",
+        right_history_name: str = "right_history_save.zip",
+    ) -> None:
+        """
+        Initialise the trajectory save files (history of coordinates on
+        left and right images)
+
+        Args:
+            left_history_name: Name of savefile for left history
+            right_history_name: Name of savefile for right history
+        """
+        self._left_history.open(left_history_name)
+        self._right_history.open(right_history_name)
+
+    def flush_trj(self):
+        """
+        Put all coordinates in memory onto disk in the trajectory
+        save files
+        """
+        self._left_history.flush()
+        self._right_history.flush()
+
     def set_method_and_n_cores(
         self,
         method: "Method",
@@ -250,6 +276,7 @@ class BaseImagePair(ABC):
     @property
     def left_coords(self) -> CartesianCoordinates:
         """The coordinates of the left image"""
+        assert isinstance(self._left_history[-1], CartesianCoordinates)
         return self._left_history[-1]
 
     @left_coords.setter
@@ -269,18 +296,16 @@ class BaseImagePair(ABC):
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
         if isinstance(value, CartesianCoordinates):
-            self._left_history.append(value.copy())
+            self._left_history.add(value.copy())
         else:
             raise TypeError
 
         self._left_image.coordinates = self.left_coords
-        if _flush_old_hessians:
-            if len(self._left_history) >= 3:
-                self._left_history[-3].h = None
 
     @property
     def right_coords(self) -> CartesianCoordinates:
         """The coordinates of the right image"""
+        assert isinstance(self._right_history[-1], CartesianCoordinates)
         return self._right_history[-1]
 
     @right_coords.setter
@@ -300,14 +325,11 @@ class BaseImagePair(ABC):
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
         if isinstance(value, CartesianCoordinates):
-            self._right_history.append(value.copy())
+            self._right_history.add(value.copy())
         else:
             raise TypeError
 
         self._right_image.coordinates = self.right_coords
-        if _flush_old_hessians:
-            if len(self._right_history) >= 3:
-                self._right_history[-3].h = None
 
     @property
     @abstractmethod
@@ -523,17 +545,17 @@ class EuclideanImagePair(BaseImagePair, ABC):
         return None
 
     @property
-    def _total_history(self) -> OptimiserHistory:
+    def _total_history(self) -> Iterator[CartesianCoordinates]:
         """
         The total history of the image-pair, including any CI run
         from the endpoints
         """
-        history = OptimiserHistory()
-        history.extend(self._left_history)
+        cineb_coords = []
         if self._cineb_coords is not None:
-            history.append(self._cineb_coords)
-        history.extend(self._right_history[::-1])  # reverse order
-        return history
+            cineb_coords.append(self._cineb_coords)
+        return itertools.chain(
+            self._left_history, cineb_coords, reversed(self._right_history)
+        )
 
     def print_geometries(
         self,
@@ -550,14 +572,20 @@ class EuclideanImagePair(BaseImagePair, ABC):
             logger.warning("Cannot write trajectory, not enough points")
             return None
 
-        self._left_history.print_geometries(
-            species=self._left_image, filename=init_trj_filename
+        print_geometries_from(
+            self._left_history,
+            species=self._left_image,
+            filename=init_trj_filename,
         )
-        self._right_history.print_geometries(
-            species=self._right_image, filename=final_trj_filename
+        print_geometries_from(
+            self._right_history,
+            species=self._right_image,
+            filename=final_trj_filename,
         )
-        self._total_history.print_geometries(
-            species=self._left_image, filename=total_trj_filename
+        print_geometries_from(
+            self._total_history,
+            species=self._left_image,
+            filename=total_trj_filename,
         )
 
         return None
@@ -592,7 +620,8 @@ class EuclideanImagePair(BaseImagePair, ABC):
             logger.warning("Cannot plot energies, not enough points")
             return None
 
-        if any(coord.e is None for coord in self._total_history):
+        all_energies = [coord.e for coord in self._total_history]
+        if any(en is None for en in all_energies):
             logger.error(
                 "One or more coordinates do not have associated"
                 " energies, unable to produce energy plot!"
@@ -602,23 +631,25 @@ class EuclideanImagePair(BaseImagePair, ABC):
         num_left_points = len(self._left_history)
         num_right_points = len(self._right_history)
         first_point = self._left_history[0]
-        points: List[Tuple[int, "Energy"]] = []  # list of tuples
+        points: list = []  # list of tuples
 
-        lowest_en = min(coord.e for coord in self._total_history)
+        lowest_en = min(all_energies)  # type: ignore
 
+        last_coord = None
         for idx, coord in enumerate(self._total_history):
-            en = coord.e - lowest_en
+            en = coord.e - lowest_en  # type: ignore
             if metric == Metrics.relative:
                 if idx == 0:
                     x = 0
                 else:
-                    x = np.linalg.norm(coord - self._total_history[idx - 1])
+                    x = np.linalg.norm(coord - last_coord)
                     x += points[idx - 1][0]  # add previous distance
             elif metric == Metrics.from_start:
                 x = np.linalg.norm(coord - first_point)
             else:  # metric == Metrics.index:
                 x = idx
             points.append((x, en))
+            last_coord = coord
 
         left_points = points[:num_left_points]
         if self._cineb_coords is not None:
