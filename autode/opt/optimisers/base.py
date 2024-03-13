@@ -120,6 +120,72 @@ class Optimiser(BaseOptimiser, ABC):
         """
 
     @property
+    def optimiser_params(self) -> dict:
+        """
+        The parameters which are needed to intialise the optimiser and
+        will be saved in the optimiser trajectory
+        """
+        return {"maxiter": self._maxiter}
+
+    def run(
+        self,
+        species: "Species",
+        method: "Method",
+        n_cores: Optional[int] = None,
+        name: Optional[str] = None,
+    ) -> None:
+        """
+        Run the optimiser. Updates species.atoms and species.energy
+
+        ----------------------------------------------------------------------
+        Arguments:
+            species: Species to optimise
+
+            method: Method to use to calculate energies/gradients/hessians.
+                    Calculations will use method.keywords.grad for gradient
+                    calculations
+
+            n_cores: Number of cores to use for calculations. If None then use
+                     autode.Config.n_cores
+
+            name: The name of the optimisation save file
+        """
+        self._n_cores = n_cores if n_cores is not None else Config.n_cores
+        self._initialise_species_and_method(species, method)
+        assert self._species is not None, "Species must be set"
+
+        if not self._space_has_degrees_of_freedom:
+            logger.info("Optimisation is in a 0D space – terminating")
+            return None
+
+        if name is None:
+            name = f"{self._species.name}_opt_trj.zip"
+
+        self._history.open(filename=name)
+        self._history.save_opt_params(self.optimiser_params)
+        self._initialise_run()
+
+        logger.info(
+            f"Using {self._method} to optimise {self._species.name} "
+            f"with {self._n_cores} cores using {self._maxiter} max "
+            f"iterations"
+        )
+        logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
+
+        while not self.converged:
+            self._callback(self._coords)
+            self._step()  # Update self._coords
+            self._update_gradient_and_energy()  # Update self._coords.g
+            self._log_convergence()
+
+            if self._exceeded_maximum_iteration:
+                break
+
+        logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
+        self._history.flush()
+        return None
+
+    @property
     def iteration(self) -> int:
         """
         Iteration of the optimiser, which is equal to the length of the history
@@ -480,65 +546,10 @@ class NDOptimiser(Optimiser, ABC):
 
         self._etol = PotentialEnergy(value)
 
-    def run(
-        self,
-        species: "Species",
-        method: "Method",
-        n_cores: Optional[int] = None,
-        name: Optional[str] = None,
-    ) -> None:
-        """
-        Run the optimiser. Updates species.atoms and species.energy
-
-        ----------------------------------------------------------------------
-        Arguments:
-            species: Species to optimise
-
-            method: Method to use to calculate energies/gradients/hessians.
-                    Calculations will use method.keywords.grad for gradient
-                    calculations
-
-            n_cores: Number of cores to use for calculations. If None then use
-                     autode.Config.n_cores
-
-            name: The name of the optimisation save file
-        """
-        self._n_cores = n_cores if n_cores is not None else Config.n_cores
-        self._initialise_species_and_method(species, method)
-        assert self._species is not None, "Species must be set"
-
-        if not self._space_has_degrees_of_freedom:
-            logger.info("Optimisation is in a 0D space – terminating")
-            return None
-
-        if name is None:
-            name = f"{self._species.name}_opt_trj.zip"
-
-        self._history.open(filename=name)
-        self._history.save_opt_params(
-            {"maxiter": self._maxiter, "gtol": self.gtol, "etol": self.etol}
-        )
-        self._initialise_run()
-
-        logger.info(
-            f"Using {self._method} to optimise {self._species.name} "
-            f"with {self._n_cores} cores using {self._maxiter} max "
-            f"iterations"
-        )
-        logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
-
-        while not self.converged:
-            self._callback(self._coords)
-            self._step()  # Update self._coords
-            self._update_gradient_and_energy()  # Update self._coords.g
-            self._log_convergence()
-
-            if self._exceeded_maximum_iteration:
-                break
-
-        logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
-        self._history.flush()
-        return None
+    @property
+    def optimiser_params(self):
+        """Optimiser params to save"""
+        return {"maxiter": self._maxiter, "gtol": self.gtol, "etol": self.etol}
 
     @classmethod
     def optimise(

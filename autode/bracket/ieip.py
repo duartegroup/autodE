@@ -256,6 +256,7 @@ class IEIPMicroImagePair(EuclideanImagePair):
         right_image.coordinates = right_coords
         assert isinstance(left_coords, CartesianCoordinates)
         assert isinstance(right_coords, CartesianCoordinates)
+        # TODO: rewrite class to make this clear, align coords with grad/hess
         super().__init__(left_image=left_image, right_image=right_image)
 
         # generate the Taylor expansion surface from gradient and hessian
@@ -269,6 +270,16 @@ class IEIPMicroImagePair(EuclideanImagePair):
         )
         self._micro_step = float(Distance(micro_step_size, "ang"))
         self._target_dist = float(Distance(target_dist, "ang"))
+        # keep this in memory to calculate how much the coords have moved
+        self._start_left_coords = left_coords.copy()
+        self._start_right_coords = right_coords.copy()
+
+    def _align_species(self) -> None:
+        """
+        Prevent alignment since the Taylor expansions are NOT
+        invariant to rotation or translation
+        """
+        pass
 
     @property
     def ts_guess(self) -> Optional["Species"]:
@@ -381,14 +392,7 @@ class IEIPMicroImagePair(EuclideanImagePair):
 
         self.left_coords = self.left_coords + left_step
         self.right_coords = self.right_coords + right_step
-        self._flush_old_matrices()
         return None
-
-    def _flush_old_matrices(self):
-        """The old gradient matrices should be removed to save memory"""
-        if self.total_iters / 2 > 2:
-            self._left_history[-3].g = None
-            self._right_history[-3].g = None
 
     @property
     def max_displacement(self) -> float:
@@ -399,9 +403,9 @@ class IEIPMicroImagePair(EuclideanImagePair):
         Returns:
             (float): The max displacement
         """
-        left_displ = np.linalg.norm(self.left_coords - self._left_history[0])
+        left_displ = np.linalg.norm(self.left_coords - self._start_left_coords)
         right_displ = np.linalg.norm(
-            self.right_coords - self._right_history[0]
+            self.right_coords - self._start_right_coords
         )
         return max(left_displ, right_displ)
 
