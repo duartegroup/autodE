@@ -182,7 +182,7 @@ class Optimiser(BaseOptimiser, ABC):
                 break
 
         logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
-        self._history.flush()
+        self._history.close()
         return None
 
     @property
@@ -864,6 +864,7 @@ class OptimiserHistory:
         self._filename: Optional[str] = None  # filename with abs. path
         self._memory: deque = deque(maxlen=maxlen)  # coords in mem
         self._maxlen = maxlen if maxlen is not None else float("inf")
+        self._is_closed = False  # whether trajectory is open
         self._len = 0  # count of total number of coords
 
     @property
@@ -977,7 +978,8 @@ class OptimiserHistory:
             os.path.expanduser(os.path.expandvars(filename))
         )
         trj._len = trj._n_stored
-        # from last towards first (reverse order)
+        trj._is_closed = True
+        # load the last two into memory
         if trj._len < 2:
             load_idxs = [trj._len - 1]
         else:
@@ -1052,14 +1054,13 @@ class OptimiserHistory:
         elif not isinstance(coords, OptCoordinates):
             raise ValueError("item added must be OptCoordinates")
 
+        if self._is_closed:
+            raise RuntimeError("Cannot add to closed OptimiserHistory")
+
+        self._len += 1
         # check if we need to push last coords to disk or can skip
-        if (
-            len(self._memory) < self._maxlen
-            or self._filename is None
-            or self._len < self._n_stored + self._maxlen
-        ):
+        if len(self._memory) < self._maxlen or self._filename is None:
             self._memory.append(coords)
-            self._len += 1
             return None
 
         n_stored = self._n_stored
@@ -1067,27 +1068,25 @@ class OptimiserHistory:
             with file.open(f"coords_{n_stored}", "w") as fh:
                 pickle.dump(self._memory[0], fh, pickle.HIGHEST_PROTOCOL)
         self._memory.append(coords)
-        self._len += 1
         return None
 
-    def flush(self):
+    def close(self):
         """
-        Put the coordinates that are in memory on disk
+        Close the Optimiser history by putting the coordinates still
+        in memory onto disk
         """
         if self._filename is None:
-            raise RuntimeError("Cannot flush - had no trajectory file!")
+            raise RuntimeError("Cannot close - had no trajectory file!")
 
-        # prevent duplication of coords on disk
-        n_stored = self._n_stored
-        n_to_flush = self._len - n_stored
-        # from latest to oldest (right to left)
-        idxs = reversed([n_stored + i for i in range(n_to_flush)])
-        coords_list = [self._memory[i - 1] for i in range(n_to_flush)]
-
+        idx = self._n_stored
         with ZipFile(self._filename, "a") as file:
-            for idx, coords in zip(idxs, coords_list):
+            for coords in self._memory:
                 with file.open(f"coords_{idx}", "w") as fh:
                     pickle.dump(coords, fh, pickle.HIGHEST_PROTOCOL)
+                idx += 1
+
+        self._is_closed = True
+        return None
 
     def __getitem__(self, item: int) -> Optional[OptCoordinates]:
         """
