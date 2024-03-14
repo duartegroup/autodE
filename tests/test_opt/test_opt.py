@@ -401,6 +401,26 @@ def test_optimiser_history_getitem():
     assert hist_nodisk[0] is None
 
 
+@work_in_tmp_dir()
+def test_optimiser_history_reload():
+    coords0 = CartesianCoordinates(np.random.rand(6))
+    coords1 = CartesianCoordinates(np.random.rand(6))
+    coords2 = CartesianCoordinates(np.random.rand(6))
+    coords3 = CartesianCoordinates(np.random.rand(6))
+    hist = OptimiserHistory(maxlen=2)
+    hist.open("test.zip")
+    hist.add(coords0)
+    hist.add(coords1)
+    hist.flush()
+    hist.add(coords2)
+    hist.add(coords3)
+    hist.flush()
+    hist = OptimiserHistory.load("test.zip")
+    assert np.allclose(hist[-1], coords3)
+    assert np.allclose(hist[-2], coords2)
+    assert np.allclose(hist[-3], coords1)
+
+
 def test_mocked_method():
     method = Method()
     assert method.implements(CalculationType.energy)

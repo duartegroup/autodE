@@ -463,9 +463,11 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         if final_coords is None:
             raise ex.CalculationException("Final coordinates undefined")
 
-        self.molecule.coordinates = final_coords.reshape((-1, 3))
-        if final_coords.g is not None:
-            self.molecule.gradient = final_coords.g.reshape((-1, 3))
+        cart_coords = final_coords.to("cart")
+        self.molecule.coordinates = cart_coords.reshape((-1, 3))
+        if cart_coords.g is not None:
+            self.molecule.gradient = cart_coords.g.reshape((-1, 3))
+
         self.molecule.energy = final_coords.e
         return None
 

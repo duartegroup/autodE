@@ -976,13 +976,17 @@ class OptimiserHistory:
         trj._filename = os.path.abspath(
             os.path.expanduser(os.path.expandvars(filename))
         )
-        reversed_trj = reversed(trj)
-        try:
-            trj._memory.appendleft(next(reversed_trj))
-            trj._memory.appendleft(next(reversed_trj))
-        except StopIteration:
-            pass
         trj._len = trj._n_stored
+        # from last towards first (reverse order)
+        if trj._len < 2:
+            load_idxs = [trj._len - 1]
+        else:
+            load_idxs = [trj._len - 2, trj._len - 1]
+        with ZipFile(trj._filename, "r") as file:
+            for idx in load_idxs:
+                with file.open(f"coords_{idx}") as fh:
+                    trj._memory.append(pickle.load(fh))
+
         return trj
 
     def clean_up(self):
@@ -1075,9 +1079,10 @@ class OptimiserHistory:
 
         # prevent duplication of coords on disk
         n_stored = self._n_stored
-        n_to_flush = self._len - self._n_stored
-        idxs = [n_stored + i for i in range(n_to_flush)]
-        coords_list = [self[i - 1] for i in range(n_to_flush)]
+        n_to_flush = self._len - n_stored
+        # from latest to oldest (right to left)
+        idxs = reversed([n_stored + i for i in range(n_to_flush)])
+        coords_list = [self._memory[i - 1] for i in range(n_to_flush)]
 
         with ZipFile(self._filename, "a") as file:
             for idx, coords in zip(idxs, coords_list):
