@@ -213,13 +213,13 @@ class BaseImagePair(ABC):
         self._left_history.open(left_history_name)
         self._right_history.open(right_history_name)
 
-    def flush_trj(self):
+    def close_trj(self):
         """
         Put all coordinates in memory onto disk in the trajectory
-        save files
+        save files, and close the trajectories
         """
-        self._left_history.flush()
-        self._right_history.flush()
+        self._left_history.close()
+        self._right_history.close()
 
     def set_method_and_n_cores(
         self,

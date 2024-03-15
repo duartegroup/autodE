@@ -335,12 +335,16 @@ def test_multiple_optimiser_saves_overrides_not_append():
     assert old_n_coords == n_coords
 
 
+def _get_4_random_coordinates():
+    coords_list = []
+    for _ in range(4):
+        coords_list.append(CartesianCoordinates(np.random.rand(6)))
+    return coords_list
+
+
 @work_in_tmp_dir()
 def test_optimiser_history_storage():
-    coords1 = CartesianCoordinates(np.random.rand(6))
-    coords2 = CartesianCoordinates(np.random.rand(6))
-    coords3 = CartesianCoordinates(np.random.rand(6))
-    coords4 = CartesianCoordinates(np.random.rand(6))
+    coords1, coords2, coords3, coords4 = _get_4_random_coordinates()
 
     hist = OptimiserHistory(maxlen=3)
     hist.open("test.zip")
@@ -353,37 +357,27 @@ def test_optimiser_history_storage():
     hist.add(coords4)
     assert len(hist) == 4 and hist._n_stored == 1
     assert len(hist._memory) == 3
-    hist.flush()
+    hist.close()
     # now should be 3 more stored on disk
     assert len(hist) == 4 and hist._n_stored == 4
-    # adding new coords should not put anything on disk
-    hist.add(coords1)
-    assert len(hist) == 5 and hist._n_stored == 4
-    # flush should put only the new coord to disk
-    hist.flush()
-    assert hist._n_stored == 5
+    # adding new coords is forbidden
+    with pytest.raises(RuntimeError):
+        hist.add(coords1)
+    # iterate through the history in reverse
     iterator = reversed(hist)
     last = next(iterator)
     before_last = next(iterator)
-    assert np.allclose(last, coords1) and np.allclose(before_last, coords4)
-    # putting more than three new coords should trigger adding to disk
-    for _ in range(4):
-        hist.add(coords1)
-    assert len(hist) == 9 and hist._n_stored == 6
+    assert np.allclose(last, coords4) and np.allclose(before_last, coords3)
 
 
 @work_in_tmp_dir()
 def test_optimiser_history_getitem():
-    coords0 = CartesianCoordinates(np.random.rand(6))
-    coords1 = CartesianCoordinates(np.random.rand(6))
-    coords2 = CartesianCoordinates(np.random.rand(6))
-    coords3 = CartesianCoordinates(np.random.rand(6))
+    coords0, coords1, coords2, coords3 = _get_4_random_coordinates()
     hist = OptimiserHistory(maxlen=2)
     hist.open("test.zip")
     hist.add(coords0)
     hist.add(coords1)
     hist.add(coords2)
-    hist.flush()
     hist.add(coords3)
     assert np.allclose(hist[0], coords0)  # from disk
     hist[0].e = PotentialEnergy(0.001, "Ha")
@@ -403,19 +397,15 @@ def test_optimiser_history_getitem():
 
 @work_in_tmp_dir()
 def test_optimiser_history_reload():
-    coords0 = CartesianCoordinates(np.random.rand(6))
-    coords1 = CartesianCoordinates(np.random.rand(6))
-    coords2 = CartesianCoordinates(np.random.rand(6))
-    coords3 = CartesianCoordinates(np.random.rand(6))
+    coords0, coords1, coords2, coords3 = _get_4_random_coordinates()
     hist = OptimiserHistory(maxlen=2)
-    hist.open("test.zip")
+    hist.open("save.zip")
     hist.add(coords0)
     hist.add(coords1)
-    hist.flush()
     hist.add(coords2)
     hist.add(coords3)
-    hist.flush()
-    hist = OptimiserHistory.load("test.zip")
+    hist.close()
+    hist = OptimiserHistory.load("save.zip")
     assert np.allclose(hist[-1], coords3)
     assert np.allclose(hist[-2], coords2)
     assert np.allclose(hist[-3], coords1)
