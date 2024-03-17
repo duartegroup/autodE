@@ -8,6 +8,7 @@ import numpy as np
 from autode.methods import XTB
 from autode.calculations.types import CalculationType
 from autode.values import GradientRMS, PotentialEnergy
+from autode.species.molecule import Molecule
 from autode.hessians import Hessian
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_working_xtb_install
@@ -335,6 +336,26 @@ def test_multiple_optimiser_saves_overrides_not_append():
     assert old_n_coords == n_coords
 
 
+def test_optimiser_print_geometries(caplog):
+    mol = Molecule(smiles="C=C", name="mymolecule")
+    coords1 = CartesianCoordinates(mol.coordinates)
+    opt = CartesianSDOptimiser(maxiter=20, gtol=1e-3, etol=1e-4)
+    opt._coords = coords1
+    # cannot print geom without species
+    with pytest.raises(AssertionError):
+        opt.print_geometries()
+
+    opt._species = mol
+    assert opt.iteration == 0
+    with caplog.at_level("WARNING"):
+        opt.print_geometries()
+    assert "Optimiser did no steps, not saving .xyz" in caplog.text
+    assert not os.path.isfile("mymolecule_opt.trj.xyz")
+    opt._coords = coords1.copy()
+    opt.print_geometries()
+    assert os.path.isfile("mymolecule_opt.trj.xyz")
+
+
 def _get_4_random_coordinates():
     coords_list = []
     for _ in range(4):
@@ -348,6 +369,10 @@ def test_optimiser_history_storage():
 
     hist = OptimiserHistory(maxlen=3)
     hist.open("test.zip")
+    assert os.path.isfile("test.zip")
+    # cannot reinitialise
+    with pytest.raises(RuntimeError, match="cannot initialise again"):
+        hist.open("test.zip")
     hist.add(coords1)
     hist.add(coords2)
     hist.add(coords3)
@@ -368,6 +393,9 @@ def test_optimiser_history_storage():
     last = next(iterator)
     before_last = next(iterator)
     assert np.allclose(last, coords4) and np.allclose(before_last, coords3)
+    # clean up
+    hist.clean_up()
+    assert not os.path.isfile("test.zip")
 
 
 @work_in_tmp_dir()
@@ -393,19 +421,21 @@ def test_optimiser_history_getitem():
     hist_nodisk.add(coords1)
     hist_nodisk.add(coords2)
     assert hist_nodisk[0] is None
+    assert hist._n_stored == 0
 
 
 @work_in_tmp_dir()
 def test_optimiser_history_reload():
     coords0, coords1, coords2, coords3 = _get_4_random_coordinates()
     hist = OptimiserHistory(maxlen=2)
-    hist.open("save.zip")
+    hist.open("savefile")
+    assert os.path.isfile("savefile.zip")  # extension added
     hist.add(coords0)
     hist.add(coords1)
     hist.add(coords2)
     hist.add(coords3)
     hist.close()
-    hist = OptimiserHistory.load("save.zip")
+    hist = OptimiserHistory.load("savefile")
     assert np.allclose(hist[-1], coords3)
     assert np.allclose(hist[-2], coords2)
     assert np.allclose(hist[-3], coords1)
