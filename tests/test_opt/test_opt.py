@@ -336,6 +336,7 @@ def test_multiple_optimiser_saves_overrides_not_append():
     assert old_n_coords == n_coords
 
 
+@work_in_tmp_dir()
 def test_optimiser_print_geometries(caplog):
     mol = Molecule(smiles="C=C", name="mymolecule")
     coords1 = CartesianCoordinates(mol.coordinates)
