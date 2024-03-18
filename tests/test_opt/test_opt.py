@@ -456,14 +456,16 @@ def test_optimiser_history_reload():
     hist = None
     with pytest.raises(FileNotFoundError, match="test.zip does not exist"):
         _ = OptimiserHistory.load("test")
-    with open("test", "w") as fh:
+    with open("test.zip", "w") as fh:
         fh.write("abcd")
     # error if file is not zip
     with pytest.raises(ValueError, match="not a valid trajectory"):
         _ = OptimiserHistory.load("test")
     # error if file does not have the autodE opt header
     with zipfile.ZipFile("new.zip", "w") as file:
-        file.write("test")
+        fh = file.open("testfile", "w")
+        fh.write("abcd".encode())
+        fh.close()
     with pytest.raises(ValueError, match="not an autodE trajectory"):
         _ = OptimiserHistory.load("new.zip")
     hist = OptimiserHistory.load("savefile")
