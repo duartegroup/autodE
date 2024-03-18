@@ -436,10 +436,37 @@ def test_optimiser_history_reload():
     hist.add(coords2)
     hist.add(coords3)
     hist.close()
+    hist = None
+    with pytest.raises(FileNotFoundError, match="test.zip does not exist"):
+        _ = OptimiserHistory.load("test")
+    with open("test", "w") as fh:
+        fh.write("abcd")
+    # error if file is not zip
+    with pytest.raises(ValueError, match="not a valid trajectory"):
+        _ = OptimiserHistory.load("test")
+    # error if file does not have the autodE opt header
+    with zipfile.ZipFile("new.zip", "w") as file:
+        file.write("test")
+    with pytest.raises(ValueError, match="not an autodE trajectory"):
+        _ = OptimiserHistory.load("new.zip")
     hist = OptimiserHistory.load("savefile")
     assert np.allclose(hist[-1], coords3)
     assert np.allclose(hist[-2], coords2)
     assert np.allclose(hist[-3], coords1)
+
+
+@work_in_tmp_dir()
+def test_optimiser_history_reload_works_with_one():
+    coords0 = CartesianCoordinates(np.random.rand(6))
+    hist = OptimiserHistory(maxlen=2)
+    hist.open("savefile")
+    hist.add(coords0)
+    hist.close()
+    assert os.path.isfile("savefile.zip")
+    hist = OptimiserHistory.load("savefile")
+    assert len(hist) == 1
+    assert np.allclose(hist[0], coords0)
+    assert hist[0] is hist[-1]
 
 
 def test_mocked_method():
