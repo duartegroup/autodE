@@ -355,6 +355,11 @@ def test_optimiser_print_geometries(caplog):
     opt._coords = coords1.copy()
     opt.print_geometries()
     assert os.path.isfile("mymolecule_opt.trj.xyz")
+    old_size = os.path.getsize("mymolecule_opt.trj.xyz")
+    # running should overwrite the geometries
+    opt.print_geometries()
+    new_size = os.path.getsize("mymolecule_opt.trj.xyz")
+    assert old_size == new_size
 
 
 def _get_4_random_coordinates():
@@ -369,6 +374,9 @@ def test_optimiser_history_storage():
     coords1, coords2, coords3, coords4 = _get_4_random_coordinates()
 
     hist = OptimiserHistory(maxlen=3)
+    # cannot close without opening a file
+    with pytest.raises(RuntimeError):
+        hist.close()
     hist.open("test.zip")
     assert os.path.isfile("test.zip")
     # cannot reinitialise
@@ -415,7 +423,16 @@ def test_optimiser_history_getitem():
     assert hist[2].e is None
     hist[2].e = PotentialEnergy(0.01, "Ha")
     assert np.isclose(hist[2].e, 0.01)
-
+    # slicing does not work
+    with pytest.raises(NotImplementedError):
+        _ = hist[0:1]
+    # can only have integer indices
+    with pytest.raises(ValueError):
+        _ = hist["x"]
+    with pytest.raises(IndexError):
+        _ = hist[4]
+    with pytest.raises(IndexError):
+        _ = hist[-5]
     # if no disk backend, then old coordinates are lost
     hist_nodisk = OptimiserHistory(maxlen=2)
     hist_nodisk.add(coords0)
