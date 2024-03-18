@@ -422,7 +422,7 @@ def test_optimiser_history_getitem():
     hist_nodisk.add(coords1)
     hist_nodisk.add(coords2)
     assert hist_nodisk[0] is None
-    assert hist._n_stored == 0
+    assert hist_nodisk._n_stored == 0
 
 
 @work_in_tmp_dir()
