@@ -175,6 +175,13 @@ class KeywordsSet:
 
         return None
 
+    def set_basis_set(self, basis_set: Union["BasisSet", str]):
+        """Set the basis set for all calculation types"""
+        for keywords in self:
+            keywords.basis_set = basis_set
+
+        return None
+
     def set_dispersion(self, dispersion: Union["DispersionCorrection", str]):
         """Set the dispersion correction for all calculation types"""
         for keywords in self:
