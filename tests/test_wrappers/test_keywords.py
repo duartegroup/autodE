@@ -2,7 +2,7 @@ import pytest
 from autode.wrappers.keywords.functionals import pbe
 from autode.wrappers.keywords.dispersion import d3bj
 from autode.wrappers.keywords.wf import hf
-from autode.wrappers.keywords.basis_sets import def2tzvp, def2ecp
+from autode.wrappers.keywords.basis_sets import def2tzvp, def2svp, def2ecp
 from autode.config import Config
 from copy import deepcopy
 from autode.wrappers.keywords import (
@@ -87,6 +87,10 @@ def test_set_keywordsset():
 
     kwset.set_opt_basis_set(def2tzvp)
     assert kwset.opt.basis_set.lower() == "def2-tzvp"
+
+    kwset.set_basis_set(def2svp)
+    assert kwset.opt.basis_set.lower() == "def2-svp"
+    assert kwset.sp.basis_set.lower() == "def2-svp"
 
     # Should admit no dispersion correction
     assert kwset.opt.dispersion is not None

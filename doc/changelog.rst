@@ -16,6 +16,7 @@ Bug Fixes
 Usability improvements/Changes
 ******************************
 - Added consistent aliases for double dagger across all energies in :code:`autode.reaction.delta`
+- Added :code:`autode.wrappers.keywords.KeywordsSet.set_basis_set` method to set the basis set for all calculations
 
 1.4.2
 ------
