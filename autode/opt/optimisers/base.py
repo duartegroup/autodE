@@ -1042,7 +1042,7 @@ class OptimiserHistory:
 
         return data
 
-    def add(self, coords: "OptCoordinates") -> None:
+    def add(self, coords: Optional["OptCoordinates"]) -> None:
         """
         Add a new set of coordinates to this trajectory
 

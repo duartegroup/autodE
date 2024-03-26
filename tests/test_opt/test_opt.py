@@ -355,6 +355,11 @@ def test_optimiser_print_geometries(caplog):
     opt._coords = coords1.copy()
     opt.print_geometries()
     assert os.path.isfile("mymolecule_opt.trj.xyz")
+    old_size = os.path.getsize("mymolecule_opt.trj.xyz")
+    # running should overwrite the geometries
+    opt.print_geometries()
+    new_size = os.path.getsize("mymolecule_opt.trj.xyz")
+    assert old_size == new_size
 
 
 def _get_4_random_coordinates():
@@ -369,6 +374,9 @@ def test_optimiser_history_storage():
     coords1, coords2, coords3, coords4 = _get_4_random_coordinates()
 
     hist = OptimiserHistory(maxlen=3)
+    # cannot close without opening a file
+    with pytest.raises(RuntimeError):
+        hist.close()
     hist.open("test.zip")
     assert os.path.isfile("test.zip")
     # cannot reinitialise
@@ -415,7 +423,16 @@ def test_optimiser_history_getitem():
     assert hist[2].e is None
     hist[2].e = PotentialEnergy(0.01, "Ha")
     assert np.isclose(hist[2].e, 0.01)
-
+    # slicing does not work
+    with pytest.raises(NotImplementedError):
+        _ = hist[0:1]
+    # can only have integer indices
+    with pytest.raises(ValueError):
+        _ = hist["x"]
+    with pytest.raises(IndexError):
+        _ = hist[4]
+    with pytest.raises(IndexError):
+        _ = hist[-5]
     # if no disk backend, then old coordinates are lost
     hist_nodisk = OptimiserHistory(maxlen=2)
     hist_nodisk.add(coords0)
@@ -436,10 +453,43 @@ def test_optimiser_history_reload():
     hist.add(coords2)
     hist.add(coords3)
     hist.close()
+    hist = None
+    with pytest.raises(FileNotFoundError, match="test.zip does not exist"):
+        _ = OptimiserHistory.load("test")
+    with open("test.zip", "w") as fh:
+        fh.write("abcd")
+    # error if file is not zip
+    with pytest.raises(ValueError, match="not a valid trajectory"):
+        _ = OptimiserHistory.load("test")
+    # error if file does not have the autodE opt header
+    with zipfile.ZipFile("new.zip", "w") as file:
+        fh = file.open("testfile", "w")
+        fh.write("abcd".encode())
+        fh.close()
+    with pytest.raises(ValueError, match="not an autodE trajectory"):
+        _ = OptimiserHistory.load("new.zip")
     hist = OptimiserHistory.load("savefile")
     assert np.allclose(hist[-1], coords3)
     assert np.allclose(hist[-2], coords2)
     assert np.allclose(hist[-3], coords1)
+
+
+@work_in_tmp_dir()
+def test_optimiser_history_reload_works_with_one():
+    coords0 = CartesianCoordinates(np.random.rand(6))
+    hist = OptimiserHistory(maxlen=2)
+    hist.open("savefile")
+    # adding None will not do anything
+    hist.add(None)
+    assert len(hist) == 0
+    # just add one more coordinate
+    hist.add(coords0)
+    hist.close()
+    assert os.path.isfile("savefile.zip")
+    hist = OptimiserHistory.load("savefile")
+    assert len(hist) == 1
+    assert np.allclose(hist[0], coords0)
+    assert hist[0] is hist[-1]
 
 
 @work_in_tmp_dir()
