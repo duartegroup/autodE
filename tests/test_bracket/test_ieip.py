@@ -55,14 +55,16 @@ def test_low_sp_func():
 @work_in_zipped_dir(datazip)
 def test_ieip_microiters():
     micro_step_size = 1e-4
-    rct = Molecule("da_reactant.xyz")
-    prod = Molecule("da_product.xyz")
+    # use almost converged images for quick calc
+    rct = Molecule("da_rct_image.xyz")
+    prod = Molecule("da_prod_image.xyz")
     imgpair = ElasticImagePair(rct, prod)
     imgpair.set_method_and_n_cores(method=XTB(), n_cores=1)
     imgpair.update_both_img_engrad()
-    imgpair.redistribute_imagepair(ll_neb_interp=False)
-    imgpair.update_both_img_engrad()
-    imgpair.update_both_img_hessian_by_calc()
+    # load hessian from txt to save time
+    imgpair.left_coords.h = np.loadtxt("da_rct_image_hess.txt")
+    imgpair.right_coords.h = np.loadtxt("da_prod_image_hess.txt")
+    # micro iterations
     micro_imgpair = IEIPMicroImagePair(
         imgpair._left_image,
         imgpair.left_coords,
@@ -80,9 +82,9 @@ def test_ieip_microiters():
     for _ in range(3):
         micro_imgpair.update_both_img_engrad()
         micro_imgpair.take_micro_step()
-    # the previous gradient matrices should be flushed after three iters
-    assert micro_imgpair._left_history[1].g is None
-    assert micro_imgpair._right_history[1].g is None
+    # the previous coordinates should be lost after three iters
+    assert micro_imgpair._left_history[1] is None
+    assert micro_imgpair._right_history[1] is None
 
 
 @requires_working_xtb_install

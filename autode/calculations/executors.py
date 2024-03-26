@@ -373,10 +373,11 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         method.keywords.grad = kws.GradientKeywords(self.input.keywords)
 
         self.optimiser.run(
-            species=self.molecule, method=method, n_cores=self.n_cores
+            species=self.molecule,
+            method=method,
+            n_cores=self.n_cores,
+            name=self._opt_trajectory_name,
         )
-
-        self.optimiser.save(self._opt_trajectory_name)
 
         if self.molecule.n_atoms == 1:
             return self._run_single_energy_evaluation()
@@ -445,7 +446,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
 
     @property
     def _opt_trajectory_name(self) -> str:
-        return f"{self.name}_opt_trj.xyz"
+        return f"{self.name}_opt_trj.zip"
 
     @property
     def _opt_trajectory_exists(self) -> bool:
@@ -462,9 +463,11 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         if final_coords is None:
             raise ex.CalculationException("Final coordinates undefined")
 
-        self.molecule.coordinates = final_coords.reshape((-1, 3))
-        if final_coords.g is not None:
-            self.molecule.gradient = final_coords.g.reshape((-1, 3))
+        cart_coords = final_coords.to("cart")
+        self.molecule.coordinates = cart_coords.reshape((-1, 3))
+        if cart_coords.g is not None:
+            self.molecule.gradient = cart_coords.g.reshape((-1, 3))
+
         self.molecule.energy = final_coords.e
         return None
 

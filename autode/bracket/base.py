@@ -122,7 +122,7 @@ class BaseBracketMethod(ABC):
         if self._micro_iter >= self._maxiter:
             logger.error(
                 f"Reached the maximum number of micro-iterations "
-                f"*{self._maxiter}"
+                f"*{self._maxiter}*"
             )
             return True
         else:
@@ -165,6 +165,9 @@ class BaseBracketMethod(ABC):
 
         n_cores = Config.n_cores if n_cores is None else int(n_cores)
         self.imgpair.set_method_and_n_cores(method, n_cores)
+        self.imgpair.initialise_trj(
+            f"{self._name}_left_history.zip", f"{self._name}_right_history.zip"
+        )
         self._initialise_run()
 
         logger.info(f"Starting {self._name} method to find transition state")
@@ -205,7 +208,7 @@ class BaseBracketMethod(ABC):
             f"iterations (optimiser steps). {self._name} is "
             f"{'converged' if self.converged else 'not converged'}"
         )
-
+        self.imgpair.close_trj()
         self.print_geometries()
         self.plot_energies()
         if self.converged and self.ts_guess is not None:

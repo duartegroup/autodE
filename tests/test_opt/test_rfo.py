@@ -49,6 +49,7 @@ class TestRFOOptimiser2D(RFOptimiser):
         self._update_gradient_and_energy()
 
 
+@work_in_tmp_dir()
 def test_simple_quadratic_opt():
     optimiser = TestRFOOptimiser2D(
         e_func=lambda x, y: x**2 + y**2,
@@ -62,6 +63,7 @@ def test_simple_quadratic_opt():
     assert optimiser.iteration < 10
 
 
+@work_in_tmp_dir()
 def test_branin_opt():
     def energy(x, y):
         return (y - 0.129 * x**2 + 1.6 * x - 6) ** 2 + 6.07 * np.cos(x) + 10

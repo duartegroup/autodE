@@ -230,8 +230,8 @@ def test_optimiser_plot():
     x.e = -1.45
     x.g = np.array([1.0, 0.9, 1.2, 0.4, 3.4, 0.3])
     x2 = x.copy()
-    hist.append(x)
-    hist.append(x2)
+    hist.add(x)
+    hist.add(x2)
     plotting.plot_optimiser_profile(
         history=hist,
         plot_energy=True,
