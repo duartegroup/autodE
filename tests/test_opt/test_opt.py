@@ -442,6 +442,28 @@ def test_optimiser_history_reload():
     assert np.allclose(hist[-3], coords1)
 
 
+@work_in_tmp_dir()
+def test_optimiser_history_save_load_params():
+    hist = OptimiserHistory()
+    # cannot save or load without having file backing
+    with pytest.raises(RuntimeError, match="File not opened"):
+        hist.save_opt_params({"maxiter": 10})
+    with pytest.raises(RuntimeError, match="File not opened"):
+        hist.get_opt_params()
+    hist.open("test.zip")
+    # cannot load as it is not available
+    with pytest.raises(FileNotFoundError, match="not found!"):
+        hist.get_opt_params()
+    # can now save and load
+    hist.save_opt_params({"maxiter": 10, "gtol": 1e-3})
+    params = hist.get_opt_params()
+    assert len(params) == 2
+    assert params["maxiter"] == 10 and params["gtol"] == 1e-3
+    # cannot save again - overwrite not allowed
+    with pytest.raises(FileExistsError, match="already stored"):
+        hist.save_opt_params({"maxiter": 10})
+
+
 def test_mocked_method():
     method = Method()
     assert method.implements(CalculationType.energy)

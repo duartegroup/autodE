@@ -1030,7 +1030,7 @@ class OptimiserHistory:
             (dict): Dictionary of optimiser parameters
         """
         if self._filename is None:
-            raise RuntimeError("File not opened - cannot store data")
+            raise RuntimeError("File not opened - cannot get data")
 
         # python's ZipFile does not allow overwriting files
         with ZipFile(self._filename, "r") as file:
