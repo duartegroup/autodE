@@ -481,6 +481,36 @@ def test_barrierless_h_g():
     assert np.isclose(rxn.delta("G‡"), 0.7)  # -2+0.6 -> -1+0.3   --> ∆ = 0.7
 
 
+@pytest.mark.parametrize("energy_syn", ["E", "Energy"])
+@pytest.mark.parametrize("enthalpy_syn", ["H", "Enthalpy"])
+@pytest.mark.parametrize("free_syn", ["G", "free energy", "free_energy"])
+@pytest.mark.parametrize("ts_syn", ["ddagger", "‡", "double dagger"])
+def test_energy_synonyms(energy_syn, enthalpy_syn, free_syn, ts_syn):
+    a = Reactant(atoms=[Atom("H"), Atom("H", x=0.7, y=0.7), Atom("H", x=1.0)])
+    a.energies.extend(
+        [PotentialEnergy(-2), EnthalpyCont(0.2), FreeEnergyCont(0.6)]
+    )
+
+    b = Product(atoms=[Atom("H"), Atom("H", x=-1.0), Atom("H", x=1.0)])
+    b.energies.extend(
+        [PotentialEnergy(-1), EnthalpyCont(0.1), FreeEnergyCont(0.3)]
+    )
+
+    rxn = reaction.Reaction(a, b)
+    # Test potential energies
+    assert np.isclose(rxn.delta(energy_syn + ts_syn), 1.0)
+
+    # Test enthalpies
+    assert np.isclose(
+        rxn.delta(enthalpy_syn + ts_syn), 0.9
+    )  # -2+0.2 -> -1+0.1   --> ∆ = 0.9
+
+    # Test free energies
+    assert np.isclose(
+        rxn.delta(free_syn + ts_syn), 0.7
+    )  # -2+0.6 -> -1+0.3   --> ∆ = 0.7
+
+
 def test_same_composition():
     r1 = reaction.Reaction(
         Reactant(atoms=[Atom("C"), Atom("H", x=1)]),
