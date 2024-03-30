@@ -176,6 +176,11 @@ def test_xtb_h2_cart_opt():
     # Should not converge in only two steps
     optimiser.run(method=XTB(), species=h2())
     assert not optimiser.converged
+    # a trajectory file should be written
+    assert os.path.isfile("h2_opt_trj.zip")
+    # cleaning up optimiser will remove trajectory
+    optimiser.clean_up()
+    assert not os.path.isfile("h2_opt_trj.zip")
 
 
 @work_in_tmp_dir()
@@ -382,6 +387,9 @@ def test_optimiser_history_storage():
     # cannot reinitialise
     with pytest.raises(RuntimeError, match="cannot initialise again"):
         hist.open("test.zip")
+    # cannot add something that is not coordinates
+    with pytest.raises(ValueError, match="must be OptCoordinates"):
+        hist.add("x")
     hist.add(coords1)
     hist.add(coords2)
     hist.add(coords3)
