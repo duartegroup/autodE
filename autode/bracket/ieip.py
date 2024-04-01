@@ -524,7 +524,7 @@ class IEIP(BaseBracketMethod):
         """Whether it has exceeded the number of maximum iterations"""
         if self._macro_iter >= self._maxiter:
             logger.error(
-                f"Reached the maximum number of micro-iterations "
+                f"Reached the maximum number of macro-iterations "
                 f"*{self._maxiter}*"
             )
             return True
