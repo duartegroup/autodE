@@ -372,31 +372,13 @@ class IEIPMicroIters:
         self.n_micro_iters += 1
         return None
 
-    def max_displacement(self):
+    @property
+    def max_displacement(self) -> float:
         left_displ = np.linalg.norm(self.left_coords - self._start_left_coords)
         right_displ = np.linalg.norm(
             self.right_coords - self._start_right_coords
         )
         return max(left_displ, right_displ)
-
-    def get_aligned_coords(self):
-        """Align the left coordinate against right coordinates"""
-        from autode.geom import get_rot_mat_kabsch
-
-        p_mat = self.left_coords.reshape(-1, 3)
-        p_mat -= np.average(p_mat, axis=0)
-
-        q_mat = self.right_coords.reshape(-1, 3)
-        origin_shift = np.average(q_mat, axis=0)
-        q_mat -= origin_shift
-
-        rot_mat = get_rot_mat_kabsch(p_mat, q_mat)
-        new_p_mat = np.dot(rot_mat, p_mat.T).T
-        new_p_mat += origin_shift
-
-        new_left_coords = CartesianCoordinates(new_p_mat)
-        new_right_coords = CartesianCoordinates(self.right_coords)
-        return new_left_coords, new_right_coords
 
 
 class IEIP(BaseBracketMethod):
@@ -573,9 +555,8 @@ class IEIP(BaseBracketMethod):
             micro_imgpair.take_micro_step()
             self._micro_iter += 1
         logger.disabled = False
-        new_left, new_right = micro_imgpair.get_aligned_coords()
-        self.imgpair.left_coords = new_left
-        self.imgpair.right_coords = new_right
+        self.imgpair.left_coords = micro_imgpair.left_coords
+        self.imgpair.right_coords = micro_imgpair.right_coords
         self.imgpair.update_both_img_engrad()
         self.imgpair.update_both_img_hessian_by_formula()
 
