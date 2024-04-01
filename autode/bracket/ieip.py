@@ -224,7 +224,7 @@ class ElasticImagePair(EuclideanImagePair):
         return None
 
 
-class IEIPMicroImagePair(EuclideanImagePair):
+class IEIPMicroIters:
     """
     Class to carry out the micro-iterations for the i-EIP
     method
@@ -232,33 +232,11 @@ class IEIPMicroImagePair(EuclideanImagePair):
 
     def __init__(
         self,
-        species: "Species",
         left_coords: CartesianCoordinates,
         right_coords: CartesianCoordinates,
         micro_step_size: Union[Distance, float],
         target_dist: Union[Distance, float],
     ):
-        """
-        Initialise an image-pair for i-EIP micro-iterations
-
-        Args:
-            species (Species): The species object
-            left_coords (CartesianCoordinates): Coordinates of left image, must
-                                        have defined energy, gradient and hessian
-            right_coords (CartesianCoordinates): Coordinates of right image, must
-                                        have defined energy, gradient and hessian
-            micro_step_size (Distance|float): Step size for each micro-iteration
-            target_dist (Distance|float): Target distance for image-pair
-        """
-        # dummy species are required for superclass init
-        left_image, right_image = species.copy(), species.copy()
-        left_image.coordinates = left_coords
-        right_image.coordinates = right_coords
-        assert isinstance(left_coords, CartesianCoordinates)
-        assert isinstance(right_coords, CartesianCoordinates)
-        # TODO: rewrite class to make this clear, align coords with grad/hess
-        super().__init__(left_image=left_image, right_image=right_image)
-
         # generate the Taylor expansion surface from gradient and hessian
         assert left_coords.g is not None and left_coords.h is not None
         assert right_coords.g is not None and right_coords.h is not None
@@ -270,21 +248,12 @@ class IEIPMicroImagePair(EuclideanImagePair):
         )
         self._micro_step = float(Distance(micro_step_size, "ang"))
         self._target_dist = float(Distance(target_dist, "ang"))
+        self.n_micro_iters = 0  # counter
+        self.left_coords = left_coords.copy()
+        self.right_coords = right_coords.copy()
         # keep this in memory to calculate how much the coords have moved
-        self._start_left_coords = left_coords.copy()
-        self._start_right_coords = right_coords.copy()
-
-    def _align_species(self) -> None:
-        """
-        Prevent alignment since the Taylor expansions are NOT
-        invariant to rotation or translation
-        """
-        pass
-
-    @property
-    def ts_guess(self) -> Optional["Species"]:
-        """This class does not implement TS guess"""
-        raise NotImplementedError
+        self._start_left_coords = left_coords
+        self._start_right_coords = right_coords
 
     def update_both_img_engrad(self) -> None:
         """
@@ -303,12 +272,9 @@ class IEIPMicroImagePair(EuclideanImagePair):
         return None
 
     @property
-    def n_hat(self):
-        """
-        Unit vector pointing from right to left image, the vector is
-        reverse (negative) of how it is defined in publication [1]
-        """
-        return self.dist_vec / np.linalg.norm(self.dist_vec)
+    def _n_hat(self):
+        dist_vec = np.array(self.left_coords - self.right_coords)
+        return dist_vec / np.linalg.norm(dist_vec)
 
     def _get_perpendicular_micro_steps(self) -> List[np.ndarray]:
         """
@@ -325,10 +291,13 @@ class IEIPMicroImagePair(EuclideanImagePair):
         steps = []
         for coord in [self.left_coords, self.right_coords]:
             force = -coord.g  # type: ignore
-            force_parall = self.n_hat * np.dot(force, self.n_hat)
+            force_parall = self._n_hat * np.dot(force, self._n_hat)
             force_perp = force - force_parall
-            delta_x_perp = force_perp / np.linalg.norm(force_perp)
-            delta_x_perp *= min(np.linalg.norm(force_perp), self._micro_step)
+            if np.linalg.norm(force_perp) > self._micro_step:
+                delta_x_perp = force_perp / np.linalg.norm(force_perp)
+                delta_x_perp *= self._micro_step
+            else:
+                delta_x_perp = force_perp
             steps.append(delta_x_perp)
 
         return steps
@@ -343,13 +312,17 @@ class IEIPMicroImagePair(EuclideanImagePair):
             (list[np.ndarray]): A list of steps for the left and right
                                 image, in order
         """
-        # NOTE: The sign is flipped here, because distance vector is
+        # NOTE: The sign is flipped here, because n_hat is
         # defined in the opposite direction i.e. left - right
         assert self.left_coords.e and self.right_coords.e
-        f_de = (self.left_coords.e - self.right_coords.e) / float(self.dist)
-        f_de = self.n_hat * float(f_de)
-        delta_x_e = f_de / np.linalg.norm(f_de)
-        delta_x_e *= min(np.linalg.norm(f_de), self._micro_step)
+        dist = np.linalg.norm(self.left_coords - self.right_coords)
+        f_de = (self.left_coords.e - self.right_coords.e) / float(dist)
+        f_de = self._n_hat * float(f_de)
+        if np.linalg.norm(f_de) > self._micro_step:
+            delta_x_e = f_de / np.linalg.norm(f_de)
+            delta_x_e *= self._micro_step
+        else:
+            delta_x_e = f_de
         return [delta_x_e, delta_x_e]
 
     def _get_distance_micro_steps(self):
@@ -365,10 +338,14 @@ class IEIPMicroImagePair(EuclideanImagePair):
         # NOTE: The factor k that appears in eqn.(1) of the i-EIP paper
         # has been absorbed into the term in this function (i.e. the function
         # returns the displacements with the proper sign)
-        f_l = 2 * (self.dist - self._target_dist) / self.dist
-        f_l = -self.dist_vec * f_l
-        delta_x_l = f_l / np.linalg.norm(f_l)
-        delta_x_l *= min(np.linalg.norm(f_l), self._micro_step)
+        dist_vec = np.array(self.left_coords - self.right_coords)
+        dist = np.linalg.norm(dist_vec)
+        f_l = -dist_vec * 2 * (dist - self._target_dist) / dist
+        if np.linalg.norm(f_l) > self._micro_step:
+            delta_x_l = f_l / np.linalg.norm(f_l)
+            delta_x_l *= self._micro_step
+        else:
+            delta_x_l = f_l
         return [delta_x_l, -delta_x_l]
 
     def take_micro_step(self) -> None:
@@ -384,37 +361,42 @@ class IEIPMicroImagePair(EuclideanImagePair):
         left_step = perp_steps[0] + energy_steps[0] + dist_steps[0]
         right_step = perp_steps[1] + energy_steps[1] + dist_steps[1]
 
-        # scale the steps to have the selected micro step size
-        left_step /= np.linalg.norm(left_step)
-        left_step *= min(np.linalg.norm(left_step), self._micro_step)
-        right_step /= np.linalg.norm(right_step)
-        right_step *= min(np.linalg.norm(right_step), self._micro_step)
+        # scale the steps within the microiter step size
+        if np.linalg.norm(left_step) > self._micro_step:
+            left_step *= self._micro_step / np.linalg.norm(left_step)
+        if np.linalg.norm(right_step) > self._micro_step:
+            right_step *= self._micro_step / np.linalg.norm(right_step)
 
         self.left_coords = self.left_coords + left_step
         self.right_coords = self.right_coords + right_step
+        self.n_micro_iters += 1
         return None
 
-    @property
-    def max_displacement(self) -> float:
-        """
-        The maximum displacement on either of the images compared
-        to the starting point (for the current macro-iteration)
-
-        Returns:
-            (float): The max displacement
-        """
+    def max_displacement(self):
         left_displ = np.linalg.norm(self.left_coords - self._start_left_coords)
         right_displ = np.linalg.norm(
             self.right_coords - self._start_right_coords
         )
         return max(left_displ, right_displ)
 
-    @property
-    def n_micro_steps(self):
-        """
-        Total number of micro-iterations performed on this image pair
-        """
-        return int(self.total_iters / 2)
+    def get_aligned_coords(self):
+        """Align the left coordinate against right coordinates"""
+        from autode.geom import get_rot_mat_kabsch
+
+        p_mat = self.left_coords.reshape(-1, 3)
+        p_mat -= np.average(p_mat, axis=0)
+
+        q_mat = self.right_coords.reshape(-1, 3)
+        origin_shift = np.average(q_mat, axis=0)
+        q_mat -= origin_shift
+
+        rot_mat = get_rot_mat_kabsch(p_mat, q_mat)
+        new_p_mat = np.dot(rot_mat, p_mat.T).T
+        new_p_mat += origin_shift
+
+        new_left_coords = CartesianCoordinates(new_p_mat)
+        new_right_coords = CartesianCoordinates(self.right_coords)
+        return new_left_coords, new_right_coords
 
 
 class IEIP(BaseBracketMethod):
@@ -576,8 +558,7 @@ class IEIP(BaseBracketMethod):
         # Turn off logging for micro-iterations
         logger.disabled = True
         assert self._target_dist is not None
-        micro_imgpair = IEIPMicroImagePair(
-            species=self._species,
+        micro_imgpair = IEIPMicroIters(
             left_coords=self.imgpair.left_coords,
             right_coords=self.imgpair.right_coords,
             micro_step_size=self._micro_step_size,
@@ -585,22 +566,22 @@ class IEIP(BaseBracketMethod):
         )
 
         while not (
-            micro_imgpair.n_micro_steps >= self._max_micro_per
+            micro_imgpair.n_micro_iters >= self._max_micro_per
             or micro_imgpair.max_displacement > self._max_macro_step
         ):
             micro_imgpair.update_both_img_engrad()
             micro_imgpair.take_micro_step()
             self._micro_iter += 1
         logger.disabled = False
-
-        self.imgpair.left_coords = micro_imgpair.left_coords
-        self.imgpair.right_coords = micro_imgpair.right_coords
+        new_left, new_right = micro_imgpair.get_aligned_coords()
+        self.imgpair.left_coords = new_left
+        self.imgpair.right_coords = new_right
         self.imgpair.update_both_img_engrad()
         self.imgpair.update_both_img_hessian_by_formula()
 
         logger.info(
             f"Completed one i-EIP macro-iteration with "
-            f"{micro_imgpair.n_micro_steps} micro-iterations; maximum "
+            f"{micro_imgpair.n_micro_iters} micro-iterations; maximum "
             f"image displacement = {micro_imgpair.max_displacement:.3f}.\n"
             f"Left image step: {self.imgpair.last_left_step_size:.3f}, "
             f"Right image step: {self.imgpair.last_right_step_size:.3f}"
