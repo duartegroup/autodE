@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
     from autode.wrappers.keywords import Keywords
+    from autode.opt.optimisers.base import NDOptimiser
 
 
 class CalculationExecutor:
@@ -363,7 +364,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
 
         type_ = PRFOptimiser if self._calc_is_ts_opt else CRFOptimiser
 
-        self.optimiser = type_(
+        self.optimiser: "NDOptimiser" = type_(
             init_alpha=self._step_size,
             maxiter=self._max_opt_cycles,
             etol=self.etol,
@@ -378,6 +379,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
             n_cores=self.n_cores,
             name=self._opt_trajectory_name,
         )
+        self.optimiser.print_geometries(self._opt_trajectory_name)
 
         if self.molecule.n_atoms == 1:
             return self._run_single_energy_evaluation()
@@ -446,7 +448,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
 
     @property
     def _opt_trajectory_name(self) -> str:
-        return f"{self.name}_opt_trj.zip"
+        return f"{self.name}_opt_trj"
 
     @property
     def _opt_trajectory_exists(self) -> bool:

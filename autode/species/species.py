@@ -401,10 +401,14 @@ class Species(AtomCollection):
             return
 
         if hasattr(value, "shape") and value.shape != (self.n_atoms, 3):
-            raise ValueError(
-                "Could not set the gradient. Incorrect shape: "
-                f"{value.shape} != {(self.n_atoms, 3)}"
-            )
+            try:
+                value = value.reshape(shape=(self.n_atoms, 3))
+            except (ValueError, AttributeError):
+                raise ValueError(
+                    "Could not set the gradient. Incorrect shape: "
+                    f"{value.shape}. Must be either {(self.n_atoms, 3)}, "
+                    f"or {(self.n_atoms * 3,)}"
+                )
 
         if isinstance(value, val.Gradient):
             self._grad = value
