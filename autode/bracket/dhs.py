@@ -395,7 +395,7 @@ class DHSImagePair(EuclideanImagePair):
         # jumping over the barrier. So we iterate through all coords
 
         energies = []
-        max_en = PotentialEnergy(-np.inf)
+        max_e = PotentialEnergy(-np.inf)
         peak_coords: Optional[CartesianCoordinates] = None
         for coord in self._total_history:
             energies.append(coord.e)
@@ -405,8 +405,8 @@ class DHSImagePair(EuclideanImagePair):
                     " image-pair. Unable to obtain transition state guess"
                 )
                 return None
-            if coord.e > max_en:
-                max_en = coord.e
+            if coord.e > max_e:
+                max_e = coord.e
                 peak_coords = coord
 
         assert peak_coords is not None
