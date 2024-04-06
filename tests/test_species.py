@@ -253,6 +253,11 @@ def test_set_gradients():
     test_mol.gradient = np.zeros(shape=(2, 3))
     assert test_mol.gradient.units == ha_per_ang
 
+    # will reshape numpy array if possible
+    arr = np.random.rand(6)
+    test_mol.gradient = arr
+    assert np.allclose(test_mol.gradient, arr.reshape(-1, 3))
+
 
 def test_species_solvent():
     assert mol.solvent is None

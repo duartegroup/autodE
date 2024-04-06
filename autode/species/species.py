@@ -402,7 +402,7 @@ class Species(AtomCollection):
 
         if hasattr(value, "shape") and value.shape != (self.n_atoms, 3):
             try:
-                value = value.reshape(shape=(self.n_atoms, 3))
+                value = value.reshape((self.n_atoms, 3))
             except (ValueError, AttributeError):
                 raise ValueError(
                     "Could not set the gradient. Incorrect shape: "
