@@ -379,7 +379,9 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
             n_cores=self.n_cores,
             name=self._opt_trajectory_name,
         )
-        self.optimiser.print_geometries(self._opt_trajectory_name)
+        self.optimiser.print_geometries(
+            self._opt_trajectory_name[:-4] + ".xyz"
+        )
 
         if self.molecule.n_atoms == 1:
             return self._run_single_energy_evaluation()
@@ -448,7 +450,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
 
     @property
     def _opt_trajectory_name(self) -> str:
-        return f"{self.name}_opt_trj"
+        return f"{self.name}_opt_trj.zip"
 
     @property
     def _opt_trajectory_exists(self) -> bool:
