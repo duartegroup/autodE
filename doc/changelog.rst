@@ -11,7 +11,7 @@ Functionality improvements
 
 Bug Fixes
 *********
-- ...
+- Fixes no solvent being added in QRC calculations
 
 Usability improvements/Changes
 ******************************
