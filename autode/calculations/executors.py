@@ -380,7 +380,9 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
             name=self._opt_trajectory_name,
         )
         self.optimiser.print_geometries(
-            self._opt_trajectory_name[:-4] + ".xyz"
+            self._opt_trajectory_name[:-4]
+            if self._opt_trajectory_name.endswith(".zip")
+            else self._opt_trajectory_name
         )
 
         if self.molecule.n_atoms == 1:
