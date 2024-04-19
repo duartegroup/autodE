@@ -1,3 +1,7 @@
+import os
+import numpy as np
+
+from autode.species.molecule import Molecule
 from autode.calculations import Calculation
 from autode.transition_states.base import TSbase
 from autode.transition_states.base import imag_mode_generates_other_bonds
@@ -8,7 +12,6 @@ from autode.atoms import Atom
 from autode.bond_rearrangement import BondRearrangement
 from autode.methods import ORCA
 from .. import testutils
-import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 orca = ORCA()
@@ -68,6 +71,18 @@ def test_graph_no_other_bonds():
     assert not imag_mode_generates_other_bonds(
         ts=ts, f_species=f_ts, b_species=b_ts
     )
+
+
+def test_disp_molecule_has_same_solvent():
+    mol = Molecule(smiles="[H][H]", solvent_name="water")
+    mol.hessian = np.eye(3 * mol.n_atoms, 3 * mol.n_atoms)
+
+    disp_mol = displaced_species_along_mode(
+        species=mol,
+        mode_number=1,
+    )
+    assert disp_mol.solvent is not None
+    assert disp_mol.solvent == mol.solvent
 
 
 def has_correct_mode(name, fbonds, bbonds):
