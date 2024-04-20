@@ -32,7 +32,7 @@ extensions = [
 
 setup(
     name="autode",
-    version="1.4.2",
+    version="1.4.3",
     python_requires=">3.7",
     packages=[
         "autode",
