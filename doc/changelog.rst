@@ -12,6 +12,7 @@ Functionality improvements
 Bug Fixes
 *********
 - Fixes no solvent being added in QRC calculations
+- Fixes cases where .xyz files are printed with no space between coordinates when the coordinate value is large.
 
 Usability improvements/Changes
 ******************************
