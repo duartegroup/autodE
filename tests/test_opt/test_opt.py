@@ -486,6 +486,7 @@ def test_optimiser_history_reload():
 def test_optimiser_history_reload_works_with_one():
     coords0 = CartesianCoordinates(np.random.rand(6))
     hist = OptimiserHistory(maxlen=2)
+
     hist.open("savefile")
     # adding None will not do anything
     hist.add(None)
