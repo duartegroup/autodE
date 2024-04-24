@@ -1,11 +1,14 @@
 import copy
 import os
+import zipfile
+
 import pytest
 import numpy as np
 
 from autode.methods import XTB
 from autode.calculations.types import CalculationType
 from autode.values import GradientRMS, PotentialEnergy
+from autode.species.molecule import Molecule
 from autode.hessians import Hessian
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_working_xtb_install
@@ -79,8 +82,8 @@ def test_coords_set():
 def test_abs_diff_e():
     # Define a intermediate optimiser state with two sets of coordinates
     optimiser = sample_cartesian_optimiser()
-    optimiser._history.append(CartesianCoordinates([0.0, 1.0]))
-    optimiser._history.append(CartesianCoordinates([0.0, 1.1]))
+    optimiser._history.add(CartesianCoordinates([0.0, 1.0]))
+    optimiser._history.add(CartesianCoordinates([0.0, 1.1]))
 
     # 2nd iteration for a history of two, indexed from 0
     assert optimiser.iteration == 1
@@ -120,12 +123,12 @@ def test_optimiser_h_update():
     c1 = CartesianCoordinates([1.0, 0.0, 0.0])
     c1.h = np.eye(3)
 
-    optimiser._history.append(c1)
+    optimiser._history.add(c1)
 
     c2 = CartesianCoordinates([1.1, 0.0, 0.0])
     c2.h = np.eye(3)
 
-    optimiser._history.append(c2)
+    optimiser._history.add(c2)
 
     # and try and update the (inverse) hessian, which is impossible without
     # an updater
@@ -145,13 +148,6 @@ def test_history():
     # or the ones before that
     with pytest.raises(IndexError):
         _ = optimiser._history.penultimate
-
-    # or minimum in energy
-    with pytest.raises(IndexError):
-        _ = optimiser._history.minimum
-
-    # and cannot contain a well in the energy
-    assert not optimiser._history.contains_energy_rise
 
 
 @work_in_tmp_dir()
@@ -180,6 +176,11 @@ def test_xtb_h2_cart_opt():
     # Should not converge in only two steps
     optimiser.run(method=XTB(), species=h2())
     assert not optimiser.converged
+    # a trajectory file should be written
+    assert os.path.isfile("h2_opt_trj.zip")
+    # cleaning up optimiser will remove trajectory
+    optimiser.clean_up()
+    assert not os.path.isfile("h2_opt_trj.zip")
 
 
 @work_in_tmp_dir()
@@ -229,6 +230,7 @@ def test_callback_function():
     optimiser.run(species=mol, method=Method())
 
 
+@work_in_tmp_dir()
 def test_last_energy_change_with_no_steps():
     mol = h2()
     optimiser = HarmonicPotentialOptimiser(
@@ -317,38 +319,208 @@ def test_multiple_optimiser_saves_overrides_not_append():
         gtol=GradientRMS(0.01),
         etol=PotentialEnergy(1e-3),
     )
-    optimiser.run(method=XTB(), species=h2())
-    optimiser.save("tmp.traj")
+    optimiser.run(method=XTB(), species=h2(), name="tmp.zip")
 
-    def n_lines_in_traj_file():
-        return len(open("tmp.traj", "r").readlines())
+    assert os.path.isfile("tmp.zip")
+    with zipfile.ZipFile("tmp.zip") as file:
+        names = file.namelist()
 
-    n_init_lines = n_lines_in_traj_file()
-    optimiser.save("tmp.traj")
+    old_n_coords = sum([1 for name in names if name.startswith("coords_")])
 
-    assert n_lines_in_traj_file() == n_init_lines
-
-
-def test_optimiserhistory_operations_maintain_subclass():
     optimiser = CartesianSDOptimiser(
         maxiter=2,
-        gtol=GradientRMS(0.2),
-        etol=PotentialEnergy(0.1),
+        gtol=GradientRMS(0.01),
+        etol=PotentialEnergy(1e-3),
     )
-    coord = CartesianCoordinates(np.arange(6))
-    optimiser._coords = coord
-    optimiser._coords = coord * 0.1
-    hist = optimiser._history
-    assert len(hist) == 2
+    optimiser.run(method=XTB(), species=h2(), name="tmp.zip")
+    # the file "tmp.zip" should be overwritten by new optimiser
+    with zipfile.ZipFile("tmp.zip") as file:
+        names = file.namelist()
 
-    new_hist = copy.deepcopy(hist)
-    assert new_hist[0] is not hist[0]  # must be deepcopy
+    n_coords = sum([1 for name in names if name.startswith("coords_")])
+    assert old_n_coords == n_coords
 
-    add_hist = hist + new_hist
-    assert isinstance(add_hist, OptimiserHistory)
 
-    hist_slice = hist[:-1]
-    assert isinstance(hist_slice, OptimiserHistory)
+@work_in_tmp_dir()
+def test_optimiser_print_geometries(caplog):
+    mol = Molecule(smiles="C=C", name="mymolecule")
+    coords1 = CartesianCoordinates(mol.coordinates)
+    opt = CartesianSDOptimiser(maxiter=20, gtol=1e-3, etol=1e-4)
+    opt._coords = coords1
+    # cannot print geom without species
+    with pytest.raises(AssertionError):
+        opt.print_geometries()
+
+    opt._species = mol
+    assert opt.iteration == 0
+    with caplog.at_level("WARNING"):
+        opt.print_geometries()
+    assert "Optimiser did no steps, not saving .xyz" in caplog.text
+    assert not os.path.isfile("mymolecule_opt.trj.xyz")
+    opt._coords = coords1.copy()
+    opt.print_geometries()
+    assert os.path.isfile("mymolecule_opt.trj.xyz")
+    old_size = os.path.getsize("mymolecule_opt.trj.xyz")
+    # running should overwrite the geometries
+    opt.print_geometries()
+    new_size = os.path.getsize("mymolecule_opt.trj.xyz")
+    assert old_size == new_size
+
+
+def _get_4_random_coordinates():
+    coords_list = []
+    for _ in range(4):
+        coords_list.append(CartesianCoordinates(np.random.rand(6)))
+    return coords_list
+
+
+@work_in_tmp_dir()
+def test_optimiser_history_storage():
+    coords1, coords2, coords3, coords4 = _get_4_random_coordinates()
+
+    hist = OptimiserHistory(maxlen=3)
+    # cannot close without opening a file
+    with pytest.raises(RuntimeError):
+        hist.close()
+    hist.open("test.zip")
+    assert os.path.isfile("test.zip")
+    # cannot reinitialise
+    with pytest.raises(RuntimeError, match="cannot initialise again"):
+        hist.open("test.zip")
+    # cannot add something that is not coordinates
+    with pytest.raises(ValueError, match="must be OptCoordinates"):
+        hist.add("x")
+    hist.add(coords1)
+    hist.add(coords2)
+    hist.add(coords3)
+    # nothing should be on disk yet
+    assert len(hist) == 3 and hist._n_stored == 0
+    # now last coord is put on disk
+    hist.add(coords4)
+    assert len(hist) == 4 and hist._n_stored == 1
+    assert len(hist._memory) == 3
+    hist.close()
+    # now should be 3 more stored on disk
+    assert len(hist) == 4 and hist._n_stored == 4
+    # adding new coords is forbidden
+    with pytest.raises(RuntimeError):
+        hist.add(coords1)
+    # iterate through the history in reverse
+    iterator = reversed(hist)
+    last = next(iterator)
+    before_last = next(iterator)
+    assert np.allclose(last, coords4) and np.allclose(before_last, coords3)
+    # clean up
+    hist.clean_up()
+    assert not os.path.isfile("test.zip")
+
+
+@work_in_tmp_dir()
+def test_optimiser_history_getitem():
+    coords0, coords1, coords2, coords3 = _get_4_random_coordinates()
+    hist = OptimiserHistory(maxlen=2)
+    hist.open("test.zip")
+    hist.add(coords0)
+    hist.add(coords1)
+    hist.add(coords2)
+    hist.add(coords3)
+    assert np.allclose(hist[0], coords0)  # from disk
+    hist[0].e = PotentialEnergy(0.001, "Ha")
+    assert hist[0].e is None  # cannot modify disk
+    assert np.allclose(hist[2], coords2)  # from memory
+    assert hist[2].e is None
+    hist[2].e = PotentialEnergy(0.01, "Ha")
+    assert np.isclose(hist[2].e, 0.01)
+    # slicing does not work
+    with pytest.raises(NotImplementedError):
+        _ = hist[0:1]
+    # can only have integer indices
+    with pytest.raises(ValueError):
+        _ = hist["x"]
+    with pytest.raises(IndexError):
+        _ = hist[4]
+    with pytest.raises(IndexError):
+        _ = hist[-5]
+    # if no disk backend, then old coordinates are lost
+    hist_nodisk = OptimiserHistory(maxlen=2)
+    hist_nodisk.add(coords0)
+    hist_nodisk.add(coords1)
+    hist_nodisk.add(coords2)
+    assert hist_nodisk[0] is None
+    assert hist_nodisk._n_stored == 0
+
+
+@work_in_tmp_dir()
+def test_optimiser_history_reload():
+    coords0, coords1, coords2, coords3 = _get_4_random_coordinates()
+    hist = OptimiserHistory(maxlen=2)
+    hist.open("savefile")
+    assert os.path.isfile("savefile.zip")  # extension added
+    hist.add(coords0)
+    hist.add(coords1)
+    hist.add(coords2)
+    hist.add(coords3)
+    hist.close()
+    hist = None
+    with pytest.raises(FileNotFoundError, match="test.zip does not exist"):
+        _ = OptimiserHistory.load("test")
+    with open("test.zip", "w") as fh:
+        fh.write("abcd")
+    # error if file is not zip
+    with pytest.raises(ValueError, match="not a valid trajectory"):
+        _ = OptimiserHistory.load("test")
+    # error if file does not have the autodE opt header
+    with zipfile.ZipFile("new.zip", "w") as file:
+        fh = file.open("testfile", "w")
+        fh.write("abcd".encode())
+        fh.close()
+    with pytest.raises(ValueError, match="not an autodE trajectory"):
+        _ = OptimiserHistory.load("new.zip")
+    hist = OptimiserHistory.load("savefile")
+    assert np.allclose(hist[-1], coords3)
+    assert np.allclose(hist[-2], coords2)
+    assert np.allclose(hist[-3], coords1)
+
+
+@work_in_tmp_dir()
+def test_optimiser_history_reload_works_with_one():
+    coords0 = CartesianCoordinates(np.random.rand(6))
+    hist = OptimiserHistory(maxlen=2)
+
+    hist.open("savefile")
+    # adding None will not do anything
+    hist.add(None)
+    assert len(hist) == 0
+    # just add one more coordinate
+    hist.add(coords0)
+    hist.close()
+    assert os.path.isfile("savefile.zip")
+    hist = OptimiserHistory.load("savefile")
+    assert len(hist) == 1
+    assert np.allclose(hist[0], coords0)
+    assert hist[0] is hist[-1]
+
+
+@work_in_tmp_dir()
+def test_optimiser_history_save_load_params():
+    hist = OptimiserHistory()
+    # cannot save or load without having file backing
+    with pytest.raises(RuntimeError, match="File not opened"):
+        hist.save_opt_params({"maxiter": 10})
+    with pytest.raises(RuntimeError, match="File not opened"):
+        hist.get_opt_params()
+    hist.open("test.zip")
+    # cannot load as it is not available
+    with pytest.raises(FileNotFoundError, match="not found!"):
+        hist.get_opt_params()
+    # can now save and load
+    hist.save_opt_params({"maxiter": 10, "gtol": 1e-3})
+    params = hist.get_opt_params()
+    assert len(params) == 2
+    assert params["maxiter"] == 10 and params["gtol"] == 1e-3
+    # cannot save again - overwrite not allowed
+    with pytest.raises(FileExistsError, match="already stored"):
+        hist.save_opt_params({"maxiter": 10})
 
 
 def test_mocked_method():
@@ -360,7 +532,7 @@ def test_mocked_method():
 def test_null_optimiser_methods():
     optimiser = NullOptimiser()
     optimiser.run()
-    optimiser.save(filename="None")  # run and saving does nothing
+    # run does nothing
 
     with pytest.raises(RuntimeError):
         _ = optimiser.final_coordinates
