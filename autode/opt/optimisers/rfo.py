@@ -44,9 +44,10 @@ class RFOptimiser(NDOptimiser):
         assert self._coords is not None and self._coords.g is not None
         logger.info("Taking a RFO step")
 
-        self._coords.update_h_from_old_h(
-            self._history.penultimate, self._hessian_update_types
-        )
+        if self.iteration != 0:
+            self._coords.update_h_from_old_h(
+                self._history.penultimate, self._hessian_update_types
+            )
         assert self._coords.h is not None
         h_n, _ = self._coords.h.shape
 

@@ -225,17 +225,16 @@ class OptCoordinates(ValueArray, ABC):
                         meets the mathematical conditions will be used
         """
         assert self._g is not None
-        assert self._h is not None
-
         assert isinstance(old_coords, OptCoordinates), "Wrong type!"
         assert old_coords._h is not None
         assert old_coords._g is not None
 
         for update_type in hessian_update_types:
             updater = update_type(
-                h=self._h,
+                h=old_coords._h,
                 s=self.raw - old_coords.raw,
                 y=self._g - old_coords._g,
+                subspace_idxs=old_coords.indexes,
             )
 
             if not updater.conditions_met:

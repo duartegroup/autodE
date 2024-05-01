@@ -47,7 +47,7 @@ class PRFOptimiser(CRFOptimiser):
 
         if self.should_calculate_hessian:
             self._update_hessian()
-        else:
+        elif self.iteration != 0:
             self._coords.update_h_from_old_h(
                 self._history.penultimate, self._hessian_update_types
             )
