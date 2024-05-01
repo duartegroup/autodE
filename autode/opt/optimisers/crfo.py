@@ -44,7 +44,10 @@ class CRFOptimiser(RFOptimiser):
         """Partitioned rational function step"""
         assert self._coords is not None, "Must have coords to take a step"
         assert self._coords.g is not None, "Must have a gradient"
-        self._coords.h = self._updated_h()
+        self._coords.update_h_from_old_h(
+            self._history.penultimate, self._hessian_update_types
+        )
+        assert self._coords.h is not None
 
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")

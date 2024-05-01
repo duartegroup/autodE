@@ -132,18 +132,12 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._target_dist = np.linalg.norm(self.dist_vec)
         self._update_gradient_and_energy()
 
-        # Hack to get the Hessian update from old coordinates
+        # Get the Hessian update from old coordinates
         if self._old_coords is not None and self._old_coords.h is not None:
             assert isinstance(self._old_coords, CartesianCoordinates)
-            sub_opt = DistanceConstrainedOptimiser(
-                pivot_point=self._coords,  # any dummy coordinate will work
-                maxiter=20,
-                gtol=1.0e-4,
-                etol=1.0e-4,
+            self._coords.update_h_from_old_h(
+                self._old_coords, self._hessian_update_types
             )
-            sub_opt._coords = self._old_coords
-            sub_opt._coords = self._coords
-            self._coords.h = np.array(sub_opt._updated_h())
         else:
             # no hessian available, use low level method
             self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
@@ -191,7 +185,9 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         super()._update_gradient_and_energy()
         if self.iteration != 0:
             assert self._coords is not None, "Must have set coordinates"
-            self._coords.h = self._updated_h()
+            self._coords.update_h_from_old_h(
+                self._history.penultimate, self._hessian_update_types
+            )
 
     def _step(self) -> None:
         """

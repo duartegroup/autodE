@@ -1,7 +1,7 @@
 # mypy: disable-error-code="has-type"
 import numpy as np
 from copy import deepcopy
-from typing import Optional, Union, Sequence, List, TYPE_CHECKING, Type
+from typing import Optional, Union, Sequence, List, TYPE_CHECKING
 from abc import ABC, abstractmethod
 
 from autode.log import logger
@@ -212,10 +212,17 @@ class OptCoordinates(ValueArray, ABC):
         old_coords: "OptCoordinates",
         hessian_update_types: List["Type[HessianUpdater]"],
     ) -> None:
-        """
-        Update the Hessian from an old Hessian using an update
-        scheme. Requires the gradient to be set, and the old
-        set of coordinates with gradient to be available
+        r"""
+        Update the Hessian :math:`H` from an old Hessian using an update
+        scheme. Requires the gradient to be set, and the old set of
+        coordinates with gradient to be available
+
+        Args:
+            old_coords (OptCoordinates): Old set of coordinates with
+                        gradient and hessian defined
+            hessian_update_types (list[type[HessianUpdater]]): A list of
+                        hessian updater classes - the first updater that
+                        meets the mathematical conditions will be used
         """
         assert self._g is not None
         assert self._h is not None
