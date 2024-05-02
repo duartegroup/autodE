@@ -3,9 +3,7 @@ Base classes for implementing all bracketing methods
 that require a pair of images
 """
 import itertools
-
 import numpy as np
-
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple, TYPE_CHECKING, List, Iterator
 from enum import Enum
@@ -25,9 +23,6 @@ if TYPE_CHECKING:
     from autode.species import Species
     from autode.wrappers.methods import Method
     from autode.hessians import Hessian
-    from autode.values import Energy
-
-_flush_old_hessians = True
 
 
 def _calculate_engrad_for_species(
@@ -125,7 +120,7 @@ class BaseImagePair(ABC):
         self._method = None
         self._hess_method = None
         self._n_cores = None
-        self._hessian_update_type = BofillUpdate
+        self._hessian_update_types = [BofillUpdate]
 
         self._left_history = OptimiserHistory()
         self._right_history = OptimiserHistory()
@@ -408,16 +403,7 @@ class BaseImagePair(ABC):
         """
         for history in [self._left_history, self._right_history]:
             coords_l, coords_k = history.final, history.penultimate
-            assert coords_l.g is not None, "Gradient is not set!"
-            assert coords_l.h is None, "Hessian already exists!"
-
-            updater = self._hessian_update_type(
-                h=coords_k.h,
-                s=coords_l.raw - coords_k.raw,
-                y=coords_l.g - coords_k.g,
-            )
-
-            coords_l.h = np.array(updater.updated_h)
+            coords_l.update_h_from_old_h(coords_k, self._hessian_update_types)
 
         return None
 
