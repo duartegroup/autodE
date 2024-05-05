@@ -402,8 +402,9 @@ class BaseImagePair(ABC):
         Update the molecular hessian for both images by update formula
         """
         for history in [self._left_history, self._right_history]:
-            coords_l, coords_k = history.final, history.penultimate
-            coords_l.update_h_from_old_h(coords_k, self._hessian_update_types)
+            history.final.update_h_from_old_h(
+                history.penultimate, self._hessian_update_types
+            )
 
         return None
 
