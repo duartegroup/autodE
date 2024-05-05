@@ -132,7 +132,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._target_dist = np.linalg.norm(self.dist_vec)
         self._update_gradient_and_energy()
 
-        # Get the Hessian update from old coordinates
+        # Update the Hessian from old coordinates, if exists
         if self._old_coords is not None and self._old_coords.h is not None:
             assert isinstance(self._old_coords, CartesianCoordinates)
             self._coords.update_h_from_old_h(
