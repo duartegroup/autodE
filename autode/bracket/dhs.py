@@ -532,8 +532,9 @@ class DHS(BaseBracketMethod):
             initial_species, final_species
         )
 
-        # DHS needs to keep an extra reference to the calculation method
+        # DHS needs to keep an extra reference method and n_cores
         self._method: Optional[Method] = None
+        self._n_cores: Optional[int] = None
 
         self._step_size = Distance(abs(step_size), "ang")
         if self._step_size > self.imgpair.dist:
@@ -591,7 +592,7 @@ class DHS(BaseBracketMethod):
         )
         tmp_spc = self._species.copy()
         tmp_spc.coordinates = new_coord
-        opt.run(tmp_spc, self._method)
+        opt.run(tmp_spc, self._method, self._n_cores)
         self._micro_iter = self._micro_iter + opt.iteration
 
         # not converged can only happen if exceeded maxiter of optimiser
@@ -619,6 +620,7 @@ class DHS(BaseBracketMethod):
             n_cores (int): Number of cores to use for calculation
         """
         self._method = method
+        self._n_cores = n_cores
         super()._calculate(method, n_cores)
 
     @property
