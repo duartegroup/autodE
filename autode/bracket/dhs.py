@@ -132,18 +132,12 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         self._target_dist = np.linalg.norm(self.dist_vec)
         self._update_gradient_and_energy()
 
-        # Hack to get the Hessian update from old coordinates
+        # Update the Hessian from old coordinates, if exists
         if self._old_coords is not None and self._old_coords.h is not None:
             assert isinstance(self._old_coords, CartesianCoordinates)
-            sub_opt = DistanceConstrainedOptimiser(
-                pivot_point=self._coords,  # any dummy coordinate will work
-                maxiter=20,
-                gtol=1.0e-4,
-                etol=1.0e-4,
+            self._coords.update_h_from_old_h(
+                self._old_coords, self._hessian_update_types
             )
-            sub_opt._coords = self._old_coords
-            sub_opt._coords = self._coords
-            self._coords.h = np.array(sub_opt._updated_h())
         else:
             # no hessian available, use low level method
             self._coords.update_h_from_cart_h(self._low_level_cart_hessian)
@@ -191,7 +185,9 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         super()._update_gradient_and_energy()
         if self.iteration != 0:
             assert self._coords is not None, "Must have set coordinates"
-            self._coords.h = self._updated_h()
+            self._coords.update_h_from_old_h(
+                self._history.penultimate, self._hessian_update_types
+            )
 
     def _step(self) -> None:
         """
@@ -536,8 +532,9 @@ class DHS(BaseBracketMethod):
             initial_species, final_species
         )
 
-        # DHS needs to keep an extra reference to the calculation method
+        # DHS needs to keep an extra reference method and n_cores
         self._method: Optional[Method] = None
+        self._n_cores: Optional[int] = None
 
         self._step_size = Distance(abs(step_size), "ang")
         if self._step_size > self.imgpair.dist:
@@ -595,7 +592,7 @@ class DHS(BaseBracketMethod):
         )
         tmp_spc = self._species.copy()
         tmp_spc.coordinates = new_coord
-        opt.run(tmp_spc, self._method)
+        opt.run(tmp_spc, self._method, self._n_cores)
         self._micro_iter = self._micro_iter + opt.iteration
 
         # not converged can only happen if exceeded maxiter of optimiser
@@ -623,6 +620,7 @@ class DHS(BaseBracketMethod):
             n_cores (int): Number of cores to use for calculation
         """
         self._method = method
+        self._n_cores = n_cores
         super()._calculate(method, n_cores)
 
     @property

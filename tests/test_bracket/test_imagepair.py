@@ -300,7 +300,3 @@ def test_hessian_update():
     imgpair.update_both_img_hessian_by_formula()
     assert imgpair.left_coords.h is not None
     assert imgpair.right_coords.h is not None
-
-    # calling Hessian update again will raise exception
-    with pytest.raises(AssertionError):
-        imgpair.update_both_img_hessian_by_formula()

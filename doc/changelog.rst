@@ -13,11 +13,13 @@ Bug Fixes
 *********
 - Fixes no solvent being added in QRC calculations
 - Fixes cases where .xyz files are printed with no space between coordinates when the coordinate value is large.
+- Fixes DHS and DHS-GS methods ignoring number of cores
 
 Usability improvements/Changes
 ******************************
 - Added consistent aliases for double dagger across all energies in :code:`autode.reaction.delta`
 - Optimiser trajectories are saved on disk instead of keeping completely in memory
+- Hessian updates the refactored into :code:`OptCoordinates` class
 
 1.4.2
 ------
