@@ -148,8 +148,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         """Has the optimisation converged"""
         # The tangential gradient should be close to zero
         return (
-            self.rms_tangent_grad < self.gtol
-            and self.last_energy_change < self.etol
+            self.rms_tangent_grad < self.gtol and self._abs_delta_e < self.etol
         )
 
     @property
