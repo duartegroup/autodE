@@ -105,7 +105,7 @@ def test_dist_constr_optimiser_sd_fallback():
     coords1.update_h_from_cart_h(np.loadtxt("last_h.txt"))
     pivot = CartesianCoordinates(np.loadtxt("pivot.txt"))
 
-    # if lagrangian step fails, it should do a steepest descent
+    # lagrangian step may fail at certain point
     opt = DistanceConstrainedOptimiser(
         pivot_point=pivot,
         maxiter=2,
