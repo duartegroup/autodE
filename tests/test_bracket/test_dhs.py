@@ -98,12 +98,12 @@ def test_distance_constrained_optimiser():
     assert np.isclose(new_distance, distance)
 
 
-@work_in_zipped_dir(os.path.join(here, "data", "conopt.zip"))
+@work_in_zipped_dir(datazip)
 def test_dist_constr_optimiser_sd_fallback():
-    coords1 = CartesianCoordinates(np.loadtxt("last.txt"))
-    coords1.update_g_from_cart_g(np.loadtxt("last_g.txt"))
-    coords1.update_h_from_cart_h(np.loadtxt("last_h.txt"))
-    pivot = CartesianCoordinates(np.loadtxt("pivot.txt"))
+    coords1 = CartesianCoordinates(np.loadtxt("conopt_last.txt"))
+    coords1.update_g_from_cart_g(np.loadtxt("conopt_last_g.txt"))
+    coords1.update_h_from_cart_h(np.loadtxt("conopt_last_h.txt"))
+    pivot = CartesianCoordinates(np.loadtxt("conopt_pivot.txt"))
 
     # lagrangian step may fail at certain point
     opt = DistanceConstrainedOptimiser(
