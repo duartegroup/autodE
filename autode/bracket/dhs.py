@@ -198,6 +198,14 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         """
         assert self._coords is not None, "Must have set coordinates"
 
+        # if energy is rising, interpolate halfway between last step
+        if self.iteration >= 1 and (
+            self.last_energy_change > PotentialEnergy(5, "kcalmol")
+        ):
+            half_interp = (self._coords + self._history.penultimate) / 2
+            self._coords = half_interp
+            return None
+
         if self.iteration >= 1 and self._do_line_search:
             coords, grad = self._line_search_on_sphere()
         else:
@@ -218,6 +226,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # the step is on the interpolated coordinates (if done)
         actual_step = (coords + step) - self._coords
         self._coords = self._coords + actual_step
+        return None
 
     def _get_sd_step(self, coords, grad) -> np.ndarray:
         """
