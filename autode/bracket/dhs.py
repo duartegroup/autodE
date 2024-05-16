@@ -202,6 +202,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         if self.iteration >= 1 and (
             self.last_energy_change > PotentialEnergy(5, "kcalmol")
         ):
+            logger.warning("Energy rising, going back half a step")
             half_interp = (self._coords + self._history.penultimate) / 2
             self._coords = half_interp
             return None
