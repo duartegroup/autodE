@@ -194,7 +194,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         the pivot point. A line search is done if it is not the first
         iteration (and it has not been turned off), and then a
         quasi-Newton step with a Lagrangian constraint for the distance
-        is taken
+        is taken (falls back to steepest descent with projected gradient
+        if this fails).
         """
         assert self._coords is not None, "Must have set coordinates"
 

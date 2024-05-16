@@ -124,6 +124,27 @@ def test_dist_constr_optimiser_sd_fallback():
     assert np.allclose(opt._coords, coords1 + sd_step)
 
 
+@work_in_tmp_dir()
+def test_dist_constr_optimiser_energy_rising():
+    coords1 = CartesianCoordinates(np.arange(6, dtype=float))
+    coords1.e = PotentialEnergy(0.01, "Ha")
+    step = np.random.random(6)
+    coords2 = coords1 + step
+    coords2.e = PotentialEnergy(0.02, "Ha")
+    assert (coords2.e - coords1.e) > PotentialEnergy(5, "kcalmol")
+    opt = DistanceConstrainedOptimiser(
+        pivot_point=coords1,
+        maxiter=2,
+        gtol=1e-3,
+        etol=1e-4,
+    )
+    opt._history.open("test_trj")
+    opt._history.add(coords1)
+    opt._history.add(coords2)
+    opt._step()
+    assert np.allclose(opt._coords, coords1 + step * 0.5)
+
+
 def test_dhs_image_pair():
     mol1 = Molecule(smiles="CCO")
     mol2 = mol1.new_species()
