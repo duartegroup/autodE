@@ -234,8 +234,8 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         """
         Obtain a steepest descent step minimising the tangential
         gradient. This step cannot perfectly maintain the same
-        distance from pivot point. The step size is half of the
-        trust radius.
+        distance from pivot point. The step size is at most half
+        of the trust radius.
 
         Args:
             coords: Previous coordinates
