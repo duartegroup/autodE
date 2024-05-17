@@ -14,6 +14,7 @@ from autode.bracket.dhs import (
     TruncatedTaylor,
     DHSImagePair,
     ImageSide,
+    OptimiserStepError,
 )
 from autode.opt.coordinates import CartesianCoordinates
 from autode import Config
@@ -95,6 +96,53 @@ def test_distance_constrained_optimiser():
     prod_coords_new = opt.final_coordinates
     new_distance = np.linalg.norm(prod_coords_new - rct_coords)
     assert np.isclose(new_distance, distance)
+
+
+@work_in_zipped_dir(datazip)
+def test_dist_constr_optimiser_sd_fallback():
+    coords1 = CartesianCoordinates(np.loadtxt("conopt_last.txt"))
+    coords1.update_g_from_cart_g(np.loadtxt("conopt_last_g.txt"))
+    coords1.update_h_from_cart_h(np.loadtxt("conopt_last_h.txt"))
+    pivot = CartesianCoordinates(np.loadtxt("conopt_pivot.txt"))
+
+    # lagrangian step may fail at certain point
+    opt = DistanceConstrainedOptimiser(
+        pivot_point=pivot,
+        maxiter=2,
+        init_trust=0.2,
+        gtol=1e-3,
+        etol=1e-4,
+    )
+    opt._target_dist = 2.6869833732268
+    opt._history.open("test_trj")
+    opt._history.add(coords1)
+    with pytest.raises(OptimiserStepError):
+        opt._get_lagrangian_step(coords1, coords1.g)
+    # however, steepest descent step should work
+    sd_step = opt._get_sd_step(coords1, coords1.g)
+    opt._step()
+    assert np.allclose(opt._coords, coords1 + sd_step)
+
+
+@work_in_tmp_dir()
+def test_dist_constr_optimiser_energy_rising():
+    coords1 = CartesianCoordinates(np.arange(6, dtype=float))
+    coords1.e = PotentialEnergy(0.01, "Ha")
+    step = np.random.random(6)
+    coords2 = coords1 + step
+    coords2.e = PotentialEnergy(0.02, "Ha")
+    assert (coords2.e - coords1.e) > PotentialEnergy(5, "kcalmol")
+    opt = DistanceConstrainedOptimiser(
+        pivot_point=coords1,
+        maxiter=2,
+        gtol=1e-3,
+        etol=1e-4,
+    )
+    opt._history.open("test_trj")
+    opt._history.add(coords1)
+    opt._history.add(coords2)
+    opt._step()
+    assert np.allclose(opt._coords, coords1 + step * 0.5)
 
 
 def test_dhs_image_pair():

@@ -148,8 +148,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         """Has the optimisation converged"""
         # The tangential gradient should be close to zero
         return (
-            self.rms_tangent_grad < self.gtol
-            and self.last_energy_change < self.etol
+            self.rms_tangent_grad < self.gtol and self._abs_delta_e < self.etol
         )
 
     @property
@@ -195,23 +194,65 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         the pivot point. A line search is done if it is not the first
         iteration (and it has not been turned off), and then a
         quasi-Newton step with a Lagrangian constraint for the distance
-        is taken
+        is taken (falls back to steepest descent with projected gradient
+        if this fails).
         """
         assert self._coords is not None, "Must have set coordinates"
+
+        # if energy is rising, interpolate halfway between last step
+        if self.iteration >= 1 and (
+            self.last_energy_change > PotentialEnergy(5, "kcalmol")
+        ):
+            logger.warning("Energy rising, going back half a step")
+            half_interp = (self._coords + self._history.penultimate) / 2
+            self._coords = half_interp
+            return None
 
         if self.iteration >= 1 and self._do_line_search:
             coords, grad = self._line_search_on_sphere()
         else:
             coords, grad = self._coords, self._coords.g
 
-        step = self._get_lagrangian_step(coords, grad)
-
-        step_size = np.linalg.norm(step)
-        logger.info(f"Taking a quasi-Newton step: {step_size:.3f} Å")
+        try:
+            step = self._get_lagrangian_step(coords, grad)
+            logger.info(
+                f"Taking a quasi-Newton step: {np.linalg.norm(step):.3f} Å"
+            )
+        except OptimiserStepError:
+            step = self._get_sd_step(coords, grad)
+            logger.warning(
+                f"Failed to take quasi-Newton step, taking steepest "
+                f"descent step instead: {np.linalg.norm(step):.3f} Å"
+            )
 
         # the step is on the interpolated coordinates (if done)
         actual_step = (coords + step) - self._coords
         self._coords = self._coords + actual_step
+        return None
+
+    def _get_sd_step(self, coords, grad) -> np.ndarray:
+        """
+        Obtain a steepest descent step minimising the tangential
+        gradient. This step cannot perfectly maintain the same
+        distance from pivot point. The step size is at most half
+        of the trust radius.
+
+        Args:
+            coords: Previous coordinates
+            grad: Previous gradient
+
+        Returns:
+            (np.ndarray): Step in Cartesian coordinates
+        """
+        dist_vec = coords - self._pivot
+        dist_hat = dist_vec / np.linalg.norm(dist_vec)
+        perp_grad = grad - np.dot(grad, dist_hat) * dist_hat
+
+        sd_step = -perp_grad
+        if np.linalg.norm(sd_step) > self.alpha / 2:
+            sd_step *= (self.alpha / 2) / np.linalg.norm(sd_step)
+
+        return sd_step
 
     def _get_lagrangian_step(self, coords, grad) -> np.ndarray:
         """
