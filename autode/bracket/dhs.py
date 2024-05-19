@@ -497,19 +497,37 @@ class DHSImagePair(EuclideanImagePair):
         return hist.final - hist.penultimate
 
     def get_dhs_step_by_side(
-        self, side: ImageSide, step_size: float
+        self, side: ImageSide, maxstep: float
     ) -> np.ndarray:
         """
-        Obtain the DHS step on the specified side, with the specified step
-        size
+        Obtain the DHS step on the specified side, with the maximum
+        specified step size
 
         Args:
             side (ImageSide): left or right
-            step_size (float): Step size in Angstrom
+            maxstep (float): Maximum step size in Angstrom
 
         Returns:
             (np.ndarray): The step
         """
+        # when images are close, check that step will not go over barrier
+        step_size = maxstep
+        x_max = None
+        if self.dist < Distance(1.5, "ang"):
+            e0 = float(self.right_coords.e.to("Ha"))
+            g0 = float(np.dot(self.right_coords.g, self.dist_vec))
+            e1 = float(self.left_coords.e.to("Ha"))
+            g1 = float(np.dot(self.left_coords.g, self.dist_vec))
+            cubic_poly = two_point_cubic_fit(e0=e0, g0=g0, e1=e1, g1=g1)
+            x_max = get_poly_extremum(cubic_poly, 0.0, 1.0, get_max=True)
+
+        if x_max is not None:
+            dist_to_peak = (
+                self.dist * x_max if side == ImageSide.right
+                else self.dist * (1 - x_max)
+            )
+            step_size = 0.9 * dist_to_peak
+
         dhs_step = self.dist_vec * (step_size / self.dist)
         if side == ImageSide.left:
             dhs_step *= -1.0
