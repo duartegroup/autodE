@@ -11,7 +11,12 @@ from enum import Enum
 
 from autode.values import Distance, Angle, GradientRMS, PotentialEnergy
 from autode.bracket.imagepair import EuclideanImagePair
-from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
+from autode.opt.coordinates import CartesianCoordinates
+from autode.opt.optimisers.utils import (
+    TruncatedTaylor,
+    get_poly_extremum,
+    two_point_cubic_fit,
+)
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
@@ -21,50 +26,6 @@ from autode.log import logger
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
-
-
-class TruncatedTaylor:
-    """The truncated taylor surface from current grad and hessian"""
-
-    def __init__(
-        self,
-        centre: Union[OptCoordinates, np.ndarray],
-        grad: np.ndarray,
-        hess: np.ndarray,
-    ):
-        """
-        Second-order Taylor expansion around a point
-
-        Args:
-            centre (OptCoordinates|np.ndarray): The coordinate point
-            grad (np.ndarray): Gradient at that point
-            hess (np.ndarray): Hessian at that point
-        """
-        self.centre = centre
-        if hasattr(centre, "e") and centre.e is not None:
-            self.e = centre.e
-        else:
-            # the energy can be relative and need not be absolute
-            self.e = 0.0
-        self.grad = grad
-        self.hess = hess
-        n_atoms = grad.shape[0]
-        assert hess.shape == (n_atoms, n_atoms)
-
-    def value(self, coords: np.ndarray) -> float:
-        """Energy (or relative energy if point did not have energy)"""
-        # E = E(0) + g^T . dx + 0.5 * dx^T. H. dx
-        dx = (coords - self.centre).flatten()
-        new_e = self.e + np.dot(self.grad, dx)
-        new_e += 0.5 * np.linalg.multi_dot((dx, self.hess, dx))
-        return new_e
-
-    def gradient(self, coords: np.ndarray) -> np.ndarray:
-        """Gradient at supplied coordinate"""
-        # g = g(0) + H . dx
-        dx = (coords - self.centre).flatten()
-        new_g = self.grad + np.matmul(self.hess, dx)
-        return new_g
 
 
 class DistanceConstrainedOptimiser(RFOptimiser):
@@ -514,16 +475,18 @@ class DHSImagePair(EuclideanImagePair):
         step_size = maxstep
         x_max = None
         if self.dist < Distance(1.5, "ang"):
-            e0 = float(self.right_coords.e.to("Ha"))
+            assert self.left_coords.e and self.right_coords.e
+            e0 = float(self.right_coords.e)
             g0 = float(np.dot(self.right_coords.g, self.dist_vec))
-            e1 = float(self.left_coords.e.to("Ha"))
+            e1 = float(self.left_coords.e)
             g1 = float(np.dot(self.left_coords.g, self.dist_vec))
             cubic_poly = two_point_cubic_fit(e0=e0, g0=g0, e1=e1, g1=g1)
             x_max = get_poly_extremum(cubic_poly, 0.0, 1.0, get_max=True)
 
         if x_max is not None:
             dist_to_peak = (
-                self.dist * x_max if side == ImageSide.right
+                self.dist * x_max
+                if side == ImageSide.right
                 else self.dist * (1 - x_max)
             )
             step_size = 0.9 * dist_to_peak
@@ -782,7 +745,7 @@ class DHSGS(DHS):
             dhs_step = dhs_step / (1 - self._gs_mix)
         else:
             # rescale GS step as well so that one vector doesn't dominate
-            gs_step *= self._step_size / np.linalg.norm(gs_step)
+            gs_step *= np.linalg.norm(dhs_step) / np.linalg.norm(gs_step)
 
         old_coord = self.imgpair.get_coord_by_side(side)
         new_coord = (
