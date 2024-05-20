@@ -489,7 +489,10 @@ class DHSImagePair(EuclideanImagePair):
                 if side == ImageSide.right
                 else self.dist * (1 - x_max)
             )
+            logger.info("Barrier is close to one of the images")
             step_size = 0.9 * dist_to_peak
+            if step_size > maxstep:
+                step_size = maxstep
 
         dhs_step = self.dist_vec * (step_size / self.dist)
         if side == ImageSide.left:
