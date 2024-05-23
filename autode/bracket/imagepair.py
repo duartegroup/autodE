@@ -5,7 +5,7 @@ that require a pair of images
 import itertools
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, TYPE_CHECKING, List, Iterator
+from typing import Optional, Tuple, TYPE_CHECKING, Union, Iterator
 from enum import Enum
 
 from autode.values import Distance, PotentialEnergy, Gradient
@@ -14,6 +14,7 @@ from autode.methods import get_lmethod
 from autode.neb import CINEB
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
+from autode.opt.optimisers.utils import two_point_cubic_fit, get_poly_extremum
 from autode.opt.optimisers.base import OptimiserHistory, print_geometries_from
 from autode.plotting import plot_bracket_method_energy_profile
 from autode.utils import work_in_tmp_dir, ProcessPool
@@ -446,6 +447,27 @@ class EuclideanImagePair(BaseImagePair, ABC):
             (Distance): Distance in Angstrom
         """
         return Distance(np.linalg.norm(self.dist_vec), units="ang")
+
+    @property
+    def interp_maximum(self) -> Union[float, None]:
+        """
+        Run a cubic interpolation between the two current images
+        and then find the position of the maximum, if present
+
+        Returns:
+            (float): Normalised position of maximum assuming x=0
+                    at right image and x=1 at left image
+        """
+        assert self.left_coords is not None and self.right_coords is not None
+        assert self.left_coords.e and self.right_coords.e
+        assert self.left_coords.g is not None
+        assert self.right_coords.g is not None
+        e0, e1 = float(self.right_coords.e), float(self.left_coords.e)
+        g0 = float(np.dot(self.right_coords.g, self.dist_vec))
+        g1 = float(np.dot(self.left_coords.g, self.dist_vec))
+        cubic_poly = two_point_cubic_fit(e0=e0, e1=e1, g0=g0, g1=g1)
+        x_max = get_poly_extremum(cubic_poly, get_max=True)
+        return x_max
 
     @property
     def has_jumped_over_barrier(self) -> bool:
