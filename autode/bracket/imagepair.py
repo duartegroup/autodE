@@ -455,73 +455,31 @@ class EuclideanImagePair(BaseImagePair, ABC):
         and then find the position of the maximum, if present
 
         Returns:
-            (float): Normalised position of maximum assuming x=0
-                    at right image and x=1 at left image
+            (float|None): Normalised position of maximum assuming x=0
+                    at right image and x=1 at left image, None if not
+                    between two images
         """
         assert self.left_coords is not None and self.right_coords is not None
         assert self.left_coords.e and self.right_coords.e
-        assert self.left_coords.g is not None
-        assert self.right_coords.g is not None
+        assert (
+            self.left_coords.g is not None and self.right_coords.g is not None
+        )
         e0, e1 = float(self.right_coords.e), float(self.left_coords.e)
         g0 = float(np.dot(self.right_coords.g, self.dist_vec))
         g1 = float(np.dot(self.left_coords.g, self.dist_vec))
         cubic_poly = two_point_cubic_fit(e0=e0, e1=e1, g0=g0, g1=g1)
-        x_max = get_poly_extremum(cubic_poly, get_max=True)
+        x_max = get_poly_extremum(cubic_poly, 0.0, 1.0, get_max=True)
         return x_max
 
     @property
     def has_jumped_over_barrier(self) -> bool:
         """
-        A quick test of whether the images are still separated by a barrier
-        is to check whether the gradient vectors are pointing outwards
-        compared to the linear path connecting the two images. In case
-        there are multiple barriers in the way, a distance threshold is
-        also used to guess if it is likely that one image has jumped over.
-
-        This is a slightly modified version of the method proposed in ref:
-        Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
-        https://doi.org/10.1021/acs.jctc.3c00151
+        A quick test of whether the images are still separated by a barrier,
+        implemented via fitting a cubic polynomial along the linear path
+        connecting the two images and checking for a peak. This is only an
+        approximation.
         """
-        assert (
-            self.left_coords.g is not None and self.right_coords.g is not None
-        )
-
-        def cos_angle(vec1, vec2) -> float:
-            """Returns the cos(theta) between two vectors (1D arrays)"""
-            dot = float(np.dot(vec1, vec2)) / (
-                np.linalg.norm(vec1) * np.linalg.norm(vec2)
-            )
-            return dot
-
-        # NOTE: The angle between the force vector on right image
-        # and the distance vector must be more than 90 degrees. Similarly
-        # for left image it must be less than 90 degrees. This would mean
-        # that the parallel component of the forces on each image are
-        # pointing away from each other. (force is negative gradient).
-
-        left_cos_theta = cos_angle(-self.left_coords.g, self.dist_vec)
-        right_cos_theta = cos_angle(-self.right_coords.g, self.dist_vec)
-
-        assert -1.0 < left_cos_theta < 1.0
-        assert -1.0 < right_cos_theta < 1.0
-
-        # cos(theta) < 0.0 means angle > 90 degrees and vice versa
-        if right_cos_theta < 0.0 < left_cos_theta:
-            return False
-
-        # However, if there are multiple barriers in the path (i.e. multi-step
-        # reaction), it will identify as having jumped over, even if it didn't.
-        # The distance between the images would be high if there are multiple
-        # barriers. A threshold of 1 angstrom is used as it seems the risk of
-        # jumping over is high (if there is only one barrier) below this.
-        # (according to Kilmes et al., J. Phys.: Condens. Matter, 22 2010, 074203)
-        # This is of course, somewhat arbitrary, and will not work if really
-        # large steps are taken OR two barriers are very close in distance
-
-        if self.dist <= Distance(1.0, "ang"):
-            return True
-        else:
-            return False
+        return self.interp_maximum is not None
 
     def run_cineb_from_end_points(self) -> None:
         """

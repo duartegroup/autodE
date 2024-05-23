@@ -85,7 +85,7 @@ def two_point_cubic_fit(
 
 def get_poly_extremum(
     poly: Polynomial, l_bound: float = 0.0, u_bound: float = 1.0, get_max=False
-):
+) -> Union[float, None]:
     """
     Obtain the maximum/minimum of a polynomial f(x), within
     two bounds. If there are multiple, return the highest/lowest
@@ -98,11 +98,14 @@ def get_poly_extremum(
         get_max (bool): Maximum or minimum requested
 
     Returns:
-        (float): The x value at min f(x)
+        (float|None): The x value at min or max f(x), None
+                    if not found or not within bounds
     """
     # points with derivative 0 are critical points
     crit_points = poly.deriv().roots()
 
+    if l_bound > u_bound:
+        u_bound, l_bound = l_bound, u_bound
     crit_points = crit_points[crit_points < u_bound]
     crit_points = crit_points[crit_points > l_bound]
 

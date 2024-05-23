@@ -471,28 +471,22 @@ class DHSImagePair(EuclideanImagePair):
         Returns:
             (np.ndarray): The step
         """
-        # when images are close, check that step will not go over barrier
         step_size = maxstep
-        x_max = None
+        # when images are close, check that step will not go over barrier
         if self.dist < Distance(1.5, "ang"):
-            assert self.left_coords.e and self.right_coords.e
-            e0 = float(self.right_coords.e)
-            g0 = float(np.dot(self.right_coords.g, self.dist_vec))
-            e1 = float(self.left_coords.e)
-            g1 = float(np.dot(self.left_coords.g, self.dist_vec))
-            cubic_poly = two_point_cubic_fit(e0=e0, g0=g0, e1=e1, g1=g1)
-            x_max = get_poly_extremum(cubic_poly, 0.0, 1.0, get_max=True)
-
-        if x_max is not None:
+            x_max = self.interp_maximum
+            assert x_max is not None
             dist_to_peak = (
                 self.dist * x_max
                 if side == ImageSide.right
                 else self.dist * (1 - x_max)
             )
-            logger.info("Barrier is close to one of the images")
-            step_size = 0.6 * dist_to_peak
-            if step_size > maxstep:
-                step_size = maxstep
+            if step_size > dist_to_peak * 0.6:
+                step_size = dist_to_peak * 0.6
+                logger.warning(
+                    f"Interpolated peak {dist_to_peak:.3f} Å away, reducing step"
+                    f" size to {step_size:.3f} Å"
+                )
 
         dhs_step = self.dist_vec * (step_size / self.dist)
         if side == ImageSide.left:
@@ -691,7 +685,7 @@ class DHS(BaseBracketMethod):
 
         logger.info(
             f"DHS step on {side} image: taking a step of"
-            f" size {self._step_size:.4f}"
+            f" size {np.linalg.norm(dhs_step):.4f} Å"
         )
         return new_coord
 
