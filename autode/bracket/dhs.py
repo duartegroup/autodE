@@ -12,11 +12,7 @@ from enum import Enum
 from autode.values import Distance, Angle, GradientRMS, PotentialEnergy
 from autode.bracket.imagepair import EuclideanImagePair
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.utils import (
-    TruncatedTaylor,
-    get_poly_extremum,
-    two_point_cubic_fit,
-)
+from autode.opt.optimisers.utils import TruncatedTaylor
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
@@ -26,6 +22,9 @@ from autode.log import logger
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
+
+
+_min_dhs_step_size = 0.01  # lowest possible DHS/DHS-GS step size
 
 
 class DistanceConstrainedOptimiser(RFOptimiser):
@@ -482,7 +481,7 @@ class DHSImagePair(EuclideanImagePair):
                 else self.dist * (1 - x_max)
             )
             if step_size > dist_to_peak * 0.6:
-                step_size = dist_to_peak * 0.6
+                step_size = max(dist_to_peak * 0.6, _min_dhs_step_size)
                 logger.warning(
                     f"Interpolated peak {dist_to_peak:.3f} Å away, reducing step"
                     f" size to {step_size:.3f} Å"
