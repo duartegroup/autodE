@@ -479,7 +479,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         connecting the two images and checking for a peak. This is only an
         approximation.
         """
-        return self.interp_maximum is not None
+        return self.interp_maximum is None
 
     def run_cineb_from_end_points(self) -> None:
         """
