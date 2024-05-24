@@ -472,7 +472,7 @@ class DHSImagePair(EuclideanImagePair):
         """
         step_size = maxstep
         # when images are close, check that step will not go over barrier
-        if self.dist < Distance(1.5, "ang"):
+        if self.dist < Distance(1.2, "ang"):
             x_max = self.interp_maximum
             assert x_max is not None
             dist_to_peak = (

@@ -479,7 +479,13 @@ class EuclideanImagePair(BaseImagePair, ABC):
         connecting the two images and checking for a peak. This is only an
         approximation.
         """
-        return self.interp_maximum is None
+        # NOTE: Interpolation seems reasonable upto ~1.2 Angstrom. If distance
+        # is larger, detecting peak is impossible without calculating energies
+        # so we assume there is a barrier between the images
+        if self.dist > Distance(1.2, "ang"):
+            return False
+        else:
+            return self.interp_maximum is None
 
     def run_cineb_from_end_points(self) -> None:
         """
