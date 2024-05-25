@@ -508,33 +508,37 @@ class DHS(BaseBracketMethod):
         self,
         initial_species: "Species",
         final_species: "Species",
-        step_size: Union[Distance, float] = Distance(0.1, "ang"),
+        large_step: Union[Distance, float] = Distance(0.2, "ang"),
+        small_step: Union[Distance, float] = Distance(0.05, "ang"),
+        switch_thresh: Union[Distance, float] = Distance(1.0, "ang"),
         **kwargs,
     ):
         """
-        Dewar-Healy-Stewart method to find transition states.
-
-        1) The step size is 0.1 which is quite conservative, so may want
-        to increase that if convergence is slow; 2) The distance tolerance
-        should not be lowered any more than 1.0 Angstrom as DHS is unstable
-        when the distance is low, and there is a tendency for one image to
-        jump over the barrier
+        Dewar-Healy-Stewart method to find transition states. The distance
+        tolerance convergence criteria should not be much lower than 0.5 Angstrom
+        as DHS is unstable when the distance is low, and there is a tendency for
+        one image to jumpy over the barrier.
 
         Args:
             initial_species: The "reactant" species
 
             final_species: The "product" species
 
-            step_size: The size of the DHS step taken along
-                        the linear path between reactant and
-                        product in Angstroms
+            large_step: The size of the DHS step when distance between the
+                        images is larger than switch_thresh (Angstrom)
+
+            small_step: The size of the DHS step when distance between the
+                        images is smaller than swtich_thresh (Angstrom)
+
+            switch_thresh: When distance between the two images is less than
+                        this cutoff, smaller DHS extrapolation steps are taken
 
         Keyword Args:
 
             maxiter: Maximum number of en/grad evaluations
 
             dist_tol: The distance tolerance at which DHS will
-                      stop, values less than 1.0 Angstrom are not
+                      stop, values less than 0.5 Angstrom are not
                       recommended.
 
             gtol: Gradient tolerance for the optimiser micro-iterations
@@ -554,18 +558,22 @@ class DHS(BaseBracketMethod):
         self._method: Optional[Method] = None
         self._n_cores: Optional[int] = None
 
-        self._step_size = Distance(abs(step_size), "ang")
-        if self._step_size > self.imgpair.dist:
+        self._large_step = Distance(abs(large_step), "ang")
+        self._small_step = Distance(abs(small_step), "ang")
+        self._sw_thresh = Distance(abs(switch_thresh), "ang")
+        assert self._small_step < self._large_step
+
+        self._step_size: Optional[Distance] = None
+        if self._large_step > self.imgpair.dist:
             logger.warning(
-                f"Step size ({self._step_size:.3f} Å) for {self._name}"
+                f"Step size ({self._large_step:.3f} Å) for {self._name}"
                 f" is larger than the starting Euclidean distance between"
                 f" images ({self.imgpair.dist:.3f} Å). This calculation"
                 f" will likely run into errors."
             )
 
-        # NOTE: In DHS the micro-iterations are done separately, in
-        # an optimiser, so to keep track of the actual number of
-        # en/grad calls, this local variable is used
+        # NOTE: In DHS the micro-iterations are done separately in
+        # an optimiser, so keep track with local variable
         self._current_microiters: int = 0
 
     def _initialise_run(self) -> None:
@@ -583,6 +591,12 @@ class DHS(BaseBracketMethod):
         """
         assert self._method is not None, "Must have a set method"
         assert self.imgpair.left_coords.e and self.imgpair.right_coords.e
+
+        if self.imgpair.dist > self._sw_thresh:
+            self._step_size = self._large_step
+        else:
+            self._step_size = self._small_step
+        opt_trust = min(self._step_size, Distance(0.1, "ang"))
 
         if self.imgpair.left_coords.e < self.imgpair.right_coords.e:
             side = ImageSide.left
@@ -605,6 +619,7 @@ class DHS(BaseBracketMethod):
             maxiter=curr_maxiter,
             gtol=self._gtol,
             etol=1.0e-3,  # seems like a reasonable etol
+            init_trust=opt_trust,
             pivot_point=pivot,
             old_coords_read_hess=old_coords,
         )
@@ -625,6 +640,7 @@ class DHS(BaseBracketMethod):
 
         # put results back into imagepair
         self.imgpair.put_coord_by_side(opt.final_coordinates, side)  # type: ignore
+        opt.clean_up()
         return None
 
     def _calculate(
@@ -676,6 +692,7 @@ class DHS(BaseBracketMethod):
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
         """
+        assert self._step_size is not None
         # take a DHS step of the size given
         dhs_step = self.imgpair.get_dhs_step_by_side(side, self._step_size)
 
@@ -731,6 +748,7 @@ class DHSGS(DHS):
             (CartesianCoordinates): New predicted coordinates for that side
         """
         assert self.imgpair is not None, "Must have an image pair"
+        assert self._step_size is not None
 
         dhs_step = self.imgpair.get_dhs_step_by_side(side, self._step_size)
         gs_step = self.imgpair.get_last_step_by_side(side)
