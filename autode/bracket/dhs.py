@@ -24,9 +24,6 @@ if TYPE_CHECKING:
     from autode.wrappers.methods import Method
 
 
-_min_dhs_step_size = 0.01  # lowest possible DHS/DHS-GS step size
-
-
 class DistanceConstrainedOptimiser(RFOptimiser):
     """
     Constrained optimisation of a molecule, with the Euclidean
@@ -457,36 +454,19 @@ class DHSImagePair(EuclideanImagePair):
         return hist.final - hist.penultimate
 
     def get_dhs_step_by_side(
-        self, side: ImageSide, maxstep: float
+        self, side: ImageSide, step_size: float
     ) -> np.ndarray:
         """
-        Obtain the DHS step on the specified side, with the maximum
-        specified step size
+        Obtain the DHS extrapolation step on the specified side,
+        with the specified step size
 
         Args:
             side (ImageSide): left or right
-            maxstep (float): Maximum step size in Angstrom
+            step_size (float): Step size in Angstrom
 
         Returns:
             (np.ndarray): The step
         """
-        step_size = maxstep
-        # when images are close, check that step will not go over barrier
-        if self.dist < Distance(1.2, "ang"):
-            x_max = self.interp_maximum
-            assert x_max is not None
-            dist_to_peak = (
-                self.dist * x_max
-                if side == ImageSide.right
-                else self.dist * (1 - x_max)
-            )
-            if step_size > dist_to_peak * 0.6:
-                step_size = max(dist_to_peak * 0.6, _min_dhs_step_size)
-                logger.warning(
-                    f"Interpolated peak {dist_to_peak:.3f} Å away, reducing step"
-                    f" size to {step_size:.3f} Å"
-                )
-
         dhs_step = self.dist_vec * (step_size / self.dist)
         if side == ImageSide.left:
             dhs_step *= -1.0
@@ -510,7 +490,7 @@ class DHS(BaseBracketMethod):
         final_species: "Species",
         large_step: Union[Distance, float] = Distance(0.2, "ang"),
         small_step: Union[Distance, float] = Distance(0.05, "ang"),
-        switch_thresh: Union[Distance, float] = Distance(1.0, "ang"),
+        switch_thresh: Union[Distance, float] = Distance(1.5, "ang"),
         **kwargs,
     ):
         """

@@ -449,15 +449,12 @@ class EuclideanImagePair(BaseImagePair, ABC):
         return Distance(np.linalg.norm(self.dist_vec), units="ang")
 
     @property
-    def interp_maximum(self) -> Union[float, None]:
+    def has_jumped_over_barrier(self) -> bool:
         """
-        Run a cubic interpolation between the two current images
-        and then find the position of the maximum, if present
-
-        Returns:
-            (float|None): Normalised position of maximum assuming x=0
-                    at right image and x=1 at left image, None if not
-                    between two images
+        A quick test of whether the images are still separated by a barrier,
+        implemented via fitting a cubic polynomial along the linear path
+        connecting the two images and checking for a peak. This is only an
+        approximation.
         """
         assert self.left_coords is not None and self.right_coords is not None
         assert self.left_coords.e and self.right_coords.e
@@ -469,23 +466,14 @@ class EuclideanImagePair(BaseImagePair, ABC):
         g1 = float(np.dot(self.left_coords.g, self.dist_vec))
         cubic_poly = two_point_cubic_fit(e0=e0, e1=e1, g0=g0, g1=g1)
         x_max = get_poly_extremum(cubic_poly, 0.0, 1.0, get_max=True)
-        return x_max
 
-    @property
-    def has_jumped_over_barrier(self) -> bool:
-        """
-        A quick test of whether the images are still separated by a barrier,
-        implemented via fitting a cubic polynomial along the linear path
-        connecting the two images and checking for a peak. This is only an
-        approximation.
-        """
         # NOTE: Interpolation seems reasonable upto ~1.2 Angstrom. If distance
         # is larger, detecting peak is impossible without calculating energies
         # so we assume there is a barrier between the images
         if self.dist > Distance(1.2, "ang"):
             return False
         else:
-            return self.interp_maximum is None
+            return x_max is None
 
     def run_cineb_from_end_points(self) -> None:
         """
