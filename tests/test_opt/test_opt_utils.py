@@ -3,9 +3,14 @@ from autode.utils import work_in_tmp_dir
 from autode.opt.coordinates import CartesianCoordinates
 from autode.bracket.imagepair import _calculate_engrad_for_species
 from autode.methods import XTB
-from autode.opt.optimisers.utils import TruncatedTaylor, two_point_cubic_fit
+from autode.opt.optimisers.utils import (
+    TruncatedTaylor,
+    two_point_cubic_fit,
+    get_poly_extremum,
+)
 from scipy.optimize import minimize
 import numpy as np
+from numpy.polynomial import Polynomial
 from ..testutils import requires_working_xtb_install
 
 
@@ -62,3 +67,22 @@ def test_cubic_interpolation():
     en3, _ = _calculate_engrad_for_species(mol, XTB(), 1)
     interp_en = cubic_poly(0.5)
     assert np.isclose(interp_en, en3, atol=1e-3)
+
+
+def test_polynomial_max_min():
+    # 1 - x + 2x^2 + x^3
+    poly = Polynomial([1, -1, 2, 1])
+    # known minimum = 0.215
+    x_min = get_poly_extremum(poly, 0, 1)
+    assert np.isclose(x_min, 0.215, atol=1e-3)
+    # known maximum = -1.549
+    x_max = get_poly_extremum(poly, -2, 0, get_max=True)
+    assert np.isclose(x_max, -1.549, atol=1e-3)
+    # order of bounds should not matter
+    x_max = get_poly_extremum(poly, 0, -2, get_max=True)
+    assert np.isclose(x_max, -1.549, atol=1e-3)
+    # should not count inflection points
+    poly = Polynomial([0, 0, 0, 1])
+    x_min = get_poly_extremum(poly, -np.inf, np.inf)
+    x_max = get_poly_extremum(poly, -np.inf, np.inf, get_max=True)
+    assert x_min is None and x_max is None
