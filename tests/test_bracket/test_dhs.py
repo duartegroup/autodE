@@ -11,7 +11,6 @@ from autode.bracket.dhs import (
     DHS,
     DHSGS,
     DistanceConstrainedOptimiser,
-    TruncatedTaylor,
     DHSImagePair,
     ImageSide,
     OptimiserStepError,
@@ -22,33 +21,6 @@ from ..testutils import requires_working_xtb_install, work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
 datazip = os.path.join(here, "data", "geometries.zip")
-
-
-@requires_working_xtb_install
-@work_in_tmp_dir()
-def test_truncated_taylor_surface():
-    mol = Molecule(smiles="CCO")
-    mol.calc_hessian(method=XTB())
-    coords = CartesianCoordinates(mol.coordinates)
-    coords.update_g_from_cart_g(mol.gradient)
-    coords.update_h_from_cart_h(mol.hessian)
-    coords.make_hessian_positive_definite()
-
-    # for positive definite hessian, minimum of taylor surface would
-    # be a simple Newton step
-    minim = coords - (np.linalg.inv(coords.h) @ coords.g)
-
-    # minimizing surface should give the same result
-    surface = TruncatedTaylor(coords, coords.g, coords.h)
-    res = minimize(
-        method="CG",
-        fun=surface.value,
-        x0=np.array(coords),
-        jac=surface.gradient,
-    )
-
-    assert res.success
-    assert np.allclose(res.x, minim, rtol=1e-4)
 
 
 @requires_working_xtb_install
