@@ -101,3 +101,58 @@ class CartesianCoordinates(OptCoordinates):
         """Expected number of degrees of freedom for the system"""
         n_atoms = len(self.flatten()) // 3
         return 3 * n_atoms - 6
+
+
+class CartesianWithConstraints(CartesianCoordinates):
+    def __new__(cls, input_array, units="Å") -> "CartesianWithConstraints":
+        """New instance of these coordinates"""
+
+        # if it has units cast into current units
+        if isinstance(input_array, ValueArray):
+            input_array = ValueArray.to(input_array, units=units)
+
+        arr = super().__new__(
+            cls, np.array(input_array).flatten(), units=units
+        )
+        arr._lambda = None  # lagrangian multipliers
+        arr._constraints = None  # constraint functions
+        return arr
+
+    def __array_finalize__(self, obj) -> None:
+        super().__array_finalize__(obj)
+        for attr in ["_lambda", "_constraints"]:
+            setattr(self, attr, getattr(obj, attr, None))
+
+    def set_constraints(self, constraints) -> None:
+        """
+        Add constraint functions, in the form of constrained primitives
+
+        Args:
+            constraints:
+        """
+        from autode.opt.coordinates.primitives import ConstrainedPrimitive
+
+        assert all(
+            isinstance(constr, ConstrainedPrimitive) for constr in constraints
+        )
+        self._constraints = list(constraints)
+
+    @property
+    def g(self):
+        """Gradient of the energy, with constraint terms"""
+        # jacobian of the constraints
+        A_mat = np.zeros(shape=(self.shape[0], len(self._constraints)))
+        for idx, constr in enumerate(self._constraints):
+            A_mat[:, idx] = constr.derivative(np.array(self))
+        g_constr = self._g - np.matmul(A_mat, self._lambda).flatten()
+
+        c_vals = [
+            -constr.delta(np.array(self)) for constr in self._constraints
+        ]
+        dL_dx = np.array(g_constr.tolist() + c_vals)
+        return dL_dx
+
+    @g.setter
+    def g(self, value):
+        """Setting a gradient is not allowed with constraints"""
+        raise RuntimeError("Cannot set gradients since constraints are added")
