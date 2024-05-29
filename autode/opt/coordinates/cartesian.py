@@ -104,6 +104,8 @@ class CartesianCoordinates(OptCoordinates):
 
 
 class CartesianWithConstraints(CartesianCoordinates):
+    """Cartesian coordinates, with added constraints"""
+
     def __new__(cls, input_array, units="Å") -> "CartesianWithConstraints":
         """New instance of these coordinates"""
 
@@ -137,6 +139,16 @@ class CartesianWithConstraints(CartesianCoordinates):
         )
         self._constraints = list(constraints)
 
+    def iadd(self, value: np.ndarray) -> OptCoordinates:
+        """Addition of an array to this set of coordinates"""
+        # separate the coordinates and multipliers
+        m = len(self._constraints)
+        n = self.shape[0]
+        assert isinstance(value, np.ndarray)
+        assert value.shape == (m + n,)
+        self._lambda += value[-m:]
+        return np.ndarray.__iadd__(self, value[:n])
+
     @property
     def g(self):
         """Gradient of the energy, with constraint terms"""
@@ -156,3 +168,26 @@ class CartesianWithConstraints(CartesianCoordinates):
     def g(self, value):
         """Setting a gradient is not allowed with constraints"""
         raise RuntimeError("Cannot set gradients since constraints are added")
+
+    @property
+    def h(self):
+        """Hessian of the energy, with constraint terms"""
+        n, m = self.shape[0], len(self._constraints)
+        A_mat = np.zeros(shape=(n, m))
+        W_mat = np.array(self._h)
+        for idx, constr in enumerate(self._constraints):
+            A_mat[:, idx] = constr.derivative(np.array(self))
+            W_mat -= self._lambda[idx] * constr.second_derivative(
+                np.array(self)
+            )
+        # Hessian of the Lagrangian
+        d2L_dx2 = np.zeros(shape=(n + m, n + m))
+        d2L_dx2[:n, :n] = W_mat
+        d2L_dx2[n:, :n] = A_mat
+        d2L_dx2[:n, n:] = A_mat
+        return d2L_dx2
+
+    @h.setter
+    def h(self, value):
+        """Setting a hessian is not allowed with constraints"""
+        raise RuntimeError("Cannot set Hessian since constraints are added")
