@@ -53,6 +53,45 @@ class TruncatedTaylor:
         return new_g
 
 
+def _get_energies_proj_gradients(
+    coords0: "OptCoordinates", coords1: "OptCoordinates"
+):
+    """
+    Get energies and projected gradients from two set of
+    coordinates
+    """
+    assert coords0.e and coords1.e
+    assert coords0.g is not None and coords1.g is not None
+    dist_vec = coords1.raw - coords0.raw
+    e0 = float(coords0.e)
+    g0 = np.dot(coords0.g, dist_vec)
+    e1 = float(coords1.e)
+    g1 = np.dot(coords1.g, dist_vec)
+    return e0, e1, g0, g1
+
+
+class Polynomial2PointFit(Polynomial):
+    """
+    1D polynomial along the line connecting two coordinates
+    """
+
+    @classmethod
+    def cubic_fit(cls, coords0: "OptCoordinates", coords1: "OptCoordinates"):
+        """
+        Fit a cubic polynomial from the energies and gradients
+        at two points: f(x) = d + cx + bx**2 + ax**3
+
+        Args:
+            coords0 (OptCoordinates):
+            coords1 (OptCoordinates):
+
+        Returns:
+            (Polynomial2PointFit):
+        """
+        e0, e1, g0, g1 = _get_energies_proj_gradients(coords0, coords1)
+        pass
+
+
 def two_point_cubic_fit(
     e0: float, g0: float, e1: float, g1: float
 ) -> Polynomial:
