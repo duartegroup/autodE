@@ -78,15 +78,15 @@ class Polynomial2PointFit(Polynomial):
     @classmethod
     def cubic_fit(cls, coords0: "OptCoordinates", coords1: "OptCoordinates"):
         """
-        Fit a cubic polynomial from the energies and gradients
-        at two points: f(x) = d + cx + bx**2 + ax**3
+        Obtain a cubic polynomial from the energies and gradients
+        at two sets of coordinates: f(x) = d + cx + bx**2 + ax**3
 
         Args:
             coords0 (OptCoordinates):
             coords1 (OptCoordinates):
 
         Returns:
-            (Polynomial2PointFit):
+            (Polynomial2PointFit): The fitted polynomial (normalised)
         """
         e0, e1, g0, g1 = _get_energies_proj_gradients(coords0, coords1)
         # f(0) = d; f(1) = a + b + c + d

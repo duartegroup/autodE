@@ -3,11 +3,7 @@ from autode.utils import work_in_tmp_dir
 from autode.opt.coordinates import CartesianCoordinates
 from autode.bracket.imagepair import _calculate_engrad_for_species
 from autode.methods import XTB
-from autode.opt.optimisers.utils import (
-    TruncatedTaylor,
-    two_point_cubic_fit,
-    get_poly_extremum,
-)
+from autode.opt.optimisers.utils import TruncatedTaylor, Polynomial2PointFit
 from scipy.optimize import minimize
 import numpy as np
 from numpy.polynomial import Polynomial
@@ -58,14 +54,12 @@ def test_cubic_interpolation():
     coords2.e = en2
     coords2.update_g_from_cart_g(grad2)
     # cubic interp
-    g1 = float(np.dot(coords1.g, step))
-    g2 = float(np.dot(coords2.g, step))
-    cubic_poly = two_point_cubic_fit(e0=en1, g0=g1, e1=en2, g1=g2)
-    # energy at halfway point
-    coords3 = coords1 + 0.5 * step
+    cubic_poly = Polynomial2PointFit.cubic_fit(coords1, coords2)
+    # energy at a point between 0 and 1
+    coords3 = coords1 + 0.25 * step
     mol.coordinates = coords3
     en3, _ = _calculate_engrad_for_species(mol, XTB(), 1)
-    interp_en = cubic_poly(0.5)
+    interp_en = cubic_poly(0.25)
     assert np.isclose(interp_en, en3, atol=1e-3)
 
 
@@ -73,16 +67,18 @@ def test_polynomial_max_min():
     # 1 - x + 2x^2 + x^3
     poly = Polynomial([1, -1, 2, 1])
     # known minimum = 0.215
-    x_min = get_poly_extremum(poly, 0, 1)
+    x_min = Polynomial2PointFit.get_extremum(poly, 0, 1)
     assert np.isclose(x_min, 0.215, atol=1e-3)
     # known maximum = -1.549
-    x_max = get_poly_extremum(poly, -2, 0, get_max=True)
+    x_max = Polynomial2PointFit.get_extremum(poly, -2, 0, get_max=True)
     assert np.isclose(x_max, -1.549, atol=1e-3)
     # order of bounds should not matter
-    x_max = get_poly_extremum(poly, 0, -2, get_max=True)
+    x_max = Polynomial2PointFit.get_extremum(poly, 0, -2, get_max=True)
     assert np.isclose(x_max, -1.549, atol=1e-3)
     # should not count inflection points
     poly = Polynomial([0, 0, 0, 1])
-    x_min = get_poly_extremum(poly, -np.inf, np.inf)
-    x_max = get_poly_extremum(poly, -np.inf, np.inf, get_max=True)
+    x_min = Polynomial2PointFit.get_extremum(poly, -np.inf, np.inf)
+    x_max = Polynomial2PointFit.get_extremum(
+        poly, -np.inf, np.inf, get_max=True
+    )
     assert x_min is None and x_max is None

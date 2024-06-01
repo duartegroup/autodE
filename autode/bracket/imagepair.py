@@ -14,7 +14,7 @@ from autode.methods import get_lmethod
 from autode.neb import CINEB
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
-from autode.opt.optimisers.utils import two_point_cubic_fit, get_poly_extremum
+from autode.opt.optimisers.utils import Polynomial2PointFit
 from autode.opt.optimisers.base import OptimiserHistory, print_geometries_from
 from autode.plotting import plot_bracket_method_energy_profile
 from autode.utils import work_in_tmp_dir, ProcessPool
@@ -461,11 +461,9 @@ class EuclideanImagePair(BaseImagePair, ABC):
         assert (
             self.left_coords.g is not None and self.right_coords.g is not None
         )
-        e0, e1 = float(self.right_coords.e), float(self.left_coords.e)
-        g0 = float(np.dot(self.right_coords.g, self.dist_vec))
-        g1 = float(np.dot(self.left_coords.g, self.dist_vec))
-        cubic_poly = two_point_cubic_fit(e0=e0, e1=e1, g0=g0, g1=g1)
-        x_max = get_poly_extremum(cubic_poly, 0.0, 1.0, get_max=True)
+        cubic_poly = Polynomial2PointFit.cubic_fit(
+            self.left_coords, self.right_coords
+        )
 
         # NOTE: Interpolation seems reasonable upto ~1.2 Angstrom. If distance
         # is larger, detecting peak is impossible without calculating energies
@@ -473,7 +471,7 @@ class EuclideanImagePair(BaseImagePair, ABC):
         if self.dist > Distance(1.2, "ang"):
             return False
         else:
-            return x_max is None
+            return cubic_poly.get_extremum(0.0, 1.0, get_max=True) is None
 
     def run_cineb_from_end_points(self) -> None:
         """
