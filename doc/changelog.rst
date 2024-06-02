@@ -7,7 +7,8 @@ Changelog
 
 Functionality improvements
 **************************
-- ...
+- DHS and DHS-GS can now switch between two step sizes
+- Peak detection in bracket methods now uses cubic polynomial fit with energies and gradients instead of only projecting gradients
 
 Bug Fixes
 *********
