@@ -13,30 +13,30 @@
   
   <script data-cfasync="false">
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=3ee479438cf8b5e0d341" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=384b581d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
-  <script src="_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=3ee479438cf8b5e0d341"></script>
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
@@ -51,27 +51,23 @@
 
   
   
-  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>
-    Back to top
-  </button>
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
   <input type="checkbox"
           class="sidebar-toggle"
-          name="__primary"
-          id="__primary"/>
-  <label class="overlay overlay-primary" for="__primary"></label>
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
   <input type="checkbox"
           class="sidebar-toggle"
-          name="__secondary"
-          id="__secondary"/>
-  <label class="overlay overlay-secondary" for="__secondary"></label>
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
   <div class="search-button__wrapper">
     <div class="search-button__overlay"></div>
@@ -93,8 +89,13 @@
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
 </form></div>
   </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
     </header>
   
 
@@ -148,28 +149,28 @@
 <li class="toctree-l1"><a class="reference internal" href="install.html">Install</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="reference/index.html">Reference</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="reference/index.html">Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="reference/atoms.html">Atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/bonds.html">Bonds</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/calculation.html">Calculation</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/conformers/index.html">Conformers</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/conformers/index.html">Conformers</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/conformers/conf_gen.html">Conf Gen</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/conformers/conformer.html">Conformer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/conformers/conformers.html">Conformers</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/pes/index.html">PES</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/pes/index.html">PES</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/pes/pes.html">Potential Energy Surfaces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/pes/mep.html">Min Energy Pathway</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/reactions/index.html">Reactions</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/reactions/index.html">Reactions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/reactions/multistep.html">Multistep Reaction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/reactions/reaction.html">Reaction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/reactions/reaction_types.html">Reaction Types</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/smiles/index.html">SMILES</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/smiles/index.html">SMILES</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/smiles/smiles.html">Molecules from SMILES</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/smiles/parser.html">SMILES Parser</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/smiles/builder.html">3D Geometry Builder</a></li>
@@ -177,26 +178,26 @@
 <li class="toctree-l3"><a class="reference internal" href="reference/smiles/angles.html">SMILES Angles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/smiles/base.html">SMILES Base</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/solvent/index.html">Solvent</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/solvent/index.html">Solvent</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/solvent/solvents.html">Solvents</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/solvent/explicit_solvent.html">Explicit Solvent</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/species/index.html">Species</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-7"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/species/index.html">Species</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/species/complex.html">Complex</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/species/molecule.html">Molecule</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/species/species.html">Species</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/neb/index.html">Nudged elastic band</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-8"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/neb/index.html">Nudged elastic band</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/neb/neb.html">NEB Transition states</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/neb/original.html">Original NEB</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/neb/ci.html">Climbing image NEB</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/neb/idpp.html">Image dependent pair potential</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/transition_states/index.html">Transition States</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-9"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/transition_states/index.html">Transition States</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/transition_states/base.html">Base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/transition_states/locate_tss.html">Locate TSs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/transition_states/templates.html">Templates</a></li>
@@ -204,13 +205,13 @@
 <li class="toctree-l3"><a class="reference internal" href="reference/transition_states/truncation.html">Truncation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/transition_states/ts_guess.html">TS Guess</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/thermochemistry/index.html">Thermochemistry</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-10"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/thermochemistry/index.html">Thermochemistry</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/thermochemistry/igm.html">Ideal gas model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/thermochemistry/symmetry.html">Symmetry</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/wrappers/index.html">Wrappers</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-11"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/wrappers/index.html">Wrappers</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/wrappers/base.html">Base</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/wrappers/g09.html">Gaussian09</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/wrappers/keywords.html">Keywords</a></li>
@@ -219,12 +220,12 @@
 <li class="toctree-l3"><a class="reference internal" href="reference/wrappers/orca.html">ORCA</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/wrappers/xtb.html">XTB</a></li>
 </ul>
-</li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="reference/opt/index.html">Optimisation</a><input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-12"><i class="fa-solid fa-chevron-down"></i></label><ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="reference/opt/index.html">Optimisation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="reference/opt/coordinates.html">Coordinates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reference/opt/optimisers.html">Optimisers</a></li>
 </ul>
-</li>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/bond_rearrangement.html">Bond Rearrangement</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/config.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/constants.html">Constants</a></li>
@@ -242,9 +243,9 @@
 <li class="toctree-l2"><a class="reference internal" href="reference/values.html">Values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/hessians.html">Hessians</a></li>
 </ul>
-</li>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">Troubleshooting</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-13"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/index.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/species.html">Species</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/molecules.html">Molecules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/reactions.html">Reactions</a></li>
@@ -257,13 +258,13 @@
 <li class="toctree-l2"><a class="reference internal" href="examples/tss.html">Transition States</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/thermochem.html">Thermochemistry</a></li>
 </ul>
-</li>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="dev/index.html">Development</a><input class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-14"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev/index.html">Development</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="dev/overview.html">Code Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev/contributing.html">Contributing to autodE</a></li>
 </ul>
-</li>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://doi.org/10.1002/anie.202011941">Paper</a></li>
 </ul>
@@ -281,7 +282,7 @@
 
       </div>
       
-      <main id="main-content" class="bd-main">
+      <main id="main-content" class="bd-main" role="main">
         
         
 
@@ -290,7 +291,7 @@
           <div class="bd-content">
             <div class="bd-article-container">
               
-              <div class="bd-header-article">
+              <div class="bd-header-article d-print-none">
 <div class="header-article-items header-article__inner">
   
     <div class="header-article-items__start">
@@ -470,7 +471,7 @@ document.write(`
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.__init__">(autode.opt.optimisers.base.Optimiser method)</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.bfgs.BFGSOptimiser.__init__">(autode.opt.optimisers.bfgs.BFGSOptimiser method)</a>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.__init__">(autode.opt.optimisers.base.OptimiserHistory method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.dimer.Dimer.__init__">(autode.opt.optimisers.dimer.Dimer method)</a>
 </li>
@@ -478,17 +479,9 @@ document.write(`
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater.__init__">(autode.opt.optimisers.hessian_update.HessianUpdater method)</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.ArmijoLineSearch.__init__">(autode.opt.optimisers.line_search.ArmijoLineSearch method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.LineSearchOptimiser.__init__">(autode.opt.optimisers.line_search.LineSearchOptimiser method)</a>
-</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOptimiser.__init__">(autode.opt.optimisers.prfo.PRFOptimiser method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOptimiser.__init__">(autode.opt.optimisers.rfo.RFOptimiser method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CGSteihaugTROptimiser.__init__">(autode.opt.optimisers.trust_region.CGSteihaugTROptimiser method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.TrustRegionOptimiser.__init__">(autode.opt.optimisers.trust_region.TrustRegionOptimiser method)</a>
 </li>
         <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.__init__">(autode.pes.pes_nd.PESnD method)</a>
 </li>
@@ -639,28 +632,10 @@ document.write(`
 </li>
       <li><a href="reference/pes/pes.html#autode.pes.reactive.ReactivePESnD._set_gradients">_set_gradients() (autode.pes.reactive.ReactivePESnD method)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CauchyTROptimiser._solve_subproblem">_solve_subproblem() (autode.opt.optimisers.trust_region.CauchyTROptimiser method)</a>
-
-      <ul>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CGSteihaugTROptimiser._solve_subproblem">(autode.opt.optimisers.trust_region.CGSteihaugTROptimiser method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.DoglegTROptimiser._solve_subproblem">(autode.opt.optimisers.trust_region.DoglegTROptimiser method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.TrustRegionOptimiser._solve_subproblem">(autode.opt.optimisers.trust_region.TrustRegionOptimiser method)</a>
-</li>
-      </ul></li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser._step">_step() (autode.opt.optimisers.base.Optimiser method)</a>
 
       <ul>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.bfgs.BFGSOptimiser._step">(autode.opt.optimisers.bfgs.BFGSOptimiser method)</a>
-</li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.dimer.Dimer._step">(autode.opt.optimisers.dimer.Dimer method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.ArmijoLineSearch._step">(autode.opt.optimisers.line_search.ArmijoLineSearch method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.NullLineSearch._step">(autode.opt.optimisers.line_search.NullLineSearch method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.SArmijoLineSearch._step">(autode.opt.optimisers.line_search.SArmijoLineSearch method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOptimiser._step">(autode.opt.optimisers.prfo.PRFOptimiser method)</a>
 </li>
@@ -731,6 +706,8 @@ document.write(`
         <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.active_indexes">(autode.opt.coordinates.dic.DICWithConstraints property)</a>
 </li>
       </ul></li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.add">add() (autode.opt.optimisers.base.OptimiserHistory method)</a>
+</li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.MolecularGraph.add_active_edge">add_active_edge() (autode.mol_graphs.MolecularGraph method)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.add_bond_rearrangment">add_bond_rearrangment() (in module autode.bond_rearrangement)</a>
@@ -794,8 +771,6 @@ document.write(`
       <li><a href="reference/atoms.html#autode.atoms.Atoms.are_linear">are_linear() (autode.atoms.Atoms method)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atoms.are_planar">are_planar() (autode.atoms.Atoms method)</a>
-</li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.ArmijoLineSearch">ArmijoLineSearch (class in autode.opt.optimisers.line_search)</a>
 </li>
       <li><a href="reference/constants.html#autode.constants.Constants.atm_to_pa">atm_to_pa (autode.constants.Constants attribute)</a>
 </li>
@@ -978,6 +953,8 @@ document.write(`
         <li><a href="reference/neb/idpp.html#module-autode.neb.idpp">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autode.neb.neb
 
@@ -992,8 +969,6 @@ document.write(`
         <li><a href="reference/neb/original.html#module-autode.neb.original">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     autode.opt.coordinates.base
 
@@ -1037,13 +1012,6 @@ document.write(`
 </li>
       </ul></li>
       <li>
-    autode.opt.optimisers.bfgs
-
-      <ul>
-        <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.bfgs">module</a>
-</li>
-      </ul></li>
-      <li>
     autode.opt.optimisers.dimer
 
       <ul>
@@ -1058,13 +1026,6 @@ document.write(`
 </li>
       </ul></li>
       <li>
-    autode.opt.optimisers.line_search
-
-      <ul>
-        <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.line_search">module</a>
-</li>
-      </ul></li>
-      <li>
     autode.opt.optimisers.prfo
 
       <ul>
@@ -1076,13 +1037,6 @@ document.write(`
 
       <ul>
         <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.rfo">module</a>
-</li>
-      </ul></li>
-      <li>
-    autode.opt.optimisers.trust_region
-
-      <ul>
-        <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.trust_region">module</a>
 </li>
       </ul></li>
       <li>
@@ -1388,8 +1342,6 @@ document.write(`
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSDampedUpdate">BFGSDampedUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.bfgs.BFGSOptimiser">BFGSOptimiser (class in autode.opt.optimisers.bfgs)</a>
-</li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSPDUpdate">BFGSPDUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSSR1Update">BFGSSR1Update (class in autode.opt.optimisers.hessian_update)</a>
@@ -1480,11 +1432,7 @@ document.write(`
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.cartesian.CartesianCoordinates">CartesianCoordinates (class in autode.opt.coordinates.cartesian)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CauchyTROptimiser">CauchyTROptimiser (class in autode.opt.optimisers.trust_region)</a>
-</li>
       <li><a href="reference/species/species.html#autode.species.species.Species.centre">centre() (autode.species.species.Species method)</a>
-</li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CGSteihaugTROptimiser">CGSteihaugTROptimiser (class in autode.opt.optimisers.trust_region)</a>
 </li>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.Parser.charge">charge (autode.smiles.parser.Parser property)</a>
 
@@ -1506,14 +1454,24 @@ document.write(`
 </li>
       <li><a href="reference/reactions/reaction_types.html#autode.reactions.reaction_types.classify">classify() (in module autode.reactions.reaction_types)</a>
 </li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.clean_up">clean_up() (autode.opt.optimisers.base.NDOptimiser method)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.clean_up">(autode.opt.optimisers.base.OptimiserHistory method)</a>
+</li>
+      </ul></li>
       <li><a href="reference/utils.html#autode.utils.cleanup_after_timeout">cleanup_after_timeout() (in module autode.utils)</a>
 </li>
       <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.clear">clear() (autode.pes.pes_nd.PESnD method)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.clear_tensors">clear_tensors() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
-      <li><a href="reference/smiles/base.html#autode.smiles.base.RingBond.close">close() (autode.smiles.base.RingBond method)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.close">close() (autode.opt.optimisers.base.OptimiserHistory method)</a>
+
+      <ul>
+        <li><a href="reference/smiles/base.html#autode.smiles.base.RingBond.close">(autode.smiles.base.RingBond method)</a>
 </li>
+      </ul></li>
       <li><a href="reference/thermochemistry/symmetry.html#autode.thermochemistry.symmetry.cn_and_axes">cn_and_axes() (in module autode.thermochemistry.symmetry)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.AtomCollection.com">com (autode.atoms.AtomCollection property)</a>
@@ -1544,12 +1502,12 @@ document.write(`
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.SR1Update.conditions_met">(autode.opt.optimisers.hessian_update.SR1Update property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/conformers/conformer.html#autode.conformers.conformer.Conformer">Conformer (class in autode.conformers.conformer)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.conformers">conformers (autode.species.species.Species property)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/conformers/conformers.html#autode.conformers.conformers.Conformers">Conformers (class in autode.conformers.conformers)</a>
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.MolecularGraph.connected_components">connected_components() (autode.mol_graphs.MolecularGraph method)</a>
@@ -1570,8 +1528,6 @@ document.write(`
 </li>
       <li><a href="reference/atoms.html#autode.atoms.Atoms.contain_metals">contain_metals (autode.atoms.Atoms property)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.contains_energy_rise">contains_energy_rise (autode.opt.optimisers.base.OptimiserHistory property)</a>
-</li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.converged">converged (autode.opt.optimisers.base.BaseOptimiser property)</a>
 
       <ul>
@@ -1584,12 +1540,6 @@ document.write(`
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.converged">(autode.opt.optimisers.base.Optimiser property)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.dimer.Dimer.converged">(autode.opt.optimisers.dimer.Dimer property)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.ArmijoLineSearch.converged">(autode.opt.optimisers.line_search.ArmijoLineSearch property)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.NullLineSearch.converged">(autode.opt.optimisers.line_search.NullLineSearch property)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.SArmijoLineSearch.converged">(autode.opt.optimisers.line_search.SArmijoLineSearch property)</a>
 </li>
         <li><a href="reference/wrappers/g09.html#autode.wrappers.G09.G09Optimiser.converged">(autode.wrappers.G09.G09Optimiser property)</a>
 </li>
@@ -1605,8 +1555,6 @@ document.write(`
       <li><a href="reference/atoms.html#autode.atoms.Atom.coord">coord (autode.atoms.Atom property)</a>
 </li>
       <li><a href="reference/values.html#autode.values.Coordinate">Coordinate (class in autode.values)</a>
-</li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CGSteihaugTROptimiser.coordinate_type">coordinate_type (autode.opt.optimisers.trust_region.CGSteihaugTROptimiser attribute)</a>
 </li>
       <li><a href="reference/atoms.html#autode.atoms.AtomCollection.coordinates">coordinates (autode.atoms.AtomCollection property)</a>
 
@@ -1739,8 +1687,6 @@ document.write(`
 </li>
       </ul></li>
       <li><a href="reference/constants.html#autode.constants.Constants.dm_to_m">dm_to_m (autode.constants.Constants attribute)</a>
-</li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.DoglegTROptimiser">DoglegTROptimiser (class in autode.opt.optimisers.trust_region)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keyword.doi_str">doi_str (autode.wrappers.keywords.Keyword property)</a>
 </li>
@@ -2052,6 +1998,8 @@ document.write(`
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.get_opt_params">get_opt_params() (autode.opt.optimisers.base.OptimiserHistory method)</a>
+</li>
       <li><a href="reference/geom.html#autode.geom.get_points_on_sphere">get_points_on_sphere() (in module autode.geom)</a>
 </li>
       <li><a href="reference/thermochemistry/symmetry.html#autode.thermochemistry.symmetry.get_possible_axes">get_possible_axes() (in module autode.thermochemistry.symmetry)</a>
@@ -2526,11 +2474,11 @@ document.write(`
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.LinearBendType">LinearBendType (class in autode.opt.coordinates.primitives)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.LineSearchOptimiser">LineSearchOptimiser (class in autode.opt.optimisers.line_search)</a>
-</li>
-      <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.load">load() (autode.pes.pes_nd.PESnD method)</a>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.load">load() (autode.opt.optimisers.base.OptimiserHistory class method)</a>
 
       <ul>
+        <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.load">(autode.pes.pes_nd.PESnD method)</a>
+</li>
         <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.load">(autode.reactions.reaction.Reaction method)</a>
 </li>
         <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.TStemplate.load">(autode.transition_states.templates.TStemplate method)</a>
@@ -2604,14 +2552,6 @@ document.write(`
 </li>
       <li><a href="reference/thermochemistry/igm.html#autode.thermochemistry.igm.LFMethod.minenkov">minenkov (autode.thermochemistry.igm.LFMethod attribute)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.minimum">minimum (autode.opt.optimisers.base.OptimiserHistory property)</a>
-</li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.LineSearchOptimiser.minimum_e_coords">minimum_e_coords (autode.opt.optimisers.line_search.LineSearchOptimiser property)</a>
-
-      <ul>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.NullLineSearch.minimum_e_coords">(autode.opt.optimisers.line_search.NullLineSearch property)</a>
-</li>
-      </ul></li>
       <li>
     module
 
@@ -2666,19 +2606,13 @@ document.write(`
 </li>
         <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.base">autode.opt.optimisers.base</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.bfgs">autode.opt.optimisers.bfgs</a>
-</li>
         <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.dimer">autode.opt.optimisers.dimer</a>
 </li>
         <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.hessian_update">autode.opt.optimisers.hessian_update</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.line_search">autode.opt.optimisers.line_search</a>
-</li>
         <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.prfo">autode.opt.optimisers.prfo</a>
 </li>
         <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.rfo">autode.opt.optimisers.rfo</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#module-autode.opt.optimisers.trust_region">autode.opt.optimisers.trust_region</a>
 </li>
         <li><a href="reference/pes/mep.html#module-autode.pes.mep">autode.pes.mep</a>
 </li>
@@ -2873,8 +2807,6 @@ document.write(`
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.NotImplementedInMethod">NotImplementedInMethod</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.NullLineSearch">NullLineSearch (class in autode.opt.optimisers.line_search)</a>
-</li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser">NullOptimiser (class in autode.opt.optimisers.base)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.NullUpdate">NullUpdate (class in autode.opt.optimisers.hessian_update)</a>
@@ -2895,6 +2827,8 @@ document.write(`
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.OctahedralAtom">OctahedralAtom (class in autode.smiles.atom_types)</a>
 </li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.open">open() (autode.opt.optimisers.base.OptimiserHistory method)</a>
+</li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.KeywordsSet.opt">opt (autode.wrappers.keywords.KeywordsSet property)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.KeywordsSet.opt_ts">opt_ts (autode.wrappers.keywords.KeywordsSet property)</a>
@@ -2911,10 +2845,6 @@ document.write(`
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.optimise">(autode.opt.optimisers.base.Optimiser class method)</a>
 </li>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.dimer.Dimer.optimise">(autode.opt.optimisers.dimer.Dimer class method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.LineSearchOptimiser.optimise">(autode.opt.optimisers.line_search.LineSearchOptimiser class method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.TrustRegionOptimiser.optimise">(autode.opt.optimisers.trust_region.TrustRegionOptimiser class method)</a>
 </li>
         <li><a href="reference/species/species.html#autode.species.species.Species.optimise">(autode.species.species.Species method)</a>
 </li>
@@ -2937,6 +2867,12 @@ document.write(`
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.optimiser_params">optimiser_params (autode.opt.optimisers.base.NDOptimiser property)</a>
+
+      <ul>
+        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser.optimiser_params">(autode.opt.optimisers.base.Optimiser property)</a>
+</li>
+      </ul></li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory">OptimiserHistory (class in autode.opt.optimisers.base)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.OptimiserStepError">OptimiserStepError</a>
@@ -3096,9 +3032,9 @@ document.write(`
       <ul>
         <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.print_geometries">(autode.opt.optimisers.base.NDOptimiser method)</a>
 </li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.print_geometries">(autode.opt.optimisers.base.OptimiserHistory method)</a>
-</li>
       </ul></li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.print_geometries_from">print_geometries_from() (in module autode.opt.optimisers.base)</a>
+</li>
       <li><a href="reference/transition_states/transition_state.html#autode.transition_states.transition_state.TransitionState.print_imag_vector">print_imag_vector() (autode.transition_states.transition_state.TransitionState method)</a>
 </li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_num_optimisation_steps">print_num_optimisation_steps() (in module autode.wrappers.ORCA)</a>
@@ -3221,8 +3157,6 @@ document.write(`
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.rfo.RFOptimiser">RFOptimiser (class in autode.opt.optimisers.rfo)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.TrustRegionOptimiser.rho">rho (autode.opt.optimisers.trust_region.TrustRegionOptimiser property)</a>
-</li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.RI">RI (class in autode.wrappers.keywords)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerPoint.right">right (autode.opt.coordinates.dimer.DimerPoint attribute)</a>
@@ -3271,23 +3205,17 @@ document.write(`
 </li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SAngles">SAngles (class in autode.smiles.angles)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.line_search.SArmijoLineSearch">SArmijoLineSearch (class in autode.opt.optimisers.line_search)</a>
-</li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.BaseOptimiser.save">save() (autode.opt.optimisers.base.BaseOptimiser method)</a>
+      <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.save">save() (autode.pes.pes_nd.PESnD method)</a>
 
       <ul>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NDOptimiser.save">(autode.opt.optimisers.base.NDOptimiser method)</a>
-</li>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.NullOptimiser.save">(autode.opt.optimisers.base.NullOptimiser method)</a>
-</li>
-        <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.save">(autode.pes.pes_nd.PESnD method)</a>
-</li>
         <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.save">(autode.reactions.reaction.Reaction method)</a>
 </li>
         <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.TStemplate.save">(autode.transition_states.templates.TStemplate method)</a>
 </li>
       </ul></li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.save_bond_rearrangs_to_file">save_bond_rearrangs_to_file() (in module autode.bond_rearrangement)</a>
+</li>
+      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.save_opt_params">save_opt_params() (autode.opt.optimisers.base.OptimiserHistory method)</a>
 </li>
       <li><a href="reference/plotting.html#autode.plotting.save_plot">save_plot() (in module autode.plotting)</a>
 </li>
@@ -3335,10 +3263,10 @@ document.write(`
         <li><a href="reference/species/species.html#autode.species.species.Species.single_point">(autode.species.species.Species method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.SinglePointKeywords">SinglePointKeywords (class in autode.wrappers.keywords)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.Parser.smiles">smiles (autode.smiles.parser.Parser property)</a>
 </li>
       <li><a href="reference/smiles/base.html#autode.smiles.base.SMILESAtom">SMILESAtom (class in autode.smiles.base)</a>
@@ -3410,11 +3338,7 @@ document.write(`
       <li><a href="reference/atoms.html#autode.atoms.PeriodicTable.table">table (autode.atoms.PeriodicTable attribute)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.tau">tau (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
-
-      <ul>
-        <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.CauchyTROptimiser.tau">(autode.opt.optimisers.trust_region.CauchyTROptimiser property)</a>
 </li>
-      </ul></li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dimer.DimerCoordinates.tau_hat">tau_hat (autode.opt.coordinates.dimer.DimerCoordinates property)</a>
 </li>
       <li><a href="reference/units.html#autode.units.TB">TB (in module autode.units)</a>
@@ -3513,8 +3437,6 @@ document.write(`
 </li>
       <li><a href="reference/thermochemistry/igm.html#autode.thermochemistry.igm.LFMethod.truhlar">truhlar (autode.thermochemistry.igm.LFMethod attribute)</a>
 </li>
-      <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.trust_region.TrustRegionOptimiser">TrustRegionOptimiser (class in autode.opt.optimisers.trust_region)</a>
-</li>
       <li><a href="reference/reactions/reaction.html#autode.reactions.reaction.Reaction.ts">ts (autode.reactions.reaction.Reaction property)</a>
 </li>
       <li><a href="reference/transition_states/locate_tss.html#autode.transition_states.locate_tss.ts_guess_funcs_prms">ts_guess_funcs_prms() (in module autode.transition_states.locate_tss)</a>
@@ -3539,27 +3461,17 @@ document.write(`
 </li>
       <li><a href="reference/units.html#autode.units.Unit">Unit (class in autode.units)</a>
 </li>
-      <li><a href="reference/values.html#autode.values.Enthalpy.units">units (autode.values.Enthalpy attribute)</a>
-
-      <ul>
-        <li><a href="reference/values.html#autode.values.EnthalpyCont.units">(autode.values.EnthalpyCont attribute)</a>
-</li>
-        <li><a href="reference/values.html#autode.values.FreeEnergy.units">(autode.values.FreeEnergy attribute)</a>
-</li>
-        <li><a href="reference/values.html#autode.values.FreeEnergyCont.units">(autode.values.FreeEnergyCont attribute)</a>
-</li>
-        <li><a href="reference/values.html#autode.values.PotentialEnergy.units">(autode.values.PotentialEnergy attribute)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/pes/pes.html#autode.pes.unrelaxed.UnRelaxedPES1D">UnRelaxedPES1D (class in autode.pes.unrelaxed)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.UnsupportedCalculationInput">UnsupportedCalculationInput</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g">update_g_from_cart_g() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h">update_h_from_cart_h() (autode.opt.coordinates.base.OptCoordinates method)</a>
+</li>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_h_from_old_h">update_h_from_old_h() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.update_lagrange_multipliers">update_lagrange_multipliers() (autode.opt.coordinates.dic.DICWithConstraints method)</a>
 </li>
@@ -3711,7 +3623,7 @@ document.write(`
               
               
               
-                <footer class="prev-next-footer">
+                <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
 </div>
@@ -3720,8 +3632,6 @@ document.write(`
             </div>
             
             
-              
-                <div class="bd-sidebar-secondary bd-toc"></div>
               
             
           </div>
@@ -3766,8 +3676,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+  <script src="_static/scripts/bootstrap.js?digest=3ee479438cf8b5e0d341"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=3ee479438cf8b5e0d341"></script>
 
   <footer class="bd-footer">
   </footer>
