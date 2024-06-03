@@ -300,37 +300,3 @@ def test_hessian_update():
     imgpair.update_both_img_hessian_by_formula()
     assert imgpair.left_coords.h is not None
     assert imgpair.right_coords.h is not None
-
-    # calling Hessian update again will raise exception
-    with pytest.raises(AssertionError):
-        imgpair.update_both_img_hessian_by_formula()
-
-
-@work_in_zipped_dir(datazip)
-def test_imgpair_hessian_flushing():
-    import autode.bracket.imagepair
-
-    mol1 = Molecule(
-        atoms=[
-            Atom("N", 0.5588, 0.0000, 0.0000),
-            Atom("N", -0.5588, 0.0000, 0.0000),
-        ]
-    )
-    h = np.loadtxt("n2_hess.txt")
-
-    imgpair = NullImagePair(mol1, mol1.copy())
-    # turn off flushing Hessians
-    autode.bracket.imagepair._flush_old_hessians = False
-    imgpair.left_coords.h = h.copy()
-    # generate dummy coordinates
-    imgpair.left_coords = imgpair.left_coords * 0.99
-    imgpair.left_coords = imgpair.left_coords * 0.99
-    assert imgpair._left_history[0].h is not None
-
-    # turn on flushing Hessians again
-    autode.bracket.imagepair._flush_old_hessians = True
-    imgpair = NullImagePair(mol1, mol1.copy())
-    imgpair.right_coords.h = h.copy()
-    imgpair.right_coords = imgpair.right_coords * 0.99
-    imgpair.right_coords = imgpair.right_coords * 0.99
-    assert imgpair._right_history[0].h is None

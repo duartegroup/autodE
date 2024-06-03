@@ -2,6 +2,7 @@ import os
 import pytest
 import numpy as np
 from ..testutils import work_in_zipped_dir
+from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import (
     BFGSUpdate,
     BFGSPDUpdate,
@@ -182,6 +183,16 @@ def test_bfgs_pd_update(eigval, expected):
     # Needs to satisfy the secant equation
     assert updater.y.dot(updater.s) > 0
     assert updater.conditions_met == expected
+
+
+def test_update_fails_if_no_suited_scheme():
+    coords1 = CartesianCoordinates(np.array([0.1, 0.1]))
+    coords1.g = np.array([0.1, 0.1])
+    coords1.h = np.array([[1.0, 0.0], [0.0, -1]])
+    coords2 = CartesianCoordinates(np.array([0.2, 0.2]))
+    coords2.g = np.array([0.2, 0.2])
+    with pytest.raises(RuntimeError):
+        coords2.update_h_from_old_h(coords1, [BFGSPDUpdateNoUpdate])
 
 
 @work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))

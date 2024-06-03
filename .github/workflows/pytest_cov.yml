@@ -23,7 +23,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
-        python-version: ["3.10"]
+        python-version: ["3.11"]
 
     defaults:
       run:
@@ -32,7 +32,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: conda-incubator/setup-miniconda@v2
+    - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
         activate-environment: test
@@ -56,7 +56,8 @@ jobs:
       run: |
         pytest --cov=./ --cov-report=xml
 
-    - uses: codecov/codecov-action@v3
+    - uses: codecov/codecov-action@v4
       with:
         flags: unittests
         fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }} # required

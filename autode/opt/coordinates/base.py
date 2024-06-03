@@ -12,6 +12,8 @@ if TYPE_CHECKING:
     from autode.units import Unit
     from autode.values import Gradient
     from autode.hessians import Hessian
+    from typing import Type
+    from autode.opt.optimisers.hessian_update import HessianUpdater
 
 
 class OptCoordinates(ValueArray, ABC):
@@ -204,6 +206,49 @@ class OptCoordinates(ValueArray, ABC):
         """Update the Hessian from a cartesian Hessian with shape 3N x 3N for
         N atoms, zeroing the second derivatives if required"""
         return self._update_h_from_cart_h(arr)
+
+    def update_h_from_old_h(
+        self,
+        old_coords: "OptCoordinates",
+        hessian_update_types: List["Type[HessianUpdater]"],
+    ) -> None:
+        r"""
+        Update the Hessian :math:`H` from an old Hessian using an update
+        scheme. Requires the gradient to be set, and the old set of
+        coordinates with gradient to be available
+
+        Args:
+            old_coords (OptCoordinates): Old set of coordinates with
+                        gradient and hessian defined
+            hessian_update_types (list[type[HessianUpdater]]): A list of
+                        hessian updater classes - the first updater that
+                        meets the mathematical conditions will be used
+        """
+        assert self._g is not None
+        assert isinstance(old_coords, OptCoordinates), "Wrong type!"
+        assert old_coords._h is not None
+        assert old_coords._g is not None
+
+        for update_type in hessian_update_types:
+            updater = update_type(
+                h=old_coords._h,
+                s=self.raw - old_coords.raw,
+                y=self._g - old_coords._g,
+                subspace_idxs=old_coords.indexes,
+            )
+
+            if not updater.conditions_met:
+                logger.info(f"Conditions for {update_type} not met")
+                continue
+
+            new_h = updater.updated_h
+            assert self.h_or_h_inv_has_correct_shape(new_h)
+            self._h = new_h
+            return None
+
+        raise RuntimeError(
+            "Could not update the Hessian - no suitable update strategies"
+        )
 
     def make_hessian_positive_definite(self) -> None:
         """

@@ -92,7 +92,9 @@ def atoms_to_xyz_file(
 
         for atom in atoms:
             x, y, z = atom.coord  # (Å)
-            print(f"{atom.label:<3}{x:10.5f}{y:10.5f}{z:10.5f}", file=xyz_file)
+            print(
+                f"{atom.label:<3} {x:10.5f} {y:10.5f} {z:10.5f}", file=xyz_file
+            )
     return None
 
 

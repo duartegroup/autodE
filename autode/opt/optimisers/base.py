@@ -1,12 +1,23 @@
-import os.path
+import os
+import pickle
+
 import numpy as np
 
 from abc import ABC, abstractmethod
-from collections import UserList
-from typing import Type, List, Union, Optional, Callable, Any, TYPE_CHECKING
+from zipfile import ZipFile, is_zipfile
+from collections import deque
+from typing import (
+    Type,
+    List,
+    Union,
+    Optional,
+    Callable,
+    Any,
+    TYPE_CHECKING,
+    Iterator,
+)
 
 from autode.log import logger
-from autode.utils import NumericStringDict
 from autode.config import Config
 from autode.values import GradientRMS, PotentialEnergy, method_string
 from autode.opt.coordinates.base import OptCoordinates
@@ -35,9 +46,6 @@ class BaseOptimiser(ABC):
         """The energy change on between the final two optimisation cycles"""
 
     def run(self, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError
-
-    def save(self, filename: str) -> None:
         raise NotImplementedError
 
     @property
@@ -111,11 +119,20 @@ class Optimiser(BaseOptimiser, ABC):
           >>> Optimiser.optimise(mol,method=ade.methods.ORCA())
         """
 
+    @property
+    def optimiser_params(self) -> dict:
+        """
+        The parameters which are needed to intialise the optimiser and
+        will be saved in the optimiser trajectory
+        """
+        return {"maxiter": self._maxiter}
+
     def run(
         self,
         species: "Species",
         method: "Method",
         n_cores: Optional[int] = None,
+        name: Optional[str] = None,
     ) -> None:
         """
         Run the optimiser. Updates species.atoms and species.energy
@@ -130,6 +147,8 @@ class Optimiser(BaseOptimiser, ABC):
 
             n_cores: Number of cores to use for calculations. If None then use
                      autode.Config.n_cores
+
+            name: The name of the optimisation save file
         """
         self._n_cores = n_cores if n_cores is not None else Config.n_cores
         self._initialise_species_and_method(species, method)
@@ -139,6 +158,11 @@ class Optimiser(BaseOptimiser, ABC):
             logger.info("Optimisation is in a 0D space – terminating")
             return None
 
+        if name is None:
+            name = f"{self._species.name}_opt_trj.zip"
+
+        self._history.open(filename=name)
+        self._history.save_opt_params(self.optimiser_params)
         self._initialise_run()
 
         logger.info(
@@ -158,6 +182,7 @@ class Optimiser(BaseOptimiser, ABC):
                 break
 
         logger.info(f"Converged: {self.converged}, in {self.iteration} cycles")
+        self._history.close()
         return None
 
     @property
@@ -318,7 +343,7 @@ class Optimiser(BaseOptimiser, ABC):
             logger.warning("Optimiser had no history, thus no coordinates")
             return None
 
-        return self._history[-1]
+        return self._history.final
 
     @_coords.setter
     def _coords(self, value: Optional[OptCoordinates]) -> None:
@@ -337,7 +362,7 @@ class Optimiser(BaseOptimiser, ABC):
             return
 
         elif isinstance(value, OptCoordinates):
-            self._history.append(value.copy())
+            self._history.add(value.copy())
 
         else:
             raise ValueError(
@@ -436,9 +461,6 @@ class NullOptimiser(BaseOptimiser):
     def run(self, **kwargs: Any) -> None:
         pass
 
-    def save(self, filename: str) -> None:
-        pass
-
     @property
     def final_coordinates(self):
         raise RuntimeError("A NullOptimiser has no coordinates")
@@ -524,6 +546,11 @@ class NDOptimiser(Optimiser, ABC):
 
         self._etol = PotentialEnergy(value)
 
+    @property
+    def optimiser_params(self):
+        """Optimiser params to save"""
+        return {"maxiter": self._maxiter, "gtol": self.gtol, "etol": self.etol}
+
     @classmethod
     def optimise(
         cls,
@@ -593,93 +620,27 @@ class NDOptimiser(Optimiser, ABC):
         if self._abs_delta_e < self.etol / 10:
             logger.warning(
                 f"Energy change is overachieved. "
-                f'{self.etol.to("kcal")/10:.3E} kcal mol-1. '
+                f'{self.etol.to("kcal") / 10:.3E} kcal mol-1. '
                 f"Signaling convergence"
             )
             return True
 
         return self._abs_delta_e < self.etol and self._g_norm < self.gtol
 
-    def save(self, filename: str) -> None:
+    def clean_up(self) -> None:
         """
-        Save the entire state of the optimiser to a file
+        Clean up by removing the trajectory file on disk
         """
-        assert self._species is not None, "Must have a species to save"
-
-        if len(self._history) == 0:
-            logger.warning("Optimiser did no steps. Not saving a trajectory")
-            return None
-
-        atomic_symbols = self._species.atomic_symbols
-        title_str = (
-            f" etol = {self.etol.to('Ha')} Ha"
-            f" gtol = {self.gtol.to('Ha Å^-1')} Ha Å^-1"
-            f" maxiter = {self._maxiter}"
-        )
-
-        if os.path.exists(filename):
-            logger.warning(f"FIle {filename} existed. Overwriting")
-            open(filename, "w").close()
-
-        for i, coordinates in enumerate(self._history):
-            energy = coordinates.e
-            cart_coords = coordinates.to("cartesian").reshape((-1, 3))
-            gradient = cart_coords.g.reshape((-1, 3))
-
-            n_atoms = len(atomic_symbols)
-            assert n_atoms == len(cart_coords) == len(gradient)
-
-            with open(filename, "a") as file:
-                print(
-                    n_atoms,
-                    f"E = {energy} Ha" + (title_str if i == 0 else ""),
-                    sep="\n",
-                    file=file,
-                )
-
-                for j, symbol in enumerate(atomic_symbols):
-                    x, y, z = cart_coords[j]
-                    dedx, dedy, dedz = gradient[j]
-
-                    print(
-                        f"{symbol:<3}{x:10.5f}{y:10.5f}{z:10.5f}"
-                        f"{dedx:15.5f}{dedy:10.5f}{dedz:10.5f}",
-                        file=file,
-                    )
-        return None
+        self._history.clean_up()
 
     @classmethod
     def from_file(cls, filename: str) -> "NDOptimiser":
         """
-        Create an optimiser from a file i.e. reload a saved state
+        Create an optimiser from a trajectory file i.e. reload a saved state
         """
-        from autode.opt.coordinates.cartesian import CartesianCoordinates
-
-        lines = open(filename, "r").readlines()
-        n_atoms = int(lines[0].split()[0])
-
-        title_line = NumericStringDict(lines[1])
-        optimiser = cls(
-            maxiter=int(title_line["maxiter"]),
-            gtol=GradientRMS(title_line["gtol"]),
-            etol=PotentialEnergy(title_line["etol"]),
-        )
-
-        for i in range(0, len(lines), n_atoms + 2):
-            raw_coordinates = np.zeros(shape=(n_atoms, 3))
-            gradient = np.zeros(shape=(n_atoms, 3))
-
-            for j, line in enumerate(lines[i + 2 : i + n_atoms + 2]):
-                _, x, y, z, dedx, dedy, dedz = line.split()
-                raw_coordinates[j, :] = [float(x), float(y), float(z)]
-                gradient[j, :] = [float(dedx), float(dedy), float(dedz)]
-
-            coords = CartesianCoordinates(raw_coordinates)
-            coords.e = NumericStringDict(lines[i + 1])["E"]
-            coords.g = gradient.flatten()
-
-            optimiser._history.append(coords)
-
+        hist = OptimiserHistory.load(filename)
+        optimiser = cls(**hist.get_opt_params())
+        optimiser._history = hist
         return optimiser
 
     @property
@@ -747,82 +708,6 @@ class NDOptimiser(Optimiser, ABC):
         logger.info(log_string)
         return None
 
-    def _updated_h_inv(self) -> np.ndarray:
-        r"""
-        Update the inverse of the Hessian matrix :math:`H^{-1}` for the
-        current set of coordinates. If the first iteration then use the true
-        inverse of the (estimated) Hessian, otherwise update the inverse
-        using a viable update strategy.
-
-
-        .. math::
-
-            H_{l - 1}^{-1} \rightarrow H_{l}^{-1}
-
-        """
-        assert self._coords is not None, "Must have coordinates to get H"
-
-        if self.iteration == 0:
-            logger.info("First iteration so using exact inverse, H^-1")
-            return np.linalg.inv(self._coords.h)
-
-        return self._best_hessian_updater.updated_h_inv
-
-    def _updated_h(self) -> np.ndarray:
-        r"""
-        Update the Hessian matrix :math:`H` for the current set of
-        coordinates. If the first iteration then use the initial Hessian
-
-        .. math::
-
-            H_{l - 1} \rightarrow H_{l}
-
-        """
-        assert self._coords is not None, "Must have coordinates to get H"
-
-        if self.iteration == 0:
-            logger.info("First iteration so not updating the Hessian")
-            return self._coords.h
-
-        return self._best_hessian_updater.updated_h
-
-    @property
-    def _best_hessian_updater(self) -> "HessianUpdater":
-        """
-        Find the best Hessian update strategy by enumerating all the possible
-        Hessian update types implemented for this optimiser and returning the
-        first that meets the criteria to be used.
-
-        -----------------------------------------------------------------------
-        Returns:
-            (autode.opt.optimisers.hessian_update.HessianUpdater):
-
-        Raises:
-            (RuntimeError): If no suitable strategies are found
-        """
-        coords_l, coords_k = self._history.final, self._history.penultimate
-        assert coords_k.g is not None and coords_l.g is not None
-
-        for update_type in self._hessian_update_types:
-            updater = update_type(
-                h=coords_k.h,
-                h_inv=coords_k.h_inv,
-                s=coords_l.raw - coords_k.raw,
-                y=coords_l.g - coords_k.g,
-                subspace_idxs=coords_l.indexes,
-            )
-
-            if not updater.conditions_met:
-                logger.info(f"Conditions for {update_type} not met")
-                continue
-
-            return updater
-
-        raise RuntimeError(
-            "Could not update the inverse Hessian - no "
-            "suitable update strategies"
-        )
-
     def plot_optimisation(
         self,
         filename: Optional[str] = None,
@@ -885,112 +770,305 @@ class NDOptimiser(Optimiser, ABC):
             if filename is None
             else str(filename)
         )
-
-        self._history.print_geometries(self._species, filename=filename)
+        print_geometries_from(
+            self._history, species=self._species, filename=filename
+        )
         return None
 
 
-class OptimiserHistory(UserList):
-    """Sequential history of coordinates"""
+class OptimiserHistory:
+    """
+    Sequential trajectory of coordinates with a maximum length for
+    storage on memory. Shunts data to disk if trajectory file is
+    opened, otherwise old coordinates more than the maximum number
+    are lost.
+    """
+
+    def __init__(self, maxlen: Optional[int] = 2) -> None:
+        self._filename: Optional[str] = None  # filename with abs. path
+        self._memory: deque = deque(maxlen=maxlen)  # coords in mem
+        self._maxlen = maxlen if maxlen is not None else float("inf")
+        self._is_closed = False  # whether trajectory is open
+        self._len = 0  # count of total number of coords
 
     @property
-    def penultimate(self) -> OptCoordinates:
+    def final(self):
         """
-        Last but one set of coordinates (the penultimate set)
+        Last set of coordinates in memory
 
         -----------------------------------------------------------------------
         Returns:
             (OptCoordinates):
         """
-        if len(self) < 2:
+        if len(self._memory) < 1:
+            raise IndexError(
+                "Cannot obtain the final set of "
+                f"coordinates, memory is empty"
+            )
+        return self._memory[-1]
+
+    @property
+    def penultimate(self):
+        """
+        Last but one set of coordinates from memory (the penultimate set)
+
+        -----------------------------------------------------------------------
+        Returns:
+            (OptCoordinates):
+        """
+        if len(self._memory) < 2:
             raise IndexError(
                 "Cannot obtain the penultimate set of "
-                f"coordinates, only had {len(self)}"
+                f"coordinates, only had {len(self._memory)}"
             )
-
-        return self[-2]
-
-    @property
-    def final(self) -> OptCoordinates:
-        """
-        Last set of coordinates
-
-        -----------------------------------------------------------------------
-        Returns:
-            (OptCoordinates):
-        """
-        if len(self) < 1:
-            raise IndexError(
-                "Cannot obtain the final set of coordinates from "
-                "an empty history"
-            )
-
-        return self[-1]
+        return self._memory[-2]
 
     @property
-    def minimum(self) -> OptCoordinates:
+    def _n_stored(self) -> int:
+        """Number of coordinates stored on disk"""
+        if self._filename is None:
+            return 0
+
+        with ZipFile(self._filename, "r") as file:
+            names = file.namelist()
+        n_coords = 0
+        for name in names:
+            if name.startswith("coords_") and int(name[7:]) >= 0:
+                n_coords += 1
+        return n_coords
+
+    def __len__(self):
+        """How many coordinates have been put into this trajectory"""
+        return self._len
+
+    def open(self, filename: str):
         """
-        Minimum energy coordinates in the history
-
-        -----------------------------------------------------------------------
-        Returns:
-            (OptCoordinates):
-        """
-        if len(self) == 0:
-            raise IndexError("No minimum with no history")
-
-        return self[np.argmin([coords.e for coords in self])]
-
-    @property
-    def contains_energy_rise(self) -> bool:
-        r"""
-        Does this history contain a 'well' in the energy?::
-
-          |
-        E |    -----   /          <-- Does contain a rise in the energy
-          |         \/
-          |_________________
-               Iteration
-
-        -----------------------------------------------------------------------
-        Returns:
-            (bool): Presence of an explicit minima
-        """
-
-        for idx in range(1, len(self) - 1):
-            if self[idx].e < self[idx + 1].e:
-                return True
-
-        return False
-
-    def print_geometries(self, species: "Species", filename: str) -> None:
-        """
-        Print geometries from this history of coordinates as a .xyz
-        trajectory file
+        Initialise the trajectory file and write it on disk.
 
         Args:
-            species: The Species for which this coordinate history is generated
-            filename: Name of file
+            filename (str): The name of the trajectory file,
+                            should be .zip, and NOT a path
         """
-        from autode.species import Species
+        if self._filename is not None:
+            raise RuntimeError("Already initialised, cannot initialise again!")
 
-        assert isinstance(species, Species)
+        # filename should not be a path
+        assert "\\" not in filename and "/" not in filename
+        if not filename.lower().endswith(".zip"):
+            filename += ".zip"
 
-        if not filename.lower().endswith(".xyz"):
-            filename = filename + ".xyz"
-
-        if os.path.isfile(filename):
-            logger.warning(f"{filename} already exists, overwriting...")
+        if os.path.exists(filename):
+            logger.warning(f"File {filename} already exists, overwriting")
             os.remove(filename)
 
-        # take a copy so that original is not modified
-        tmp_spc = species.copy()
-        for coords in self:
-            tmp_spc.coordinates = coords.to("cart")
-            tmp_spc.energy = coords.e
-            tmp_spc.print_xyz_file(filename=filename, append=True)
+        # get the full path so that it is robust to os.chdir
+        self._filename = os.path.abspath(filename)
+
+        # write a header like file to help identify
+        with ZipFile(filename, "w") as file:
+            with file.open("ade_opt_trj", "w") as fh:
+                fh.write("Trajectory from autodE".encode("utf-8"))
+        return None
+
+    @classmethod
+    def load(cls, filename: str):
+        """
+        Reload the state of the trajectory from a file
+
+        Args:
+            filename: The name of the trajectory .zip file,
+                    could also be a relative path
+
+        Returns:
+
+        """
+        trj = cls()
+        if not filename.lower().endswith(".zip"):
+            filename += ".zip"
+        if not os.path.isfile(filename):
+            raise FileNotFoundError(f"The file {filename} does not exist!")
+        if not is_zipfile(filename):
+            raise ValueError(
+                f"The file {filename} is not a valid trajectory file"
+            )
+        with ZipFile(filename, "r") as file:
+            names = file.namelist()
+            if "ade_opt_trj" not in names:
+                raise ValueError(
+                    f"The file {filename} is not an autodE trajectory!"
+                )
+        # handle paths with env vars or w.r.t. home dir
+        trj._filename = os.path.abspath(
+            os.path.expanduser(os.path.expandvars(filename))
+        )
+        trj._len = trj._n_stored
+        trj._is_closed = True
+        # load the last two into memory
+        if trj._len < 2:
+            load_idxs = [trj._len - 1]
+        else:
+            load_idxs = [trj._len - 2, trj._len - 1]
+        with ZipFile(trj._filename, "r") as file:
+            for idx in load_idxs:
+                with file.open(f"coords_{idx}") as fh:
+                    trj._memory.append(pickle.load(fh))
+
+        return trj
+
+    def clean_up(self):
+        """Remove the disk file associated with this history"""
+        os.remove(self._filename)
+        return None
+
+    def save_opt_params(self, params: dict):
+        """
+        Save optimiser parameters given as a dict into the trajectory
+        savefile
+
+        Args:
+            params (dict):
+        """
+        assert isinstance(params, dict)
+        if self._filename is None:
+            raise RuntimeError("File not opened - cannot store data")
+
+        # python's ZipFile does not allow overwriting files
+        with ZipFile(self._filename, "a") as file:
+            names = file.namelist()
+            if "opt_params" in names:
+                raise FileExistsError(
+                    "Optimiser parameters are already stored -"
+                    " cannot overwrite!"
+                )
+            with file.open("opt_params", "w") as fh:
+                pickle.dump(params, fh, pickle.HIGHEST_PROTOCOL)
 
         return None
+
+    def get_opt_params(self) -> dict:
+        """
+        Retrieve the stored optimiser parameters from the trajectory
+        file
+
+        Returns:
+            (dict): Dictionary of optimiser parameters
+        """
+        if self._filename is None:
+            raise RuntimeError("File not opened - cannot get data")
+
+        # python's ZipFile does not allow overwriting files
+        with ZipFile(self._filename, "r") as file:
+            names = file.namelist()
+            if "opt_params" not in names:
+                raise FileNotFoundError("Optimiser parameters are not found!")
+            with file.open("opt_params", "r") as fh:
+                data = pickle.load(fh)
+
+        return data
+
+    def add(self, coords: Optional["OptCoordinates"]) -> None:
+        """
+        Add a new set of coordinates to this trajectory
+
+        Args:
+            coords (OptCoordinates): The set of coordinates to be added
+        """
+        if coords is None:
+            return None
+        elif not isinstance(coords, OptCoordinates):
+            raise ValueError("item added must be OptCoordinates")
+
+        if self._is_closed:
+            raise RuntimeError("Cannot add to closed OptimiserHistory")
+
+        self._len += 1
+        # check if we need to push last coords to disk or can skip
+        if len(self._memory) < self._maxlen or self._filename is None:
+            self._memory.append(coords)
+            return None
+
+        n_stored = self._n_stored
+        with ZipFile(self._filename, "a") as file:
+            with file.open(f"coords_{n_stored}", "w") as fh:
+                pickle.dump(self._memory[0], fh, pickle.HIGHEST_PROTOCOL)
+        self._memory.append(coords)
+        return None
+
+    def close(self):
+        """
+        Close the Optimiser history by putting the coordinates still
+        in memory onto disk
+        """
+        if self._filename is None:
+            raise RuntimeError("Cannot close - had no trajectory file!")
+
+        idx = self._n_stored
+        with ZipFile(self._filename, "a") as file:
+            for coords in self._memory:
+                with file.open(f"coords_{idx}", "w") as fh:
+                    pickle.dump(coords, fh, pickle.HIGHEST_PROTOCOL)
+                idx += 1
+
+        self._is_closed = True
+        return None
+
+    def __getitem__(self, item: int) -> Optional[OptCoordinates]:
+        """
+        Access a coordinate from this trajectory, either from stored
+        data on disk, or from the memory. Only returns Cartesian
+        coordinates to ensure type consistency.
+
+        Args:
+            item (int): Must be integer and not a slice
+
+        Returns:
+            (CartesianCoordinates|None): The coordinates if found, None
+                        if the file does not exist and coordinate is not
+                        in memory
+
+        Raises:
+            NotImplementedError: If slice is used
+            IndexError: If requested index does not exist
+        """
+        if isinstance(item, slice):
+            raise NotImplementedError
+        elif isinstance(item, int):
+            pass
+        else:
+            raise ValueError("Index has to be type int")
+
+        if item < 0:
+            item += self._len
+        if item < 0 or item >= self._len:
+            raise IndexError("Array index out of range")
+
+        # read directly from memory if possible
+        if item >= (self._len - self._maxlen):
+            return self._memory[item - self._len]
+
+        # have to read from disk now, return None if no file
+        if self._filename is None:
+            return None
+
+        with ZipFile(self._filename, "r") as file:
+            with file.open(f"coords_{item}") as fh:
+                coords = pickle.load(fh)
+
+        return coords
+
+    def __iter__(self):
+        """
+        Iterate through the coordinates of this trajectory
+        """
+        for i in range(len(self)):
+            yield self[i]
+
+    def __reversed__(self):
+        """
+        Reversed iteration through the coordinates
+        """
+        for i in reversed(range(len(self))):
+            yield self[i]
 
 
 class ExternalOptimiser(BaseOptimiser, ABC):
@@ -1024,3 +1102,37 @@ class _OptimiserCallbackFunction:
 
 def _energy_method_string(species: "Species") -> str:
     return "" if species.energy is None else species.energy.method_str
+
+
+def print_geometries_from(
+    coords_trj: Union[Iterator[OptCoordinates], OptimiserHistory],
+    species: "Species",
+    filename: str,
+) -> None:
+    """
+    Print geometries from an iterator over a series of coordinates
+
+    Args:
+        coords_trj: The iterator for coordinates, can be OptimiserHistory
+        species: The Species for which the coordinate history is generated
+        filename: Name of file
+    """
+    from autode.species import Species
+
+    assert isinstance(species, Species)
+
+    if not filename.lower().endswith(".xyz"):
+        filename = filename + ".xyz"
+
+    if os.path.isfile(filename):
+        logger.warning(f"{filename} already exists, overwriting...")
+        os.remove(filename)
+
+    # take a copy so that original is not modified
+    tmp_spc = species.copy()
+    for coords in coords_trj:
+        tmp_spc.coordinates = coords.to("cart")
+        tmp_spc.energy = coords.e
+        tmp_spc.print_xyz_file(filename=filename, append=True)
+
+    return None

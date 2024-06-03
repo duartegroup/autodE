@@ -2,10 +2,10 @@
 Base classes for implementing all bracketing methods
 that require a pair of images
 """
+import itertools
 import numpy as np
-
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, TYPE_CHECKING, List
+from typing import Optional, Tuple, TYPE_CHECKING, Union, Iterator
 from enum import Enum
 
 from autode.values import Distance, PotentialEnergy, Gradient
@@ -14,7 +14,8 @@ from autode.methods import get_lmethod
 from autode.neb import CINEB
 from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.hessian_update import BofillUpdate
-from autode.opt.optimisers.base import OptimiserHistory
+from autode.opt.optimisers.utils import Polynomial2PointFit
+from autode.opt.optimisers.base import OptimiserHistory, print_geometries_from
 from autode.plotting import plot_bracket_method_energy_profile
 from autode.utils import work_in_tmp_dir, ProcessPool
 from autode.log import logger
@@ -23,9 +24,6 @@ if TYPE_CHECKING:
     from autode.species import Species
     from autode.wrappers.methods import Method
     from autode.hessians import Hessian
-    from autode.values import Energy
-
-_flush_old_hessians = True
 
 
 def _calculate_engrad_for_species(
@@ -123,7 +121,7 @@ class BaseImagePair(ABC):
         self._method = None
         self._hess_method = None
         self._n_cores = None
-        self._hessian_update_type = BofillUpdate
+        self._hessian_update_types = [BofillUpdate]
 
         self._left_history = OptimiserHistory()
         self._right_history = OptimiserHistory()
@@ -195,6 +193,30 @@ class BaseImagePair(ABC):
         rotated_p_mat = np.dot(rot_mat, p_mat.T).T
         self._left_image.coordinates = rotated_p_mat
 
+    def initialise_trj(
+        self,
+        left_history_name: str = "left_history_save.zip",
+        right_history_name: str = "right_history_save.zip",
+    ) -> None:
+        """
+        Initialise the trajectory save files (history of coordinates on
+        left and right images)
+
+        Args:
+            left_history_name: Name of savefile for left history
+            right_history_name: Name of savefile for right history
+        """
+        self._left_history.open(left_history_name)
+        self._right_history.open(right_history_name)
+
+    def close_trj(self):
+        """
+        Put all coordinates in memory onto disk in the trajectory
+        save files, and close the trajectories
+        """
+        self._left_history.close()
+        self._right_history.close()
+
     def set_method_and_n_cores(
         self,
         method: "Method",
@@ -250,6 +272,7 @@ class BaseImagePair(ABC):
     @property
     def left_coords(self) -> CartesianCoordinates:
         """The coordinates of the left image"""
+        assert isinstance(self._left_history[-1], CartesianCoordinates)
         return self._left_history[-1]
 
     @left_coords.setter
@@ -269,18 +292,16 @@ class BaseImagePair(ABC):
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
         if isinstance(value, CartesianCoordinates):
-            self._left_history.append(value.copy())
+            self._left_history.add(value.copy())
         else:
             raise TypeError
 
         self._left_image.coordinates = self.left_coords
-        if _flush_old_hessians:
-            if len(self._left_history) >= 3:
-                self._left_history[-3].h = None
 
     @property
     def right_coords(self) -> CartesianCoordinates:
         """The coordinates of the right image"""
+        assert isinstance(self._right_history[-1], CartesianCoordinates)
         return self._right_history[-1]
 
     @right_coords.setter
@@ -300,14 +321,11 @@ class BaseImagePair(ABC):
             raise ValueError(f"Must have {self.n_atoms * 3} entries")
 
         if isinstance(value, CartesianCoordinates):
-            self._right_history.append(value.copy())
+            self._right_history.add(value.copy())
         else:
             raise TypeError
 
         self._right_image.coordinates = self.right_coords
-        if _flush_old_hessians:
-            if len(self._right_history) >= 3:
-                self._right_history[-3].h = None
 
     @property
     @abstractmethod
@@ -385,17 +403,9 @@ class BaseImagePair(ABC):
         Update the molecular hessian for both images by update formula
         """
         for history in [self._left_history, self._right_history]:
-            coords_l, coords_k = history.final, history.penultimate
-            assert coords_l.g is not None, "Gradient is not set!"
-            assert coords_l.h is None, "Hessian already exists!"
-
-            updater = self._hessian_update_type(
-                h=coords_k.h,
-                s=coords_l.raw - coords_k.raw,
-                y=coords_l.g - coords_k.g,
+            history.final.update_h_from_old_h(
+                history.penultimate, self._hessian_update_types
             )
-
-            coords_l.h = np.array(updater.updated_h)
 
         return None
 
@@ -441,56 +451,27 @@ class EuclideanImagePair(BaseImagePair, ABC):
     @property
     def has_jumped_over_barrier(self) -> bool:
         """
-        A quick test of whether the images are still separated by a barrier
-        is to check whether the gradient vectors are pointing outwards
-        compared to the linear path connecting the two images. In case
-        there are multiple barriers in the way, a distance threshold is
-        also used to guess if it is likely that one image has jumped over.
-
-        This is a slightly modified version of the method proposed in ref:
-        Y. Liu, H. Qui, M. Lei, J. Chem. Theory. Comput., 2023
-        https://doi.org/10.1021/acs.jctc.3c00151
+        A quick test of whether the images are still separated by a barrier,
+        implemented via fitting a cubic polynomial along the linear path
+        connecting the two images and checking for a peak. This is only an
+        approximation.
         """
+        assert self.left_coords is not None and self.right_coords is not None
+        assert self.left_coords.e and self.right_coords.e
         assert (
             self.left_coords.g is not None and self.right_coords.g is not None
         )
+        cubic_poly = Polynomial2PointFit.cubic_fit(
+            self.left_coords, self.right_coords
+        )
 
-        def cos_angle(vec1, vec2) -> float:
-            """Returns the cos(theta) between two vectors (1D arrays)"""
-            dot = float(np.dot(vec1, vec2)) / (
-                np.linalg.norm(vec1) * np.linalg.norm(vec2)
-            )
-            return dot
-
-        # NOTE: The angle between the force vector on right image
-        # and the distance vector must be more than 90 degrees. Similarly
-        # for left image it must be less than 90 degrees. This would mean
-        # that the parallel component of the forces on each image are
-        # pointing away from each other. (force is negative gradient).
-
-        left_cos_theta = cos_angle(-self.left_coords.g, self.dist_vec)
-        right_cos_theta = cos_angle(-self.right_coords.g, self.dist_vec)
-
-        assert -1.0 < left_cos_theta < 1.0
-        assert -1.0 < right_cos_theta < 1.0
-
-        # cos(theta) < 0.0 means angle > 90 degrees and vice versa
-        if right_cos_theta < 0.0 < left_cos_theta:
+        # NOTE: Interpolation seems reasonable upto ~1.2 Angstrom. If distance
+        # is larger, detecting peak is impossible without calculating energies
+        # so we assume there is a barrier between the images
+        if self.dist > Distance(1.2, "ang"):
             return False
-
-        # However, if there are multiple barriers in the path (i.e. multi-step
-        # reaction), it will identify as having jumped over, even if it didn't.
-        # The distance between the images would be high if there are multiple
-        # barriers. A threshold of 1 angstrom is used as it seems the risk of
-        # jumping over is high (if there is only one barrier) below this.
-        # (according to Kilmes et al., J. Phys.: Condens. Matter, 22 2010, 074203)
-        # This is of course, somewhat arbitrary, and will not work if really
-        # large steps are taken OR two barriers are very close in distance
-
-        if self.dist <= Distance(1.0, "ang"):
-            return True
         else:
-            return False
+            return cubic_poly.get_extremum(0.0, 1.0, get_max=True) is None
 
     def run_cineb_from_end_points(self) -> None:
         """
@@ -523,17 +504,17 @@ class EuclideanImagePair(BaseImagePair, ABC):
         return None
 
     @property
-    def _total_history(self) -> OptimiserHistory:
+    def _total_history(self) -> Iterator[CartesianCoordinates]:
         """
         The total history of the image-pair, including any CI run
         from the endpoints
         """
-        history = OptimiserHistory()
-        history.extend(self._left_history)
+        cineb_coords = []
         if self._cineb_coords is not None:
-            history.append(self._cineb_coords)
-        history.extend(self._right_history[::-1])  # reverse order
-        return history
+            cineb_coords.append(self._cineb_coords)
+        return itertools.chain(
+            self._left_history, cineb_coords, reversed(self._right_history)
+        )
 
     def print_geometries(
         self,
@@ -550,14 +531,20 @@ class EuclideanImagePair(BaseImagePair, ABC):
             logger.warning("Cannot write trajectory, not enough points")
             return None
 
-        self._left_history.print_geometries(
-            species=self._left_image, filename=init_trj_filename
+        print_geometries_from(
+            self._left_history,
+            species=self._left_image,
+            filename=init_trj_filename,
         )
-        self._right_history.print_geometries(
-            species=self._right_image, filename=final_trj_filename
+        print_geometries_from(
+            self._right_history,
+            species=self._right_image,
+            filename=final_trj_filename,
         )
-        self._total_history.print_geometries(
-            species=self._left_image, filename=total_trj_filename
+        print_geometries_from(
+            self._total_history,
+            species=self._left_image,
+            filename=total_trj_filename,
         )
 
         return None
@@ -592,7 +579,8 @@ class EuclideanImagePair(BaseImagePair, ABC):
             logger.warning("Cannot plot energies, not enough points")
             return None
 
-        if any(coord.e is None for coord in self._total_history):
+        all_energies = [coord.e for coord in self._total_history]
+        if any(en is None for en in all_energies):
             logger.error(
                 "One or more coordinates do not have associated"
                 " energies, unable to produce energy plot!"
@@ -602,23 +590,25 @@ class EuclideanImagePair(BaseImagePair, ABC):
         num_left_points = len(self._left_history)
         num_right_points = len(self._right_history)
         first_point = self._left_history[0]
-        points: List[Tuple[int, "Energy"]] = []  # list of tuples
+        points: list = []  # list of tuples
 
-        lowest_en = min(coord.e for coord in self._total_history)
+        lowest_en = min(all_energies)  # type: ignore
 
+        last_coord = None
         for idx, coord in enumerate(self._total_history):
-            en = coord.e - lowest_en
+            en = coord.e - lowest_en  # type: ignore
             if metric == Metrics.relative:
                 if idx == 0:
                     x = 0
                 else:
-                    x = np.linalg.norm(coord - self._total_history[idx - 1])
+                    x = np.linalg.norm(coord - last_coord)
                     x += points[idx - 1][0]  # add previous distance
             elif metric == Metrics.from_start:
                 x = np.linalg.norm(coord - first_point)
             else:  # metric == Metrics.index:
                 x = idx
             points.append((x, en))
+            last_coord = coord
 
         left_points = points[:num_left_points]
         if self._cineb_coords is not None:

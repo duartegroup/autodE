@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 
 from autode.input_output import (
@@ -75,6 +77,16 @@ def test_making_xyz_file():
 
     xyz_lines = open("test.xyz", "r").readlines()
     assert len(xyz_lines) == 4
+
+    # Simulate situations when the coordinates are super large (or small)
+    atoms[0].coord = (sys.float_info.min, sys.float_info.max, -1e6)
+    atoms_to_xyz_file(atoms, filename="test.xyz", append=False)
+
+    # check if the first atom is written correctly: the third line (index 2)
+    xyz_lines = open("test.xyz", "r").readlines()
+    assert len(xyz_lines[2].split()) == 4 and np.isclose(
+        float(xyz_lines[2].split()[-1]), -1e6
+    )
 
     # With append should add the next set of atoms to the same file
     atoms_to_xyz_file(atoms, filename="test.xyz", append=True)
