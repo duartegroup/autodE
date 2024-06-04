@@ -116,14 +116,19 @@ class CartesianWithConstraints(CartesianCoordinates):
         arr = super().__new__(
             cls, np.array(input_array).flatten(), units=units
         )
-        arr._lambda = None  # lagrangian multipliers
-        arr._constraints = None  # constraint functions
+        arr._lambda = np.array([])  # lagrangian multipliers
+        arr._constraints = []  # constraint functions
         return arr
 
     def __array_finalize__(self, obj) -> None:
         super().__array_finalize__(obj)
         for attr in ["_lambda", "_constraints"]:
             setattr(self, attr, getattr(obj, attr, None))
+
+    @property
+    def raw(self) -> np.ndarray:
+        """Raw numpy array of these coordinates including the multipliers"""
+        return np.array(self.tolist() + self._lambda.tolist(), copy=True)
 
     def set_constraints(self, constraints) -> None:
         """
@@ -142,8 +147,7 @@ class CartesianWithConstraints(CartesianCoordinates):
     def iadd(self, value: np.ndarray) -> OptCoordinates:
         """Addition of an array to this set of coordinates"""
         # separate the coordinates and multipliers
-        m = len(self._constraints)
-        n = self.shape[0]
+        n, m = self.shape[0], len(self._constraints)
         assert isinstance(value, np.ndarray)
         assert value.shape == (m + n,)
         self._lambda += value[-m:]
@@ -154,13 +158,11 @@ class CartesianWithConstraints(CartesianCoordinates):
         """Gradient of the energy, with constraint terms"""
         # jacobian of the constraints
         A_mat = np.zeros(shape=(self.shape[0], len(self._constraints)))
-        for idx, constr in enumerate(self._constraints):
-            A_mat[:, idx] = constr.derivative(np.array(self))
+        for idx, c in enumerate(self._constraints):
+            A_mat[:, idx] = c.derivative(np.array(self))
         g_constr = self._g - np.matmul(A_mat, self._lambda).flatten()
 
-        c_vals = [
-            -constr.delta(np.array(self)) for constr in self._constraints
-        ]
+        c_vals = [-c.delta(np.array(self)) for c in self._constraints]
         dL_dx = np.array(g_constr.tolist() + c_vals)
         return dL_dx
 
@@ -175,11 +177,9 @@ class CartesianWithConstraints(CartesianCoordinates):
         n, m = self.shape[0], len(self._constraints)
         A_mat = np.zeros(shape=(n, m))
         W_mat = np.array(self._h)
-        for idx, constr in enumerate(self._constraints):
-            A_mat[:, idx] = constr.derivative(np.array(self))
-            W_mat -= self._lambda[idx] * constr.second_derivative(
-                np.array(self)
-            )
+        for idx, c in enumerate(self._constraints):
+            A_mat[:, idx] = c.derivative(np.array(self))
+            W_mat -= self._lambda[idx] * c.second_derivative(np.array(self))
         # Hessian of the Lagrangian
         d2L_dx2 = np.zeros(shape=(n + m, n + m))
         d2L_dx2[:n, :n] = W_mat
