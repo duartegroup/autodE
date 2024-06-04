@@ -162,14 +162,14 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             arr: Cartesian Hessian matrix
         """
         if arr is None:
-            self._x.h, self.h = None, None
+            self._x.h, self._h = None, None
 
         else:
             self._x.h = arr
 
             # NOTE: This is not the full transformation as noted in
             # 10.1063/1.471864 only an approximate Hessian is required(?)
-            self.h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+            self._h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
 
         return None
 
@@ -217,6 +217,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         success = False
+        rms_s = np.inf
         for i in range(1, _max_back_transform_iterations + 1):
             try:
                 x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
@@ -245,7 +246,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         else:
             logger.warning(
                 f"Failed to transform in {i} cycles. "
-                f"Final RMS(s) = {rms_s:.8f}"
+                + f"Final RMS(s) = {rms_s:.8f}"
             )
             x_k = x_1
             if not self.allow_unconverged_back_transform:

@@ -44,6 +44,8 @@ class CRFOptimiser(RFOptimiser):
         """Partitioned rational function step"""
         assert self._coords is not None, "Must have coords to take a step"
         assert self._coords.g is not None, "Must have a gradient"
+
+        # update the Hessian
         if self.iteration != 0:
             self._coords.update_h_from_old_h(
                 self._history.penultimate, self._hessian_update_types
@@ -59,6 +61,9 @@ class CRFOptimiser(RFOptimiser):
             f"Satisfied {n_satisfied_constraints} constraints. "
             f"Active space is {len(idxs)} dimensional"
         )
+
+        b, u = np.linalg.eigh(self._coords.h)
+        constr_idxs = self._get_constraint_idxs_from_eigvecs(u)
 
         b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])
         logger.info(
@@ -94,6 +99,31 @@ class CRFOptimiser(RFOptimiser):
         c = self._take_step_within_trust_radius(delta_s[:n])
         self._coords.update_lagrange_multipliers(c * delta_s[n:])
         return None
+
+    def _get_constraint_idxs_from_eigvecs(self, u: np.ndarray) -> list:
+        """
+        Identify which eigenvectors of the Hessian represent the constraint
+        mode, since they might not always be in the expected order
+
+        Args:
+            u (np.ndarray): The eigenvector matrix with columns representing
+                            each eigenvector
+
+        Returns:
+            (list[int]): List of indices
+        """
+        assert self._coords is not None
+        m = self._coords.n_constraints
+        if m == 0:
+            return []
+
+        sum_weights = []
+        for idx in range(u.shape[1]):
+            # lagrange multiplier weights
+            weights = u[:, idx].flatten()[-m:]
+            sum_weights.append(np.sum(weights))
+
+        return np.argmax(sum_weights)[:m]
 
     @property
     def _g_norm(self) -> GradientRMS:
