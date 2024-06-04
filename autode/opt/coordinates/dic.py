@@ -292,7 +292,7 @@ class DICWithConstraints(DIC):
 
         arr = super().__new__(cls, input_array)
 
-        arr._lambda = None  # Additional lagrangian multipliers
+        arr._lambda = np.array([])  # Additional lagrangian multipliers
         return arr
 
     def __array_finalize__(self, obj: "OptCoordinates") -> None:
@@ -301,11 +301,28 @@ class DICWithConstraints(DIC):
         self._lambda = getattr(obj, "_lambda", None)
         return
 
-    def zero_lagrangian_multipliers(self) -> None:
-        r"""Zero all \lambda_i"""
+    @classmethod
+    def from_cartesian(
+        cls,
+        x: "CartesianCoordinates",
+        primitives: Optional[PIC] = None,
+    ) -> "DICWithConstraints":
+        """
+        Generate delocalised internal coordinates with constraints
+        with the Lagrangian multipliers initialised as zeroes
 
-        self._lambda = np.zeros(shape=(self.n_constraints,))
-        return None
+        Args:
+            x: Cartesian coordinates
+
+            primitives: Primitive internal coordinates. If undefined then use
+                        all pairwise inverse distances
+
+        Returns:
+            (DICWithConstraints): DIC with constraints
+        """
+        dic = super().from_cartesian(x, primitives)
+        dic._lambda = np.zeros(shape=(dic.n_constraints,))
+        return dic
 
     @property
     def raw(self) -> np.ndarray:
@@ -415,6 +432,34 @@ class DICWithConstraints(DIC):
                 self.h[n - m + i, n + i] = self.h[n + i, n - m + i] = -1.0
 
         return None
+
+    @property
+    def h(self):
+        """
+        The Hessian matrix, containing Lagrangian constraint terms
+
+        Returns:
+            (np.ndarray):
+        """
+        n, m = len(self), self.n_constraints
+        arr = np.zeros(shape=(n + m, n + m))
+
+        # Upper left corner is d^2L/ds_i ds_j
+        arr[:n, :n] = self._h
+
+        # and the d^2L/ds_i dλ_i = -dC_i/ds_i = -1
+        #         d^2L/dλ_i dλ_j = 0
+        for i in range(m):
+            arr[n + i, :] = arr[:, n + i] = 0.0
+
+        for i in range(m):
+            arr[n - m + i, n + i] = arr[n + i, n - m + i] = -1.0
+
+        return arr
+
+    @h.setter
+    def h(self, value):
+        raise RuntimeError("Cannot set hessian when constraints are enabled")
 
     def h_or_h_inv_has_correct_shape(self, arr: Optional[np.ndarray]):
         """Does a Hessian or its inverse have the correct shape?"""
