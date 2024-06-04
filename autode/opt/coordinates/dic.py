@@ -145,11 +145,11 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             arr: Cartesian gradient array
         """
         if arr is None:
-            self._x.g, self.g = None, None
+            self._x.g, self._g = None, None
 
         else:
             self._x.g = arr.flatten()
-            self.g = np.matmul(self.B_T_inv.T, self._x.g)
+            self._g = np.matmul(self.B_T_inv.T, self._x.g)
 
         return None
 
@@ -355,41 +355,30 @@ class DICWithConstraints(DIC):
 
         return [i for i in range(n + m) if i not in self.inactive_indexes]
 
-    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
-        r"""
-        Updates the gradient from a calculated Cartesian gradient, where
-        the gradient is that of the Lagrangian. Includes dL/d_λi terms where
-        λi is the i-th lagrangian multiplier.
-
-        -----------------------------------------------------------------------
-        Arguments:
-            arr: Cartesian gradient array
+    @property
+    def g(self):
         """
+        Gradient of the energy, contains the Lagrangian dL/d_λi terms where
+        λi is the i-th lagrangian multiplier.
+        """
+        n, m = len(self), self.n_constraints
+        arr = np.zeros(shape=(n + m,))
+        arr[:n] = self._g
 
-        if arr is None:
-            self._x.g, self.g = None, None
-            return
-
-        assert self._lambda is not None, "Must have λ defined"
-
-        self._x.g = arr.flatten()
-        n = len(self)
-        m = self.n_constraints
-
-        self.g = np.zeros(shape=(n + m,))
-
-        # Set the first part dL/ds_i
-        self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
-
+        # constrained gradient terms
         for i in range(m):
-            self.g[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
+            arr[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
 
-        # and the final dL/dλ_i
+        # final dL/dλ_i
         c = self.constrained_primitives
         for i in range(m):
-            self.g[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
+            arr[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
+        return
 
-        return None
+    @g.setter
+    def g(self, value):
+        """Setting g is not allowed with constraints"""
+        raise RuntimeError("Cannot set gradient with constraints enabled")
 
     def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
