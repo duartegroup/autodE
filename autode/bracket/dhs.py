@@ -11,7 +11,8 @@ from enum import Enum
 
 from autode.values import Distance, Angle, GradientRMS, PotentialEnergy
 from autode.bracket.imagepair import EuclideanImagePair
-from autode.opt.coordinates import OptCoordinates, CartesianCoordinates
+from autode.opt.coordinates import CartesianCoordinates
+from autode.opt.optimisers.utils import TruncatedTaylor
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
@@ -21,50 +22,6 @@ from autode.log import logger
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
-
-
-class TruncatedTaylor:
-    """The truncated taylor surface from current grad and hessian"""
-
-    def __init__(
-        self,
-        centre: Union[OptCoordinates, np.ndarray],
-        grad: np.ndarray,
-        hess: np.ndarray,
-    ):
-        """
-        Second-order Taylor expansion around a point
-
-        Args:
-            centre (OptCoordinates|np.ndarray): The coordinate point
-            grad (np.ndarray): Gradient at that point
-            hess (np.ndarray): Hessian at that point
-        """
-        self.centre = centre
-        if hasattr(centre, "e") and centre.e is not None:
-            self.e = centre.e
-        else:
-            # the energy can be relative and need not be absolute
-            self.e = 0.0
-        self.grad = grad
-        self.hess = hess
-        n_atoms = grad.shape[0]
-        assert hess.shape == (n_atoms, n_atoms)
-
-    def value(self, coords: np.ndarray) -> float:
-        """Energy (or relative energy if point did not have energy)"""
-        # E = E(0) + g^T . dx + 0.5 * dx^T. H. dx
-        dx = (coords - self.centre).flatten()
-        new_e = self.e + np.dot(self.grad, dx)
-        new_e += 0.5 * np.linalg.multi_dot((dx, self.hess, dx))
-        return new_e
-
-    def gradient(self, coords: np.ndarray) -> np.ndarray:
-        """Gradient at supplied coordinate"""
-        # g = g(0) + H . dx
-        dx = (coords - self.centre).flatten()
-        new_g = self.grad + np.matmul(self.hess, dx)
-        return new_g
 
 
 class DistanceConstrainedOptimiser(RFOptimiser):
@@ -500,8 +457,8 @@ class DHSImagePair(EuclideanImagePair):
         self, side: ImageSide, step_size: float
     ) -> np.ndarray:
         """
-        Obtain the DHS step on the specified side, with the specified step
-        size
+        Obtain the DHS extrapolation step on the specified side,
+        with the specified step size
 
         Args:
             side (ImageSide): left or right
@@ -531,33 +488,37 @@ class DHS(BaseBracketMethod):
         self,
         initial_species: "Species",
         final_species: "Species",
-        step_size: Union[Distance, float] = Distance(0.1, "ang"),
+        large_step: Union[Distance, float] = Distance(0.2, "ang"),
+        small_step: Union[Distance, float] = Distance(0.05, "ang"),
+        switch_thresh: Union[Distance, float] = Distance(1.5, "ang"),
         **kwargs,
     ):
         """
-        Dewar-Healy-Stewart method to find transition states.
-
-        1) The step size is 0.1 which is quite conservative, so may want
-        to increase that if convergence is slow; 2) The distance tolerance
-        should not be lowered any more than 1.0 Angstrom as DHS is unstable
-        when the distance is low, and there is a tendency for one image to
-        jump over the barrier
+        Dewar-Healy-Stewart method to find transition states. The distance
+        tolerance convergence criteria should not be much lower than 0.5 Angstrom
+        as DHS is unstable when the distance is low, and there is a tendency for
+        one image to jumpy over the barrier.
 
         Args:
             initial_species: The "reactant" species
 
             final_species: The "product" species
 
-            step_size: The size of the DHS step taken along
-                        the linear path between reactant and
-                        product in Angstroms
+            large_step: The size of the DHS step when distance between the
+                        images is larger than switch_thresh (Angstrom)
+
+            small_step: The size of the DHS step when distance between the
+                        images is smaller than swtich_thresh (Angstrom)
+
+            switch_thresh: When distance between the two images is less than
+                        this cutoff, smaller DHS extrapolation steps are taken
 
         Keyword Args:
 
             maxiter: Maximum number of en/grad evaluations
 
             dist_tol: The distance tolerance at which DHS will
-                      stop, values less than 1.0 Angstrom are not
+                      stop, values less than 0.5 Angstrom are not
                       recommended.
 
             gtol: Gradient tolerance for the optimiser micro-iterations
@@ -577,18 +538,22 @@ class DHS(BaseBracketMethod):
         self._method: Optional[Method] = None
         self._n_cores: Optional[int] = None
 
-        self._step_size = Distance(abs(step_size), "ang")
-        if self._step_size > self.imgpair.dist:
+        self._large_step = Distance(abs(large_step), "ang")
+        self._small_step = Distance(abs(small_step), "ang")
+        self._sw_thresh = Distance(abs(switch_thresh), "ang")
+        assert self._small_step < self._large_step
+
+        self._step_size: Optional[Distance] = None
+        if self._large_step > self.imgpair.dist:
             logger.warning(
-                f"Step size ({self._step_size:.3f} Å) for {self._name}"
+                f"Step size ({self._large_step:.3f} Å) for {self._name}"
                 f" is larger than the starting Euclidean distance between"
                 f" images ({self.imgpair.dist:.3f} Å). This calculation"
                 f" will likely run into errors."
             )
 
-        # NOTE: In DHS the micro-iterations are done separately, in
-        # an optimiser, so to keep track of the actual number of
-        # en/grad calls, this local variable is used
+        # NOTE: In DHS the micro-iterations are done separately in
+        # an optimiser, so keep track with local variable
         self._current_microiters: int = 0
 
     def _initialise_run(self) -> None:
@@ -606,6 +571,12 @@ class DHS(BaseBracketMethod):
         """
         assert self._method is not None, "Must have a set method"
         assert self.imgpair.left_coords.e and self.imgpair.right_coords.e
+
+        if self.imgpair.dist > self._sw_thresh:
+            self._step_size = self._large_step
+        else:
+            self._step_size = self._small_step
+        opt_trust = min(self._step_size, Distance(0.1, "ang"))
 
         if self.imgpair.left_coords.e < self.imgpair.right_coords.e:
             side = ImageSide.left
@@ -628,6 +599,7 @@ class DHS(BaseBracketMethod):
             maxiter=curr_maxiter,
             gtol=self._gtol,
             etol=1.0e-3,  # seems like a reasonable etol
+            init_trust=opt_trust,
             pivot_point=pivot,
             old_coords_read_hess=old_coords,
         )
@@ -648,6 +620,7 @@ class DHS(BaseBracketMethod):
 
         # put results back into imagepair
         self.imgpair.put_coord_by_side(opt.final_coordinates, side)  # type: ignore
+        opt.clean_up()
         return None
 
     def _calculate(
@@ -699,6 +672,7 @@ class DHS(BaseBracketMethod):
         Returns:
             (CartesianCoordinates): New predicted coordinates for that side
         """
+        assert self._step_size is not None
         # take a DHS step of the size given
         dhs_step = self.imgpair.get_dhs_step_by_side(side, self._step_size)
 
@@ -707,7 +681,7 @@ class DHS(BaseBracketMethod):
 
         logger.info(
             f"DHS step on {side} image: taking a step of"
-            f" size {self._step_size:.4f}"
+            f" size {np.linalg.norm(dhs_step):.4f} Å"
         )
         return new_coord
 
@@ -754,6 +728,7 @@ class DHSGS(DHS):
             (CartesianCoordinates): New predicted coordinates for that side
         """
         assert self.imgpair is not None, "Must have an image pair"
+        assert self._step_size is not None
 
         dhs_step = self.imgpair.get_dhs_step_by_side(side, self._step_size)
         gs_step = self.imgpair.get_last_step_by_side(side)
@@ -764,7 +739,7 @@ class DHSGS(DHS):
             dhs_step = dhs_step / (1 - self._gs_mix)
         else:
             # rescale GS step as well so that one vector doesn't dominate
-            gs_step *= self._step_size / np.linalg.norm(gs_step)
+            gs_step *= np.linalg.norm(dhs_step) / np.linalg.norm(gs_step)
 
         old_coord = self.imgpair.get_coord_by_side(side)
         new_coord = (
