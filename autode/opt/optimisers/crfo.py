@@ -65,40 +65,75 @@ class CRFOptimiser(RFOptimiser):
         b, u = np.linalg.eigh(self._coords.h)
         constr_idxs = self._get_constraint_idxs_from_eigvecs(u)
 
-        b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])
         logger.info(
             f"∇^2L has {sum(lmda < 0 for lmda in b)} negative "
-            f"eigenvalue(s). Should have {m - n_satisfied_constraints}"
+            f"eigenvalue(s). Should have {m}"
         )
 
-        logger.info("Calculating transformed gradient vector")
-        f = u.T.dot(self._coords.g[idxs])
+        logger.debug("Calculating transformed gradient vector")
+        f = u.T.dot(self._coords.g)
 
-        lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
-
-        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_n={lambda_n:.8f}")
-
-        # Create the step along the n active DICs and m lagrangian multipliers
-        delta_s_active = np.zeros(shape=(len(idxs),))
-
-        o = m - n_satisfied_constraints
-        logger.info(f"Maximising {o} modes")
-
-        for i in range(o):
-            delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
-
-        for j in range(n - n_satisfied_constraints):
-            delta_s_active -= f[o + j] * u[:, o + j] / (b[o + j] - lambda_n)
+        delta_s = self._get_rfo_step(b, u, f, constr_idxs)
 
         # Set all the non-active components of the step to zero
-        delta_s = np.zeros(shape=(n + m,))
-        delta_s[idxs] = delta_s_active
+        delta_s[self._coords.inactive_indexes] = 0.0
 
         c = self._take_step_within_trust_radius(delta_s[:n])
         self._coords.update_lagrange_multipliers(c * delta_s[n:])
         return None
+
+    @staticmethod
+    def _get_rfo_step(
+        b: np.ndarray, u: np.ndarray, f: np.ndarray, uphill_idxs: list
+    ):
+        """
+        Get the partitioned RFO step, uphill along the indices specified
+        and downhill along all other indices
+
+        Args:
+            b: Eigenvalues of the Hessian
+            u: Eigenvectors of the Hessian
+            f: Projected gradient along eigenvectors
+            uphill_idxs: Indices of eigenvectors along which to take
+                    uphill step
+
+        Returns:
+            (np.ndarray): The step vector
+        """
+        m = len(uphill_idxs)
+        n = len(b) - len(uphill_idxs)
+        delta_s = np.zeros(shape=(m + n,))
+
+        b_max = b[uphill_idxs]
+        u_max = u[:, uphill_idxs]
+        f_max = f[uphill_idxs]
+
+        b_min = np.delete(b, uphill_idxs)
+        u_min = np.delete(u, uphill_idxs, axis=1)
+        f_min = np.delete(f, uphill_idxs)
+
+        # form the augmented Hessian for downhill step
+        aug_h_min = np.zeros(shape=(n + 1, n + 1))
+        aug_h_min[:n, :n] = np.diag(b_min)
+        aug_h_min[:-1, -1] = aug_h_min[-1, :-1] = f_min
+        lambda_n = np.linalg.eigvalsh(aug_h_min)[0]
+        logger.info(f"Calculated λ_p=+{lambda_n:.8f}")
+        for i in range(n):
+            delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
+
+        if m == 0:
+            return delta_s
+
+        # form the augmented Hessian for uphill step
+        aug_h_max = np.zeros(m + 1, m + 1)
+        aug_h_max[:m, :m] = np.diag(b_max)
+        aug_h_max[:-1, -1] = aug_h_max[-1, :-1] = f_max
+        lambda_p = np.linalg.eigvalsh(aug_h_max)[-1]
+        logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
+        for i in range(m):
+            delta_s -= f_max[i] * u_max[:, i] / (b_max[i] - lambda_p)
+
+        return delta_s
 
     def _get_constraint_idxs_from_eigvecs(self, u: np.ndarray) -> list:
         """
@@ -161,7 +196,6 @@ class CRFOptimiser(RFOptimiser):
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords, primitives=primitives
         )
-        self._coords.zero_lagrangian_multipliers()
         return None
 
     def _lambda_p_from_eigvals_and_gradient(
