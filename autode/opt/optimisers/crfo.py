@@ -6,7 +6,7 @@ Notation follows:
 [2] J. Baker, J. Comput. Chem., 13, 240 Ž1992
 """
 import numpy as np
-from typing import Union
+from typing import Union, List
 
 from autode.log import logger
 from autode.values import GradientRMS, Distance
@@ -134,7 +134,7 @@ class CRFOptimiser(RFOptimiser):
 
         return delta_s
 
-    def _get_constraint_idxs_from_eigvecs(self, u: np.ndarray) -> list:
+    def _get_constraint_idxs_from_eigvecs(self, u: np.ndarray) -> List[int]:
         """
         Identify which eigenvectors of the Hessian represent the constraint
         mode, since they might not always be in the expected order
