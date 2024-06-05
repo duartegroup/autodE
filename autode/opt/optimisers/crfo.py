@@ -55,11 +55,11 @@ class CRFOptimiser(RFOptimiser):
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
-        idxs = self._coords.active_indexes
-        n_satisfied_constraints = (n + m - len(idxs)) // 2
+        n_active = len(self._coords.active_indexes) // 2
+        n_satisfied = len(self._coords.inactive_indexes) // 2
         logger.info(
-            f"Satisfied {n_satisfied_constraints} constraints. "
-            f"Active space is {len(idxs)} dimensional"
+            f"Satisfied {n_satisfied} constraints. "
+            f"Active space is {n_active} dimensional"
         )
 
         b, u = np.linalg.eigh(self._coords.h)
