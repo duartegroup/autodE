@@ -232,7 +232,7 @@ class OptCoordinates(ValueArray, ABC):
         for update_type in hessian_update_types:
             updater = update_type(
                 h=old_coords._h,
-                s=self.raw - old_coords.raw,
+                s=np.array(self) - np.array(old_coords),
                 y=self._g - old_coords._g,
                 subspace_idxs=old_coords.indexes,
             )

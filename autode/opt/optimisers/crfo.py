@@ -78,8 +78,7 @@ class CRFOptimiser(RFOptimiser):
         # Set all the non-active components of the step to zero
         delta_s[self._coords.inactive_indexes] = 0.0
 
-        c = self._take_step_within_trust_radius(delta_s[:n])
-        self._coords.update_lagrange_multipliers(c * delta_s[n:])
+        self._take_step_within_trust_radius(delta_s)
         return None
 
     @staticmethod
@@ -125,7 +124,7 @@ class CRFOptimiser(RFOptimiser):
             return delta_s
 
         # form the augmented Hessian for uphill step
-        aug_h_max = np.zeros(m + 1, m + 1)
+        aug_h_max = np.zeros(shape=(m + 1, m + 1))
         aug_h_max[:m, :m] = np.diag(b_max)
         aug_h_max[:-1, -1] = aug_h_max[-1, :-1] = f_max
         lambda_p = np.linalg.eigvalsh(aug_h_max)[-1]
@@ -156,9 +155,9 @@ class CRFOptimiser(RFOptimiser):
         for idx in range(u.shape[1]):
             # lagrange multiplier weights
             weights = u[:, idx].flatten()[-m:]
-            sum_weights.append(np.sum(weights))
+            sum_weights.append(np.sum(np.abs(weights)))
 
-        return np.argmax(sum_weights)[:m]
+        return list(np.argsort(sum_weights)[-m:])
 
     @property
     def _g_norm(self) -> GradientRMS:

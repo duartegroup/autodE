@@ -373,12 +373,29 @@ class DICWithConstraints(DIC):
 
         return [i for i in range(n + m) if i not in self.inactive_indexes]
 
+    def iadd(self, value: np.ndarray) -> "OptCoordinates":
+        """
+        Add a step in internal coordinates (along with Lagrange multipliers)
+        to this set of coordinates, and update the Cartesian coordinates
+
+        Args:
+            value: Difference between current and new DICs, and the multipliers
+        """
+        # separate the coordinates and the lagrange multipliers
+        delta_lambda = value[-self.n_constraints :]
+        delta_s = value[: -self.n_constraints]
+        self._lambda += delta_lambda
+        return super().iadd(delta_s)
+
     @property
     def g(self):
         """
         Gradient of the energy, contains the Lagrangian dL/d_λi terms where
         λi is the i-th lagrangian multiplier.
         """
+        if self._g is None:
+            return None
+
         n, m = len(self), self.n_constraints
         arr = np.zeros(shape=(n + m,))
         arr[:n] = self._g
@@ -391,48 +408,13 @@ class DICWithConstraints(DIC):
         c = self.constrained_primitives
         for i in range(m):
             arr[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
-        return
+
+        return arr
 
     @g.setter
     def g(self, value):
         """Setting g is not allowed with constraints"""
         raise RuntimeError("Cannot set gradient with constraints enabled")
-
-    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
-        """
-        Update the DIC Hessian matrix from a Cartesian one
-
-        -----------------------------------------------------------------------
-        Arguments:
-            arr: Cartesian Hessian matrix
-        """
-
-        if arr is None:
-            self._x.h, self.h = None, None
-
-        else:
-            self._x.h = arr
-            n = len(self)
-            m = self.n_constraints
-
-            self.h = np.zeros(shape=(n + m, n + m))
-
-            # Fill in the upper left corner with d^2L/ds_i ds_j
-            # where the second derivative of the constraint is zero
-            self.h[:n, :n] = np.linalg.multi_dot(
-                (self.B_T_inv.T, arr, self.B_T_inv)
-            )
-
-            # and the d^2L/ds_i dλ_i = -dC_i/ds_i = -1
-            #         d^2L/dλ_i dλ_j = 0
-
-            for i in range(m):
-                self.h[n + i, :] = self.h[:, n + i] = 0.0
-
-            for i in range(m):
-                self.h[n - m + i, n + i] = self.h[n + i, n - m + i] = -1.0
-
-        return None
 
     @property
     def h(self):
@@ -442,6 +424,9 @@ class DICWithConstraints(DIC):
         Returns:
             (np.ndarray):
         """
+        if self._h is None:
+            return None
+
         n, m = len(self), self.n_constraints
         arr = np.zeros(shape=(n + m, n + m))
 
@@ -461,17 +446,6 @@ class DICWithConstraints(DIC):
     @h.setter
     def h(self, value):
         raise RuntimeError("Cannot set hessian when constraints are enabled")
-
-    def h_or_h_inv_has_correct_shape(self, arr: Optional[np.ndarray]):
-        """Does a Hessian or its inverse have the correct shape?"""
-        if arr is None:
-            return True  # None is always valid
-
-        n_rows, n_cols = arr.shape
-        return (
-            arr.ndim == 2
-            and n_rows == n_cols == len(self) + self.n_constraints
-        )
 
     def update_lagrange_multipliers(self, arr: np.ndarray) -> None:
         """Update the lagrange multipliers by adding a set of values"""
