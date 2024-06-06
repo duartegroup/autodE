@@ -381,6 +381,7 @@ class DICWithConstraints(DIC):
         Args:
             value: Difference between current and new DICs, and the multipliers
         """
+        assert len(value) == len(self) + self.n_constraints
         # separate the coordinates and the lagrange multipliers
         if self.n_constraints > 0:
             delta_lambda = value[-self.n_constraints :]

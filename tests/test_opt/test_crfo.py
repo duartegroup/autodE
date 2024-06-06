@@ -62,7 +62,6 @@ def test_coordinate_setup():
 
     # Initial lagrangian multiplier is close to zero, which is the last
     # component in the optimisation space
-    opt._coords.zero_lagrangian_multipliers()
     assert np.isclose(opt._coords._lambda[0], 0.0)
 
 
@@ -70,14 +69,14 @@ def crfo_water_coords():
     return crfo_coords(molecule=water_molecule())
 
 
-def test_setting_invalid_lagrange_multipliers():
+def test_adding_invalid_step():
     s = crfo_water_coords()
-    # the vector of lagrange multipliers must be of length one to be
-    # appropriate for a water molecule with a single constrained distance
-    invalid_multipliers = np.ones(shape=(4,))
+    # the added step must be the length of the coordinates plus
+    # one lagragne multiplier
+    invalid_step = np.ones(shape=(5,))
 
-    with pytest.raises(ValueError):
-        s.update_lagrange_multipliers(invalid_multipliers)
+    with pytest.raises(AssertionError):
+        s += invalid_step
 
 
 def test_simple_gradient_update():
@@ -182,7 +181,7 @@ def test_step_c2h3():
     coords = crfo_coords(m)
 
     # Should be able to add an arbitrary vector to the coordinates
-    coords += np.random.uniform(-0.1, 0.1, size=coords.shape)
+    coords += np.random.uniform(-0.1, 0.1, size=coords.raw.shape)
 
 
 def test_baker1997_example():
@@ -263,7 +262,7 @@ def test_xtb_opt_with_two_distance_constraint():
     opt._initialise_run()
 
     # Moving the angle should preserve the distances
-    s = opt._coords + np.array([0.1, 0.0, 0.0])
+    s = opt._coords + np.array([0.1, 0.0, 0.0, 0.0, 0.0])  # append multiplier
     x = s.to("cart").reshape((3, 3))
     for i, j in ((0, 1), (0, 2)):
         assert np.isclose(
