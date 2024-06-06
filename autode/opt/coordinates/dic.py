@@ -382,9 +382,13 @@ class DICWithConstraints(DIC):
             value: Difference between current and new DICs, and the multipliers
         """
         # separate the coordinates and the lagrange multipliers
-        delta_lambda = value[-self.n_constraints :]
-        delta_s = value[: -self.n_constraints]
-        self._lambda += delta_lambda
+        if self.n_constraints > 0:
+            delta_lambda = value[-self.n_constraints :]
+            self._lambda += delta_lambda
+            delta_s = value[: -self.n_constraints]
+        else:
+            delta_s = value
+
         return super().iadd(delta_s)
 
     @property

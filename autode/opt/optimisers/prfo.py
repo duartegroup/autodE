@@ -67,6 +67,7 @@ class PRFOptimiser(CRFOptimiser):
         )
 
         imag_idx = self._get_imag_mode_idx(u)
+        logger.info(f"Following mode {imag_idx} uphill")
         delta_s = self._get_rfo_step(b, u, f, [imag_idx])
         self._last_eigvec = u[:, imag_idx].flatten()
         self._take_step_within_trust_radius(delta_s)
@@ -95,7 +96,9 @@ class PRFOptimiser(CRFOptimiser):
                 np.abs(np.dot(u[:, i].flatten(), self._last_eigvec))
             )
 
-        return np.argmax(overlaps)
+        mode_idx = np.argmax(overlaps)
+        logger.info(f"Overlap with previous TS mode: {overlaps[mode_idx]}")
+        return mode_idx
 
     def _initialise_run(self) -> None:
         """
