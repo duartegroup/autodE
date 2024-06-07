@@ -202,7 +202,7 @@ class CRFOptimiser(RFOptimiser):
 class CartesianCRFOptimiser(CRFOptimiser):
     """Constrained optimisation in Cartesian coordinates"""
 
-    def _initialise_run(self) -> None:
+    def _build_internal_coordinates(self) -> None:
         if self._species is None:
             raise RuntimeError(
                 "Cannot set initial coordinates. No species set"

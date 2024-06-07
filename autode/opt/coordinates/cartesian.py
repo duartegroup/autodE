@@ -46,7 +46,7 @@ class CartesianCoordinates(OptCoordinates):
         Arguments:
             arr: Gradient array
         """
-        self.g = None if arr is None else np.array(arr).flatten()
+        self._g = None if arr is None else np.array(arr).flatten()
 
     def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
@@ -58,7 +58,7 @@ class CartesianCoordinates(OptCoordinates):
         Arguments:
             arr: Hessian matrix
         """
-        self.h = None if arr is None else np.array(arr)
+        self._h = None if arr is None else np.array(arr)
 
     def iadd(self, value: np.ndarray) -> OptCoordinates:
         return np.ndarray.__iadd__(self, value)
