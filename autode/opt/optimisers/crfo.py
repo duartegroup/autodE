@@ -117,7 +117,7 @@ class CRFOptimiser(RFOptimiser):
         aug_h_min[:n, :n] = np.diag(b_min)
         aug_h_min[:-1, -1] = aug_h_min[-1, :-1] = f_min
         lambda_n = np.linalg.eigvalsh(aug_h_min)[0]
-        logger.info(f"Calculated λ_p=+{lambda_n:.8f}")
+        logger.info(f"Calculated λ_p={lambda_n:.8f}")
         for i in range(n):
             delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
 
@@ -129,7 +129,7 @@ class CRFOptimiser(RFOptimiser):
         aug_h_max[:m, :m] = np.diag(b_max)
         aug_h_max[:-1, -1] = aug_h_max[-1, :-1] = f_max
         lambda_p = np.linalg.eigvalsh(aug_h_max)[-1]
-        logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
+        logger.info(f"Calculated λ_p={lambda_p:.8f}")
         for i in range(m):
             delta_s -= f_max[i] * u_max[:, i] / (b_max[i] - lambda_p)
 
@@ -197,42 +197,6 @@ class CRFOptimiser(RFOptimiser):
             x=cartesian_coords, primitives=primitives
         )
         return None
-
-    def _lambda_p_from_eigvals_and_gradient(
-        self, b: np.ndarray, f: np.ndarray
-    ) -> float:
-        """
-        Calculate the positive eigenvalue of the augmented hessian from
-        the eigenvalues of the full lagrangian Hessian matrix (b) and the
-        gradient in the Hessian eigenbasis
-        """
-        assert self._coords is not None
-
-        m = self._coords.n_constraints - self._coords.n_satisfied_constraints
-
-        aug_h = np.zeros(shape=(m + 1, m + 1))
-        aug_h[:m, :m] = np.diag(b[:m])
-        aug_h[:-1, -1] = aug_h[-1, :-1] = f[:m]
-
-        eigenvalues = np.linalg.eigvalsh(aug_h)
-        return eigenvalues[-1]
-
-    def _lambda_n_from_eigvals_and_gradient(
-        self, b: np.ndarray, f: np.ndarray
-    ) -> float:
-        """Like lambda_p but for the negative component"""
-        assert self._coords is not None
-
-        n_satisfied = self._coords.n_satisfied_constraints
-        m = self._coords.n_constraints - n_satisfied
-        n = len(self._coords) - n_satisfied
-
-        aug_h = np.zeros(shape=(n + 1, n + 1))
-        aug_h[:n, :n] = np.diag(b[m:])
-        aug_h[-1, :n] = aug_h[:n, -1] = f[m:]
-
-        eigenvalues = np.linalg.eigvalsh(aug_h)
-        return eigenvalues[0]
 
 
 class CartesianCRFOptimiser(CRFOptimiser):
