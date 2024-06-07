@@ -120,7 +120,7 @@ def test_primitive_projection_discard():
     assert len(s) == 3
 
     # Shift on the first couple of DIC but nothing on the final one
-    s += np.array([0.03, -0.07, 0.0])
+    s += np.array([0.03, -0.07, 0.0, 0.0])
 
     def r(_x):
         return np.linalg.norm(_x[:3] - _x[3:6])

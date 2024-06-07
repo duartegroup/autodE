@@ -30,6 +30,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
     PrimitiveDihedralAngle,
+    PrimitiveImproperDihedral,
     PrimitiveLinearAngle,
     PrimitiveDummyLinearAngle,
     LinearBendType,
@@ -844,7 +845,7 @@ def test_pic_generation_linear_angle_ref():
     assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
     assert PrimitiveLinearAngle(4, 3, 2, 8, LinearBendType.BEND) in pic
     # for C-Fe-C, only one out-of-plane dihedral should be present
-    assert PrimitiveDihedralAngle(3, 5, 2, 1) in pic
+    assert PrimitiveImproperDihedral(3, 5, 2, 1) in pic
     assert sum(isinstance(ic, PrimitiveDihedralAngle) for ic in pic) == 1
     # check degrees of freedom = 3N - 6
     _ = pic(m.coordinates.flatten())
