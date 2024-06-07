@@ -11,6 +11,8 @@ from typing import Union, List
 from autode.log import logger
 from autode.values import GradientRMS, Distance
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
+from autode.opt.coordinates.cartesian import CartesianWithConstraints
+from autode.opt.coordinates.primitives import ConstrainedPrimitiveDistance
 from autode.opt.coordinates.internals import AnyPIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import (
@@ -56,9 +58,8 @@ class CRFOptimiser(RFOptimiser):
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
         n_active = len(self._coords.active_indexes) // 2
-        n_satisfied = len(self._coords.inactive_indexes) // 2
         logger.info(
-            f"Satisfied {n_satisfied} constraints. "
+            f"Satisfied {self._coords.n_satisfied_constraints} constraints. "
             f"Active space is {n_active} dimensional"
         )
 
@@ -232,3 +233,25 @@ class CRFOptimiser(RFOptimiser):
 
         eigenvalues = np.linalg.eigvalsh(aug_h)
         return eigenvalues[0]
+
+
+class CartesianCRFOptimiser(CRFOptimiser):
+    """Constrained optimisation in Cartesian coordinates"""
+
+    def _initialise_run(self) -> None:
+        if self._species is None:
+            raise RuntimeError(
+                "Cannot set initial coordinates. No species set"
+            )
+
+        cartesian_coords = CartesianCoordinates(self._species.coordinates)
+        constraints = []
+        if self._species.constraints.distance is not None:
+            for i, j in self._species.constraints.distance:
+                r = self._species.constraints.distance[(i, j)]
+                constraints.append(ConstrainedPrimitiveDistance(i, j, r))
+
+        self._coords = CartesianWithConstraints.from_cartesian(
+            x=cartesian_coords, constraints=constraints  # type: ignore
+        )
+        return None

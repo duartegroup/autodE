@@ -136,11 +136,26 @@ class CartesianWithConstraints(CartesianCoordinates):
         """Number of constraints"""
         return len(self._constraints)
 
+    @property
+    def active_indexes(self) -> List[int]:
+        """For Cartesian no specific coordinate can be inactive"""
+        return list(range(len(self) + self.n_constraints))
+
+    @property
+    def inactive_indexes(self) -> List[int]:
+        """No coordinate is inactive"""
+        return []
+
+    @property
+    def n_satisfied_constraints(self) -> int:
+        """How many constraints are satisfied?"""
+        return sum(c.is_satisfied(self) for c in self._constraints)
+
     @classmethod
     def from_cartesian(
         cls,
         x: CartesianCoordinates,
-        constraints: Optional[List["ConstrainedPrimitive"]] = None,
+        constraints: List["ConstrainedPrimitive"],
     ):
         """
         Create Cartesian coordinates with optional constraints enforced
@@ -149,7 +164,7 @@ class CartesianWithConstraints(CartesianCoordinates):
         Args:
             x: The original Cartesian coordinates, without any constraints
 
-            constraints: Optional list of constraint primitives (i.e.
+            constraints: List of constraint primitives (i.e.
                         bonds, angles etc.)
 
         Returns:
@@ -184,14 +199,12 @@ class CartesianWithConstraints(CartesianCoordinates):
     def g(self):
         """Gradient of the energy, with constraint terms"""
         # jacobian of the constraints
-        A_mat = np.zeros(shape=(self.shape[0], len(self._constraints)))
+        a_mat = np.zeros(shape=(self.shape[0], len(self._constraints)))
         for idx, c in enumerate(self._constraints):
-            A_mat[:, idx] = c.derivative(np.array(self))
-        g_constr = self._g - np.matmul(A_mat, self._lambda).flatten()
-
+            a_mat[:, idx] = c.derivative(np.array(self))
+        g_constr = self._g - np.matmul(a_mat, self._lambda).flatten()
         c_vals = [-c.delta(np.array(self)) for c in self._constraints]
-        dL_dx = np.array(g_constr.tolist() + c_vals)
-        return dL_dx
+        return np.append(g_constr, c_vals)
 
     @g.setter
     def g(self, value):
@@ -202,16 +215,16 @@ class CartesianWithConstraints(CartesianCoordinates):
     def h(self):
         """Hessian of the energy, with constraint terms"""
         n, m = self.shape[0], len(self._constraints)
-        A_mat = np.zeros(shape=(n, m))
-        W_mat = np.array(self._h)
+        a_mat = np.zeros(shape=(n, m))
+        w_mat = np.array(self._h)
         for idx, c in enumerate(self._constraints):
-            A_mat[:, idx] = c.derivative(np.array(self))
-            W_mat -= self._lambda[idx] * c.second_derivative(np.array(self))
+            a_mat[:, idx] = c.derivative(np.array(self))
+            w_mat -= self._lambda[idx] * c.second_derivative(np.array(self))
         # Hessian of the Lagrangian
         d2L_dx2 = np.zeros(shape=(n + m, n + m))
-        d2L_dx2[:n, :n] = W_mat
-        d2L_dx2[n:, :n] = A_mat
-        d2L_dx2[:n, n:] = A_mat
+        d2L_dx2[:n, :n] = w_mat
+        d2L_dx2[n:, :n] = a_mat
+        d2L_dx2[:n, n:] = a_mat
         return d2L_dx2
 
     @h.setter
