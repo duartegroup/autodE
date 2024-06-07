@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING
 
 from autode.log import logger
 from autode.values import ValueArray
@@ -9,6 +9,7 @@ from autode.opt.coordinates.dic import DIC
 if TYPE_CHECKING:
     from autode.values import Gradient
     from autode.hessians import Hessian
+    from autode.opt.coordinates.primitives import ConstrainedPrimitive
 
 
 class CartesianCoordinates(OptCoordinates):
@@ -130,28 +131,54 @@ class CartesianWithConstraints(CartesianCoordinates):
         """Raw numpy array of these coordinates including the multipliers"""
         return np.array(self.tolist() + self._lambda.tolist(), copy=True)
 
-    def set_constraints(self, constraints) -> None:
+    @property
+    def n_constraints(self):
+        """Number of constraints"""
+        return len(self._constraints)
+
+    @classmethod
+    def from_cartesian(
+        cls,
+        x: CartesianCoordinates,
+        constraints: Optional[List["ConstrainedPrimitive"]] = None,
+    ):
         """
-        Add constraint functions, in the form of constrained primitives
+        Create Cartesian coordinates with optional constraints enforced
+        with Lagrange multipliers
 
         Args:
-            constraints:
+            x: The original Cartesian coordinates, without any constraints
+
+            constraints: Optional list of constraint primitives (i.e.
+                        bonds, angles etc.)
+
+        Returns:
+            (CartesianWithConstraints):
         """
+        constraints = [] if constraints is None else constraints
         from autode.opt.coordinates.primitives import ConstrainedPrimitive
 
-        assert all(
-            isinstance(constr, ConstrainedPrimitive) for constr in constraints
-        )
-        self._constraints = list(constraints)
+        assert all(isinstance(c, ConstrainedPrimitive) for c in constraints)
+
+        x_c = cls(x)
+        if len(constraints) > 0:
+            x_c._constraints = list(constraints)
+            x_c._lambda = np.zeros(shape=(len(constraints),))
+        return x_c
 
     def iadd(self, value: np.ndarray) -> OptCoordinates:
         """Addition of an array to this set of coordinates"""
-        # separate the coordinates and multipliers
-        n, m = self.shape[0], len(self._constraints)
         assert isinstance(value, np.ndarray)
-        assert value.shape == (m + n,)
-        self._lambda += value[-m:]
-        return np.ndarray.__iadd__(self, value[:n])
+        assert len(value) == len(self) + self.n_constraints
+
+        # separate the coordinates and multipliers
+        if self.n_constraints > 0:
+            delta_lambda = value[-self.n_constraints :]
+            self._lambda += delta_lambda
+            delta_x = value[: -self.n_constraints]
+        else:
+            delta_x = value
+        return super().iadd(delta_x)
 
     @property
     def g(self):
