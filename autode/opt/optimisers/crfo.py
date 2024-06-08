@@ -117,7 +117,7 @@ class CRFOptimiser(RFOptimiser):
         aug_h_min[:n, :n] = np.diag(b_min)
         aug_h_min[:-1, -1] = aug_h_min[-1, :-1] = f_min
         lambda_n = np.linalg.eigvalsh(aug_h_min)[0]
-        logger.info(f"Calculated λ_p={lambda_n:.8f}")
+        logger.info(f"Calculated λ_n={lambda_n:.8f}")
         for i in range(n):
             delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
 

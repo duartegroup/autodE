@@ -223,7 +223,7 @@ class CartesianWithConstraints(CartesianCoordinates):
         # Hessian of the Lagrangian
         d2L_dx2 = np.zeros(shape=(n + m, n + m))
         d2L_dx2[:n, :n] = w_mat
-        d2L_dx2[n:, :n] = a_mat
+        d2L_dx2[n:, :n] = a_mat.T
         d2L_dx2[:n, n:] = a_mat
         return d2L_dx2
 
@@ -231,3 +231,17 @@ class CartesianWithConstraints(CartesianCoordinates):
     def h(self, value):
         """Setting a hessian is not allowed with constraints"""
         raise RuntimeError("Cannot set Hessian since constraints are added")
+
+    def to(self, value: str) -> OptCoordinates:
+        """Convert to other coordinate types"""
+        if value.lower() in ("cart", "cartesian", "cartesiancoordinates"):
+            coords = CartesianCoordinates(np.array(self))
+            coords.update_g_from_cart_g(self._g)
+            coords.update_h_from_cart_h(self._h)
+            return coords
+
+        elif value.lower() in ("dic", "delocalised internal coordinates"):
+            return self.to("cart").to("dic")
+
+        else:
+            raise ValueError(f"Cannot convert to {value}")
