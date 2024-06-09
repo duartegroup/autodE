@@ -169,7 +169,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
             # NOTE: This is not the full transformation as noted in
             # 10.1063/1.471864 only an approximate Hessian is required(?)
-            self._h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+            hess = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+            assert self.h_or_h_inv_has_correct_shape(hess)
+            self._h = hess
 
         return None
 

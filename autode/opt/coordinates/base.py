@@ -205,11 +205,6 @@ class OptCoordinates(ValueArray, ABC):
     ) -> None:
         """Update the Hessian from a cartesian Hessian with shape 3N x 3N for
         N atoms, zeroing the second derivatives if required"""
-        if not self.h_or_h_inv_has_correct_shape(arr) and arr is not None:
-            raise ValueError(
-                f"Hessian must be an NxN matrix. "
-                f"Had an array with shape: {arr.shape}"
-            )
         return self._update_h_from_cart_h(arr)
 
     def update_h_from_old_h(
