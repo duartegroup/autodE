@@ -198,8 +198,10 @@ class CartesianWithConstraints(CartesianCoordinates):
     @property
     def g(self):
         """Gradient of the energy, with constraint terms"""
+        if self.n_constraints == 0:
+            return self._g
         # jacobian of the constraints
-        a_mat = np.zeros(shape=(self.shape[0], len(self._constraints)))
+        a_mat = np.zeros(shape=(self.shape[0], self.n_constraints))
         for idx, c in enumerate(self._constraints):
             a_mat[:, idx] = c.derivative(np.array(self))
         g_constr = self._g - np.matmul(a_mat, self._lambda).flatten()
@@ -214,7 +216,9 @@ class CartesianWithConstraints(CartesianCoordinates):
     @property
     def h(self):
         """Hessian of the energy, with constraint terms"""
-        n, m = self.shape[0], len(self._constraints)
+        if self.n_constraints == 0:
+            return self._h
+        n, m = self.shape[0], self.n_constraints
         a_mat = np.zeros(shape=(n, m))
         w_mat = np.array(self._h)
         for idx, c in enumerate(self._constraints):
@@ -223,8 +227,8 @@ class CartesianWithConstraints(CartesianCoordinates):
         # Hessian of the Lagrangian
         d2L_dx2 = np.zeros(shape=(n + m, n + m))
         d2L_dx2[:n, :n] = w_mat
-        d2L_dx2[n:, :n] = a_mat.T
-        d2L_dx2[:n, n:] = a_mat
+        d2L_dx2[n:, :n] = -a_mat.T
+        d2L_dx2[:n, n:] = -a_mat
         return d2L_dx2
 
     @h.setter
