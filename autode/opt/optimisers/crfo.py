@@ -11,8 +11,6 @@ from typing import Union, List
 from autode.log import logger
 from autode.values import GradientRMS, Distance
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.cartesian import CartesianWithConstraints
-from autode.opt.coordinates.primitives import ConstrainedPrimitiveDistance
 from autode.opt.coordinates.internals import AnyPIC
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.optimisers.hessian_update import (
@@ -195,27 +193,5 @@ class CRFOptimiser(RFOptimiser):
 
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords, primitives=primitives
-        )
-        return None
-
-
-class CartesianCRFOptimiser(CRFOptimiser):
-    """Constrained optimisation in Cartesian coordinates"""
-
-    def _build_internal_coordinates(self) -> None:
-        if self._species is None:
-            raise RuntimeError(
-                "Cannot set initial coordinates. No species set"
-            )
-
-        cartesian_coords = CartesianCoordinates(self._species.coordinates)
-        constraints = []
-        if self._species.constraints.distance is not None:
-            for i, j in self._species.constraints.distance:
-                r = self._species.constraints.distance[(i, j)]
-                constraints.append(ConstrainedPrimitiveDistance(i, j, r))
-
-        self._coords = CartesianWithConstraints.from_cartesian(
-            x=cartesian_coords, constraints=constraints  # type: ignore
         )
         return None
