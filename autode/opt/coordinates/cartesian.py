@@ -58,6 +58,7 @@ class CartesianCoordinates(OptCoordinates):
         Arguments:
             arr: Hessian matrix
         """
+        assert self.h_or_h_inv_has_correct_shape(arr)
         self._h = None if arr is None else np.array(arr)
 
     def iadd(self, value: np.ndarray) -> OptCoordinates:

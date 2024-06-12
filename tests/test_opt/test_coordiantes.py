@@ -112,10 +112,10 @@ def test_cartesian_coordinates_hessian_update():
     # Simple coordinates with 2 atoms in 3 D
     coords = CartesianCoordinates(np.arange(0, 6).reshape((2, 3)))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         coords.update_h_from_cart_h(arr=np.array([]))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         coords.update_h_from_cart_h(arr=np.array([1.0]))
 
     # Hessian needs to be 6x6
