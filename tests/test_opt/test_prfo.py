@@ -69,4 +69,4 @@ def test_diels_alder_ts_opt():
     mol = Molecule("init.xyz")
     PRFOptimiser.optimise(mol, method=xtb, maxiter=30, init_alpha=0.05)
     assert has_single_imag_freq_at_xtb_level(mol)
-    print(mol.imaginary_frequencies)  # should be ~600 cm-1
+    # print(mol.imaginary_frequencies)  # should be ~600 cm-1
