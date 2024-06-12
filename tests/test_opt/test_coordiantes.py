@@ -22,7 +22,7 @@ from autode.opt.coordinates.internals import (
     AnyPIC,
 )
 from autode.opt.coordinates.cartesian import CartesianCoordinates
-from autode.opt.coordinates.dic import DIC
+from autode.opt.coordinates.dic import DIC, DICWithConstraints
 from autode.opt.coordinates.primitives import (
     PrimitiveInverseDistance,
     PrimitiveDistance,
@@ -198,6 +198,29 @@ def test_basic_dic_properties():
 
     with pytest.raises(Exception):
         _ = x.to("unknown coordinates")
+
+
+def test_dic_constraints():
+    mol = water_mol()
+    mol.constraints.distance = {(0, 1): 1.5}
+
+    pic = AnyPIC.from_species(mol)
+    x = CartesianCoordinates(mol.coordinates)
+    q = DICWithConstraints.from_cartesian(x, pic)
+    assert q.n_constraints == 1
+    assert q.g is None and q.h is None
+
+    # with constraints grad or hessian cannot be set directly
+    with pytest.raises(RuntimeError):
+        q.g = np.arange(3)
+    with pytest.raises(RuntimeError):
+        q.h = np.arange(3)
+
+    q.update_g_from_cart_g(np.random.rand(9))
+    q.update_h_from_cart_h(np.random.rand(9, 9))
+    # one extra dimension from Lagrange multiplier
+    assert q.g.shape == (4,)
+    assert q.h.shape == (4, 4)
 
 
 def test_invalid_pic_construction():
