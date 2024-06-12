@@ -83,14 +83,14 @@ class PRFOptimiser(CRFOptimiser):
         Returns:
             (int): Integer
         """
-        # not given, always take first mode
+        if self.iteration == 0:
+            return self._mode_idx if self._mode_idx is not None else 0
+
+        # not given, always take first mode but print overlap
         if self._mode_idx is None:
             overlap = np.dot(u[:, 0], self._last_eigvec)
             logger.info(f"Overlap with previous TS mode: {overlap:.3f}")
             return 0
-
-        if self.iteration == 0:
-            return self._mode_idx
 
         overlaps = []
         for i in range(u.shape[1]):
