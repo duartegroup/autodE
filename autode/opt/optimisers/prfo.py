@@ -109,7 +109,9 @@ class PRFOptimiser(CRFOptimiser):
         """
         assert self._species is not None, "Must have a species to init"
 
-        self._build_internal_coordinates()
+        self._coords = CartesianCoordinates(self._species.coordinates).to(
+            "dic"
+        )
         self._update_hessian_gradient_and_energy()
         return None
 
