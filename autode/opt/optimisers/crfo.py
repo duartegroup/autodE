@@ -82,7 +82,7 @@ class CRFOptimiser(RFOptimiser):
 
     @staticmethod
     def _get_rfo_step(
-        b: np.ndarray, u: np.ndarray, f: np.ndarray, uphill_idxs: list
+        b: np.ndarray, u: np.ndarray, f: np.ndarray, uphill_idxs: List[int]
     ):
         """
         Get the partitioned RFO step, uphill along the indices specified

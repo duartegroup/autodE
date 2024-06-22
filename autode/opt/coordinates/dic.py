@@ -323,7 +323,7 @@ class DICWithConstraints(DIC):
         Returns:
             (DICWithConstraints): DIC with constraints
         """
-        dic = super().from_cartesian(x, primitives)
+        dic = super().from_cartesian(x=x, primitives=primitives)
         dic._lambda = np.zeros(shape=(dic.n_constraints,))
         return dic
 
