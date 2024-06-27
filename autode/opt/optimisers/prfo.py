@@ -15,7 +15,7 @@ class PRFOptimiser(CRFOptimiser):
         self,
         init_alpha: Union[Distance, float] = 0.05,
         recalc_hessian_every: int = 10,
-        imag_mode_idx: Optional[int] = None,
+        imag_mode_idx: int = 0,
         *args,
         **kwargs,
     ):
@@ -28,10 +28,8 @@ class PRFOptimiser(CRFOptimiser):
         Arguments:
             init_alpha: Maximum step size (default Å if unit not given)
 
-            imag_mode_idx: Index of the imaginary mode to follow. Will follow
-                        the correct mode by checking overlap. If not
-                        supplied, the most negative mode (0th eigenvalue)
-                        is chosen in each step.
+            imag_mode_idx: Index of the imaginary mode to follow. Default
+                        is 0th mode i.e. the most negative mode
 
         See Also:
             :py:meth:`RFOOptimiser <RFOOptimiser.__init__>`
@@ -84,13 +82,7 @@ class PRFOptimiser(CRFOptimiser):
             (int): Integer
         """
         if self.iteration == 0:
-            return self._mode_idx if self._mode_idx is not None else 0
-
-        # not given, always take first mode but print overlap
-        if self._mode_idx is None:
-            overlap = np.dot(u[:, 0], self._last_eigvec)
-            logger.info(f"Overlap with previous TS mode: {overlap:.3f}")
-            return 0
+            return self._mode_idx
 
         overlaps = []
         for i in range(u.shape[1]):
