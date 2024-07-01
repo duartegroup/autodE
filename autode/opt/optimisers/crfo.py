@@ -68,7 +68,7 @@ class CRFOptimiser(RFOptimiser):
         )
 
         # force molecular Hessian block to be positive definite
-        hessian = self._coords.h
+        hessian = self._coords.h.copy()
         shift = self._coords.get_rfo_shift()
         hessian -= shift * np.eye(n + m)
         for i in range(m):  # no shift on constraints

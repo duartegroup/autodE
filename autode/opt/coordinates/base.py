@@ -258,6 +258,7 @@ class OptCoordinates(ValueArray, ABC):
         Returns:
             (float): The shift parameter
         """
+        # TODO: make this a property and remove constrained idxs
         h_n, _ = self._h.shape
         # form the augmented Hessian
         aug_h = np.zeros(shape=(h_n + 1, h_n + 1))
