@@ -68,9 +68,10 @@ def test_diels_alder_ts_opt():
         print(xyz_file_string, file=file)
 
     mol = Molecule("init.xyz")
-    PRFOptimiser.optimise(mol, method=xtb, maxiter=30, init_alpha=0.05)
+    PRFOptimiser.optimise(mol, method=xtb, maxiter=25, init_alpha=0.05)
     assert has_single_imag_freq_at_xtb_level(mol)
-    # print(mol.imaginary_frequencies)  # should be ~600 cm-1
+    freq = mol.imaginary_frequencies[0]
+    assert np.isclose(freq, -600, atol=30)  # should be ~600 cm-1
 
 
 @requires_working_xtb_install
@@ -100,7 +101,6 @@ def test_mode_following():
     opt._update_hessian()
     # shift the Hessian modes by exchanging eigenvalues of first two modes
     b, u = np.linalg.eigh(opt._coords.h)
-    actual_ts_mode = u[:, 0].flatten()
     b[0], b[1] = b[1], b[0]
     new_h = np.linalg.multi_dot((u, np.diag(b), u.T)).real
     b, u = np.linalg.eigh(new_h)

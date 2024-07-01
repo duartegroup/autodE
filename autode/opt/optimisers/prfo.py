@@ -67,14 +67,35 @@ class PRFOptimiser(CRFOptimiser):
         imag_idx = self._get_imag_mode_idx(u)
         logger.info(f"Following mode {imag_idx} uphill")
 
-        lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
-        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
+        b_max = b[imag_idx]
+        u_max = u[:, imag_idx]
+        f_max = f[imag_idx]
 
-        delta_s = np.zeros_like(self._coords)
-        delta_s -= f[0] * u[:, 0] / (b[0] - lambda_p)
-        for j in range(1, len(self._coords)):
-            delta_s -= f[j] * u[:, j] / (b[j] - lambda_n)
-        # TODO: fix this code
+        b_min = np.delete(b, imag_idx)
+        u_min = np.delete(u, imag_idx, axis=1)
+        f_min = np.delete(f, imag_idx)
+
+        n = len(b)
+        delta_s = np.zeros(shape=(n,))
+        # downhill step
+        aug_h_min = np.zeros(shape=(n, n))
+        aug_h_min[: n - 1, : n - 1] = np.diag(b_min)
+        aug_h_min[:-1, -1] = aug_h_min[-1, :-1] = f_min
+        lambda_n = np.linalg.eigvalsh(aug_h_min)[0]
+        logger.info(f"Calculated λ_n = {lambda_n:.6f}")
+
+        for i in range(n - 1):
+            delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
+
+        # uphill step
+        aug_h_max = np.zeros(shape=(2, 2))
+        aug_h_max[:1, :1] = b_max
+        aug_h_max[:-1, -1] = aug_h_max[-1, :-1] = f_max
+        lambda_p = np.linalg.eigvalsh(aug_h_max)[-1]
+        logger.info(f"Calculated λ_p = {lambda_p:.6f}")
+
+        delta_s -= f_max * u_max / (b_max - lambda_p)
+
         self._last_eigvec = u[:, imag_idx].flatten()
         self._take_step_within_trust_radius(delta_s)
         return None
