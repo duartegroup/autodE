@@ -64,42 +64,34 @@ class CRFOptimiser(RFOptimiser):
         d2L_eigvals = np.linalg.eigvalsh(self._coords.h)
         logger.info(
             f"∇^2L has {sum(lmda < 0 for lmda in d2L_eigvals)} negative "
-            f"eigenvalue(s). Should have {m - n_satisfied_constraints}"
+            f"eigenvalue(s). Should have {m}"
         )
-        # force Hessian to be positive definite
+
+        # force molecular Hessian block to be positive definite
         hessian = self._coords.h
         shift = self._coords.get_rfo_shift()
         hessian -= shift * np.eye(n + m)
         for i in range(m):  # no shift on constraints
-            hessian[n + m - i, n + m - i] = 0.0
+            hessian[-m + i, -m + i] = 0.0
 
-        b, u = np.linalg.eigh(hessian[:, idxs][idxs, :])
-        logger.info("Calculating transformed gradient vector")
-        f = u.T.dot(self._coords.g[idxs])
+        logger.info(f"Calculated RFO λ = {shift:.4f}")
 
-        lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
+        d2L_eigvals = np.linalg.eigvalsh(hessian)
+        n_negative = sum(lmda < 0 for lmda in d2L_eigvals)
+        if not n_negative == m:
+            raise RuntimeError(
+                f"Constrained optimisation failed, ∇^2L has {n_negative} "
+                f" negative eigenvalues after RFO diagonal shift - "
+                f"should have {m}"
+            )
 
-        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_n={lambda_n:.8f}")
-
-        # Create the step along the n active DICs and m lagrangian multipliers
-        delta_s_active = np.zeros(shape=(len(idxs),))
-
-        o = m - n_satisfied_constraints
-        logger.info(f"Maximising {o} modes")
-
-        for i in range(o):
-            delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
-
-        for j in range(n - n_satisfied_constraints):
-            delta_s_active -= f[o + j] * u[:, o + j] / (b[o + j] - lambda_n)
+        # take a quasi-Newton step
+        delta_s = -np.matmul(np.linalg.inv(hessian), self._coords.g)
 
         # Set all the non-active components of the step to zero
-        delta_s = np.zeros(shape=(n + m,))
-        delta_s[idxs] = delta_s_active
+        delta_s[self._coords.inactive_indexes] = 0.0
 
-        c = self._take_step_within_trust_radius(delta_s[:n])
+        c = self._take_step_within_trust_radius(delta_s)
         return None
 
     @property
