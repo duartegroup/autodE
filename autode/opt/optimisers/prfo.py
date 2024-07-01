@@ -66,7 +66,15 @@ class PRFOptimiser(CRFOptimiser):
 
         imag_idx = self._get_imag_mode_idx(u)
         logger.info(f"Following mode {imag_idx} uphill")
-        delta_s = self._get_rfo_step(b, u, f, [imag_idx])
+
+        lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
+        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
+
+        delta_s = np.zeros_like(self._coords)
+        delta_s -= f[0] * u[:, 0] / (b[0] - lambda_p)
+        for j in range(1, len(self._coords)):
+            delta_s -= f[j] * u[:, j] / (b[j] - lambda_n)
+        # TODO: fix this code
         self._last_eigvec = u[:, imag_idx].flatten()
         self._take_step_within_trust_radius(delta_s)
         return None

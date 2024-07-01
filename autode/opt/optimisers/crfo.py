@@ -45,7 +45,6 @@ class CRFOptimiser(RFOptimiser):
         assert self._coords is not None, "Must have coords to take a step"
         assert self._coords.g is not None, "Must have a gradient"
 
-        # update the Hessian
         if self.iteration != 0:
             self._coords.update_h_from_old_h(
                 self._history.penultimate, self._hessian_update_types
@@ -55,108 +54,53 @@ class CRFOptimiser(RFOptimiser):
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
-        n_active = len(self._coords.active_indexes) // 2
+        idxs = self._coords.active_indexes
+        n_satisfied_constraints = (n + m - len(idxs)) // 2
         logger.info(
-            f"Satisfied {self._coords.n_satisfied_constraints} constraints. "
-            f"Active space is {n_active} dimensional"
+            f"Satisfied {n_satisfied_constraints} constraints. "
+            f"Active space is {len(idxs)} dimensional"
         )
 
-        b, u = np.linalg.eigh(self._coords.h)
-        constr_idxs = self._get_constraint_idxs_from_eigvecs(u)
-
+        d2L_eigvals = np.linalg.eigvalsh(self._coords.h)
         logger.info(
-            f"∇^2L has {sum(lmda < 0 for lmda in b)} negative "
-            f"eigenvalue(s). Should have {m}"
+            f"∇^2L has {sum(lmda < 0 for lmda in d2L_eigvals)} negative "
+            f"eigenvalue(s). Should have {m - n_satisfied_constraints}"
         )
+        # force Hessian to be positive definite
+        hessian = self._coords.h
+        shift = self._coords.get_rfo_shift()
+        hessian -= shift * np.eye(n + m)
+        for i in range(m):  # no shift on constraints
+            hessian[n + m - i, n + m - i] = 0.0
 
-        logger.debug("Calculating transformed gradient vector")
-        f = u.T.dot(self._coords.g)
+        b, u = np.linalg.eigh(hessian[:, idxs][idxs, :])
+        logger.info("Calculating transformed gradient vector")
+        f = u.T.dot(self._coords.g[idxs])
 
-        delta_s = self._get_rfo_step(b, u, f, constr_idxs)
+        lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
+        logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
+
+        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
+        logger.info(f"Calculated λ_n={lambda_n:.8f}")
+
+        # Create the step along the n active DICs and m lagrangian multipliers
+        delta_s_active = np.zeros(shape=(len(idxs),))
+
+        o = m - n_satisfied_constraints
+        logger.info(f"Maximising {o} modes")
+
+        for i in range(o):
+            delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
+
+        for j in range(n - n_satisfied_constraints):
+            delta_s_active -= f[o + j] * u[:, o + j] / (b[o + j] - lambda_n)
 
         # Set all the non-active components of the step to zero
-        delta_s[self._coords.inactive_indexes] = 0.0
+        delta_s = np.zeros(shape=(n + m,))
+        delta_s[idxs] = delta_s_active
 
-        self._take_step_within_trust_radius(delta_s)
+        c = self._take_step_within_trust_radius(delta_s[:n])
         return None
-
-    @staticmethod
-    def _get_rfo_step(
-        b: np.ndarray, u: np.ndarray, f: np.ndarray, uphill_idxs: List[int]
-    ):
-        """
-        Get the partitioned RFO step, uphill along the indices specified
-        and downhill along all other indices
-
-        Args:
-            b: Eigenvalues of the Hessian
-            u: Eigenvectors of the Hessian
-            f: Projected gradient along eigenvectors
-            uphill_idxs: Indices of eigenvectors along which to take
-                    uphill step
-
-        Returns:
-            (np.ndarray): The step vector
-        """
-        m = len(uphill_idxs)
-        n = len(b) - len(uphill_idxs)
-        delta_s = np.zeros(shape=(m + n,))
-
-        b_max = b[uphill_idxs]
-        u_max = u[:, uphill_idxs]
-        f_max = f[uphill_idxs]
-
-        b_min = np.delete(b, uphill_idxs)
-        u_min = np.delete(u, uphill_idxs, axis=1)
-        f_min = np.delete(f, uphill_idxs)
-
-        # form the augmented Hessian for downhill step
-        aug_h_min = np.zeros(shape=(n + 1, n + 1))
-        aug_h_min[:n, :n] = np.diag(b_min)
-        aug_h_min[:-1, -1] = aug_h_min[-1, :-1] = f_min
-        lambda_n = np.linalg.eigvalsh(aug_h_min)[0]
-        logger.info(f"Calculated λ_n={lambda_n:.8f}")
-        for i in range(n):
-            delta_s -= f_min[i] * u_min[:, i] / (b_min[i] - lambda_n)
-
-        if m == 0:
-            return delta_s
-
-        # form the augmented Hessian for uphill step
-        aug_h_max = np.zeros(shape=(m + 1, m + 1))
-        aug_h_max[:m, :m] = np.diag(b_max)
-        aug_h_max[:-1, -1] = aug_h_max[-1, :-1] = f_max
-        lambda_p = np.linalg.eigvalsh(aug_h_max)[-1]
-        logger.info(f"Calculated λ_p={lambda_p:.8f}")
-        for i in range(m):
-            delta_s -= f_max[i] * u_max[:, i] / (b_max[i] - lambda_p)
-
-        return delta_s
-
-    def _get_constraint_idxs_from_eigvecs(self, u: np.ndarray) -> List[int]:
-        """
-        Identify which eigenvectors of the Hessian represent the constraint
-        mode, since they might not always be in the expected order
-
-        Args:
-            u (np.ndarray): The eigenvector matrix with columns representing
-                            each eigenvector
-
-        Returns:
-            (list[int]): List of indices
-        """
-        assert self._coords is not None
-        m = self._coords.n_constraints
-        if m == 0:
-            return []
-
-        sum_weights = []
-        for idx in range(u.shape[1]):
-            # lagrange multiplier weights
-            weights = u[:, idx].flatten()[-m:]
-            sum_weights.append(np.sum(np.abs(weights)))
-
-        return list(np.argsort(sum_weights)[-m:])
 
     @property
     def _g_norm(self) -> GradientRMS:
@@ -195,3 +139,39 @@ class CRFOptimiser(RFOptimiser):
             x=cartesian_coords, primitives=primitives
         )
         return None
+
+    def _lambda_p_from_eigvals_and_gradient(
+        self, b: np.ndarray, f: np.ndarray
+    ) -> float:
+        """
+        Calculate the positive eigenvalue of the augmented hessian from
+        the eigenvalues of the full lagrangian Hessian matrix (b) and the
+        gradient in the Hessian eigenbasis
+        """
+        assert self._coords is not None
+
+        m = self._coords.n_constraints - self._coords.n_satisfied_constraints
+
+        aug_h = np.zeros(shape=(m + 1, m + 1))
+        aug_h[:m, :m] = np.diag(b[:m])
+        aug_h[:-1, -1] = aug_h[-1, :-1] = f[:m]
+
+        eigenvalues = np.linalg.eigvalsh(aug_h)
+        return eigenvalues[-1]
+
+    def _lambda_n_from_eigvals_and_gradient(
+        self, b: np.ndarray, f: np.ndarray
+    ) -> float:
+        """Like lambda_p but for the negative component"""
+        assert self._coords is not None
+
+        n_satisfied = self._coords.n_satisfied_constraints
+        m = self._coords.n_constraints - n_satisfied
+        n = len(self._coords) - n_satisfied
+
+        aug_h = np.zeros(shape=(n + 1, n + 1))
+        aug_h[:n, :n] = np.diag(b[m:])
+        aug_h[-1, :n] = aug_h[:n, -1] = f[m:]
+
+        eigenvalues = np.linalg.eigvalsh(aug_h)
+        return eigenvalues[0]

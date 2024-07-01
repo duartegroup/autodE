@@ -250,6 +250,28 @@ class OptCoordinates(ValueArray, ABC):
             "Could not update the Hessian - no suitable update strategies"
         )
 
+    def get_rfo_shift(self):
+        """
+        Get the RFO shift factor λ that can be applied to the
+        Hessian (H - λI) to obtain the RFO step
+
+        Returns:
+            (float): The shift parameter
+        """
+        h_n, _ = self._h.shape
+        # form the augmented Hessian
+        aug_h = np.zeros(shape=(h_n + 1, h_n + 1))
+
+        aug_h[:h_n, :h_n] = self._h
+        aug_h[-1, :h_n] = self._g
+        aug_h[:h_n, -1] = self._g
+
+        # first non-zero eigenvalue
+        aug_h_lmda = np.linalg.eigvalsh(aug_h)
+        rfo_lmda = aug_h_lmda[0]
+        assert abs(rfo_lmda) > 1.0e-10
+        return rfo_lmda
+
     def make_hessian_positive_definite(self) -> None:
         """
         Make the Hessian matrix positive definite by shifting eigenvalues
