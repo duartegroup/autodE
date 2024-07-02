@@ -69,7 +69,7 @@ class CRFOptimiser(RFOptimiser):
 
         # force molecular Hessian block to be positive definite
         hessian = self._coords.h.copy()
-        shift = self._coords.get_rfo_shift()
+        shift = self._coords.rfo_shift
         hessian -= shift * np.eye(n + m)
         for i in range(m):  # no shift on constraints
             hessian[-m + i, -m + i] = 0.0
@@ -85,13 +85,17 @@ class CRFOptimiser(RFOptimiser):
                 f"should have {m}"
             )
 
+        # Set all non-active components of gradient to zero
+        gradient = self._coords.g.copy()
+        gradient[self._coords.inactive_indexes] = 0.0
+
         # take a quasi-Newton step
-        delta_s = -np.matmul(np.linalg.inv(hessian), self._coords.g)
+        delta_s = -np.matmul(np.linalg.inv(hessian), gradient)
 
         # Set all the non-active components of the step to zero
         delta_s[self._coords.inactive_indexes] = 0.0
 
-        c = self._take_step_within_trust_radius(delta_s)
+        self._take_step_within_trust_radius(delta_s)
         return None
 
     @property

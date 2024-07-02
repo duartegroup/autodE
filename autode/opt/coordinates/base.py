@@ -250,15 +250,15 @@ class OptCoordinates(ValueArray, ABC):
             "Could not update the Hessian - no suitable update strategies"
         )
 
-    def get_rfo_shift(self):
+    @property
+    def rfo_shift(self):
         """
-        Get the RFO shift factor λ that can be applied to the
+        Get the RFO diagonal shift factor λ that can be applied to the
         Hessian (H - λI) to obtain the RFO step
 
         Returns:
             (float): The shift parameter
         """
-        # TODO: make this a property and remove constrained idxs
         h_n, _ = self._h.shape
         # form the augmented Hessian
         aug_h = np.zeros(shape=(h_n + 1, h_n + 1))
