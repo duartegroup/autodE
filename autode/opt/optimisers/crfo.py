@@ -6,7 +6,7 @@ Notation follows:
 [2] J. Baker, J. Comput. Chem., 13, 240 Ž1992
 """
 import numpy as np
-from typing import Union
+from typing import Union, List
 
 from autode.log import logger
 from autode.values import GradientRMS, Distance
@@ -44,6 +44,7 @@ class CRFOptimiser(RFOptimiser):
         """Partitioned rational function step"""
         assert self._coords is not None, "Must have coords to take a step"
         assert self._coords.g is not None, "Must have a gradient"
+
         if self.iteration != 0:
             self._coords.update_h_from_old_h(
                 self._history.penultimate, self._hessian_update_types
@@ -60,39 +61,41 @@ class CRFOptimiser(RFOptimiser):
             f"Active space is {len(idxs)} dimensional"
         )
 
-        b, u = np.linalg.eigh(self._coords.h[:, idxs][idxs, :])
+        d2L_eigvals = np.linalg.eigvalsh(self._coords.h)
         logger.info(
-            f"∇^2L has {sum(lmda < 0 for lmda in b)} negative "
-            f"eigenvalue(s). Should have {m - n_satisfied_constraints}"
+            f"∇^2L has {sum(lmda < 0 for lmda in d2L_eigvals)} negative "
+            f"eigenvalue(s). Should have {m}"
         )
 
-        logger.info("Calculating transformed gradient vector")
-        f = u.T.dot(self._coords.g[idxs])
+        # force molecular Hessian block to be positive definite
+        hessian = self._coords.h.copy()
+        shift = self._coords.rfo_shift
+        hessian -= shift * np.eye(n + m)
+        for i in range(m):  # no shift on constraints
+            hessian[-m + i, -m + i] = 0.0
 
-        lambda_p = self._lambda_p_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_p=+{lambda_p:.8f}")
+        logger.info(f"Calculated RFO λ = {shift:.4f}")
 
-        lambda_n = self._lambda_n_from_eigvals_and_gradient(b, f)
-        logger.info(f"Calculated λ_n={lambda_n:.8f}")
+        d2L_eigvals = np.linalg.eigvalsh(hessian)
+        n_negative = sum(lmda < 0 for lmda in d2L_eigvals)
+        if not n_negative == m:
+            raise RuntimeError(
+                f"Constrained optimisation failed, ∇^2L has {n_negative} "
+                f" negative eigenvalues after RFO diagonal shift - "
+                f"should have {m}"
+            )
 
-        # Create the step along the n active DICs and m lagrangian multipliers
-        delta_s_active = np.zeros(shape=(len(idxs),))
+        # Set all non-active components of gradient to zero
+        gradient = self._coords.g.copy()
+        gradient[self._coords.inactive_indexes] = 0.0
 
-        o = m - n_satisfied_constraints
-        logger.info(f"Maximising {o} modes")
-
-        for i in range(o):
-            delta_s_active -= f[i] * u[:, i] / (b[i] - lambda_p)
-
-        for j in range(n - n_satisfied_constraints):
-            delta_s_active -= f[o + j] * u[:, o + j] / (b[o + j] - lambda_n)
+        # take a quasi-Newton step
+        delta_s = -np.matmul(np.linalg.inv(hessian), gradient)
 
         # Set all the non-active components of the step to zero
-        delta_s = np.zeros(shape=(n + m,))
-        delta_s[idxs] = delta_s_active
+        delta_s[self._coords.inactive_indexes] = 0.0
 
-        c = self._take_step_within_trust_radius(delta_s[:n])
-        self._coords.update_lagrange_multipliers(c * delta_s[n:])
+        self._take_step_within_trust_radius(delta_s)
         return None
 
     @property
@@ -131,7 +134,6 @@ class CRFOptimiser(RFOptimiser):
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords, primitives=primitives
         )
-        self._coords.zero_lagrangian_multipliers()
         return None
 
     def _lambda_p_from_eigvals_and_gradient(

@@ -408,6 +408,13 @@ class PrimitiveDihedralAngle(Primitive):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
 
 
+class PrimitiveImproperDihedral(PrimitiveDihedralAngle):
+    """Out-of-Plan (improper) dihedral angles"""
+
+    def __repr__(self):
+        return f"ImproperDihedral({self.m}-{self.o}-{self.p}-{self.n})"
+
+
 class LinearBendType(Enum):
     """For linear angles, there are two orthogonal directions"""
 

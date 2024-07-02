@@ -109,6 +109,12 @@ class XTB(autode.wrappers.methods.ExternalMethodOEG):
     def print_xcontrol_file(self, calc: "CalculationExecutor", molecule):
         """Print an XTB input file with constraints and point charges"""
 
+        # do not print constraints if not optimisation
+        if not isinstance(calc.input.keywords, OptKeywords) and (
+            calc.input.point_charges is None
+        ):
+            return
+
         xcontrol_filename = f"xcontrol_{calc.name}"
         with open(xcontrol_filename, "w") as xcontrol_file:
             self.print_distance_constraints(xcontrol_file, molecule)
