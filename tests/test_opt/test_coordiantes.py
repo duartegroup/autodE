@@ -807,6 +807,7 @@ def test_repr():
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.BEND),
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.COMPLEMENT),
         PrimitiveDummyLinearAngle(0, 1, 2, LinearBendType.BEND),
+        PrimitiveImproperDihedral(0, 1, 2, 3),
     ]
 
     for p in prims:
