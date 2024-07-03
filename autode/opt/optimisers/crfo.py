@@ -6,7 +6,7 @@ Notation follows:
 [2] J. Baker, J. Comput. Chem., 13, 240 Ž1992
 """
 import numpy as np
-from typing import Union, List
+from typing import Union
 
 from autode.log import logger
 from autode.values import GradientRMS, Distance
@@ -135,39 +135,3 @@ class CRFOptimiser(RFOptimiser):
             x=cartesian_coords, primitives=primitives
         )
         return None
-
-    def _lambda_p_from_eigvals_and_gradient(
-        self, b: np.ndarray, f: np.ndarray
-    ) -> float:
-        """
-        Calculate the positive eigenvalue of the augmented hessian from
-        the eigenvalues of the full lagrangian Hessian matrix (b) and the
-        gradient in the Hessian eigenbasis
-        """
-        assert self._coords is not None
-
-        m = self._coords.n_constraints - self._coords.n_satisfied_constraints
-
-        aug_h = np.zeros(shape=(m + 1, m + 1))
-        aug_h[:m, :m] = np.diag(b[:m])
-        aug_h[:-1, -1] = aug_h[-1, :-1] = f[:m]
-
-        eigenvalues = np.linalg.eigvalsh(aug_h)
-        return eigenvalues[-1]
-
-    def _lambda_n_from_eigvals_and_gradient(
-        self, b: np.ndarray, f: np.ndarray
-    ) -> float:
-        """Like lambda_p but for the negative component"""
-        assert self._coords is not None
-
-        n_satisfied = self._coords.n_satisfied_constraints
-        m = self._coords.n_constraints - n_satisfied
-        n = len(self._coords) - n_satisfied
-
-        aug_h = np.zeros(shape=(n + 1, n + 1))
-        aug_h[:n, :n] = np.diag(b[m:])
-        aug_h[-1, :n] = aug_h[:n, -1] = f[m:]
-
-        eigenvalues = np.linalg.eigvalsh(aug_h)
-        return eigenvalues[0]

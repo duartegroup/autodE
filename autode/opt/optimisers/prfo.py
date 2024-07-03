@@ -7,7 +7,6 @@ from autode.values import Distance
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.optimisers.hessian_update import BofillUpdate
 from autode.opt.coordinates.cartesian import CartesianCoordinates
-from autode.exceptions import CalculationException
 
 
 class PRFOptimiser(CRFOptimiser):

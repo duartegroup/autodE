@@ -7,7 +7,7 @@ Changelog
 
 Functionality improvements
 **************************
-- ...
+- Improved constrained optimisation (:code:`CRFOptimiser`) and handling of multiple constraints
 
 Bug Fixes
 *********
