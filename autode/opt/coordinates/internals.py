@@ -24,6 +24,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveDummyLinearAngle,
     PrimitiveLinearAngle,
     PrimitiveDihedralAngle,
+    PrimitiveImproperDihedral,
     LinearBendType,
 )
 
@@ -397,7 +398,7 @@ class AnyPIC(PIC):
                         mol, m, o, n, bonded=True
                     )
                     if r is not None:
-                        self.add(PrimitiveDihedralAngle(m, r, o, n))
+                        self.add(PrimitiveImproperDihedral(m, r, o, n))
                         continue
 
                     # Otherwise, we use a nearby (< 4.0 A) reference atom to

@@ -232,7 +232,7 @@ class OptCoordinates(ValueArray, ABC):
         for update_type in hessian_update_types:
             updater = update_type(
                 h=old_coords._h,
-                s=self.raw - old_coords.raw,
+                s=np.array(self) - np.array(old_coords),
                 y=self._g - old_coords._g,
                 subspace_idxs=old_coords.indexes,
             )
@@ -249,6 +249,29 @@ class OptCoordinates(ValueArray, ABC):
         raise RuntimeError(
             "Could not update the Hessian - no suitable update strategies"
         )
+
+    @property
+    def rfo_shift(self):
+        """
+        Get the RFO diagonal shift factor λ that can be applied to the
+        Hessian (H - λI) to obtain the RFO step
+
+        Returns:
+            (float): The shift parameter
+        """
+        h_n, _ = self._h.shape
+        # form the augmented Hessian
+        aug_h = np.zeros(shape=(h_n + 1, h_n + 1))
+
+        aug_h[:h_n, :h_n] = self._h
+        aug_h[-1, :h_n] = self._g
+        aug_h[:h_n, -1] = self._g
+
+        # first non-zero eigenvalue
+        aug_h_lmda = np.linalg.eigvalsh(aug_h)
+        rfo_lmda = aug_h_lmda[0]
+        assert abs(rfo_lmda) > 1.0e-10
+        return rfo_lmda
 
     def make_hessian_positive_definite(self) -> None:
         """
