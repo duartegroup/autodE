@@ -1,5 +1,5 @@
 import numpy as np
-
+import itertools
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Tuple, TYPE_CHECKING, List, Optional
@@ -549,3 +549,55 @@ class PrimitiveDummyLinearAngle(LinearAngleBase):
     def __repr__(self):
         axis_str = "B" if self.axis == LinearBendType.BEND else "C"
         return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, D)"
+
+
+class CombinedBondPrimitive(Primitive):
+    """Linear Combination of several bond distances"""
+
+    def __init__(self, bonds: List[Tuple[int, int]], coeffs: List[float]):
+        """
+        Linear combination of a list of bonds and the corresponding
+        coefficients given as a list of real numbers
+
+        Args:
+            bonds: A list of tuples (i, j) representing bonds
+            coeffs: A list of floating point coefficients in order
+        """
+        assert len(bonds) == len(coeffs), "Number of bonds != coefficients"
+        assert all(isinstance(bond, tuple) for bond in bonds)
+        assert all(len(bond) == 2 for bond in bonds)
+        assert all(
+            isinstance(bond[0], int) and isinstance(bond[1], int)
+            for bond in bonds
+        )
+        assert len(set(bonds)) == len(bonds)
+        all_idxs = list(itertools.chain(*bonds))
+        super().__init__(*all_idxs)
+
+        self._coeffs = [float(c) for c in coeffs]
+
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ):
+        """Linear combination of bonds"""
+        _x = x.ravel()
+        atom_vecs = _get_3d_vecs_from_atom_idxs(
+            *self._atom_indexes, x=_x, deriv_order=deriv_order
+        )
+
+        def two_batch(iterable):
+            """Return items in tuples of two"""
+            for ndx in range(0, len(iterable), 2):
+                yield tuple(iterable[ndx : ndx + 2])
+
+        bonds_combined = None
+        for idx, (atom_i, atom_j) in enumerate(two_batch(atom_vecs)):
+            if idx == 0:
+                bonds_combined = self._coeffs[0] * (atom_i - atom_j).norm()
+            else:
+                bonds_combined += self._coeffs[idx] * (atom_i - atom_j).norm()
+
+        return bonds_combined
+
+    def __repr__(self):
+        return f"LinearCombinationOfBonds(n={len(self._atom_indexes)//2})"
