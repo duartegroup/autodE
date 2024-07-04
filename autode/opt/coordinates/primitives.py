@@ -551,7 +551,7 @@ class PrimitiveDummyLinearAngle(LinearAngleBase):
         return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, D)"
 
 
-class CombinedBondPrimitive(Primitive):
+class CompositeBonds(Primitive):
     """Linear Combination of several bond distances"""
 
     def __init__(self, bonds: List[Tuple[int, int]], coeffs: List[float]):
@@ -608,4 +608,30 @@ class CombinedBondPrimitive(Primitive):
         )  # fmt: skip
 
     def __repr__(self):
-        return f"LinearCombinationOfBonds(n={len(self._atom_indexes)//2})"
+        return f"CombinationOfBonds(n={len(self._bonds)})"
+
+
+class ConstrainedCompositeBonds(ConstrainedPrimitive, CompositeBonds):
+    """Constrained linear combindation of bonds"""
+
+    def __init__(
+        self, bonds: List[Tuple[int, int]], coeffs: List[float], value: float
+    ):
+        """
+        Linear combination of a list of bonds and the corresponding
+        coefficients given as a list of real numbers
+
+        Args:
+            bonds: A list of tuples (i, j) representing bonds
+            coeffs: A list of floating point coefficients in order
+            value: The target value for this coordinate
+        """
+        CompositeBonds.__init__(self, bonds=bonds, coeffs=coeffs)
+        self._r0 = value
+
+    @property
+    def _value(self) -> float:
+        return self._r0
+
+    def __repr__(self):
+        return f"ConstrainedCombinationOfBonds(n={len(self._bonds)})"
