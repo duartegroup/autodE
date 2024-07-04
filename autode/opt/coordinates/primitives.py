@@ -574,6 +574,7 @@ class CombinedBondPrimitive(Primitive):
         all_idxs = list(itertools.chain(*bonds))
         super().__init__(*all_idxs)
 
+        self._bonds = list(bonds)
         self._coeffs = [float(c) for c in coeffs]
 
     def _evaluate(
@@ -598,6 +599,13 @@ class CombinedBondPrimitive(Primitive):
                 bonds_combined += self._coeffs[idx] * (atom_i - atom_j).norm()
 
         return bonds_combined
+
+    def __eq__(self, other):
+        """Equality of two linear combination of bonds"""
+        return (
+            self.__class__ == other.__class__
+            and set(zip(self._bonds)) == set(zip(other._bonds))
+        )  # fmt: skip
 
     def __repr__(self):
         return f"LinearCombinationOfBonds(n={len(self._atom_indexes)//2})"
