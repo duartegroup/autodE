@@ -253,19 +253,27 @@ class OptCoordinates(ValueArray, ABC):
     @property
     def rfo_shift(self):
         """
-        Get the RFO diagonal shift factor λ that can be applied to the
-        Hessian (H - λI) to obtain the RFO step
+        Get the RFO diagonal shift factor λ for the molecular Hessian that
+        can be applied (H - λI) to obtain the RFO downhill step. The shift
+        is only calculated in active subspace
 
         Returns:
             (float): The shift parameter
         """
-        h_n, _ = self._h.shape
-        # form the augmented Hessian
+        assert self._h is not None
+        # ignore constraint modes
+        n, _ = self._h.shape
+        idxs = self.active_indexes[:n]
+        hess = self._h[:, idxs][idxs, :]
+        grad = self._g[idxs]
+
+        h_n, _ = hess.shape
+        # form the augmented Hessian in active subspace
         aug_h = np.zeros(shape=(h_n + 1, h_n + 1))
 
-        aug_h[:h_n, :h_n] = self._h
-        aug_h[-1, :h_n] = self._g
-        aug_h[:h_n, -1] = self._g
+        aug_h[:h_n, :h_n] = hess
+        aug_h[-1, :h_n] = grad
+        aug_h[:h_n, -1] = grad
 
         # first non-zero eigenvalue
         aug_h_lmda = np.linalg.eigvalsh(aug_h)
@@ -291,6 +299,16 @@ class OptCoordinates(ValueArray, ABC):
     @abstractmethod
     def iadd(self, value: np.ndarray) -> "OptCoordinates":
         """Inplace addition of some coordinates"""
+
+    @property
+    @abstractmethod
+    def active_indexes(self) -> List[int]:
+        """A list of indexes which are active in this coordinate set"""
+
+    @property
+    @abstractmethod
+    def inactive_indexes(self) -> List[int]:
+        """A list of indexes which are non-active in this coordinate set"""
 
     def __eq__(self, other):
         """Coordinates can never be identical..."""

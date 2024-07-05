@@ -29,7 +29,7 @@ class CRFOptimiser(RFOptimiser):
         self,
         init_alpha: Union[Distance, float] = 0.05,
         *args,
-        extra_prims: Optional[List[Primitive]] = None,
+        extra_prims: Optional[List["Primitive"]] = None,
         **kwargs,
     ):
         """
@@ -78,9 +78,9 @@ class CRFOptimiser(RFOptimiser):
             f"Active space is {len(idxs)} dimensional"
         )
 
-        d2L_eigvals = np.linalg.eigvalsh(self._coords.h)
+        d2l_eigvals = np.linalg.eigvalsh(self._coords.h)
         logger.info(
-            f"∇^2L has {sum(lmda < 0 for lmda in d2L_eigvals)} negative "
+            f"∇^2L has {sum(lmda < 0 for lmda in d2l_eigvals)} negative "
             f"eigenvalue(s). Should have {m}"
         )
 
@@ -93,8 +93,8 @@ class CRFOptimiser(RFOptimiser):
 
         logger.info(f"Calculated RFO λ = {shift:.4f}")
 
-        d2L_eigvals = np.linalg.eigvalsh(hessian)
-        n_negative = sum(lmda < 0 for lmda in d2L_eigvals)
+        d2l_eigvals = np.linalg.eigvalsh(hessian)
+        n_negative = sum(lmda < 0 for lmda in d2l_eigvals)
         if not n_negative == m:
             raise RuntimeError(
                 f"Constrained optimisation failed, ∇^2L has {n_negative} "
@@ -102,15 +102,16 @@ class CRFOptimiser(RFOptimiser):
                 f"should have {m}"
             )
 
-        # Set all non-active components of gradient to zero
-        gradient = self._coords.g.copy()
-        gradient[self._coords.inactive_indexes] = 0.0
+        # take quasi-Newton step in active subspace
+        hessian = hessian[:, idxs][idxs, :]
+        gradient = self._coords.g[idxs]
 
         # take a quasi-Newton step
-        delta_s = -np.matmul(np.linalg.inv(hessian), gradient)
+        delta_s_active = -np.matmul(np.linalg.inv(hessian), gradient)
 
-        # Set all the non-active components of the step to zero
-        delta_s[self._coords.inactive_indexes] = 0.0
+        # form step in full space
+        delta_s = np.zeros(shape=(n + m,))
+        delta_s[idxs] = delta_s_active
 
         self._take_step_within_trust_radius(delta_s)
         return None
