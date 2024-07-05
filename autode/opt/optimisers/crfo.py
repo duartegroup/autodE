@@ -6,7 +6,7 @@ Notation follows:
 [2] J. Baker, J. Comput. Chem., 13, 240 Ž1992
 """
 import numpy as np
-from typing import Union
+from typing import Union, Optional, List, TYPE_CHECKING
 
 from autode.log import logger
 from autode.values import GradientRMS, Distance
@@ -18,10 +18,19 @@ from autode.opt.optimisers.hessian_update import (
     BFGSSR1Update,
 )
 
+if TYPE_CHECKING:
+    from autode.opt.coordinates.primitives import Primitive
+
 
 class CRFOptimiser(RFOptimiser):
+    """Constrained optimisation in delocalised internal coordinates"""
+
     def __init__(
-        self, init_alpha: Union[Distance, float] = 0.05, *args, **kwargs
+        self,
+        init_alpha: Union[Distance, float] = 0.05,
+        *args,
+        extra_prims: Optional[List[Primitive]] = None,
+        **kwargs,
     ):
         """
         Constrained rational function optimisation
@@ -31,6 +40,10 @@ class CRFOptimiser(RFOptimiser):
             init_alpha: Maximum step size, assumed Angstrom if units
                         not given
 
+        Keyword Args:
+            extra_prims: A list of aditional coordinates (or constraints) to
+                        add to the DIC optimisation space (optional)
+
         See Also:
             :py:meth:`RFOOptimiser <RFOOptimiser.__init__>`
         """
@@ -39,6 +52,10 @@ class CRFOptimiser(RFOptimiser):
         self.alpha = Distance(init_alpha, units="ang")
         assert self.alpha > 0
         self._hessian_update_types = [BFGSDampedUpdate, BFGSSR1Update]
+
+        if extra_prims is None:
+            extra_prims = []
+        self._extra_prims = list(extra_prims)
 
     def _step(self) -> None:
         """Partitioned rational function step"""
@@ -130,6 +147,8 @@ class CRFOptimiser(RFOptimiser):
 
         cartesian_coords = CartesianCoordinates(self._species.coordinates)
         primitives = AnyPIC.from_species(self._species)
+        for ic in self._extra_prims:
+            primitives.add(ic)
 
         self._coords = DICWithConstraints.from_cartesian(
             x=cartesian_coords, primitives=primitives
