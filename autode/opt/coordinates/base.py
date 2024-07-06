@@ -281,6 +281,23 @@ class OptCoordinates(ValueArray, ABC):
         assert abs(rfo_lmda) > 1.0e-10
         return rfo_lmda
 
+    @property
+    def min_eigval(self) -> float:
+        """
+        Obtain the minimum eigenvalue of the molecular Hessian in
+        the active space
+
+        Returns:
+            (float): The minimum eigenvalue
+        """
+        assert self._h is not None
+        n, _ = self._h.shape
+        idxs = [i for i in self.active_indexes if i < n]
+        hess = self._h[:, idxs][idxs, :]
+
+        eigvals = np.linalg.eigvalsh(hess)
+        return eigvals[0]
+
     def make_hessian_positive_definite(self) -> None:
         """
         Make the Hessian matrix positive definite by shifting eigenvalues
