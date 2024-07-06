@@ -105,8 +105,6 @@ class CRFOptimiser(RFOptimiser):
         # take quasi-Newton step in active subspace
         hessian = hessian[:, idxs][idxs, :]
         gradient = self._coords.g[idxs]
-
-        # take a quasi-Newton step
         delta_s_active = -np.matmul(np.linalg.inv(hessian), gradient)
 
         # form step in full space

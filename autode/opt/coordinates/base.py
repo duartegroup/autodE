@@ -263,7 +263,7 @@ class OptCoordinates(ValueArray, ABC):
         assert self._h is not None
         # ignore constraint modes
         n, _ = self._h.shape
-        idxs = self.active_indexes[:n]
+        idxs = [i for i in self.active_indexes if i < n]
         hess = self._h[:, idxs][idxs, :]
         grad = self._g[idxs]
 
