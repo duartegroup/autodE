@@ -61,6 +61,11 @@ class TRMOptimiser(CRFOptimiser):
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
         idxs = self._coords.active_indexes
+        n_satisfied_constraints = (n + m - len(idxs)) // 2
+        logger.info(
+            f"Satisfied {n_satisfied_constraints} constraints. "
+            f"Active space is {len(idxs)} dimensional"
+        )
 
         def get_trm_step(hess, grad, lmda):
             """TRM step from hessian, gradient and shift"""
@@ -82,7 +87,7 @@ class TRMOptimiser(CRFOptimiser):
 
         min_b = self._coords.min_eigval
         # try simple quasi-Newton first
-        if min_b > 0 and trm_step_error(0.0) < 0:
+        if min_b > 0 and trm_step_error(0.0) < 0.0:
             step = get_trm_step(self._coords.h, self._coords.g, 0.0)
             self._take_step_within_trust_radius(step)
             return None

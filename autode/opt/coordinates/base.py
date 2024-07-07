@@ -228,13 +228,14 @@ class OptCoordinates(ValueArray, ABC):
         assert isinstance(old_coords, OptCoordinates), "Wrong type!"
         assert old_coords._h is not None
         assert old_coords._g is not None
+        idxs = [i for i in old_coords.active_indexes if i < len(self)]
 
         for update_type in hessian_update_types:
             updater = update_type(
                 h=old_coords._h,
                 s=np.array(self) - np.array(old_coords),
                 y=self._g - old_coords._g,
-                subspace_idxs=old_coords.indexes,
+                subspace_idxs=idxs,
             )
 
             if not updater.conditions_met:
