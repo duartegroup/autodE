@@ -64,14 +64,14 @@ class TRMOptimiser(CRFOptimiser):
 
         def get_trm_step(hess, grad, lmda):
             """TRM step from hessian, gradient and shift"""
-            hess = hess - lmda * np.eye(hess)
+            hess = hess - lmda * np.eye(hess.shape[0])
             for i in range(m):  # no shift on constraints
                 hess[-m + i, -m + i] = 0.0
             full_step = np.zeros_like(grad)
             hess = hess[:, idxs][idxs, :]
             grad = grad[idxs]
-            step = np.matmul(np.linalg.inv(hess), grad)
-            full_step[idxs] = step
+            trm_step = -np.matmul(np.linalg.inv(hess), grad)
+            full_step[idxs] = trm_step
             return full_step
 
         def trm_step_error(lmda):
@@ -91,7 +91,7 @@ class TRMOptimiser(CRFOptimiser):
         right_bound = min_b - 1.0e-6
         assert trm_step_error(right_bound) > 0
         left_bound = right_bound - 0.1
-        for _ in range(100):
+        for _ in range(500):
             if trm_step_error(left_bound) < 0:
                 break
             left_bound -= 0.1
@@ -103,6 +103,7 @@ class TRMOptimiser(CRFOptimiser):
         res = root_scalar(f=trm_step_error, bracket=[left_bound, right_bound])
         if not res.converged:
             raise OptimiserStepError("Failed in root-finding")
+        logger.info(f"Calculated TRM λ = {res.root:.4f}")
         step = get_trm_step(self._coords.h, self._coords.g, res.root)
         self._take_step_within_trust_radius(step)
         return None
