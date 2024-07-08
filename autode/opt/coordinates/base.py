@@ -308,11 +308,15 @@ class OptCoordinates(ValueArray, ABC):
             new_coords(np.ndarray): The new coordinates
         """
         assert self._g is not None and self._h is not None
-        idxs = [i for i in self.active_indexes if i < len(self)]
 
         step = np.array(new_coords) - np.array(self)
-        pred_delta = np.dot(self._g, step)
-        pred_delta += 0.5 * np.linalg.multi_dot((step, self._h, step))
+
+        idxs = [i for i in self.active_indexes if i < len(self)]
+        step = step[idxs]
+        grad = self._g[idxs]
+        hess = self._h[:, idxs][idxs, :]
+        pred_delta = np.dot(grad, step)
+        pred_delta += 0.5 * np.linalg.multi_dot((step, hess, step))
         return pred_delta
 
     def make_hessian_positive_definite(self) -> None:

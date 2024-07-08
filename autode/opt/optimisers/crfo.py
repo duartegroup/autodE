@@ -71,6 +71,7 @@ class CRFOptimiser(RFOptimiser):
                 self._history.penultimate, self._hessian_update_types
             )
         assert self._coords.h is not None
+        self._update_trust_radius()
 
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
@@ -114,6 +115,11 @@ class CRFOptimiser(RFOptimiser):
         # form step in full space
         delta_s = np.zeros(shape=(n + m,))
         delta_s[idxs] = delta_s_active
+
+        # scale back to trust radius only on non-constraint modes
+        delta_s_q = delta_s[:n]
+        if np.linalg.norm(delta_s_q) > self.alpha:
+            delta_s = delta_s * self.alpha / np.linalg.norm(delta_s_q)
 
         self._take_step_within_trust_radius(delta_s)
         return None
