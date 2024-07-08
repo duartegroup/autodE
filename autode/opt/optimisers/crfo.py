@@ -31,9 +31,10 @@ class CRFOptimiser(RFOptimiser):
 
     def __init__(
         self,
-        init_alpha: Union[Distance, float] = 0.05,
+        init_trust: float = 0.1,
         *args,
         extra_prims: Optional[List["Primitive"]] = None,
+        max_step: Union[Distance, float] = Distance(0.12, "ang"),
         **kwargs,
     ):
         """
@@ -41,23 +42,28 @@ class CRFOptimiser(RFOptimiser):
 
         -----------------------------------------------------------------------
         Arguments:
-            init_alpha: Maximum step size, assumed Angstrom if units
-                        not given
+            init_alpha: Initial value of the trust radius
 
         Keyword Args:
             extra_prims: A list of aditional coordinates (or constraints) to
                         add to the DIC optimisation space (optional)
+            max_step: The maximum distance an atom can move in Cartesian
+                    coordinates (assumed units of Å if not given)
 
         See Also:
             :py:meth:`RFOOptimiser <RFOOptimiser.__init__>`
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = Distance(init_alpha, units="ang")
-        assert self.alpha > 0
-        self._hessian_update_types = [BFGSDampedUpdate, BFGSSR1Update]
-
+        if not (_min_trust < init_trust < _max_trust):
+            init_trust = min(max(init_trust, _min_trust), _max_trust)
+            logger.warning(f"Setting trust radius to {init_trust:.3f}")
+        self._trust = float(init_trust)
+        self._maxstep = Distance(max_step, units="ang")
+        assert self._maxstep > 0
         self._extra_prims = [] if extra_prims is None else list(extra_prims)
+
+        self._hessian_update_types = [BFGSDampedUpdate, BFGSSR1Update]
 
     def _step(self) -> None:
         """Partitioned rational function step"""
@@ -87,7 +93,7 @@ class CRFOptimiser(RFOptimiser):
             f"eigenvalue(s). Should have {m}"
         )
 
-        # force molecular Hessian block to be positive definite
+        # molecular Hessian block should be positive definite
         hessian = self._coords.h.copy()
         shift = self._coords.rfo_shift
         hessian -= shift * np.eye(n + m)
@@ -96,18 +102,20 @@ class CRFOptimiser(RFOptimiser):
 
         logger.info(f"Calculated RFO λ = {shift:.4f}")
 
+        # RFO step in active space
+        o = m - n_satisfied_constraints
+        hessian = hessian[:, idxs][idxs, :]
+        gradient = self._coords.g[idxs]
+
         d2l_eigvals = np.linalg.eigvalsh(hessian)
         n_negative = sum(lmda < 0 for lmda in d2l_eigvals)
-        if not n_negative == m:
+        if n_negative != o:
             raise RuntimeError(
                 f"Constrained optimisation failed, ∇^2L has {n_negative} "
                 f" negative eigenvalues after RFO diagonal shift - "
-                f"should have {m}"
+                f"should have {o}"
             )
 
-        # take quasi-Newton step in active subspace
-        hessian = hessian[:, idxs][idxs, :]
-        gradient = self._coords.g[idxs]
         delta_s_active = -np.matmul(np.linalg.inv(hessian), gradient)
 
         # form step in full space
@@ -121,6 +129,33 @@ class CRFOptimiser(RFOptimiser):
 
         self._take_step_within_trust_radius(delta_s)
         return None
+
+    def _take_step_within_max_step(self, delta_s):
+        """
+        Take the step by converting internal coordinates to Cartesian
+        coordinates, and scaling back if the maximum movement of an
+        atom exceeds max_step
+
+        Arguments:
+            delta_s: The step in internal coordinates
+        """
+        assert self._coords is not None
+
+        self._coords.allow_unconverged_back_transform = True
+        new_coords = self._coords + delta_s
+        cart_delta = new_coords.to("cart") - self._coords.to("cart")
+        cart_displ = np.linalg.norm(cart_delta.reshape((-1, 3)), axis=1)
+        if cart_displ.max() > self._maxstep:
+            logger.info(
+                f"Calculated step too large: max. displacement = "
+                f"{cart_displ.max()}, scaling down"
+            )
+            # Note because the transformation is not linear this will not
+            # generate a step exactly max(∆x) ≡ α, but is empirically close
+            factor = self._maxstep / cart_displ.max()
+            delta_s = factor * delta_s
+
+        self._coords = self._coords + delta_s
 
     def _update_trust_radius(self):
         """Updates the trust radius before a geometry step"""
