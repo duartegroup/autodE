@@ -57,9 +57,7 @@ class CRFOptimiser(RFOptimiser):
         assert self.alpha > 0
         self._hessian_update_types = [BFGSDampedUpdate, BFGSSR1Update]
 
-        if extra_prims is None:
-            extra_prims = []
-        self._extra_prims = list(extra_prims)
+        self._extra_prims = [] if extra_prims is None else list(extra_prims)
 
     def _step(self) -> None:
         """Partitioned rational function step"""

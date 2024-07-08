@@ -43,9 +43,7 @@ class TRMOptimiser(CRFOptimiser):
 
         self._hessian_update_types = [BFGSPDUpdate, BFGSSR1Update]
 
-        if extra_prims is None:
-            extra_prims = []
-        self._extra_prims = list(extra_prims)
+        self._extra_prims = [] if extra_prims is None else list(extra_prims)
 
     def _step(self) -> None:
         """Trust radius step"""
