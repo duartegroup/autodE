@@ -21,6 +21,10 @@ from autode.opt.optimisers.hessian_update import (
 if TYPE_CHECKING:
     from autode.opt.coordinates.primitives import Primitive
 
+# max and min bounds for the trust radius
+_max_trust = 0.3
+_min_trust = 0.005
+
 
 class CRFOptimiser(RFOptimiser):
     """Constrained optimisation in delocalised internal coordinates"""
@@ -113,6 +117,38 @@ class CRFOptimiser(RFOptimiser):
 
         self._take_step_within_trust_radius(delta_s)
         return None
+
+    def _update_trust_radius(self):
+        """Updates the trust radius before a geometry step"""
+        assert self._coords is not None, "Must have coordinates!"
+
+        if self.iteration == 0:
+            return None
+
+        coords_l = self._history.penultimate
+        pred_delta_e = coords_l.pred_quad_delta_e(self._coords)
+        trust_ratio = self.last_energy_change / float(pred_delta_e)
+        last_step_size = np.linalg.norm(
+            np.array(coords_l) - np.array(self._coords)
+        )
+
+        if trust_ratio < 0.25:
+            self.alpha = max(0.7 * self.alpha, _min_trust)
+        elif 0.25 < trust_ratio < 0.75:
+            pass
+        elif 0.75 < trust_ratio < 1.25:
+            # increase if step was actually near trust radius
+            if abs(last_step_size - self.alpha) / self.alpha < 0.05:
+                self.alpha = min(1.2 * self.alpha, _max_trust)
+        elif 1.25 < trust_ratio < 1.75:
+            pass
+        elif trust_ratio > 1.75:
+            self.alpha = max(0.9 * self.alpha, _min_trust)
+
+        logger.info(
+            f"Ratio of actual/predicted dE = {trust_ratio:.3f},"
+            f" Current trust radius = {self.alpha:.3f}"
+        )
 
     @property
     def _g_norm(self) -> GradientRMS:

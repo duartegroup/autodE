@@ -87,7 +87,7 @@ class TRMOptimiser(CRFOptimiser):
 
         min_b = self._coords.min_eigval
         # try simple quasi-Newton if hessian is positive definite
-        if min_b > 0 and trm_step_error(0.0) < 0.0:
+        if min_b > 0 and trm_step_error(0.0) <= 0.0:
             step = get_trm_step(self._coords.h, self._coords.g, 0.0)
             self._take_step_within_trust_radius(step)
             return None
