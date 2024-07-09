@@ -1,12 +1,14 @@
 """
-Constrained optimisation with trust radius model
+Constrained optimisation with quadratic trust radius model
+
+Also known as Quadratic Approximation (QA) or Trust-Radius Model (TRM)
 """
 import numpy as np
 from scipy.optimize import root_scalar
 from typing import Union, Optional, List, TYPE_CHECKING
 
 from autode.log import logger
-from autode.values import GradientRMS, Distance
+from autode.values import Distance
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.optimisers.hessian_update import BFGSPDUpdate, BFGSSR1Update
 from autode.exceptions import OptimiserStepError
@@ -15,35 +17,8 @@ if TYPE_CHECKING:
     from autode.opt.coordinates.primitives import Primitive
 
 
-class TRMOptimiser(CRFOptimiser):
-    """Trust-radius model optimiser in delocalised internal coordinates"""
-
-    def __init__(
-        self,
-        init_alpha: Union[Distance, float] = 0.1,
-        *args,
-        extra_prims: Optional[List["Primitive"]] = None,
-        **kwargs,
-    ):
-        """
-        Constrained trust-radius model optimisation
-
-        -----------------------------------------------------------------------
-
-        Args:
-            init_alpha:
-            *args:
-            extra_prims:
-            **kwargs:
-        """
-        super().__init__(*args, **kwargs)
-
-        self.alpha = Distance(init_alpha, units="ang")
-        assert self.alpha > 0
-
-        self._hessian_update_types = [BFGSPDUpdate, BFGSSR1Update]
-
-        self._extra_prims = [] if extra_prims is None else list(extra_prims)
+class QAOptimiser(CRFOptimiser):
+    """Quadratic trust-radius optimiser in delocalised internal coordinates"""
 
     def _step(self) -> None:
         """Trust radius step"""
@@ -55,6 +30,8 @@ class TRMOptimiser(CRFOptimiser):
                 self._history.penultimate, self._hessian_update_types
             )
         assert self._coords.h is not None
+        self._update_trust_radius()
+
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
 
@@ -87,7 +64,7 @@ class TRMOptimiser(CRFOptimiser):
         # try simple quasi-Newton if hessian is positive definite
         if min_b > 0 and trm_step_error(0.0) <= 0.0:
             step = get_trm_step(self._coords.h, self._coords.g, 0.0)
-            self._take_step_within_trust_radius(step)
+            self._take_step_within_max_move(step)
             return None
 
         # next try RFO step if within trust radius
@@ -95,7 +72,7 @@ class TRMOptimiser(CRFOptimiser):
         rfo_step = get_trm_step(self._coords.h, self._coords.g, rfo_shift)
         if np.linalg.norm(rfo_step) <= self.alpha:
             logger.info(f"Calculated RFO λ = {rfo_shift}")
-            self._take_step_within_trust_radius(rfo_step)
+            self._take_step_within_max_move(rfo_step)
             return None
 
         # constrain step to trust radius
@@ -126,7 +103,7 @@ class TRMOptimiser(CRFOptimiser):
                 raise OptimiserStepError("Root search did not converge")
             logger.info(f"Calculated TRM λ = {res.root:.4f}")
             step = get_trm_step(self._coords.h, self._coords.g, res.root)
-            self._take_step_within_trust_radius(step)
+            self._take_step_within_max_move(step)
             return None
 
         # TRM failed, switch to scaled RFO
@@ -137,5 +114,5 @@ class TRMOptimiser(CRFOptimiser):
             logger.info(f"Calculated RFO λ = {rfo_shift}")
             # use scaled RFO
             rfo_step = rfo_step * self.alpha / np.linalg.norm(rfo_step)
-            self._take_step_within_trust_radius(rfo_step)
+            self._take_step_within_max_move(rfo_step)
             return None

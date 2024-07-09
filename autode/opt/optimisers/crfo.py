@@ -127,10 +127,10 @@ class CRFOptimiser(RFOptimiser):
         if np.linalg.norm(delta_s_q) > self.alpha:
             delta_s = delta_s * self.alpha / np.linalg.norm(delta_s_q)
 
-        self._take_step_within_trust_radius(delta_s)
+        self._take_step_within_max_move(delta_s)
         return None
 
-    def _take_step_within_max_step(self, delta_s):
+    def _take_step_within_max_move(self, delta_s):
         """
         Take the step by converting internal coordinates to Cartesian
         coordinates, and scaling back if the maximum movement of an
