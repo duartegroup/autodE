@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from autode.opt.coordinates.primitives import Primitive
 
 # max and min bounds for the trust radius
-_max_trust = 0.3
+_max_trust = 0.2
 _min_trust = 0.005
 
 
@@ -34,7 +34,7 @@ class CRFOptimiser(RFOptimiser):
         init_trust: float = 0.1,
         *args,
         extra_prims: Optional[List["Primitive"]] = None,
-        max_step: Union[Distance, float] = Distance(0.12, "ang"),
+        max_move: Union[Distance, float] = Distance(0.12, "ang"),
         **kwargs,
     ):
         """
@@ -47,8 +47,8 @@ class CRFOptimiser(RFOptimiser):
         Keyword Args:
             extra_prims: A list of aditional coordinates (or constraints) to
                         add to the DIC optimisation space (optional)
-            max_step: The maximum distance an atom can move in Cartesian
-                    coordinates (assumed units of Å if not given)
+            max_move: The maximum distance an atom can move in Cartesian
+                    coordinates in a step (assumed units of Å if not given)
 
         See Also:
             :py:meth:`RFOOptimiser <RFOOptimiser.__init__>`
@@ -59,8 +59,8 @@ class CRFOptimiser(RFOptimiser):
             init_trust = min(max(init_trust, _min_trust), _max_trust)
             logger.warning(f"Setting trust radius to {init_trust:.3f}")
         self._trust = float(init_trust)
-        self._maxstep = Distance(max_step, units="ang")
-        assert self._maxstep > 0
+        self._maxmove = Distance(max_move, units="ang")
+        assert self._maxmove > 0
         self._extra_prims = [] if extra_prims is None else list(extra_prims)
 
         self._hessian_update_types = [BFGSDampedUpdate, BFGSSR1Update]
@@ -134,7 +134,7 @@ class CRFOptimiser(RFOptimiser):
         """
         Take the step by converting internal coordinates to Cartesian
         coordinates, and scaling back if the maximum movement of an
-        atom exceeds max_step
+        atom exceeds max_move
 
         Arguments:
             delta_s: The step in internal coordinates
@@ -145,14 +145,14 @@ class CRFOptimiser(RFOptimiser):
         new_coords = self._coords + delta_s
         cart_delta = new_coords.to("cart") - self._coords.to("cart")
         cart_displ = np.linalg.norm(cart_delta.reshape((-1, 3)), axis=1)
-        if cart_displ.max() > self._maxstep:
+        if cart_displ.max() > self._maxmove:
             logger.info(
                 f"Calculated step too large: max. displacement = "
                 f"{cart_displ.max()}, scaling down"
             )
             # Note because the transformation is not linear this will not
             # generate a step exactly max(∆x) ≡ α, but is empirically close
-            factor = self._maxstep / cart_displ.max()
+            factor = self._maxmove / cart_displ.max()
             delta_s = factor * delta_s
 
         self._coords = self._coords + delta_s
