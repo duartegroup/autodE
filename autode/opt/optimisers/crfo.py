@@ -13,6 +13,7 @@ from autode.values import GradientRMS, Distance
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
 from autode.opt.coordinates.internals import AnyPIC
 from autode.opt.optimisers.rfo import RFOptimiser
+from autode.exceptions import OptimiserStepError
 from autode.opt.optimisers.hessian_update import (
     BFGSDampedUpdate,
     BFGSSR1Update,
@@ -34,6 +35,7 @@ class CRFOptimiser(RFOptimiser):
         init_trust: float = 0.1,
         *args,
         extra_prims: Optional[List["Primitive"]] = None,
+        trust_update: bool = True,
         max_move: Union[Distance, float] = Distance(0.12, "ang"),
         **kwargs,
     ):
@@ -49,9 +51,10 @@ class CRFOptimiser(RFOptimiser):
                         add to the DIC optimisation space (optional)
             max_move: The maximum distance an atom can move in Cartesian
                     coordinates in a step (assumed units of Å if not given)
+            trust_update: Whether to update the trust radius
 
         See Also:
-            :py:meth:`RFOOptimiser <RFOOptimiser.__init__>`
+            :py:meth:`RFOptimiser <RFOptimiser.__init__>`
         """
         super().__init__(*args, **kwargs)
 
@@ -110,10 +113,10 @@ class CRFOptimiser(RFOptimiser):
         d2l_eigvals = np.linalg.eigvalsh(hessian)
         n_negative = sum(lmda < 0 for lmda in d2l_eigvals)
         if n_negative != o:
-            raise RuntimeError(
-                f"Constrained optimisation failed, ∇^2L has {n_negative} "
-                f" negative eigenvalues after RFO diagonal shift - "
-                f"should have {o}"
+            raise OptimiserStepError(
+                f"Failed to calculated constrained RFO step, ∇^2L has "
+                f"{n_negative} negative eigenvalues after RFO diagonal"
+                f" shift - should have {o}"
             )
 
         delta_s_active = -np.matmul(np.linalg.inv(hessian), gradient)
