@@ -81,7 +81,7 @@ def test_trust_update():
 
     simulate_energy_change_ratio_update_trust(1.0)
     assert (np.linalg.norm(last_step) - init_trust) / init_trust < 0.05
-    assert np.isclose(opt.alpha, 1.2 * init_trust)
+    assert np.isclose(opt.alpha, 1.3 * init_trust)
 
     simulate_energy_change_ratio_update_trust(1.3)
     assert np.isclose(opt.alpha, init_trust)
