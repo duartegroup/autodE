@@ -65,7 +65,7 @@ class QAOptimiser(CRFOptimiser):
         rfo_shift = self._coords.rfo_shift
         rfo_step = get_trm_step(self._coords.h, self._coords.g, rfo_shift)
         if np.linalg.norm(rfo_step) <= self.alpha:
-            logger.info(f"Calculated RFO λ = {rfo_shift}")
+            logger.info(f"Calculated RFO λ = {rfo_shift:.4f}")
             self._take_step_within_max_move(rfo_step)
             return None
 
@@ -105,7 +105,7 @@ class QAOptimiser(CRFOptimiser):
             logger.info(
                 f"TRM step failed: {str(exc)}, switching to scaled RFO"
             )
-            logger.info(f"Calculated RFO λ = {rfo_shift}")
+            logger.info(f"Calculated RFO λ = {rfo_shift:.4f}")
             # use scaled RFO
             rfo_step = rfo_step * self.alpha / np.linalg.norm(rfo_step)
             self._take_step_within_max_move(rfo_step)

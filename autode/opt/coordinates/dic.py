@@ -256,7 +256,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                     "DIC->Cart iterative back-transform did not converge"
                 )
 
-        s_k = np.matmul(self.U.T, self.primitives(x_k))
+        q_k = self.primitives.close_to(x_k, q_init)
+        s_k = np.matmul(self.U.T, q_k)
         self.B = np.matmul(self.U.T, self.primitives.B)
         self.B_T_inv = np.linalg.pinv(self.B)
 
