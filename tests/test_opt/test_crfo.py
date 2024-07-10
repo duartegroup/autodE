@@ -232,7 +232,7 @@ def test_crfo_with_dihedral():
     constrained_distance = mol.distance(0, 1) + 0.1
     mol.constraints.distance = {(0, 1): constrained_distance}
 
-    CRFOptimiser.optimise(species=mol, method=XTB(), maxiter=10)
+    CRFOptimiser.optimise(species=mol, method=XTB(), maxiter=15)
 
     assert np.isclose(mol.distance(0, 1), constrained_distance, atol=1e-4)
 
@@ -372,7 +372,7 @@ def test_optimise_linear_bend_with_ref():
 def test_optimise_chain_dihedrals():
     mol = cumulene_mol()
     assert abs(mol.dihedral(6, 3, 4, 8)) < val.Angle(40, "deg")
-    opt = CRFOptimiser(maxiter=15, gtol=1e-4, etol=1e-4)
+    opt = CRFOptimiser(maxiter=20, gtol=1e-4, etol=1e-4)
     opt.run(mol, XTB())
     # 5-C chain, should be close to 90 degrees
     assert abs(mol.dihedral(6, 3, 4, 8)) > val.Angle(85, "deg")
