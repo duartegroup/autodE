@@ -5,16 +5,10 @@ Also known as Quadratic Approximation (QA) or Trust-Radius Model (TRM)
 """
 import numpy as np
 from scipy.optimize import root_scalar
-from typing import Union, Optional, List, TYPE_CHECKING
 
 from autode.log import logger
-from autode.values import Distance
 from autode.opt.optimisers.crfo import CRFOptimiser
-from autode.opt.optimisers.hessian_update import BFGSPDUpdate, BFGSSR1Update
 from autode.exceptions import OptimiserStepError
-
-if TYPE_CHECKING:
-    from autode.opt.coordinates.primitives import Primitive
 
 
 class QAOptimiser(CRFOptimiser):
