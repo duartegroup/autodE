@@ -61,6 +61,14 @@ class CartesianCoordinates(OptCoordinates):
         assert self.h_or_h_inv_has_correct_shape(arr)
         self._h = None if arr is None else np.array(arr)
 
+    @property
+    def active_indexes(self) -> List[int]:
+        return list(range(len(self)))
+
+    @property
+    def inactive_indexes(self) -> List[int]:
+        return []
+
     def iadd(self, value: np.ndarray) -> OptCoordinates:
         return np.ndarray.__iadd__(self, value)
 
