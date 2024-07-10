@@ -2,6 +2,12 @@
 Constrained optimisation with quadratic trust radius model
 
 Also known as Quadratic Approximation (QA) or Trust-Radius Model (TRM)
+
+References:
+[1] P. Culot et al. Theor. Chim. Acta, 82, 1992, 189-205
+[2] T. Helgaker, Chem. Phys. Lett., 182(5), 1991, 503-510
+[3] J. T. Golab et al. Chem. Phys., 78, 1983, 175-199
+[4] R. Fletcher, Practical Methods of Optimization, Wiley, Chichester, 1981
 """
 import numpy as np
 from scipy.optimize import root_scalar

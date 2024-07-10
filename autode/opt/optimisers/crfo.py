@@ -61,7 +61,8 @@ class CRFOptimiser(RFOptimiser):
         if not (_min_trust < init_trust < _max_trust):
             init_trust = min(max(init_trust, _min_trust), _max_trust)
             logger.warning(f"Setting trust radius to {init_trust:.3f}")
-        self._trust = float(init_trust)
+        self.alpha = float(init_trust)
+        self._trust_update = bool(trust_update)
         self._maxmove = Distance(max_move, units="ang")
         assert self._maxmove > 0
         self._extra_prims = [] if extra_prims is None else list(extra_prims)
@@ -167,6 +168,9 @@ class CRFOptimiser(RFOptimiser):
         if self.iteration == 0:
             return None
 
+        if self._trust_update is False:
+            return None
+
         coords_l = self._history.penultimate
         pred_delta_e = coords_l.pred_quad_delta_e(self._coords)
         trust_ratio = self.last_energy_change / float(pred_delta_e)
@@ -185,7 +189,7 @@ class CRFOptimiser(RFOptimiser):
         elif 1.25 < trust_ratio < 1.75:
             pass
         elif trust_ratio > 1.75:
-            self.alpha = max(0.9 * self.alpha, _min_trust)
+            self.alpha = max(0.7 * self.alpha, _min_trust)
 
         logger.info(
             f"Ratio of actual/predicted dE = {trust_ratio:.3f},"
