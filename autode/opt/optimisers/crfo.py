@@ -149,10 +149,11 @@ class CRFOptimiser(RFOptimiser):
         new_coords = self._coords + delta_s
         cart_delta = new_coords.to("cart") - self._coords.to("cart")
         cart_displ = np.linalg.norm(cart_delta.reshape((-1, 3)), axis=1)
-        if np.abs(cart_displ).max() > self._maxmove:
+        max_displ = np.abs(cart_displ).max()
+        if max_displ > self._maxmove:
             logger.info(
                 f"Calculated step too large: max. displacement = "
-                f"{np.abs(cart_displ).max():.4f}, scaling down"
+                f"{max_displ:.3f} Å, scaling down"
             )
             # Note because the transformation is not linear this will not
             # generate a step exactly max(∆x) ≡ α, but is empirically close
