@@ -88,3 +88,13 @@ def test_trust_update():
 
     simulate_energy_change_ratio_update_trust(1.8)
     assert np.isclose(opt.alpha, 0.7 * init_trust)
+
+
+@work_in_tmp_dir()
+@requires_working_xtb_install
+def test_molecular_opt_qa():
+    mol = Molecule(smiles="CCO")
+    constr_distance = mol.distance(1, 3) + 0.1
+    mol.constraints.distance = {(1, 3): constr_distance}
+    QAOptimiser.optimise(mol, method=XTB(), maxiter=10)
+    assert np.isclose(mol.distance(1, 3), constr_distance, 1e-6)

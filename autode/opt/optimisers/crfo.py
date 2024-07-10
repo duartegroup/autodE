@@ -187,7 +187,7 @@ class CRFOptimiser(RFOptimiser):
         elif 0.75 < trust_ratio < 1.25:
             # increase if step was actually near trust radius
             if abs(last_step_size - self.alpha) / self.alpha < 0.05:
-                self.alpha = min(1.2 * self.alpha, _max_trust)
+                self.alpha = min(1.3 * self.alpha, _max_trust)
         elif 1.25 < trust_ratio < 1.75:
             pass
         elif trust_ratio > 1.75:

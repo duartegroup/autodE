@@ -9,7 +9,10 @@ from autode.methods import XTB
 from autode.opt.coordinates.internals import PIC
 from autode.opt.optimisers.crfo import CRFOptimiser
 from autode.opt.coordinates import CartesianCoordinates, DICWithConstraints
-from autode.opt.coordinates.primitives import PrimitiveDihedralAngle
+from autode.opt.coordinates.primitives import (
+    PrimitiveDihedralAngle,
+    ConstrainedCompositeBonds,
+)
 from autode.utils import work_in_tmp_dir
 from .molecules import h2o2_mol, acetylene_mol, feco5_mol, cumulene_mol
 from ..testutils import requires_working_xtb_install
@@ -377,3 +380,42 @@ def test_optimise_chain_dihedrals():
     # 5-C chain, should be close to 90 degrees
     assert abs(mol.dihedral(6, 3, 4, 8)) > val.Angle(85, "deg")
     assert abs(mol.dihedral(6, 3, 4, 8)) < val.Angle(95, "deg")
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_composite_bond_constraint():
+    atoms = [
+        Atom("C", -2.6862, 1.0780, -0.1640),
+        Atom("C", -2.1836, -0.0798, -0.5820),
+        Atom("C", -0.5315, 2.2123, -0.0294),
+        Atom("H", -1.1416, -0.3055, -0.5232),
+        Atom("C", -1.8773, 2.2239, 0.0534),
+        Atom("H", 0.0331, 1.3028, -0.0181),
+        Atom("H", -0.4693, 2.6248, -1.9811),
+        Atom("C", -0.2061, 1.6165, -2.2424),
+        Atom("H", -2.8152, -0.9212, -0.7994),
+        Atom("H", -2.3965, 3.1639, 0.1692),
+        Atom("H", 0.8400, 1.4387, -2.4301),
+        Atom("C", -1.1022, 0.6635, -2.5738),
+        Atom("H", -3.7553, 1.2122, -0.0856),
+        Atom("H", 0.0433, 3.1121, 0.1002),
+        Atom("H", -2.1548, 0.8243, -2.5510),
+        Atom("C", -0.6762, -0.6020, -3.1972),
+        Atom("O", 0.4285, -0.9110, -3.5228),
+        Atom("H", -1.5372, -1.3068, -3.3795),
+    ]
+    # asymmetric Diels-Alder (butadiene + acrolein)
+    mol = Molecule(atoms=atoms)
+    constr = ConstrainedCompositeBonds(
+        bonds=[(1, 11), (2, 7)], coeffs=[1, 1], value=4.6
+    )
+    # current sum of distances ~ 4.7 A, difference ~ 0.07
+    assert np.isclose(mol.distance(1, 11), 2.385, rtol=1e-4)
+    assert np.isclose(mol.distance(2, 7), 2.315, rtol=1e-4)
+    opt = CRFOptimiser(maxiter=10, gtol=1e-3, etol=1e-4, extra_prims=[constr])
+    opt.run(mol, method=XTB())
+    # sum of distances should be ~4.6 A
+    assert np.isclose(mol.distance(1, 11) + mol.distance(2, 7), 4.6, rtol=1e-4)
+    # difference should be much higher, as TS is asymmetric
+    assert mol.distance(1, 11) - mol.distance(2, 7) > 0.1
