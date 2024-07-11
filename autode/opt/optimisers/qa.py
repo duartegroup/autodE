@@ -30,7 +30,6 @@ class QAOptimiser(CRFOptimiser):
                 self._history.penultimate, self._hessian_update_types
             )
         assert self._coords.h is not None
-        self._update_trust_radius()
 
         n, m = len(self._coords), self._coords.n_constraints
         logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
@@ -41,6 +40,9 @@ class QAOptimiser(CRFOptimiser):
             f"Satisfied {n_satisfied_constraints} constraints. "
             f"Active space is {len(idxs)} dimensional"
         )
+        if n_satisfied_constraints == m:
+            print(n_satisfied_constraints, m)
+            self._update_trust_radius()
 
         def get_trm_step(hess, grad, lmda):
             """TRM step from hessian, gradient and shift"""

@@ -563,6 +563,7 @@ class CompositeBonds(Primitive):
             bonds: A list of tuples (i, j) representing bonds
             coeffs: A list of floating point coefficients in order
         """
+        super().__init__()
         assert len(bonds) == len(coeffs), "Number of bonds != coefficients"
         assert all(isinstance(bond, tuple) for bond in bonds)
         assert all(len(bond) == 2 for bond in bonds)
@@ -571,8 +572,6 @@ class CompositeBonds(Primitive):
             for bond in bonds
         )
         assert len(set(bonds)) == len(bonds)
-        all_idxs = list(itertools.chain(*bonds))
-        super().__init__(*all_idxs)
 
         self._bonds = list(bonds)
         self._coeffs = [float(c) for c in coeffs]
@@ -581,9 +580,11 @@ class CompositeBonds(Primitive):
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ):
         """Linear combination of bonds"""
+        all_idxs = list(itertools.chain(*self._bonds))
+        unique_idxs = list(set(all_idxs))
         _x = x.ravel()
         atom_vecs = _get_3d_vecs_from_atom_idxs(
-            *self._atom_indexes, x=_x, deriv_order=deriv_order
+            *unique_idxs, x=_x, deriv_order=deriv_order
         )
 
         def two_batch(iterable):
@@ -592,8 +593,12 @@ class CompositeBonds(Primitive):
                 yield tuple(iterable[ndx : ndx + 2])
 
         bonds_combined = None
-        for idx, (atom_i, atom_j) in enumerate(two_batch(atom_vecs)):
-            if idx == 0:
+        for idx, (i, j) in enumerate(self._bonds):
+            atom_i, atom_j = (
+                atom_vecs[unique_idxs.index(i)],
+                atom_vecs[unique_idxs.index(j)],
+            )
+            if bonds_combined is None:
                 bonds_combined = self._coeffs[0] * (atom_i - atom_j).norm()
             else:
                 bonds_combined += self._coeffs[idx] * (atom_i - atom_j).norm()
