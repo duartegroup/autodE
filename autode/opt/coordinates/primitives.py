@@ -587,11 +587,6 @@ class CompositeBonds(Primitive):
             *unique_idxs, x=_x, deriv_order=deriv_order
         )
 
-        def two_batch(iterable):
-            """Return items in tuples of two"""
-            for ndx in range(0, len(iterable), 2):
-                yield tuple(iterable[ndx : ndx + 2])
-
         bonds_combined = None
         for idx, (i, j) in enumerate(self._bonds):
             atom_i, atom_j = (
