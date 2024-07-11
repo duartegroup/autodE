@@ -727,6 +727,9 @@ def test_primitives_consistent_with_mol_values():
     assert np.isclose(ang(coords), h2o2.angle(0, 2, 1), rtol=1e-8)
     dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
     assert np.isclose(dihedral(coords), h2o2.dihedral(2, 0, 1, 3), rtol=1e-8)
+    ic = CompositeBonds([(0, 1), (0, 2)], [0.3, 0.7])
+    mol_val = 0.3 * h2o2.distance(0, 1) + 0.7 * h2o2.distance(0, 2)
+    assert np.isclose(mol_val, ic(coords))
 
 
 # fmt: off
@@ -756,6 +759,7 @@ extra_mols = [
         ]
     ),
     feco5_mol(), # for testing linear angles
+    h2o2_mol(),
 ]
 
 test_mols = [
@@ -769,6 +773,7 @@ test_prims = [
     PrimitiveDihedralAngle(2, 0, 1, 3),
     PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND),
     PrimitiveLinearAngle(2, 3, 4, 8, LinearBendType.BEND),
+    CompositeBonds([(0, 1), (0, 2)], [1, 1]),
 ]
 # fmt: on
 
