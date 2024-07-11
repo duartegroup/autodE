@@ -34,6 +34,8 @@ from autode.opt.coordinates.primitives import (
     PrimitiveLinearAngle,
     PrimitiveDummyLinearAngle,
     LinearBendType,
+    CompositeBonds,
+    ConstrainedCompositeBonds,
 )
 
 
@@ -258,6 +260,13 @@ def test_cart_to_dic():
     assert np.allclose(x, np.array([0.1, 0.1, 0.1, 2.1, 0.1, 0.1]))
     assert not np.allclose(x, dics._x)
     x -= 0.1
+
+
+def test_cartesian_all_indexes_active():
+    arr = np.arange(6)
+    x = CartesianCoordinates(arr)
+    assert x.active_indexes == list(range(6))
+    assert x.inactive_indexes == list()
 
 
 def test_simple_dic_to_cart():
@@ -662,6 +671,16 @@ def test_dihedral_equality():
     )
 
 
+def test_composite_bonds_equality():
+    a = CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[0.5, 1.2])
+    b = CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[0.5, 1.2])
+    c = CompositeBonds(bonds=[(0, 5), (2, 4)], coeffs=[0.5, 1.2])
+    d = CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[0.1, 1.2])
+    assert a == b
+    assert a != c  # different bonds
+    assert a != d  # different coefficient
+
+
 def test_linear_angle():
     acetylene = Molecule(
         atoms=[
@@ -678,8 +697,8 @@ def test_linear_angle():
     assert angle._vec_r is not None
     old_r_vec = angle._vec_r
     # the dummy atom should not change after the first call
-    _ = angle(x)
-    _ = angle(x)
+    _ = angle(x + 0.05)
+    _ = angle(x - 0.07)
     assert angle._vec_r is old_r_vec
 
     axis_vec = np.array(np.array(angle._vec_r._data) - x.reshape(-1, 3)[1])
@@ -808,6 +827,8 @@ def test_repr():
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.COMPLEMENT),
         PrimitiveDummyLinearAngle(0, 1, 2, LinearBendType.BEND),
         PrimitiveImproperDihedral(0, 1, 2, 3),
+        CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[1, 1]),
+        ConstrainedCompositeBonds([(1, 2), (2, 3)], [1, 1], 0.2),
     ]
 
     for p in prims:

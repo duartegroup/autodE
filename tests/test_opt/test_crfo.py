@@ -419,3 +419,18 @@ def test_composite_bond_constraint():
     assert np.isclose(mol.distance(1, 11) + mol.distance(2, 7), 4.6, rtol=1e-4)
     # difference should be much higher, as TS is asymmetric
     assert mol.distance(1, 11) - mol.distance(2, 7) > 0.1
+
+
+def test_trust_radius_limits():
+    import autode.opt.optimisers.crfo
+
+    max_lim = autode.opt.optimisers.crfo._max_trust
+    opt = CRFOptimiser(
+        maxiter=10, gtol=1e-3, etol=1e-4, init_trust=max_lim + 0.1
+    )
+    assert np.isclose(opt.alpha, max_lim)
+    min_lim = autode.opt.optimisers.crfo._min_trust
+    opt = CRFOptimiser(
+        maxiter=10, gtol=1e-3, etol=1e-4, init_trust=min_lim - 0.001
+    )
+    assert np.isclose(opt.alpha, min_lim)

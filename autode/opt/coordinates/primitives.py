@@ -603,8 +603,9 @@ class CompositeBonds(Primitive):
     def __eq__(self, other):
         """Equality of two linear combination of bonds"""
         return (
-            self.__class__ == other.__class__
+            isinstance(other, self.__class__)
             and set(zip(self._bonds)) == set(zip(other._bonds))
+            and np.allclose(self._coeffs, other._coeffs)
         )  # fmt: skip
 
     def __repr__(self):
