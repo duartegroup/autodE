@@ -300,7 +300,7 @@ class OptCoordinates(ValueArray, ABC):
         assert abs(eigvals[0]) > 1.0e-10
         return eigvals[0]
 
-    def pred_quad_delta_e(self, new_coords) -> float:
+    def pred_quad_delta_e(self, new_coords: np.ndarray) -> float:
         """
         Calculate the estimated change in energy at the new coordinates
         based on the quadratic model (i.e. second order Taylor expansion)
