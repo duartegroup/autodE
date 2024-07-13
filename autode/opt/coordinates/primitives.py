@@ -594,10 +594,8 @@ class CompositeBonds(Primitive):
 
         bonds_combined = None
         for idx, (i, j) in enumerate(self._bonds):
-            atom_i, atom_j = (
-                atom_vecs[unique_idxs.index(i)],
-                atom_vecs[unique_idxs.index(j)],
-            )
+            atom_i = atom_vecs[unique_idxs.index(i)]
+            atom_j = atom_vecs[unique_idxs.index(j)]
             if bonds_combined is None:
                 bonds_combined = self._coeffs[0] * (atom_i - atom_j).norm()
             else:
