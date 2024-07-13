@@ -228,7 +228,7 @@ class OptCoordinates(ValueArray, ABC):
         assert isinstance(old_coords, OptCoordinates), "Wrong type!"
         assert old_coords._h is not None
         assert old_coords._g is not None
-        idxs = [i for i in old_coords.active_indexes if i < len(self)]
+        idxs = self.active_mol_indexes
 
         for update_type in hessian_update_types:
             updater = update_type(
@@ -252,7 +252,7 @@ class OptCoordinates(ValueArray, ABC):
         )
 
     @property
-    def rfo_shift(self):
+    def rfo_shift(self) -> float:
         """
         Get the RFO diagonal shift factor λ for the molecular Hessian that
         can be applied (H - λI) to obtain the RFO downhill step. The shift
@@ -264,7 +264,7 @@ class OptCoordinates(ValueArray, ABC):
         assert self._h is not None
         # ignore constraint modes
         n, _ = self._h.shape
-        idxs = [i for i in self.active_indexes if i < n]
+        idxs = self.active_mol_indexes
         hess = self._h[:, idxs][idxs, :]
         grad = self._g[idxs]
 
@@ -293,28 +293,33 @@ class OptCoordinates(ValueArray, ABC):
         """
         assert self._h is not None
         n, _ = self._h.shape
-        idxs = [i for i in self.active_indexes if i < n]
+        idxs = self.active_mol_indexes
         hess = self._h[:, idxs][idxs, :]
 
         eigvals = np.linalg.eigvalsh(hess)
+        assert abs(eigvals[0]) > 1.0e-10
         return eigvals[0]
 
-    def pred_quad_delta_e(self, new_coords):
+    def pred_quad_delta_e(self, new_coords) -> float:
         """
         Calculate the estimated change in energy at the new coordinates
         based on the quadratic model (i.e. second order Taylor expansion)
 
         Args:
             new_coords(np.ndarray): The new coordinates
+
+        Returns:
+            (float): The predicted change in energy
         """
         assert self._g is not None and self._h is not None
 
         step = np.array(new_coords) - np.array(self)
 
-        idxs = [i for i in self.active_indexes if i < len(self)]
+        idxs = self.active_mol_indexes
         step = step[idxs]
         grad = self._g[idxs]
         hess = self._h[:, idxs][idxs, :]
+
         pred_delta = np.dot(grad, step)
         pred_delta += 0.5 * np.linalg.multi_dot((step, hess, step))
         return pred_delta
@@ -342,6 +347,11 @@ class OptCoordinates(ValueArray, ABC):
     @abstractmethod
     def active_indexes(self) -> List[int]:
         """A list of indexes which are active in this coordinate set"""
+
+    @property
+    def active_mol_indexes(self) -> List[int]:
+        """Active indexes that are actually atomic coordinates in the molecule"""
+        return [i for i in self.active_indexes if i < len(self)]
 
     @property
     @abstractmethod
