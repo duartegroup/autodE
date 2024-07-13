@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from autode.opt.coordinates.primitives import Primitive
 
 # max and min bounds for the trust radius
-_max_trust = 0.2
-_min_trust = 0.01
+MAX_TRUST = 0.2
+MIN_TRUST = 0.01
 
 
 class CRFOptimiser(RFOptimiser):
@@ -58,8 +58,8 @@ class CRFOptimiser(RFOptimiser):
         """
         super().__init__(*args, **kwargs)
 
-        if not (_min_trust < init_trust < _max_trust):
-            init_trust = min(max(init_trust, _min_trust), _max_trust)
+        if not (MIN_TRUST < init_trust < MAX_TRUST):
+            init_trust = min(max(init_trust, MIN_TRUST), MAX_TRUST)
             logger.warning(f"Setting trust radius to {init_trust:.3f}")
         self.alpha = float(init_trust)
         self._trust_update = bool(trust_update)
@@ -180,17 +180,17 @@ class CRFOptimiser(RFOptimiser):
         )
 
         if trust_ratio < 0.25:
-            self.alpha = max(0.7 * self.alpha, _min_trust)
+            self.alpha = max(0.7 * self.alpha, MIN_TRUST)
         elif 0.25 < trust_ratio < 0.75:
             pass
         elif 0.75 < trust_ratio < 1.25:
             # increase if step was actually near trust radius
             if abs(last_step_size - self.alpha) / self.alpha < 0.05:
-                self.alpha = min(1.3 * self.alpha, _max_trust)
+                self.alpha = min(1.3 * self.alpha, MAX_TRUST)
         elif 1.25 < trust_ratio < 1.75:
             pass
         elif trust_ratio > 1.75:
-            self.alpha = max(0.7 * self.alpha, _min_trust)
+            self.alpha = max(0.7 * self.alpha, MIN_TRUST)
 
         logger.info(
             f"Ratio of actual/predicted dE = {trust_ratio:.3f},"
