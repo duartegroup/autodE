@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING
 
 from autode.log import logger
 from autode.values import ValueArray
@@ -9,6 +9,7 @@ from autode.opt.coordinates.dic import DIC
 if TYPE_CHECKING:
     from autode.values import Gradient
     from autode.hessians import Hessian
+    from autode.opt.coordinates.primitives import ConstrainedPrimitive
 
 
 class CartesianCoordinates(OptCoordinates):
@@ -45,7 +46,7 @@ class CartesianCoordinates(OptCoordinates):
         Arguments:
             arr: Gradient array
         """
-        self.g = None if arr is None else np.array(arr).flatten()
+        self._g = None if arr is None else np.array(arr).flatten()
 
     def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
@@ -57,7 +58,8 @@ class CartesianCoordinates(OptCoordinates):
         Arguments:
             arr: Hessian matrix
         """
-        self.h = None if arr is None else np.array(arr)
+        assert self.h_or_h_inv_has_correct_shape(arr)
+        self._h = None if arr is None else np.array(arr)
 
     def iadd(self, value: np.ndarray) -> OptCoordinates:
         return np.ndarray.__iadd__(self, value)

@@ -22,7 +22,7 @@ from autode.opt.coordinates.internals import (
     AnyPIC,
 )
 from autode.opt.coordinates.cartesian import CartesianCoordinates
-from autode.opt.coordinates.dic import DIC
+from autode.opt.coordinates.dic import DIC, DICWithConstraints
 from autode.opt.coordinates.primitives import (
     PrimitiveInverseDistance,
     PrimitiveDistance,
@@ -30,6 +30,7 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
     PrimitiveDihedralAngle,
+    PrimitiveImproperDihedral,
     PrimitiveLinearAngle,
     PrimitiveDummyLinearAngle,
     LinearBendType,
@@ -111,10 +112,10 @@ def test_cartesian_coordinates_hessian_update():
     # Simple coordinates with 2 atoms in 3 D
     coords = CartesianCoordinates(np.arange(0, 6).reshape((2, 3)))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         coords.update_h_from_cart_h(arr=np.array([]))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         coords.update_h_from_cart_h(arr=np.array([1.0]))
 
     # Hessian needs to be 6x6
@@ -197,6 +198,29 @@ def test_basic_dic_properties():
 
     with pytest.raises(Exception):
         _ = x.to("unknown coordinates")
+
+
+def test_dic_constraints():
+    mol = water_mol()
+    mol.constraints.distance = {(0, 1): 1.5}
+
+    pic = AnyPIC.from_species(mol)
+    x = CartesianCoordinates(mol.coordinates)
+    q = DICWithConstraints.from_cartesian(x, pic)
+    assert q.n_constraints == 1
+    assert q.g is None and q.h is None
+
+    # with constraints grad or hessian cannot be set directly
+    with pytest.raises(RuntimeError):
+        q.g = np.arange(3)
+    with pytest.raises(RuntimeError):
+        q.h = np.arange(3)
+
+    q.update_g_from_cart_g(np.random.rand(9))
+    q.update_h_from_cart_h(np.random.rand(9, 9))
+    # one extra dimension from Lagrange multiplier
+    assert q.g.shape == (4,)
+    assert q.h.shape == (4, 4)
 
 
 def test_invalid_pic_construction():
@@ -783,6 +807,7 @@ def test_repr():
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.BEND),
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.COMPLEMENT),
         PrimitiveDummyLinearAngle(0, 1, 2, LinearBendType.BEND),
+        PrimitiveImproperDihedral(0, 1, 2, 3),
     ]
 
     for p in prims:
@@ -844,7 +869,7 @@ def test_pic_generation_linear_angle_ref():
     assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
     assert PrimitiveLinearAngle(4, 3, 2, 8, LinearBendType.BEND) in pic
     # for C-Fe-C, only one out-of-plane dihedral should be present
-    assert PrimitiveDihedralAngle(3, 5, 2, 1) in pic
+    assert PrimitiveImproperDihedral(3, 5, 2, 1) in pic
     assert sum(isinstance(ic, PrimitiveDihedralAngle) for ic in pic) == 1
     # check degrees of freedom = 3N - 6
     _ = pic(m.coordinates.flatten())
