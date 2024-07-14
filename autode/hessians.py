@@ -353,7 +353,7 @@ class Hessian(ValueArray):
             (list(autode.values.Frequency)):
         """
 
-        nus = np.sqrt(np.complex_(lambdas)) / (
+        nus = np.sqrt(np.complex128(lambdas)) / (
             2.0 * np.pi * Constants.ang_to_m * Constants.c_in_cm
         )
         nus *= self._freq_scale_factor

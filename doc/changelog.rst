@@ -7,7 +7,7 @@ Changelog
 
 Functionality improvements
 **************************
-- ...
+- Adds compatability with numpy v2.0
 
 Bug Fixes
 *********
