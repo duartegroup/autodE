@@ -424,7 +424,7 @@ def test_composite_bond_constraint():
 def test_trust_radius_limits():
     import autode.opt.optimisers.crfo
 
-    max_lim = autode.opt.optimisers.crfo._max_trust
+    max_lim = autode.opt.optimisers.crfo.MAX_TRUST
     opt = CRFOptimiser(
         maxiter=10, gtol=1e-3, etol=1e-4, init_trust=max_lim + 0.1
     )
