@@ -804,7 +804,7 @@ class Atoms(list):
         Raises:
             (IndexError): If i or j are not present
         """
-        return self[j].coord - self[i].coord
+        return np.asarray(self[j].coord - self[i].coord)
 
     def nvector(self, i: int, j: int) -> np.ndarray:
         """

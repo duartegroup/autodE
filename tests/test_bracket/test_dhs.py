@@ -157,7 +157,9 @@ def test_dhs_image_pair_ts_guess(caplog):
 
     assert np.allclose(peak.coordinates.flatten(), imgpair.left_coords)
     assert np.isclose(peak.energy, -0.144)
-    assert np.allclose(peak.gradient.flatten(), imgpair.left_coords.g)
+    assert np.allclose(
+        np.asarray(peak.gradient.flatten()), np.asarray(imgpair.left_coords.g)
+    )
 
 
 @requires_working_xtb_install
