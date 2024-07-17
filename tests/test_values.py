@@ -49,8 +49,7 @@ def test_coordinate():
     assert "coord" in repr(coord).lower()
 
     assert coord is not None
-    # Equality defaults to np.allclose
-    assert coord == np.zeros(3)
+    assert np.allclose(coord, np.zeros(3))
 
 
 def test_coordinates():
@@ -114,8 +113,7 @@ def test_inplace_modification():
 def test_copy_conversion():
     x = Gradient([[1.0, 1.0, 1.0]], units="Ha / Å")
     y = x.to("eV / Å")
-
-    assert not np.allclose(x, y)
+    assert not np.allclose(np.asarray(x), np.asarray(y))
     assert np.allclose(x, np.ones(shape=(1, 3)))
 
 

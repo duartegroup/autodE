@@ -8,6 +8,7 @@ Changelog
 Functionality improvements
 **************************
 - Improved constrained optimisation (:code:`CRFOptimiser`) and handling of multiple constraints
+- Adds compatability with numpy v2.0
 
 Bug Fixes
 *********
