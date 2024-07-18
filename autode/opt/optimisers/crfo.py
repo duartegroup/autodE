@@ -140,7 +140,7 @@ class CRFOptimiser(RFOptimiser):
         atom exceeds max_move
 
         Arguments:
-            delta_s: The step in internal coordinates
+            delta_s (np.ndarray): The step in internal coordinates
         """
         assert self._coords is not None
 
@@ -149,6 +149,8 @@ class CRFOptimiser(RFOptimiser):
         cart_delta = new_coords.to("cart") - self._coords.to("cart")
         cart_displ = np.linalg.norm(cart_delta.reshape((-1, 3)), axis=1)
         max_displ = np.abs(cart_displ).max()
+
+        self._coords.allow_unconverged_back_transform = False
         if max_displ > self._maxmove:
             logger.info(
                 f"Calculated step too large: max. displacement = "
@@ -156,11 +158,13 @@ class CRFOptimiser(RFOptimiser):
             )
             # Note because the transformation is not linear this will not
             # generate a step exactly max(∆x) ≡ α, but is empirically close
-            factor = self._maxmove / np.abs(cart_displ).max()
-            delta_s = factor * delta_s
+            factor = self._maxmove / max_displ
+            self._coords = self._coords + (factor * delta_s)
 
-        self._coords.allow_unconverged_back_transform = False
-        self._coords = self._coords + delta_s
+        else:
+            self._coords = new_coords
+
+        return None
 
     def _update_trust_radius(self):
         """Updates the trust radius before a geometry step"""

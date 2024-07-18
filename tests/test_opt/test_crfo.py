@@ -429,7 +429,7 @@ def test_trust_radius_limits():
         maxiter=10, gtol=1e-3, etol=1e-4, init_trust=max_lim + 0.1
     )
     assert np.isclose(opt.alpha, max_lim)
-    min_lim = autode.opt.optimisers.crfo._min_trust
+    min_lim = autode.opt.optimisers.crfo.MIN_TRUST
     opt = CRFOptimiser(
         maxiter=10, gtol=1e-3, etol=1e-4, init_trust=min_lim - 0.001
     )
