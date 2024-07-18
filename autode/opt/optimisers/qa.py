@@ -77,13 +77,11 @@ class QAOptimiser(CRFOptimiser):
 
         # constrain step to trust radius
         try:
-            d = 1.0
             # bisection to find upper bound
-            for _ in range(500):
-                right_bound = min_b - d
+            for k in range(500):
+                right_bound = min_b - 0.5**k
                 if trm_step_error(right_bound) > 0:
                     break
-                d = d / 2
             assert trm_step_error(right_bound) > 0
 
             left_bound = right_bound - 0.1
@@ -116,3 +114,57 @@ class QAOptimiser(CRFOptimiser):
             rfo_step = rfo_step * self.alpha / np.linalg.norm(rfo_step)
             self._take_step_within_max_move(rfo_step)
             return None
+
+    def _get_qa_step(self):
+        """
+        Calculate the QA step within trust radius for the current
+        set of coordinates
+
+        Returns:
+            (np.ndarray): The trust radius step
+        """
+        n, m = len(self._coords), self._coords.n_constraints
+        idxs = self._coords.active_indexes
+
+        def shifted_newton_step(hess, grad, lmda):
+            """Level-shifted Newton step (H-λI)^-1 . g"""
+            hess = hess - lmda * np.eye(hess.shape[0])
+            for i in range(m):  # no shift on constraints
+                hess[-m + i, -m + i] = 0.0
+            full_step = np.zeros_like(grad)
+            hess = hess[:, idxs][idxs, :]
+            grad = grad[idxs]
+            trm_step = -np.matmul(np.linalg.inv(hess), grad)
+            full_step[idxs] = trm_step
+            return full_step
+
+        def qa_step_error(lmda):
+            """Error in step size"""
+            ds = shifted_newton_step(self._coords.h, self._coords.g, lmda)
+            ds_atoms = ds[:n]
+            return np.linalg.norm(ds_atoms) - self.alpha
+
+        # if molar Hessian +ve definite & step within trust use simple qN
+        min_b = self._coords.min_eigval
+        if min_b > 0 and qa_step_error(0.0) <= 0.0:
+            return shifted_newton_step(self._coords.h, self._coords.g, 0.0)
+
+        # Find λ in range (-inf, b)
+        for k in range(500):
+            right_bound = min_b - 0.5**k
+            if qa_step_error(right_bound) > 0:
+                break
+        assert qa_step_error(right_bound) > 0
+
+        for k in range(-6, 9):
+            left_bound = right_bound - 2**k
+            if qa_step_error(left_bound) < 0:
+                break
+        if not qa_step_error(left_bound) < 0:
+            raise OptimiserStepError("Unable to find bounds for root search")
+
+        res = root_scalar(f=qa_step_error, bracket=[left_bound, right_bound])
+        if not res.converged:
+            raise OptimiserStepError("QA root search failed")
+        assert res.root < min_b, "QA λ should be < lowest hessian eigenvalue"
+        return shifted_newton_step(self._coords.h, self._coords.g, res.root)
