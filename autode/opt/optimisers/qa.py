@@ -126,14 +126,20 @@ class QAOptimiser(CRFOptimiser):
         n, m = len(self._coords), self._coords.n_constraints
         idxs = self._coords.active_indexes
 
-        def shifted_newton_step(hess, grad, lmda):
-            """Level-shifted Newton step (H-λI)^-1 . g"""
+        def shifted_newton_step(hess, grad, lmda, check=False):
+            """
+            Level-shifted Newton step (H-λI)^-1 . g
+            optional check of Hessian eigenvalue structure
+            """
             hess = hess - lmda * np.eye(hess.shape[0])
-            for i in range(m):  # no shift on constraints
+            # no shift on constraints
+            for i in range(m):
                 hess[-m + i, -m + i] = 0.0
             full_step = np.zeros_like(grad)
             hess = hess[:, idxs][idxs, :]
             grad = grad[idxs]
+            if check:
+                self._check_shifted_hessian_has_correct_struct(hess)
             trm_step = -np.matmul(np.linalg.inv(hess), grad)
             full_step[idxs] = trm_step
             return full_step
@@ -147,7 +153,9 @@ class QAOptimiser(CRFOptimiser):
         # if molar Hessian +ve definite & step within trust use simple qN
         min_b = self._coords.min_eigval
         if min_b > 0 and qa_step_error(0.0) <= 0.0:
-            return shifted_newton_step(self._coords.h, self._coords.g, 0.0)
+            return shifted_newton_step(
+                self._coords.h, self._coords.g, 0.0, True
+            )
 
         # Find λ in range (-inf, b)
         for k in range(500):
@@ -164,7 +172,9 @@ class QAOptimiser(CRFOptimiser):
             raise OptimiserStepError("Unable to find bounds for root search")
 
         res = root_scalar(f=qa_step_error, bracket=[left_bound, right_bound])
-        if not res.converged:
+        if (not res.converged) or (res.root >= min_b):
             raise OptimiserStepError("QA root search failed")
-        assert res.root < min_b, "QA λ should be < lowest hessian eigenvalue"
-        return shifted_newton_step(self._coords.h, self._coords.g, res.root)
+
+        return shifted_newton_step(
+            self._coords.h, self._coords.g, res.root, True
+        )

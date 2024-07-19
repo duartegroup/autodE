@@ -96,34 +96,8 @@ class CRFOptimiser(RFOptimiser):
             f"eigenvalue(s). Should have {m}"
         )
 
-        # molecular Hessian block should be positive definite
-        hessian = self._coords.h.copy()
-        shift = self._coords.rfo_shift
-        hessian -= shift * np.eye(n + m)
-        for i in range(m):  # no shift on constraints
-            hessian[-m + i, -m + i] = 0.0
-
-        logger.info(f"Calculated RFO λ = {shift:.4f}")
-
-        # RFO step in active space
-        o = m - n_satisfied_constraints
-        hessian = hessian[:, idxs][idxs, :]
-        gradient = self._coords.g[idxs]
-
-        d2l_eigvals = np.linalg.eigvalsh(hessian)
-        n_negative = sum(lmda < 0 for lmda in d2l_eigvals)
-        if n_negative != o:
-            raise OptimiserStepError(
-                f"Failed to calculated constrained RFO step, ∇^2L has "
-                f"{n_negative} negative eigenvalues after RFO diagonal"
-                f" shift - should have {o}"
-            )
-
-        delta_s_active = -np.matmul(np.linalg.inv(hessian), gradient)
-
-        # form step in full space
-        delta_s = np.zeros(shape=(n + m,))
-        delta_s[idxs] = delta_s_active
+        # RFO step
+        delta_s = self._get_rfo_step()
 
         # scale back to trust radius only on non-constraint modes
         delta_s_q = delta_s[:n]
@@ -131,6 +105,58 @@ class CRFOptimiser(RFOptimiser):
             delta_s = delta_s * self.alpha / np.linalg.norm(delta_s_q)
 
         self._take_step_within_max_move(delta_s)
+        return None
+
+    def _get_rfo_step(self):
+        """
+        Calculate the unscaled RFO step, for the correct set of
+        coordinates
+
+        Returns:
+            (np.ndarray): The RFO step
+        """
+        n, m = len(self._coords), self._coords.n_constraints
+        idxs = self._coords.active_indexes
+
+        # only molec. Hessian should be +ve definite
+        lmda = self._coords.rfo_shift
+        hess = self._coords.h - lmda * np.eye(n + m)
+        # no shift on constraints
+        for i in range(m):
+            hess[-m + i, -m + i] = 0.0
+
+        logger.info(f"Calculated RFO λ = {lmda:.4f}")
+        # RFO step in active space
+        hess = hess[:, idxs][idxs, :]
+        grad = self._coords.g[idxs]
+        self._check_shifted_hessian_has_correct_struct(hess)
+        full_step = np.zeros(shape=(n + m))
+        rfo_step = -np.matmul(np.linalg.inv(hess), grad)
+        full_step[idxs] = rfo_step
+
+        return full_step
+
+    def _check_shifted_hessian_has_correct_struct(self, arr) -> None:
+        """
+        Check that the shifted Hessian from RFO or QA has correct
+        eigenvalue structure
+
+        Args:
+            arr (np.ndarray): Shifted hessian to check
+
+        Raises:
+            (OptimiserStepError): if Hessian does not have correct structure
+        """
+        assert self._coords is not None
+        m = self._coords.n_constraints
+        o = m - self._coords.n_satisfied_constraints
+        ev = np.linalg.eigvalsh(arr)
+        n_negative = sum(lmda < 0 for lmda in ev)
+        if not o == n_negative:
+            raise OptimiserStepError(
+                f"Failed to obtain step, shifted Hessian should have {o}"
+                f" negative eigenvalue(s), but has {n_negative}"
+            )
         return None
 
     def _take_step_within_max_move(self, delta_s: np.ndarray):
