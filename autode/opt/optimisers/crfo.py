@@ -61,6 +61,7 @@ class CRFOptimiser(RFOptimiser):
         if not (MIN_TRUST < init_trust < MAX_TRUST):
             init_trust = min(max(init_trust, MIN_TRUST), MAX_TRUST)
             logger.warning(f"Setting trust radius to {init_trust:.3f}")
+
         self.alpha = float(init_trust)
         self._trust_update = bool(trust_update)
         self._maxmove = Distance(max_move, units="ang")
@@ -69,41 +70,48 @@ class CRFOptimiser(RFOptimiser):
 
         self._hessian_update_types = [BFGSDampedUpdate, BFGSSR1Update]
 
+    def _log_constrained_opt_progress(self):
+        """Log information about the constraints"""
+        n, m = len(self._coords), self._coords.n_constraints
+        s = self._coords.n_satisfied_constraints
+        logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
+
+        idxs = self._coords.active_indexes
+        logger.info(
+            f"Satisfied {s} constraints. Active space"
+            f" is {len(idxs)} dimensional"
+        )
+        d2l_ev = np.linalg.eigvalsh(self._coords.h[:, idxs][idxs, :])
+        logger.info(
+            f"Hessian in active space has {sum(k < 0 for k in d2l_ev)} "
+            f"negative eigenvalue(s). Should have {m-s}"
+        )
+        return None
+
     def _step(self) -> None:
         """Partitioned rational function step"""
         assert self._coords is not None, "Must have coords to take a step"
-        assert self._coords.g is not None, "Must have a gradient"
 
         if self.iteration != 0:
             self._coords.update_h_from_old_h(
                 self._history.penultimate, self._hessian_update_types
             )
         assert self._coords.h is not None
+
         self._update_trust_radius()
-        n, m = len(self._coords), self._coords.n_constraints
-        logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
+        self._log_constrained_opt_progress()
 
-        idxs = self._coords.active_indexes
-        n_satisfied_constraints = (n + m - len(idxs)) // 2
-        logger.info(
-            f"Satisfied {n_satisfied_constraints} constraints. "
-            f"Active space is {len(idxs)} dimensional"
-        )
-
-        d2l_eigvals = np.linalg.eigvalsh(self._coords.h)
-        logger.info(
-            f"∇^2L has {sum(lmda < 0 for lmda in d2l_eigvals)} negative "
-            f"eigenvalue(s). Should have {m}"
-        )
-
-        # RFO step
+        # get RFO step
         delta_s = self._get_rfo_step()
 
         # scale back to trust radius only on non-constraint modes
+        n = len(self._coords)
         delta_s_q = delta_s[:n]
         if np.linalg.norm(delta_s_q) > self.alpha:
+            logger.info("Scaling RFO step to trust radius")
             delta_s = delta_s * self.alpha / np.linalg.norm(delta_s_q)
 
+        logger.info("Taking an RFO step")
         self._take_step_within_max_move(delta_s)
         return None
 
@@ -151,7 +159,7 @@ class CRFOptimiser(RFOptimiser):
         m = self._coords.n_constraints
         o = m - self._coords.n_satisfied_constraints
         ev = np.linalg.eigvalsh(arr)
-        n_negative = sum(lmda < 0 for lmda in ev)
+        n_negative = sum(k < 0 for k in ev)
         if not o == n_negative:
             raise OptimiserStepError(
                 f"Failed to obtain step, shifted Hessian should have {o}"

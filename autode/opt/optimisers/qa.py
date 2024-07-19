@@ -23,96 +23,37 @@ class QAOptimiser(CRFOptimiser):
     def _step(self) -> None:
         """Trust radius step"""
         assert self._coords is not None, "Must have coords to take a step"
-        assert self._coords.g is not None, "Must have a gradient"
 
         if self.iteration != 0:
             self._coords.update_h_from_old_h(
                 self._history.penultimate, self._hessian_update_types
             )
         assert self._coords.h is not None
+
         self._update_trust_radius()
+        self._log_constrained_opt_progress()
 
-        n, m = len(self._coords), self._coords.n_constraints
-        logger.info(f"Optimising {n} coordinates and {m} lagrange multipliers")
+        n = len(self._coords)
 
-        idxs = self._coords.active_indexes
-        n_satisfied_constraints = (n + m - len(idxs)) // 2
-        logger.info(
-            f"Satisfied {n_satisfied_constraints} constraints. "
-            f"Active space is {len(idxs)} dimensional"
-        )
-
-        def get_trm_step(hess, grad, lmda):
-            """TRM step from hessian, gradient and shift"""
-            hess = hess - lmda * np.eye(hess.shape[0])
-            for i in range(m):  # no shift on constraints
-                hess[-m + i, -m + i] = 0.0
-            full_step = np.zeros_like(grad)
-            hess = hess[:, idxs][idxs, :]
-            grad = grad[idxs]
-            trm_step = -np.matmul(np.linalg.inv(hess), grad)
-            full_step[idxs] = trm_step
-            return full_step
-
-        def trm_step_error(lmda):
-            """Get the TRM step size - trust radius for lambda value"""
-            ds = get_trm_step(self._coords.h, self._coords.g, lmda)
-            ds_atoms = ds[:n]
-            return np.linalg.norm(ds_atoms) - self.alpha
-
-        min_b = self._coords.min_eigval
-        # try simple quasi-Newton if hessian is positive definite
-        if min_b > 0 and trm_step_error(0.0) <= 0.0:
-            step = get_trm_step(self._coords.h, self._coords.g, 0.0)
-            self._take_step_within_max_move(step)
+        # Take RFO step if within trust radius
+        delta_s_rfo = self._get_rfo_step()
+        if np.linalg.norm(delta_s_rfo[:n]) <= self.alpha:
+            logger.info("Taking an RFO step")
+            self._take_step_within_max_move(delta_s_rfo)
             return None
 
-        # next try RFO step if within trust radius
-        rfo_shift = self._coords.rfo_shift
-        rfo_step = get_trm_step(self._coords.h, self._coords.g, rfo_shift)
-        if np.linalg.norm(rfo_step) <= self.alpha:
-            logger.info(f"Calculated RFO λ = {rfo_shift:.4f}")
-            self._take_step_within_max_move(rfo_step)
-            return None
-
-        # constrain step to trust radius
+        # otherwise use QA step within trust
         try:
-            # bisection to find upper bound
-            for k in range(500):
-                right_bound = min_b - 0.5**k
-                if trm_step_error(right_bound) > 0:
-                    break
-            assert trm_step_error(right_bound) > 0
-
-            left_bound = right_bound - 0.1
-            for _ in range(1000):
-                if trm_step_error(left_bound) < 0:
-                    break
-                left_bound -= 0.1
-            if trm_step_error(left_bound) > 0:
-                raise OptimiserStepError(
-                    "Unable to find bounds for root search"
-                )
-
-            res = root_scalar(
-                f=trm_step_error, bracket=[left_bound, right_bound]
-            )
-            if not res.converged:
-                raise OptimiserStepError("Root search did not converge")
-            logger.info(f"Calculated TRM λ = {res.root:.4f}")
-            step = get_trm_step(self._coords.h, self._coords.g, res.root)
-            self._take_step_within_max_move(step)
+            delta_s_qa = self._get_qa_step()
+            logger.info("Taking a QA step within trust radius")
+            self._take_step_within_max_move(delta_s_qa)
             return None
 
-        # TRM failed, switch to scaled RFO
+        # if QA fails, used scaled RFO step
         except OptimiserStepError as exc:
-            logger.info(
-                f"TRM step failed: {str(exc)}, switching to scaled RFO"
-            )
-            logger.info(f"Calculated RFO λ = {rfo_shift:.4f}")
-            # use scaled RFO
-            rfo_step = rfo_step * self.alpha / np.linalg.norm(rfo_step)
-            self._take_step_within_max_move(rfo_step)
+            logger.info(f"TRM step failed: {str(exc)}, using scaled RFO step")
+            factor = self.alpha / np.linalg.norm(delta_s_rfo[:n])
+            self._take_step_within_max_move(delta_s_rfo * factor)
             return None
 
     def _get_qa_step(self):
@@ -175,6 +116,7 @@ class QAOptimiser(CRFOptimiser):
         if (not res.converged) or (res.root >= min_b):
             raise OptimiserStepError("QA root search failed")
 
+        logger.info(f"Calculated QA λ = {res.root:.4f}")
         return shifted_newton_step(
             self._coords.h, self._coords.g, res.root, True
         )
