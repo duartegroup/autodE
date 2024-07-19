@@ -9,6 +9,7 @@ Functionality improvements
 **************************
 - Improved constrained optimisation (:code:`CRFOptimiser`) and handling of multiple constraints
 - Adds compatability with numpy v2.0
+- Improved implementation of the RFO-TRM (:code:`QAOptimiser`) optimiser that can handle constraints
 
 Bug Fixes
 *********

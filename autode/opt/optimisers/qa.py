@@ -51,7 +51,7 @@ class QAOptimiser(CRFOptimiser):
 
         # if QA fails, used scaled RFO step
         except OptimiserStepError as exc:
-            logger.info(f"TRM step failed: {str(exc)}, using scaled RFO step")
+            logger.info(f"QA step failed: {str(exc)}, using scaled RFO step")
             factor = self.alpha / np.linalg.norm(delta_s_rfo[:n])
             self._take_step_within_max_move(delta_s_rfo * factor)
             return None
@@ -81,8 +81,8 @@ class QAOptimiser(CRFOptimiser):
             grad = grad[idxs]
             if check:
                 self._check_shifted_hessian_has_correct_struct(hess)
-            trm_step = -np.matmul(np.linalg.inv(hess), grad)
-            full_step[idxs] = trm_step
+            qa_step = -np.matmul(np.linalg.inv(hess), grad)
+            full_step[idxs] = qa_step
             return full_step
 
         def qa_step_error(lmda):
@@ -105,7 +105,7 @@ class QAOptimiser(CRFOptimiser):
                 break
         assert qa_step_error(right_bound) > 0
 
-        for k in range(-6, 9):
+        for k in range(-6, 10):
             left_bound = right_bound - 2**k
             if qa_step_error(left_bound) < 0:
                 break
