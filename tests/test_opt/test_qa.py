@@ -29,8 +29,7 @@ def test_trm_step():
     opt._step()
     step = np.array(opt._history.final) - np.array(opt._history.penultimate)
     step_size = np.linalg.norm(step)
-    # TODO: fix the DIC transform bug
-    # assert np.isclose(step_size, 0.1)
+    assert np.isclose(step_size, 0.1)
 
 
 @work_in_tmp_dir()

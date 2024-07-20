@@ -235,7 +235,7 @@ def test_crfo_with_dihedral():
     constrained_distance = mol.distance(0, 1) + 0.1
     mol.constraints.distance = {(0, 1): constrained_distance}
 
-    CRFOptimiser.optimise(species=mol, method=XTB(), maxiter=15)
+    CRFOptimiser.optimise(species=mol, method=XTB(), maxiter=10)
 
     assert np.isclose(mol.distance(0, 1), constrained_distance, atol=1e-4)
 

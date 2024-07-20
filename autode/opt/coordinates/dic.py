@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from autode.hessians import Hessian
 
 
-MAX_BACK_TRANSFORM_ITERS = 20
+MAX_BACK_TRANSFORM_ITERS = 50
 
 
 class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
@@ -70,8 +70,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         Returns:
             (np.ndarray): U
         """
-
-        lambd, u = np.linalg.eigh(primitives.G)
+        # calculate spectroscopic G matrix
+        B = primitives.get_B(x)
+        G = np.dot(B, B.T)
+        lambd, u = np.linalg.eigh(G)
 
         # Form a transform matrix from the primitive internals by removing the
         # redundant subspace comprised of small eigenvalues. This forms a set
@@ -124,8 +126,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         dic.U = U  # Transform matrix primitives -> non-redundant
 
-        dic.B = np.matmul(U.T, primitives.B)
+        dic.B = np.matmul(U.T, primitives.get_B(x))
         dic.B_T_inv = np.linalg.pinv(dic.B)
+        dic._q = q.copy()
         dic._x = x.copy()
         dic.primitives = primitives
 
@@ -215,22 +218,45 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Initialise
         s_k, x_k = np.array(self, copy=True), self.to("cartesian").copy()
-        q_init = self.primitives(x_k)
+        q_init = self._q
         x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         success = False
         rms_s = np.inf
+        # NOTE: J. Comput. Chem., 2013, 34, 1842 suggests if step size
+        # is larger than 0.5 bohr (= 0.2 Å), internal step can be halved
+        # for easier convergence (i.e. damp = 1/2)
+        if np.linalg.norm(value) > 0.2:
+            damp = 0.5
+        else:
+            damp = 1.0
+
+        # hybrid SIBT/IBT algorithm
         for i in range(1, MAX_BACK_TRANSFORM_ITERS + 1):
             try:
-                x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
+                x_k = x_k + np.matmul(self.B_T_inv, damp * (s_new - s_k))
 
-                # Rebuild the primitives & DIC from the back-transformed Cartesians
+                # Rebuild the DIC from back-transformed Cartesians
                 q_k = self.primitives.close_to(x_k, q_init)
                 s_k = np.matmul(self.U.T, q_k)
-                self.B = np.matmul(self.U.T, self.primitives.B)
-                self.B_T_inv = np.linalg.pinv(self.B)
 
+                # Rebuild the B matrix every 10 steps
+                if i % 10 == 0:
+                    self.B = np.matmul(self.U.T, self.primitives.get_B(x_k))
+                    self.B_T_inv = np.linalg.pinv(self.B)
+
+                rms_s_old = rms_s
                 rms_s = np.sqrt(np.mean(np.square(s_k - s_new)))
+
+                # almost converged, turn off damping
+                if rms_s < 1e-6:
+                    damp = 1.0
+                # RMS going down, reduce damping
+                elif rms_s < rms_s_old and i > 1:
+                    damp = min(1.2 * damp, 1.0)
+                # RMS going up, increase damping
+                elif rms_s > rms_s_old:
+                    damp = max(0.7 * damp, 0.1)
 
             # for ill-conditioned primitives, there might be math error
             except ArithmeticError:
@@ -256,11 +282,13 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                     "DIC->Cart iterative back-transform did not converge"
                 )
 
-        s_k = np.matmul(self.U.T, self.primitives(x_k))
-        self.B = np.matmul(self.U.T, self.primitives.B)
+        q_k = self.primitives.close_to(x_k, q_init)
+        s_k = np.matmul(self.U.T, q_k)
+        self.B = np.matmul(self.U.T, self.primitives.get_B(x_k))
         self.B_T_inv = np.linalg.pinv(self.B)
 
         self[:] = s_k
+        self._q = q_k
         self._x = x_k
 
         return self

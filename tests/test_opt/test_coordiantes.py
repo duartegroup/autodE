@@ -898,8 +898,8 @@ def test_pic_generation_linear_angle_ref():
     assert PrimitiveImproperDihedral(3, 5, 2, 1) in pic
     assert sum(isinstance(ic, PrimitiveDihedralAngle) for ic in pic) == 1
     # check degrees of freedom = 3N - 6
-    _ = pic(m.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * m.n_atoms - 6
+    x = m.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * m.n_atoms - 6
 
 
 def test_pic_generation_linear_angle_dummy():
@@ -915,8 +915,8 @@ def test_pic_generation_linear_angle_dummy():
     assert any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
 
     # degrees of freedom = 3N - 5 for linear molecules
-    _ = pic(mol.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 5
+    x = mol.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * mol.n_atoms - 5
 
 
 @work_in_tmp_dir()
@@ -958,8 +958,8 @@ def test_pic_generation_disjoint_graph():
     assert PrimitiveDistance(2, 3) not in pic
     assert PrimitiveBondAngle(1, 2, 3) not in pic
     # check degrees of freedom = 3N - 6
-    _ = pic(mol.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 6
+    x = mol.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * mol.n_atoms - 6
 
     # if the bond between 2, 3 is made into a constraint, it will generate angles
     mol.constraints.distance = {(2, 3): mol.distance(2, 3)}
@@ -979,8 +979,8 @@ def test_pic_generation_chain_dihedrals():
     assert PrimitiveDihedralAngle(7, 4, 3, 6) in pic
 
     # check that the 3N-6 degrees of freedom are maintained
-    _ = pic(cumulene.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * cumulene.n_atoms - 6
+    x = cumulene.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * cumulene.n_atoms - 6
 
 
 def test_pic_generation_square_planar():
@@ -998,5 +998,5 @@ def test_pic_generation_square_planar():
     # for sq planar, out-of-plane dihedrals are needed to have
     # all degrees of freedom
     pic = AnyPIC.from_species(ptcl4)
-    _ = pic(ptcl4.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * ptcl4.n_atoms - 6
+    x = ptcl4.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * ptcl4.n_atoms - 6

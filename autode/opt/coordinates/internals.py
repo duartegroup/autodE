@@ -48,9 +48,10 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
         arr = super().__new__(cls, input_array, units="Å")
 
         arr._x = None
+        arr._q = None
         arr.primitives = None
 
-        for attr in ("_x", "primitives"):
+        for attr in ("_x", "primitives", "_q"):
             setattr(arr, attr, getattr(input_array, attr, None))
 
         return arr
@@ -59,7 +60,7 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
         OptCoordinates.__array_finalize__(self, obj)
 
-        for attr in ("_x", "primitives"):
+        for attr in ("_x", "primitives", "_q"):
             setattr(self, attr, getattr(obj, attr, None))
 
         return
@@ -91,8 +92,6 @@ class PIC(list, ABC):
         """
         super().__init__(args)
 
-        self._B: Optional[np.ndarray] = None
-
         if not self._are_all_primitive_coordinates(args):
             raise ValueError(
                 "Cannot construct primitive internal coordinates "
@@ -107,27 +106,10 @@ class PIC(list, ABC):
             super().append(item)
 
     def append(self, item: Primitive) -> None:
-        """Append an item to this set of primitives"""
+        """Appending directly is not allowed, use add() instead"""
         raise NotImplementedError(
             "Please use PIC.add() to add new primitives to the set"
         )
-
-    @property
-    def B(self) -> np.ndarray:
-        """Wilson B matrix"""
-
-        if self._B is None:
-            raise AttributeError(
-                f"{self} had no B matrix. Please calculate "
-                f"the value of the primitives to determine B"
-            )
-
-        return self._B
-
-    @property
-    def G(self) -> np.ndarray:
-        """Spectroscopic G matrix as the symmetrised Wilson B matrix"""
-        return np.dot(self.B, self.B.T)
 
     @classmethod
     def from_cartesian(
@@ -146,7 +128,6 @@ class PIC(list, ABC):
         """Populate Primitive-s used in the construction of set"""
 
         q = self._calc_q(x)
-        self._calc_B(x)
 
         return q
 
@@ -160,7 +141,6 @@ class PIC(list, ABC):
         assert len(self) == len(other) and isinstance(other, np.ndarray)
 
         q = self._calc_q(x)
-        self._calc_B(x)
 
         for i, primitive in enumerate(self):
             if isinstance(primitive, PrimitiveDihedralAngle):
@@ -194,7 +174,7 @@ class PIC(list, ABC):
     def _populate_all(self, x: np.ndarray) -> None:
         """Populate primitives from an array of cartesian coordinates"""
 
-    def _calc_B(self, x: np.ndarray) -> None:
+    def get_B(self, x: np.ndarray) -> np.ndarray:
         """Calculate the Wilson B matrix"""
 
         if len(self) == 0:
@@ -210,8 +190,7 @@ class PIC(list, ABC):
         for i, primitive in enumerate(self):
             B[i] = primitive.derivative(x=cart_coords)
 
-        self._B = B
-        return None
+        return B
 
     @staticmethod
     def _are_all_primitive_coordinates(args: tuple) -> bool:
