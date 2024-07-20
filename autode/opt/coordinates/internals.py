@@ -208,11 +208,6 @@ class PIC(list, ABC):
 
         return B
 
-    def get_G(self, x: np.ndarray) -> np.ndarray:
-        """Spectroscopic G matrix from the symmetrised Wilson B matrix"""
-        B = self.get_B(x)
-        return np.dot(B, B.T)
-
     @staticmethod
     def _are_all_primitive_coordinates(args: tuple) -> bool:
         return all(isinstance(arg, Primitive) for arg in args)

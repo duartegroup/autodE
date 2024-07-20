@@ -70,8 +70,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         Returns:
             (np.ndarray): U
         """
-
-        lambd, u = np.linalg.eigh(primitives.get_G(x))
+        # calculate spectroscopic G matrix
+        B = primitives.get_B(x)
+        G = np.dot(B, B.T)
+        lambd, u = np.linalg.eigh(G)
 
         # Form a transform matrix from the primitive internals by removing the
         # redundant subspace comprised of small eigenvalues. This forms a set
