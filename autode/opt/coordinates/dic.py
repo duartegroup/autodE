@@ -71,7 +71,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             (np.ndarray): U
         """
 
-        lambd, u = np.linalg.eigh(primitives.G)
+        lambd, u = np.linalg.eigh(primitives.get_G(x))
 
         # Form a transform matrix from the primitive internals by removing the
         # redundant subspace comprised of small eigenvalues. This forms a set
@@ -124,7 +124,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         dic.U = U  # Transform matrix primitives -> non-redundant
 
-        dic.B = np.matmul(U.T, primitives.B)
+        dic.B = np.matmul(U.T, primitives.get_B(x))
         dic.B_T_inv = np.linalg.pinv(dic.B)
         dic._q = q.copy()
         dic._x = x.copy()
@@ -238,9 +238,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                 q_k = self.primitives.close_to(x_k, q_init)
                 s_k = np.matmul(self.U.T, q_k)
 
-                # Rebuild the B matrix every 5 steps
+                # Rebuild the B matrix every 10 steps
                 if i % 10 == 0:
-                    self.B = np.matmul(self.U.T, self.primitives.B)
+                    self.B = np.matmul(self.U.T, self.primitives.get_B(x_k))
                     self.B_T_inv = np.linalg.pinv(self.B)
 
                 rms_s_old = rms_s
@@ -282,7 +282,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         q_k = self.primitives.close_to(x_k, q_init)
         s_k = np.matmul(self.U.T, q_k)
-        self.B = np.matmul(self.U.T, self.primitives.B)
+        self.B = np.matmul(self.U.T, self.primitives.get_B(x_k))
         self.B_T_inv = np.linalg.pinv(self.B)
 
         self[:] = s_k

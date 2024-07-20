@@ -92,8 +92,6 @@ class PIC(list, ABC):
         """
         super().__init__(args)
 
-        self._B: Optional[np.ndarray] = None
-
         if not self._are_all_primitive_coordinates(args):
             raise ValueError(
                 "Cannot construct primitive internal coordinates "
@@ -107,28 +105,27 @@ class PIC(list, ABC):
         if item not in self:
             super().append(item)
 
+    def update(self, iterable) -> None:
+        """Update this set from another set of primitives"""
+        if not self._are_all_primitive_coordinates(iterable):
+            raise ValueError(
+                "Cannot update from iterable, one or more items"
+                "are not primitive internal coordinates"
+            )
+        for item in iterable:
+            self.add(item)
+
     def append(self, item: Primitive) -> None:
-        """Append an item to this set of primitives"""
+        """Appending directly is not allowed, use add() instead"""
         raise NotImplementedError(
             "Please use PIC.add() to add new primitives to the set"
         )
 
-    @property
-    def B(self) -> np.ndarray:
-        """Wilson B matrix"""
-
-        if self._B is None:
-            raise AttributeError(
-                f"{self} had no B matrix. Please calculate "
-                f"the value of the primitives to determine B"
-            )
-
-        return self._B
-
-    @property
-    def G(self) -> np.ndarray:
-        """Spectroscopic G matrix as the symmetrised Wilson B matrix"""
-        return np.dot(self.B, self.B.T)
+    def extend(self, __iterable):
+        """Extending directly is not allowed, use update() instead"""
+        raise NotImplementedError(
+            "Please use PIC.update() to extend from another set of primitives"
+        )
 
     @classmethod
     def from_cartesian(
@@ -147,7 +144,6 @@ class PIC(list, ABC):
         """Populate Primitive-s used in the construction of set"""
 
         q = self._calc_q(x)
-        self._calc_B(x)
 
         return q
 
@@ -161,7 +157,6 @@ class PIC(list, ABC):
         assert len(self) == len(other) and isinstance(other, np.ndarray)
 
         q = self._calc_q(x)
-        self._calc_B(x)
 
         for i, primitive in enumerate(self):
             if isinstance(primitive, PrimitiveDihedralAngle):
@@ -195,7 +190,7 @@ class PIC(list, ABC):
     def _populate_all(self, x: np.ndarray) -> None:
         """Populate primitives from an array of cartesian coordinates"""
 
-    def _calc_B(self, x: np.ndarray) -> None:
+    def get_B(self, x: np.ndarray) -> np.ndarray:
         """Calculate the Wilson B matrix"""
 
         if len(self) == 0:
@@ -211,8 +206,12 @@ class PIC(list, ABC):
         for i, primitive in enumerate(self):
             B[i] = primitive.derivative(x=cart_coords)
 
-        self._B = B
-        return None
+        return B
+
+    def get_G(self, x: np.ndarray) -> np.ndarray:
+        """Spectroscopic G matrix from the symmetrised Wilson B matrix"""
+        B = self.get_B(x)
+        return np.dot(B, B.T)
 
     @staticmethod
     def _are_all_primitive_coordinates(args: tuple) -> bool:
