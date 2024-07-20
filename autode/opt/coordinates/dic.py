@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from autode.hessians import Hessian
 
 
-_max_back_transform_iterations = 20
+MAX_BACK_TRANSFORM_ITERS = 20
 
 
 class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
@@ -220,7 +220,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         success = False
         rms_s = np.inf
-        for i in range(1, _max_back_transform_iterations + 1):
+        for i in range(1, MAX_BACK_TRANSFORM_ITERS + 1):
             try:
                 x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
 

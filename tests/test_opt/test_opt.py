@@ -342,6 +342,39 @@ def test_multiple_optimiser_saves_overrides_not_append():
 
 
 @work_in_tmp_dir()
+def test_optimiser_plotting_sanity_checks(caplog):
+    mol = Molecule(smiles="N#N")
+    opt = CartesianSDOptimiser(maxiter=10, gtol=1e-3, etol=1e-3)
+    coords1 = CartesianCoordinates(mol.coordinates)
+    coords1.e = PotentialEnergy(0.1, "Ha")
+    coords1.update_g_from_cart_g(
+        np.array([0.01, 0.02, 0.05, 0.06, 0.03, 0.07])
+    )
+    opt._coords = coords1
+    opt._species = mol
+    assert opt.iteration == 0
+    assert not opt.converged
+    # plotting does not work if less than 2 points
+    with caplog.at_level("WARNING"):
+        opt.plot_optimisation(filename="test-plot.pdf")
+    assert not os.path.isfile("test-plot.pdf")
+    assert "Less than 2 points, cannot draw optimisation" in caplog.text
+
+    opt._coords = coords1.copy()
+    opt._coords.e = PotentialEnergy(0.0, "Ha")
+    assert not opt.converged
+    # either rms_g or energy plot has to be requested
+    with caplog.at_level("ERROR"):
+        opt.plot_optimisation("test-plot.pdf", False, False)
+    assert not os.path.isfile("test-plot.pdf")
+    assert "Must plot either energies or RMS gradients" in caplog.text
+    with caplog.at_level("WARNING"):
+        opt.plot_optimisation("test-plot.pdf", plot_energy=True)
+    assert os.path.isfile("test-plot.pdf")
+    assert "Optimisation is not converged, drawing a plot" in caplog.text
+
+
+@work_in_tmp_dir()
 def test_optimiser_print_geometries(caplog):
     mol = Molecule(smiles="C=C", name="mymolecule")
     coords1 = CartesianCoordinates(mol.coordinates)

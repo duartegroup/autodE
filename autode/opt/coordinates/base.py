@@ -228,13 +228,14 @@ class OptCoordinates(ValueArray, ABC):
         assert isinstance(old_coords, OptCoordinates), "Wrong type!"
         assert old_coords._h is not None
         assert old_coords._g is not None
+        idxs = self.active_mol_indexes
 
         for update_type in hessian_update_types:
             updater = update_type(
                 h=old_coords._h,
                 s=np.array(self) - np.array(old_coords),
                 y=self._g - old_coords._g,
-                subspace_idxs=old_coords.indexes,
+                subspace_idxs=idxs,
             )
 
             if not updater.conditions_met:
@@ -251,27 +252,77 @@ class OptCoordinates(ValueArray, ABC):
         )
 
     @property
-    def rfo_shift(self):
+    def rfo_shift(self) -> float:
         """
-        Get the RFO diagonal shift factor λ that can be applied to the
-        Hessian (H - λI) to obtain the RFO step
+        Get the RFO diagonal shift factor λ for the molecular Hessian that
+        can be applied (H - λI) to obtain the RFO downhill step. The shift
+        is only calculated in active subspace
 
         Returns:
             (float): The shift parameter
         """
-        h_n, _ = self._h.shape
-        # form the augmented Hessian
+        assert self._h is not None
+        # ignore constraint modes
+        n, _ = self._h.shape
+        idxs = self.active_mol_indexes
+        hess = self._h[:, idxs][idxs, :]
+        grad = self._g[idxs]
+
+        h_n, _ = hess.shape
+        # form the augmented Hessian in active subspace
         aug_h = np.zeros(shape=(h_n + 1, h_n + 1))
 
-        aug_h[:h_n, :h_n] = self._h
-        aug_h[-1, :h_n] = self._g
-        aug_h[:h_n, -1] = self._g
+        aug_h[:h_n, :h_n] = hess
+        aug_h[-1, :h_n] = grad
+        aug_h[:h_n, -1] = grad
 
         # first non-zero eigenvalue
         aug_h_lmda = np.linalg.eigvalsh(aug_h)
         rfo_lmda = aug_h_lmda[0]
         assert abs(rfo_lmda) > 1.0e-10
         return rfo_lmda
+
+    @property
+    def min_eigval(self) -> float:
+        """
+        Obtain the minimum eigenvalue of the molecular Hessian in
+        the active space
+
+        Returns:
+            (float): The minimum eigenvalue
+        """
+        assert self._h is not None
+        n, _ = self._h.shape
+        idxs = self.active_mol_indexes
+        hess = self._h[:, idxs][idxs, :]
+
+        eigvals = np.linalg.eigvalsh(hess)
+        assert abs(eigvals[0]) > 1.0e-10
+        return eigvals[0]
+
+    def pred_quad_delta_e(self, new_coords: np.ndarray) -> float:
+        """
+        Calculate the estimated change in energy at the new coordinates
+        based on the quadratic model (i.e. second order Taylor expansion)
+
+        Args:
+            new_coords(np.ndarray): The new coordinates
+
+        Returns:
+            (float): The predicted change in energy
+        """
+        assert self._g is not None and self._h is not None
+
+        step = np.array(new_coords) - np.array(self)
+
+        idxs = self.active_mol_indexes
+        step = step[idxs]
+        grad = self._g[idxs]
+        hess = self._h[:, idxs][idxs, :]
+
+        pred_delta = np.dot(grad, step)
+        pred_delta += 0.5 * np.linalg.multi_dot((step, hess, step))
+        return pred_delta
 
     def make_hessian_positive_definite(self) -> None:
         """
@@ -291,6 +342,21 @@ class OptCoordinates(ValueArray, ABC):
     @abstractmethod
     def iadd(self, value: np.ndarray) -> "OptCoordinates":
         """Inplace addition of some coordinates"""
+
+    @property
+    @abstractmethod
+    def active_indexes(self) -> List[int]:
+        """A list of indexes which are active in this coordinate set"""
+
+    @property
+    def active_mol_indexes(self) -> List[int]:
+        """Active indexes that are actually atomic coordinates in the molecule"""
+        return [i for i in self.active_indexes if i < len(self)]
+
+    @property
+    @abstractmethod
+    def inactive_indexes(self) -> List[int]:
+        """A list of indexes which are non-active in this coordinate set"""
 
     def __eq__(self, other):
         """Coordinates can never be identical..."""
