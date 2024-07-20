@@ -224,8 +224,8 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         success = False
         rms_s = np.inf
         # NOTE: J. Comput. Chem., 2013, 34, 1842 suggests if step size
-        # is larger than 0.5 bohr (= 0.2 Å), internal step must be halved
-        # for convergence (i.e. damp = 1/2)
+        # is larger than 0.5 bohr (= 0.2 Å), internal step can be halved
+        # for easier convergence (i.e. damp = 1/2)
         if np.linalg.norm(value) > 0.2:
             damp = 0.5
         else:
@@ -252,7 +252,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                 if rms_s < 1e-6:
                     damp = 1.0
                 # RMS going down, reduce damping
-                elif rms_s < rms_s_old:
+                elif rms_s < rms_s_old and i > 1:
                     damp = min(1.2 * damp, 1.0)
                 # RMS going up, increase damping
                 elif rms_s > rms_s_old:

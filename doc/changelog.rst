@@ -10,10 +10,11 @@ Functionality improvements
 - Improved constrained optimisation (:code:`CRFOptimiser`) and handling of multiple constraints
 - Adds compatability with numpy v2.0
 - Improved implementation of the RFO-TRM (:code:`QAOptimiser`) optimiser that can handle constraints
+- Added static internal back-transform and damping for faster and easier DIC to Cartesian coordinate transformation
 
 Bug Fixes
 *********
-- ...
+- DIC to Cartesian transform will now always use :code:`PIC.close_to()` to ensure steps along dihedral have the smallest change, even after back-transform is complete
 
 
 1.4.3

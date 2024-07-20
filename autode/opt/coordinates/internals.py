@@ -47,9 +47,9 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
 
         arr = super().__new__(cls, input_array, units="Å")
 
-        arr._x = None  # Cartesian coordinates
-        arr._q = None  # Primitive values
-        arr.primitives = None  # Primitive coordinate set
+        arr._x = None
+        arr._q = None
+        arr.primitives = None
 
         for attr in ("_x", "primitives", "_q"):
             setattr(arr, attr, getattr(input_array, attr, None))
