@@ -105,26 +105,10 @@ class PIC(list, ABC):
         if item not in self:
             super().append(item)
 
-    def update(self, iterable) -> None:
-        """Update this set from another set of primitives"""
-        if not self._are_all_primitive_coordinates(iterable):
-            raise ValueError(
-                "Cannot update from iterable, one or more items"
-                "are not primitive internal coordinates"
-            )
-        for item in iterable:
-            self.add(item)
-
     def append(self, item: Primitive) -> None:
         """Appending directly is not allowed, use add() instead"""
         raise NotImplementedError(
             "Please use PIC.add() to add new primitives to the set"
-        )
-
-    def extend(self, __iterable):
-        """Extending directly is not allowed, use update() instead"""
-        raise NotImplementedError(
-            "Please use PIC.update() to extend from another set of primitives"
         )
 
     @classmethod
