@@ -47,10 +47,11 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
 
         arr = super().__new__(cls, input_array, units="Å")
 
-        arr._x = None
-        arr.primitives = None
+        arr._x = None  # Cartesian coordinates
+        arr._q = None  # Primitive values
+        arr.primitives = None  # Primitive coordinate set
 
-        for attr in ("_x", "primitives"):
+        for attr in ("_x", "primitives", "_q"):
             setattr(arr, attr, getattr(input_array, attr, None))
 
         return arr
@@ -59,7 +60,7 @@ class InternalCoordinates(OptCoordinates, ABC):  # lgtm [py/missing-equals]
         """See https://numpy.org/doc/stable/user/basics.subclassing.html"""
         OptCoordinates.__array_finalize__(self, obj)
 
-        for attr in ("_x", "primitives"):
+        for attr in ("_x", "primitives", "_q"):
             setattr(self, attr, getattr(obj, attr, None))
 
         return

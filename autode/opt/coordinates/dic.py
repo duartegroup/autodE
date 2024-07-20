@@ -126,6 +126,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         dic.B = np.matmul(U.T, primitives.B)
         dic.B_T_inv = np.linalg.pinv(dic.B)
+        dic._q = q.copy()
         dic._x = x.copy()
         dic.primitives = primitives
 
@@ -215,7 +216,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Initialise
         s_k, x_k = np.array(self, copy=True), self.to("cartesian").copy()
-        q_init = self.primitives(x_k)
+        q_init = self._q
         x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         success = False
@@ -256,11 +257,13 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                     "DIC->Cart iterative back-transform did not converge"
                 )
 
-        s_k = np.matmul(self.U.T, self.primitives(x_k))
+        q_k = self.primitives.close_to(x_k, q_init)
+        s_k = np.matmul(self.U.T, q_k)
         self.B = np.matmul(self.U.T, self.primitives.B)
         self.B_T_inv = np.linalg.pinv(self.B)
 
         self[:] = s_k
+        self._q = q_k
         self._x = x_k
 
         return self
