@@ -472,8 +472,7 @@ class NDOptimiser(Optimiser, ABC):
     def __init__(
         self,
         maxiter: int,
-        gtol: GradientRMS,
-        etol: PotentialEnergy,
+        conv_tol: "ConvergenceParams",
         coords: Optional[OptCoordinates] = None,
         **kwargs,
     ):
@@ -486,9 +485,9 @@ class NDOptimiser(Optimiser, ABC):
         Arguments:
             maxiter (int): Maximum number of iterations to perform
 
-            gtol (autode.values.GradientRMS): Tolerance on RMS(|∇E|)
-
-            etol (autode.values.PotentialEnergy): Tolerance on |E_i+1 - E_i|
+            conv_tol (ConvergenceParams): Convergence tolerances, indicating
+                    thresholds for absolute energy change (|E_i+1 - E_i|),
+                    RMS and max. gradients (∇E) and RMS and max. step size (Δx)
 
         See Also:
 
@@ -496,10 +495,33 @@ class NDOptimiser(Optimiser, ABC):
         """
         super().__init__(maxiter=maxiter, coords=coords, **kwargs)
 
-        self.etol = etol
-        self.gtol = gtol
-
+        self.conv_tol = conv_tol
         self._hessian_update_types: List[Type[HessianUpdater]] = [NullUpdate]
+
+    @property
+    def conv_tol(self) -> "ConvergenceParams":
+        """
+        All convergence parameters for this optimiser. If numerical
+        values are unset, they appear as infinity.
+
+        Returns:
+            (ConvergenceParams):
+        """
+        return self._conv_tol
+
+    @conv_tol.setter
+    def conv_tol(self, value):
+        """
+        Set the convergence parameters for this optimiser.
+
+        Args:
+            value:
+
+        Returns:
+
+        """
+        # TODO: handle dicts?
+        self._conv_tol = value
 
     @property
     def gtol(self) -> GradientRMS:
