@@ -1,6 +1,6 @@
 import os
 import pickle
-
+from dataclasses import dataclass
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -19,7 +19,7 @@ from typing import (
 
 from autode.log import logger
 from autode.config import Config
-from autode.values import GradientRMS, PotentialEnergy, method_string
+from autode.values import GradientRMS, PotentialEnergy, method_string, Distance
 from autode.opt.coordinates.base import OptCoordinates
 from autode.opt.optimisers.hessian_update import NullUpdate
 from autode.exceptions import CalculationException
@@ -774,6 +774,170 @@ class NDOptimiser(Optimiser, ABC):
             self._history, species=self._species, filename=filename
         )
         return None
+
+
+@dataclass
+class ConvergenceParams:
+    """Various convergence parameters for Optimisers"""
+
+    abs_d_e: PotentialEnergy
+    rms_g: GradientRMS
+    max_g: GradientRMS
+    rms_s: Distance
+    max_s: Distance
+    strict: bool = False
+
+    def meets_criteria(self, other: "ConvergenceParams") -> bool:
+        """
+        Check if the given values for the parameters meets the
+        current set of criteria
+
+        Args:
+            other (ConvergenceParams): Another set of parameters
+
+        Returns:
+            (bool): True if criteria met, converged otherwise
+
+        """
+        abs_d_e = other.abs_d_e
+        rms_g, max_g = other.rms_g, other.max_g
+        rms_s, max_s = other.rms_s, other.max_s
+
+        # everything converged
+        if (
+            abs_d_e < self.abs_d_e
+            and rms_g < self.rms_g
+            and max_g < self.max_g
+            and rms_s < self.rms_s
+            and max_s < self.max_s
+        ):
+            return True
+
+        # Strict criteria
+        if self.strict:
+            return False
+
+        # gradient, energy overachieved and step reasonably converged
+        if (
+            abs_d_e < self.abs_d_e / 2
+            and rms_g < self.rms_g / 2
+            and max_g < self.max_g / 1.5
+            and rms_s < self.rms_s * 5
+            and max_s < self.max_s * 10
+        ):
+            logger.warning(
+                "Overachieved gradient and energy convergence, reasonable "
+                "convergence on step size."
+            )
+            return True
+
+        # only gradient criteria overachieved
+        if (
+            abs_d_e < self.abs_d_e * 1.5
+            and rms_g < self.rms_g / 10
+            and max_g < self.max_g / 5
+            and rms_s < self.rms_s * 5
+            and max_s < self.max_s * 5
+        ):
+            logger.warning(
+                "Energy is almost converged. Gradient is one order of "
+                "magnitude below convergence. Step size almost converged."
+            )
+            return True
+
+        # everything except energy is converged
+        if (
+            abs_d_e < self.abs_d_e * 3
+            and rms_g < self.rms_g
+            and max_g < self.max_g
+            and rms_s < self.rms_s
+            and max_s < self.max_s
+        ):
+            logger.warning(
+                "Gradients and step sizes have converged, reasonable "
+                "convergence on energy."
+            )
+            return True
+
+        return False
+
+
+class OptimiserConvergence:
+    """
+    Class that defines some common convergence criteria for optimisation
+    and parses user-provided convergence parameters
+    """
+
+    # NOTE: Taken from ORCA
+    LOOSE = ConvergenceParams(
+        abs_d_e=PotentialEnergy(3e-5, "Ha"),
+        rms_g=GradientRMS(5e-4, "Ha/bohr").to("Ha/ang"),
+        max_g=GradientRMS(2e-3, "Ha/bohr").to("Ha/ang"),
+        rms_s=Distance(7e-3, "bohr").to("ang"),
+        max_s=Distance(1e-2, "bohr").to("ang"),
+    )
+    NORMAL = ConvergenceParams(
+        abs_d_e=PotentialEnergy(5e-6, "Ha"),
+        rms_g=GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
+        max_g=GradientRMS(3e-4, "Ha/bohr").to("Ha/ang"),
+        rms_s=Distance(2e-3, "bohr").to("ang"),
+        max_s=Distance(4e-3, "bohr").to("ang"),
+    )
+    TIGHT = ConvergenceParams(
+        abs_d_e=PotentialEnergy(1e-6, "Ha"),
+        rms_g=GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
+        max_g=GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
+        rms_s=Distance(6e-4, "bohr").to("ang"),
+        max_s=Distance(1e-3, "bohr").to("ang"),
+    )
+    VERYTIGHT = ConvergenceParams(
+        abs_d_e=PotentialEnergy(2e-7, "Ha"),
+        rms_g=GradientRMS(8e-6, "Ha/bohr").to("Ha/ang"),
+        max_g=GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
+        rms_s=Distance(1e-4, "bohr").to("ang"),
+        max_s=Distance(2e-4, "bohr").to("ang"),
+    )
+
+    @staticmethod
+    def params_from_dict(options: dict) -> ConvergenceParams:
+        """
+        Convert a user supplied dictionary into valid convergence
+        parameters
+
+        Args:
+            options (dict):
+
+        Returns:
+            (ConvergenceParams):
+        """
+        assert isinstance(options, dict)
+        possible_attrs = [
+            "abs_d_e",
+            "rms_g",
+            "max_g",
+            "rms_s",
+            "max_s",
+            "strict",
+        ]
+
+        valid_options = {}
+        for attr in possible_attrs:
+            valid_options[attr] = options.get(attr, None)
+
+        #  valid criteria must at least have RMS grad and delta E
+        if valid_options["abs_d_e"] is None or valid_options["rms_g"] is None:
+            raise ValueError(
+                "Convergence criteria must define at least the absolute"
+                "energy change tolerance (abs_d_e) and RMS gradient"
+                "tolerance (rms_g)"
+            )
+        numerical_attrs = possible_attrs[:-1]
+        # unset numerical criteria are set to infinity i.e. not considered
+        for attr in numerical_attrs:
+            if valid_options[attr] is None:
+                valid_options[attr] = float("inf")
+
+        return ConvergenceParams(**valid_options)
 
 
 class OptimiserHistory:
