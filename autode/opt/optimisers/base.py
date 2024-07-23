@@ -867,7 +867,7 @@ class ConvergenceParams:
         self.rms_g = GradientRMS(abs(rms_g)).to("Ha/ang")
 
         # Unset criteria are infinity (i.e. always satisfied)
-        max_g = max_g if max_g is not None else GradientRMS(np.inf)
+        max_g = max_g if max_g is not None else np.inf
         rms_s = rms_s if rms_s is not None else np.inf
         max_s = max_s if max_s is not None else np.inf
         self.max_g = GradientRMS(abs(max_g)).to("Ha/ang")

@@ -9,7 +9,6 @@ from autode.opt.coordinates.dic import DIC
 if TYPE_CHECKING:
     from autode.values import Gradient
     from autode.hessians import Hessian
-    from autode.opt.coordinates.primitives import ConstrainedPrimitive
 
 
 class CartesianCoordinates(OptCoordinates):
