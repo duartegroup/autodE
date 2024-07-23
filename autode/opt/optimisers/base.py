@@ -472,7 +472,7 @@ class NDOptimiser(Optimiser, ABC):
     def __init__(
         self,
         maxiter: int,
-        conv_tol: "ConvergenceParams",
+        conv_tol: Union["ConvergenceParams", dict],
         coords: Optional[OptCoordinates] = None,
         **kwargs,
     ):
@@ -485,16 +485,20 @@ class NDOptimiser(Optimiser, ABC):
         Arguments:
             maxiter (int): Maximum number of iterations to perform
 
-            conv_tol (ConvergenceParams): Convergence tolerances, indicating
+            conv_tol (ConvergenceParams|dict): Convergence tolerances, indicating
                     thresholds for absolute energy change (|E_i+1 - E_i|),
                     RMS and max. gradients (∇E) and RMS and max. step size (Δx)
+                    Either supplied as a dictionary or a ConvergenceParams object
 
         See Also:
 
             :py:meth:`Optimiser <Optimiser.__init__>`
+            :py:meth:`ConvergenceParams <ConvergenceParams.__init__>`
         """
         super().__init__(maxiter=maxiter, coords=coords, **kwargs)
 
+        if isinstance(conv_tol, dict):
+            conv_tol = ConvergenceParams.from_dict(conv_tol)
         self.conv_tol = conv_tol
         self._hessian_update_types: List[Type[HessianUpdater]] = [NullUpdate]
 
@@ -510,17 +514,15 @@ class NDOptimiser(Optimiser, ABC):
         return self._conv_tol
 
     @conv_tol.setter
-    def conv_tol(self, value):
+    def conv_tol(self, value: Union["ConvergenceParams", dict]):
         """
         Set the convergence parameters for this optimiser.
 
         Args:
-            value:
-
-        Returns:
-
+            value (ConvergenceParams|dict):
         """
-        # TODO: handle dicts?
+        if isinstance(value, dict):
+            value = ConvergenceParams.from_dict(value)
         self._conv_tol = value
 
     @property
@@ -798,16 +800,90 @@ class NDOptimiser(Optimiser, ABC):
         return None
 
 
-@dataclass
 class ConvergenceParams:
-    """Various convergence parameters for Optimisers"""
+    """
+    Various convergence parameters for Optimisers, and
+    some common preset convergence tolerances
+    """
 
-    abs_d_e: PotentialEnergy
-    rms_g: GradientRMS
-    max_g: GradientRMS
-    rms_s: Distance
-    max_s: Distance
-    strict: bool = False
+    # NOTE: Taken from ORCA
+    LOOSE = {
+        "abs_d_e": PotentialEnergy(3e-5, "Ha"),
+        "rms_g": GradientRMS(5e-4, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(2e-3, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(7e-3, "bohr").to("ang"),
+        "max_s": Distance(1e-2, "bohr").to("ang"),
+    }
+    NORMAL = {
+        "abs_d_e": PotentialEnergy(5e-6, "Ha"),
+        "rms_g": GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(3e-4, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(2e-3, "bohr").to("ang"),
+        "max_s": Distance(4e-3, "bohr").to("ang"),
+    }
+    TIGHT = {
+        "abs_d_e": PotentialEnergy(1e-6, "Ha"),
+        "rms_g": GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(6e-4, "bohr").to("ang"),
+        "max_s": Distance(1e-3, "bohr").to("ang"),
+    }
+    VERYTIGHT = {
+        "abs_d_e": PotentialEnergy(2e-7, "Ha"),
+        "rms_g": GradientRMS(8e-6, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(1e-4, "bohr").to("ang"),
+        "max_s": Distance(2e-4, "bohr").to("ang"),
+    }
+
+    def __init__(
+        self,
+        abs_d_e: Optional[PotentialEnergy] = None,
+        rms_g: Optional[GradientRMS] = None,
+        max_g: Optional[GradientRMS] = None,
+        rms_s: Optional[Distance] = None,
+        max_s: Optional[Distance] = None,
+        strict: bool = False,
+    ):
+        """
+        Convergence criteria for optimisers
+
+        Args:
+            abs_d_e: Absolute change in energy, |E_i - E_i-1|
+            rms_g: RMS of the gradient, RMS(∇E)
+            max_g: Maximum component of gradient, max(∇E)
+            rms_s: RMS of the last step, RMS(x_i - x_i-1)
+            max_s: Maximum component of last step, max(x_i - x_i-1)
+            strict: Whether all criteria must be converged strictly.
+                    If False, convergence is signalled when some criteria
+                    are overachieved and others are close to convergence
+        """
+        if abs_d_e is None or rms_g is None:
+            raise ValueError(
+                "Convergence criteria must at least define "
+                "absolute energy change and RMS gradient criteria"
+            )
+        self.abs_d_e = PotentialEnergy(abs(abs_d_e)).to("Ha")
+        self.rms_g = GradientRMS(abs(rms_g)).to("Ha/ang")
+
+        # Unset criteria are infinity (i.e. always satisfied)
+        max_g = max_g if max_g is not None else GradientRMS(np.inf)
+        rms_s = rms_s if rms_s is not None else np.inf
+        max_s = max_s if max_s is not None else np.inf
+        self.max_g = GradientRMS(abs(max_g)).to("Ha/ang")
+        self.rms_s = Distance(abs(rms_s)).to("ang")
+        self.max_s = Distance(abs(max_s)).to("ang")
+        self.strict = bool(strict)
+
+    @classmethod
+    def from_dict(cls, options: dict) -> "ConvergenceParams":
+        """Create from dictionary of options"""
+        # only get the relevant options
+        params_dict = {}
+        for attr in ["abs_d_e", "rms_g", "max_g", "rms_s", "max_s", "strict"]:
+            if attr in options:
+                params_dict[attr] = options[attr]
+        return cls(**params_dict)
 
     def meets_criteria(self, other: "ConvergenceParams") -> bool:
         """
@@ -882,84 +958,6 @@ class ConvergenceParams:
             return True
 
         return False
-
-
-class OptimiserConvergence:
-    """
-    Class that defines some common convergence criteria for optimisation
-    and parses user-provided convergence parameters
-    """
-
-    # NOTE: Taken from ORCA
-    LOOSE = ConvergenceParams(
-        abs_d_e=PotentialEnergy(3e-5, "Ha"),
-        rms_g=GradientRMS(5e-4, "Ha/bohr").to("Ha/ang"),
-        max_g=GradientRMS(2e-3, "Ha/bohr").to("Ha/ang"),
-        rms_s=Distance(7e-3, "bohr").to("ang"),
-        max_s=Distance(1e-2, "bohr").to("ang"),
-    )
-    NORMAL = ConvergenceParams(
-        abs_d_e=PotentialEnergy(5e-6, "Ha"),
-        rms_g=GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
-        max_g=GradientRMS(3e-4, "Ha/bohr").to("Ha/ang"),
-        rms_s=Distance(2e-3, "bohr").to("ang"),
-        max_s=Distance(4e-3, "bohr").to("ang"),
-    )
-    TIGHT = ConvergenceParams(
-        abs_d_e=PotentialEnergy(1e-6, "Ha"),
-        rms_g=GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
-        max_g=GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
-        rms_s=Distance(6e-4, "bohr").to("ang"),
-        max_s=Distance(1e-3, "bohr").to("ang"),
-    )
-    VERYTIGHT = ConvergenceParams(
-        abs_d_e=PotentialEnergy(2e-7, "Ha"),
-        rms_g=GradientRMS(8e-6, "Ha/bohr").to("Ha/ang"),
-        max_g=GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
-        rms_s=Distance(1e-4, "bohr").to("ang"),
-        max_s=Distance(2e-4, "bohr").to("ang"),
-    )
-
-    @staticmethod
-    def params_from_dict(options: dict) -> ConvergenceParams:
-        """
-        Convert a user supplied dictionary into valid convergence
-        parameters
-
-        Args:
-            options (dict):
-
-        Returns:
-            (ConvergenceParams):
-        """
-        assert isinstance(options, dict)
-        possible_attrs = [
-            "abs_d_e",
-            "rms_g",
-            "max_g",
-            "rms_s",
-            "max_s",
-            "strict",
-        ]
-
-        valid_options = {}
-        for attr in possible_attrs:
-            valid_options[attr] = options.get(attr, None)
-
-        #  valid criteria must at least have RMS grad and delta E
-        if valid_options["abs_d_e"] is None or valid_options["rms_g"] is None:
-            raise ValueError(
-                "Convergence criteria must define at least the absolute"
-                "energy change tolerance (abs_d_e) and RMS gradient"
-                "tolerance (rms_g)"
-            )
-        numerical_attrs = possible_attrs[:-1]
-        # unset numerical criteria are set to infinity i.e. not considered
-        for attr in numerical_attrs:
-            if valid_options[attr] is None:
-                valid_options[attr] = float("inf")
-
-        return ConvergenceParams(**valid_options)
 
 
 class OptimiserHistory:
