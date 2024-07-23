@@ -631,8 +631,8 @@ class NDOptimiser(Optimiser, ABC):
     @property
     def converged(self) -> bool:
         """
-        Is this optimisation converged? Must be converged based on both energy
-        and gradient tolerance.
+        Is this optimisation converged? Must be converged based on energy, gradient
+        and step size criteria.
 
         -----------------------------------------------------------------------
         Returns:
@@ -641,15 +641,32 @@ class NDOptimiser(Optimiser, ABC):
         if self._species is not None and self._species.n_atoms == 1:
             return True  # Optimisation 0 DOF is always converged
 
-        if self._abs_delta_e < self.etol / 10:
-            logger.warning(
-                f"Energy change is overachieved. "
-                f'{self.etol.to("kcal") / 10:.3E} kcal mol-1. '
-                f"Signaling convergence"
-            )
+        # cannot get dE, ds in first step only, assume not converged
+        if self.iteration == 0:
+            return False
+
+        coords, coords_l = self._coords, self._history.penultimate
+        assert coords is not None and coords_l is not None
+        abs_d_e = PotentialEnergy(abs(coords.e - coords_l.e)).to("Ha")
+
+        # NOTE: Internal coordinate units are inconsistent (Angstrom-radian)
+        # so we compare in Cartesian units
+        g_x = coords.cart_proj_g
+        rms_g = np.sqrt(np.mean(np.square(g_x)))
+        max_g = np.max(np.abs(g_x))
+        delta_x = coords.to("cart") - coords_l.to("cart")
+        rms_s = np.sqrt(np.mean(np.square(delta_x)))
+        max_s = np.max(np.abs(delta_x))
+
+        params = ConvergenceParams(
+            abs_d_e=abs_d_e, rms_g=rms_g, max_g=max_g, rms_s=rms_s, max_s=max_s
+        )
+
+        if self.conv_tol.meets_criteria(params):
             return True
 
-        return self._abs_delta_e < self.etol and self._g_norm < self.gtol
+        else:
+            return False
 
     def clean_up(self) -> None:
         """

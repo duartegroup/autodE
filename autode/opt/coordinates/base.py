@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from autode.values import Gradient
     from autode.hessians import Hessian
     from typing import Type
-    from autode.opt.optimisers.base import ConvergenceParams
     from autode.opt.optimisers.hessian_update import HessianUpdater
 
 
@@ -359,11 +358,11 @@ class OptCoordinates(ValueArray, ABC):
     def inactive_indexes(self) -> List[int]:
         """A list of indexes which are non-active in this coordinate set"""
 
+    @property
     @abstractmethod
-    def convergence_criteria(self, last_coords) -> "ConvergenceParams":
+    def cart_proj_g(self) -> Optional[np.ndarray]:
         """
-        Calculate the convergence parameters using current and
-        last set of coordinates
+        The Cartesian gradient with any constraints projected out
         """
 
     def __eq__(self, other):

@@ -139,6 +139,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         logger.info(f"Transformed in      ...{time() - start_time:.4f} s")
         return dic
 
+    @property
+    def cart_proj_g(self) -> Optional[np.ndarray]:
+        return self.to("cart").g
+
     def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient
@@ -421,6 +425,17 @@ class DICWithConstraints(DIC):
             delta_s = value
 
         return super().iadd(delta_s)
+
+    @property
+    def cart_proj_g(self) -> Optional[np.ndarray]:
+        """Obtain Cartesian gradient with constraints projected out"""
+        # constrained gradient with inactive terms set to zero
+        g_s = self.g
+        g_s[self.inactive_indexes] = 0.0
+        # back to Cartesian
+        g_x = np.matmul(self.B.T, g_s)
+        assert len(g_x) == len(self.to("cart"))
+        return g_x
 
     @property
     def g(self):

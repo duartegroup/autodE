@@ -106,6 +106,10 @@ class CartesianCoordinates(OptCoordinates):
             )
 
     @property
+    def cart_proj_g(self) -> Optional[np.ndarray]:
+        return self.g
+
+    @property
     def expected_number_of_dof(self) -> int:
         """Expected number of degrees of freedom for the system"""
         n_atoms = len(self.flatten()) // 3
