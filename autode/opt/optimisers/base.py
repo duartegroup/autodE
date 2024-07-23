@@ -170,7 +170,7 @@ class Optimiser(BaseOptimiser, ABC):
             f"with {self._n_cores} cores using {self._maxiter} max "
             f"iterations"
         )
-        logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
+        # logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
 
         while not self.converged:
             self._callback(self._coords)
@@ -466,6 +466,167 @@ class NullOptimiser(BaseOptimiser):
         raise RuntimeError("A NullOptimiser has no coordinates")
 
 
+class ConvergenceParams:
+    """
+    Various convergence parameters for Optimisers, and
+    some common preset convergence tolerances
+    """
+
+    # NOTE: Taken from ORCA
+    LOOSE = {
+        "abs_d_e": PotentialEnergy(3e-5, "Ha"),
+        "rms_g": GradientRMS(5e-4, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(2e-3, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(7e-3, "bohr").to("ang"),
+        "max_s": Distance(1e-2, "bohr").to("ang"),
+    }
+    NORMAL = {
+        "abs_d_e": PotentialEnergy(5e-6, "Ha"),
+        "rms_g": GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(3e-4, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(2e-3, "bohr").to("ang"),
+        "max_s": Distance(4e-3, "bohr").to("ang"),
+    }
+    TIGHT = {
+        "abs_d_e": PotentialEnergy(1e-6, "Ha"),
+        "rms_g": GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(6e-4, "bohr").to("ang"),
+        "max_s": Distance(1e-3, "bohr").to("ang"),
+    }
+    VERYTIGHT = {
+        "abs_d_e": PotentialEnergy(2e-7, "Ha"),
+        "rms_g": GradientRMS(8e-6, "Ha/bohr").to("Ha/ang"),
+        "max_g": GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
+        "rms_s": Distance(1e-4, "bohr").to("ang"),
+        "max_s": Distance(2e-4, "bohr").to("ang"),
+    }
+    num_attrs = ["abs_d_e", "rms_g", "max_g", "rms_s", "max_s"]
+
+    def __init__(
+        self,
+        abs_d_e: Optional[PotentialEnergy] = None,
+        rms_g: Optional[GradientRMS] = None,
+        max_g: Optional[GradientRMS] = None,
+        rms_s: Optional[Distance] = None,
+        max_s: Optional[Distance] = None,
+        strict: bool = False,
+    ):
+        """
+        Convergence criteria for optimisers
+
+        Args:
+            abs_d_e: Absolute change in energy, |E_i - E_i-1|
+            rms_g: RMS of the gradient, RMS(∇E)
+            max_g: Maximum component of gradient, max(∇E)
+            rms_s: RMS of the last step, RMS(x_i - x_i-1)
+            max_s: Maximum component of last step, max(x_i - x_i-1)
+            strict: Whether all criteria must be converged strictly.
+                    If False, convergence is signalled when some criteria
+                    are overachieved and others are close to convergence
+        """
+        if abs_d_e is None or rms_g is None:
+            raise ValueError(
+                "Convergence criteria must at least define "
+                "absolute energy change and RMS gradient criteria"
+            )
+        self.abs_d_e = PotentialEnergy(abs(abs_d_e)).to("Ha")
+        self.rms_g = GradientRMS(abs(rms_g)).to("Ha/ang")
+
+        # Unset criteria are infinity (i.e. always satisfied)
+        max_g = max_g if max_g is not None else np.inf
+        rms_s = rms_s if rms_s is not None else np.inf
+        max_s = max_s if max_s is not None else np.inf
+        self.max_g = GradientRMS(abs(max_g)).to("Ha/ang")
+        self.rms_s = Distance(abs(rms_s)).to("ang")
+        self.max_s = Distance(abs(max_s)).to("ang")
+        self.strict = bool(strict)
+
+    @classmethod
+    def from_dict(cls, options: dict) -> "ConvergenceParams":
+        """Create from dictionary of options"""
+        # only get the relevant options
+        params_dict = {}
+        for attr in cls.num_attrs + ["strict"]:
+            if attr in options:
+                params_dict[attr] = options[attr]
+        return cls(**params_dict)
+
+    def meets_criteria(self, other: "ConvergenceParams") -> bool:
+        """
+        Check if the given values for the parameters meets the
+        current set of criteria
+
+        Args:
+            other (ConvergenceParams): Another set of parameters
+
+        Returns:
+            (bool): True if criteria met, converged otherwise
+
+        """
+        abs_d_e = other.abs_d_e
+        rms_g, max_g = other.rms_g, other.max_g
+        rms_s, max_s = other.rms_s, other.max_s
+
+        # everything converged
+        if (
+            abs_d_e < self.abs_d_e
+            and rms_g < self.rms_g
+            and max_g < self.max_g
+            and rms_s < self.rms_s
+            and max_s < self.max_s
+        ):
+            return True
+
+        # Strict criteria
+        if self.strict:
+            return False
+
+        # gradient, energy overachieved and step reasonably converged
+        if (
+            abs_d_e < self.abs_d_e / 2
+            and rms_g < self.rms_g / 2
+            and max_g < self.max_g / 1.5
+            and rms_s < self.rms_s * 5
+            and max_s < self.max_s * 10
+        ):
+            logger.warning(
+                "Overachieved gradient and energy convergence, reasonable "
+                "convergence on step size."
+            )
+            return True
+
+        # only gradient criteria overachieved
+        if (
+            abs_d_e < self.abs_d_e * 1.5
+            and rms_g < self.rms_g / 10
+            and max_g < self.max_g / 5
+            and rms_s < self.rms_s * 5
+            and max_s < self.max_s * 5
+        ):
+            logger.warning(
+                "Energy is almost converged. Gradient is one order of "
+                "magnitude below convergence. Step size almost converged."
+            )
+            return True
+
+        # everything except energy is converged
+        if (
+            abs_d_e < self.abs_d_e * 3
+            and rms_g < self.rms_g
+            and max_g < self.max_g
+            and rms_s < self.rms_s
+            and max_s < self.max_s
+        ):
+            logger.warning(
+                "Gradients and step sizes have converged, reasonable "
+                "convergence on energy."
+            )
+            return True
+
+        return False
+
+
 class NDOptimiser(Optimiser, ABC):
     """Abstract base class for an optimiser in N-dimensions"""
 
@@ -629,6 +790,28 @@ class NDOptimiser(Optimiser, ABC):
         return True if self._species is None else self._species.n_atoms > 1
 
     @property
+    def convergence_params(self) -> ConvergenceParams:
+        """Obtain current convergence parameters for this optimiser"""
+        assert self._coords is not None, "Must have coordinates!"
+        # NOTE: Internal coordinate units are inconsistent so we calculate
+        # step sizes and gradients in Cartesian
+        coords_l = self._coords
+        if len(self._history) > 1:
+            coords_k = self._history.penultimate
+            abs_d_e = PotentialEnergy(abs(coords_l.e - coords_k.e)).to("Ha")
+            delta_x = coords_l.to("cart") - coords_k.to("cart")
+            rms_s = np.sqrt(np.mean(np.square(delta_x)))
+            max_s = np.max(np.abs(delta_x))
+        else:
+            abs_d_e = rms_s = max_s = np.inf  # set to zero
+        g_x = coords_l.cart_proj_g
+        rms_g = np.sqrt(np.mean(np.square(g_x)))
+        max_g = np.max(np.abs(g_x))
+        return ConvergenceParams(
+            abs_d_e=abs_d_e, rms_g=rms_g, max_g=max_g, rms_s=rms_s, max_s=max_s
+        )
+
+    @property
     def converged(self) -> bool:
         """
         Is this optimisation converged? Must be converged based on energy, gradient
@@ -641,30 +824,8 @@ class NDOptimiser(Optimiser, ABC):
         if self._species is not None and self._species.n_atoms == 1:
             return True  # Optimisation 0 DOF is always converged
 
-        # cannot get dE, ds in first step only, assume not converged
-        if self.iteration == 0:
-            return False
-
-        coords, coords_l = self._coords, self._history.penultimate
-        assert coords is not None and coords_l is not None
-        abs_d_e = PotentialEnergy(abs(coords.e - coords_l.e)).to("Ha")
-
-        # NOTE: Internal coordinate units are inconsistent (Angstrom-radian)
-        # so we compare in Cartesian units
-        g_x = coords.cart_proj_g
-        rms_g = np.sqrt(np.mean(np.square(g_x)))
-        max_g = np.max(np.abs(g_x))
-        delta_x = coords.to("cart") - coords_l.to("cart")
-        rms_s = np.sqrt(np.mean(np.square(delta_x)))
-        max_s = np.max(np.abs(delta_x))
-
-        params = ConvergenceParams(
-            abs_d_e=abs_d_e, rms_g=rms_g, max_g=max_g, rms_s=rms_s, max_s=max_s
-        )
-
-        if self.conv_tol.meets_criteria(params):
+        if self.conv_tol.meets_criteria(self.convergence_params):
             return True
-
         else:
             return False
 
@@ -736,17 +897,20 @@ class NDOptimiser(Optimiser, ABC):
 
     def _log_convergence(self) -> None:
         """Log the convergence of the energy"""
-        assert (
-            self._coords is not None
-        ), "Must have coordinates to log convergence"
-        log_string = f"{self.iteration}\t"
 
-        if len(self._history) > 1:
-            assert self._coords.e and self._history.penultimate.e, "Need ∆E"
-            de: PotentialEnergy = self._coords.e - self._history.penultimate.e
-            log_string += f'{de.to("kcal mol-1"):.3f}\t{self._g_norm:.5f}'
-
-        logger.info(log_string)
+        curr_params = self.convergence_params
+        log_string1 = (
+            f"iter# {self.iteration}   |dE| = "
+            f"{curr_params.abs_d_e.to('kcalmol'):.4f} kcal/mol  "
+            f"RMS(g) = {curr_params.rms_g:.6f} Ha/Å  "
+        )
+        log_string2 = (
+            f"max(g) = {curr_params.max_g:.5f} Ha/Å  "
+            f"RMS(dx) = {curr_params.rms_s:.4f} Å  "
+            f"max(dx) = {curr_params.max_s:.3f} Å"
+        )
+        logger.info(log_string1)
+        logger.info(log_string2)
         return None
 
     def plot_optimisation(
@@ -815,166 +979,6 @@ class NDOptimiser(Optimiser, ABC):
             self._history, species=self._species, filename=filename
         )
         return None
-
-
-class ConvergenceParams:
-    """
-    Various convergence parameters for Optimisers, and
-    some common preset convergence tolerances
-    """
-
-    # NOTE: Taken from ORCA
-    LOOSE = {
-        "abs_d_e": PotentialEnergy(3e-5, "Ha"),
-        "rms_g": GradientRMS(5e-4, "Ha/bohr").to("Ha/ang"),
-        "max_g": GradientRMS(2e-3, "Ha/bohr").to("Ha/ang"),
-        "rms_s": Distance(7e-3, "bohr").to("ang"),
-        "max_s": Distance(1e-2, "bohr").to("ang"),
-    }
-    NORMAL = {
-        "abs_d_e": PotentialEnergy(5e-6, "Ha"),
-        "rms_g": GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
-        "max_g": GradientRMS(3e-4, "Ha/bohr").to("Ha/ang"),
-        "rms_s": Distance(2e-3, "bohr").to("ang"),
-        "max_s": Distance(4e-3, "bohr").to("ang"),
-    }
-    TIGHT = {
-        "abs_d_e": PotentialEnergy(1e-6, "Ha"),
-        "rms_g": GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
-        "max_g": GradientRMS(1e-4, "Ha/bohr").to("Ha/ang"),
-        "rms_s": Distance(6e-4, "bohr").to("ang"),
-        "max_s": Distance(1e-3, "bohr").to("ang"),
-    }
-    VERYTIGHT = {
-        "abs_d_e": PotentialEnergy(2e-7, "Ha"),
-        "rms_g": GradientRMS(8e-6, "Ha/bohr").to("Ha/ang"),
-        "max_g": GradientRMS(3e-5, "Ha/bohr").to("Ha/ang"),
-        "rms_s": Distance(1e-4, "bohr").to("ang"),
-        "max_s": Distance(2e-4, "bohr").to("ang"),
-    }
-
-    def __init__(
-        self,
-        abs_d_e: Optional[PotentialEnergy] = None,
-        rms_g: Optional[GradientRMS] = None,
-        max_g: Optional[GradientRMS] = None,
-        rms_s: Optional[Distance] = None,
-        max_s: Optional[Distance] = None,
-        strict: bool = False,
-    ):
-        """
-        Convergence criteria for optimisers
-
-        Args:
-            abs_d_e: Absolute change in energy, |E_i - E_i-1|
-            rms_g: RMS of the gradient, RMS(∇E)
-            max_g: Maximum component of gradient, max(∇E)
-            rms_s: RMS of the last step, RMS(x_i - x_i-1)
-            max_s: Maximum component of last step, max(x_i - x_i-1)
-            strict: Whether all criteria must be converged strictly.
-                    If False, convergence is signalled when some criteria
-                    are overachieved and others are close to convergence
-        """
-        if abs_d_e is None or rms_g is None:
-            raise ValueError(
-                "Convergence criteria must at least define "
-                "absolute energy change and RMS gradient criteria"
-            )
-        self.abs_d_e = PotentialEnergy(abs(abs_d_e)).to("Ha")
-        self.rms_g = GradientRMS(abs(rms_g)).to("Ha/ang")
-
-        # Unset criteria are infinity (i.e. always satisfied)
-        max_g = max_g if max_g is not None else np.inf
-        rms_s = rms_s if rms_s is not None else np.inf
-        max_s = max_s if max_s is not None else np.inf
-        self.max_g = GradientRMS(abs(max_g)).to("Ha/ang")
-        self.rms_s = Distance(abs(rms_s)).to("ang")
-        self.max_s = Distance(abs(max_s)).to("ang")
-        self.strict = bool(strict)
-
-    @classmethod
-    def from_dict(cls, options: dict) -> "ConvergenceParams":
-        """Create from dictionary of options"""
-        # only get the relevant options
-        params_dict = {}
-        for attr in ["abs_d_e", "rms_g", "max_g", "rms_s", "max_s", "strict"]:
-            if attr in options:
-                params_dict[attr] = options[attr]
-        return cls(**params_dict)
-
-    def meets_criteria(self, other: "ConvergenceParams") -> bool:
-        """
-        Check if the given values for the parameters meets the
-        current set of criteria
-
-        Args:
-            other (ConvergenceParams): Another set of parameters
-
-        Returns:
-            (bool): True if criteria met, converged otherwise
-
-        """
-        abs_d_e = other.abs_d_e
-        rms_g, max_g = other.rms_g, other.max_g
-        rms_s, max_s = other.rms_s, other.max_s
-
-        # everything converged
-        if (
-            abs_d_e < self.abs_d_e
-            and rms_g < self.rms_g
-            and max_g < self.max_g
-            and rms_s < self.rms_s
-            and max_s < self.max_s
-        ):
-            return True
-
-        # Strict criteria
-        if self.strict:
-            return False
-
-        # gradient, energy overachieved and step reasonably converged
-        if (
-            abs_d_e < self.abs_d_e / 2
-            and rms_g < self.rms_g / 2
-            and max_g < self.max_g / 1.5
-            and rms_s < self.rms_s * 5
-            and max_s < self.max_s * 10
-        ):
-            logger.warning(
-                "Overachieved gradient and energy convergence, reasonable "
-                "convergence on step size."
-            )
-            return True
-
-        # only gradient criteria overachieved
-        if (
-            abs_d_e < self.abs_d_e * 1.5
-            and rms_g < self.rms_g / 10
-            and max_g < self.max_g / 5
-            and rms_s < self.rms_s * 5
-            and max_s < self.max_s * 5
-        ):
-            logger.warning(
-                "Energy is almost converged. Gradient is one order of "
-                "magnitude below convergence. Step size almost converged."
-            )
-            return True
-
-        # everything except energy is converged
-        if (
-            abs_d_e < self.abs_d_e * 3
-            and rms_g < self.rms_g
-            and max_g < self.max_g
-            and rms_s < self.rms_s
-            and max_s < self.max_s
-        ):
-            logger.warning(
-                "Gradients and step sizes have converged, reasonable "
-                "convergence on energy."
-            )
-            return True
-
-        return False
 
 
 class OptimiserHistory:
