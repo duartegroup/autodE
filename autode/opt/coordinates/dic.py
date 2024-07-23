@@ -432,6 +432,7 @@ class DICWithConstraints(DIC):
         # constrained gradient with inactive terms set to zero
         g_s = self.g
         g_s[self.inactive_indexes] = 0.0
+        g_s = g_s[: len(self)]
         # back to Cartesian
         g_x = np.matmul(self.B.T, g_s)
         assert len(g_x) == len(self.to("cart"))

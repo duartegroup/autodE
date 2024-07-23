@@ -573,7 +573,7 @@ class NDOptimiser(Optimiser, ABC):
     @property
     def optimiser_params(self):
         """Optimiser params to save"""
-        return {"maxiter": self._maxiter, "gtol": self.gtol, "etol": self.etol}
+        return {"maxiter": self._maxiter, "conv_tol": ConvergenceParams}
 
     @classmethod
     def optimise(
