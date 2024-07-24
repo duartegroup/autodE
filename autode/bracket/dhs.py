@@ -16,6 +16,7 @@ from autode.opt.optimisers.utils import TruncatedTaylor
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
 from autode.opt.optimisers import RFOptimiser
+from autode.opt.optimisers.base import ConvergenceParams
 from autode.exceptions import OptimiserStepError
 from autode.log import logger
 
@@ -498,6 +499,7 @@ class DHS(BaseBracketMethod):
         large_step: Union[Distance, float] = Distance(0.2, "ang"),
         small_step: Union[Distance, float] = Distance(0.05, "ang"),
         switch_thresh: Union[Distance, float] = Distance(1.5, "ang"),
+        conv_tol: Union["ConvergenceParams", dict] = ConvergenceParams.LOOSE,
         **kwargs,
     ):
         """
@@ -549,6 +551,7 @@ class DHS(BaseBracketMethod):
         self._small_step = Distance(abs(small_step), "ang")
         self._sw_thresh = Distance(abs(switch_thresh), "ang")
         assert self._small_step < self._large_step
+        self._conv_tol = conv_tol
 
         self._step_size: Optional[Distance] = None
         if self._large_step > self.imgpair.dist:
@@ -604,8 +607,7 @@ class DHS(BaseBracketMethod):
 
         opt = DistanceConstrainedOptimiser(
             maxiter=curr_maxiter,
-            gtol=self._gtol,
-            etol=1.0e-3,  # seems like a reasonable etol
+            conv_tol=self._conv_tol,
             init_trust=opt_trust,
             pivot_point=pivot,
             old_coords_read_hess=old_coords,

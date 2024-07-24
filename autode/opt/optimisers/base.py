@@ -676,51 +676,6 @@ class NDOptimiser(Optimiser, ABC):
         self._conv_tol = value
 
     @property
-    def gtol(self) -> GradientRMS:
-        """
-        Gradient tolerance on |∇E| i.e. the root mean square of each component
-
-        -----------------------------------------------------------------------
-        Returns:
-            (autode.values.GradientRMS):
-        """
-        return self._gtol
-
-    @gtol.setter
-    def gtol(self, value: Union[int, float, GradientRMS]):
-        """Set the gradient tolerance"""
-
-        if float(value) <= 0:
-            raise ValueError(
-                "Tolerance on the gradient (||∇E||) must be "
-                f"positive. Had: gtol={value}"
-            )
-
-        self._gtol = GradientRMS(value)
-
-    @property
-    def etol(self) -> PotentialEnergy:
-        """
-        Energy tolerance between two consecutive steps of the optimisation
-
-        -----------------------------------------------------------------------
-        Returns:
-            (autode.values.PotentialEnergy): Energy tolerance
-        """
-        return self._etol
-
-    @etol.setter
-    def etol(self, value: Union[int, float, PotentialEnergy]):
-        """Set the energy tolerance"""
-        if float(value) <= 0:
-            raise ValueError(
-                "Tolerance on the energy change is absolute so "
-                f"must be positive. Had etol = {value}"
-            )
-
-        self._etol = PotentialEnergy(value)
-
-    @property
     def optimiser_params(self):
         """Optimiser params to save"""
         return {"maxiter": self._maxiter, "conv_tol": self.conv_tol}
