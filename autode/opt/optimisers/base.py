@@ -525,18 +525,20 @@ class ConvergenceParams:
                     If False, convergence is signalled when some criteria
                     are overachieved and others are close to convergence
         """
-        if abs_d_e is None or rms_g is None:
+        if rms_g is None:
             raise ValueError(
                 "Convergence criteria must at least define "
-                "absolute energy change and RMS gradient criteria"
+                "an RMS gradient criteria"
             )
-        self.abs_d_e = PotentialEnergy(abs(abs_d_e)).to("Ha")
+
         self.rms_g = GradientRMS(abs(rms_g)).to("Ha/ang")
 
         # Unset criteria are infinity (i.e. always satisfied)
+        abs_d_e = abs_d_e if abs_d_e is not None else np.inf
         max_g = max_g if max_g is not None else np.inf
         rms_s = rms_s if rms_s is not None else np.inf
         max_s = max_s if max_s is not None else np.inf
+        self.abs_d_e = PotentialEnergy(abs(abs_d_e)).to("Ha")
         self.max_g = GradientRMS(abs(max_g)).to("Ha/ang")
         self.rms_s = Distance(abs(rms_s)).to("ang")
         self.max_s = Distance(abs(max_s)).to("ang")
@@ -552,6 +554,22 @@ class ConvergenceParams:
                 params_dict[attr] = options[attr]
         return cls(**params_dict)
 
+    def __lt__(self, other: "ConvergenceParams"):
+        """Return an ordered comparison list for each numerical attribute"""
+        comparison = []
+        for attr in self.num_attrs:
+            comparison.append(getattr(self, attr) < getattr(other, attr))
+        return comparison
+
+    def __mul__(self, other: List[float]):
+        """Get a new set of convergence params by multiplying a list of numbers"""
+        assert len(other) == len(self.num_attrs)
+        new_params = {}
+        for idx, attr in enumerate(self.num_attrs):
+            new_params[attr] = getattr(self, attr) * other[idx]
+        new_params["strict"] = self.strict
+        return ConvergenceParams.from_dict(new_params)
+
     def meets_criteria(self, other: "ConvergenceParams") -> bool:
         """
         Check if the given values for the parameters meets the
@@ -564,18 +582,8 @@ class ConvergenceParams:
             (bool): True if criteria met, converged otherwise
 
         """
-        abs_d_e = other.abs_d_e
-        rms_g, max_g = other.rms_g, other.max_g
-        rms_s, max_s = other.rms_s, other.max_s
-
         # everything converged
-        if (
-            abs_d_e < self.abs_d_e
-            and rms_g < self.rms_g
-            and max_g < self.max_g
-            and rms_s < self.rms_s
-            and max_s < self.max_s
-        ):
+        if all(other < self):
             return True
 
         # Strict criteria
@@ -583,13 +591,7 @@ class ConvergenceParams:
             return False
 
         # gradient, energy overachieved and step reasonably converged
-        if (
-            abs_d_e < self.abs_d_e / 2
-            and rms_g < self.rms_g / 2
-            and max_g < self.max_g / 1.5
-            and rms_s < self.rms_s * 5
-            and max_s < self.max_s * 10
-        ):
+        if all(other < self * [1 / 2, 1 / 2, 1 / 1.5, 5, 10]):
             logger.warning(
                 "Overachieved gradient and energy convergence, reasonable "
                 "convergence on step size."
@@ -597,13 +599,7 @@ class ConvergenceParams:
             return True
 
         # only gradient criteria overachieved
-        if (
-            abs_d_e < self.abs_d_e * 1.5
-            and rms_g < self.rms_g / 10
-            and max_g < self.max_g / 5
-            and rms_s < self.rms_s * 5
-            and max_s < self.max_s * 5
-        ):
+        if all(other < self * [1.5, 1 / 10, 1 / 5, 5, 5]):
             logger.warning(
                 "Energy is almost converged. Gradient is one order of "
                 "magnitude below convergence. Step size almost converged."
@@ -611,13 +607,7 @@ class ConvergenceParams:
             return True
 
         # everything except energy is converged
-        if (
-            abs_d_e < self.abs_d_e * 3
-            and rms_g < self.rms_g
-            and max_g < self.max_g
-            and rms_s < self.rms_s
-            and max_s < self.max_s
-        ):
+        if all(other < self * [3, 1, 1, 1, 1]):
             logger.warning(
                 "Gradients and step sizes have converged, reasonable "
                 "convergence on energy."
@@ -734,7 +724,7 @@ class NDOptimiser(Optimiser, ABC):
     @property
     def optimiser_params(self):
         """Optimiser params to save"""
-        return {"maxiter": self._maxiter, "conv_tol": ConvergenceParams}
+        return {"maxiter": self._maxiter, "conv_tol": self.conv_tol}
 
     @classmethod
     def optimise(
@@ -792,8 +782,9 @@ class NDOptimiser(Optimiser, ABC):
     @property
     def convergence_params(self) -> ConvergenceParams:
         """Obtain current convergence parameters for this optimiser"""
+
         assert self._coords is not None, "Must have coordinates!"
-        # NOTE: Internal coordinate units are inconsistent so we calculate
+        # NOTE: Internal coordinate units are inconsistent, so we calculate
         # step sizes and gradients in Cartesian
         coords_l = self._coords
         if len(self._history) > 1:
@@ -803,7 +794,7 @@ class NDOptimiser(Optimiser, ABC):
             rms_s = np.sqrt(np.mean(np.square(delta_x)))
             max_s = np.max(np.abs(delta_x))
         else:
-            abs_d_e = rms_s = max_s = np.inf  # set to zero
+            abs_d_e = rms_s = max_s = np.inf  # set to infinity
         g_x = coords_l.cart_proj_g
         rms_g = np.sqrt(np.mean(np.square(g_x)))
         max_g = np.max(np.abs(g_x))
