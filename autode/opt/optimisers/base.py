@@ -170,7 +170,6 @@ class Optimiser(BaseOptimiser, ABC):
             f"with {self._n_cores} cores using {self._maxiter} max "
             f"iterations"
         )
-        # logger.info("Iteration\t|∆E| / \\kcal mol-1 \t||∇E|| / Ha Å-1")
 
         while not self.converged:
             self._callback(self._coords)
@@ -734,8 +733,7 @@ class NDOptimiser(Optimiser, ABC):
         n_cores: Optional[int] = None,
         coords: Optional[OptCoordinates] = None,
         maxiter: int = 100,
-        gtol: Any = GradientRMS(1e-3, units="Ha Å-1"),
-        etol: Any = PotentialEnergy(1e-4, units="Ha"),
+        conv_tol: Union[ConvergenceParams, dict] = ConvergenceParams.NORMAL,
         **kwargs,
     ) -> None:
         """
@@ -749,12 +747,9 @@ class NDOptimiser(Optimiser, ABC):
 
             maxiter (int): Maximum number of iteration to perform
 
-            gtol (float | autode.values.GradientNorm): Tolerance on RMS(|∇E|)
-                 i.e. the root mean square of the gradient components. If
-                 a float then assume units of Ha Å^-1
-
-            etol (float | autode.values.PotentialEnergy): Tolerance on |∆E|
-                 between two consecutive iterations of the optimiser
+            conv_tol (ConvergenceParams|dict): Convergence parameters for
+                        the absolute energy change, RMS and max gradient,
+                        and RMS and max step sizes.
 
             coords (OptCoordinates | None): Coordinates to optimise in
 
@@ -769,7 +764,7 @@ class NDOptimiser(Optimiser, ABC):
         """
 
         optimiser = cls(
-            maxiter=maxiter, gtol=gtol, etol=etol, coords=coords, **kwargs
+            maxiter=maxiter, conv_tol=conv_tol, coords=coords, **kwargs
         )
         optimiser.run(species, method, n_cores=n_cores)
 
@@ -837,37 +832,6 @@ class NDOptimiser(Optimiser, ABC):
         return optimiser
 
     @property
-    def _abs_delta_e(self) -> PotentialEnergy:
-        """
-        Calculate the absolute energy difference
-
-        .. math::
-            |∆E| = |E_i - E_{i-1}|   for a step i
-
-        -----------------------------------------------------------------------
-        Returns:
-            (autode.values.PotentialEnergy): Energy difference. Infinity if
-                                  an energy difference cannot be calculated
-        """
-        assert (
-            self._coords is not None
-        ), "Must have coordinates to calculate ∆E"
-
-        if len(self._history) < 2:
-            logger.info("First iteration - returning |∆E| = ∞")
-            return PotentialEnergy(np.inf)
-
-        e1, e2 = self._coords.e, self._history.penultimate.e
-
-        if e1 is None or e2 is None:
-            logger.error(
-                "Cannot determine absolute energy difference. Using |∆E| = ∞"
-            )
-            return PotentialEnergy(np.inf)
-
-        return PotentialEnergy(abs(e1 - e2))  # type: ignore
-
-    @property
     def _g_norm(self) -> GradientRMS:
         """
         Calculate RMS(∇E) based on the current Cartesian gradient.
@@ -890,15 +854,17 @@ class NDOptimiser(Optimiser, ABC):
         """Log the convergence of the energy"""
 
         curr_params = self.convergence_params
+        are_converged = curr_params < self.conv_tol
+        conv_msgs = ["(YES)" if k else "(NO)" for k in are_converged]
         log_string1 = (
-            f"iter# {self.iteration}   |dE| = "
-            f"{curr_params.abs_d_e.to('kcalmol'):.4f} kcal/mol  "
-            f"RMS(g) = {curr_params.rms_g:.6f} Ha/Å  "
+            f"iter# {self.iteration}   |dE|="
+            f"{curr_params.abs_d_e.to('kcalmol'):.5f} kcal/mol {conv_msgs[0]}"
+            f" RMS(g)={curr_params.rms_g:.5f} Ha/Å {conv_msgs[1]} "
         )
         log_string2 = (
-            f"max(g) = {curr_params.max_g:.5f} Ha/Å  "
-            f"RMS(dx) = {curr_params.rms_s:.4f} Å  "
-            f"max(dx) = {curr_params.max_s:.3f} Å"
+            f"max(g)={curr_params.max_g:.5f} Ha/Å {conv_msgs[2]}  "
+            f"RMS(dx)={curr_params.rms_s:.5f} Å {conv_msgs[3]}  "
+            f"max(dx)={curr_params.max_s:.5f} Å  {conv_msgs[4]}"
         )
         logger.info(log_string1)
         logger.info(log_string2)

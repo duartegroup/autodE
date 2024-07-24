@@ -103,15 +103,23 @@ class DistanceConstrainedOptimiser(RFOptimiser):
     @property
     def converged(self) -> bool:
         """Has the optimisation converged"""
-        # The tangential gradient should be close to zero
-        return (
-            self.rms_tangent_grad < self.gtol and self._abs_delta_e < self.etol
-        )
+        # Check the tangential component of gradient
+        g_tau = self.tangent_grad
+        rms_g_tau = np.sqrt(np.mean(np.square(g_tau)))
+        max_g_tau = np.max(np.abs(g_tau))
+
+        curr_params = self.convergence_params
+        curr_params.rms_g = GradientRMS(rms_g_tau, "Ha/ang")
+        curr_params.max_g = GradientRMS(max_g_tau, "Ha/ang")
+        if self.conv_tol.meets_criteria(curr_params):
+            return True
+        else:
+            return False
 
     @property
-    def rms_tangent_grad(self) -> GradientRMS:
+    def tangent_grad(self) -> np.ndarray:
         """
-        Obtain the RMS of the gradient tangent to the distance
+        Obtain the component of atomic gradients tangent to the distance
         vector between current coords and pivot point
         """
         assert self._coords is not None and self._coords.g is not None
@@ -120,8 +128,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # unit vector in the direction of distance vector
         d_hat = self.dist_vec / np.linalg.norm(self.dist_vec)
         tangent_grad = grad - (grad.dot(d_hat)) * d_hat
-        rms_grad = np.sqrt(np.mean(np.square(tangent_grad)))
-        return GradientRMS(rms_grad)
+        return tangent_grad
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -612,9 +619,10 @@ class DHS(BaseBracketMethod):
         if not opt.converged:
             return None
 
+        rms_g_tau = np.sqrt(np.mean(np.square(opt.tangent_grad)))
         logger.info(
             "Successful optimization after DHS step, final RMS of "
-            f"tangential gradient = {opt.rms_tangent_grad:.6f} "
+            f"tangential gradient = {rms_g_tau:.6f} "
             f"Ha/angstrom"
         )
 
