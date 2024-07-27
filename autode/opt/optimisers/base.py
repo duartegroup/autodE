@@ -530,17 +530,24 @@ class ConvergenceParams:
                 "an RMS gradient criteria"
             )
 
-        self.rms_g = GradientRMS(abs(rms_g)).to("Ha/ang")
+        self.rms_g = GradientRMS(rms_g).to("Ha/ang")
 
         # Unset criteria are infinity (i.e. always satisfied)
         abs_d_e = abs_d_e if abs_d_e is not None else np.inf
         max_g = max_g if max_g is not None else np.inf
         rms_s = rms_s if rms_s is not None else np.inf
         max_s = max_s if max_s is not None else np.inf
-        self.abs_d_e = PotentialEnergy(abs(abs_d_e)).to("Ha")
-        self.max_g = GradientRMS(abs(max_g)).to("Ha/ang")
-        self.rms_s = Distance(abs(rms_s)).to("ang")
-        self.max_s = Distance(abs(max_s)).to("ang")
+        self.abs_d_e = PotentialEnergy(abs_d_e).to("Ha")
+        self.max_g = GradientRMS(max_g).to("Ha/ang")
+        self.rms_s = Distance(rms_s).to("ang")
+        self.max_s = Distance(max_s).to("ang")
+
+        # check they have the correct signs
+        for attr in self.num_attrs:
+            if not getattr(self, attr) > 0:
+                raise ValueError(
+                    f"Convergence parameter {attr} must be positive!"
+                )
         self.strict = bool(strict)
 
     @classmethod
