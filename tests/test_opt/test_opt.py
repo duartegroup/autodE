@@ -25,7 +25,7 @@ from autode.opt.optimisers.steepest_descent import (
 
 def sample_cartesian_optimiser():
     return CartesianSDOptimiser(
-        maxiter=1, gtol=GradientRMS(0.1), etol=PotentialEnergy(0.1)
+        maxiter=1, conv_tol={"rms_g": 0.1, "abs_d_e": 0.1}
     )
 
 
@@ -41,22 +41,12 @@ def test_optimiser_construct():
     # Optimiser needs valid arguments
     with pytest.raises(ValueError):
         _ = CartesianSDOptimiser(
-            maxiter=0, gtol=GradientRMS(0.1), etol=PotentialEnergy(0.1)
+            maxiter=0, conv_tol={"rms_g": -1.e-4}
         )
 
     with pytest.raises(ValueError):
         _ = CartesianSDOptimiser(
-            maxiter=1, gtol=GradientRMS(-0.1), etol=PotentialEnergy(0.1)
-        )
-
-    with pytest.raises(ValueError):
-        _ = CartesianSDOptimiser(
-            maxiter=1, gtol=GradientRMS(-0.1), etol=PotentialEnergy(0.1)
-        )
-
-    with pytest.raises(ValueError):
-        _ = CartesianSDOptimiser(
-            maxiter=1, gtol=GradientRMS(0.1), etol=PotentialEnergy(-0.1)
+            maxiter=1, conv_tol={"rms_g": 1.e-4, "abs_d_e": -1.e-3}
         )
 
 
