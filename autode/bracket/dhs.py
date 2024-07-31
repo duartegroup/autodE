@@ -104,12 +104,20 @@ class DistanceConstrainedOptimiser(RFOptimiser):
     @property
     def converged(self) -> bool:
         """Has the optimisation converged"""
-        # Check the tangential component of gradient
+        assert self._coords is not None
+
+        # Check only the tangential component of gradient
         g_tau = self.tangent_grad
         rms_g_tau = np.sqrt(np.mean(np.square(g_tau)))
         max_g_tau = np.max(np.abs(g_tau))
 
-        curr_params = self.convergence_params
+        if len(self._history) > 1:
+            curr_params = self.convergence_params(
+                self._coords, self._history.penultimate
+            )
+        else:
+            curr_params = self.convergence_params(self._coords)
+
         curr_params.rms_g = GradientRMS(rms_g_tau, "Ha/ang")
         curr_params.max_g = GradientRMS(max_g_tau, "Ha/ang")
         if self.conv_tol.meets_criteria(curr_params):
@@ -499,7 +507,7 @@ class DHS(BaseBracketMethod):
         large_step: Union[Distance, float] = Distance(0.2, "ang"),
         small_step: Union[Distance, float] = Distance(0.05, "ang"),
         switch_thresh: Union[Distance, float] = Distance(1.5, "ang"),
-        conv_tol: Union["ConvergenceParams", dict] = ConvergenceParams.LOOSE,
+        conv_tol: Union["ConvergenceParams", str] = "loose",
         **kwargs,
     ):
         """

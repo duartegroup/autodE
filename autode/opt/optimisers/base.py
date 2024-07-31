@@ -494,15 +494,15 @@ class ConvergenceParams:
         """Type checking and sanity checks on parameters"""
         self._num_attrs = ["abs_d_e", "rms_g", "max_g", "rms_s", "max_s"]
 
-        self.rms_g = GradientRMS(self.rms_g).to("Ha/ang")
         self.abs_d_e = PotentialEnergy(self.abs_d_e).to("Ha")
+        self.rms_g = GradientRMS(self.rms_g).to("Ha/ang")
         self.max_g = GradientRMS(self.max_g).to("Ha/ang")
         self.rms_s = Distance(self.rms_s).to("ang")
         self.max_s = Distance(self.max_s).to("ang")
         self.strict = bool(self.strict)
 
         for attr in self._num_attrs:
-            if getattr(self, attr) <= 0:
+            if not getattr(self, attr) > 0:
                 raise ValueError(
                     f"Value of {attr} should be positive"
                     f" but set to {getattr(self, attr)}!"
