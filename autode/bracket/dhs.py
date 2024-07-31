@@ -530,6 +530,9 @@ class DHS(BaseBracketMethod):
             switch_thresh: When distance between the two images is less than
                         this cutoff, smaller DHS extrapolation steps are taken
 
+            conv_tol: Convergence tolerance for the distance-constrained
+                      optimiser
+
         Keyword Args:
 
             maxiter: Maximum number of en/grad evaluations
@@ -537,9 +540,6 @@ class DHS(BaseBracketMethod):
             dist_tol: The distance tolerance at which DHS will
                       stop, values less than 0.5 Angstrom are not
                       recommended.
-
-            gtol: Gradient tolerance for the optimiser micro-iterations
-                  in DHS (Hartree/angstrom)
 
             cineb_at_conv: Whether to run CI-NEB calculation from the end
                            points after the DHS is converged
