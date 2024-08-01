@@ -51,6 +51,9 @@ def test_optimiser_convergence():
         _ = ConvergenceParams(
             abs_d_e=-1.0e-6,
             rms_g=1.0e-6,
+            max_g=np.inf,
+            rms_s=np.inf,
+            max_s=np.inf,
         )
 
 
