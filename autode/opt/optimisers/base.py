@@ -808,7 +808,10 @@ class NDOptimiser(Optimiser, ABC):
         else:
             curr_params = self.convergence_params(self._coords)
 
-        if self.conv_tol.meets_criteria(curr_params):
+        # also check if all constraints are met
+        if self.conv_tol.meets_criteria(curr_params) and (
+            self._coords.n_constraints == self._coords.n_satisfied_constraints
+        ):
             return True
         else:
             return False

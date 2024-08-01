@@ -345,6 +345,16 @@ class OptCoordinates(ValueArray, ABC):
 
     @property
     @abstractmethod
+    def n_constraints(self) -> int:
+        """Number of constraints in these coordinates"""
+
+    @property
+    @abstractmethod
+    def n_satisfied_constraints(self) -> int:
+        """Number of constraints that are satisfied in these coordinates"""
+
+    @property
+    @abstractmethod
     def active_indexes(self) -> List[int]:
         """A list of indexes which are active in this coordinate set"""
 

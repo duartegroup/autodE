@@ -61,6 +61,14 @@ class CartesianCoordinates(OptCoordinates):
         self._h = None if arr is None else np.array(arr)
 
     @property
+    def n_constraints(self) -> int:
+        return 0
+
+    @property
+    def n_satisfied_constraints(self) -> int:
+        return 0
+
+    @property
     def active_indexes(self) -> List[int]:
         return list(range(len(self)))
 
