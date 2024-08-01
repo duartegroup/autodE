@@ -429,6 +429,8 @@ class DICWithConstraints(DIC):
     @property
     def cart_proj_g(self) -> Optional[np.ndarray]:
         """Obtain Cartesian gradient with constraints projected out"""
+        if self.g is None:
+            return None
         # constrained gradient with inactive terms set to zero
         g_s = self.g
         g_s[self.inactive_indexes] = 0.0

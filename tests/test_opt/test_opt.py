@@ -16,7 +16,11 @@ from .molecules import h2, methane_mol, h_atom
 from .setup import Method
 from autode.utils import NumericStringDict
 from autode.opt.coordinates import CartesianCoordinates
-from autode.opt.optimisers.base import OptimiserHistory, NullOptimiser
+from autode.opt.optimisers.base import (
+    OptimiserHistory,
+    NullOptimiser,
+    ConvergenceParams,
+)
 from autode.opt.optimisers.steepest_descent import (
     CartesianSDOptimiser,
     DIC_SD_Optimiser,
@@ -24,9 +28,7 @@ from autode.opt.optimisers.steepest_descent import (
 
 
 def sample_cartesian_optimiser():
-    return CartesianSDOptimiser(
-        maxiter=1, conv_tol={"rms_g": 0.1, "abs_d_e": 0.1}
-    )
+    return CartesianSDOptimiser(maxiter=1, conv_tol="normal")
 
 
 def test_optimiser_construct():
@@ -40,13 +42,15 @@ def test_optimiser_construct():
 
     # Optimiser needs valid arguments
     with pytest.raises(ValueError):
-        _ = CartesianSDOptimiser(
-            maxiter=0, conv_tol={"rms_g": -1.e-4}
-        )
+        _ = CartesianSDOptimiser(maxiter=0, conv_tol="unknown_tol")
 
+
+def test_optimiser_convergence():
+    # optimiser convergence parameters have to be positive
     with pytest.raises(ValueError):
-        _ = CartesianSDOptimiser(
-            maxiter=1, conv_tol={"rms_g": 1.e-4, "abs_d_e": -1.e-3}
+        _ = ConvergenceParams(
+            abs_d_e=-1.0e-6,
+            rms_g=1.0e-6,
         )
 
 
@@ -69,28 +73,6 @@ def test_coords_set():
         optimiser._coords = "a"
 
 
-def test_abs_diff_e():
-    # Define a intermediate optimiser state with two sets of coordinates
-    optimiser = sample_cartesian_optimiser()
-    optimiser._history.add(CartesianCoordinates([0.0, 1.0]))
-    optimiser._history.add(CartesianCoordinates([0.0, 1.1]))
-
-    # 2nd iteration for a history of two, indexed from 0
-    assert optimiser.iteration == 1
-
-    # without defined energies |E_0 - E_1| cannot be calculated
-    assert optimiser._abs_delta_e
-
-    # but can be if both structures have a potential energy
-    optimiser._history.final.e = PotentialEnergy(-1.0)
-    optimiser._history.penultimate.e = PotentialEnergy(-1.1)
-
-    diff_e = optimiser._abs_delta_e
-    assert isinstance(diff_e, PotentialEnergy)
-
-    assert np.isclose(diff_e, 0.1, atol=1e-6)
-
-
 def test_g_norm():
     optimiser = sample_cartesian_optimiser()
 
@@ -102,28 +84,6 @@ def test_g_norm():
     optimiser._coords = CartesianCoordinates([1.0, 0.0, 0.0])
     assert optimiser._coords.g is None
     assert not np.isfinite(optimiser._g_norm)
-
-
-def test_optimiser_h_update():
-    optimiser = sample_cartesian_optimiser()
-
-    # Remove any possible updater type
-    optimiser._hessian_update_types = []
-
-    c1 = CartesianCoordinates([1.0, 0.0, 0.0])
-    c1.h = np.eye(3)
-
-    optimiser._history.add(c1)
-
-    c2 = CartesianCoordinates([1.1, 0.0, 0.0])
-    c2.h = np.eye(3)
-
-    optimiser._history.add(c2)
-
-    # and try and update the (inverse) hessian, which is impossible without
-    # an updater
-    with pytest.raises(Exception):
-        _ = optimiser._updated_h_inv()
 
 
 def test_history():
@@ -155,11 +115,12 @@ def test_xtb_h2_cart_opt():
 def test_xtb_h2_cart_opt():
     optimiser = CartesianSDOptimiser(
         maxiter=2,
-        gtol=GradientRMS(0.01),
-        etol=PotentialEnergy(1e-3),
+        conv_tol="loose",
     )
     optimiser._species = h2()
     optimiser._coords = CartesianCoordinates(optimiser._species.coordinates)
+    optimiser._species.single_point(XTB())
+    optimiser._coords.e = optimiser._species.energy
 
     assert not optimiser.converged
 
@@ -177,12 +138,7 @@ def test_xtb_h2_cart_opt():
 @requires_working_xtb_install
 def test_xtb_h2_dic_opt():
     # In DICs we can use a much larger step size
-    optimiser = DIC_SD_Optimiser(
-        step_size=2.5,
-        maxiter=10,
-        gtol=GradientRMS(0.01),
-        etol=PotentialEnergy(0.0001),
-    )
+    optimiser = DIC_SD_Optimiser(step_size=2.5, maxiter=10, conv_tol="loose")
 
     mol = h2()
     # Should optimise fast, in only a few steps
@@ -213,8 +169,7 @@ def test_callback_function():
         maxiter=1,
         callback=func,
         callback_kwargs={"m": mol},
-        gtol=GradientRMS(0.1),
-        etol=PotentialEnergy(0.1),
+        conv_tol="loose",
     )
 
     optimiser.run(species=mol, method=Method())
@@ -224,7 +179,14 @@ def test_callback_function():
 def test_last_energy_change_with_no_steps():
     mol = h2()
     optimiser = HarmonicPotentialOptimiser(
-        maxiter=2, gtol=GradientRMS(999), etol=PotentialEnergy(999)
+        maxiter=2,
+        conv_tol=ConvergenceParams(
+            abs_d_e=999.0,
+            rms_g=999.0,
+            max_g=np.inf,
+            rms_s=np.inf,
+            max_s=np.inf,
+        ),
     )
 
     optimiser.run(mol, method=Method())
@@ -260,7 +222,14 @@ class UnconvergedHarmonicPotentialOptimiser(CartesianSDOptimiser):
 
 def test_last_energy_change_less_than_two_steps():
     optimiser = ConvergedHarmonicPotentialOptimiser(
-        maxiter=2, gtol=GradientRMS(999), etol=PotentialEnergy(999)
+        maxiter=2,
+        conv_tol=ConvergenceParams(
+            abs_d_e=999.0,
+            rms_g=999.0,
+            max_g=np.inf,
+            rms_s=np.inf,
+            max_s=np.inf,
+        ),
     )
 
     coords = CartesianCoordinates(np.zeros(1))
@@ -286,11 +255,7 @@ def test_hessian_is_not_recalculated_if_present():
     mol = h2()
     xtb = XTB()
 
-    optimiser = CartesianSDOptimiser(
-        maxiter=1,
-        gtol=GradientRMS(0.01),
-        etol=PotentialEnergy(1e-3),
-    )
+    optimiser = CartesianSDOptimiser(maxiter=1, conv_tol="loose")
     optimiser.run(species=mol, method=xtb, n_cores=1)
 
     mol.calc_hessian(method=xtb)
@@ -304,11 +269,7 @@ def test_hessian_is_not_recalculated_if_present():
 @work_in_tmp_dir()
 @requires_working_xtb_install
 def test_multiple_optimiser_saves_overrides_not_append():
-    optimiser = CartesianSDOptimiser(
-        maxiter=2,
-        gtol=GradientRMS(0.01),
-        etol=PotentialEnergy(1e-3),
-    )
+    optimiser = CartesianSDOptimiser(maxiter=2, conv_tol="loose")
     optimiser.run(method=XTB(), species=h2(), name="tmp.zip")
 
     assert os.path.isfile("tmp.zip")
@@ -317,11 +278,7 @@ def test_multiple_optimiser_saves_overrides_not_append():
 
     old_n_coords = sum([1 for name in names if name.startswith("coords_")])
 
-    optimiser = CartesianSDOptimiser(
-        maxiter=2,
-        gtol=GradientRMS(0.01),
-        etol=PotentialEnergy(1e-3),
-    )
+    optimiser = CartesianSDOptimiser(maxiter=2, conv_tol="loose")
     optimiser.run(method=XTB(), species=h2(), name="tmp.zip")
     # the file "tmp.zip" should be overwritten by new optimiser
     with zipfile.ZipFile("tmp.zip") as file:
@@ -334,7 +291,7 @@ def test_multiple_optimiser_saves_overrides_not_append():
 @work_in_tmp_dir()
 def test_optimiser_plotting_sanity_checks(caplog):
     mol = Molecule(smiles="N#N")
-    opt = CartesianSDOptimiser(maxiter=10, gtol=1e-3, etol=1e-3)
+    opt = CartesianSDOptimiser(maxiter=10, conv_tol="loose")
     coords1 = CartesianCoordinates(mol.coordinates)
     coords1.e = PotentialEnergy(0.1, "Ha")
     coords1.update_g_from_cart_g(
@@ -368,7 +325,7 @@ def test_optimiser_plotting_sanity_checks(caplog):
 def test_optimiser_print_geometries(caplog):
     mol = Molecule(smiles="C=C", name="mymolecule")
     coords1 = CartesianCoordinates(mol.coordinates)
-    opt = CartesianSDOptimiser(maxiter=20, gtol=1e-3, etol=1e-4)
+    opt = CartesianSDOptimiser(maxiter=20, conv_tol="loose")
     opt._coords = coords1
     # cannot print geom without species
     with pytest.raises(AssertionError):

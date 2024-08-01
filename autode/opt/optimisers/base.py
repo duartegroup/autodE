@@ -684,11 +684,17 @@ class NDOptimiser(Optimiser, ABC):
         Set the convergence parameters for this optimiser.
 
         Args:
-            value (ConvergenceParams|dict):
+            value (ConvergenceParams|str):
         """
         if isinstance(value, str):
-            value = ConvergenceParams.from_preset(value)
-        self._conv_tol = value
+            self._conv_tol = ConvergenceParams.from_preset(value)
+        elif isinstance(value, ConvergenceParams):
+            self._conv_tol = value
+        else:
+            raise ValueError(
+                "Convergence tolerance should be of type ConvergenceParams"
+                f" or a preset string, but assigned {type(value)}"
+            )
 
     @property
     def optimiser_params(self):
@@ -762,11 +768,14 @@ class NDOptimiser(Optimiser, ABC):
         # calculate step sizes and gradients in Cartesian
 
         g_x = coords_l.cart_proj_g
-        rms_g = np.sqrt(np.mean(np.square(g_x)))
-        max_g = np.max(np.abs(g_x))
+        if g_x is not None:
+            rms_g = np.sqrt(np.mean(np.square(g_x)))
+            max_g = np.max(np.abs(g_x))
+        else:
+            rms_g = max_g = np.inf
 
         if coords_k is not None:
-            assert coords_k.e and coords_l.e
+            assert coords_k.e is not None and coords_l.e is not None
             abs_d_e = PotentialEnergy(abs(coords_l.e - coords_k.e)).to("Ha")
             delta_x = coords_l.to("cart") - coords_k.to("cart")
             rms_s = np.sqrt(np.mean(np.square(delta_x)))
