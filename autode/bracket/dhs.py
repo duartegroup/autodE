@@ -15,8 +15,7 @@ from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.utils import TruncatedTaylor
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
-from autode.opt.optimisers import RFOptimiser
-from autode.opt.optimisers.base import ConvergenceParams
+from autode.opt.optimisers import RFOptimiser, ConvergenceParams
 from autode.exceptions import OptimiserStepError
 from autode.log import logger
 
@@ -61,10 +60,10 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             pivot_point: Coordinates of the pivot point
             line_search: Whether to use linear search
             angle_thresh: An angle threshold above which linear search
-                          will be rejected (in Degrees)
+                        will be rejected (in Degrees)
             old_coords_read_hess: Old coordinate with hessian which will
-                                  be used to obtain initial hessian by
-                                  a Hessian update scheme
+                        be used to obtain the initial hessian by a
+                        Hessian update scheme
         """
         kwargs.pop("init_alpha", None)
         super().__init__(*args, init_alpha=init_trust, **kwargs)
@@ -111,13 +110,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         rms_g_tau = np.sqrt(np.mean(np.square(g_tau)))
         max_g_tau = np.max(np.abs(g_tau))
 
-        if len(self._history) > 1:
-            curr_params = self.convergence_params(
-                self._coords, self._history.penultimate
-            )
-        else:
-            curr_params = self.convergence_params(self._coords)
-
+        curr_params = self._history.conv_params()
         curr_params.rms_g = GradientRMS(rms_g_tau, "Ha/ang")
         curr_params.max_g = GradientRMS(max_g_tau, "Ha/ang")
         if self.conv_tol.meets_criteria(curr_params):

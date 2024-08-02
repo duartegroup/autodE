@@ -1,5 +1,4 @@
 import os
-from copy import deepcopy
 import pickle
 from dataclasses import dataclass
 import numpy as np
@@ -498,8 +497,11 @@ class ConvergenceParams:
         # convert units for easier comparison
         self._to_base_units()
         self.strict = bool(self.strict)
-        if all(getattr(self, attr) is None for attr in self._num_attrs):
-            raise ValueError("At least one criteria has to be defined!")
+        # RMS(g) is the most basic criteria that is always needed
+        if self.rms_g is None:
+            raise ValueError(
+                "At least the RMS gradient criteria has to be defined!"
+            )
 
         for attr in self._num_attrs:
             if getattr(self, attr) is None:
@@ -776,42 +778,6 @@ class NDOptimiser(Optimiser, ABC):
     def _space_has_degrees_of_freedom(self) -> bool:
         return True if self._species is None else self._species.n_atoms > 1
 
-    @staticmethod
-    def convergence_params(
-        coords_l: "OptCoordinates", coords_k: Optional["OptCoordinates"] = None
-    ):
-        """
-        Calculate the convergence parameters from two sets of coordinates
-
-        Args:
-            coords_l: The current (latest) set of coordinates
-            coords_k: The previous set of coordinates (optional)
-
-        Returns:
-            (ConvergenceParams):
-        """
-        # NOTE: internal coordinate units are inconsistent, so we
-        # calculate step sizes and gradients in Cartesian
-
-        g_x = coords_l.cart_proj_g
-        if g_x is not None:
-            rms_g = np.sqrt(np.mean(np.square(g_x)))
-            max_g = np.max(np.abs(g_x))
-        else:
-            rms_g = max_g = np.inf
-
-        if coords_k is not None:
-            assert coords_k.e is not None and coords_l.e is not None
-            abs_d_e = PotentialEnergy(abs(coords_l.e - coords_k.e)).to("Ha")
-            delta_x = coords_l.to("cart") - coords_k.to("cart")
-            rms_s = np.sqrt(np.mean(np.square(delta_x)))
-            max_s = np.max(np.abs(delta_x))
-        else:
-            abs_d_e = rms_s = max_s = np.inf  # set to infinity
-        return ConvergenceParams(
-            abs_d_e=abs_d_e, rms_g=rms_g, max_g=max_g, rms_s=rms_s, max_s=max_s
-        )
-
     @property
     def converged(self) -> bool:
         """
@@ -827,12 +793,7 @@ class NDOptimiser(Optimiser, ABC):
         if self._species is not None and self._species.n_atoms == 1:
             return True  # Optimisation 0 DOF is always converged
 
-        if len(self._history) > 1:
-            curr_params = self.convergence_params(
-                self._coords, self._history.penultimate
-            )
-        else:
-            curr_params = self.convergence_params(self._coords)
+        curr_params = self._history.conv_params()
 
         # also check if all constraints are met
         if self.conv_tol.meets_criteria(curr_params) and (
@@ -881,13 +842,7 @@ class NDOptimiser(Optimiser, ABC):
         """Log the convergence of the all convergence parameters"""
         assert self._coords is not None, "Must have coordinates!"
 
-        if len(self._history) > 1:
-            curr_params = self.convergence_params(
-                self._coords, self._history.penultimate
-            )
-        else:
-            curr_params = self.convergence_params(self._coords)
-
+        curr_params = self._history.conv_params()
         are_converged = self.conv_tol.are_satisfied(curr_params)
         conv_msgs = ["(YES)" if k else "(NO)" for k in are_converged]
         log_string1 = (
@@ -1265,6 +1220,43 @@ class OptimiserHistory:
         """
         for i in reversed(range(len(self))):
             yield self[i]
+
+    def conv_params(self, idx: int = -1):
+        """
+        Calculate the convergence parameters for the coordinates at
+        specified index (default -1 i.e. the last set of coordinates)
+
+        Args:
+            idx: Index of the set of coordinates for which to
+                calculate the parameter
+
+        Returns:
+            (ConvergenceParams):
+        """
+        # NOTE: Internal coordinates have inconsistent units, so we
+        # calculate step sizes and gradients in Cartesian coordinates
+        coords_l = self[idx]
+        assert coords_l is not None
+        g_x = coords_l.cart_proj_g
+        if g_x is not None:
+            rms_g = np.sqrt(np.mean(np.square(g_x)))
+            max_g = np.max(np.abs(g_x))
+        else:
+            rms_g = max_g = np.inf
+
+        if len(self) > 1:
+            coords_k = self[idx - 1]
+            assert coords_k is not None
+            assert coords_l.e is not None and coords_k.e is not None
+            abs_d_e = PotentialEnergy(abs(coords_l.e - coords_k.e))
+            delta_x = coords_l.to("cart") - coords_k.to("cart")
+            rms_s = np.sqrt(np.mean(np.square(delta_x)))
+            max_s = np.max(np.abs(delta_x))
+        else:
+            abs_d_e = rms_s = max_s = np.inf
+        return ConvergenceParams(
+            abs_d_e=abs_d_e, rms_g=rms_g, max_g=max_g, rms_s=rms_s, max_s=max_s
+        )
 
 
 class ExternalOptimiser(BaseOptimiser, ABC):
