@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 import pickle
 from dataclasses import dataclass
 import numpy as np
@@ -483,30 +484,48 @@ class ConvergenceParams:
 
     """
 
-    abs_d_e: PotentialEnergy
-    rms_g: GradientRMS
-    max_g: GradientRMS
-    rms_s: Distance
-    max_s: Distance
+    abs_d_e: Optional[PotentialEnergy] = None
+    rms_g: Optional[GradientRMS] = None
+    max_g: Optional[GradientRMS] = None
+    rms_s: Optional[Distance] = None
+    max_s: Optional[Distance] = None
     strict: bool = False
 
     def __post_init__(self):
         """Type checking and sanity checks on parameters"""
         self._num_attrs = ["abs_d_e", "rms_g", "max_g", "rms_s", "max_s"]
 
-        self.abs_d_e = PotentialEnergy(self.abs_d_e).to("Ha")
-        self.rms_g = GradientRMS(self.rms_g).to("Ha/ang")
-        self.max_g = GradientRMS(self.max_g).to("Ha/ang")
-        self.rms_s = Distance(self.rms_s).to("ang")
-        self.max_s = Distance(self.max_s).to("ang")
+        # convert units for easier comparison
+        self._to_base_units()
         self.strict = bool(self.strict)
+        if all(getattr(self, attr) is None for attr in self._num_attrs):
+            raise ValueError("At least one criteria has to be defined!")
 
         for attr in self._num_attrs:
+            if getattr(self, attr) is None:
+                continue
             if not getattr(self, attr) > 0:
                 raise ValueError(
                     f"Value of {attr} should be positive"
                     f" but set to {getattr(self, attr)}!"
                 )
+
+    def _to_base_units(self) -> None:
+        """
+        Convert all set criteria to the default units in terms of
+        Hartree and Angstrom, and also ensure everything has units
+        """
+        if self.abs_d_e is not None:
+            self.abs_d_e = PotentialEnergy(self.abs_d_e).to("Ha")
+        if self.rms_g is not None:
+            self.rms_g = GradientRMS(self.rms_g).to("Ha/ang")
+        if self.max_g is not None:
+            self.max_g = GradientRMS(self.max_g).to("Ha/ang")
+        if self.rms_s is not None:
+            self.rms_s = Distance(self.rms_s).to("ang")
+        if self.max_s is not None:
+            self.max_s = Distance(self.max_s).to("ang")
+        return None
 
     @classmethod
     def from_preset(cls, preset_name: str) -> "ConvergenceParams":
@@ -565,16 +584,19 @@ class ConvergenceParams:
     def multiply(self, factors: List[float]):
         """Multiply a set of criteria with ordered list of numerical factors"""
         assert len(factors) == len(self._num_attrs)
-        kwargs = {
-            attr: getattr(self, attr) * factors[idx]
-            for idx, attr in enumerate(self._num_attrs)
-        }
+        kwargs = {}
+        for idx, attr in self._num_attrs:
+            c = getattr(self, attr)
+            if c is not None:
+                kwargs[attr] = getattr(self, attr) * factors[idx]
+            else:
+                kwargs[attr] = None
         return ConvergenceParams(**kwargs, strict=self.strict)
 
-    def are_satisfied(self, other: "ConvergenceParams"):
+    def are_satisfied(self, other: "ConvergenceParams") -> List[bool]:
         """
         Return an elementwise comparison between the current criteria
-        and another set of parameters
+        and another set of parameters (comparing only numerical attributes)
 
         Args:
             other: Another set of parameters
@@ -583,11 +605,15 @@ class ConvergenceParams:
             (list[bool]): List containing True or False
         """
         are_satisfied = []
+
+        # unset criteria are always satisfied
         for attr in self._num_attrs:
             c = getattr(self, attr)
             v = getattr(other, attr)
-            are_satisfied.append(v < c)
-
+            if c is None:
+                are_satisfied.append(True)
+            else:
+                are_satisfied.append(v < c)
         return are_satisfied
 
     def meets_criteria(self, other: "ConvergenceParams"):
