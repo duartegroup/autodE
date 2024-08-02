@@ -587,7 +587,7 @@ class ConvergenceParams:
         """Multiply a set of criteria with ordered list of numerical factors"""
         assert len(factors) == len(self._num_attrs)
         kwargs = {}
-        for idx, attr in self._num_attrs:
+        for idx, attr in enumerate(self._num_attrs):
             c = getattr(self, attr)
             if c is not None:
                 kwargs[attr] = getattr(self, attr) * factors[idx]

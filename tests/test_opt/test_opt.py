@@ -28,7 +28,9 @@ from autode.opt.optimisers.steepest_descent import (
 
 
 def sample_cartesian_optimiser():
-    return CartesianSDOptimiser(maxiter=1, conv_tol="normal")
+    return CartesianSDOptimiser(
+        maxiter=1, conv_tol=ConvergenceParams(abs_d_e=0.1, rms_g=0.1)
+    )
 
 
 def test_optimiser_construct():
@@ -41,8 +43,30 @@ def test_optimiser_construct():
         sample_cartesian_optimiser().run(species=methane_mol(), method=None)
 
     # Optimiser needs valid arguments
-    with pytest.raises(ValueError):
-        _ = CartesianSDOptimiser(maxiter=0, conv_tol="unknown_tol")
+    with pytest.raises(
+        ValueError, match="must be able to run at least one step"
+    ):
+        _ = CartesianSDOptimiser(maxiter=0, conv_tol="normal")
+
+    with pytest.raises(
+        ValueError, match="Value of abs_d_e should be positive"
+    ):
+        _ = CartesianSDOptimiser(
+            maxiter=1, conv_tol=ConvergenceParams(abs_d_e=-0.1, rms_g=0.1)
+        )
+
+    with pytest.raises(ValueError, match="Value of rms_g should be positive"):
+        _ = CartesianSDOptimiser(
+            maxiter=1, conv_tol=ConvergenceParams(abs_d_e=0.1, rms_g=-0.1)
+        )
+
+    # at least RMS g convergence criteria has to be defined
+    with pytest.raises(
+        ValueError, match="RMS gradient criteria has to be defined"
+    ):
+        _ = CartesianSDOptimiser(
+            maxiter=1, conv_tol=ConvergenceParams(abs_d_e=0.1)
+        )
 
 
 def test_optimiser_convergence():
