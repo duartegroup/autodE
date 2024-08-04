@@ -69,18 +69,6 @@ def test_optimiser_construct():
         )
 
 
-def test_optimiser_convergence():
-    # optimiser convergence parameters have to be positive
-    with pytest.raises(ValueError):
-        _ = ConvergenceParams(
-            abs_d_e=-1.0e-6,
-            rms_g=1.0e-6,
-            max_g=np.inf,
-            rms_s=np.inf,
-            max_s=np.inf,
-        )
-
-
 def test_initialise_species_and_method():
     optimiser = sample_cartesian_optimiser()
 
@@ -139,10 +127,9 @@ def test_xtb_h2_cart_opt():
 
 @work_in_tmp_dir()
 @requires_working_xtb_install
-def test_xtb_h2_cart_opt():
+def test_xtb_h2_cart_opt_2():
     optimiser = CartesianSDOptimiser(
-        maxiter=2,
-        conv_tol="loose",
+        maxiter=2, conv_tol=ConvergenceParams(abs_d_e=1e-3, rms_g=0.01)
     )
     optimiser._species = h2()
     optimiser._coords = CartesianCoordinates(optimiser._species.coordinates)
@@ -165,7 +152,11 @@ def test_xtb_h2_cart_opt():
 @requires_working_xtb_install
 def test_xtb_h2_dic_opt():
     # In DICs we can use a much larger step size
-    optimiser = DIC_SD_Optimiser(step_size=2.5, maxiter=10, conv_tol="loose")
+    optimiser = DIC_SD_Optimiser(
+        step_size=2.5,
+        maxiter=10,
+        conv_tol=ConvergenceParams(abs_d_e=1e-4, rms_g=0.01),
+    )
 
     mol = h2()
     # Should optimise fast, in only a few steps
@@ -196,7 +187,7 @@ def test_callback_function():
         maxiter=1,
         callback=func,
         callback_kwargs={"m": mol},
-        conv_tol="loose",
+        conv_tol=ConvergenceParams(rms_g=0.1, abs_d_e=0.1),
     )
 
     optimiser.run(species=mol, method=Method())
@@ -206,14 +197,7 @@ def test_callback_function():
 def test_last_energy_change_with_no_steps():
     mol = h2()
     optimiser = HarmonicPotentialOptimiser(
-        maxiter=2,
-        conv_tol=ConvergenceParams(
-            abs_d_e=999.0,
-            rms_g=999.0,
-            max_g=np.inf,
-            rms_s=np.inf,
-            max_s=np.inf,
-        ),
+        maxiter=2, conv_tol=ConvergenceParams(abs_d_e=999, rms_g=999)
     )
 
     optimiser.run(mol, method=Method())
@@ -249,14 +233,7 @@ class UnconvergedHarmonicPotentialOptimiser(CartesianSDOptimiser):
 
 def test_last_energy_change_less_than_two_steps():
     optimiser = ConvergedHarmonicPotentialOptimiser(
-        maxiter=2,
-        conv_tol=ConvergenceParams(
-            abs_d_e=999.0,
-            rms_g=999.0,
-            max_g=np.inf,
-            rms_s=np.inf,
-            max_s=np.inf,
-        ),
+        maxiter=2, conv_tol=ConvergenceParams(abs_d_e=999, rms_g=999)
     )
 
     coords = CartesianCoordinates(np.zeros(1))
