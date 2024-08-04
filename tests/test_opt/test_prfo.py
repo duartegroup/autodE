@@ -90,7 +90,7 @@ def test_mode_following():
             Atom("H", -2.10961, 4.17548, 1.25945),
         ],
     )
-    opt = PRFOptimiser(maxiter=10, etol=1e-4, gtol=1e-3, imag_mode_idx=0)
+    opt = PRFOptimiser(maxiter=10, conv_tol="normal", imag_mode_idx=0)
     opt._species = mol
     opt._method = xtb
     opt._n_cores = Config.n_cores
