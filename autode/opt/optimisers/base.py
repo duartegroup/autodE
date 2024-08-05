@@ -610,12 +610,12 @@ class ConvergenceParams:
 
         # unset criteria are always satisfied
         for attr in self._num_attrs:
-            c = float(getattr(self, attr))
-            v = float(getattr(other, attr))
+            c = getattr(self, attr)
+            v = getattr(other, attr)
             if c is None:
                 are_satisfied.append(True)
             else:
-                are_satisfied.append(v <= c)
+                are_satisfied.append(float(v) < float(c))
         return are_satisfied
 
     def meets_criteria(self, other: "ConvergenceParams"):
