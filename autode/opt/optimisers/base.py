@@ -635,7 +635,7 @@ class ConvergenceParams:
             return True
 
         # gradient, energy overachieved, but step not converged
-        if all(self.multiply([0.5, 0.5, 0.6, 5, 10]).are_satisfied(other)):
+        if all(self.multiply([0.5, 0.5, 0.8, 3, 3]).are_satisfied(other)):
             logger.warning(
                 "Overachieved gradient and energy convergence, reasonable "
                 "convergence on step size."
@@ -643,7 +643,7 @@ class ConvergenceParams:
             return True
 
         # only gradient overachieved
-        if all(self.multiply([1.5, 0.1, 0.2, 5, 5]).are_satisfied(other)):
+        if all(self.multiply([1.5, 0.1, 0.2, 2, 2]).are_satisfied(other)):
             logger.warning(
                 "Gradient is one order of magnitude below convergence, "
                 "other parameter(s) are almost converged."
