@@ -41,8 +41,7 @@ def test_distance_constrained_optimiser():
         pivot_point=rct_coords,
         maxiter=1,  # just one step
         init_trust=0.2,
-        gtol=1e-3,
-        etol=1e-4,
+        conv_tol="loose",
     )
     opt.run(product, method=XTB())
     assert not opt.converged
@@ -58,10 +57,7 @@ def test_distance_constrained_optimiser():
     assert step_size <= 0.2 + fp_err * 0.2  # for floating point error
 
     opt = DistanceConstrainedOptimiser(
-        pivot_point=rct_coords,
-        maxiter=50,
-        gtol=1e-3,
-        etol=1e-4,
+        pivot_point=rct_coords, maxiter=50, conv_tol="loose"
     )
     opt.run(product, method=XTB())
     assert opt.converged
@@ -77,13 +73,9 @@ def test_dist_constr_optimiser_sd_fallback():
     coords1.update_h_from_cart_h(np.loadtxt("conopt_last_h.txt"))
     pivot = CartesianCoordinates(np.loadtxt("conopt_pivot.txt"))
 
-    # lagrangian step may fail at certain point
+    # lagrangian step may fail at certain points
     opt = DistanceConstrainedOptimiser(
-        pivot_point=pivot,
-        maxiter=2,
-        init_trust=0.2,
-        gtol=1e-3,
-        etol=1e-4,
+        pivot_point=pivot, maxiter=2, init_trust=0.2, conv_tol="loose"
     )
     opt._target_dist = 2.6869833732268
     opt._history.open("test_trj")
@@ -105,10 +97,7 @@ def test_dist_constr_optimiser_energy_rising():
     coords2.e = PotentialEnergy(0.02, "Ha")
     assert (coords2.e - coords1.e) > PotentialEnergy(5, "kcalmol")
     opt = DistanceConstrainedOptimiser(
-        pivot_point=coords1,
-        maxiter=2,
-        gtol=1e-3,
-        etol=1e-4,
+        pivot_point=coords1, maxiter=2, conv_tol="loose"
     )
     opt._history.open("test_trj")
     opt._history.add(coords1)
@@ -257,9 +246,8 @@ def test_dhs_diels_alder():
         initial_species=reactant,
         final_species=product,
         small_step=0.2,
-        maxiter=200,
+        maxiter=100,
         dist_tol=set_dist_tol,
-        gtol=1.0e-3,
     )
 
     dhs.calculate(method=XTB(), n_cores=Config.n_cores)
@@ -318,11 +306,11 @@ def test_dhs_jumping_over_barrier(caplog):
     dhs = DHS(
         initial_species=reactant,
         final_species=product,
-        maxiter=200,
+        maxiter=50,
         large_step=0.5,
         small_step=0.5,
         dist_tol=0.3,  # smaller dist_tol also to make one side jump
-        gtol=5.0e-4,
+        conv_tol="loose",
         barrier_check=True,
         cineb_at_conv=True,
     )
@@ -346,11 +334,11 @@ def test_dhs_stops_if_microiter_exceeded(caplog):
     dhs = DHS(
         initial_species=reactant,
         final_species=product,
-        maxiter=10,
+        maxiter=5,
         large_step=0.2,
         small_step=0.1,
         dist_tol=1.0,
-        gtol=5.0e-4,
+        conv_tol="loose",
         barrier_check=True,
     )
     with caplog.at_level("WARNING"):

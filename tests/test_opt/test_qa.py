@@ -16,7 +16,7 @@ datazip = os.path.join(here, "data", "opt.zip")
 @work_in_zipped_dir(datazip)
 def test_trm_step():
     mol = Molecule("opt-test.xyz")
-    opt = QAOptimiser(maxiter=10, gtol=0.001, etol=0.001, init_trust=0.1)
+    opt = QAOptimiser(maxiter=10, conv_tol="loose", init_trust=0.1)
     opt._species = mol
     opt._build_internal_coordinates()
     assert isinstance(opt._coords, DICWithConstraints)
@@ -42,7 +42,7 @@ def test_trust_update():
         Atom("H", 0.8261, -0.1812, 0.0000),
     ]
     water = Molecule(atoms=water_atoms)
-    opt = QAOptimiser(maxiter=10, gtol=1e-3, etol=1e-4, init_trust=init_trust)
+    opt = QAOptimiser(maxiter=10, conv_tol="loose", init_trust=init_trust)
 
     opt._species = water.copy()
     opt._method = XTB()
