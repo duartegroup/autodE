@@ -615,7 +615,7 @@ class ConvergenceParams:
             if c is None:
                 are_satisfied.append(True)
             else:
-                are_satisfied.append(float(v) < float(c))
+                are_satisfied.append(float(v) <= float(c))
         return are_satisfied
 
     def meets_criteria(self, other: "ConvergenceParams"):

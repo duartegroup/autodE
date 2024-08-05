@@ -102,7 +102,7 @@ def test_optimiser_convergence(caplog):
     assert "reasonable convergence on step size" in caplog.text
     caplog.clear()
     # grad ~ 1/10, dE < *1.5, step < * 2
-    coords2 = coords1 + 0.015
+    coords2 = coords1 + 0.014
     coords2.g = np.array([0.0009] * 6)
     coords2.e = PotentialEnergy(0.1 - 0.015)
     opt._history._memory[-1] = coords2
