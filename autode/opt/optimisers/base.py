@@ -788,11 +788,10 @@ class NDOptimiser(Optimiser, ABC):
         Returns:
             (bool): Converged?
         """
-        assert self._coords is not None, "Must have coordinates!"
-
         if self._species is not None and self._species.n_atoms == 1:
             return True  # Optimisation 0 DOF is always converged
 
+        assert self._coords is not None, "Must have coordinates!"
         curr_params = self._history.conv_params()
 
         # also check if all constraints are met
