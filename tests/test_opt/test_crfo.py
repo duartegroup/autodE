@@ -132,11 +132,6 @@ def test_primitive_projection_discard():
     assert np.isclose(r(s.to("cartesian")), r_initial, atol=1e-10)
 
 
-def test_init_g_norm_is_none():
-    optimiser = CRFOptimiser(conv_tol="loose", maxiter=1)
-    assert optimiser._g_norm > 0
-
-
 def test_sanitised_zero_length_step():
     """Should be able to update with a null step"""
 

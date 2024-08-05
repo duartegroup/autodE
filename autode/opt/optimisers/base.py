@@ -610,12 +610,12 @@ class ConvergenceParams:
 
         # unset criteria are always satisfied
         for attr in self._num_attrs:
-            c = getattr(self, attr)
-            v = getattr(other, attr)
+            c = float(getattr(self, attr))
+            v = float(getattr(other, attr))
             if c is None:
                 are_satisfied.append(True)
             else:
-                are_satisfied.append(v < c)
+                are_satisfied.append(v <= c)
         return are_satisfied
 
     def meets_criteria(self, other: "ConvergenceParams"):
@@ -634,6 +634,10 @@ class ConvergenceParams:
         if all(self.are_satisfied(other)):
             return True
 
+        # strict = everything must be converged
+        elif self.strict:
+            return False
+
         # gradient, energy overachieved, but step not converged
         if all(self.multiply([0.5, 0.5, 0.8, 3, 3]).are_satisfied(other)):
             logger.warning(
@@ -651,12 +655,14 @@ class ConvergenceParams:
             return True
 
         # everything except energy overachieved
-        if all(self.multiply([3, 0.6, 0.6, 1, 1]).are_satisfied(other)):
+        if all(self.multiply([3, 0.7, 0.7, 1, 1]).are_satisfied(other)):
             logger.warning(
                 "Everything except energy has been converged. Reasonable"
-                "convergence on energy"
+                " convergence on energy"
             )
             return True
+
+        return False
 
 
 class NDOptimiser(Optimiser, ABC):
@@ -817,25 +823,6 @@ class NDOptimiser(Optimiser, ABC):
         optimiser = cls(**hist.get_opt_params())
         optimiser._history = hist
         return optimiser
-
-    @property
-    def _g_norm(self) -> GradientRMS:
-        """
-        Calculate RMS(∇E) based on the current Cartesian gradient.
-
-        -----------------------------------------------------------------------
-        Returns:
-            (autode.values.GradientRMS): Gradient norm. Infinity if the
-                                          gradient is not defined
-        """
-        if self._coords is None:
-            logger.warning("Had no coordinates - cannot determine ||∇E||")
-            return GradientRMS(np.inf)
-
-        if self._coords.g is None:
-            return GradientRMS(np.inf)
-
-        return GradientRMS(np.sqrt(np.mean(np.square(self._coords.g))))
 
     def _log_convergence(self) -> None:
         """Log the convergence of the all convergence parameters"""

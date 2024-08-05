@@ -60,6 +60,15 @@ def test_optimiser_construct():
             maxiter=1, conv_tol=ConvergenceParams(abs_d_e=0.1, rms_g=-0.1)
         )
 
+    with pytest.raises(ValueError, match="Unknown preset convergence"):
+        _ = CartesianSDOptimiser(maxiter=1, conv_tol="unknown")
+
+    # should be able to set convergence through setter
+    opt = CartesianSDOptimiser(maxiter=1, conv_tol="loose")
+    opt.conv_tol = "normal"
+    with pytest.raises(ValueError, match="Unknown preset convergence"):
+        opt.conv_tol = "unknown"
+
     # at least RMS g convergence criteria has to be defined
     with pytest.raises(
         ValueError, match="RMS gradient criteria has to be defined"
@@ -67,6 +76,50 @@ def test_optimiser_construct():
         _ = CartesianSDOptimiser(
             maxiter=1, conv_tol=ConvergenceParams(abs_d_e=0.1)
         )
+
+
+def test_optimiser_convergence(caplog):
+    opt = CartesianSDOptimiser(
+        maxiter=10,
+        conv_tol=ConvergenceParams(
+            abs_d_e=0.01, rms_g=0.01, max_g=0.01, rms_s=0.01, max_s=0.01
+        ),
+    )
+    coords1 = CartesianCoordinates(np.arange(6, dtype=float))
+    opt._species = Molecule(smiles="N#N")
+    opt._coords = coords1
+    opt._coords.g = np.random.random(6)
+    opt._coords.e = PotentialEnergy(0.1, "Ha")
+
+    # grad + energy < 1/2 + step is < * 3
+    coords2 = coords1 + 0.02
+    coords2.g = np.array([0.004] * 6)
+    coords2.e = PotentialEnergy(0.1 - 0.004, "Ha")
+    opt._coords = coords2
+    with caplog.at_level("WARNING"):
+        assert opt.converged
+    assert "Overachieved gradient and energy" in caplog.text
+    assert "reasonable convergence on step size" in caplog.text
+    caplog.clear()
+    # grad ~ 1/10, dE < *1.5, step < * 2
+    coords2 = coords1 + 0.015
+    coords2.g = np.array([0.0009] * 6)
+    coords2.e = PotentialEnergy(0.1 - 0.015)
+    opt._history._memory[-1] = coords2
+    with caplog.at_level("WARNING"):
+        assert opt.converged
+    assert "Gradient is one order of magnitude below" in caplog.text
+    assert "other parameter(s) are almost converged"
+    caplog.clear()
+    # step achieved, grad ~ 0.7,  dE < * 3
+    coords2 = coords1 + 0.009
+    coords2.g = np.array([0.006] * 6)
+    coords2.e = PotentialEnergy(0.1 - 0.025)
+    opt._history._memory[-1] = coords2
+    with caplog.at_level("WARNING"):
+        assert opt.converged
+    assert "Everything except energy has been converged" in caplog.text
+    assert "Reasonable convergence on energy" in caplog.text
 
 
 def test_initialise_species_and_method():
@@ -86,19 +139,6 @@ def test_coords_set():
     # Internal set of coordinates must be an instance of OptCoordinate
     with pytest.raises(ValueError):
         optimiser._coords = "a"
-
-
-def test_g_norm():
-    optimiser = sample_cartesian_optimiser()
-
-    # With no coordinates the norm of the gradient is infinity
-    assert optimiser._coords is None
-    assert not np.isfinite(optimiser._g_norm)
-
-    # Likewise if the gradient is unset
-    optimiser._coords = CartesianCoordinates([1.0, 0.0, 0.0])
-    assert optimiser._coords.g is None
-    assert not np.isfinite(optimiser._g_norm)
 
 
 def test_history():

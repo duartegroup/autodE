@@ -235,16 +235,6 @@ class CRFOptimiser(RFOptimiser):
             f" Current trust radius = {self.alpha:.3f}"
         )
 
-    @property
-    def _g_norm(self) -> GradientRMS:
-        """Calculate the norm of the gradient in the active subspace"""
-
-        if self._coords is None or self._coords.g is None:
-            return super()._g_norm
-
-        gradient = self._coords.g[self._coords.active_indexes]
-        return GradientRMS(np.sqrt(np.mean(np.square(gradient))))
-
     def _initialise_run(self) -> None:
         """Initialise the optimisation"""
         logger.info("Initialising optimisation")
