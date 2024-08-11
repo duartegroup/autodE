@@ -1,6 +1,6 @@
 import os
 import pickle
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 import numpy as np
 
 from abc import ABC, abstractmethod
@@ -490,9 +490,13 @@ class ConvergenceParams:
     max_s: Optional[Distance] = None
     strict: bool = False
 
+    @property
+    def _num_attrs(self) -> List[str]:
+        """Numerical attributes of this dataclass, in order"""
+        return ["abs_d_e", "rms_g", "max_g", "rms_s", "max_s"]
+
     def __post_init__(self):
         """Type checking and sanity checks on parameters"""
-        self._num_attrs = ["abs_d_e", "rms_g", "max_g", "rms_s", "max_s"]
 
         # convert units for easier comparison
         self._to_base_units()
@@ -618,14 +622,15 @@ class ConvergenceParams:
                 are_satisfied.append(float(v) <= float(c))
         return are_satisfied
 
-    def meets_criteria(self, other: "ConvergenceParams"):
+    def meets_criteria(self, other: "ConvergenceParams") -> bool:
         """
         Does a set of parameters satisfy the current convergence criteria?
         Will signal convergence if gradient or energy change are overachieved
         or all other criteria except energy is satisfied
 
         Args:
-            other:
+            other (ConvergenceParams): Another set of parameters to be
+                            checked against the current set
 
         Returns:
             (bool):
@@ -638,7 +643,6 @@ class ConvergenceParams:
         elif self.strict:
             return False
 
-        # gradient, energy overachieved, but step not converged
         if all((self * [0.5, 0.5, 0.8, 3, 3]).are_satisfied(other)):
             logger.warning(
                 "Overachieved gradient and energy convergence, reasonable "
@@ -646,7 +650,6 @@ class ConvergenceParams:
             )
             return True
 
-        # only gradient overachieved
         if all((self * [1.5, 0.1, 0.2, 2, 2]).are_satisfied(other)):
             logger.warning(
                 "Gradient is one order of magnitude below convergence, "
@@ -654,7 +657,6 @@ class ConvergenceParams:
             )
             return True
 
-        # everything except energy overachieved
         if all((self * [3, 0.7, 0.7, 1, 1]).are_satisfied(other)):
             logger.warning(
                 "Everything except energy has been converged. Reasonable"
