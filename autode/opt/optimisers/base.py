@@ -6,16 +6,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 from zipfile import ZipFile, is_zipfile
 from collections import deque
-from typing import (
-    Type,
-    List,
-    Union,
-    Optional,
-    Callable,
-    Any,
-    TYPE_CHECKING,
-    Iterator,
-)
+from typing import Type, List, Union, Optional, Callable, Any
+from typing import TYPE_CHECKING, Iterator, Literal
 
 from autode.log import logger
 from autode.config import Config
@@ -465,6 +457,9 @@ class NullOptimiser(BaseOptimiser):
         raise RuntimeError("A NullOptimiser has no coordinates")
 
 
+ConvergenceTolStr = Literal["loose", "normal", "tight", "verytight"]
+
+
 @dataclass
 class ConvergenceParams:
     """
@@ -534,7 +529,9 @@ class ConvergenceParams:
         return None
 
     @classmethod
-    def from_preset(cls, preset_name: str) -> "ConvergenceParams":
+    def from_preset(
+        cls, preset_name: ConvergenceTolStr
+    ) -> "ConvergenceParams":
         """
         Obtains preset values of convergence criteria - given as
         "loose", "normal", "tight" and "verytight".
@@ -547,13 +544,6 @@ class ConvergenceParams:
             (ConvergenceCriteria): Optimiser convergence criteria, with
                     preset values
         """
-        allowed_strs = ["loose", "normal", "tight", "verytight"]
-        preset_name = preset_name.strip().lower()
-        if preset_name not in allowed_strs:
-            raise ValueError(
-                f"Unknown preset convergence: {preset_name}, please select"
-                f" from {allowed_strs}"
-            )
         # NOTE: Taken from ORCA
         preset_dicts = {
             "loose": {
@@ -585,6 +575,14 @@ class ConvergenceParams:
                 "max_s": Distance(2e-4, "bohr").to("ang"),
             },
         }
+
+        allowed_strs = list(preset_dicts.keys())
+        if preset_name not in allowed_strs:
+            raise ValueError(
+                f"Unknown preset convergence: {preset_name}, please select"
+                f" from {allowed_strs}"
+            )
+
         return cls(**preset_dicts[preset_name])
 
     def __mul__(self, factors: List[float]):
@@ -673,7 +671,7 @@ class NDOptimiser(Optimiser, ABC):
     def __init__(
         self,
         maxiter: int,
-        conv_tol: Union["ConvergenceParams", str],
+        conv_tol: Union[ConvergenceParams, ConvergenceTolStr],
         coords: Optional[OptCoordinates] = None,
         **kwargs,
     ):
@@ -686,8 +684,8 @@ class NDOptimiser(Optimiser, ABC):
         Arguments:
             maxiter (int): Maximum number of iterations to perform
 
-            conv_tol (ConvergenceParams|dict): Convergence tolerances, indicating
-                    thresholds for absolute energy change (|E_i+1 - E_i|),
+            conv_tol (ConvergenceParams|ConvergenceTolStr): Convergence tolerances,
+                    indicating thresholds for absolute energy change (|E_i+1 - E_i|),
                     RMS and max. gradients (∇E) and RMS and max. step size (Δx)
                     Either supplied as a dictionary or a ConvergenceParams object
 
@@ -715,7 +713,7 @@ class NDOptimiser(Optimiser, ABC):
         return self._conv_tol
 
     @conv_tol.setter
-    def conv_tol(self, value: Union["ConvergenceParams", str]):
+    def conv_tol(self, value: Union["ConvergenceParams", ConvergenceTolStr]):
         """
         Set the convergence parameters for this optimiser.
 
@@ -745,7 +743,7 @@ class NDOptimiser(Optimiser, ABC):
         n_cores: Optional[int] = None,
         coords: Optional[OptCoordinates] = None,
         maxiter: int = 100,
-        conv_tol: Union[ConvergenceParams, str] = "normal",
+        conv_tol: Union[ConvergenceParams, ConvergenceTolStr] = "normal",
         **kwargs,
     ) -> None:
         """
@@ -759,8 +757,8 @@ class NDOptimiser(Optimiser, ABC):
 
             maxiter (int): Maximum number of iteration to perform
 
-            conv_tol (ConvergenceParams|dict): Convergence parameters for
-                        the absolute energy change, RMS and max gradient,
+            conv_tol (ConvergenceParams|ConvergenceTolStr): Convergence parameters
+                        for the absolute energy change, RMS and max gradient,
                         and RMS and max step sizes.
 
             coords (OptCoordinates | None): Coordinates to optimise in
