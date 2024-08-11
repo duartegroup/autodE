@@ -529,9 +529,7 @@ class ConvergenceParams:
         return None
 
     @classmethod
-    def from_preset(
-        cls, preset_name: ConvergenceTolStr
-    ) -> "ConvergenceParams":
+    def from_preset(cls, preset_name: str) -> "ConvergenceParams":
         """
         Obtains preset values of convergence criteria - given as
         "loose", "normal", "tight" and "verytight".
@@ -577,6 +575,7 @@ class ConvergenceParams:
         }
 
         allowed_strs = list(preset_dicts.keys())
+        preset_name = preset_name.strip().lower()
         if preset_name not in allowed_strs:
             raise ValueError(
                 f"Unknown preset convergence: {preset_name}, please select"
