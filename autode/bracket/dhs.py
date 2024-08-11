@@ -22,6 +22,7 @@ from autode.log import logger
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
+    from autode.opt.optimisers.base import ConvergenceTolStr
 
 
 class DistanceConstrainedOptimiser(RFOptimiser):
@@ -497,7 +498,7 @@ class DHS(BaseBracketMethod):
         large_step: Union[Distance, float] = Distance(0.2, "ang"),
         small_step: Union[Distance, float] = Distance(0.05, "ang"),
         switch_thresh: Union[Distance, float] = Distance(1.5, "ang"),
-        conv_tol: Union["ConvergenceParams", str] = "loose",
+        conv_tol: Union["ConvergenceParams", "ConvergenceTolStr"] = "loose",
         **kwargs,
     ):
         """
