@@ -799,13 +799,10 @@ class NDOptimiser(Optimiser, ABC):
         assert self._coords is not None, "Must have coordinates!"
         curr_params = self._history.conv_params()
 
-        # also check if all constraints are met
-        if self.conv_tol.meets_criteria(curr_params) and (
+        constrs_met = (
             self._coords.n_constraints == self._coords.n_satisfied_constraints
-        ):
-            return True
-        else:
-            return False
+        )
+        return constrs_met and self.conv_tol.meets_criteria(curr_params)
 
     def clean_up(self) -> None:
         """
@@ -828,10 +825,12 @@ class NDOptimiser(Optimiser, ABC):
         assert self._coords is not None, "Must have coordinates!"
 
         curr_params = self._history.conv_params()
-        are_converged = self.conv_tol.are_satisfied(curr_params)
         assert curr_params.abs_d_e is not None
 
-        conv_msgs = ["(YES)" if k else "(NO)" for k in are_converged]
+        conv_msgs = [
+            "(YES)" if param_converged else "(NO)"
+            for param_converged in self.conv_tol.are_satisfied(curr_params)
+        ]
         log_string1 = (
             f"iter# {self.iteration}   |dE|="
             f"{curr_params.abs_d_e.to('kcalmol'):.5f} kcal/mol {conv_msgs[0]}"
