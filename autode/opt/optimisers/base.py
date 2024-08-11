@@ -583,7 +583,7 @@ class ConvergenceParams:
         }
         return cls(**preset_dicts[preset_name])
 
-    def multiply(self, factors: List[float]):
+    def __mul__(self, factors: List[float]):
         """Multiply a set of criteria with ordered list of numerical factors"""
         assert len(factors) == len(self._num_attrs)
         kwargs = {}
@@ -639,7 +639,7 @@ class ConvergenceParams:
             return False
 
         # gradient, energy overachieved, but step not converged
-        if all(self.multiply([0.5, 0.5, 0.8, 3, 3]).are_satisfied(other)):
+        if all((self * [0.5, 0.5, 0.8, 3, 3]).are_satisfied(other)):
             logger.warning(
                 "Overachieved gradient and energy convergence, reasonable "
                 "convergence on step size."
@@ -647,7 +647,7 @@ class ConvergenceParams:
             return True
 
         # only gradient overachieved
-        if all(self.multiply([1.5, 0.1, 0.2, 2, 2]).are_satisfied(other)):
+        if all((self * [1.5, 0.1, 0.2, 2, 2]).are_satisfied(other)):
             logger.warning(
                 "Gradient is one order of magnitude below convergence, "
                 "other parameter(s) are almost converged."
@@ -655,7 +655,7 @@ class ConvergenceParams:
             return True
 
         # everything except energy overachieved
-        if all(self.multiply([3, 0.7, 0.7, 1, 1]).are_satisfied(other)):
+        if all((self * [3, 0.7, 0.7, 1, 1]).are_satisfied(other)):
             logger.warning(
                 "Everything except energy has been converged. Reasonable"
                 " convergence on energy"
@@ -830,6 +830,8 @@ class NDOptimiser(Optimiser, ABC):
 
         curr_params = self._history.conv_params()
         are_converged = self.conv_tol.are_satisfied(curr_params)
+        assert curr_params.abs_d_e is not None
+
         conv_msgs = ["(YES)" if k else "(NO)" for k in are_converged]
         log_string1 = (
             f"iter# {self.iteration}   |dE|="
@@ -1207,13 +1209,13 @@ class OptimiserHistory:
         for i in reversed(range(len(self))):
             yield self[i]
 
-    def conv_params(self, idx: int = -1):
+    def conv_params(self, idx: int = -1) -> ConvergenceParams:
         """
         Calculate the convergence parameters for the coordinates at
         specified index (default -1 i.e. the last set of coordinates)
 
         Args:
-            idx: Index of the set of coordinates for which to
+            idx (int): Index of the set of coordinates for which to
                 calculate the parameter
 
         Returns:

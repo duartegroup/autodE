@@ -113,10 +113,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         curr_params = self._history.conv_params()
         curr_params.rms_g = GradientRMS(rms_g_tau, "Ha/ang")
         curr_params.max_g = GradientRMS(max_g_tau, "Ha/ang")
-        if self.conv_tol.meets_criteria(curr_params):
-            return True
-        else:
-            return False
+        return self.conv_tol.meets_criteria(curr_params)
 
     @property
     def tangent_grad(self) -> np.ndarray:
