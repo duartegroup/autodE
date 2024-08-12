@@ -346,10 +346,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.etol = PotentialEnergy(3e-5, units="Ha")
-        self.gtol = GradientRMS(
-            1e-3, units="Ha Å^-1"
-        )  # TODO: A better number here
+        self.conv_tol = "normal"
         self._fix_unique()
 
     def run(self) -> None:
@@ -367,8 +364,7 @@ class CalculationExecutorO(_IndirectCalculationExecutor):
         self.optimiser: "NDOptimiser" = type_(
             init_alpha=self._step_size,
             maxiter=self._max_opt_cycles,
-            etol=self.etol,
-            gtol=self.gtol,
+            conv_tol=self.conv_tol,
         )
         method = self.method.copy()
         method.keywords.grad = kws.GradientKeywords(self.input.keywords)

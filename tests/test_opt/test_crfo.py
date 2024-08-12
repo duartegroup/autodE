@@ -19,7 +19,7 @@ from ..testutils import requires_working_xtb_install
 
 
 def crfo_coords(molecule):
-    optimiser = CRFOptimiser(maxiter=1, gtol=1e-5, etol=1e-5)
+    optimiser = CRFOptimiser(maxiter=1, conv_tol="normal")
     optimiser._species = molecule
     optimiser._build_internal_coordinates()
 
@@ -49,7 +49,7 @@ def test_coordinate_setup():
     dist_consts = mol.constraints.distance
     assert (0, 1) in dist_consts and (1, 0) in dist_consts
 
-    opt = CRFOptimiser(maxiter=1, gtol=1e-5, etol=1e-5)
+    opt = CRFOptimiser(maxiter=1, conv_tol="normal")
 
     with pytest.raises(RuntimeError):
         # Cannot set coordinates without a species
@@ -111,7 +111,7 @@ def test_simple_hessian_update():
 
 
 def test_primitive_projection_discard():
-    optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
+    optimiser = CRFOptimiser(maxiter=1, conv_tol="loose")
     optimiser._species = water_molecule()
 
     # Current distance that will be constrained
@@ -132,15 +132,10 @@ def test_primitive_projection_discard():
     assert np.isclose(r(s.to("cartesian")), r_initial, atol=1e-10)
 
 
-def test_init_g_norm_is_none():
-    optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
-    assert optimiser._g_norm > 0
-
-
 def test_sanitised_zero_length_step():
     """Should be able to update with a null step"""
 
-    optimiser = CRFOptimiser(etol=1, gtol=1, maxiter=1)
+    optimiser = CRFOptimiser(conv_tol="loose", maxiter=1)
     optimiser._coords = CartesianCoordinates(np.array([]))
     optimiser._take_step_within_trust_radius(np.array([]))
 
@@ -163,7 +158,7 @@ def test_xtb_opt_with_distance_constraint():
 
     assert np.isclose(water.distance(0, 1), 0.99, atol=0.01)
 
-    CRFOptimiser.optimise(species=water, method=XTB(), etol=1e-6)
+    CRFOptimiser.optimise(species=water, method=XTB(), conv_tol="loose")
 
     # Optimisation should generate an O-H distance *very* close to 1.1 Å
     assert np.isclose(water.distance(0, 1).to("Å"), 1.1, atol=1e-4)
@@ -259,7 +254,7 @@ def test_xtb_opt_with_two_distance_constraint():
         (0, 2): val.Distance(1.0, units="Å"),
     }
 
-    opt = CRFOptimiser(maxiter=1, gtol=1e-5, etol=1e-5, init_alpha=0.1)
+    opt = CRFOptimiser(maxiter=1, conv_tol="loose", init_alpha=0.1)
     opt._species = water
     opt._method = XTB()
     opt._initialise_run()
@@ -279,7 +274,7 @@ def test_xtb_opt_with_two_distance_constraint():
             water.distance(i, j) - 1.0
         )
 
-    opt = CRFOptimiser(maxiter=10, gtol=1e-5, etol=1e-5, init_alpha=0.1)
+    opt = CRFOptimiser(maxiter=10, conv_tol="loose", init_alpha=0.1)
     opt.run(species=water, method=XTB())
     assert opt.converged
 
@@ -351,7 +346,7 @@ def test_optimise_linear_molecule():
     # the two H-C-C angles are almost linear
     assert val.Angle(170, "deg") < mol.angle(0, 1, 3) < val.Angle(176, "deg")
     assert val.Angle(170, "deg") < mol.angle(2, 0, 1) < val.Angle(176, "deg")
-    opt = CRFOptimiser(maxiter=10, gtol=1e-4, etol=1e-5)
+    opt = CRFOptimiser(maxiter=10, conv_tol="loose")
     opt.run(mol, XTB())
     assert opt.converged
     assert mol.angle(0, 1, 3) > val.Angle(179, "deg")
@@ -365,7 +360,7 @@ def test_optimise_linear_bend_with_ref():
     # the Fe-C-O angle are manually deviated
     assert val.Angle(170, "deg") < mol.angle(2, 3, 4) < val.Angle(176, "deg")
     # large molecule so allow few iters, no need to converge fully
-    opt = CRFOptimiser(maxiter=15, gtol=1e-5, etol=1e-6)
+    opt = CRFOptimiser(maxiter=10, conv_tol="loose")
     opt.run(mol, XTB())
     assert mol.angle(2, 3, 4) > val.Angle(178, "deg")
 
@@ -375,7 +370,7 @@ def test_optimise_linear_bend_with_ref():
 def test_optimise_chain_dihedrals():
     mol = cumulene_mol()
     assert abs(mol.dihedral(6, 3, 4, 8)) < val.Angle(40, "deg")
-    opt = CRFOptimiser(maxiter=20, gtol=1e-4, etol=1e-4)
+    opt = CRFOptimiser(maxiter=20, conv_tol="loose")
     opt.run(mol, XTB())
     # 5-C chain, should be close to 90 degrees
     assert abs(mol.dihedral(6, 3, 4, 8)) > val.Angle(85, "deg")
@@ -413,7 +408,7 @@ def test_composite_bond_constraint():
     # current sum of distances ~ 4.7 A, difference ~ 0.07
     assert np.isclose(mol.distance(1, 11), 2.385, rtol=1e-4)
     assert np.isclose(mol.distance(2, 7), 2.315, rtol=1e-4)
-    opt = CRFOptimiser(maxiter=10, gtol=1e-3, etol=1e-4, extra_prims=[constr])
+    opt = CRFOptimiser(maxiter=10, conv_tol="loose", extra_prims=[constr])
     opt.run(mol, method=XTB())
     # sum of distances should be ~4.6 A
     assert np.isclose(mol.distance(1, 11) + mol.distance(2, 7), 4.6, rtol=1e-4)
@@ -425,12 +420,10 @@ def test_trust_radius_limits():
     import autode.opt.optimisers.crfo
 
     max_lim = autode.opt.optimisers.crfo.MAX_TRUST
-    opt = CRFOptimiser(
-        maxiter=10, gtol=1e-3, etol=1e-4, init_trust=max_lim + 0.1
-    )
+    opt = CRFOptimiser(maxiter=10, conv_tol="loose", init_trust=max_lim + 0.1)
     assert np.isclose(opt.alpha, max_lim)
     min_lim = autode.opt.optimisers.crfo.MIN_TRUST
     opt = CRFOptimiser(
-        maxiter=10, gtol=1e-3, etol=1e-4, init_trust=min_lim - 0.001
+        maxiter=10, conv_tol="loose", init_trust=min_lim - 0.001
     )
     assert np.isclose(opt.alpha, min_lim)

@@ -168,6 +168,25 @@ def test_hessian_inv():
     assert np.allclose(coords.h_inv, expected_h_inv, atol=1e-10)
 
 
+def test_h_update():
+    coords1 = CartesianCoordinates(np.array([1.0, 2.0]))
+    coords1.g = np.array([0.1, 0.2])
+    coords1.h = 2.0 * np.eye(2)
+
+    coords2 = CartesianCoordinates(np.array([1.1, 2.1]))
+    coords2.g = np.array([0.01, 0.02])
+    assert coords2.h is None
+
+    # must define a valid update type
+    with pytest.raises(RuntimeError):
+        coords2.update_h_from_old_h(coords1, hessian_update_types=[])
+
+    from autode.opt.optimisers.hessian_update import BFGSSR1Update
+
+    coords2.update_h_from_old_h(coords1, hessian_update_types=[BFGSSR1Update])
+    assert coords2.h is not None
+
+
 def test_cartesian_update_clear():
     arr = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
 

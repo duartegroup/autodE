@@ -4,7 +4,7 @@ from autode.opt.optimisers.base import NDOptimiser
 
 
 class SteepestDescent(NDOptimiser, ABC):
-    def __init__(self, maxiter, gtol, etol, step_size=0.2, **kwargs):
+    def __init__(self, maxiter, conv_tol, step_size=0.2, **kwargs):
         """
         Steepest decent optimiser
 
@@ -16,7 +16,7 @@ class SteepestDescent(NDOptimiser, ABC):
 
             :py:meth:`NDOptimiser <autode.opt.optimisers.base.NDOptimiser.__init__>`
         """
-        super().__init__(maxiter=maxiter, gtol=gtol, etol=etol, **kwargs)
+        super().__init__(maxiter=maxiter, conv_tol=conv_tol, **kwargs)
 
         self.alpha = step_size
 

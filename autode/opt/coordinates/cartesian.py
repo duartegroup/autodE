@@ -9,7 +9,6 @@ from autode.opt.coordinates.dic import DIC
 if TYPE_CHECKING:
     from autode.values import Gradient
     from autode.hessians import Hessian
-    from autode.opt.coordinates.primitives import ConstrainedPrimitive
 
 
 class CartesianCoordinates(OptCoordinates):
@@ -62,6 +61,14 @@ class CartesianCoordinates(OptCoordinates):
         self._h = None if arr is None else np.array(arr)
 
     @property
+    def n_constraints(self) -> int:
+        return 0
+
+    @property
+    def n_satisfied_constraints(self) -> int:
+        return 0
+
+    @property
     def active_indexes(self) -> List[int]:
         return list(range(len(self)))
 
@@ -105,6 +112,10 @@ class CartesianCoordinates(OptCoordinates):
             raise ValueError(
                 f"Cannot convert Cartesian coordinates to {value}"
             )
+
+    @property
+    def cart_proj_g(self) -> Optional[np.ndarray]:
+        return self.g
 
     @property
     def expected_number_of_dof(self) -> int:

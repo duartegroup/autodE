@@ -16,6 +16,9 @@ Bug Fixes
 *********
 - DIC to Cartesian transform will now always use :code:`PIC.close_to()` to ensure steps along dihedral have the smallest change, even after back-transform is complete
 
+Usability improvements/Changes
+******************************
+- Optimiser convergence criteria have been improved to consider energy change, RMS and max. gradient and step sizes.
 
 1.4.3
 ------

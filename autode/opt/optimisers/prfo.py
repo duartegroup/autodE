@@ -24,6 +24,7 @@ class PRFOptimiser(CRFOptimiser):
         all others to locate a transition state (TS)
 
         -----------------------------------------------------------------------
+
         Arguments:
             init_alpha: Maximum step size (default Å if unit not given)
 
