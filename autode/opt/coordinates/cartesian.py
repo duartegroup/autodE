@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING
 
 from autode.log import logger
 from autode.values import ValueArray
@@ -45,7 +45,7 @@ class CartesianCoordinates(OptCoordinates):
         Arguments:
             arr: Gradient array
         """
-        self.g = None if arr is None else np.array(arr).flatten()
+        self._g = None if arr is None else np.array(arr).flatten()
 
     def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
         """
@@ -57,7 +57,24 @@ class CartesianCoordinates(OptCoordinates):
         Arguments:
             arr: Hessian matrix
         """
-        self.h = None if arr is None else np.array(arr)
+        assert self.h_or_h_inv_has_correct_shape(arr)
+        self._h = None if arr is None else np.array(arr)
+
+    @property
+    def n_constraints(self) -> int:
+        return 0
+
+    @property
+    def n_satisfied_constraints(self) -> int:
+        return 0
+
+    @property
+    def active_indexes(self) -> List[int]:
+        return list(range(len(self)))
+
+    @property
+    def inactive_indexes(self) -> List[int]:
+        return []
 
     def iadd(self, value: np.ndarray) -> OptCoordinates:
         return np.ndarray.__iadd__(self, value)
@@ -95,6 +112,10 @@ class CartesianCoordinates(OptCoordinates):
             raise ValueError(
                 f"Cannot convert Cartesian coordinates to {value}"
             )
+
+    @property
+    def cart_proj_g(self) -> Optional[np.ndarray]:
+        return self.g
 
     @property
     def expected_number_of_dof(self) -> int:

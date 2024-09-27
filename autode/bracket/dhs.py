@@ -15,13 +15,14 @@ from autode.opt.coordinates import CartesianCoordinates
 from autode.opt.optimisers.utils import TruncatedTaylor
 from autode.opt.optimisers.hessian_update import BFGSSR1Update
 from autode.bracket.base import BaseBracketMethod
-from autode.opt.optimisers import RFOptimiser
+from autode.opt.optimisers import RFOptimiser, ConvergenceParams
 from autode.exceptions import OptimiserStepError
 from autode.log import logger
 
 if TYPE_CHECKING:
     from autode.species.species import Species
     from autode.wrappers.methods import Method
+    from autode.opt.optimisers.base import ConvergenceTolStr
 
 
 class DistanceConstrainedOptimiser(RFOptimiser):
@@ -60,10 +61,10 @@ class DistanceConstrainedOptimiser(RFOptimiser):
             pivot_point: Coordinates of the pivot point
             line_search: Whether to use linear search
             angle_thresh: An angle threshold above which linear search
-                          will be rejected (in Degrees)
+                        will be rejected (in Degrees)
             old_coords_read_hess: Old coordinate with hessian which will
-                                  be used to obtain initial hessian by
-                                  a Hessian update scheme
+                        be used to obtain the initial hessian by a
+                        Hessian update scheme
         """
         kwargs.pop("init_alpha", None)
         super().__init__(*args, init_alpha=init_trust, **kwargs)
@@ -103,15 +104,22 @@ class DistanceConstrainedOptimiser(RFOptimiser):
     @property
     def converged(self) -> bool:
         """Has the optimisation converged"""
-        # The tangential gradient should be close to zero
-        return (
-            self.rms_tangent_grad < self.gtol and self._abs_delta_e < self.etol
-        )
+        assert self._coords is not None
+
+        # Check only the tangential component of gradient
+        g_tau = self.tangent_grad
+        rms_g_tau = np.sqrt(np.mean(np.square(g_tau)))
+        max_g_tau = np.max(np.abs(g_tau))
+
+        curr_params = self._history.conv_params()
+        curr_params.rms_g = GradientRMS(rms_g_tau, "Ha/ang")
+        curr_params.max_g = GradientRMS(max_g_tau, "Ha/ang")
+        return self.conv_tol.meets_criteria(curr_params)
 
     @property
-    def rms_tangent_grad(self) -> GradientRMS:
+    def tangent_grad(self) -> np.ndarray:
         """
-        Obtain the RMS of the gradient tangent to the distance
+        Obtain the component of atomic gradients tangent to the distance
         vector between current coords and pivot point
         """
         assert self._coords is not None and self._coords.g is not None
@@ -120,8 +128,7 @@ class DistanceConstrainedOptimiser(RFOptimiser):
         # unit vector in the direction of distance vector
         d_hat = self.dist_vec / np.linalg.norm(self.dist_vec)
         tangent_grad = grad - (grad.dot(d_hat)) * d_hat
-        rms_grad = np.sqrt(np.mean(np.square(tangent_grad)))
-        return GradientRMS(rms_grad)
+        return tangent_grad
 
     @property
     def dist_vec(self) -> np.ndarray:
@@ -491,6 +498,7 @@ class DHS(BaseBracketMethod):
         large_step: Union[Distance, float] = Distance(0.2, "ang"),
         small_step: Union[Distance, float] = Distance(0.05, "ang"),
         switch_thresh: Union[Distance, float] = Distance(1.5, "ang"),
+        conv_tol: Union["ConvergenceParams", "ConvergenceTolStr"] = "loose",
         **kwargs,
     ):
         """
@@ -513,6 +521,9 @@ class DHS(BaseBracketMethod):
             switch_thresh: When distance between the two images is less than
                         this cutoff, smaller DHS extrapolation steps are taken
 
+            conv_tol: Convergence tolerance for the distance-constrained
+                      optimiser
+
         Keyword Args:
 
             maxiter: Maximum number of en/grad evaluations
@@ -520,9 +531,6 @@ class DHS(BaseBracketMethod):
             dist_tol: The distance tolerance at which DHS will
                       stop, values less than 0.5 Angstrom are not
                       recommended.
-
-            gtol: Gradient tolerance for the optimiser micro-iterations
-                  in DHS (Hartree/angstrom)
 
             cineb_at_conv: Whether to run CI-NEB calculation from the end
                            points after the DHS is converged
@@ -542,6 +550,7 @@ class DHS(BaseBracketMethod):
         self._small_step = Distance(abs(small_step), "ang")
         self._sw_thresh = Distance(abs(switch_thresh), "ang")
         assert self._small_step < self._large_step
+        self._conv_tol = conv_tol
 
         self._step_size: Optional[Distance] = None
         if self._large_step > self.imgpair.dist:
@@ -597,8 +606,7 @@ class DHS(BaseBracketMethod):
 
         opt = DistanceConstrainedOptimiser(
             maxiter=curr_maxiter,
-            gtol=self._gtol,
-            etol=1.0e-3,  # seems like a reasonable etol
+            conv_tol=self._conv_tol,
             init_trust=opt_trust,
             pivot_point=pivot,
             old_coords_read_hess=old_coords,
@@ -612,9 +620,10 @@ class DHS(BaseBracketMethod):
         if not opt.converged:
             return None
 
+        rms_g_tau = np.sqrt(np.mean(np.square(opt.tangent_grad)))
         logger.info(
             "Successful optimization after DHS step, final RMS of "
-            f"tangential gradient = {opt.rms_tangent_grad:.6f} "
+            f"tangential gradient = {rms_g_tau:.6f} "
             f"Ha/angstrom"
         )
 

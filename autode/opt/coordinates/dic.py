@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from autode.hessians import Hessian
 
 
-_max_back_transform_iterations = 20
+MAX_BACK_TRANSFORM_ITERS = 50
 
 
 class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
@@ -70,8 +70,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         Returns:
             (np.ndarray): U
         """
-
-        lambd, u = np.linalg.eigh(primitives.G)
+        # calculate spectroscopic G matrix
+        B = primitives.get_B(x)
+        G = np.dot(B, B.T)
+        lambd, u = np.linalg.eigh(G)
 
         # Form a transform matrix from the primitive internals by removing the
         # redundant subspace comprised of small eigenvalues. This forms a set
@@ -124,8 +126,9 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         dic.U = U  # Transform matrix primitives -> non-redundant
 
-        dic.B = np.matmul(U.T, primitives.B)
+        dic.B = np.matmul(U.T, primitives.get_B(x))
         dic.B_T_inv = np.linalg.pinv(dic.B)
+        dic._q = q.copy()
         dic._x = x.copy()
         dic.primitives = primitives
 
@@ -136,6 +139,10 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         logger.info(f"Transformed in      ...{time() - start_time:.4f} s")
         return dic
 
+    @property
+    def cart_proj_g(self) -> Optional[np.ndarray]:
+        return self.to("cart").g
+
     def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
         """
         Updates the gradient from a calculated Cartesian gradient
@@ -145,11 +152,11 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             arr: Cartesian gradient array
         """
         if arr is None:
-            self._x.g, self.g = None, None
+            self._x.g, self._g = None, None
 
         else:
             self._x.g = arr.flatten()
-            self.g = np.matmul(self.B_T_inv.T, self._x.g)
+            self._g = np.matmul(self.B_T_inv.T, self._x.g)
 
         return None
 
@@ -162,14 +169,16 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
             arr: Cartesian Hessian matrix
         """
         if arr is None:
-            self._x.h, self.h = None, None
+            self._x.h, self._h = None, None
 
         else:
             self._x.h = arr
 
             # NOTE: This is not the full transformation as noted in
             # 10.1063/1.471864 only an approximate Hessian is required(?)
-            self.h = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+            hess = np.linalg.multi_dot((self.B_T_inv.T, arr, self.B_T_inv))
+            assert self.h_or_h_inv_has_correct_shape(hess)
+            self._h = hess
 
         return None
 
@@ -213,21 +222,45 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
 
         # Initialise
         s_k, x_k = np.array(self, copy=True), self.to("cartesian").copy()
-        q_init = self.primitives(x_k)
+        q_init = self._q
         x_1 = self.to("cartesian") + np.matmul(self.B_T_inv, value)
 
         success = False
-        for i in range(1, _max_back_transform_iterations + 1):
-            try:
-                x_k = x_k + np.matmul(self.B_T_inv, (s_new - s_k))
+        rms_s = np.inf
+        # NOTE: J. Comput. Chem., 2013, 34, 1842 suggests if step size
+        # is larger than 0.5 bohr (= 0.2 Å), internal step can be halved
+        # for easier convergence (i.e. damp = 1/2)
+        if np.linalg.norm(value) > 0.2:
+            damp = 0.5
+        else:
+            damp = 1.0
 
-                # Rebuild the primitives & DIC from the back-transformed Cartesians
+        # hybrid SIBT/IBT algorithm
+        for i in range(1, MAX_BACK_TRANSFORM_ITERS + 1):
+            try:
+                x_k = x_k + np.matmul(self.B_T_inv, damp * (s_new - s_k))
+
+                # Rebuild the DIC from back-transformed Cartesians
                 q_k = self.primitives.close_to(x_k, q_init)
                 s_k = np.matmul(self.U.T, q_k)
-                self.B = np.matmul(self.U.T, self.primitives.B)
-                self.B_T_inv = np.linalg.pinv(self.B)
 
+                # Rebuild the B matrix every 10 steps
+                if i % 10 == 0:
+                    self.B = np.matmul(self.U.T, self.primitives.get_B(x_k))
+                    self.B_T_inv = np.linalg.pinv(self.B)
+
+                rms_s_old = rms_s
                 rms_s = np.sqrt(np.mean(np.square(s_k - s_new)))
+
+                # almost converged, turn off damping
+                if rms_s < 1e-6:
+                    damp = 1.0
+                # RMS going down, reduce damping
+                elif rms_s < rms_s_old and i > 1:
+                    damp = min(1.2 * damp, 1.0)
+                # RMS going up, increase damping
+                elif rms_s > rms_s_old:
+                    damp = max(0.7 * damp, 0.1)
 
             # for ill-conditioned primitives, there might be math error
             except ArithmeticError:
@@ -245,7 +278,7 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
         else:
             logger.warning(
                 f"Failed to transform in {i} cycles. "
-                f"Final RMS(s) = {rms_s:.8f}"
+                + f"Final RMS(s) = {rms_s:.8f}"
             )
             x_k = x_1
             if not self.allow_unconverged_back_transform:
@@ -253,11 +286,13 @@ class DIC(InternalCoordinates):  # lgtm [py/missing-equals]
                     "DIC->Cart iterative back-transform did not converge"
                 )
 
-        s_k = np.matmul(self.U.T, self.primitives(x_k))
-        self.B = np.matmul(self.U.T, self.primitives.B)
+        q_k = self.primitives.close_to(x_k, q_init)
+        s_k = np.matmul(self.U.T, q_k)
+        self.B = np.matmul(self.U.T, self.primitives.get_B(x_k))
         self.B_T_inv = np.linalg.pinv(self.B)
 
         self[:] = s_k
+        self._q = q_k
         self._x = x_k
 
         return self
@@ -292,7 +327,7 @@ class DICWithConstraints(DIC):
 
         arr = super().__new__(cls, input_array)
 
-        arr._lambda = None  # Additional lagrangian multipliers
+        arr._lambda = np.array([])  # Additional lagrangian multipliers
         return arr
 
     def __array_finalize__(self, obj: "OptCoordinates") -> None:
@@ -301,11 +336,28 @@ class DICWithConstraints(DIC):
         self._lambda = getattr(obj, "_lambda", None)
         return
 
-    def zero_lagrangian_multipliers(self) -> None:
-        r"""Zero all \lambda_i"""
+    @classmethod
+    def from_cartesian(
+        cls,
+        x: "CartesianCoordinates",
+        primitives: Optional[PIC] = None,
+    ) -> "DICWithConstraints":
+        """
+        Generate delocalised internal coordinates with constraints
+        with the Lagrangian multipliers initialised as zeroes
 
-        self._lambda = np.zeros(shape=(self.n_constraints,))
-        return None
+        Args:
+            x: Cartesian coordinates
+
+            primitives: Primitive internal coordinates. If undefined then use
+                        all pairwise inverse distances
+
+        Returns:
+            (DICWithConstraints): DIC with constraints
+        """
+        dic = super().from_cartesian(x=x, primitives=primitives)
+        dic._lambda = np.zeros(shape=(dic.n_constraints,))
+        return dic
 
     @property
     def raw(self) -> np.ndarray:
@@ -355,88 +407,98 @@ class DICWithConstraints(DIC):
 
         return [i for i in range(n + m) if i not in self.inactive_indexes]
 
-    def _update_g_from_cart_g(self, arr: Optional["Gradient"]) -> None:
-        r"""
-        Updates the gradient from a calculated Cartesian gradient, where
-        the gradient is that of the Lagrangian. Includes dL/d_λi terms where
-        λi is the i-th lagrangian multiplier.
-
-        -----------------------------------------------------------------------
-        Arguments:
-            arr: Cartesian gradient array
+    def iadd(self, value: np.ndarray) -> "OptCoordinates":
         """
+        Add a step in internal coordinates (along with Lagrange multipliers)
+        to this set of coordinates, and update the Cartesian coordinates
 
-        if arr is None:
-            self._x.g, self.g = None, None
-            return
+        Args:
+            value: Difference between current and new DICs, and the multipliers
+        """
+        assert len(value) == len(self) + self.n_constraints
+        # separate the coordinates and the lagrange multipliers
+        if self.n_constraints > 0:
+            delta_lambda = value[-self.n_constraints :]
+            self._lambda += delta_lambda
+            delta_s = value[: -self.n_constraints]
+        else:
+            delta_s = value
 
-        assert self._lambda is not None, "Must have λ defined"
+        return super().iadd(delta_s)
 
-        self._x.g = arr.flatten()
-        n = len(self)
-        m = self.n_constraints
+    @property
+    def cart_proj_g(self) -> Optional[np.ndarray]:
+        """Obtain Cartesian gradient with constraints projected out"""
+        if self.g is None:
+            return None
+        # constrained gradient with inactive terms set to zero
+        g_s = self.g
+        g_s[self.inactive_indexes] = 0.0
+        g_s = g_s[: len(self)]
+        # back to Cartesian
+        g_x = np.matmul(self.B.T, g_s)
+        assert len(g_x) == len(self.to("cart"))
+        return g_x
 
-        self.g = np.zeros(shape=(n + m,))
+    @property
+    def g(self):
+        """
+        Gradient of the energy, contains the Lagrangian dL/d_λi terms where
+        λi is the i-th lagrangian multiplier.
+        """
+        if self._g is None:
+            return None
 
-        # Set the first part dL/ds_i
-        self.g[:n] = np.matmul(self.B_T_inv.T, self._x.g)
+        n, m = len(self), self.n_constraints
+        arr = np.zeros(shape=(n + m,))
+        arr[:n] = self._g
 
+        # constrained gradient terms
         for i in range(m):
-            self.g[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
+            arr[n - m + i] -= self._lambda[i] * 1  # λ dC_i/ds_i
 
-        # and the final dL/dλ_i
+        # final dL/dλ_i
         c = self.constrained_primitives
         for i in range(m):
-            self.g[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
+            arr[n + i] = -c[i].delta(self._x)  # C_i(x) = Z - Z_ideal
 
-        return None
+        return arr
 
-    def _update_h_from_cart_h(self, arr: Optional["Hessian"]) -> None:
+    @g.setter
+    def g(self, value):
+        """Setting g is not allowed with constraints"""
+        raise RuntimeError("Cannot set gradient with constraints enabled")
+
+    @property
+    def h(self):
         """
-        Update the DIC Hessian matrix from a Cartesian one
+        The Hessian matrix, containing Lagrangian constraint terms
 
-        -----------------------------------------------------------------------
-        Arguments:
-            arr: Cartesian Hessian matrix
+        Returns:
+            (np.ndarray):
         """
+        if self._h is None:
+            return None
 
-        if arr is None:
-            self._x.h, self.h = None, None
+        n, m = len(self), self.n_constraints
+        arr = np.zeros(shape=(n + m, n + m))
 
-        else:
-            self._x.h = arr
-            n = len(self)
-            m = self.n_constraints
+        # Upper left corner is d^2L/ds_i ds_j
+        arr[:n, :n] = self._h
 
-            self.h = np.zeros(shape=(n + m, n + m))
+        # and the d^2L/ds_i dλ_i = -dC_i/ds_i = -1
+        #         d^2L/dλ_i dλ_j = 0
+        for i in range(m):
+            arr[n + i, :] = arr[:, n + i] = 0.0
 
-            # Fill in the upper left corner with d^2L/ds_i ds_j
-            # where the second derivative of the constraint is zero
-            self.h[:n, :n] = np.linalg.multi_dot(
-                (self.B_T_inv.T, arr, self.B_T_inv)
-            )
+        for i in range(m):
+            arr[n - m + i, n + i] = arr[n + i, n - m + i] = -1.0
 
-            # and the d^2L/ds_i dλ_i = -dC_i/ds_i = -1
-            #         d^2L/dλ_i dλ_j = 0
+        return arr
 
-            for i in range(m):
-                self.h[n + i, :] = self.h[:, n + i] = 0.0
-
-            for i in range(m):
-                self.h[n - m + i, n + i] = self.h[n + i, n - m + i] = -1.0
-
-        return None
-
-    def h_or_h_inv_has_correct_shape(self, arr: Optional[np.ndarray]):
-        """Does a Hessian or its inverse have the correct shape?"""
-        if arr is None:
-            return True  # None is always valid
-
-        n_rows, n_cols = arr.shape
-        return (
-            arr.ndim == 2
-            and n_rows == n_cols == len(self) + self.n_constraints
-        )
+    @h.setter
+    def h(self, value):
+        raise RuntimeError("Cannot set hessian when constraints are enabled")
 
     def update_lagrange_multipliers(self, arr: np.ndarray) -> None:
         """Update the lagrange multipliers by adding a set of values"""

@@ -22,7 +22,7 @@ from autode.opt.coordinates.internals import (
     AnyPIC,
 )
 from autode.opt.coordinates.cartesian import CartesianCoordinates
-from autode.opt.coordinates.dic import DIC
+from autode.opt.coordinates.dic import DIC, DICWithConstraints
 from autode.opt.coordinates.primitives import (
     PrimitiveInverseDistance,
     PrimitiveDistance,
@@ -30,9 +30,12 @@ from autode.opt.coordinates.primitives import (
     PrimitiveBondAngle,
     ConstrainedPrimitiveBondAngle,
     PrimitiveDihedralAngle,
+    PrimitiveImproperDihedral,
     PrimitiveLinearAngle,
     PrimitiveDummyLinearAngle,
     LinearBendType,
+    CompositeBonds,
+    ConstrainedCompositeBonds,
 )
 
 
@@ -111,10 +114,10 @@ def test_cartesian_coordinates_hessian_update():
     # Simple coordinates with 2 atoms in 3 D
     coords = CartesianCoordinates(np.arange(0, 6).reshape((2, 3)))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         coords.update_h_from_cart_h(arr=np.array([]))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         coords.update_h_from_cart_h(arr=np.array([1.0]))
 
     # Hessian needs to be 6x6
@@ -165,6 +168,25 @@ def test_hessian_inv():
     assert np.allclose(coords.h_inv, expected_h_inv, atol=1e-10)
 
 
+def test_h_update():
+    coords1 = CartesianCoordinates(np.array([1.0, 2.0]))
+    coords1.g = np.array([0.1, 0.2])
+    coords1.h = 2.0 * np.eye(2)
+
+    coords2 = CartesianCoordinates(np.array([1.1, 2.1]))
+    coords2.g = np.array([0.01, 0.02])
+    assert coords2.h is None
+
+    # must define a valid update type
+    with pytest.raises(RuntimeError):
+        coords2.update_h_from_old_h(coords1, hessian_update_types=[])
+
+    from autode.opt.optimisers.hessian_update import BFGSSR1Update
+
+    coords2.update_h_from_old_h(coords1, hessian_update_types=[BFGSSR1Update])
+    assert coords2.h is not None
+
+
 def test_cartesian_update_clear():
     arr = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
 
@@ -197,6 +219,29 @@ def test_basic_dic_properties():
 
     with pytest.raises(Exception):
         _ = x.to("unknown coordinates")
+
+
+def test_dic_constraints():
+    mol = water_mol()
+    mol.constraints.distance = {(0, 1): 1.5}
+
+    pic = AnyPIC.from_species(mol)
+    x = CartesianCoordinates(mol.coordinates)
+    q = DICWithConstraints.from_cartesian(x, pic)
+    assert q.n_constraints == 1
+    assert q.g is None and q.h is None
+
+    # with constraints grad or hessian cannot be set directly
+    with pytest.raises(RuntimeError):
+        q.g = np.arange(3)
+    with pytest.raises(RuntimeError):
+        q.h = np.arange(3)
+
+    q.update_g_from_cart_g(np.random.rand(9))
+    q.update_h_from_cart_h(np.random.rand(9, 9))
+    # one extra dimension from Lagrange multiplier
+    assert q.g.shape == (4,)
+    assert q.h.shape == (4, 4)
 
 
 def test_invalid_pic_construction():
@@ -234,6 +279,13 @@ def test_cart_to_dic():
     assert np.allclose(x, np.array([0.1, 0.1, 0.1, 2.1, 0.1, 0.1]))
     assert not np.allclose(x, dics._x)
     x -= 0.1
+
+
+def test_cartesian_all_indexes_active():
+    arr = np.arange(6)
+    x = CartesianCoordinates(arr)
+    assert x.active_indexes == list(range(6))
+    assert x.inactive_indexes == list()
 
 
 def test_simple_dic_to_cart():
@@ -638,6 +690,16 @@ def test_dihedral_equality():
     )
 
 
+def test_composite_bonds_equality():
+    a = CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[0.5, 1.2])
+    b = CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[0.5, 1.2])
+    c = CompositeBonds(bonds=[(0, 5), (2, 4)], coeffs=[0.5, 1.2])
+    d = CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[0.1, 1.2])
+    assert a == b
+    assert a != c  # different bonds
+    assert a != d  # different coefficient
+
+
 def test_linear_angle():
     acetylene = Molecule(
         atoms=[
@@ -654,8 +716,8 @@ def test_linear_angle():
     assert angle._vec_r is not None
     old_r_vec = angle._vec_r
     # the dummy atom should not change after the first call
-    _ = angle(x)
-    _ = angle(x)
+    _ = angle(x + 0.05)
+    _ = angle(x - 0.07)
     assert angle._vec_r is old_r_vec
 
     axis_vec = np.array(np.array(angle._vec_r._data) - x.reshape(-1, 3)[1])
@@ -684,6 +746,9 @@ def test_primitives_consistent_with_mol_values():
     assert np.isclose(ang(coords), h2o2.angle(0, 2, 1), rtol=1e-8)
     dihedral = PrimitiveDihedralAngle(2, 0, 1, 3)
     assert np.isclose(dihedral(coords), h2o2.dihedral(2, 0, 1, 3), rtol=1e-8)
+    ic = CompositeBonds([(0, 1), (0, 2)], [0.3, 0.7])
+    mol_val = 0.3 * h2o2.distance(0, 1) + 0.7 * h2o2.distance(0, 2)
+    assert np.isclose(mol_val, ic(coords))
 
 
 # fmt: off
@@ -713,6 +778,7 @@ extra_mols = [
         ]
     ),
     feco5_mol(), # for testing linear angles
+    h2o2_mol(),
 ]
 
 test_mols = [
@@ -726,6 +792,7 @@ test_prims = [
     PrimitiveDihedralAngle(2, 0, 1, 3),
     PrimitiveDummyLinearAngle(0, 1, 3, LinearBendType.BEND),
     PrimitiveLinearAngle(2, 3, 4, 8, LinearBendType.BEND),
+    CompositeBonds([(0, 1), (0, 2)], [1, 1]),
 ]
 # fmt: on
 
@@ -783,6 +850,9 @@ def test_repr():
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.BEND),
         PrimitiveLinearAngle(0, 1, 2, 3, LinearBendType.COMPLEMENT),
         PrimitiveDummyLinearAngle(0, 1, 2, LinearBendType.BEND),
+        PrimitiveImproperDihedral(0, 1, 2, 3),
+        CompositeBonds(bonds=[(1, 2), (2, 3)], coeffs=[1, 1]),
+        ConstrainedCompositeBonds([(1, 2), (2, 3)], [1, 1], 0.2),
     ]
 
     for p in prims:
@@ -844,11 +914,11 @@ def test_pic_generation_linear_angle_ref():
     assert not any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
     assert PrimitiveLinearAngle(4, 3, 2, 8, LinearBendType.BEND) in pic
     # for C-Fe-C, only one out-of-plane dihedral should be present
-    assert PrimitiveDihedralAngle(3, 5, 2, 1) in pic
+    assert PrimitiveImproperDihedral(3, 5, 2, 1) in pic
     assert sum(isinstance(ic, PrimitiveDihedralAngle) for ic in pic) == 1
     # check degrees of freedom = 3N - 6
-    _ = pic(m.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * m.n_atoms - 6
+    x = m.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * m.n_atoms - 6
 
 
 def test_pic_generation_linear_angle_dummy():
@@ -864,8 +934,8 @@ def test_pic_generation_linear_angle_dummy():
     assert any(isinstance(ic, PrimitiveDummyLinearAngle) for ic in pic)
 
     # degrees of freedom = 3N - 5 for linear molecules
-    _ = pic(mol.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 5
+    x = mol.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * mol.n_atoms - 5
 
 
 @work_in_tmp_dir()
@@ -907,8 +977,8 @@ def test_pic_generation_disjoint_graph():
     assert PrimitiveDistance(2, 3) not in pic
     assert PrimitiveBondAngle(1, 2, 3) not in pic
     # check degrees of freedom = 3N - 6
-    _ = pic(mol.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * mol.n_atoms - 6
+    x = mol.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * mol.n_atoms - 6
 
     # if the bond between 2, 3 is made into a constraint, it will generate angles
     mol.constraints.distance = {(2, 3): mol.distance(2, 3)}
@@ -928,8 +998,8 @@ def test_pic_generation_chain_dihedrals():
     assert PrimitiveDihedralAngle(7, 4, 3, 6) in pic
 
     # check that the 3N-6 degrees of freedom are maintained
-    _ = pic(cumulene.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * cumulene.n_atoms - 6
+    x = cumulene.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * cumulene.n_atoms - 6
 
 
 def test_pic_generation_square_planar():
@@ -947,5 +1017,5 @@ def test_pic_generation_square_planar():
     # for sq planar, out-of-plane dihedrals are needed to have
     # all degrees of freedom
     pic = AnyPIC.from_species(ptcl4)
-    _ = pic(ptcl4.coordinates.flatten())
-    assert np.linalg.matrix_rank(pic.B) == 3 * ptcl4.n_atoms - 6
+    x = ptcl4.coordinates.flatten()
+    assert np.linalg.matrix_rank(pic.get_B(x)) == 3 * ptcl4.n_atoms - 6

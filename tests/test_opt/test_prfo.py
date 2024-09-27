@@ -3,6 +3,7 @@ from autode.species.molecule import Molecule
 from autode.atoms import Atom
 from autode.methods import XTB
 from autode.opt.optimisers import PRFOptimiser
+from autode.config import Config
 from autode.utils import work_in_tmp_dir
 from ..testutils import requires_working_xtb_install
 
@@ -67,6 +68,42 @@ def test_diels_alder_ts_opt():
         print(xyz_file_string, file=file)
 
     mol = Molecule("init.xyz")
-    PRFOptimiser.optimise(mol, method=xtb, maxiter=50, init_alpha=0.05)
+    PRFOptimiser.optimise(mol, method=xtb, maxiter=25, init_alpha=0.05)
     assert has_single_imag_freq_at_xtb_level(mol)
-    # print(mol.imaginary_frequencies)  # should be ~600 cm-1
+    freq = mol.imaginary_frequencies[0]
+    assert np.isclose(freq, -600, atol=30)  # should be ~600 cm-1
+
+
+@requires_working_xtb_install
+@work_in_tmp_dir()
+def test_mode_following():
+    mol = Molecule(
+        name="sn2_ts",
+        charge=-1,
+        solvent_name="water",
+        atoms=[
+            Atom("F", -4.17085, 3.55524, 1.59944),
+            Atom("Cl", -0.75962, 3.53830, -0.72354),
+            Atom("C", -2.51988, 3.54681, 0.47836),
+            Atom("H", -3.15836, 3.99230, -0.27495),
+            Atom("H", -2.54985, 2.47411, 0.62732),
+            Atom("H", -2.10961, 4.17548, 1.25945),
+        ],
+    )
+    opt = PRFOptimiser(maxiter=10, conv_tol="normal", imag_mode_idx=0)
+    opt._species = mol
+    opt._method = xtb
+    opt._n_cores = Config.n_cores
+    opt._initialise_run()
+    # take a step
+    opt._step()
+    opt._update_gradient_and_energy()
+    opt._update_hessian()
+    # shift the Hessian modes by exchanging eigenvalues of first two modes
+    b, u = np.linalg.eigh(opt._coords.h)
+    b[0], b[1] = b[1], b[0]
+    new_h = np.linalg.multi_dot((u, np.diag(b), u.T)).real
+    b, u = np.linalg.eigh(new_h)
+    new_idx = opt._get_imag_mode_idx(u)
+    # the chosen index should be 1, based on overlap
+    assert new_idx == 1

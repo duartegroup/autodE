@@ -2,6 +2,7 @@ import numpy as np
 from autode.species.molecule import Molecule
 from autode.wrappers.XTB import XTB
 from autode.utils import work_in_tmp_dir
+from autode.opt.optimisers import ConvergenceParams
 from autode.opt.optimisers.rfo import RFOptimiser
 from autode.opt.coordinates import CartesianCoordinates
 from ..testutils import requires_working_xtb_install
@@ -20,11 +21,10 @@ class TestRFOOptimiser2D(RFOptimiser):
         init_x,
         init_y,
         maxiter=30,
-        etol=1e-4,
-        gtol=1e-3,
+        conv_tol=ConvergenceParams(abs_d_e=1e-4, rms_g=1e-3),
         **kwargs,
     ):
-        super().__init__(maxiter=maxiter, etol=etol, gtol=gtol, **kwargs)
+        super().__init__(maxiter=maxiter, conv_tol=conv_tol, **kwargs)
 
         init_arr = np.array([init_x, init_y])
         self._coords = CartesianCoordinates(init_arr)

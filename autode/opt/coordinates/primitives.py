@@ -1,5 +1,5 @@
 import numpy as np
-
+import itertools
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Tuple, TYPE_CHECKING, List, Optional
@@ -31,7 +31,7 @@ def _get_3d_vecs_from_atom_idxs(
         deriv_order: Order of derivatives for initialising variables
 
     Returns:
-        (list[VectorHyperDual]): A list of differentiable variables
+        (list[DifferentiableVector3D]): A list of differentiable variables
     """
     assert all(isinstance(idx, int) and idx >= 0 for idx in args)
     # get positions in the flat Cartesian array
@@ -65,7 +65,7 @@ class Primitive(ABC):
     @abstractmethod
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
-    ):
+    ) -> VectorHyperDual:
         """
         The function that performs the main evaluation of the PIC,
         and optionally returns derivative or second derivatives.
@@ -234,7 +234,7 @@ class PrimitiveInverseDistance(_DistanceFunction):
 
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
-    ) -> "VectorHyperDual":
+    ) -> VectorHyperDual:
         """1 / |x_i - x_j|"""
         vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
@@ -256,7 +256,7 @@ class PrimitiveDistance(_DistanceFunction):
 
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
-    ) -> "VectorHyperDual":
+    ) -> VectorHyperDual:
         """|x_i - x_j|"""
         vec_i, vec_j = _get_3d_vecs_from_atom_idxs(
             self.i, self.j, x=x, deriv_order=deriv_order
@@ -318,14 +318,16 @@ class PrimitiveBondAngle(Primitive):
 
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
-    ):
+    ) -> VectorHyperDual:
         """m - o - n angle"""
         vec_m, vec_o, vec_n = _get_3d_vecs_from_atom_idxs(
             self.m, self.o, self.n, x=x, deriv_order=deriv_order
         )
         u = vec_m - vec_o
         v = vec_n - vec_o
-        return DifferentiableMath.acos(u.dot(v) / (u.norm() * v.norm()))
+        res = DifferentiableMath.acos(u.dot(v) / (u.norm() * v.norm()))
+        assert isinstance(res, VectorHyperDual)
+        return res
 
     def __repr__(self):
         return f"Angle({self.m}-{self.o}-{self.n})"
@@ -385,7 +387,7 @@ class PrimitiveDihedralAngle(Primitive):
 
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
-    ) -> "VectorHyperDual":
+    ) -> VectorHyperDual:
         """Dihedral m-o-p-n"""
         # https://en.wikipedia.org/wiki/Dihedral_angle#In_polymer_physics
         _x = x.ravel()
@@ -406,6 +408,13 @@ class PrimitiveDihedralAngle(Primitive):
 
     def __repr__(self):
         return f"Dihedral({self.m}-{self.o}-{self.p}-{self.n})"
+
+
+class PrimitiveImproperDihedral(PrimitiveDihedralAngle):
+    """Out-of-Plan (improper) dihedral angles"""
+
+    def __repr__(self):
+        return f"ImproperDihedral({self.m}-{self.o}-{self.p}-{self.n})"
 
 
 class LinearBendType(Enum):
@@ -440,7 +449,7 @@ class LinearAngleBase(Primitive, ABC):
         o_vec: DifferentiableVector3D,
         n_vec: DifferentiableVector3D,
         r_vec: DifferentiableVector3D,
-    ):
+    ) -> VectorHyperDual:
         """
         Evaluate the linear bend from the vector positions of the
         atoms involved in the angle m, o, n, and the reference
@@ -466,11 +475,13 @@ class LinearAngleBase(Primitive, ABC):
 
         # eq. (46) and (47) p 1074
         if self.axis == LinearBendType.BEND:
-            return u.dot(o_n) / o_n.norm()
+            res = u.dot(o_n) / o_n.norm()
         elif self.axis == LinearBendType.COMPLEMENT:
-            return u.dot(o_n.cross(o_m)) / (o_n.norm() * o_m.norm())
+            res = u.dot(o_n.cross(o_m)) / (o_n.norm() * o_m.norm())
         else:
             raise ValueError("Unknown axis for linear bend")
+        assert isinstance(res, VectorHyperDual)
+        return res
 
 
 class PrimitiveLinearAngle(LinearAngleBase):
@@ -478,7 +489,7 @@ class PrimitiveLinearAngle(LinearAngleBase):
 
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
-    ):
+    ) -> VectorHyperDual:
         """Linear Bend angle m-o-n against reference atom r"""
 
         _x = x.ravel()
@@ -529,6 +540,7 @@ class PrimitiveDummyLinearAngle(LinearAngleBase):
     def _evaluate(
         self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
     ):
+        """Linear bend m-o-n against a dummy atom"""
         if self._vec_r is None:
             self._vec_r = self._get_dummy_atom(x)
 
@@ -542,3 +554,89 @@ class PrimitiveDummyLinearAngle(LinearAngleBase):
     def __repr__(self):
         axis_str = "B" if self.axis == LinearBendType.BEND else "C"
         return f"LinearBend{axis_str}({self.m}-{self.o}-{self.n}, D)"
+
+
+class CompositeBonds(Primitive):
+    """Linear Combination of several bond distances"""
+
+    def __init__(self, bonds: List[Tuple[int, int]], coeffs: List[float]):
+        """
+        Linear combination of a list of bonds and the corresponding
+        coefficients given as a list of real numbers
+
+        Args:
+            bonds: A list of tuples (i, j) representing bonds
+            coeffs: A list of floating point coefficients in order
+        """
+        super().__init__()
+        assert len(bonds) == len(coeffs), "Number of bonds != coefficients"
+        assert all(isinstance(bond, tuple) for bond in bonds)
+        assert all(len(bond) == 2 for bond in bonds)
+        assert all(
+            isinstance(bond[0], int) and isinstance(bond[1], int)
+            for bond in bonds
+        )
+        assert len(set(bonds)) == len(bonds)
+
+        self._bonds = list(bonds)
+        self._coeffs = [float(c) for c in coeffs]
+
+    def _evaluate(
+        self, x: "CartesianCoordinates", deriv_order: DerivativeOrder
+    ) -> VectorHyperDual:
+        """Linear combination of bonds"""
+        all_idxs = list(itertools.chain(*self._bonds))
+        unique_idxs = list(set(all_idxs))
+        _x = x.ravel()
+        atom_vecs = _get_3d_vecs_from_atom_idxs(
+            *unique_idxs, x=_x, deriv_order=deriv_order
+        )
+
+        bonds_combined = None
+        for idx, (i, j) in enumerate(self._bonds):
+            atom_i = atom_vecs[unique_idxs.index(i)]
+            atom_j = atom_vecs[unique_idxs.index(j)]
+            if bonds_combined is None:
+                bonds_combined = self._coeffs[0] * (atom_i - atom_j).norm()
+            else:
+                bonds_combined += self._coeffs[idx] * (atom_i - atom_j).norm()
+
+        assert isinstance(bonds_combined, VectorHyperDual)
+        return bonds_combined
+
+    def __eq__(self, other):
+        """Equality of two linear combination of bonds"""
+        return (
+            isinstance(other, self.__class__)
+            and set(zip(self._bonds)) == set(zip(other._bonds))
+            and np.allclose(self._coeffs, other._coeffs)
+        )  # fmt: skip
+
+    def __repr__(self):
+        return f"CombinationOfBonds(n={len(self._bonds)})"
+
+
+class ConstrainedCompositeBonds(ConstrainedPrimitive, CompositeBonds):
+    """Constrained linear combindation of bonds"""
+
+    def __init__(
+        self, bonds: List[Tuple[int, int]], coeffs: List[float], value: float
+    ):
+        """
+        Linear combination of a list of bonds and the corresponding
+        coefficients given as a list of real numbers
+
+        Args:
+            bonds: A list of tuples (i, j) representing bonds
+            coeffs: A list of floating point coefficients in order
+            value: The target value for this coordinate
+        """
+        CompositeBonds.__init__(self, bonds=bonds, coeffs=coeffs)
+        self._r0 = value
+
+    @property
+    def _value(self) -> float:
+        return self._r0
+
+    def __repr__(self):
+        return f"ConstrainedCombinationOfBonds(n={len(self._bonds)})"

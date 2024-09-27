@@ -619,9 +619,10 @@ class ValueArray(ABC, np.ndarray):
             other is not None
             and hasattr(other, "shape")
             and other.shape == self.shape
-            and np.allclose(self, other)
+            and np.allclose(
+                np.asarray(self), np.asarray(other), atol=1e-64, rtol=1e-64
+            )
         )
-
         return eq
 
     def __ne__(self, other):

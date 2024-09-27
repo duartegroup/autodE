@@ -41,10 +41,12 @@ def test_atoms():
 
     h_atoms = Atoms([Atom("H"), Atom("H", x=1.0)])
     assert isinstance(h_atoms.com, Coordinate)
-    assert np.allclose(h_atoms.com, np.array([0.5, 0.0, 0.0]))
+    assert np.allclose(np.asarray(h_atoms.com), np.array([0.5, 0.0, 0.0]))
     assert not h_atoms.contain_metals
 
-    assert h_atoms.vector(0, 1) == np.array([1.0, 0.0, 0.0])
+    v = h_atoms.vector(0, 1)
+    assert isinstance(v, np.ndarray)
+    assert np.allclose(v, np.array([1.0, 0.0, 0.0]))
 
     # Moment of inertia
     assert np.sum(np.diag(h_atoms.moi)) > 0.0

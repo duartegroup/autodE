@@ -35,7 +35,7 @@ class RFOptimiser(NDOptimiser):
         """
         super().__init__(*args, **kwargs)
 
-        self.alpha = Distance(init_alpha, units="ang")
+        self.alpha = float(Distance(init_alpha, units="ang"))
         assert self.alpha > 0
         self._hessian_update_types = [BFGSPDUpdate, NullUpdate]
 
