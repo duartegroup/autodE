@@ -224,4 +224,26 @@ namespace autode{
 
     }
 
+    class IDPPNEB {
+
+    public:
+
+        std::vector<double> image_coords;
+        std::vector<std::vector<double>> image_grads;
+        std::vector<double> image_energies;
+        std::vector<double> neb_grad;
+        double k_spr;
+
+        IDPPNEB(const std::vector<double> &init_coords,
+                const std::vector<double> &final_coords,
+                const double k_spr);
+
+    }
+
+    IDPPNEB::IDPPNEB(const std::vector<double> &init_coords,
+                     const std::vector<double> &final_coords,
+                     const double k_spr) {
+        // initialise
+    }
+
 }
