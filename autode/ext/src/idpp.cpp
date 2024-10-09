@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+#include <cassert>
 
 namespace autode{
 
@@ -224,26 +225,69 @@ namespace autode{
 
     }
 
-    class IDPPNEB {
+    double vec_dot(std::vector<double>& v1, std::vector<double>& v2) {
+        // calculate the dot product of two vectors
+        assert(v1.size() == v2.size());
+        return inner_product(v1.begin(), v1.end(), v2.begin());
+    }
+
+    double vec_norm(std::vector<double>& v1) {
+        // vector norm
+        return std::sqrt(vec_dot(v1, v1));
+    }
+
+    void vec_sub(std::vector<double>& v_in1,
+                 std::vector<double>& v_in2,
+                 std::vector<double>& v_out) {
+        // v_out = v_in1 - v_in2
+        assert(v_in1.size() == v_in2.size());
+        auto n = v_in1.size();
+        for (int i = 0; i < n; i++) {
+            v_out[i] = v_in1[i] - v_in2[i];
+        }
+    }
+
+    class IDPP {
 
     public:
 
-        std::vector<double> image_coords;
-        std::vector<std::vector<double>> image_grads;
-        std::vector<double> image_energies;
-        std::vector<double> neb_grad;
-        double k_spr;
+        std::vector<std::vector<double>> image_coords;  // coordinates of all images
+        std::vector<std::vector<double>> idpp_grads;  // idpp gradients of all images
+        std::vector<double> idpp_energies;  // idpp energies of all images
+        std::vector<double> neb_coords;  // flat neb coordinate array
+        std::vector<double> neb_grad;  // flat neb gradient array
+        double k_spr;  // spring constant
+        int n_req_images;  // request number of images
+        int n_curr_images;  // current number of images
+        bool use_seq;  // whether to use the S-IDPP or not
 
-        IDPPNEB(const std::vector<double> &init_coords,
-                const std::vector<double> &final_coords,
-                const double k_spr);
+        IDPP(const std::vector<double> &init_coords,
+               const std::vector<double> &final_coords,
+               const double k_spr,
+               const int num_images,
+               const bool sequential);
 
     }
 
-    IDPPNEB::IDPPNEB(const std::vector<double> &init_coords,
-                     const std::vector<double> &final_coords,
-                     const double k_spr) {
-        // initialise
+    IDPP::IDPP(const std::vector<double> &init_coords,
+               const std::vector<double> &final_coords,
+               const double k_spr,
+               const int num_images,
+               const bool sequential) {
+        /* Creates an IDPP object
+         *
+         */
+        this->image_coords.push_back(init_coords);
+        this->image_coords.push_back(final_coords);
+        this->k_spr = k_spr;
+        this->n_req_images = num_images;
+        this->use_seq = sequential;
+    }
+
+    IDPP::ideal_distance
+
+    IDPP::add_image(int idx) {
+        // add an image near the index
     }
 
 }
