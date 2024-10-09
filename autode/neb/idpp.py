@@ -132,7 +132,7 @@ class IDPP:
         n = len(images)
 
         for k, image in enumerate(images):
-            self._dists[image.name] = dist_mat_1 + k * delta / n
+            self._dists[image.name] = dist_mat_1 + k * delta / (n - 1)
 
         self._diagonal_distance_matrix_idxs = np.diag_indices_from(delta)
         return None
