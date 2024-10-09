@@ -1,8 +1,14 @@
 #include <vector>
+#include <utility>
 #include <algorithm>
 #include <numeric>
 #include <cmath>
+#include <utility>
+#include <iostream>
 #include <cassert>
+// TODO: remove cassert and iostream once checks are done
+
+using std::vector;
 
 namespace autode{
 
@@ -64,7 +70,7 @@ namespace autode{
                              const std::vector<double> &final_coords,
                              const int n_images,
                              std::vector<<std::vector<double>> &all_target_ds,
-                             std::vector<int> &bonds){
+                             std::vector<int>& bonds){
         /* Obtain the list of bonds and target values of those bonds
          * from the initial and final coordinates for all images.
          *
@@ -208,7 +214,7 @@ namespace autode{
             tau.resize(len, 0.0);
             auto dS_max = std::max(std::abs(S_l_p1 - S_l), std::abs(S_l_m1 - S_l));
             auto dS_min = std::min(std::abs(S_l_p1 - S_l), std::abs(S_l_m1 - S_l));
-            if (S_l_p1 > S_l_m1):
+            if (S_l_p1 > S_l_m1)
                 for (int i = 0; i < len; i++) {
                     tau[i] = dS_max * tau_p[i] + dS_min * tau_m[i];
                 }
@@ -225,40 +231,73 @@ namespace autode{
 
     }
 
-    double vec_dot(std::vector<double>& v1, std::vector<double>& v2) {
+    double vec_dot(const std::vector<double>& v1, const std::vector<double>& v2) {
         // calculate the dot product of two vectors
         assert(v1.size() == v2.size());
-        return inner_product(v1.begin(), v1.end(), v2.begin());
+        return inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
     }
 
-    double vec_norm(std::vector<double>& v1) {
+    double vec_norm(const vector<double>& v1) {
         // vector norm
         return std::sqrt(vec_dot(v1, v1));
     }
 
-    void vec_sub(std::vector<double>& v_in1,
-                 std::vector<double>& v_in2,
-                 std::vector<double>& v_out) {
+    void vec_sub(const vector<double>& v_in1,
+                 const vector<double>& v_in2,
+                 vector<double>& v_out) {
         // v_out = v_in1 - v_in2
-        assert(v_in1.size() == v_in2.size());
+        assert(v_in1.size() == v_in2.size() && v_in1.size() == v_out.size());
         auto n = v_in1.size();
         for (int i = 0; i < n; i++) {
             v_out[i] = v_in1[i] - v_in2[i];
         }
     }
 
+    void vec_add(const vector<double>& v_in1,
+                 const vector<double>& v_in2,
+                 vector<double>& v_out) {
+        // v_out = v_in1 + v_in2
+        assert(v_in1.size() == v_in2.size() && v_in1.size() == v_out.size());
+        auto n = v_in1.size();
+        for (int i = 0; i < n; i++) {
+            v_out[i] = v_in1[i] + v_in2[i];
+        }
+    }
+
+    void vec_mul_scalar(vector<double>& v, double scalar) {
+        // multiply a vector with a scalar number in-place
+        auto n = v.size();
+        for (int i = 0; i < n; i++) {
+            v[i] *= scalar;
+        }
+    }
+
+    double vec_diff_norm(vector<double>& v1, vector<double>& v2) {
+        // np.linalg.norm(v1 - v2)
+        assert(v1.size() == v2.size());
+        auto n = v1.size();
+        double norm = 0.0;
+        for (int i = 0; i < n; i++) {
+            norm += std::pow(v1[i] - v2[i], 2);
+        }
+        return std::sqrt(norm);
+    } // is this function needed?
+
     class IDPP {
 
     public:
 
-        std::vector<std::vector<double>> image_coords;  // coordinates of all images
-        std::vector<std::vector<double>> idpp_grads;  // idpp gradients of all images
-        std::vector<double> idpp_energies;  // idpp energies of all images
+        vector<std::vector<double>> image_coords;  // coordinates of all images
+        vector<int> target_ds;  // interpolated values of internal coords for all images
+        vector<vector<double>> idpp_grads;  // idpp gradients of all images
+        vector<double> idpp_energies;  // idpp energies of all images
+
         std::vector<double> neb_coords;  // flat neb coordinate array
         std::vector<double> neb_grad;  // flat neb gradient array
         double k_spr;  // spring constant
         int n_req_images;  // request number of images
         int n_curr_images;  // current number of images
+        std::pair<int, int> frontier_images;  // innermost images
         bool use_seq;  // whether to use the S-IDPP or not
 
         IDPP(const std::vector<double> &init_coords,
@@ -267,7 +306,52 @@ namespace autode{
                const int num_images,
                const bool sequential);
 
-    }
+        double ideal_distance() {
+            // calculate the ideal interimage distance between the datapoints
+            auto n = image_coords.size();
+            double total_dist = 0.0;
+            vector<double> deltaX;
+            deltaX.resize(this->image_coords[0].size(), 0.0);
+
+            for (int i = 0; i < n - 1; i++) {
+                vec_sub(this->image_coords[i], this->image_coords[i+1], deltaX);
+                total_dist += vec_norm(deltaX);
+            }
+            // for N images, there are N-1 segments
+            return total_dist / static_cast<double>(this->n_req_images - 1);
+        }
+
+        void add_image_at(int idx) {
+            // TODO: add an n_atoms?
+            // add an image next to image index idx
+            assert(idx == this->frontier_images.first || idx == this->frontier_images.second);
+            double d_id = this->ideal_distance();
+            std::cout << "Adding image, ideal distance = " << d_id << " Angstrom" << std::endl;
+            int other_idx;
+            if (idx == this->frontier_images.first) {
+                other_idx = frontier_images.second;
+            } else {
+                other_idx = frontier_images.first;
+            }
+            // get vector from this image towards other image
+            vector<double> dtoX(this->image_coords[0].size(), 0.0);
+            vec_sub(this->image_coords[other_idx], this->image_coords[idx], dtoX);
+            // rescale the vector to be equal in size to d_id
+            vec_mul_scalar(dtoX, d_id / vec_norm(dtoX));
+            vector<double> newX(this->image_coords[0].size(), 0.0);
+            vec_add(this->image_coords[idx], dtoX, newX);
+            if (idx == this->frontier_images.first) {
+                this->image_coords.insert(this->image_coords.begin()+idx, newX);
+                this->frontier_images.first += 1;
+                this->frontier_images.second += 1;
+            } else {
+                this->image_coords.insert(this->image_coords.begin()+(idx-1), newX);
+                this->frontier_images.second -= 1;
+            }
+            // todo update the frontier image indices check the formula works
+        }
+
+    };
 
     IDPP::IDPP(const std::vector<double> &init_coords,
                const std::vector<double> &final_coords,
@@ -277,6 +361,8 @@ namespace autode{
         /* Creates an IDPP object
          *
          */
+        assert(init_coords.size() == final_coords.size());
+        assert(init_coords.size() > 0);
         this->image_coords.push_back(init_coords);
         this->image_coords.push_back(final_coords);
         this->k_spr = k_spr;
@@ -284,10 +370,8 @@ namespace autode{
         this->use_seq = sequential;
     }
 
-    IDPP::ideal_distance
-
-    IDPP::add_image(int idx) {
+    //IDPP::add_image(int idx) {
         // add an image near the index
-    }
+    //}
 
 }
