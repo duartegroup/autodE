@@ -284,6 +284,11 @@ namespace autode{
         return std::sqrt(norm);
     } // is this function needed?
 
+    bool is_in_list(int val, vector<int>& vec) {
+        // is number in list
+        return std::find(vec.begin(), vec.end(), val) != vec.end();
+    }
+
     class IDPP {
 
     public:
@@ -340,17 +345,30 @@ namespace autode{
              */
 
             // cannot add image if already active
-            if (std::find(active_idxs.begin(), active_idxs.end(), idx) != active_idxs.end()) {
+            if (is_in_list(idx, active_idxs)) {
                 throw std::invalid_argument("Cannot add already active image");
             }
             double d_id = ideal_distance();
             // todo remove cout messages after finished debugging code
             std::cout << "Adding image, ideal distance = " << d_id << " Angstrom" << std::endl;
 
+            // get the nearest active image index
+            int near_idx, far_idx;
+            auto iter = active_idxs.begin();
+            while (iter != active_idxs.end()) {
+                if (*iter == (idx - 1)) {
+                    near_idx = *iter; iter++; far_idx = *iter;
+                    break;
+                }
+                if (*iter == (idx + 1)) {
+                    near_idx = *iter; iter--; far_idx = *iter;
+                    break;
+                }
+            }
 
             // vector to other image, rescaled to size d_id
             vector<double> dtoX(n_atoms * 3, 0.0);
-            vec_sub(img_coords[other_idx], img_coords[idx], dtoX);
+            vec_sub(img_coords[far_idx], img_coords[near_idx], dtoX);
             vec_mul_scalar(dtoX, d_id / vec_norm(dtoX));
 
             // get new coordinate (reusing dtoX vector) and update indices
