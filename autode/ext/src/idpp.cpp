@@ -4,6 +4,7 @@
 #include <numeric>
 #include <cmath>
 #include <utility>
+#include <stdexcept>
 #include <iostream>
 #include <cassert>
 // TODO: remove cassert and iostream once checks are done
@@ -287,17 +288,19 @@ namespace autode{
 
     public:
 
-        vector<std::vector<double>> image_coords;  // coordinates of all images
-        vector<int> target_ds;  // interpolated values of internal coords for all images
-        vector<vector<double>> idpp_grads;  // idpp gradients of all images
-        vector<double> idpp_energies;  // idpp energies of all images
+        vector<vector<double>> img_coords;  // Cartesian coordinates of all images
+        vector<vector<double>> target_ds;  // interpolated internal coords for all images
+        vector<vector<double>> all_grads;  // idpp gradients of all images
+        vector<double> all_energies;  // idpp energies of all images
+
+        std::vector<int> active_idxs; // idxs of currently active images
+        std::pair<int, int> inner_idxs;  // innermost image indices
 
         std::vector<double> neb_coords;  // flat neb coordinate array
         std::vector<double> neb_grad;  // flat neb gradient array
         double k_spr;  // spring constant
         int n_req_images;  // request number of images
-        int n_curr_images;  // current number of images
-        std::pair<int, int> frontier_images;  // innermost images
+        int n_atoms;  // number of atoms
         bool use_seq;  // whether to use the S-IDPP or not
 
         IDPP(const std::vector<double> &init_coords,
@@ -306,49 +309,63 @@ namespace autode{
                const int num_images,
                const bool sequential);
 
-        double ideal_distance() {
-            // calculate the ideal interimage distance between the datapoints
-            auto n = image_coords.size();
-            double total_dist = 0.0;
-            vector<double> deltaX;
-            deltaX.resize(this->image_coords[0].size(), 0.0);
 
-            for (int i = 0; i < n - 1; i++) {
-                vec_sub(this->image_coords[i], this->image_coords[i+1], deltaX);
+        double ideal_distance() {
+            /* Calculate the ideal interimage distance for the current
+             * set of images
+             */
+
+            // delta vector between two images
+            vector<double> deltaX;
+            deltaX.resize(n_atoms * 3, 0.0);
+
+            // iterate over active images
+            int n_imgs = static_cast<int>(active_idxs.size());
+            double total_dist = 0.0;
+            for (int i = 0; i < n_imgs - 1; i++) {
+                vec_sub(img_coords[active_idxs[i]], img_coords[active_idxs[i+1]], deltaX);
                 total_dist += vec_norm(deltaX);
             }
             // for N images, there are N-1 segments
-            return total_dist / static_cast<double>(this->n_req_images - 1);
+            return total_dist / static_cast<double>(n_req_images - 1);
         }
 
         void add_image_at(int idx) {
-            // TODO: add an n_atoms?
-            // add an image next to image index idx
-            assert(idx == this->frontier_images.first || idx == this->frontier_images.second);
-            double d_id = this->ideal_distance();
-            std::cout << "Adding image, ideal distance = " << d_id << " Angstrom" << std::endl;
-            int other_idx;
-            if (idx == this->frontier_images.first) {
-                other_idx = frontier_images.second;
-            } else {
-                other_idx = frontier_images.first;
+            /* Add (initialise and activate) an image next at index idx.
+             *
+             * Arguments:
+             *
+             *     idx: Position of image which should be initialised
+             *
+             */
+
+            // cannot add image if already active
+            if (std::find(active_idxs.begin(), active_idxs.end(), idx) != active_idxs.end()) {
+                throw std::invalid_argument("Cannot add already active image");
             }
-            // get vector from this image towards other image
-            vector<double> dtoX(this->image_coords[0].size(), 0.0);
-            vec_sub(this->image_coords[other_idx], this->image_coords[idx], dtoX);
-            // rescale the vector to be equal in size to d_id
+            double d_id = ideal_distance();
+            // todo remove cout messages after finished debugging code
+            std::cout << "Adding image, ideal distance = " << d_id << " Angstrom" << std::endl;
+
+
+            // vector to other image, rescaled to size d_id
+            vector<double> dtoX(n_atoms * 3, 0.0);
+            vec_sub(img_coords[other_idx], img_coords[idx], dtoX);
             vec_mul_scalar(dtoX, d_id / vec_norm(dtoX));
-            vector<double> newX(this->image_coords[0].size(), 0.0);
-            vec_add(this->image_coords[idx], dtoX, newX);
-            if (idx == this->frontier_images.first) {
-                this->image_coords.insert(this->image_coords.begin()+idx, newX);
-                this->frontier_images.first += 1;
-                this->frontier_images.second += 1;
+
+            // get new coordinate (reusing dtoX vector) and update indices
+            vec_add(img_coords[idx], dtoX, dtoX);
+            if (idx == inner_idxs.first) {
+                img_coords.insert(img_coords.begin()+idx, dtoX);
+                inner_idxs.first += 1;
+                inner_idxs.second += 1;
             } else {
-                this->image_coords.insert(this->image_coords.begin()+(idx-1), newX);
-                this->frontier_images.second -= 1;
+                img_coords.insert(img_coords.begin()+(idx-1), dtoX);
+                inner_idxs.second -= 1;
             }
             // todo update the frontier image indices check the formula works
+            // todo resize all the other storage vectors to the correct size
+
         }
 
     };
@@ -362,12 +379,13 @@ namespace autode{
          *
          */
         assert(init_coords.size() == final_coords.size());
-        assert(init_coords.size() > 0);
-        this->image_coords.push_back(init_coords);
-        this->image_coords.push_back(final_coords);
+        assert(init_coords.size() > 0 && init_coords.size() % 3 == 0);
+        this->img_coords.push_back(init_coords);
+        this->img_coords.push_back(final_coords);
         this->k_spr = k_spr;
         this->n_req_images = num_images;
         this->use_seq = sequential;
+        this->n_atoms = static_cast<int>(init_coords.size()) / 3;
     }
 
     //IDPP::add_image(int idx) {
