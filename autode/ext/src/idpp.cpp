@@ -273,17 +273,6 @@ namespace autode{
         }
     }
 
-    double vec_diff_norm(vector<double>& v1, vector<double>& v2) {
-        // np.linalg.norm(v1 - v2)
-        assert(v1.size() == v2.size());
-        auto n = v1.size();
-        double norm = 0.0;
-        for (int i = 0; i < n; i++) {
-            norm += std::pow(v1[i] - v2[i], 2);
-        }
-        return std::sqrt(norm);
-    } // is this function needed?
-
     bool is_in_list(int val, vector<int>& vec) {
         // is number in list
         return std::find(vec.begin(), vec.end(), val) != vec.end();
@@ -347,6 +336,8 @@ namespace autode{
             // cannot add image if already active
             if (is_in_list(idx, active_idxs)) {
                 throw std::invalid_argument("Cannot add already active image");
+            } else if (idx >= n_req_images) {
+                throw std::invalid_argument("Index out-of-bounds!");
             }
             double d_id = ideal_distance();
             // todo remove cout messages after finished debugging code
@@ -371,16 +362,12 @@ namespace autode{
             vec_sub(img_coords[far_idx], img_coords[near_idx], dtoX);
             vec_mul_scalar(dtoX, d_id / vec_norm(dtoX));
 
-            // get new coordinate (reusing dtoX vector) and update indices
-            vec_add(img_coords[idx], dtoX, dtoX);
-            if (idx == inner_idxs.first) {
-                img_coords.insert(img_coords.begin()+idx, dtoX);
-                inner_idxs.first += 1;
-                inner_idxs.second += 1;
-            } else {
-                img_coords.insert(img_coords.begin()+(idx-1), dtoX);
-                inner_idxs.second -= 1;
-            }
+            // get and set new coordinate - also update indices
+            vector<double> newX(n_atoms * 3, 0.0);
+            vec_add(img_coords[near_idx], dtoX, newX);
+            img_coords[idx] = newX;
+            active_idxs.push_back(idx);
+            std::sort(active_idxs.begin(), active_idxs.end());
             // todo update the frontier image indices check the formula works
             // todo resize all the other storage vectors to the correct size
 
