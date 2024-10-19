@@ -642,7 +642,7 @@ class NEB:
                 # Shift vector is final minus current
                 shift = final.atoms[j].coord - atom.coord
                 # then an equal spacing is the i-th point in the grid
-                atom.translate(vec=shift * (i / n))
+                atom.translate(vec=shift * (i / (n - 1)))
 
             intermediate_species.append(species)
 
