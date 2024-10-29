@@ -97,4 +97,4 @@ If **autodE** is used in a publication please consider citing the [paper](https:
 - Daniel Hollas ([@danielhollas](https://github.com/danielhollas))
 - Nils Heunemann ([@nilsheunemann](https://github.com/NilsHeunemann))
 - Sijie Fu ([@sijiefu](https://github.com/SijieFu))
-- Javier Alfonso ([@javialra97](https://github.com/javialra97)
+- Javier Alfonso ([@javialra97](https://github.com/javialra97))
