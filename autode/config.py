@@ -257,14 +257,14 @@ class _ConfigClass:
         grid = "integral=ultrafinegrid"
         optts_block = (
             "Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, "
-            "MaxStep=10, NoTrustUpdate, Tight)"
+            "MaxStep=10, NoTrustUpdate)"
         )
 
         keywords = KeywordsSet(
             low_opt=[pbe0, def2svp, "Opt=Loose", MaxOptCycles(10), d3bj, grid],
             grad=[pbe0, def2svp, "Force(NoStep)", d3bj, grid],
             low_sp=[pbe0, def2svp, d3bj, grid],
-            opt=[pbe0, def2svp, "Opt=Tight", d3bj, grid],
+            opt=[pbe0, def2svp, "Opt", d3bj, grid],
             opt_ts=[pbe0, def2svp, "Freq", d3bj, grid, optts_block],
             hess=[pbe0, def2svp, "Freq", d3bj, grid],
             sp=[pbe0, def2tzvp, d3bj, grid],
@@ -284,14 +284,14 @@ class _ConfigClass:
         #
         ts_str = (
             "Opt=(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, "
-            "NoTrustUpdate, RecalcFC=30, Tight)"
+            "NoTrustUpdate, RecalcFC=30)"
         )
 
         keywords = KeywordsSet(
             low_opt=[pbe0, def2svp, "Opt=Loose", d3bj, MaxOptCycles(10)],
             grad=[pbe0, def2svp, "Force(NoStep)", d3bj],
             low_sp=[pbe0, def2svp, d3bj],
-            opt=[pbe0, def2svp, "Opt=Tight", d3bj],
+            opt=[pbe0, def2svp, "Opt", d3bj],
             opt_ts=[pbe0, def2svp, "Freq", d3bj, ts_str],
             hess=[pbe0, def2svp, "Freq", d3bj],
             sp=[pbe0, def2tzvp, d3bj],
