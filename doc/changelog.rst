@@ -13,6 +13,7 @@ Bug Fixes
 *********
 - Fixes coordinate extraction in some G16 output files
 
+
 1.4.4
 ------
 -------
