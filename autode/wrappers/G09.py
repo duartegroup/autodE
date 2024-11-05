@@ -546,7 +546,9 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
         coords: List[List[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
-            if "Input orientation" in line or "Standard orientation" in line:
+            if "Input orientation" in line or (
+                "Standard orientation" in line and len(coords) == 0
+            ):
                 coords.clear()
                 xyz_lines = calc.output.file_lines[
                     i + 5 : i + 5 + calc.molecule.n_atoms
