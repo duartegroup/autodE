@@ -7,11 +7,11 @@ Changelog
 
 Functionality improvements
 **************************
-- ...
+- Adds a boolean option for calculating single points refinements
 
 Bug Fixes
 *********
-- ...
+- Fixes coordinate extraction in some G16 output files
 
 
 1.4.4
