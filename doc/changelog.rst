@@ -9,10 +9,14 @@ Functionality improvements
 **************************
 - Adds a boolean option for calculating single points refinements
 
+
 Bug Fixes
 *********
 - Fixes coordinate extraction in some G16 output files
 
+Usability improvements/Changes
+******************************
+- Drops Python 3.8 support
 
 1.4.4
 ------
