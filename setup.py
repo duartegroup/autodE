@@ -33,7 +33,7 @@ extensions = [
 setup(
     name="autode",
     version="1.4.5",
-    python_requires=">3.7",
+    python_requires=">3.8",
     packages=[
         "autode",
         "autode.bracket",

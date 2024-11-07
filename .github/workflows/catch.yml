@@ -9,32 +9,25 @@ on:
       - 'doc/**'
       - 'examples/**'
 
-env:
-  BUILD_TYPE: Release
-
 jobs:
-  build:
-
+  test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Create Build Environment
-        run: mkdir $GITHUB_WORKSPACE/autode/ext/build
+        run: mkdir autode/ext/build
 
-      - name: Configure CMake
+      - name: Run
         shell: bash
-        run: cd $GITHUB_WORKSPACE/autode/ext/build && cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-
-
-      - name: Build
-        shell: bash
-        run: cd $GITHUB_WORKSPACE/autode/ext/build && cmake --build . --config $BUILD_TYPE
-
-      - name: Test
-        shell: bash
-        run: cd $GITHUB_WORKSPACE/autode/ext/build && ctest -C $BUILD_TYPE --extra-verbose
+        working-directory: ./autode/ext/build
+        env:
+          BUILD_TYPE: Release
+        run: |
+          cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          cmake --build . --config $BUILD_TYPE
+          ctest -C $BUILD_TYPE --extra-verbose
