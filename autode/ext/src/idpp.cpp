@@ -1,400 +1,311 @@
 #include <vector>
-#include <utility>
-#include <algorithm>
-#include <numeric>
 #include <cmath>
-#include <utility>
-#include <stdexcept>
 #include <iostream>
-#include <cassert>
-// TODO: remove cassert and iostream once checks are done
+#include <string>
 
-using std::vector;
+#include "xtensor/xtensor.hpp"
+#include "xtensor/xview.hpp"
+#include "xtensor/xmath.hpp"
+#include "xtensor/xnorm.hpp"
+#include "xtensor/xstrided_view.hpp"
+#include "xtensor/xadapt.hpp" // DEBUG only?
 
-namespace autode{
+#include "idpp.h"
+#include "utils.h"
 
-    void idpp_en_grad(const std::vector<double> &image_coords,
-                      const std::vector<int> &bonds,
-                      const std::vector<double> &target_ds,
-                      std::vector<double> &idpp_grad,
-                      double &idpp_en) {
-        /*
-         * Calculates the IDPP energy and gradient
-         *
-         * Arguments:
-         *
-         *      image_coords: Image coordinates N*3 array
-         *
-         *      bonds: Vector of bond indices N*(N-1)/2 array
-         *
-         *      target_ds: Target values of internal coordinates
-         *
-         *      idpp_grad: Gradient N*3 array (out)
-         *
-         *      idpp_en: Energy (out)
-         *
-         */
 
-        idpp_en = 0;
-        const int n_bonds = bonds.size() / 2;
+using Array1D = xt::xtensor<double, 1>;
 
-        for (int i = 0; i < n_bonds; i += 1){
 
-            int atom1 = bonds[i * 2];
-            int atom2 = bonds[i * 2 + 1];
+namespace autode {
 
-            double target_d = target_ds[i];
-
-            auto u_x = image_coords[3 * atom1] - image_coords[3 * atom2];
-            auto u_y = image_coords[3 * atom1 + 1] - image_coords[3 * atom2 + 1];
-            auto u_z = image_coords[3 * atom1 + 2] - image_coords[3 * atom2 + 2];
-            auto dist = std::sqrt(u_x * u_x + u_y * u_y + u_z * u_z);
-
-            idpp_en += 1.0 / std::pow(dist, 4) * std::pow(target_d - dist, 2);
-
-            auto grad_prefac = -2.0 * 1.0 / std::pow(dist, 4)
-                               + 6.0 * target_d / std::pow(dist, 5)
-                               - 4.0 * std::pow(target_d, 2) / std::pow(dist, 6);
-
-            idpp_grad[3 * atom1] += grad_prefac * u_x;
-            idpp_grad[3 * atom1 + 1] += grad_prefac * u_y;
-            idpp_grad[3 * atom1 + 2] += grad_prefac * u_z;
-
-            idpp_grad[3 * atom2] -= grad_prefac * u_x;
-            idpp_grad[3 * atom2 + 1] -= grad_prefac * u_y;
-            idpp_grad[3 * atom2 + 2] -= grad_prefac * u_z;
-
-        }
+    // Global variables
+    namespace idpp_config {
+        bool debug = true;  // whether to print debug messages or not
+        double add_img_tol = 1.e-3;  // RMSG tolerance for adding image
+        double rms_gtol = 5.e-4;  // RMSG tolerance for total path
+        int lbfgs_maxvecs = 10;  // Max. number of update vectors
+        int add_img_maxiter = 50;  // Max iterations for each image adding step
+        int path_maxiter = 1000;  // Max iterations for total path
     }
 
-    void get_bonds_target_ds(const std::vector<double> &init_coords,
-                             const std::vector<double> &final_coords,
-                             const int n_images,
-                             std::vector<<std::vector<double>> &all_target_ds,
-                             std::vector<int>& bonds){
-        /* Obtain the list of bonds and target values of those bonds
-         * from the initial and final coordinates for all images.
+    Image::Image(int num_atoms) : n_atoms(num_atoms) {
+        /* Create an image with empty coordinates and gradients
+         * for a given number of atoms
          *
          * Arguments:
          *
-         *      init_coords: Initial coordinates N*3 array
-         *
-         *      final_coords: Final coordinates N*3 array
-         *
-         *      n_images: Number of images including end points
-         *
-         *      target_ds: Target values of internal coordinates (out)
-         *
-         *      bonds: Vector of bond indices N*2 array (out)
+         *   num_atoms: number of atoms in the image
          */
-        // TODO: Implement scaled interatomic distances also
-        bonds.clear();
-        const int n_atoms = init_coords.size() / 3;
+        autode::utils::assert_exc(this->n_atoms > 0, "Number of atoms must be > 0");
+        this->coords = xt::zeros<double>({n_atoms * 3});
+        this->grad = xt::zeros<double>({n_atoms * 3});
+    }
 
-        // precalculate the bond list (list of pairs of atom indices)
-        for (int i = 0; i < n_atoms; i++) {
-            for (int j = i + 1; j < n_atoms; j++) {
-                if i < j:
-                    bonds.push_back(i);
-                    bonds.push_back(j);
+    void Image::update_neb_force(const Image& img_m1,
+                                 const Image& img_p1,
+                                 double k_spr) {
+        /* Update the NEB force, using the previous (left) image and the next (right)
+         * image and the spring constants
+         *
+         * Arguments:
+         *
+         *  img_m1: the previous image
+         *
+         *  img_p1: the next image
+         *
+         *  k_spr: the spring constant
+         */
+        autode::utils::assert_exc(n_atoms == img_m1.n_atoms && n_atoms == img_p1.n_atoms,
+                                  "Incompatible number of atoms");
+
+        auto tau_p = img_p1.coords - coords;
+        auto tau_m = coords - img_m1.coords;
+
+        double tau_p_norm = xt::norm_l2(tau_p)();
+        double tau_m_norm = xt::norm_l2(tau_m)();
+        autode::utils::assert_exc(tau_p_norm > 1e-8 && tau_m_norm > 1e-8,
+                "Length of tangent vector(s) too small, something went wrong");
+
+        auto tau_p_hat = tau_p / tau_p_norm;
+        auto tau_m_hat = tau_m / tau_m_norm;
+
+        const auto dS_max = std::max(std::abs(img_p1.en - en), std::abs(img_m1.en - en));
+        const auto dS_min = std::min(std::abs(img_p1.en - en), std::abs(img_m1.en - en));
+
+        Array1D tau;
+        if (img_p1.en > en && en > img_m1.en) {
+            tau = tau_p_hat;
+        } else if (img_p1.en < en && en < img_m1.en) {
+            tau = tau_m_hat;
+        } else {
+            if (img_p1.en > img_m1.en) {
+                tau = tau_p_hat * dS_max + tau_m_hat * dS_min;
+            } else if (img_p1.en < img_m1.en) {
+                tau = tau_p_hat * dS_min + tau_m_hat * dS_max;
+            } else {
+                throw std::runtime_error("Something unusual has happened in energies");
+            }
+            tau /= xt::norm_l2(tau)();
+        }
+
+        double pre_fac = (k_spr * tau_p_norm) - (k_spr * tau_m_norm);
+        // final grad = grad - (grad . tau) tau - (pre_fac) tau
+        double g_dot_t = xt::sum(grad * tau)();
+        grad = grad - (g_dot_t * tau) - (pre_fac * tau);
+    }
+
+    double Image::rms_g() const {
+        /* Obtain the RMS gradient of this image */
+        return autode::utils::rms(grad);
+    }
+
+
+    IDPPPotential::IDPPPotential(const xt::xtensor<double, 1>& init_coords,
+                                 const xt::xtensor<double, 1>& final_coords,
+                                 const int num_images) : n_images(num_images) {
+        /* Create an IDPP potential
+         *
+         * Arguments:
+         *
+         *  init_coords: Initial coordinates
+         *
+         *  final_coords: Final coordinates
+         *
+         *  num_images: Number of images to interpolate
+         */
+        autode::utils::assert_exc(init_coords.size() == final_coords.size(),
+                    "Initial and final geometries must have same number of atoms");
+        autode::utils::assert_exc(init_coords.size() > 0 && init_coords.size() % 3 == 0,
+                     "Wrong size of coordinates!");
+        autode::utils::assert_exc(num_images > 2, "Must have more than 2 images");
+
+        this->n_atoms = static_cast<int>(init_coords.size()) / 3;
+
+        // calculate pairwise distances
+        const int n_bonds = (n_atoms * (n_atoms - 1)) / 2;  // nC2 = n! / [ 2! (n-2)!] = [n(n-1)]/2
+        Array1D init_ds = xt::zeros<double>({n_bonds});
+        Array1D final_ds = xt::zeros<double>({n_bonds});
+        auto init_coords_reshaped = xt::reshape_view(init_coords, {n_atoms, 3});  // reshaped
+        auto final_coords_reshaped = xt::reshape_view(final_coords, {n_atoms, 3});
+
+        size_t counter = 0;
+        for (int atom_i = 0; atom_i < n_atoms; atom_i++) {
+            for (int atom_j = 0; atom_j < n_atoms; atom_j++) {
+                if (atom_i >= atom_j) continue;
+
+                auto coord_i = xt::row(init_coords_reshaped, atom_i);
+                auto coord_j = xt::row(init_coords_reshaped, atom_j);
+                double dist = xt::norm_l2(coord_i - coord_j)();
+                init_ds(counter) = dist;
+
+                auto coord_i_2 = xt::row(final_coords_reshaped, atom_i);
+                auto coord_j_2 = xt::row(final_coords_reshaped, atom_j);
+                dist = xt::norm_l2(coord_i_2 - coord_j_2)();
+                final_ds(counter) = dist;
+                counter++;
             }
         }
-        // calculate the pairwise distances for initial and final coordinates
-        std::vector<double> init_ds;
-        std::vector<double> final_ds;
-        const int n_bonds = bonds.size() / 2;
-        init_ds.reserve(n_bonds);
-        final_ds.reserve(n_bonds);
 
-        for (int i = 0; i < n_bonds; i += 1) {
-            int atom1 = bonds[i * 2];
-            int atom2 = bonds[i * 2 + 1];
-            auto u_x = init_coords[3 * atom1] - init_coords[3 * atom2];
-            auto u_y = init_coords[3 * atom1 + 1] - init_coords[3 * atom2 + 1];
-            auto u_z = init_coords[3 * atom1 + 2] - init_coords[3 * atom2 + 2];
-            auto dist = std::sqrt(u_x * u_x + u_y * u_y + u_z * u_z);
-            init_ds.push_back(dist);
-
-            u_x = final_coords[3 * atom1] - final_coords[3 * atom2];
-            u_y = final_coords[3 * atom1 + 1] - final_coords[3 * atom2 + 1];
-            u_z = final_coords[3 * atom1 + 2] - final_coords[3 * atom2 + 2];
-            dist = std::sqrt(u_x * u_x + u_y * u_y + u_z * u_z);
-            final_ds.push_back(dist);
-        }
-
-        // linear interpolation of interatomic distances
-        all_target_ds.clear();
-
-        for (int i = 0; i < n_images; i++) {
-            std::vector<double> image_ds;
-            image_ds.resize(n_bonds, 0.0);
-
-            for (int j = 0; j < n_bonds; j++) {
-                image_ds[j] = init_ds[j] + (final_ds[j] - init_ds[j]) * i / (n_images - 1);
-            }
-            all_target_ds.push_back(image_ds);
+        // interpolate internal coordinates (distances)
+        this->all_target_ds.clear();
+        for (int k = 0; k < num_images; k++) {
+            // S_k = S_init + (S_fin - S_init) * k / (n-1)
+            double factor = static_cast<double>(k) / static_cast<double>(num_images - 1);
+            Array1D target_ds = init_ds + (final_ds - init_ds) * factor;
+            this->all_target_ds.push_back(target_ds);
         }
     }
 
-    void normalise_vector(std::vector<double> &vec) {
-        double norm = std::sqrt(std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0));
-        for (int i = 0; i < vec.size(); i++) {
-            vec[i] /= norm;
-        }
-    }
+    void IDPPPotential::calc_idpp_engrad(const int idx, Image& img) const {
+        autode::utils::assert_exc(idx >= 0 && idx < n_images, "Index out of bounds");
+        autode::utils::assert_exc(
+            img.coords.size() == n_atoms * 3 && img.grad.size() == img.coords.size(),
+            "Provided image does not have correct number of atoms"
+        );
 
-
-    void calc_neb_forces(const std::vector<std::vector<double>> &image_coords,
-                         const std::vector<std::vector<double>> &image_grads,
-                         const std::vector<double> &image_energies,
-                         const double k_spr,
-                         const int n_total_images,
-                         const int n_images,
-                         const int image_idx,
-                         std::vector<double> &neb_grad) {
-        /*
-         * Calculate the NEB forces for a given image using IDPP,
-         * also allowing for sequential image addition.
-         *
-         * Arguments:
-         *
-         *
-         *      image_coords: Coordinates arrays of all movable images
-         *
-         *      image_grads: Gradient of the potential for each image
-         *
-         *      image_energies: Energies of each image
-         *
-         *      k_spr: Spring constant for NEB
-         *
-         *      n_total_images: Total number of images required,
-         *                      including end points
-         *
-         *      n_images: Number of active images including end points
-         *
-         *      image_idx: Index of the image to calculate forces for
-         *
-         *      neb_grad: NEB gradients for all images, should be an
-         *                n_images*N*3 array (out)
-         *
-         */
-
-        // initial and final points are fixed, so ignore
+        // Skip the first and last images as energy/gradient should be zero
         if (idx == 0 || idx == n_images - 1) return;
 
-        // allocate arrays and alias some variables for readability
-        const int len = image_coords[0].size();
-        std::vector<double> tau_p(len, 0.0);
-        std::vector<double> tau_m(len, 0.0);
-        std::vector<double> tau;  // final normalised tangent
-        tau.reserve(len);
+        img.en = 0.0;
+        img.grad.fill(0.0);
 
-        const std::vector<double>& r_l_p1 = image_coords[image_idx + 1];
-        const std::vector<double>& r_l_m1 = image_coords[image_idx - 1];
-        const std::vector<double>& r_l = image_coords[image_idx];
-        const double S_l_p1 = image_energies[image_idx + 1];
-        const double S_l_m1 = image_energies[image_idx - 1];
-        const double S_l = image_energies[image_idx];
+        auto target_d_ptr = all_target_ds[idx].begin();  // pointer to items of target_ds[idx]
+        auto coords_reshaped = xt::reshape_view(img.coords, {n_atoms, 3});
+        auto grad_reshaped = xt::reshape_view(img.grad, {n_atoms, 3});
+        for (int atom_i = 0; atom_i < n_atoms; atom_i++) {
+            for (int atom_j = 0; atom_j < n_atoms; atom_j++) {
+                if (atom_i >= atom_j) continue;
+                auto coord_i = xt::row(coords_reshaped, atom_i);
+                auto coord_j = xt::row(coords_reshaped, atom_j);
+                Array1D dist_vec = coord_i - coord_j;
+                double dist = xt::norm_l2(dist_vec)();
+                img.en += 1.0 / std::pow(dist, 4) * std::pow(*target_d_ptr - dist, 2);
 
-        // calculate the upwinding tangent, notation follows eqn. 6-9
-        // in J. Chem. Theory Comput. 2024, 20, 155-163
-        for (int i = 0; i < len; i++) {
-            tau_p[i] = r_l_p1[i] - r_l[i];
-        }
-        normalise_vector(tau_p);
-        for (int i = 0; i < len; i++) {
-            tau_m[i] = r_l[i] - r_l_m1[i];
-        }
-        normalise_vector(tau_m);
-        if (S_l_p1 > S_l && S_l > S_l_m1) {
-            tau = tau_p;
-        }
-        else if (S_l_p1 < S_l && S_l < S_l_m1) {
-            tau = tau_m;
-        } else {
-            tau.resize(len, 0.0);
-            auto dS_max = std::max(std::abs(S_l_p1 - S_l), std::abs(S_l_m1 - S_l));
-            auto dS_min = std::min(std::abs(S_l_p1 - S_l), std::abs(S_l_m1 - S_l));
-            if (S_l_p1 > S_l_m1)
-                for (int i = 0; i < len; i++) {
-                    tau[i] = dS_max * tau_p[i] + dS_min * tau_m[i];
-                }
-            else {
-                for (int i = 0; i < len; i++) {
-                    tau[i] = dS_min * tau_p[i] + dS_max * tau_m[i];
-                }
+                auto grad_prefac = -2.0 * 1.0 / std::pow(dist, 4)
+                                   + 6.0 * (*target_d_ptr) / std::pow(dist, 5)
+                                   - 4.0 * std::pow(*target_d_ptr, 2) / std::pow(dist, 6);
+                target_d_ptr++;
+                // gradient terms
+                xt::row(grad_reshaped, atom_i) += grad_prefac * dist_vec;
+                xt::row(grad_reshaped, atom_j) -= grad_prefac * dist_vec;
             }
-            normalise_vector(tau);
-        }
-
-
-        //std::vector<double> tau;
-
-    }
-
-    double vec_dot(const std::vector<double>& v1, const std::vector<double>& v2) {
-        // calculate the dot product of two vectors
-        assert(v1.size() == v2.size());
-        return inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
-    }
-
-    double vec_norm(const vector<double>& v1) {
-        // vector norm
-        return std::sqrt(vec_dot(v1, v1));
-    }
-
-    void vec_sub(const vector<double>& v_in1,
-                 const vector<double>& v_in2,
-                 vector<double>& v_out) {
-        // v_out = v_in1 - v_in2
-        assert(v_in1.size() == v_in2.size() && v_in1.size() == v_out.size());
-        auto n = v_in1.size();
-        for (int i = 0; i < n; i++) {
-            v_out[i] = v_in1[i] - v_in2[i];
         }
     }
 
-    void vec_add(const vector<double>& v_in1,
-                 const vector<double>& v_in2,
-                 vector<double>& v_out) {
-        // v_out = v_in1 + v_in2
-        assert(v_in1.size() == v_in2.size() && v_in1.size() == v_out.size());
-        auto n = v_in1.size();
-        for (int i = 0; i < n; i++) {
-            v_out[i] = v_in1[i] + v_in2[i];
-        }
-    }
-
-    void vec_mul_scalar(vector<double>& v, double scalar) {
-        // multiply a vector with a scalar number in-place
-        auto n = v.size();
-        for (int i = 0; i < n; i++) {
-            v[i] *= scalar;
-        }
-    }
-
-    bool is_in_list(int val, vector<int>& vec) {
-        // is number in list
-        return std::find(vec.begin(), vec.end(), val) != vec.end();
-    }
-
-    class IDPP {
-
-    public:
-
-        vector<vector<double>> img_coords;  // Cartesian coordinates of all images
-        vector<vector<double>> target_ds;  // interpolated internal coords for all images
-        vector<vector<double>> all_grads;  // idpp gradients of all images
-        vector<double> all_energies;  // idpp energies of all images
-
-        std::vector<int> active_idxs; // idxs of currently active images
-        std::pair<int, int> inner_idxs;  // innermost image indices
-
-        std::vector<double> neb_coords;  // flat neb coordinate array
-        std::vector<double> neb_grad;  // flat neb gradient array
-        double k_spr;  // spring constant
-        int n_req_images;  // request number of images
-        int n_atoms;  // number of atoms
-        bool use_seq;  // whether to use the S-IDPP or not
-
-        IDPP(const std::vector<double> &init_coords,
-               const std::vector<double> &final_coords,
-               const double k_spr,
-               const int num_images,
-               const bool sequential);
-
-
-        double ideal_distance() {
-            /* Calculate the ideal interimage distance for the current
-             * set of images
-             */
-
-            // delta vector between two images
-            vector<double> deltaX;
-            deltaX.resize(n_atoms * 3, 0.0);
-
-            // iterate over active images
-            int n_imgs = static_cast<int>(active_idxs.size());
-            double total_dist = 0.0;
-            for (int i = 0; i < n_imgs - 1; i++) {
-                vec_sub(img_coords[active_idxs[i]], img_coords[active_idxs[i+1]], deltaX);
-                total_dist += vec_norm(deltaX);
-            }
-            // for N images, there are N-1 segments
-            return total_dist / static_cast<double>(n_req_images - 1);
-        }
-
-        void add_image_at(int idx) {
-            /* Add (initialise and activate) an image next at index idx.
-             *
-             * Arguments:
-             *
-             *     idx: Position of image which should be initialised
-             *
-             */
-
-            // cannot add image if already active
-            if (is_in_list(idx, active_idxs)) {
-                throw std::invalid_argument("Cannot add already active image");
-            } else if (idx >= n_req_images) {
-                throw std::invalid_argument("Index out-of-bounds!");
-            }
-            double d_id = ideal_distance();
-            // todo remove cout messages after finished debugging code
-            std::cout << "Adding image, ideal distance = " << d_id << " Angstrom" << std::endl;
-
-            // get the nearest active image index
-            int near_idx, far_idx;
-            auto iter = active_idxs.begin();
-            while (iter != active_idxs.end()) {
-                if (*iter == (idx - 1)) {
-                    near_idx = *iter; iter++; far_idx = *iter;
-                    break;
-                }
-                if (*iter == (idx + 1)) {
-                    near_idx = *iter; iter--; far_idx = *iter;
-                    break;
-                }
-            }
-
-            // vector to other image, rescaled to size d_id
-            vector<double> dtoX(n_atoms * 3, 0.0);
-            vec_sub(img_coords[far_idx], img_coords[near_idx], dtoX);
-            vec_mul_scalar(dtoX, d_id / vec_norm(dtoX));
-
-            // get and set new coordinate - also update indices
-            vector<double> newX(n_atoms * 3, 0.0);
-            vec_add(img_coords[near_idx], dtoX, newX);
-            img_coords[idx] = newX;
-            active_idxs.push_back(idx);
-            std::sort(active_idxs.begin(), active_idxs.end());
-            // todo update the frontier image indices check the formula works
-            // todo resize all the other storage vectors to the correct size
-
-        }
-
-    };
-
-    IDPP::IDPP(const std::vector<double> &init_coords,
-               const std::vector<double> &final_coords,
-               const double k_spr,
-               const int num_images,
-               const bool sequential) {
-        /* Creates an IDPP object
+    NEB::NEB(const xt::xtensor<double, 1>& init_coords,
+            const xt::xtensor<double, 1>& final_coords,
+            double k_spr,
+            int num_images,
+            bool sequential) : n_images(num_images), k_spr(k_spr) {
+        /* Initialise a NEB calculation for interpolation of path between the
+         * initial and final coordinates
          *
+         * Arguments:
+         *   init_coords: Initial coordinates
+         *   final_coords: Final coordinates
+         *   k_spr: Spring constant
+         *   num_images: Number of images
+         *   sequential: Whether to build the path sequentially or not
          */
-        assert(init_coords.size() == final_coords.size());
-        assert(init_coords.size() > 0 && init_coords.size() % 3 == 0);
-        this->img_coords.push_back(init_coords);
-        this->img_coords.push_back(final_coords);
-        this->k_spr = k_spr;
-        this->n_req_images = num_images;
-        this->use_seq = sequential;
+        autode::utils::assert_exc(n_images > 2, "Must have more than 2 images");
+        autode::utils::assert_exc(k_spr > 0, "Spring constant must be positive");
+        autode::utils::assert_exc(init_coords.size() == final_coords.size(),
+                "Initial and final coordinates have different sizes!");
+        autode::utils::assert_exc(
+            init_coords.size() > 0 && init_coords.size() % 3 == 0,
+            "Coordinate size must be > 0 and a multiple of 3"
+        );
         this->n_atoms = static_cast<int>(init_coords.size()) / 3;
+         // Create empty images and set the first and last images
+        this->images.resize(n_images, Image(n_atoms));
+        this->images.at(0).coords = init_coords;
+        this->images.at(n_images - 1).coords = final_coords;
+
+        // Create the potential on which to use NEB
+        this->idpp_pot = IDPPPotential(init_coords, final_coords, n_images);
+
+        if (sequential) {
+            this->fill_sequentially();
+        } else {
+            this->fill_linear_interp();
+        }
     }
 
-    //IDPP::add_image(int idx) {
-        // add an image near the index
-    //}
+    void NEB::fill_linear_interp() {
+        /* Fill the NEB images with a linear interpolation */
+        autode::utils::assert_exc(images.size() == n_images,
+                "Image vector must be initialised with correct size!");
+        for (int k = 1; k < n_images - 1; k++) {
+            const auto& coords_0 = images.at(0).coords;
+            const auto& coords_fin = images.at(this->n_images - 1).coords;
+
+            double fac = static_cast<double>(k) / static_cast<double>(n_images - 1);
+            auto new_coords = coords_0 + (coords_fin - coords_0) * fac;
+            images.at(k).coords = new_coords;
+        }
+    }
+
+    void NEB::fill_sequentially() {
+        /* Fill the series of images sequentially using the IDPP potential */
+        autode::utils::assert_exc(images.size() == n_images,
+                "Image vector must be initialised with correct size!");
+        int left_idx = 0;
+        int right_idx = n_images - 1;
+
+        int n_added = 2;
+        while (n_added != n_images) {
+            this->add_left(left_idx, right_idx);
+            left_idx++;
+            n_added++;
+            if (n_added == n_images) break;
+            this->add_right(left_idx, right_idx);
+            right_idx--;
+            n_added++;
+        }
+    }
+
+    void NEB::add_right(const int left_idx, const int right_idx) {
+        /* Add an image near right_idx */
+        autode::utils::assert_exc(right_idx > left_idx,
+                "Right index must be greater than left");
+        const auto& coords_l = images.at(left_idx).coords;
+        const auto& coords_r = images.at(right_idx).coords;
+        auto displ_vec = (coords_l - coords_r)
+                         / static_cast<double>(right_idx - left_idx);
+
+        if (idpp_config::debug) std::cout << "Placing an image at "
+                        << right_idx - 1 << " this much to the left: "
+                        << xt::norm_l2(displ_vec)() << "\n";
+        images.at(right_idx - 1).coords = coords_r + displ_vec;
+
+        auto opt = LBFGSMinimiser(
+            idpp_config::add_img_maxiter,
+            idpp_config::add_img_tol,
+            idpp_config::lbfgs_maxvecs
+        );
+        opt.minimise_img(images.at(right_idx - 1), right_idx - 1, idpp_pot);
+    }
+
+    void NEB::add_left(const int left_idx, const int right_idx) {
+        /* Add an image to the near left_idx */
+        autode::utils::assert_exc(right_idx > left_idx,
+                "Right index must be greater than left");
+        const auto& coords_l = images.at(left_idx).coords;
+        const auto& coords_r = images.at(right_idx).coords;
+        auto displ_vec = (coords_r - coords_l)
+                         / static_cast<double>(right_idx - left_idx);
+
+        if (idpp_config::debug) std::cout << "Placing an image at "
+                        << left_idx + 1 << " this much to the right: "
+                        << xt::norm_l2(displ_vec)() << "\n";
+        images.at(left_idx + 1).coords = coords_l + displ_vec;
+        auto opt = LBFGSMinimiser(
+            idpp_config::add_img_maxiter,
+            idpp_config::add_img_tol,
+            idpp_config::lbfgs_maxvecs
+        );
+        opt.minimise_img(images.at(left_idx + 1), left_idx + 1, idpp_pot);
+    }
 
 }
