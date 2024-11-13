@@ -308,4 +308,182 @@ namespace autode {
         opt.minimise_img(images.at(left_idx + 1), left_idx + 1, idpp_pot);
     }
 
+    void NEB::get_en_grad(double& en, xt::xtensor<double, 1>& flat_grad) {
+        /* Obtain the average energy, and gradient of all images excluding the
+         * initial and final images
+         *
+         * Arguments:
+         *   en: Average energy of the NEB
+         *   flat_grad: Array where the NEB gradient will be stored
+         *              (will be resized to the correct size)
+         */
+        size_t dim = (n_images - 2) * n_atoms * 3;  // required dimension
+        if (flat_grad.size() != dim) flat_grad.resize({dim});
+
+        double total_en = 0.0;
+        size_t loc = 0;
+        for (int k = 1; k < n_images - 1; k++) {
+            total_en += images.at(k).en;
+            // each array should only be n_atoms * 3 long
+            xt::view(flat_grad, xt::range(loc, loc + n_atoms * 3)) = images.at(k).grad;
+            loc += (n_atoms * 3);
+        }
+        en = total_en / static_cast<double>(n_images);
+    }
+
+    void NEB::get_coords(xt::xtensor<double, 1>& flat_coords) {
+        /* Obtain the coordinates of all images excluding the initial
+         * and final images
+         *
+         * Arguments:
+         *   flat_coords: Array where the coordinates will be stored
+         *                (will be resized to the correct size)
+         */
+        size_t dim = (n_images - 2) * n_atoms * 3;  // required dimension
+        if (flat_coords.size() != dim) flat_coords.resize({dim});
+
+        size_t loc = 0;
+        for (int k = 1; k < n_images - 1; k++) {
+            xt::view(flat_coords, xt::range(loc, loc + n_atoms * 3)) = images.at(k).coords;
+            loc += (n_atoms * 3);
+        }
+    }
+
+    void NEB::set_coords(const xt::xtensor<double, 1>& flat_coords) {
+        /* Set the coordinates of all images excluding the intial
+         * and final images from a flat array
+         *
+         * Arguments:
+         *   flat_coords: Array of coordinates (must have correct size)
+         */
+        autode::utils::assert_exc(flat_coords.size() == (n_images - 2) * n_atoms * 3,
+                    "Incompatible array size in setting NEB coordinates!");
+
+        size_t loc = 0;
+        for (int k = 1; k < n_images - 1; k++) {
+            images.at(k).coords = xt::view(flat_coords, xt::range(loc, loc + n_atoms * 3));
+            loc += (n_atoms * 3);
+        }
+    }
+
+    void NEB::update_en_grad() {
+        /* Update the energy and gradient of all images */
+        for (int k = 0; k < n_images; k++) {
+            idpp_pot.calc_idpp_engrad(k, images[k]);
+        }
+        // NEB forces only for intermediate images
+        for (int k = 1; k < n_images - 1; k++) {
+            images[k].update_neb_force(images[k-1], images[k+1], k_spr);
+        }
+    }
+
+    void NEB::minimise() {
+        /* Minimise the NEB with the provided IDPP potential */
+        auto opt = LBFGSMinimiser(g_path_maxiter, g_rms_gtol, g_lbfgs_maxvecs);
+        opt.minimise_neb(*this);
+    }
+
+    LBFGSMinimiser::LBFGSMinimiser(
+        int maxiter, double rms_gtol, int max_vecs
+    ) : s_ks(max_vecs), y_ks(max_vecs), maxiter(maxiter), rms_gtol(rms_gtol) {}
+
+    void LBFGSMinimiser::calc_lbfgs_step() {
+        /* Update the memory and calculate the LBFGS step */
+        Array1D s_k = coords - last_coords;
+        Array1D y_k = grad - last_grad;
+        auto s_dot_s = dot(s_k, s_k);
+        auto y_dot_s = dot(y_k, s_k);
+        // correction factor t_k = 1 + max(-y_k . s_k / s_k . s_k, 0.0)
+        double t_k;
+        if (y_dot_s > 0) {
+            t_k = 1.0;
+        } else if (s_dot_s > 1e-12) {
+            t_k = 1.0 + std::max(-y_dot_s / s_dot_s, 0.0);
+        } else {
+            throw std::runtime_error("s_k . s_k is too small and y_k . s_k < 0, cannot proceed");
+        }
+        y_k += t_k * xt::norm_l2(grad)() * s_k;
+        s_ks.append(s_k);
+        y_ks.append(y_k);
+
+        // Calculate the Oren-Luenberger scaling factor
+        auto y_dot_y = dot(y_k, y_k);
+        double gamma;
+        if (y_dot_y < 1e-8) {
+            if (idpp_config::g_debug) std::cout << "Warning, y_k . y_k "
+                                        "is too small, using unit Hessian diagonal\n";
+            gamma = 1.0;
+        } else {
+            gamma = dot(s_k, y_k) / y_dot_y;
+        }
+
+        // Two-loop L-BFGS calculation
+        step = grad;
+
+        const int n_vecs = s_ks.size();
+        Array1D alpha = xt::zeros<double>({n_vecs});
+        Array1D rho = xt::zeros<double>({n_vecs});
+        for (int i = n_vecs - 1; i >= 0; i--) {
+            rho(i) = 1 / dot(y_ks[i],s_ks[i]);
+            alpha(i) = rho(i) * dot(s_ks[i], step);
+            step -= alpha(i) * y_ks[i];
+        }
+        step *= gamma;
+        for (int i = 0; i < n_vecs; i++) {
+            double beta_ = rho(i) * dot(y_ks[i], step);  // avoid conflict with std::beta !
+            step += (alpha(i) - beta_) * s_ks[i];
+        }
+
+        step *= -1.0;
+        double maxstep = xt::amax(xt::abs(step))();
+        if (maxstep > lbfgs_maxstep) {
+            step *= lbfgs_maxstep / maxstep;
+        }
+
+        auto proj = dot(step, grad);
+        if (proj > 0) {
+            if (idpp_config::debug) std::cout << "Projection of LBFGS step "
+                                            "on gradient is positive, reversing step\n";
+            step *= -1.0;
+        }
+    }
+
+    void LBFGSMinimiser::calc_sd_step() {
+        /* Calculate the steepest decent step */
+        step = -grad;
+        double maxstep = xt::amax(xt::abs(step))();
+        if (maxstep > sd_maxstep) {
+            step *= sd_maxstep / maxstep;
+        }
+    }
+
+    void LBFGSMinimiser::backtrack() {
+        /* If Energy ir rising, backtrack to find a better step (sets new coordinates) */
+        if (idpp_config::debug) std::cout << "Energy rising, backtracking...\n";
+        step = coords - last_coords;
+        coords += (-0.6 * step);
+    }
+
+    void LBFGSMinimiser::take_step() {
+        if (iter == 0) {
+            this->calc_sd_step();
+        } else if ((en - last_en) / last_en > 1e-4 && n_backtrack < 5) {
+            // avoid backtrack more than 5 times
+            this->backtrack();
+            n_backtrack++;
+            // backtrack modifies coords so should return
+            return;
+        } else {
+            this->calc_lbfgs_step();
+        }
+
+        last_coords = coords;
+        last_en = en;
+        last_grad = grad;
+        coords += step;
+        n_backtrack = 0;
+    }
+
+
+
 }

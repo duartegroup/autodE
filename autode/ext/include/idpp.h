@@ -77,6 +77,8 @@ namespace autode
         void set_coords(const xt::xtensor<double, 1>& flat_coords);
 
         void update_en_grad();
+
+        void minimise();
     };
 
     class LBFGSMinimiser {
@@ -104,9 +106,9 @@ namespace autode
 
         void calc_lbfgs_step();
 
-        void sd_step();
+        void calc_sd_step();
 
-        void backtrack_step();
+        void backtrack();
 
         void take_step();
 
