@@ -52,8 +52,12 @@ class IDPP:
                         intermediate images in the path
         """
         # access raw memory block of the arrays
-        init_coords = np.ascontiguousarray(init_coords.flatten(), dtype=float)
-        final_coords = np.ascontiguousarray(final_coords.flatten(), dtype=float)
+        init_coords = np.ascontiguousarray(
+            init_coords.flatten(), dtype=np.double
+        )
+        final_coords = np.ascontiguousarray(
+            final_coords.flatten(), dtype=np.double
+        )
 
         cdef double [:] init_view = init_coords
         cdef double [:] final_view = final_coords
@@ -65,7 +69,9 @@ class IDPP:
         coords_len = init_coords.shape[0]
         assert coords_len % 3 == 0, "Coordinate array has incorrect dimensions"
         img_coordinates = np.zeros(
-            shape=(self._n_images - 2) * coords_len, order="C", dtype=float
+            shape=((self._n_images - 2) * coords_len,),
+            order="C",
+            dtype=np.double
         )
         cdef double [:] img_coords_view = img_coordinates
 

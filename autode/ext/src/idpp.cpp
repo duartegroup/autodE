@@ -472,9 +472,10 @@ namespace autode {
     }
 
     void LBFGSMinimiser::take_step() {
+        /* Take a single optimizer step */
         if (iter == 0) {
             this->calc_sd_step();
-        } else if ((en - last_en) / last_en > 1e-4 && n_backtrack < 5) {
+        } else if ((en - last_en) / last_en > 1e-2 && n_backtrack < 5) {
             // avoid backtrack more than 5 times
             this->backtrack();
             n_backtrack++;
@@ -528,6 +529,12 @@ namespace autode {
     }
 
     void LBFGSMinimiser::minimise_neb(NEB& neb) {
+        /* Minimise the NEB path
+         *
+         * Arguments:
+         *
+         *   neb: NEB object to minimise
+         */
         if (idpp_config::debug_pr) std::cout << " === Optimizing NEB path === \n";
         while (iter < maxiter) {
             neb.get_coords(coords);
@@ -549,8 +556,8 @@ namespace autode {
         }
     }
 
-    void calculate_idpp_path(const double* init_coords_ptr,
-                            const double* final_coords_ptr,
+    void calculate_idpp_path(double* init_coords_ptr,
+                            double* final_coords_ptr,
                             int coords_len,
                             int n_images,
                             double k_spr,
@@ -583,21 +590,26 @@ namespace autode {
          *   all_coords_ptr: Pointer to the array where coordinates of intermediate
          *                   images will be stored of shape (K-2, N)
          */
+
+        std::cout.setf(std::ios::fixed);
+        std::cout.setf(std::ios::showpoint);
+        std::cout.precision(5);
+
         idpp_config::debug_pr = debug;
         idpp_config::rms_gtol = gtol;
         idpp_config::path_maxiter = maxiter;
 
         const auto init_coords = xt::adapt(
-            init_coords_ptr, coords_len, xt::no_ownership()
+            init_coords_ptr, size_t(coords_len), xt::no_ownership()
         );
         const auto final_coords = xt::adapt(
-            final_coords_ptr, coords_len, xt::no_ownership()
+            final_coords_ptr, size_t(coords_len), xt::no_ownership()
         );
         auto neb = NEB(init_coords, final_coords, k_spr, n_images, sequential);
         neb.minimise();
         // copy the final coordinates to the output array
         auto all_coords = xt::adapt(
-            all_coords_ptr, (n_images - 2) * coords_len, xt::no_ownership()
+            all_coords_ptr, size_t((n_images - 2) * coords_len), xt::no_ownership()
         );
         xt::xtensor<double, 1> flat_coords;
         neb.get_coords(flat_coords);
