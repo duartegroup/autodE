@@ -264,7 +264,7 @@ namespace autode {
         auto displ_vec = (coords_l - coords_r)
                          / static_cast<double>(right_idx - left_idx);
 
-        if (idpp_config::debug) std::cout << "Placing an image at "
+        if (idpp_config::debug_pr) std::cout << "Placing an image at "
                         << right_idx - 1 << " this much to the left: "
                         << xt::norm_l2(displ_vec)() << "\n";
         images.at(right_idx - 1).coords = coords_r + displ_vec;
@@ -286,7 +286,7 @@ namespace autode {
         auto displ_vec = (coords_r - coords_l)
                          / static_cast<double>(right_idx - left_idx);
 
-        if (idpp_config::debug) std::cout << "Placing an image at "
+        if (idpp_config::debug_pr) std::cout << "Placing an image at "
                         << left_idx + 1 << " this much to the right: "
                         << xt::norm_l2(displ_vec)() << "\n";
         images.at(left_idx + 1).coords = coords_l + displ_vec;
@@ -406,7 +406,7 @@ namespace autode {
         auto y_dot_y = autode::utils::dot(y_k, y_k);
         double gamma;
         if (y_dot_y < 1e-8) {
-            if (idpp_config::debug) std::cout << "Warning, y_k . y_k "
+            if (idpp_config::debug_pr) std::cout << "Warning, y_k . y_k "
                                 "is too small, using unit Hessian diagonal\n";
             gamma = 1.0;
         } else {
@@ -439,8 +439,8 @@ namespace autode {
 
         auto proj = autode::utils::dot(step, grad);
         if (proj > 0) {
-            if (idpp_config::debug) std::cout << "Projection of LBFGS step "
-                                        "on gradient is positive, reversing step\n";
+            if (idpp_config::debug_pr) std::cout << "Projection of LBFGS step "
+                                    "on gradient is positive, reversing step\n";
             step *= -1.0;
         }
     }
@@ -456,7 +456,7 @@ namespace autode {
 
     void LBFGSMinimiser::backtrack() {
         /* If Energy ir rising, backtrack to find a better step (sets new coordinates) */
-        if (idpp_config::debug) std::cout << "Energy rising, backtracking...\n";
+        if (idpp_config::debug_pr) std::cout << "Energy rising, backtracking...\n";
         step = coords - last_coords;
         coords += (-0.6 * step);
     }
@@ -499,10 +499,10 @@ namespace autode {
             idpp_pot.calc_idpp_engrad(idx, img);
             grad = img.grad;
             en = img.en;
-            if (idpp_config::debug) std::cout << "-- Image " << idx << " E=" << img.en
-                    << "  RMS grad = " << autode::utils::rms(this->grad) << "\n";
+            if (idpp_config::debug_pr) std::cout << "-- Image " << idx << " E="
+                << img.en << "  RMS grad = " << autode::utils::rms(this->grad) << "\n";
             if (autode::utils::rms(grad) < rms_gtol) {
-                if (idpp_config::debug) std::cout << " >>>> Image " << idx
+                if (idpp_config::debug_pr) std::cout << " >>>> Image " << idx
                                                         << " converged!" << "\n";
                 break;
             }
@@ -511,29 +511,29 @@ namespace autode {
             iter++;
         }
 
-        if (iter == maxiter && idpp_config::debug) {
+        if (iter == maxiter && idpp_config::debug_pr) {
             std::cout << " >>>> Image " << idx << " did not converge in " << maxiter
                         << " iterations\n";
         }
     }
 
     void LBFGSMinimiser::minimise_neb(NEB& neb) {
-        if (idpp_config::debug) std::cout << " === Optimizing NEB path === \n";
+        if (idpp_config::debug_pr) std::cout << " === Optimizing NEB path === \n";
         while (iter < maxiter) {
             neb.get_coords(coords);
             neb.update_en_grad();
             neb.get_en_grad(en, grad);
-            if (idpp_config::debug) std::cout << " -- Avg. energy = " << en
+            if (idpp_config::debug_pr) std::cout << " -- Avg. energy = " << en
                         << "  RMS grad = " << autode::utils::rms(grad) << "\n";
             if (autode::utils::rms(grad) < rms_gtol) {
-                if (idpp_config::debug) std::cout << " >>>> NEB path converged!\n";
+                if (idpp_config::debug_pr) std::cout << " >>>> NEB path converged!\n";
                 break;
             }
             this->take_step();
             neb.set_coords(coords);
             iter++;
         }
-        if (iter == maxiter && idpp_config::debug) {
+        if (iter == maxiter && idpp_config::debug_pr) {
             std::cout << "WARNING: NEB path did not converge in "
                                             << maxiter << " iterations\n";
         }
