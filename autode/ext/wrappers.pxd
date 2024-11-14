@@ -101,5 +101,5 @@ cdef extern from "include/idpp.h" namespace "autode":
                                   int coords_len,
                                   int n_images,
                                   double k_spr,
-                                  bool sequential,
+                                  bool_t sequential,
                                   double* all_coords_ptr) except +
