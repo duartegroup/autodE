@@ -10,8 +10,8 @@ class IDPP:
     def __init__(
         self,
         n_images: int,
-        k_spr: float = 0.1,
         sequential: bool = True,
+        k_spr: float = 1.0,
         rms_gtol = 5e-4,
         maxiter = 2000,
     ):
@@ -53,10 +53,10 @@ class IDPP:
         """
         # access raw memory block of the arrays
         init_coords = np.ascontiguousarray(
-            init_coords.flatten(), dtype=np.double
+            init_coords.ravel(), dtype=np.double
         )
         final_coords = np.ascontiguousarray(
-            final_coords.flatten(), dtype=np.double
+            final_coords.ravel(), dtype=np.double
         )
 
         cdef double [:] init_view = init_coords

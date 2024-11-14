@@ -238,7 +238,7 @@ namespace autode {
                 "Image vector must be initialised with correct size!");
         for (int k = 1; k < n_images - 1; k++) {
             const auto& coords_0 = images.at(0).coords;
-            const auto& coords_fin = images.at(this->n_images - 1).coords;
+            const auto& coords_fin = images.at(n_images - 1).coords;
 
             double fac = static_cast<double>(k) / static_cast<double>(n_images - 1);
             auto new_coords = coords_0 + (coords_fin - coords_0) * fac;

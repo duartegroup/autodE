@@ -15,9 +15,9 @@ from autode.input_output import xyz_file_to_molecules
 from autode.path import Path
 from autode.utils import work_in, ProcessPool
 from autode.config import Config
-from autode.neb.idpp import IDPP
 from scipy.optimize import minimize
 from autode.values import Distance, PotentialEnergy, ForceConstant
+from ade_idpp import IDPP
 
 if TYPE_CHECKING:
     from autode.wrappers.methods import Method
@@ -506,8 +506,9 @@ class NEB:
         init_k: ForceConstant = ForceConstant(0.1, units="Ha / Å^2"),
     ) -> "NEB":
         """
-        Construct a nudged elastic band from only the endpoints. The atomic
-        ordering must be identical in the initial and final species
+        Construct a nudged elastic band from only the endpoints. Will perform
+        and IDPP interpolation between the two points. The atomic ordering
+        must be identical in the initial and final species
 
         -----------------------------------------------------------------------
           Arguments:
@@ -529,10 +530,10 @@ class NEB:
             )
 
         neb = cls.from_list(
-            species_list=cls._interpolated_species(initial, final, n=num),
+            species_list=cls._get_idpp_path(initial, final, n=num),
             init_k=init_k,
         )
-        neb.idpp_relax()
+        # neb.idpp_relax()
 
         return neb
 
@@ -615,6 +616,34 @@ class NEB:
 
     def print_geometries(self, name="neb") -> None:
         return self.images.print_geometries(name)
+
+    @staticmethod
+    def _get_idpp_path(
+        initial: Species, final: Species, n: int, sequential: bool = True
+    ) -> List[Species]:
+        """Generate a list of species using the IDPP method"""
+        if n == 2:
+            return [initial.copy(), final.copy()]
+
+        if n < 3:
+            raise RuntimeError("Cannot interpolate less than 3 images")
+
+        idpp = IDPP(n_images=n, sequential=sequential)
+        interm_coords = idpp.get_path(initial.coordinates, final.coordinates)
+
+        coords_len = initial.n_atoms * 3
+        assert len(interm_coords) == (n - 2) * coords_len
+
+        intermediate_species = []
+        # create new species and load the coordinates
+        for i in range(1, n - 1):
+            species = initial.copy()
+            species.coordinates = interm_coords[
+                (i - 1) * coords_len : i * coords_len
+            ]
+            intermediate_species.append(species)
+
+        return [initial.copy(), *intermediate_species, final.copy()]
 
     @staticmethod
     def _interpolated_species(
