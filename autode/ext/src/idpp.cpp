@@ -19,16 +19,6 @@ using Array1D = xt::xtensor<double, 1>;
 
 namespace autode {
 
-    // Global variables
-    namespace idpp_config {
-        bool debug = true;  // whether to print debug messages or not
-        double add_img_tol = 1.e-3;  // RMSG tolerance for adding image
-        double rms_gtol = 5.e-4;  // RMSG tolerance for total path
-        int lbfgs_maxvecs = 10;  // Max. number of update vectors
-        int add_img_maxiter = 50;  // Max iterations for each image adding step
-        int path_maxiter = 1000;  // Max iterations for total path
-    }
-
     Image::Image(int num_atoms) : n_atoms(num_atoms) {
         /* Create an image with empty coordinates and gradients
          * for a given number of atoms
@@ -379,7 +369,11 @@ namespace autode {
 
     void NEB::minimise() {
         /* Minimise the NEB with the provided IDPP potential */
-        auto opt = LBFGSMinimiser(g_path_maxiter, g_rms_gtol, g_lbfgs_maxvecs);
+        auto opt = LBFGSMinimiser(
+            idpp_config::path_maxiter,
+            idpp_config::rms_gtol,
+            idpp_config::lbfgs_maxvecs
+        );
         opt.minimise_neb(*this);
     }
 
@@ -391,30 +385,32 @@ namespace autode {
         /* Update the memory and calculate the LBFGS step */
         Array1D s_k = coords - last_coords;
         Array1D y_k = grad - last_grad;
-        auto s_dot_s = dot(s_k, s_k);
-        auto y_dot_s = dot(y_k, s_k);
+        auto s_dot_s = autode::utils::dot(s_k, s_k);
+        auto y_dot_s = autode::utils::dot(y_k, s_k);
         // correction factor t_k = 1 + max(-y_k . s_k / s_k . s_k, 0.0)
         double t_k;
         if (y_dot_s > 0) {
             t_k = 1.0;
-        } else if (s_dot_s > 1e-12) {
+        } else if (s_dot_s > 1e-10) {
             t_k = 1.0 + std::max(-y_dot_s / s_dot_s, 0.0);
         } else {
-            throw std::runtime_error("s_k . s_k is too small and y_k . s_k < 0, cannot proceed");
+            throw std::runtime_error(
+                "s_k . s_k is too small and y_k . s_k < 0, cannot proceed"
+            );
         }
         y_k += t_k * xt::norm_l2(grad)() * s_k;
         s_ks.append(s_k);
         y_ks.append(y_k);
 
         // Calculate the Oren-Luenberger scaling factor
-        auto y_dot_y = dot(y_k, y_k);
+        auto y_dot_y = autode::utils::dot(y_k, y_k);
         double gamma;
         if (y_dot_y < 1e-8) {
-            if (idpp_config::g_debug) std::cout << "Warning, y_k . y_k "
-                                        "is too small, using unit Hessian diagonal\n";
+            if (idpp_config::debug) std::cout << "Warning, y_k . y_k "
+                                "is too small, using unit Hessian diagonal\n";
             gamma = 1.0;
         } else {
-            gamma = dot(s_k, y_k) / y_dot_y;
+            gamma = autode::utils::dot(s_k, y_k) / y_dot_y;
         }
 
         // Two-loop L-BFGS calculation
@@ -424,13 +420,14 @@ namespace autode {
         Array1D alpha = xt::zeros<double>({n_vecs});
         Array1D rho = xt::zeros<double>({n_vecs});
         for (int i = n_vecs - 1; i >= 0; i--) {
-            rho(i) = 1 / dot(y_ks[i],s_ks[i]);
-            alpha(i) = rho(i) * dot(s_ks[i], step);
+            rho(i) = 1 / autode::utils::dot(y_ks[i],s_ks[i]);
+            alpha(i) = rho(i) * autode::utils::dot(s_ks[i], step);
             step -= alpha(i) * y_ks[i];
         }
         step *= gamma;
         for (int i = 0; i < n_vecs; i++) {
-            double beta_ = rho(i) * dot(y_ks[i], step);  // avoid conflict with std::beta !
+            // avoid conflict with std::beta !
+            double beta_ = rho(i) * autode::utils::dot(y_ks[i], step);
             step += (alpha(i) - beta_) * s_ks[i];
         }
 
@@ -440,10 +437,10 @@ namespace autode {
             step *= lbfgs_maxstep / maxstep;
         }
 
-        auto proj = dot(step, grad);
+        auto proj = autode::utils::dot(step, grad);
         if (proj > 0) {
             if (idpp_config::debug) std::cout << "Projection of LBFGS step "
-                                            "on gradient is positive, reversing step\n";
+                                        "on gradient is positive, reversing step\n";
             step *= -1.0;
         }
     }
@@ -484,6 +481,109 @@ namespace autode {
         n_backtrack = 0;
     }
 
+    void LBFGSMinimiser::minimise_img(
+        Image& img, const int idx, const IDPPPotential& idpp_pot
+    ) {
+        /* Minimise an image using the IDPP potential
+         *
+         * Arguments:
+         *
+         *   img: Image to minimise
+         *
+         *   idx: Index of the image
+         *
+         *   idpp_pot: IDPP potential to use
+         */
+        while (iter < maxiter) {
+            coords = img.coords;
+            idpp_pot.calc_idpp_engrad(idx, img);
+            grad = img.grad;
+            en = img.en;
+            if (idpp_config::debug) std::cout << "-- Image " << idx << " E=" << img.en
+                    << "  RMS grad = " << autode::utils::rms(this->grad) << "\n";
+            if (autode::utils::rms(grad) < rms_gtol) {
+                if (idpp_config::debug) std::cout << " >>>> Image " << idx
+                                                        << " converged!" << "\n";
+                break;
+            }
+            this->take_step();
+            img.coords = coords;
+            iter++;
+        }
 
+        if (iter == maxiter && idpp_config::debug) {
+            std::cout << " >>>> Image " << idx << " did not converge in " << maxiter
+                        << " iterations\n";
+        }
+    }
 
+    void LBFGSMinimiser::minimise_neb(NEB& neb) {
+        if (idpp_config::debug) std::cout << " === Optimizing NEB path === \n";
+        while (iter < maxiter) {
+            neb.get_coords(coords);
+            neb.update_en_grad();
+            neb.get_en_grad(en, grad);
+            if (idpp_config::debug) std::cout << " -- Avg. energy = " << en
+                        << "  RMS grad = " << autode::utils::rms(grad) << "\n";
+            if (autode::utils::rms(grad) < rms_gtol) {
+                if (idpp_config::debug) std::cout << " >>>> NEB path converged!\n";
+                break;
+            }
+            this->take_step();
+            neb.set_coords(coords);
+            iter++;
+        }
+        if (iter == maxiter && idpp_config::debug) {
+            std::cout << "WARNING: NEB path did not converge in "
+                                            << maxiter << " iterations\n";
+        }
+    }
+
+    void calculate_idpp_path(const double* init_coords_ptr,
+                            const double* final_coords_ptr,
+                            int coords_len,
+                            int n_images,
+                            double k_spr,
+                            bool sequential,
+                            double* all_coords_ptr) {
+        /* Calculate the IDPP path from initial to final coordinates. This takes
+         * in the coordinates as pointers to the beginning of numpy arrays, and
+         * therefore must be provided contiguous arrays. Additionally, the
+         * coords_len attribute must be set correctly.
+         *
+         * Arguments:
+         *
+         *   init_coords_ptr: Pointer to the initial coordinates numpy array
+         *                    of shape (N,)
+         *
+         *   final_coords_ptr: Pointer to the final coordinates numpy array
+         *                    of shape (N,)
+         *
+         *   coords_len: Length of the coordinates for ONE image (N)
+         *
+         *   n_images: Number of images (K)
+         *
+         *   k_spr: Spring constant
+         *
+         *   sequential: Whether to build the path sequentially or not
+         *
+         *   all_coords_ptr: Pointer to the array where coordinates of intermediate
+         *                   images will be stored of shape (K-2, N)
+         */
+        const auto init_coords = xt::adapt(
+            init_coords_ptr, coords_len, xt::no_ownership()
+        );
+        const auto final_coords = xt::adapt(
+            final_coords_ptr, coords_len, xt::no_ownership()
+        );
+        auto neb = NEB(init_coords, final_coords, k_spr, n_images, sequential);
+        neb.minimise();
+        // copy the final coordinates to the output array
+        auto all_coords = xt::adapt(
+            all_coords_ptr, (n_images - 2) * coords_len, xt::no_ownership()
+        );
+        xt::xtensor<double, 1> flat_coords;
+        neb.get_coords(flat_coords);
+        all_coords = flat_coords;
+    }
 }
