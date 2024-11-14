@@ -555,7 +555,7 @@ namespace autode {
                             int n_images,
                             double k_spr,
                             bool sequential,
-                            double* all_coords_ptr
+                            double* all_coords_ptr,
                             bool debug,
                             double gtol,
                             int maxiter) {
