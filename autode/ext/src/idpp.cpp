@@ -19,6 +19,16 @@ using Array1D = xt::xtensor<double, 1>;
 
 namespace autode {
 
+    // Global config variables accessible to python
+    namespace idpp_config {
+        bool debug_pr = true;  // whether to print debug messages or not
+        double add_img_tol = 1.e-3;  // RMSG tolerance for adding image
+        double rms_gtol = 5.e-4;  // RMSG tolerance for total path
+        int lbfgs_maxvecs = 10;  // Max. number of update vectors
+        int add_img_maxiter = 50;  // Max iterations for each image adding step
+        int path_maxiter = 2000;  // Max iterations for total path
+    }
+
     Image::Image(int num_atoms) : n_atoms(num_atoms) {
         /* Create an image with empty coordinates and gradients
          * for a given number of atoms
@@ -545,7 +555,10 @@ namespace autode {
                             int n_images,
                             double k_spr,
                             bool sequential,
-                            double* all_coords_ptr) {
+                            double* all_coords_ptr
+                            bool debug,
+                            double gtol,
+                            int maxiter) {
         /* Calculate the IDPP path from initial to final coordinates. This takes
          * in the coordinates as pointers to the beginning of numpy arrays, and
          * therefore must be provided contiguous arrays. Additionally, the
@@ -570,6 +583,10 @@ namespace autode {
          *   all_coords_ptr: Pointer to the array where coordinates of intermediate
          *                   images will be stored of shape (K-2, N)
          */
+        idpp_config::debug_pr = debug;
+        idpp_config::rms_gtol = gtol;
+        idpp_config::path_maxiter = maxiter;
+
         const auto init_coords = xt::adapt(
             init_coords_ptr, coords_len, xt::no_ownership()
         );
