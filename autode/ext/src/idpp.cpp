@@ -255,14 +255,29 @@ namespace autode {
 
         int n_added = 2;
         while (n_added != n_images) {
-            this->add_left(left_idx, right_idx);
+            this->add_img_at(left_idx + 1, left_idx);
             left_idx++;
             n_added++;
             if (n_added == n_images) break;
-            this->add_right(left_idx, right_idx);
+            this->add_img_at(right_idx - 1, right_idx);
             right_idx--;
             n_added++;
         }
+    }
+
+    void NEB::add_img_at(const int idx, const int neighbour_idx) {
+        /* Add an image at position idx and close to neighbour_idx */
+        autode::utils::assert_exc(std::abs(idx - neighbour_idx) == 1,
+                                                "Wrong index supplied");
+        if (idpp_config::debug_pr) std::cout << "Placing an image at " << idx;
+        images.at(idx).coords = images.at(neighbour_idx).coords;
+
+        auto opt = LBFGSMinimiser(
+            idpp_config::add_img_maxiter,
+            idpp_config::add_img_tol,
+            idpp_config::lbfgs_maxvecs
+        );
+        opt.minimise_img(images.at(idx), idx, idpp_pot);
     }
 
     void NEB::add_right(const int left_idx, const int right_idx) {
@@ -475,10 +490,11 @@ namespace autode {
         /* Take a single optimizer step */
         if (iter == 0) {
             this->calc_sd_step();
-        } else if ((en - last_en) / last_en > 1e-2 && n_backtrack < 5) {
-            // avoid backtrack more than 5 times
+        } else if ((en - last_en) / last_en > 5e-2) {  // allow 5% rise in energy
             this->backtrack();
             n_backtrack++;
+            if (n_backtrack > 8) throw std::runtime_error(
+                                    "Failed to find a reasonable step");
             // backtrack modifies coords so should return
             return;
         } else {

@@ -67,6 +67,8 @@ namespace autode
 
         void fill_sequentially();
 
+        void add_img_at(const int idx, const int neighbour_idx);
+
         void add_right(const int left_idx, const int right_idx);
 
         void add_left(const int left_idx, const int right_idx);
