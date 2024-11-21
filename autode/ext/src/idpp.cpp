@@ -193,14 +193,6 @@ namespace autode {
         }
     }
 
-    void IDPPPotential::calc_lst_engrad(const int idx,
-                                        Image& img,
-                                        xt::xtensor<double, 1>& orig_coords
-                                        ) const {
-        // LST gradient
-        this->calc_idpp_engrad(idx, img);
-    }
-
     NEB::NEB(const xt::xtensor<double, 1>& init_coords,
             const xt::xtensor<double, 1>& final_coords,
             double k_spr,
@@ -230,15 +222,14 @@ namespace autode {
         this->images.at(0).coords = init_coords;
         this->images.at(n_images - 1).coords = final_coords;
 
-        // fill the path by simple linear interpolation
-        for (int k = 1; k < n_images - 1; k++) {
-            double fac = static_cast<double>(k) / static_cast<double>(n_images - 1);
-            auto new_coords = init_coords + (final_coords - init_coords) * fac;
-            images.at(k).coords = new_coords;
-        }
-
         // Create the potential on which to use NEB
         this->idpp_pot = IDPPPotential(init_coords, final_coords, n_images);
+
+        if (sequential) {
+            this->fill_sequentially();
+        } else {
+            this->fill_linear_interp();
+        }
     }
 
     void NEB::fill_linear_interp() {

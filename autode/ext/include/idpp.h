@@ -43,8 +43,6 @@ namespace autode
                     const int num_images);
 
         void calc_idpp_engrad(const int idx, Image& img) const;
-        
-        void calc_lst_engrad(const int idx, Image &img, xt::xtensor<double, 1> &orig_coords) const;
     };
 
     class NEB {
