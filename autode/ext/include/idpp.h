@@ -34,6 +34,7 @@ namespace autode
         int n_atoms;  // Total number of atoms
         int n_images;  // Total number of images
         std::vector<xt::xtensor<double, 1>> all_target_ds; // interpolated bond distances
+        std::vector<xt::xtensor<double, 1>> all_interp_cart; // interpolated cartesian coordinates
 
     public:
         IDPPPotential() = default;
@@ -43,8 +44,8 @@ namespace autode
                     const int num_images);
 
         void calc_idpp_engrad(const int idx, Image& img) const;
-        
-        void calc_lst_engrad(const int idx, Image &img, xt::xtensor<double, 1> &orig_coords) const;
+
+        void calc_lst_engrad(const int idx, Image &img) const;
     };
 
     class NEB {

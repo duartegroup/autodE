@@ -147,13 +147,16 @@ namespace autode {
             }
         }
 
-        // interpolate internal coordinates (distances)
+        // interpolate internal coordinates (distances) and cartesian coordinates
         this->all_target_ds.clear();
+        this->all_interp_cart.clear();
         for (int k = 0; k < num_images; k++) {
             // S_k = S_init + (S_fin - S_init) * k / (n-1)
             double factor = static_cast<double>(k) / static_cast<double>(num_images - 1);
             Array1D target_ds = init_ds + (final_ds - init_ds) * factor;
+            Array1D target_cart = init_coords + (final_coords - init_coords) * factor;
             this->all_target_ds.push_back(target_ds);
+            this->all_interp_cart.push_back(target_cart);
         }
     }
 
@@ -193,10 +196,7 @@ namespace autode {
         }
     }
 
-    void IDPPPotential::calc_lst_engrad(const int idx,
-                                        Image& img,
-                                        xt::xtensor<double, 1>& orig_coords
-                                        ) const {
+    void IDPPPotential::calc_lst_engrad(const int idx, Image& img) const {
         // LST gradient
         this->calc_idpp_engrad(idx, img);
     }
