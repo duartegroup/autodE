@@ -56,38 +56,45 @@ namespace autode {
          *
          *  k_spr: the spring constant
          */
-        autode::utils::assert_exc(n_atoms == img_m1.n_atoms && n_atoms == img_p1.n_atoms,
-                                  "Incompatible number of atoms");
+        autode::utils::assert_exc(
+            n_atoms == img_m1.n_atoms && n_atoms == img_p1.n_atoms,
+            "Incompatible number of atoms"
+        );
 
         auto tau_p = img_p1.coords - coords;
         auto tau_m = coords - img_m1.coords;
 
         double tau_p_norm = xt::norm_l2(tau_p)();
         double tau_m_norm = xt::norm_l2(tau_m)();
-        autode::utils::assert_exc(tau_p_norm > 1e-8 && tau_m_norm > 1e-8,
-                "Length of tangent vector(s) too small, something went wrong");
-
-        auto tau_p_hat = tau_p / tau_p_norm;
-        auto tau_m_hat = tau_m / tau_m_norm;
 
         const auto dS_max = std::max(std::abs(img_p1.en - en), std::abs(img_m1.en - en));
         const auto dS_min = std::min(std::abs(img_p1.en - en), std::abs(img_m1.en - en));
 
         Array1D tau;
         if (img_p1.en > en && en > img_m1.en) {
-            tau = tau_p_hat;
+            if (tau_p_norm > 1e-8) {
+                tau = tau_p;
+            } else {
+                tau = tau_m;
+            }
         } else if (img_p1.en < en && en < img_m1.en) {
-            tau = tau_m_hat;
+            if (tau_m_norm > 1e-8) {
+                tau = tau_m;
+            } else {
+                tau = tau_p;
+            }
         } else {
             if (img_p1.en > img_m1.en) {
-                tau = tau_p_hat * dS_max + tau_m_hat * dS_min;
+                tau = tau_p * dS_max + tau_m * dS_min;
             } else if (img_p1.en < img_m1.en) {
-                tau = tau_p_hat * dS_min + tau_m_hat * dS_max;
+                tau = tau_p * dS_min + tau_m * dS_max;
             } else {
                 throw std::runtime_error("Something unusual has happened in energies");
             }
-            tau /= xt::norm_l2(tau)();
         }
+        double tau_norm = xt::norm_l2(tau)();
+        autode::utils::assert_exc(tau_norm > 1e-8, "Length of tangent vector too small");
+        tau /= tau_norm;
 
         double pre_fac = (k_spr * tau_p_norm) - (k_spr * tau_m_norm);
         // final grad = grad - (grad . tau) tau - (pre_fac) tau
@@ -230,6 +237,8 @@ namespace autode {
         } else {
             this->fill_linear_interp();
         }
+
+        // TODO: Check if distance between initial and final is too small
     }
 
     void NEB::fill_linear_interp() {
@@ -262,6 +271,14 @@ namespace autode {
             this->add_img_at(right_idx - 1, right_idx);
             right_idx--;
             n_added++;
+        }
+
+        // Debug: print the distances between all images
+        if (idpp_config::debug_pr) {
+            for (int k = 0; k < n_images - 1; k++) {
+                double dist = xt::norm_l2(images.at(k).coords - images.at(k + 1).coords)();
+                std::cout << "Distance between " << k << " and " << k + 1 << " is " << dist << "\n";
+            }
         }
     }
 
