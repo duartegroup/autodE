@@ -98,8 +98,7 @@ namespace autode {
 
         double pre_fac = (k_spr * tau_p_norm) - (k_spr * tau_m_norm);
         // final grad = grad - (grad . tau) tau - (pre_fac) tau
-        double g_dot_t = xt::sum(grad * tau)();
-        grad = grad - (g_dot_t * tau) - (pre_fac * tau);
+        grad = grad - (autode::utils::dot(grad, tau) * tau) - (pre_fac * tau);
     }
 
     double Image::rms_g() const {
@@ -507,7 +506,7 @@ namespace autode {
         /* Take a single optimizer step */
         if (iter == 0) {
             this->calc_sd_step();
-        } else if ((en - last_en) / last_en > 5e-2) {  // allow 5% rise in energy
+        } else if ((en - last_en) / last_en > 2e-2) {  // allow 2% rise in energy
             this->backtrack();
             n_backtrack++;
             if (n_backtrack > 8) throw std::runtime_error(
