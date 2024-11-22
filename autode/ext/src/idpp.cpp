@@ -22,7 +22,7 @@ namespace autode {
     // Global config variables accessible to python
     namespace idpp_config {
         bool debug_pr = true;  // whether to print debug messages or not
-        double add_img_tol = 1.e-3;  // RMSG tolerance for adding image
+        double add_img_tol = 5.e-4;  // RMSG tolerance for adding image
         double rms_gtol = 5.e-4;  // RMSG tolerance for total path
         int lbfgs_maxvecs = 10;  // Max. number of update vectors
         int add_img_maxiter = 50;  // Max iterations for each image adding step

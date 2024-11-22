@@ -12,8 +12,8 @@ class IDPP:
         n_images: int,
         sequential: bool = True,
         k_spr: float = 1.0,
-        rms_gtol = 5e-4,
-        maxiter = 2000,
+        rms_gtol: float = 5e-4,
+        maxiter: int = 2000,
     ):
         """
         Initialise an IDPP calculation
