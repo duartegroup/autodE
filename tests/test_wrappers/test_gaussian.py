@@ -204,13 +204,17 @@ def test_gauss_optts_calc():
     assert bond_added
 
     test_mol.calc_thermo(calc=calc, ss="1atm", lfm_method="igm")
-
     assert calc.terminated_normally
     assert calc.optimiser.converged
-    assert len(test_mol.imaginary_frequencies) == 1
+    assert test_mol.imaginary_frequencies is not None
 
-    assert -40.324 < test_mol.free_energy < -40.322
-    assert -40.301 < test_mol.enthalpy < -40.298
+    # NOTE: autodE does not remove eigenmodes that are not
+    # well zeroed from projected hessian. This is in contrast to
+    # other electronic structure codes
+    assert len(test_mol.imaginary_frequencies) == 2
+
+    assert -40.324 < test_mol.free_energy < -40.320
+    assert -40.300 < test_mol.enthalpy < -40.297
 
 
 def test_bad_gauss_output():

@@ -3,6 +3,7 @@ import pytest
 import pickle
 import numpy as np
 import autode as ade
+from scipy.stats import special_ortho_group
 from autode.utils import work_in_tmp_dir, ProcessPool
 from . import testutils
 import multiprocessing as mp
@@ -588,15 +589,13 @@ def test_nwchem_hessian_co2():
         keywords=ade.HessianKeywords(),
     )
     calc.set_output_filename("CO2_hess_nwchem.out")
-    print(co2.hessian)
-    print(co2.hessian._mass_weighted)
     assert_correct_co2_frequencies(
         hessian=co2.hessian, expected=(659.76, 1406.83, 2495.73)
     )
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
-def test_imag_mode():
+def test_sn2_imag_mode():
     """
     Ensure the imaginary mode for an SN2 reaction is close to that obtained
     from ORCA by checking forwards (f) and backwards (b) displaced geometries
@@ -917,3 +916,43 @@ def test_hessian_pickle_and_unpickle():
 
     assert reloaded_hessian.shape == (3 * mol.n_atoms, 3 * mol.n_atoms)
     assert reloaded_hessian.atoms == mol.atoms
+
+
+def test_hessian_proj_freqs_acetylene():
+    # fmt: off
+    raw_hessian = np.array([
+        [5.5863, -0.0, -0.0, -4.1043, 0.0, 0.0, -1.5072, 0.0, 0.0, 0.0252, 0.0, 0.0],
+        [-0.0, 0.1913, 0.0, 0.0, -0.115, 0.0, 0.0, -0.0932, 0.0, 0.0, 0.017, 0.0],
+        [-0.0, 0.0, 0.1913, 0.0, 0.0, -0.115, 0.0, 0.0, -0.0932, 0.0, 0.0, 0.017],
+        [-4.1043, 0.0, 0.0, 5.5805, -0.0, -0.0, 0.0253, 0.0, 0.0, -1.5014, 0.0, 0.0],
+        [0.0, -0.115, 0.0, -0.0, 0.192, 0.0, 0.0, 0.017, 0.0, 0.0, -0.094, 0.0],
+        [0.0, 0.0, -0.115, -0.0, 0.0, 0.192, 0.0, 0.0, 0.017, 0.0, 0.0, -0.094],
+        [-1.5072, 0.0, 0.0, 0.0253, 0.0, 0.0, 1.4822, -0.0, -0.0, -0.0003, 0.0, 0.0],
+        [0.0, -0.0932, 0.0, 0.0, 0.017, 0.0, -0.0, 0.0579, 0.0, 0.0, 0.0183, 0.0],
+        [0.0, 0.0, -0.0932, 0.0, 0.0, 0.017, -0.0, 0.0, 0.0579, 0.0, 0.0, 0.0183],
+        [0.0252, 0.0, 0.0, -1.5014, 0.0, 0.0, -0.0003, 0.0, 0.0, 1.4765, -0.0, -0.0],
+        [0.0, 0.017, 0.0, 0.0, -0.094, 0.0, 0.0, 0.0183, 0.0, -0.0, 0.0587, 0.0],
+        [0.0, 0.0, 0.017, 0.0, 0.0, -0.094, 0.0, 0.0, 0.0183, -0.0, 0.0, 0.0587]
+    ])
+    # fmt: on
+    atoms = Atoms(
+        [
+            Atom("C", 0.0000, 0.0000, -0.6043),
+            Atom("C", 0.0000, 0.0000, 0.6042),
+            Atom("H", 0.0000, 0.0000, -1.6791),
+            Atom("H", 0.0000, 0.0000, 1.6797),
+        ]
+    )
+
+    for _ in range(100):
+        h = Hessian(atoms=atoms, input_array=raw_hessian)
+        freqs = h.frequencies_proj
+        assert len([v for v in freqs if abs(v.to("cm-1")) < 10.0]) == 5
+        assert (
+            len([v for v in freqs if np.isclose(v.to("cm-1"), 694.4, atol=1)])
+            == 2
+        )
+        assert len([v for v in freqs if 10 < v.to("cm-1") < 600]) == 0
+
+        rotation_matrix = special_ortho_group.rvs(3)
+        atoms.coordinates = np.dot(rotation_matrix, atoms.coordinates.T).T
