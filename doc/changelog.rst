@@ -12,6 +12,7 @@ Functionality improvements
 Bug Fixes
 *********
 - Fixes coordinate extraction in some G16 output files
+- Fixes the projected frequency calculation to make it rotation invariant by not discarding non-zeroed modes from the projected Hessian
 
 
 1.4.4

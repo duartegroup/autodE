@@ -15,7 +15,6 @@ from typing import (
     Union,
     TYPE_CHECKING,
 )
-
 from autode.wrappers.keywords import Functional, GradientKeywords
 from autode.log import logger
 from autode.config import Config
@@ -171,11 +170,7 @@ class Hessian(ValueArray):
             t5 += np.cross(e_y, r).tolist()
             t6 += np.cross(e_z, r).tolist()
 
-        t4 = np.array(t4)
-        t5 = np.array(t5)
-        t6 = np.array(t6)
-
-        return t1, t2, t3, t4, t5, t6
+        return t1, t2, t3, np.array(t4), np.array(t5), np.array(t6)
 
     @cached_property
     def _proj_matrix(self) -> np.ndarray:
