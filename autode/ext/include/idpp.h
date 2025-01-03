@@ -1,7 +1,7 @@
 #ifndef ADE_EXT_IDPP_H
 #define ADE_EXT_IDPP_H
 
-#include "xtensor/xtensor.hpp"
+#include "arrayhelper.hpp"
 #include "utils.h"
 
 namespace autode
