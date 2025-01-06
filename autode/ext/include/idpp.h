@@ -1,6 +1,7 @@
 #ifndef ADE_EXT_IDPP_H
 #define ADE_EXT_IDPP_H
 
+#include <vector>
 #include "arrayhelper.hpp"
 #include "utils.h"
 
@@ -14,15 +15,23 @@ namespace autode
         int n_atoms; // number of atoms
 
     public:
-        xt::xtensor<double, 1> coords;  // coordinates
-        xt::xtensor<double, 1> grad;  // gradients
+        arrx::array1d coords;  // coordinates
+        arrx::array1d grad;  // gradients
         double en = 0.0;  // energy
+        double k_spr;  // force constant
 
         Image() = default;
 
-        Image(int num_atoms);
+        explicit Image(int num_atoms, double k);
 
-        void update_neb_force(const Image& img_m1, const Image& img_p1, double k_spr);
+        double get_tau_k_fac(arrx::array1d& tau,
+                             const Image& img_m1,
+                             const Image& img_p1,
+                             const bool force_lc) const;
+
+        void update_neb_grad(const Image& img_m1,
+                             const Image& img_p1,
+                             bool force_lc);
 
         double rms_g() const;
     };
@@ -33,81 +42,92 @@ namespace autode
     private:
         int n_atoms;  // Total number of atoms
         int n_images;  // Total number of images
-        std::vector<xt::xtensor<double, 1>> all_target_ds; // interpolated bond distances
+        std::vector<arrx::array1d> all_target_ds; // interpolated bond distances
 
     public:
         IDPPPotential() = default;
 
-        IDPPPotential(const xt::xtensor<double, 1>& init_coords,
-                    const xt::xtensor<double, 1>& final_coords,
-                    const int num_images);
+        explicit IDPPPotential(const arrx::array1d& init_coords,
+                               const arrx::array1d& final_coords,
+                               const int num_images);
 
         void calc_idpp_engrad(const int idx, Image& img) const;
     };
 
     class NEB {
-        /* A NEB calculation for interpolation, holding images and a potential */
+        /* A NEB calculation for interpolation, holding images and potential */
 
     private:
         int n_images;  // total number of images
         int n_atoms;  // total number of atoms
 
     public:
+        struct frontier_pair {
+            int left, right;
+        } frontier;  // frontier image indices
+        bool images_prepared = false; // are images filled in?
+
         std::vector<Image> images;  // Set of images
         double k_spr;  // base spring constant
         IDPPPotential idpp_pot;  // the idpp potential
 
-        NEB(const xt::xtensor<double, 1>& init_coords,
-            const xt::xtensor<double, 1>& final_coords,
+        NEB(arrx::array1d&& init_coords,
+            arrx::array1d&& final_coords,
             double k_spr,
-            int num_images,
-            bool sequential);
+            int num_images);
 
         void fill_linear_interp();
 
         void fill_sequentially();
 
-        void add_img_at(const int idx, const int neighbour_idx);
+        double get_d_id() const;
 
-        void add_right(const int left_idx, const int right_idx);
+        double get_k_mid() const;
 
-        void add_left(const int left_idx, const int right_idx);
+        void reset_k_spr();
 
-        void get_en_grad(double& en, xt::xtensor<double, 1>& flat_grad);
+        void get_engrad(double& en, arrx::array1d& grad) const;
 
-        void get_coords(xt::xtensor<double, 1>& flat_coords);
+        void get_frontier_engrad(double& en, arrx::array1d& grad) const;
 
-        void set_coords(const xt::xtensor<double, 1>& flat_coords);
+        void get_coords(arrx::array1d& coords) const;
 
-        void update_en_grad();
+        void get_frontier_coords(arrx::array1d& coords) const;
 
-        void minimise();
+        void set_coords(const arrx::array1d& coords);
+
+        void set_frontier_coords(const arrx::array1d& coords);
+
+        void update_engrad();
+
+        void update_frontier_engrad();
+
+        void add_first_two_images();
+
+        void add_image_next_to(const int idx);
     };
 
-    class LBFGSMinimiser {
-        /* A class that minimiser energy using low memory BFGS */
+    /* Barzilai-Borwein algorithm for minimisation */
+    class BBMinimiser {
 
     private:
-        int iter = 0;
+        int iter = 0;  // current number of iterations
         int maxiter;  // maximum number of iterations
         int n_backtrack = 0;  // number of backtracks
-        double rms_gtol;  // gradient tolerance
+        double rmsgtol;  // gradient tolerance
 
-        // memory of coords and grad updates
-        autode::utils::Deque_Py<xt::xtensor<double, 1>> s_ks, y_ks;
-        xt::xtensor<double, 1> step;  // to store the step
-
-        const double lbfgs_maxstep = 0.05;  // maximum step size for lbfgs
-        const double sd_maxstep = 0.01;  // maximum step size for initial step
+        const double bb_maxstep = 0.02; // max step size for BB
+        const double sd_maxstep = 0.01; // max step size for SD
 
     public:
-        xt::xtensor<double, 1> coords, last_coords;  // coordinates of the current and last step
-        xt::xtensor<double, 1> grad, last_grad;  // gradients of the current and last step
-        double en, last_en;  // energies of the current and last step
+        arrx::array1d coords, last_coords;  // current & last coordinates
+        arrx::array1d grad, last_grad;  // current & last gradients
+        double en, last_en;  // current & last energies
+        arrx::array1d step;
 
-        LBFGSMinimiser(int maxiter, double rms_gtol, int max_vecs);
+        explicit BBMinimiser(int max_iter, double rms_gtol);
 
-        void calc_lbfgs_step();
+        void calc_bb_step();
 
         void calc_sd_step();
 
@@ -115,21 +135,21 @@ namespace autode
 
         void take_step();
 
-        void minimise_img(Image& img, const int idx, const IDPPPotential& idpp_pot);
+        int min_frontier(NEB& neb, const NEB::frontier_pair idxs);
 
         void minimise_neb(NEB& neb);
     };
 
     void calculate_idpp_path(double* init_coords_ptr,
-                            double* final_coords_ptr,
-                            int coords_len,
-                            int n_images,
-                            double k_spr,
-                            bool sequential,
-                            double* all_coords_ptr,
-                            bool debug,
-                            double gtol,
-                            int maxiter);
+                             double* final_coords_ptr,
+                             int coords_len,
+                             int n_images,
+                             double k_spr,
+                             bool sequential,
+                             double* all_coords_ptr,
+                             bool debug,
+                             double gtol,
+                             int maxiter);
 }
 
 #endif // ADE_EXT_IDPP_H

@@ -51,20 +51,6 @@ namespace autode{
             return static_cast<int>(result);
 
         }
-
-        void assert_exc(const bool condition, const std::string& message) {
-            /* Check an assertion and raise an exception if it is not true
-             *
-             *  Arguments:
-             *
-             *    condition: The condition to check
-             *
-             *    message: The message in the exception if condition is false
-             */
-            if (!condition) {
-                throw std::runtime_error(message);
-            }
-        }
     }
 }
 
