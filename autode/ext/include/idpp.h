@@ -33,7 +33,7 @@ namespace autode
                              const Image& img_p1,
                              bool force_lc);
 
-        double rms_g() const;
+        double max_g() const;
     };
 
     class IDPPPotential {
@@ -57,11 +57,10 @@ namespace autode
     class NEB {
         /* A NEB calculation for interpolation, holding images and potential */
 
-    private:
+    public:
         int n_images;  // total number of images
         int n_atoms;  // total number of atoms
 
-    public:
         struct frontier_pair {
             int left, right;
         } frontier;  // frontier image indices
@@ -69,7 +68,6 @@ namespace autode
 
         std::vector<Image> images;  // Set of images
         double k_spr;  // base spring constant
-        IDPPPotential idpp_pot;  // the idpp potential
 
         NEB(arrx::array1d&& init_coords,
             arrx::array1d&& final_coords,
@@ -78,7 +76,7 @@ namespace autode
 
         void fill_linear_interp();
 
-        void fill_sequentially();
+        void fill_sequentially(const IDPPPotential& pot);
 
         double get_d_id() const;
 
@@ -98,10 +96,6 @@ namespace autode
 
         void set_frontier_coords(const arrx::array1d& coords);
 
-        void update_engrad();
-
-        void update_frontier_engrad();
-
         void add_first_two_images();
 
         void add_image_next_to(const int idx);
@@ -114,7 +108,6 @@ namespace autode
         int iter = 0;  // current number of iterations
         int maxiter;  // maximum number of iterations
         int n_backtrack = 0;  // number of backtracks
-        double rmsgtol;  // gradient tolerance
 
         const double bb_maxstep = 0.02; // max step size for BB
         const double sd_maxstep = 0.01; // max step size for SD
@@ -125,7 +118,7 @@ namespace autode
         double en, last_en;  // current & last energies
         arrx::array1d step;
 
-        explicit BBMinimiser(int max_iter, double rms_gtol);
+        explicit BBMinimiser(int max_iter);
 
         void calc_bb_step();
 
@@ -135,9 +128,11 @@ namespace autode
 
         void take_step();
 
-        int min_frontier(NEB& neb, const NEB::frontier_pair idxs);
+        int min_frontier(NEB& neb,
+                         const NEB::frontier_pair idxs,
+                         const IDPPPotential& pot);
 
-        void minimise_neb(NEB& neb);
+        void minimise_neb(NEB& neb, const IDPPPotential& pot);
     };
 
     void calculate_idpp_path(double* init_coords_ptr,
