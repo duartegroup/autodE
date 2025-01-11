@@ -1,7 +1,6 @@
 #ifndef ADE_EXT_UTILS_H
 #define ADE_EXT_UTILS_H
 
-#include <string>
 #include <stdexcept>
 
 

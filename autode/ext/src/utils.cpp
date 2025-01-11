@@ -1,6 +1,5 @@
 #include "utils.h"
 #include <cmath>
-#include <stdexcept>
 
 
 namespace autode{

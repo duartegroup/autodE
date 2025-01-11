@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(ade_ext)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 include_directories(include/)
 
 add_library(autode STATIC

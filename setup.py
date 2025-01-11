@@ -7,8 +7,8 @@ if platform.system() == "Windows":  # compile with Visual C/C++
     cpp_compile_args = ["-permissive-", "-O2"]
     cpp_link_args = []
 else:  # on Linux or MacOS
-    cpp_compile_args = ["-std=c++14", "-Wno-missing-braces", "-O3"]
-    cpp_link_args = ["-std=c++14"]
+    cpp_compile_args = ["-std=c++11", "-Wno-missing-braces", "-O3"]
+    cpp_link_args = ["-std=c++11"]
 
 extensions = [
     Extension("cconf_gen", ["autode/conformers/cconf_gen.pyx"]),
