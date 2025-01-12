@@ -218,6 +218,7 @@ namespace autode {
         // pointer to items of target_ds[idx]
         auto target_d_ptr = all_target_ds[idx].begin();  
 
+        arrx::array1d dist_vec;
         for (int atom_i = 0; atom_i < n_atoms; atom_i++) {
             for (int atom_j = 0; atom_j < n_atoms; atom_j++) {
                 if (atom_i >= atom_j) continue;
@@ -227,8 +228,7 @@ namespace autode {
                 auto coord_j = arrx::slice(
                     img.coords, atom_j * 3, atom_j * 3 + 3
                 );
-
-                arrx::array1d dist_vec = coord_i - coord_j;
+                arrx::noalias(dist_vec) = coord_i - coord_j;
                 double dist = arrx::norm_l2(dist_vec);
                 img.en += 1.0 / std::pow(dist, 4) 
                                 * std::pow(*target_d_ptr - dist, 2);
