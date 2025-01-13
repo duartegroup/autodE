@@ -29,7 +29,7 @@ namespace autode {
     namespace idpp_config {
         bool debug_pr = true;  // whether to print debug messages or not
         double add_img_maxgtol = 0.005;  // Max(g) tolerance for adding image
-        int add_img_maxiter = 50;  // Max iterations for each image adding step
+        int add_img_maxiter = 30;  // Max iterations for each image adding step
         double path_rmsgtol = 0.002; // RMS(g) tolerance for path
     }
 
@@ -772,5 +772,63 @@ namespace autode {
         for (int i = 0; i < req_dim; i++) {
             all_coords_ptr[i] = all_coords[i];
         }
+    }
+
+    double get_path_length(double *init_coords_ptr,
+                           double *final_coords_ptr,
+                           int coords_len, 
+                           int n_images, 
+                           double k_spr, 
+                           bool sequential,
+                           double gtol, 
+                           int maxiter) {
+        /* Calculate the path length for the IDPP path from the initial to
+         * final set of coordinates. Takes in pointer arrays (from numpy
+         * buffers) and returns the cumulative sum length.
+         * 
+         * Arguments:
+         *   init_coords_ptr: Pointer to the initial coordinates numpy array
+         *                    of shape (N,)
+         *
+         *   final_coords_ptr: Pointer to the final coordinates numpy array
+         *                    of shape (N,)
+         *
+         *   coords_len: Length of the coordinates for ONE image (N)
+         *
+         *   n_images: Number of images (K)
+         *
+         *   k_spr: Spring constant
+         *
+         *   sequential: Whether to build the path sequentially or not
+         *   
+         *   gtol: The RMS gradient tolerance for converging the path
+         * 
+         *   maxiter: The max number of iterations for converging the path
+         */
+        ensure(coords_len > 0 && n_images > 2 && k_spr > 0 && gtol > 0
+               && maxiter > 0, "Incorrect parameters supplied");
+
+        auto init_coords = arrx::array1d(init_coords_ptr, coords_len);
+        auto final_coords = arrx::array1d(final_coords_ptr, coords_len);
+
+        idpp_config::path_rmsgtol = gtol;
+        auto potential = IDPPPotential(init_coords, final_coords, n_images);
+
+        auto neb = NEB(
+            std::move(init_coords), std::move(final_coords), k_spr, n_images
+        );
+        if (sequential) {
+            neb.fill_sequentially(potential);
+        } else {
+            neb.fill_linear_interp();
+        }
+        auto opt = BBMinimiser(maxiter);
+        opt.minimise_neb(neb, potential);
+        
+        double dist;
+        for (int k = 0; k < n_images - 1; k++) {
+            dist += arrx::norm_l2(neb.images[k].coords - neb.images[k+1].coords);
+        }
+        return dist;
     }
 }

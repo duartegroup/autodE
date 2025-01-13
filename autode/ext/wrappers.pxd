@@ -106,3 +106,13 @@ cdef extern from "include/idpp.h" namespace "autode":
                              bool_t debug,
                              double gtol,
                              int maxiter) except +
+
+cdef extern from "include/idpp.h" namespace "autode":
+    double get_path_length(double *init_coords_ptr,
+                           double *final_coords_ptr,
+                           int coords_len, 
+                           int n_images, 
+                           double k_spr, 
+                           bool sequential,
+                           double gtol, 
+                           int maxiter) except +

@@ -144,6 +144,15 @@ namespace autode
                              bool debug,
                              double gtol,
                              int maxiter);
+
+    double get_path_length(double* init_coords_ptr,
+                         double* final_coords_ptr,
+                         int coords_len,
+                         int n_images,
+                         double k_spr,
+                         bool sequential,
+                         double gtol,
+                         int maxiter);
 }
 
 #endif // ADE_EXT_IDPP_H
