@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "arrayhelper.hpp"
-#include "utils.h"
 
 namespace autode
 {

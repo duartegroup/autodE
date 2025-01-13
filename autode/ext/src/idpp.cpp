@@ -5,9 +5,23 @@
 
 #include "arrayhelper.hpp"
 #include "idpp.h"
-#include "utils.h"
 
-using autode::utils::ensure;
+namespace {
+    inline void ensure(const bool condition, const char* message) {
+        /* Check an assertion and raise an exception if it is not true.
+         * Intended as a replacement for the C assert macro - which is
+         * always disabled by Cythons. Defined in an anonymous namespace
+         * as it is only used in this source file.
+         *
+         *  Arguments:
+         *
+         *    condition: The condition to check
+         *
+         *    message: The message in the exception if condition is false
+         */
+        if (! condition) throw std::runtime_error(message);
+    }
+}
 
 namespace autode {
 
