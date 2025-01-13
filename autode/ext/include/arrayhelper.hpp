@@ -256,7 +256,10 @@ namespace arrx {
 
     // is type array1d, ignoring const and reference?
     template <typename T>
-    constexpr bool is_1d_array_v = std::is_same<remove_cv_ref_t<T>, array1d>::value;
+    struct is_1d_array : std::integral_constant<
+                            bool,
+                            std::is_same<remove_cv_ref_t<T>, array1d>::value
+                        > {};
 
     template <typename>
     struct derived_array_expr : std::false_type {};
@@ -264,13 +267,6 @@ namespace arrx {
     template <typename T1, typename T2, operation op>
     struct derived_array_expr<array_expr<T1, T2, op>> : std::true_type {};
 
-    // is type array expression, ignoring const and reference?
-    template <typename T>
-    constexpr bool is_array_expr_v = derived_array_expr<remove_cv_ref_t<T>>::value;
-
-    // is type array or array expression i.e. array-like, ignoring const and ref?
-    template <typename T>
-    constexpr bool array_or_expr_v = is_1d_array_v<T> || is_array_expr_v<T>;
 
     /* Implement array slicing */
 
@@ -282,7 +278,7 @@ namespace arrx {
         size_t begin;
         size_t len;
 
-        static_assert(is_1d_array_v<T>, "Only arrays can be sliced!");
+        static_assert(is_1d_array<T>::value, "Only arrays can be sliced!");
         static_assert(!std::is_same<T, array1d>::value, "Temporary arrays can not be sliced");
 
     public:
@@ -342,7 +338,7 @@ namespace arrx {
     };
     
 
-    template<typename T, typename std::enable_if<is_1d_array_v<T>, int>::type = 0>
+    template<typename T, typename std::enable_if<is_1d_array<T>::value, int>::type = 0>
     inline slice_wrapper<T> slice(T&& arr, size_t start, size_t end) {
         return slice_wrapper<T>(std::forward<T>(arr), start, end);
     }
@@ -351,21 +347,24 @@ namespace arrx {
     template <typename>
     struct derived_array_slice : std::false_type {};
 
+    // is type array slice
     template <typename T>
     struct derived_array_slice<slice_wrapper<T>> : std::true_type {};
 
-    // is type array slice
-    template <typename T>
-    constexpr bool is_array_slice_v = derived_array_slice<remove_cv_ref_t<T>>::value;
-
     // is type array, array-expr, or array slice?
     template <typename T>
-    constexpr bool is_array_like_v = array_or_expr_v<T> || is_array_slice_v<T>;
+    struct is_array_like : std::integral_constant<
+                bool,
+                is_1d_array<T>::value ||
+                derived_array_expr<remove_cv_ref_t<T>>::value ||
+                derived_array_slice<remove_cv_ref_t<T>>::value
+            > {};
 
 
     template<typename T1, typename T2>
-    inline typename std::enable_if<is_array_like_v<T1> && is_array_like_v<T2>, double>::type 
-    dot(const T1& vec1, const T2& vec2) {
+    inline typename std::enable_if<
+        is_array_like<T1>::value && is_array_like<T2>::value, double
+    >::type dot(const T1& vec1, const T2& vec2) {
         /* Calculate the vector dot product */
         size_t dim = vec1.size();
         match_size(dim, vec2.size());
@@ -377,8 +376,9 @@ namespace arrx {
     }
 
     template<typename T>
-    inline typename std::enable_if<is_array_like_v<T>, double>::type
-    norm_l2(const T& vec) {
+    inline typename std::enable_if<
+        is_array_like<T>::value, double
+    >::type norm_l2(const T& vec) {
         /* Calculate the vector L2 norm */
         size_t dim = vec.size();
         double sum_sq = 0.0;
@@ -389,16 +389,18 @@ namespace arrx {
     }
 
     template<typename T>
-    inline typename std::enable_if<is_array_like_v<T>, double>::type
-    rms_v(const T& vec) {
+    inline typename std::enable_if<
+        is_array_like<T>::value, double
+    >::type rms_v(const T& vec) {
         /* Calculate the RMS of vector */
         double sqrt_dim = std::sqrt(static_cast<double>(vec.size()));
         return norm_l2(vec) / sqrt_dim;
     }
 
     template<typename T>
-    inline typename std::enable_if<is_array_like_v<T>, double>::type
-    abs_max(const T& vec) {
+    inline typename std::enable_if<
+        is_array_like<T>::value, double
+    >::type abs_max(const T& vec) {
         /* Calculate the maximum absolute value of vector */
         size_t dim = vec.size();
         if (dim < 1) throw std::invalid_argument("Empty vector supplied");
@@ -424,7 +426,7 @@ namespace arrx {
         explicit noalias_wrapper(array1d& array) : arr(array) {}
 
         template <typename T, 
-                  typename std::enable_if<is_array_like_v<T>, int>::type = 0>
+                  typename std::enable_if<is_array_like<T>::value, int>::type = 0>
         void operator=(const T& expr) {
             /* Assign assuming no aliasing */
             const size_t dim = expr.size();
@@ -440,23 +442,29 @@ namespace arrx {
 
     // is type double, ignoring const and ref?
     template <typename T>
-    constexpr bool is_double_v = std::is_same<double, remove_cv_ref_t<T>>::value;
+    struct is_double : std::integral_constant<
+                        bool,
+                        std::is_same<double, remove_cv_ref_t<T>>::value
+                    > {};
 
     // are operand types allowed for overloaded operators?
     template <typename T1, typename T2>
-    constexpr bool allowed_operands_v = (
-        (is_array_like_v<T1> && is_array_like_v<T2>) ||
-        (is_array_like_v<T1> && is_double_v<T2>) ||
-        (is_double_v<T1> && is_array_like_v<T2>)
-    );
+    struct allowed_operands : std::integral_constant<
+                    bool,
+                    (is_array_like<T1>::value && is_array_like<T2>::value) ||
+                    (is_array_like<T1>::value && is_double<T2>::value) ||
+                    (is_double<T1>::value && is_array_like<T2>::value)
+                > {};
 
     // strip const and ref from double and leave other types unchanged
     template <typename T>
-    using operand_transform_t = typename std::conditional<is_double_v<T>, double, T>::type;
+    using operand_transform_t = typename std::conditional<
+                                        is_double<T>::value, double, T
+                                    >::type;
 
     // enable template only if operands are valid
     template <typename X, typename Y>
-    using operator_enable_t = typename std::enable_if<allowed_operands_v<X,Y>, int>::type;
+    using operator_enable_t = typename std::enable_if<allowed_operands<X,Y>::value, int>::type;
 
     /* Binary operators */
 
@@ -493,7 +501,7 @@ namespace arrx {
     }
 
     /* Unary operators */
-    template <typename X, typename std::enable_if<is_array_like_v<X>, int>::type = 0>
+    template <typename X, typename std::enable_if<is_array_like<X>::value, int>::type = 0>
     inline array_expr<X, void, operation::negate> operator-(X&& var) {
         return array_expr<X, void, operation::negate>(std::forward<X>(var));
     }
