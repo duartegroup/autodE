@@ -318,7 +318,8 @@ namespace autode {
         int n_added = 4;
 
         while (n_added <= n_images) {
-            auto opt = BBMinimiser(idpp_config::add_img_maxiter);
+            auto opt = BBMinimiser(idpp_config::add_img_maxiter,
+                                    idpp_config::add_img_maxgtol);
             auto conv_idx = opt.min_frontier(*this, frontier, pot);
             if (n_added == n_images) break;
             this->add_image_next_to(conv_idx);
@@ -524,12 +525,16 @@ namespace autode {
         }
     }
 
-    BBMinimiser::BBMinimiser(int max_iter)
-    : maxiter(max_iter) {
+    BBMinimiser::BBMinimiser(int max_iter, double tol)
+    : maxiter(max_iter), gtol(tol) {
         /* Create a Barzilai-Borwein minimiser
          * 
          * Arguments:
          *   max_iter: Maximum number of iterations
+         *   tol: Tolerance criteria - for minimising frontier
+         *        images, this is the maximum component of the gradient
+         *        vector, for minimising NEB path, this is the RMS of
+         *        the total gradient
          */
     }
 
@@ -641,8 +646,8 @@ namespace autode {
                 std::cout << " Energies = (" << neb.images[idxs.left].en << 
                             " , " << neb.images[idxs.right].en << " RMS(g) = " 
                             << arrx::rms_v(grad) << "\n";
-            if (neb.images[idxs.left].max_g() < idpp_config::add_img_maxgtol
-               || neb.images[idxs.right].max_g() < idpp_config::add_img_maxgtol)
+            if (neb.images[idxs.left].max_g() < gtol
+                || neb.images[idxs.right].max_g() < gtol)
             {
                 break;
             }
@@ -684,7 +689,7 @@ namespace autode {
             auto curr_rms_g = arrx::rms_v(grad);
             if (idpp_config::debug_pr) std::cout << " Path energy = " << en
                                         << " RMS grad = " << curr_rms_g << "\n";
-            if (curr_rms_g < idpp_config::path_rmsgtol) break;
+            if (curr_rms_g < gtol) break;
             this->take_step();
             iter++;
             neb.set_coords(coords);
@@ -761,7 +766,7 @@ namespace autode {
         } else {
             neb.fill_linear_interp();
         }
-        auto opt = BBMinimiser(maxiter);
+        auto opt = BBMinimiser(maxiter, gtol);
         opt.minimise_neb(neb, potential);
 
         // copy the final coordinates to the output array
@@ -822,7 +827,7 @@ namespace autode {
         } else {
             neb.fill_linear_interp();
         }
-        auto opt = BBMinimiser(maxiter);
+        auto opt = BBMinimiser(maxiter, gtol);
         opt.minimise_neb(neb, potential);
         
         double dist;

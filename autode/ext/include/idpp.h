@@ -107,6 +107,7 @@ namespace autode
         int iter = 0;  // current number of iterations
         int maxiter;  // maximum number of iterations
         int n_backtrack = 0;  // number of backtracks
+        double gtol; // gradient tolerance criteria
 
         const double bb_maxstep = 0.02; // max step size for BB
         const double sd_maxstep = 0.01; // max step size for SD
@@ -117,7 +118,7 @@ namespace autode
         double en, last_en;  // current & last energies
         arrx::array1d step;
 
-        explicit BBMinimiser(int max_iter);
+        explicit BBMinimiser(int max_iter, double tol);
 
         void calc_bb_step();
 
@@ -132,6 +133,17 @@ namespace autode
                          const IDPPPotential& pot);
 
         void minimise_neb(NEB& neb, const IDPPPotential& pot);
+    };
+
+    /* A struct containing parameters used for IDPP */
+    struct idpp_params {
+        double k_spr;  // spring constant
+        bool sequential;  // whether sequential IDPP or not
+        bool debug;
+        double rmsgtol; // RMS gradient tolerance for path
+        int maxiter; // maxiter for path
+        double add_img_gtol; // Max gradient tol. for adding img
+        double add_img_maxiter; // maxiter for each image addition
     };
 
     void calculate_idpp_path(double* init_coords_ptr,

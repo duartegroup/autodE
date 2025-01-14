@@ -6,6 +6,34 @@ from autode.log import logger
 import logging
 from autode.ext.wrappers cimport calculate_idpp_path
 
+
+def get_interpolated_path(
+    init_coords: np.ndarray,
+    final_coords: np.ndarray,
+    n_images: int,
+    **kwargs,
+):
+    """
+    Obtain the interpolated path (using the IDPP method) from
+    the coordinates of the reactant and product states
+
+    Args:
+        init_coords (np.ndarray): Initial coordinates
+        final_coords (np.ndarray): Final coordinates
+        n_images (int): Number of images requested
+
+    Keyword Args:
+        sequential (bool): Whether to use the sequential IDPP
+        k_spr (float): The spring constant value
+        rms_gtol (float): The RMS gradient tolerance for the path
+        maxiter (int): Maximum number of iters for path
+        add_img_maxgtol (float): Max. gradient tolerance for adding
+                        new images (only for sequential)
+        add_img_maxiter (int): Max. number of iters for adding new
+                        images (only for sequential)
+    """
+    pass
+
 class IDPP:
     def __init__(
         self,
