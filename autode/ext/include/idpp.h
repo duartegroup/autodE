@@ -75,7 +75,9 @@ namespace autode
 
         void fill_linear_interp();
 
-        void fill_sequentially(const IDPPPotential& pot);
+        void fill_sequentially(const IDPPPotential& pot,
+                               const int add_maxiter,
+                               const double add_maxgtol);
 
         double get_d_id() const;
 
@@ -136,10 +138,10 @@ namespace autode
     };
 
     /* A struct containing parameters used for IDPP */
-    struct idpp_params {
+    struct IdppParams {
         double k_spr;  // spring constant
         bool sequential;  // whether sequential IDPP or not
-        bool debug;
+        bool debug;  // whether to print debug messages
         double rmsgtol; // RMS gradient tolerance for path
         int maxiter; // maxiter for path
         double add_img_gtol; // Max gradient tol. for adding img

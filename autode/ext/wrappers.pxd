@@ -96,6 +96,16 @@ cdef extern from "include/dihedrals.h" namespace "autode":
                  int)              # Origin
 
 cdef extern from "include/idpp.h" namespace "autode":
+    cdef cppclass IdppParams:
+        double k_spr
+        bool_t sequential
+        bool_t debug
+        double rmsgtol
+        int maxiter
+        double add_img_gtol
+        double add_img_maxiter
+
+cdef extern from "include/idpp.h" namespace "autode":
     void calculate_idpp_path(double* init_coords_ptr,
                              double* final_coords_ptr,
                              int coords_len,
@@ -110,9 +120,9 @@ cdef extern from "include/idpp.h" namespace "autode":
 cdef extern from "include/idpp.h" namespace "autode":
     double get_path_length(double *init_coords_ptr,
                            double *final_coords_ptr,
-                           int coords_len, 
-                           int n_images, 
-                           double k_spr, 
+                           int coords_len,
+                           int n_images,
+                           double k_spr,
                            bool_t sequential,
-                           double gtol, 
+                           double gtol,
                            int maxiter) except +
