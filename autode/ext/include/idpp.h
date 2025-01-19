@@ -144,7 +144,7 @@ namespace autode
         bool debug;  // whether to print debug messages
         double rmsgtol; // RMS gradient tolerance for path
         int maxiter; // maxiter for path
-        double add_img_gtol; // Max gradient tol. for adding img
+        double add_img_maxgtol; // Max gradient tol. for adding img
         double add_img_maxiter; // maxiter for each image addition
     };
 
@@ -152,21 +152,14 @@ namespace autode
                              double* final_coords_ptr,
                              int coords_len,
                              int n_images,
-                             double k_spr,
-                             bool sequential,
                              double* all_coords_ptr,
-                             bool debug,
-                             double gtol,
-                             int maxiter);
+                             IdppParams params);
 
     double get_path_length(double* init_coords_ptr,
                          double* final_coords_ptr,
                          int coords_len,
                          int n_images,
-                         double k_spr,
-                         bool sequential,
-                         double gtol,
-                         int maxiter);
+                         IdppParams params);
 }
 
 #endif // ADE_EXT_IDPP_H

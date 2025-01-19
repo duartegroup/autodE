@@ -4,7 +4,7 @@
 import numpy as np
 from autode.log import logger
 import logging
-from autode.ext.wrappers cimport calculate_idpp_path
+from autode.ext.wrappers cimport calculate_idpp_path, IdppParams
 
 
 def get_interpolated_path(
@@ -105,16 +105,22 @@ class IDPP:
 
         debug_print = logger.isEnabledFor(logging.DEBUG)
 
+        cdef IdppParams params
+        params.k_spr = self._k_spr
+        params.sequential = self._sequential
+        params.debug = debug_print
+        params.maxiter = self._maxiter
+        params.rmsgtol = self._rms_gtol
+        # TODO: make the parameters configurable
+        params.add_img_maxiter = 40
+        params.add_img_maxgtol = 0.005
+
         calculate_idpp_path(
             &init_view[0],
             &final_view[0],
             int(coords_len),
             self._n_images,
-            self._k_spr,
-            self._sequential,
             &img_coords_view[0],
-            bool(debug_print),
-            self._rms_gtol,
-            self._maxiter,
+            params,
         )
         return img_coordinates

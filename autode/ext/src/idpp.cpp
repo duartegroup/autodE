@@ -706,12 +706,8 @@ namespace autode {
                             double* final_coords_ptr,
                             int coords_len,
                             int n_images,
-                            double k_spr,
-                            bool sequential,
                             double* all_coords_ptr,
-                            bool debug,
-                            double gtol,
-                            int maxiter) {
+                            IdppParams params) {
         /* Calculate the IDPP path from initial to final coordinates. This takes
          * in the coordinates as pointers to the beginning of numpy arrays, and
          * therefore must be provided contiguous arrays. Additionally, the
@@ -744,15 +740,15 @@ namespace autode {
          *   maxiter: The max number of iterations for converging the path
          */
 
-        ensure(coords_len > 0 && n_images > 2 && k_spr > 0 && gtol > 0
-               && maxiter > 0, "Incorrect parameters supplied");
+        ensure(coords_len > 0 && n_images > 2 && params.k_spr > 0
+               && params.rmsgtol > 0 && params.maxiter > 0,
+               "Incorrect parameters supplied");
 
         std::cout.setf(std::ios::fixed);
         std::cout.setf(std::ios::showpoint);
         std::cout.precision(5);
 
-        idpp_config::debug_pr = debug;
-        idpp_config::path_rmsgtol = gtol;
+        idpp_config::debug_pr = params.debug;
 
         auto init_coords = arrx::array1d(init_coords_ptr, coords_len);
         auto final_coords = arrx::array1d(final_coords_ptr, coords_len);
@@ -760,15 +756,16 @@ namespace autode {
         auto potential = IDPPPotential(init_coords, final_coords, n_images);
 
         auto neb = NEB(
-            std::move(init_coords), std::move(final_coords), k_spr, n_images
+            std::move(init_coords), std::move(final_coords),
+            params.k_spr, n_images
         );
-        if (sequential) {
+        if (params.sequential) {
             neb.fill_sequentially(potential, idpp_config::add_img_maxiter,
                                   idpp_config::add_img_maxgtol);
         } else {
             neb.fill_linear_interp();
         }
-        auto opt = BBMinimiser(maxiter, gtol);
+        auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
         opt.minimise_neb(neb, potential);
 
         // copy the final coordinates to the output array
@@ -785,10 +782,7 @@ namespace autode {
                            double *final_coords_ptr,
                            int coords_len,
                            int n_images,
-                           double k_spr,
-                           bool sequential,
-                           double gtol,
-                           int maxiter) {
+                           IdppParams params) {
         /* Calculate the path length for the IDPP path from the initial to
          * final set of coordinates. Takes in pointer arrays (from numpy
          * buffers) and returns the cumulative sum length.
@@ -812,25 +806,26 @@ namespace autode {
          *
          *   maxiter: The max number of iterations for converging the path
          */
-        ensure(coords_len > 0 && n_images > 2 && k_spr > 0 && gtol > 0
-               && maxiter > 0, "Incorrect parameters supplied");
+        ensure(coords_len > 0 && n_images > 2 && params.k_spr > 0
+               && params.rmsgtol > 0 && params.maxiter > 0,
+                "Incorrect parameters supplied");
 
         auto init_coords = arrx::array1d(init_coords_ptr, coords_len);
         auto final_coords = arrx::array1d(final_coords_ptr, coords_len);
 
-        idpp_config::path_rmsgtol = gtol;
         auto potential = IDPPPotential(init_coords, final_coords, n_images);
 
         auto neb = NEB(
-            std::move(init_coords), std::move(final_coords), k_spr, n_images
+            std::move(init_coords), std::move(final_coords),
+            params.k_spr, n_images
         );
-        if (sequential) {
-            neb.fill_sequentially(potential, idpp_config::add_img_maxiter,
-                                  idpp_config::add_img_maxgtol);
+        if (params.sequential) {
+            neb.fill_sequentially(potential, params.add_img_maxiter,
+                                  params.add_img_maxgtol);
         } else {
             neb.fill_linear_interp();
         }
-        auto opt = BBMinimiser(maxiter, gtol);
+        auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
         opt.minimise_neb(neb, potential);
 
         double dist;
