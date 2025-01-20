@@ -7,9 +7,45 @@ import logging
 from autode.ext.wrappers cimport calculate_idpp_path, IdppParams
 
 
+cdef IdppParams handle_kwargs(kwargs):
+    """
+    Obtain an IdppParams object from keyword arguments. Allowed keys in
+    the kwargs dictionary are
+        sequential (bool): Whether to use the sequential IDPP
+
+        k_spr (float): The spring constant value
+
+        rms_gtol (float): The RMS gradient tolerance for the path
+
+        maxiter (int): Maximum number of iters for path
+
+        add_img_maxgtol (float): Max. gradient tolerance for adding
+                         new images (only for sequential)
+
+        add_img_maxiter (int): Max. number of iters for adding new
+                         images (only for sequential)
+
+    Args:
+        kwargs (dict): Dictionary of keyword arguments.
+
+    Returns:
+        (IdppParams):
+    """
+    cdef IdppParams calc_params
+    calc_params.k_spr = kwargs.get('k_spr', 1.0)
+    calc_params.sequential = kwargs.get('sequential', True)
+    calc_params.debug = kwargs.get('debug', False)
+    calc_params.rmsgtol = kwargs.get('rms_gtol', 2e-3)
+    calc_params.maxiter = kwargs.get('maxiter', 1000)
+    calc_params.add_img_maxgtol = kwargs.get('add_img_maxgtol', 0.005)
+    calc_params.add_img_maxiter = kwargs.get('add_img_maxiter', 30)
+    return calc_params
+
+
+
 def get_interpolated_path(
-    init_coords: np.ndarray,
-    final_coords: np.ndarray,
+    init_coords,
+    final_coords,
     n_images: int,
     **kwargs,
 ):
@@ -31,8 +67,33 @@ def get_interpolated_path(
                         new images (only for sequential)
         add_img_maxiter (int): Max. number of iters for adding new
                         images (only for sequential)
+
+    Returns:
+        (np.ndarray): Numpy array of coordinates of the
+                    intermediate images in the path
     """
-    pass
+    if init_coords.shape != final_coords.shape:
+        raise ValueError("Coordinates must have the same shape")
+
+
+    # access raw memory block of the arrays
+    init_coords = np.ascontiguousarray(
+        init_coords.ravel(), dtype=np.double
+    )
+    final_coords = np.ascontiguousarray(
+        final_coords.ravel(), dtype=np.double
+    )
+    cdef double [:] init_view = init_coords
+    cdef double [:] final_view = final_coords
+
+    coords_len = init_coords.shape[0]
+    interm_img_coordinates = np.zeros(
+        shape=((n_images - 2) * coords_len,),
+        order="C",
+        dtype=np.double
+    )
+    cdef double [:] img_coords_view = interm_img_coordinates
+    cdef IdppParams params = handle_kwargs(kwargs)
 
 class IDPP:
     def __init__(
