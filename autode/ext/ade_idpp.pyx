@@ -4,10 +4,10 @@
 import numpy as np
 from autode.log import logger
 import logging
-from autode.ext.wrappers cimport calculate_idpp_path, IdppParams
+from autode.ext.wrappers cimport calculate_idpp_path, IdppParams, get_path_length
 
 
-cdef IdppParams handle_kwargs(kwargs):
+cdef IdppParams handle_kwargs(kwargs) except *:
     """
     Obtain an IdppParams object from keyword arguments. Allowed keys in
     the kwargs dictionary are

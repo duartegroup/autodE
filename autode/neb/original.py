@@ -17,7 +17,7 @@ from autode.utils import work_in, ProcessPool
 from autode.config import Config
 from scipy.optimize import minimize
 from autode.values import Distance, PotentialEnergy, ForceConstant
-from ade_idpp import IDPP
+from autode.neb.idpp import IDPP
 
 if TYPE_CHECKING:
     from autode.wrappers.methods import Method
@@ -26,12 +26,9 @@ if TYPE_CHECKING:
 
 def energy_gradient(image, method, n_cores):
     """Calculate energies and gradients for an image using a EST method"""
-
+    # TODO: refactor this function
     if isinstance(method, Method):
         return _est_energy_gradient(image, method, n_cores)
-
-    elif isinstance(method, IDPP):
-        return _idpp_energy_gradient(image, method, n_cores)
 
     raise ValueError(
         f"Cannot calculate energy and gradient with {method}."
@@ -54,32 +51,6 @@ def _est_energy_gradient(image, est_method, n_cores):
         calc.run()
 
     run()
-    return image
-
-
-def _idpp_energy_gradient(
-    image: "Image",
-    idpp: IDPP,
-    n_cores: int,
-) -> "Image":
-    """
-    Evaluate the energy and gradient of an image using an image dependent
-    pair potential IDDP instance and set the energy and gradient on the image
-
-    ---------------------------------------------------------------------------
-    Arguments:
-        image: Image in the NEB
-
-        idpp: Instance
-
-        n_cores: *UNUSED*
-
-    Returns:
-        (autode.neb.original.Image): Image
-    """
-    image.energy = idpp(image)
-    image.gradient = idpp.grad(image)
-
     return image
 
 
@@ -752,7 +723,7 @@ class NEB:
             :py:meth:`IDPP <autode.neb.idpp.IDPP.__init__>`
         """
         logger.info(f"Minimising NEB with IDPP potential")
-
+        """
         images = self.images.copy()
         images.min_k = images.max_k = ForceConstant(0.1, units="Ha / Å^2")
         idpp = IDPP(images=images)
@@ -777,6 +748,7 @@ class NEB:
         logger.info(f"IDPP minimisation successful: {result.success}")
 
         self.images.set_coords(result.x)
+        """
         return None
 
     def _max_atom_distance_between_images(

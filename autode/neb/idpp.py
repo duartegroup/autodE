@@ -28,11 +28,11 @@ class IDPP:
     def __init__(
         self,
         n_images: int,
-        sequential: bool = True,
         k_spr: float = 1.0,
+        sequential: bool = True,
         rms_gtol: float = 2e-3,
         maxiter: int = 1000,
-        add_img_maxgtol: float = 2e-3,
+        add_img_maxgtol: float = 6e-3,
         add_img_maxiter: int = 30,
     ):
         """
@@ -86,6 +86,31 @@ class IDPP:
             )
 
         return get_interpolated_path(
+            init_coords,
+            final_coords,
+            self._n_images,
+            sequential=self._sequential,
+            k_spr=self._k_spr,
+            rms_gtol=self._rms_gtol,
+            maxiter=self._maxiter,
+            add_img_maxgtol=self._add_img_maxgtol,
+            add_img_maxiter=self._add_img_maxiter,
+        )
+
+    def get_path_length(
+        self, init_coords: np.ndarray, final_coords: np.ndarray
+    ) -> float:
+        """
+        Get the length of the IDPP path between the intial and final coordinates
+
+        Args:
+            init_coords: Numpy array of initial coordinates
+            final_coords: Numpy array of final coordinates
+
+        Returns:
+            (float): Length of the IDPP path
+        """
+        return get_interp_path_length(
             init_coords,
             final_coords,
             self._n_images,
