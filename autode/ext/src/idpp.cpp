@@ -707,7 +707,7 @@ namespace autode {
                             int coords_len,
                             int n_images,
                             double* all_coords_ptr,
-                            IdppParams params) {
+                            const IdppParams& params) {
         /* Calculate the IDPP path from initial to final coordinates. This takes
          * in the coordinates as pointers to the beginning of numpy arrays, and
          * therefore must be provided contiguous arrays. Additionally, the
@@ -782,7 +782,7 @@ namespace autode {
                            double *final_coords_ptr,
                            int coords_len,
                            int n_images,
-                           IdppParams params) {
+                           const IdppParams& params) {
         /* Calculate the path length for the IDPP path from the initial to
          * final set of coordinates. Takes in pointer arrays (from numpy
          * buffers) and returns the cumulative sum length.

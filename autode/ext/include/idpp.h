@@ -153,13 +153,13 @@ namespace autode
                              int coords_len,
                              int n_images,
                              double* all_coords_ptr,
-                             IdppParams params);
+                             const IdppParams& params);
 
     double get_path_length(double* init_coords_ptr,
                          double* final_coords_ptr,
                          int coords_len,
                          int n_images,
-                         IdppParams params);
+                         const IdppParams& params);
 }
 
 #endif // ADE_EXT_IDPP_H

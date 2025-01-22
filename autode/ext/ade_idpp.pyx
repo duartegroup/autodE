@@ -34,11 +34,15 @@ cdef IdppParams handle_kwargs(kwargs):
     cdef IdppParams calc_params
     calc_params.k_spr = kwargs.get('k_spr', 1.0)
     calc_params.sequential = kwargs.get('sequential', True)
-    calc_params.debug = kwargs.get('debug', False)
     calc_params.rmsgtol = kwargs.get('rms_gtol', 2e-3)
     calc_params.maxiter = kwargs.get('maxiter', 1000)
     calc_params.add_img_maxgtol = kwargs.get('add_img_maxgtol', 0.005)
     calc_params.add_img_maxiter = kwargs.get('add_img_maxiter', 30)
+
+    # change the debug option according to current logging level
+    debug_print = logger.isEnabledFor(logging.DEBUG)
+    calc_params.debug = debug_print
+
     return calc_params
 
 
@@ -75,7 +79,6 @@ def get_interpolated_path(
     if init_coords.shape != final_coords.shape:
         raise ValueError("Coordinates must have the same shape")
 
-
     # access raw memory block of the arrays
     init_coords = np.ascontiguousarray(
         init_coords.ravel(), dtype=np.double
@@ -94,6 +97,69 @@ def get_interpolated_path(
     )
     cdef double [:] img_coords_view = interm_img_coordinates
     cdef IdppParams params = handle_kwargs(kwargs)
+
+    calculate_idpp_path(
+        &init_view[0],
+        &final_view[0],
+        int(coords_len),
+        n_images,
+        &img_coords_view[0],
+        params,
+    )
+    return interm_img_coordinates
+
+def get_interp_path_length(
+    init_coords,
+    final_coords,
+    n_images: int,
+    **kwargs,
+):
+    """
+    Obtain the length of the interpolated path (using the IDPP method) from
+    the coordinates of the reactant and product states
+
+    Args:
+        init_coords (np.ndarray): Initial coordinates
+        final_coords (np.ndarray): Final coordinates
+        n_images (int): Number of images requested
+
+    Keyword Args:
+        sequential (bool): Whether to use the sequential IDPP
+        k_spr (float): The spring constant value
+        rms_gtol (float): The RMS gradient tolerance for the path
+        maxiter (int): Maximum number of iters for path
+        add_img_maxgtol (float): Max. gradient tolerance for adding
+                        new images (only for sequential)
+        add_img_maxiter (int): Max. number of iters for adding new
+                        images (only for sequential)
+
+    Returns:
+        (float): Length of the interpolated path
+    """
+    if init_coords.shape != final_coords.shape:
+        raise ValueError("Coordinates must have the same shape")
+
+    # access raw memory block of the arrays
+    init_coords = np.ascontiguousarray(
+        init_coords.ravel(), dtype=np.double
+    )
+    final_coords = np.ascontiguousarray(
+        final_coords.ravel(), dtype=np.double
+    )
+    cdef double [:] init_view = init_coords
+    cdef double [:] final_view = final_coords
+    coords_len = init_coords.shape[0]
+
+    cdef IdppParams params = handle_kwargs(kwargs)
+
+    return get_path_length(
+        &init_view[0],
+        &final_view[0],
+        int(coords_len),
+        n_images,
+        params,
+    )
+
 
 class IDPP:
     def __init__(

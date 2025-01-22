@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from autode.log import logger
 import logging
 from autode.values import PotentialEnergy
+from ade_idpp import get_interpolated_path, get_interp_path_length
 
 if TYPE_CHECKING:
     from autode.neb.original import Image, Images
@@ -25,12 +26,14 @@ class IDPP:
     """
 
     def __init__(
-            self,
-            n_images: int,
-            sequential: bool = True,
-            k_spr: float = 1.0,
-            rms_gtol: float = 2e-3,
-            maxiter: int = 1000,
+        self,
+        n_images: int,
+        sequential: bool = True,
+        k_spr: float = 1.0,
+        rms_gtol: float = 2e-3,
+        maxiter: int = 1000,
+        add_img_maxgtol: float = 2e-3,
+        add_img_maxiter: int = 30,
     ):
         """
         Initialise an IDPP calculation
@@ -40,7 +43,9 @@ class IDPP:
             k_spr: The spring constant
             sequential: Whether to use sequential IDPP
             rms_gtol: RMS gradient tolerance for path
-            maxiter: Maximum number of LBFGS iterations
+            maxiter: Maximum number of iterations for path
+            add_img_maxgtol: Maximum gradient tolerance for adding images
+            add_img_maxiter: Maximum number of iterations for adding images
         """
         assert n_images > 2, "Must have more than 2 images"
         self._n_images = int(n_images)
@@ -51,11 +56,18 @@ class IDPP:
         self._rms_gtol = float(rms_gtol)
         assert maxiter > 0, "Maximum iterations must be positive"
         self._maxiter = int(maxiter)
+        assert (
+            add_img_maxgtol > 0
+        ), "Add image gradient tolerance must be positive"
+        self._add_img_maxgtol = float(add_img_maxgtol)
+        assert (
+            add_img_maxiter > 0
+        ), "Add image maximum iterations must be positive"
+        self._add_img_maxiter = int(add_img_maxiter)
+        # TODO: make default arguments simpler and allow None
 
     def get_path(
-        self,
-        init_coords: np.ndarray,
-        final_coords: np.ndarray
+        self, init_coords: np.ndarray, final_coords: np.ndarray
     ) -> np.ndarray:
         """
         Get the IDPP path between the intial and final coordinates
@@ -68,31 +80,19 @@ class IDPP:
             (np.ndarray): Numpy array of coordinates of the
                         intermediate images in the path
         """
-
-        #cdef double [:] init_view = init_coords
-        #cdef double [:] final_view = final_coords
-
         if init_coords.shape != final_coords.shape:
             raise ValueError(
                 "Initial and final coordinates must have the same shape"
             )
-        coords_len = init_coords.shape[0]
-        assert coords_len % 3 == 0, "Coordinate array has incorrect dimensions"
-        img_coordinates = np.zeros(
-            shape=((self._n_images - 2) * coords_len,),
-            order="C",
-            dtype=np.double
-        )
-        #cdef double [:] img_coords_view = img_coordinates
 
-        debug_print = logger.isEnabledFor(logging.DEBUG)
-        # TODO: send this to cython function
-        # access raw memory block of the arrays
-        init_coords = np.ascontiguousarray(
-            init_coords.ravel(), dtype=np.double
+        return get_interpolated_path(
+            init_coords,
+            final_coords,
+            self._n_images,
+            sequential=self._sequential,
+            k_spr=self._k_spr,
+            rms_gtol=self._rms_gtol,
+            maxiter=self._maxiter,
+            add_img_maxgtol=self._add_img_maxgtol,
+            add_img_maxiter=self._add_img_maxiter,
         )
-        final_coords = np.ascontiguousarray(
-            final_coords.ravel(), dtype=np.double
-        )
-
-        return img_coordinates
