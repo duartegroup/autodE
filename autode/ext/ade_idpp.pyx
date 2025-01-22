@@ -160,6 +160,30 @@ def get_interp_path_length(
         params,
     )
 
+def relax_path(
+    all_coords,
+    n_images: int,
+    **kwargs,
+):
+    """
+    Relax a set of images using the IDPP method
+
+    Args:
+        all_coords: Numpy array of all coordinates, including the
+                    reactant and product
+        n_images: Number of images supplied
+
+    Keyword Args:
+        sequential (bool): Whether to use the sequential IDPP
+        k_spr (float): The spring constant value
+        rms_gtol (float): The RMS gradient tolerance for the path
+        maxiter (int): Maximum number of iters for path
+        add_img_maxgtol (float): Max. gradient tolerance for adding
+                        new images (only for sequential)
+        add_img_maxiter (int): Max. number of iters for adding new
+                        images (only for sequential)
+    """
+
 
 class IDPP:
     def __init__(
