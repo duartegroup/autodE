@@ -701,6 +701,14 @@ namespace autode {
         }
     }
 
+    void IdppParams::check_validity() const {
+        /* Check that the parameters for IDPP are valid */
+        ensure(k_spr > 0, "Spring constant must be positive");
+        ensure(rmsgtol > 0, "RMS gradient tolerance must be positive");
+        ensure(maxiter > 0, "Max iterations must be positive");
+        ensure(add_img_maxiter > 0, "Adding image maxiter must be positive");
+        ensure(add_img_maxgtol > 0, "Adding image maxgtol must be positive");
+    }
 
     void calculate_idpp_path(double* init_coords_ptr,
                             double* final_coords_ptr,
@@ -739,10 +747,8 @@ namespace autode {
          *
          *   maxiter: The max number of iterations for converging the path
          */
-
-        ensure(coords_len > 0 && n_images > 2 && params.k_spr > 0
-               && params.rmsgtol > 0 && params.maxiter > 0,
-               "Incorrect parameters supplied");
+        ensure(coords_len > 0, "Incorrect coordinates length");
+        params.check_validity();
 
         std::cout.setf(std::ios::fixed);
         std::cout.setf(std::ios::showpoint);
@@ -772,7 +778,6 @@ namespace autode {
         arrx::array1d all_coords;
         neb.get_coords(all_coords);
         auto req_dim = (n_images - 2) * coords_len;
-        ensure(all_coords.size() == req_dim, "Something went wrong in NEB");
         for (int i = 0; i < req_dim; i++) {
             all_coords_ptr[i] = all_coords[i];
         }
@@ -806,9 +811,8 @@ namespace autode {
          *
          *   maxiter: The max number of iterations for converging the path
          */
-        ensure(coords_len > 0 && n_images > 2 && params.k_spr > 0
-               && params.rmsgtol > 0 && params.maxiter > 0,
-                "Incorrect parameters supplied");
+        params.check_validity();
+        ensure(coords_len > 0, "Incorrect coordinates length");
 
         auto init_coords = arrx::array1d(init_coords_ptr, coords_len);
         auto final_coords = arrx::array1d(final_coords_ptr, coords_len);
@@ -834,4 +838,52 @@ namespace autode {
         }
         return dist;
     }
+
+    void relax_path(double* all_coords_ptr,
+                    int coords_len,
+                    int n_images,
+                    const IdppParams& params) {
+        /* Given a set of already generated coordinates, relax the path
+         * using the IDPP potential
+         *
+         * Arguments:
+         *  all_coords_ptr: Pointer to the array of coordinates of shape
+         *                 (K x N). Including the end point coordinates.
+         *
+         *  coords_len: Length of the coordinates for ONE image (N)
+         *
+         *  n_images: Number of images (K)
+         *
+         *  params: The IDPP parameters
+         */
+        params.check_validity();
+        ensure(coords_len > 0, "Incorrect coordinates length");
+
+        auto init_coords = arrx::array1d(all_coords_ptr, coords_len);
+        auto final_coords = arrx::array1d(
+            all_coords_ptr + (n_images - 1) * coords_len, coords_len
+        );
+
+        auto potential = IDPPPotential(init_coords, final_coords, n_images);
+        auto neb = NEB(
+            std::move(init_coords), std::move(final_coords),
+            params.k_spr, n_images
+        );
+
+        auto intermediate_coords = arrx::array1d(
+            all_coords_ptr + coords_len, coords_len * (n_images - 2)
+        );
+        neb.set_coords(intermediate_coords);
+
+        // minimise the path and load the coordinates back
+        auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
+        opt.minimise_neb(neb, potential);
+        neb.get_coords(intermediate_coords);
+        auto req_dim = (n_images - 2) * coords_len;
+        for (int i = 0; i < req_dim; i++) {
+            all_coords_ptr[i + coords_len] = intermediate_coords[i];
+        }
+
+    }
+
 }

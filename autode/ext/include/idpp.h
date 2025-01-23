@@ -146,6 +146,8 @@ namespace autode
         int maxiter; // maxiter for path
         double add_img_maxgtol; // Max gradient tol. for adding img
         double add_img_maxiter; // maxiter for each image addition
+
+        void check_validity() const;
     };
 
     void calculate_idpp_path(double* init_coords_ptr,
@@ -160,6 +162,11 @@ namespace autode
                          int coords_len,
                          int n_images,
                          const IdppParams& params);
+
+    void relax_path(double* all_coords_ptr,
+                    int coords_len,
+                    int n_images,
+                    const IdppParams& params);
 }
 
 #endif // ADE_EXT_IDPP_H

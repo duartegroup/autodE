@@ -114,8 +114,14 @@ cdef extern from "include/idpp.h" namespace "autode":
                              const IdppParams & params) except +
 
 cdef extern from "include/idpp.h" namespace "autode":
-    double get_path_length(double *init_coords_ptr,
-                           double *final_coords_ptr,
+    double get_path_length(double* init_coords_ptr,
+                           double* final_coords_ptr,
                            int coords_len,
                            int n_images,
                            const IdppParams & params) except +
+
+cdef extern from "include/idpp.h" namespace "autode":
+    void relax_path(double* all_coords_ptr,
+                    int coords_len,
+                    int n_images,
+                    const IdppParams & params) except +
