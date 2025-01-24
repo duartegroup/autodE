@@ -710,6 +710,48 @@ namespace autode {
         ensure(add_img_maxgtol > 0, "Adding image maxgtol must be positive");
     }
 
+    NEB create_neb(arrx::array1d&& init_coords,
+                   arrx::array1d&& final_coords,
+                   const int num_images,
+                   const IdppParams& params,
+                   const bool nominimise) {
+        /* Create a NEB object from the initial and final coordinates
+         * with the parameters supplied, and then fill the NEB path
+         *
+         * Arguments:
+         *   init_coords: Initial coordinates (will move the array)
+         *   final_coords: Final coordinates (will move the array)
+         *   n_images: Number of images
+         *   params: IDPP parameters
+         */
+        ensure(num_images > 2, "Must have more than 2 images");
+        params.check_validity();
+
+        std::cout.setf(std::ios::fixed);
+        std::cout.setf(std::ios::showpoint);
+        std::cout.precision(5);
+
+        idpp_config::debug_pr = params.debug;
+
+        IDPPPotential pot(init_coords, final_coords, num_images);
+        NEB neb(
+            std::move(init_coords), std::move(final_coords), params.k_spr, num_images
+        );
+
+        if (params.sequential) {
+            neb.fill_sequentially(pot, params.add_img_maxiter, params.add_img_maxgtol);
+        } else {
+            neb.fill_linear_interp();
+        }
+
+        if (!nominimise) {
+            auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
+            opt.minimise_neb(neb, pot);
+        }
+        // TODO: make this code simpler
+        return neb;
+    }
+
     void calculate_idpp_path(double* init_coords_ptr,
                             double* final_coords_ptr,
                             int coords_len,

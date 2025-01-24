@@ -7,6 +7,19 @@
 namespace autode
 {
 
+    /* A struct containing parameters used for IDPP */
+    struct IdppParams {
+        double k_spr;  // spring constant
+        bool sequential;  // whether sequential IDPP or not
+        bool debug;  // whether to print debug messages
+        double rmsgtol; // RMS gradient tolerance for path
+        int maxiter; // maxiter for path
+        double add_img_maxgtol; // Max gradient tol. for adding img
+        double add_img_maxiter; // maxiter for each image addition
+
+        void check_validity() const;
+    };
+
     class Image {
         /* A NEB image, holding coordinates, energy and gradients */
 
@@ -100,6 +113,7 @@ namespace autode
         void add_first_two_images();
 
         void add_image_next_to(const int idx);
+
     };
 
     /* Barzilai-Borwein algorithm for minimisation */
@@ -137,18 +151,11 @@ namespace autode
         void minimise_neb(NEB& neb, const IDPPPotential& pot);
     };
 
-    /* A struct containing parameters used for IDPP */
-    struct IdppParams {
-        double k_spr;  // spring constant
-        bool sequential;  // whether sequential IDPP or not
-        bool debug;  // whether to print debug messages
-        double rmsgtol; // RMS gradient tolerance for path
-        int maxiter; // maxiter for path
-        double add_img_maxgtol; // Max gradient tol. for adding img
-        double add_img_maxiter; // maxiter for each image addition
-
-        void check_validity() const;
-    };
+    NEB create_neb(arrx::array1d&& init_coords,
+                   arrx::array1d&& final_coords,
+                   const int num_images,
+                   const IdppParams& params,
+                   const bool nominimise);
 
     void calculate_idpp_path(double* init_coords_ptr,
                              double* final_coords_ptr,
