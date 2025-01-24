@@ -1,10 +1,14 @@
 import numpy as np
 
-from typing import TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 from autode.log import logger
 import logging
 from autode.values import PotentialEnergy
-from ade_idpp import get_interpolated_path, get_interp_path_length
+from ade_idpp import (
+    get_interpolated_path,
+    get_interp_path_length,
+    get_relaxed_path,
+)
 
 if TYPE_CHECKING:
     from autode.neb.original import Image, Images
@@ -121,3 +125,33 @@ class IDPP:
             add_img_maxgtol=self._add_img_maxgtol,
             add_img_maxiter=self._add_img_maxiter,
         )
+
+    def relax_path(self, coords_list: List[np.ndarray]) -> List[np.ndarray]:
+        """
+        Relax the set of coordinates using the IDPP method
+
+        Args:
+            coords_list: List of coordinates (numpy arrays)
+
+        Returns:
+            (List[np.ndarray]): List of relaxed coordinates
+        """
+        n_images = len(coords_list)
+        assert all(isinstance(c, np.ndarray) for c in coords_list)
+        coords_len = len(coords_list[0].ravel())
+        assert all(len(c.ravel()) == coords_len for c in coords_list)
+
+        all_coords = np.array(coords_list).ravel()
+        all_coords = get_relaxed_path(
+            all_coords,
+            n_images,
+            sequential=self._sequential,
+            k_spr=self._k_spr,
+            rms_gtol=self._rms_gtol,
+            maxiter=self._maxiter,
+            add_img_maxgtol=self._add_img_maxgtol,
+            add_img_maxiter=self._add_img_maxiter,
+        )
+        for i in range(n_images):
+            coords_list[i] = all_coords[i * coords_len : (i + 1) * coords_len]
+        return coords_list

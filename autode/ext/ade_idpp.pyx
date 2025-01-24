@@ -160,7 +160,7 @@ def get_interp_path_length(
         params,
     )
 
-def relax_path(
+def get_relaxed_path(
     all_coords,
     n_images: int,
     **kwargs,
@@ -192,3 +192,12 @@ def relax_path(
     assert coords_len % 3 == 0
 
     cdef IdppParams params = handle_kwargs(kwargs)
+
+    relax_path(
+        &all_coords_view[0],
+        int(coords_len),
+        n_images,
+        params,
+    )
+
+    return all_coords_cont
