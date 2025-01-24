@@ -874,6 +874,7 @@ namespace autode {
             all_coords_ptr + coords_len, coords_len * (n_images - 2)
         );
         neb.set_coords(intermediate_coords);
+        neb.images_prepared = true;
 
         // minimise the path and load the coordinates back
         auto opt = BBMinimiser(params.maxiter, params.rmsgtol);

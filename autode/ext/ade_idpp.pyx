@@ -4,7 +4,7 @@
 import numpy as np
 from autode.log import logger
 import logging
-from autode.ext.wrappers cimport calculate_idpp_path, IdppParams, get_path_length
+from autode.ext.wrappers cimport IdppParams, calculate_idpp_path, get_path_length, relax_path
 
 
 cdef IdppParams handle_kwargs(kwargs) except *:
