@@ -537,6 +537,8 @@ namespace autode {
          *        vector, for minimising NEB path, this is the RMS of
          *        the total gradient
          */
+        ensure(max_iter > 0, "Max iterations must be positive");
+        ensure(tol > 0, "Gradient tolerance must be positive");
     }
 
     void BBMinimiser::calc_bb_step() {
@@ -734,6 +736,7 @@ namespace autode {
         idpp_config::debug_pr = params.debug;
 
         IDPPPotential pot(init_coords, final_coords, num_images);
+
         NEB neb(
             std::move(init_coords), std::move(final_coords), params.k_spr, num_images
         );
