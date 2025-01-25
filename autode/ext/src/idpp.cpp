@@ -1,6 +1,5 @@
 #include <vector>
 #include <cmath>
-#include <utility>
 #include <iostream>
 
 #include "arrayhelper.hpp"
@@ -259,8 +258,8 @@ namespace autode {
         }
     }
 
-    NEB::NEB(arrx::array1d&& init_coords,
-             arrx::array1d&& final_coords,
+    NEB::NEB(const arrx::array1d& init_coords,
+             const arrx::array1d& final_coords,
              double k,
              int num_images)
      : n_images(num_images), k_spr(k) {
@@ -283,9 +282,9 @@ namespace autode {
         this->n_atoms = static_cast<int>(init_coords.size()) / 3;
         this->images.resize(n_images, Image(n_atoms, k_spr));
 
-        // Create images - move the arrays to reduce memory usage
-        this->images.at(0).coords = std::move(init_coords);
-        this->images.at(n_images - 1).coords = std::move(final_coords);
+        // Create images
+        this->images.at(0).coords = init_coords;
+        this->images.at(n_images - 1).coords = final_coords;
 
         //if (sequential) {
          //   this->fill_sequentially();
@@ -712,21 +711,23 @@ namespace autode {
         ensure(add_img_maxgtol > 0, "Adding image maxgtol must be positive");
     }
 
-    NEB create_neb(arrx::array1d&& init_coords,
-                   arrx::array1d&& final_coords,
-                   const int num_images,
-                   const IdppParams& params,
-                   const bool nominimise) {
+    NEB calculate_neb(const arrx::array1d& init_coords,
+                      const arrx::array1d& final_coords,
+                      const int num_images,
+                      const IdppParams& params,
+                      const arrx::array1d& interm_coords,
+                      const bool load_from_interm) {
         /* Create a NEB object from the initial and final coordinates
-         * with the parameters supplied, and then fill the NEB path
+         * with the parameters supplied, and then fill the path
          *
          * Arguments:
-         *   init_coords: Initial coordinates (will move the array)
-         *   final_coords: Final coordinates (will move the array)
-         *   n_images: Number of images
-         *   params: IDPP parameters
+         *   init_coords: Initial coordinates
+         *   final_coords: Final coordinates
+         *   num_images: Number of images
+         *   params: Parameters for running the calculation
+         *   interm_coords: Intermediate coordinates (which may be read from)
+         *   load_from_interm: Whether to load the intermediate coordinates
          */
-        ensure(num_images > 2, "Must have more than 2 images");
         params.check_validity();
 
         std::cout.setf(std::ios::fixed);
@@ -735,23 +736,30 @@ namespace autode {
 
         idpp_config::debug_pr = params.debug;
 
-        IDPPPotential pot(init_coords, final_coords, num_images);
+        auto pot = IDPPPotential(init_coords, final_coords, num_images);
 
-        NEB neb(
-            std::move(init_coords), std::move(final_coords), params.k_spr, num_images
+        auto neb = NEB(
+            init_coords, final_coords, params.k_spr, num_images
         );
 
-        if (params.sequential) {
-            neb.fill_sequentially(pot, params.add_img_maxiter, params.add_img_maxgtol);
+        // load from preset intermediate coordinates if requested
+        if (load_from_interm) {
+            neb.set_coords(interm_coords);
+            neb.reset_k_spr();
+            neb.images_prepared = true;
         } else {
-            neb.fill_linear_interp();
+            // S-IDPP with less than 5 images does not make sense
+            if (params.sequential && num_images > 4) {
+                neb.fill_sequentially(pot, params.add_img_maxiter,
+                                      params.add_img_maxgtol);
+            } else {
+                neb.fill_linear_interp();
+            }
         }
 
-        if (!nominimise) {
-            auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
-            opt.minimise_neb(neb, pot);
-        }
-        // TODO: make this code simpler
+        // relax the path
+        auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
+        opt.minimise_neb(neb, pot);
         return neb;
     }
 
@@ -778,46 +786,21 @@ namespace autode {
          *
          *   n_images: Number of images (K)
          *
-         *   k_spr: Spring constant
-         *
-         *   sequential: Whether to build the path sequentially or not
          *
          *   all_coords_ptr: Pointer to the array where coordinates of the
          *                   intermediate images will be stored, must be of
          *                   shape ([K-2] x N)
          *
-         *   debug: Whether to print debug messages
-         *
-         *   gtol: The RMS gradient tolerance for converging the path
-         *
-         *   maxiter: The max number of iterations for converging the path
+         *   params: The parameters for the IDPP calculation
          */
         ensure(coords_len > 0, "Incorrect coordinates length");
-        params.check_validity();
-
-        std::cout.setf(std::ios::fixed);
-        std::cout.setf(std::ios::showpoint);
-        std::cout.precision(5);
-
-        idpp_config::debug_pr = params.debug;
 
         auto init_coords = arrx::array1d(init_coords_ptr, coords_len);
         auto final_coords = arrx::array1d(final_coords_ptr, coords_len);
 
-        auto potential = IDPPPotential(init_coords, final_coords, n_images);
-
-        auto neb = NEB(
-            std::move(init_coords), std::move(final_coords),
-            params.k_spr, n_images
+        auto neb = calculate_neb(
+            init_coords, final_coords, n_images, params, arrx::array1d(), false
         );
-        if (params.sequential) {
-            neb.fill_sequentially(potential, idpp_config::add_img_maxiter,
-                                  idpp_config::add_img_maxgtol);
-        } else {
-            neb.fill_linear_interp();
-        }
-        auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
-        opt.minimise_neb(neb, potential);
 
         // copy the final coordinates to the output array
         arrx::array1d all_coords;
@@ -848,34 +831,16 @@ namespace autode {
          *
          *   n_images: Number of images (K)
          *
-         *   k_spr: Spring constant
-         *
-         *   sequential: Whether to build the path sequentially or not
-         *
-         *   gtol: The RMS gradient tolerance for converging the path
-         *
-         *   maxiter: The max number of iterations for converging the path
+         *   params: The parameters for the IDPP calculation
          */
-        params.check_validity();
         ensure(coords_len > 0, "Incorrect coordinates length");
 
         auto init_coords = arrx::array1d(init_coords_ptr, coords_len);
         auto final_coords = arrx::array1d(final_coords_ptr, coords_len);
 
-        auto potential = IDPPPotential(init_coords, final_coords, n_images);
-
-        auto neb = NEB(
-            std::move(init_coords), std::move(final_coords),
-            params.k_spr, n_images
+        auto neb = calculate_neb(
+            init_coords, final_coords, n_images, params, arrx::array1d(), false
         );
-        if (params.sequential) {
-            neb.fill_sequentially(potential, params.add_img_maxiter,
-                                  params.add_img_maxgtol);
-        } else {
-            neb.fill_linear_interp();
-        }
-        auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
-        opt.minimise_neb(neb, potential);
 
         double dist;
         for (int k = 0; k < n_images - 1; k++) {
@@ -908,22 +873,14 @@ namespace autode {
         auto final_coords = arrx::array1d(
             all_coords_ptr + (n_images - 1) * coords_len, coords_len
         );
-
-        auto potential = IDPPPotential(init_coords, final_coords, n_images);
-        auto neb = NEB(
-            std::move(init_coords), std::move(final_coords),
-            params.k_spr, n_images
-        );
-
         auto intermediate_coords = arrx::array1d(
             all_coords_ptr + coords_len, coords_len * (n_images - 2)
         );
-        neb.set_coords(intermediate_coords);
-        neb.images_prepared = true;
+        auto neb = calculate_neb(
+            init_coords, final_coords, n_images, params, intermediate_coords, true
+        );
 
-        // minimise the path and load the coordinates back
-        auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
-        opt.minimise_neb(neb, potential);
+        // load back the coordinates
         neb.get_coords(intermediate_coords);
         auto req_dim = (n_images - 2) * coords_len;
         for (int i = 0; i < req_dim; i++) {

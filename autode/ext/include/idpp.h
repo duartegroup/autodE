@@ -81,8 +81,8 @@ namespace autode
         std::vector<Image> images;  // Set of images
         double k_spr;  // base spring constant
 
-        NEB(arrx::array1d&& init_coords,
-            arrx::array1d&& final_coords,
+        NEB(const arrx::array1d& init_coords,
+            const arrx::array1d& final_coords,
             double k_spr,
             int num_images);
 
@@ -151,11 +151,12 @@ namespace autode
         void minimise_neb(NEB& neb, const IDPPPotential& pot);
     };
 
-    NEB create_neb(arrx::array1d&& init_coords,
-                   arrx::array1d&& final_coords,
-                   const int num_images,
-                   const IdppParams& params,
-                   const bool nominimise);
+    NEB calculate_neb(const arrx::array1d& init_coords,
+                      const arrx::array1d& final_coords,
+                      const int num_images,
+                      const IdppParams& params,
+                      const arrx::array1d& interm_coords,
+                      const bool load_from_interm);
 
     void calculate_idpp_path(double* init_coords_ptr,
                              double* final_coords_ptr,
