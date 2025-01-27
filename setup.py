@@ -11,9 +11,12 @@ else:  # on Linux or MacOS
     cpp_link_args = ["-std=c++11"]
 
 extensions = [
-    Extension("cconf_gen", ["autode/conformers/cconf_gen.pyx"]),
     Extension(
-        "ade_dihedrals",
+        "autode.conformers.cconf_gen",
+        sources=["autode/conformers/cconf_gen.pyx"],
+    ),
+    Extension(
+        "autode.ext.ade_dihedrals",
         sources=["autode/ext/ade_dihedrals.pyx"],
         include_dirs=["autode/ext/include"],
         language="c++",
@@ -21,7 +24,7 @@ extensions = [
         extra_link_args=cpp_link_args,
     ),
     Extension(
-        "ade_rb_opt",
+        "autode.ext.ade_rb_opt",
         sources=["autode/ext/ade_rb_opt.pyx"],
         include_dirs=["autode/ext/include"],
         language="c++",
@@ -29,7 +32,7 @@ extensions = [
         extra_link_args=cpp_link_args,
     ),
     Extension(
-        "ade_idpp",
+        "autode.ext.ade_idpp",
         sources=["autode/ext/ade_idpp.pyx"],
         include_dirs=["autode/ext/include"],
         language="c++",

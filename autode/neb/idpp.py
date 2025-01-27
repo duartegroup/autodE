@@ -4,7 +4,7 @@ from typing import List, TYPE_CHECKING
 from autode.log import logger
 import logging
 from autode.values import PotentialEnergy
-from ade_idpp import (
+from autode.ext.ade_idpp import (
     get_interpolated_path,
     get_interp_path_length,
     get_relaxed_path,
