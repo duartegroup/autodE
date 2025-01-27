@@ -1,17 +1,11 @@
 import numpy as np
 
-from typing import List, TYPE_CHECKING
-from autode.log import logger
-import logging
-from autode.values import PotentialEnergy
+from typing import List
 from autode.ext.ade_idpp import (
     get_interpolated_path,
     get_interp_path_length,
     get_relaxed_path,
 )
-
-if TYPE_CHECKING:
-    from autode.neb.original import Image, Images
 
 
 class IDPP:
@@ -51,24 +45,13 @@ class IDPP:
             add_img_maxgtol: Maximum gradient tolerance for adding images
             add_img_maxiter: Maximum number of iterations for adding images
         """
-        assert n_images > 2, "Must have more than 2 images"
         self._n_images = int(n_images)
-        assert k_spr > 0, "Spring constant must be positive"
         self._k_spr = float(k_spr)
         self._sequential = bool(sequential)
-        assert rms_gtol > 0, "RMS gradient tolerance must be positive"
         self._rms_gtol = float(rms_gtol)
-        assert maxiter > 0, "Maximum iterations must be positive"
         self._maxiter = int(maxiter)
-        assert (
-            add_img_maxgtol > 0
-        ), "Add image gradient tolerance must be positive"
         self._add_img_maxgtol = float(add_img_maxgtol)
-        assert (
-            add_img_maxiter > 0
-        ), "Add image maximum iterations must be positive"
         self._add_img_maxiter = int(add_img_maxiter)
-        # TODO: make default arguments simpler and allow None
 
     def get_path(
         self, init_coords: np.ndarray, final_coords: np.ndarray

@@ -475,6 +475,7 @@ class NEB:
         final: Species,
         num: int,
         init_k: ForceConstant = ForceConstant(0.1, units="Ha / Å^2"),
+        sidpp: bool = True,
     ) -> "NEB":
         """
         Construct a nudged elastic band from only the endpoints. Will perform
@@ -491,22 +492,52 @@ class NEB:
 
               init_k: Initial force constant
 
+              sidpp: Use sequential IDPP or not
+
           Returns:
               (NEB):
         """
-
         if initial.sorted_atomic_symbols != final.sorted_atomic_symbols:
             raise ValueError(
                 "Cannot construct a NEB from species with different atoms"
             )
 
         neb = cls.from_list(
-            species_list=cls._get_idpp_path(initial, final, n=num),
+            species_list=cls._get_idpp_path(
+                initial, final, n=num, sequential=sidpp
+            ),
             init_k=init_k,
         )
-        # neb.idpp_relax()
 
         return neb
+
+    @staticmethod
+    def _get_idpp_path(
+        initial: Species, final: Species, n: int, sequential: bool = True
+    ) -> List[Species]:
+        """Generate a list of species using the IDPP method"""
+        if n == 2:
+            return [initial.copy(), final.copy()]
+
+        if n < 3:
+            raise RuntimeError("Cannot interpolate less than 3 images")
+
+        idpp = IDPP(n_images=n, sequential=sequential)
+        interm_coords = idpp.get_path(initial.coordinates, final.coordinates)
+
+        coords_len = initial.n_atoms * 3
+        assert len(interm_coords) == (n - 2) * coords_len
+
+        intermediate_species = []
+        # create new species and load the coordinates
+        for i in range(1, n - 1):
+            species = initial.copy()
+            species.coordinates = interm_coords[
+                (i - 1) * coords_len : i * coords_len
+            ]
+            intermediate_species.append(species)
+
+        return [initial.copy(), *intermediate_species, final.copy()]
 
     def _minimise(self, method, n_cores, etol, max_n=30) -> Any:
         """Minimise the energy of every image in the NEB"""
@@ -587,34 +618,6 @@ class NEB:
 
     def print_geometries(self, name="neb") -> None:
         return self.images.print_geometries(name)
-
-    @staticmethod
-    def _get_idpp_path(
-        initial: Species, final: Species, n: int, sequential: bool = True
-    ) -> List[Species]:
-        """Generate a list of species using the IDPP method"""
-        if n == 2:
-            return [initial.copy(), final.copy()]
-
-        if n < 3:
-            raise RuntimeError("Cannot interpolate less than 3 images")
-
-        idpp = IDPP(n_images=n, sequential=sequential)
-        interm_coords = idpp.get_path(initial.coordinates, final.coordinates)
-
-        coords_len = initial.n_atoms * 3
-        assert len(interm_coords) == (n - 2) * coords_len
-
-        intermediate_species = []
-        # create new species and load the coordinates
-        for i in range(1, n - 1):
-            species = initial.copy()
-            species.coordinates = interm_coords[
-                (i - 1) * coords_len : i * coords_len
-            ]
-            intermediate_species.append(species)
-
-        return [initial.copy(), *intermediate_species, final.copy()]
 
     @staticmethod
     def _interpolated_species(
@@ -714,41 +717,26 @@ class NEB:
 
         return image.new_species()
 
-    def idpp_relax(self) -> None:
+    def idpp_relax(self, sidpp: bool = True) -> None:
         """
-        Relax the NEB using the image dependent pair potential
+        Relax the current NEB path using the image dependent pair potential
 
         -----------------------------------------------------------------------
+
+        Arguments:
+            sidpp: Whether to use the IDPP to relax the NEB (default: True)
+
         See Also:
             :py:meth:`IDPP <autode.neb.idpp.IDPP.__init__>`
         """
         logger.info(f"Minimising NEB with IDPP potential")
-        """
-        images = self.images.copy()
-        images.min_k = images.max_k = ForceConstant(0.1, units="Ha / Å^2")
-        idpp = IDPP(images=images)
 
-        for i, image in enumerate(images):
-            image.energy = idpp(image)
-            image.gradient = idpp.grad(image)
+        coords_list = [image.coords() for image in self.images]
+        idpp = IDPP(n_images=len(self.images), sequential=sidpp)
 
-            # Initial and final images are fixed, with zero gradient
-            if i == 0 or i == len(images) - 1:
-                image.gradient[:] = 0.0
+        coords_list = idpp.relax_path(coords_list)
+        self.images.set_coords(np.array(coords_list).ravel())
 
-        result = minimize(
-            total_energy,
-            x0=images.coords(),
-            method="L-BFGS-B",
-            jac=derivative,
-            args=(images, idpp, Config.n_cores, False),
-            options={"gtol": 0.01},
-        )
-
-        logger.info(f"IDPP minimisation successful: {result.success}")
-
-        self.images.set_coords(result.x)
-        """
         return None
 
     def _max_atom_distance_between_images(
