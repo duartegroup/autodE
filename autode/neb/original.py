@@ -502,42 +502,39 @@ class NEB:
                 "Cannot construct a NEB from species with different atoms"
             )
 
+        num = int(num)
+
+        if num == 2:
+            return cls.from_list(
+                species_list=[initial.copy(), final.copy()],
+                init_k=init_k,
+            )
+
+        if num < 3:
+            raise RuntimeError("Cannot interpolate less than 3 images")
+
+        idpp = IDPP(n_images=num, sequential=sidpp)
+        interm_coords = idpp.get_path(initial.coordinates, final.coordinates)
+
+        coords_len = initial.n_atoms * 3
+        assert len(interm_coords) == (num - 2) * coords_len
+
+        intermediate_species = []
+        # create new species and load the coordinates
+        for i in range(1, num - 1):
+            species = initial.new_species(name=f"{i}")
+            species.coordinates = interm_coords[
+                (i - 1) * coords_len : i * coords_len
+            ]
+            # TODO: is the naming scheme fine?
+            intermediate_species.append(species)
+
         neb = cls.from_list(
-            species_list=cls._get_idpp_path(
-                initial, final, n=num, sequential=sidpp
-            ),
+            species_list=[initial.copy(), *intermediate_species, final.copy()],
             init_k=init_k,
         )
 
         return neb
-
-    @staticmethod
-    def _get_idpp_path(
-        initial: Species, final: Species, n: int, sequential: bool = True
-    ) -> List[Species]:
-        """Generate a list of species using the IDPP method"""
-        if n == 2:
-            return [initial.copy(), final.copy()]
-
-        if n < 3:
-            raise RuntimeError("Cannot interpolate less than 3 images")
-
-        idpp = IDPP(n_images=n, sequential=sequential)
-        interm_coords = idpp.get_path(initial.coordinates, final.coordinates)
-
-        coords_len = initial.n_atoms * 3
-        assert len(interm_coords) == (n - 2) * coords_len
-
-        intermediate_species = []
-        # create new species and load the coordinates
-        for i in range(1, n - 1):
-            species = initial.copy()
-            species.coordinates = interm_coords[
-                (i - 1) * coords_len : i * coords_len
-            ]
-            intermediate_species.append(species)
-
-        return [initial.copy(), *intermediate_species, final.copy()]
 
     def _minimise(self, method, n_cores, etol, max_n=30) -> Any:
         """Minimise the energy of every image in the NEB"""
@@ -618,38 +615,6 @@ class NEB:
 
     def print_geometries(self, name="neb") -> None:
         return self.images.print_geometries(name)
-
-    @staticmethod
-    def _interpolated_species(
-        initial: Species, final: Species, n: int
-    ) -> List[Species]:
-        """Generate simple interpolated coordinates for these set of images
-        in Cartesian coordinates"""
-
-        if n < 2:
-            raise RuntimeError("Cannot interpolated 2 images to <2")
-
-        if n == 2:
-            return [initial.copy(), final.copy()]
-
-        intermediate_species = []
-
-        # Interpolate images between the starting point i=0 and end point i=n-1
-        for i in range(1, n - 1):
-            # Use a copy of the starting point for atoms, charge etc.
-            species: Species = initial.copy()
-
-            # For all the atoms in the species translate an amount so the
-            # spacing is even between the initial and final points
-            for j, atom in enumerate(species.atoms):
-                # Shift vector is final minus current
-                shift = final.atoms[j].coord - atom.coord
-                # then an equal spacing is the i-th point in the grid
-                atom.translate(vec=shift * (i / (n - 1)))
-
-            intermediate_species.append(species)
-
-        return [initial.copy()] + intermediate_species + [final.copy()]
 
     @work_in("neb")
     def calculate(
