@@ -103,8 +103,8 @@ namespace autode {
                 tau = tau_p * dv_max + tau_m * dv_min;
             } else if (img_p1.en < img_m1.en) {
                 tau = tau_m * dv_max + tau_p * dv_min;
-            } else {
-                throw std::runtime_error("Something wrong in energies!");
+            } else {  // equal energies
+                tau = tau_p + tau_m;
             }
             double tau_norm = arrx::norm_l2(tau);
             ensure(tau_norm > 1e-10, "Length of tangent vector too small!");
