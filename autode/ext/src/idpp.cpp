@@ -107,7 +107,9 @@ namespace autode {
                 tau = tau_p + tau_m;
             }
             double tau_norm = arrx::norm_l2(tau);
-            ensure(tau_norm > 1e-10, "Length of tangent vector too small!");
+            if (tau_norm < 1e-10) {  // sometimes dv_max, dv_min are small
+                tau = tau_p + tau_m;
+            }
             tau /= tau_norm;
         }
         return tau_p_norm * img_p1.k_spr - tau_m_norm * img_m1.k_spr;
@@ -368,8 +370,8 @@ namespace autode {
         double total_en = 0.0;
         size_t loc = 0;
         for (int k = 1; k < n_images - 1; k++) {
-            total_en += images.at(k).en;  // TODO indexing
-            arrx::slice(grad, loc, loc + n_atoms * 3) = images.at(k).grad;
+            total_en += images[k].en;
+            arrx::slice(grad, loc, loc + n_atoms * 3) = images[k].grad;
             loc += (n_atoms * 3);
         }
         en = total_en / static_cast<double>(n_images);
@@ -405,8 +407,7 @@ namespace autode {
 
         size_t loc = 0;
         for (int k = 1; k < n_images - 1; k++) {
-            arrx::slice(flat_coords, loc, loc + n_atoms * 3)
-                                                          = images.at(k).coords;
+            arrx::slice(flat_coords, loc, loc + n_atoms * 3) = images[k].coords;
             loc += (n_atoms * 3);
         }
     }
@@ -437,7 +438,7 @@ namespace autode {
                 "Incorrect array size");
         size_t loc = 0;
         for (int k = 1; k < n_images - 1; k++) {
-            arrx::noalias(images.at(k).coords) =
+            arrx::noalias(images[k].coords) =
                     arrx::slice(coords, loc, loc + n_atoms * 3);
             loc += (n_atoms * 3);
         }

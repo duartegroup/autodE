@@ -46,6 +46,7 @@ class IDPP:
             add_img_maxiter: Maximum number of iterations for adding images
         """
         self._n_images = int(n_images)
+        assert self._n_images > 2
         self._k_spr = float(k_spr)
         self._sequential = bool(sequential)
         self._rms_gtol = float(rms_gtol)

@@ -23,6 +23,9 @@ if TYPE_CHECKING:
     from autode.neb.ci import CImages
 
 
+_MAX_PARTITION_ITERS = 100
+
+
 def energy_gradient(image, method, n_cores):
     """Calculate energies and gradients for an image using a EST method"""
     assert isinstance(method, Method)
@@ -581,6 +584,10 @@ class NEB:
                     logger.warning("Failed to IDPP relax the interpolated NEB")
 
                 n += 1
+
+                # prevent infinite loop
+                if n > _MAX_PARTITION_ITERS:
+                    raise RuntimeError("Too many iterations: partition failed")
 
             for image in sub_neb.images[:-1]:  # add all apart from the last
                 _list.append(image)
