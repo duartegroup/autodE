@@ -839,7 +839,7 @@ namespace autode {
             n_images, params, arrx::array1d(), false
         );
 
-        double dist;
+        double dist = 0.0;
         for (int k = 0; k < n_images - 1; k++) {
             dist +=
                    arrx::norm_l2(neb.images[k].coords - neb.images[k+1].coords);

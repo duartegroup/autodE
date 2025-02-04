@@ -187,25 +187,29 @@ def _simple_h2_images(num, shift, increment):
     return images
 
 
-def test_energy_gradient_type():
-    k = ForceConstant(1.0)
-    image = Image(species=Molecule(atoms=[Atom("H")], mult=2), name="tmp", k=k)
-
-    # Energy and gradient must have a method (EST or IDPP)
-    with pytest.raises(ValueError):
-        _ = energy_gradient(image=image, method=None, n_cores=1)
-
-
 def test_iddp_init():
-    """IDPP requires at least 2 images"""
+    # IDPP requires at least 3 images
+    with pytest.raises(AssertionError):
+        _ = IDPP(n_images=2)
 
-    k = ForceConstant(0.1)
+    images = _simple_h2_images(num=2, shift=0.5, increment=0.1)
+    coords1 = images[0].coordinates
+    coords2 = images[1].coordinates
 
-    with pytest.raises(ValueError):
-        _ = IDPP(Images(init_k=k))
+    # k_spr has to be positive
+    idpp = IDPP(n_images=4, k_spr=-1.0)
+    with pytest.raises(RuntimeError):
+        idpp.get_path(coords1, coords2)
 
-    with pytest.raises(ValueError):
-        _ = IDPP(Images(init_k=k))
+    # rms_gtol has to be positive
+    idpp = IDPP(n_images=4, rms_gtol=-1.0)
+    with pytest.raises(RuntimeError):
+        idpp.get_path(coords1, coords2)
+
+    # maxiter has to be positive
+    idpp = IDPP(n_images=4, maxiter=-10)
+    with pytest.raises(RuntimeError):
+        idpp.get_path(coords1, coords2)
 
 
 def test_iddp_energy():
