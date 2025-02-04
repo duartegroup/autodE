@@ -33,7 +33,8 @@ enable_testing()
 add_executable(unit_tests
                tests/test_main.cpp
                tests/test_point_gen.cpp
-               tests/test_global_dihedral_min.cpp)
+               tests/test_global_dihedral_min.cpp
+               tests/test_idpp.cpp)
 
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2)
 target_link_libraries(unit_tests PUBLIC autode)
