@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <utility>
+#include <cmath>
 #include <stdexcept>
 #include <type_traits>
 
@@ -82,7 +83,7 @@ namespace arrx {
         T1 var;  // expression
         const double scalar;  // scalar value
 
-        array_expr(T1&& v, const double& s) 
+        array_expr(T1&& v, const double& s)
         : var{std::forward<T1>(v)}, scalar{s} {}
 
         size_t size() const {
@@ -104,7 +105,7 @@ namespace arrx {
         const double scalar;  // scalar value
         T2 var;  // expression
 
-        array_expr(const double& s, T2&& v) 
+        array_expr(const double& s, T2&& v)
         : scalar{s}, var{std::forward<T2>(v)} {}
 
         size_t size() const {
@@ -141,7 +142,7 @@ namespace arrx {
 
     class array1d {
         /* An array class for floating point (double) data points */
-        
+
         using array_iter = std::vector<double>::iterator;
         using const_array_iter = std::vector<double>::const_iterator;
 
@@ -336,7 +337,7 @@ namespace arrx {
             return array1d(&arr[begin], len);
         }
     };
-    
+
 
     template<typename T, typename std::enable_if<is_1d_array<T>::value, int>::type = 0>
     inline slice_wrapper<T> slice(T&& arr, size_t start, size_t end) {
@@ -425,7 +426,7 @@ namespace arrx {
 
         explicit noalias_wrapper(array1d& array) : arr(array) {}
 
-        template <typename T, 
+        template <typename T,
                   typename std::enable_if<is_array_like<T>::value, int>::type = 0>
         void operator=(const T& expr) {
             /* Assign assuming no aliasing */
