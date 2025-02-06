@@ -50,11 +50,11 @@ jobs:
           --channel conda-forge \
           --solver=libmamba
         source .github/scripts/install_xtb_ci.sh
-        python -m pip install -e . --no-deps
+        python -m pip install . --no-deps
 
     - name: Test
       run: |
-        pytest --cov=./ --cov-report=xml
+        pytest --cov=./ --cov-report=xml --import-mode=append
 
     - uses: codecov/codecov-action@v4
       with:

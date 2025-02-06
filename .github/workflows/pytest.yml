@@ -48,8 +48,8 @@ jobs:
           --file tests/requirements.txt \
           --channel conda-forge \
           --solver=libmamba
-        python -m pip install -e . --no-deps
+        python -m pip install . --no-deps
 
     - name: Test
       run: |
-        py.test tests/
+        py.test --import-mode=append tests/
