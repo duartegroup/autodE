@@ -48,7 +48,7 @@ jobs:
           --file tests/requirements.txt \
           --channel conda-forge \
           --solver=libmamba
-        python -m pip install . --no-deps
+        python -m pip install -e . --no-deps
 
     - name: Test
       run: |

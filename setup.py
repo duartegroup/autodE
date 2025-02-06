@@ -49,7 +49,6 @@ setup(
         "autode",
         "autode.bracket",
         "autode.conformers",
-        "autode.ext",
         "autode.calculations",
         "autode.pes",
         "autode.path",

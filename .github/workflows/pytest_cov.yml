@@ -50,7 +50,7 @@ jobs:
           --channel conda-forge \
           --solver=libmamba
         source .github/scripts/install_xtb_ci.sh
-        python -m pip install . --no-deps
+        python -m pip install -e . --no-deps
 
     - name: Test
       run: |
