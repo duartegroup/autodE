@@ -13,6 +13,7 @@ Functionality improvements
 Bug Fixes
 *********
 - Fixes coordinate extraction in some G16 output files
+- Fixes loading old mlptrain .npz files
 
 Usability improvements/Changes
 ******************************
