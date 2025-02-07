@@ -16,6 +16,7 @@ from autode.values import (
 
 here = os.path.dirname(os.path.abspath(__file__))
 
+
 class TmpValues(ValueArray):
     implemented_units = [ha, ev]
 
@@ -127,20 +128,22 @@ def test_force_constant():
     # should be able to convert to Ha/a0^2 without any problems
     _ = fc.to("Ha/a0^2")
 
+
 def test_pickle():
     """Regression test for https://github.com/duartegroup/autodE/issues/221"""
     import pickle
 
     x = Gradient([[1.0, 1.0, 1.0]], units=ha_per_ang)
-    pickled_x = pickle.dumps(x,pickle.HIGHEST_PROTOCOL)
+    pickled_x = pickle.dumps(x, pickle.HIGHEST_PROTOCOL)
     unpickled_x = pickle.loads(pickled_x)
     assert unpickled_x.units == ha_per_ang
     assert unpickled_x == x
+
 
 def test_load_old_mlptrain_npz():
     """Regression test for https://github.com/duartegroup/autodE/issues/372"""
     import numpy as np
 
-    npz_file = os.path.join(here, 'data', 'old_mlptrain.npz')
+    npz_file = os.path.join(here, "data", "old_mlptrain.npz")
     data = np.load(npz_file, allow_pickle=True)
-    assert data['F_true'] is not None
+    assert data["F_true"] is not None
