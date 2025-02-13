@@ -20,23 +20,59 @@ namespace autode
         void check_validity() const;
     };
 
+
+    class FIREMinimiser {
+        /* A Fast Inertial Relaxation Engine (FIRE) minimiser */
+
+    private:
+        // tunable parameters: set to sensible defaults
+        static constexpr double dt_init = 0.25;  // initial time step
+        static constexpr double dt_max = 1.0;  // maximum time step
+        static constexpr double dt_min = 0.001;  // minimum time step
+        static constexpr double alpha_start = 0.1;  // initial alpha
+        static constexpr double atom_mass = 4.0;  // assumed mass of each atom
+        static constexpr double f_alpha = 0.99;  // alpha damping factor
+        static constexpr double f_inc = 1.1;  // factor to increase dt
+        static constexpr double f_dec = 0.5;  // factor to decrease dt
+        static constexpr int n_delay = 5;  // initial delay before increasing dt
+
+        // variables
+        int iter = 0;  // current number of iterations
+        double dt = dt_init;  // current time step
+        double alpha = alpha_start;  // current alpha
+
+        int N_plus = 0;  // number of steps with positive dot product
+        int N_minus = 0;  // number of steps with negative dot product
+
+        arrx::array1d vels;  // velocities
+
+    public:
+
+        FIREMinimiser() = default;
+
+        void take_step(arrx::array1d* coords, const arrx::array1d& grad);
+
+    };
+
     class Image {
         /* A NEB image, holding coordinates, energy and gradients */
 
     private:
         int n_atoms; // number of atoms
+        FIREMinimiser opt;  // minimiser for this image
 
     public:
         arrx::array1d coords;  // coordinates
         arrx::array1d grad;  // gradients
         double en = 0.0;  // energy
-        double k_spr;  // force constant
+        double k_m1, k_p1;  // force constants to left and right images
+        bool active = false;  // whether this image is active
 
         Image() = default;
 
         explicit Image(int num_atoms, double k);
 
-        double get_tau_k_fac(arrx::array1d& tau,
+        double get_tau_k_fac(arrx::array1d* tau,
                              const Image& img_m1,
                              const Image& img_p1,
                              const bool force_lc) const;
@@ -46,6 +82,8 @@ namespace autode
                              bool force_lc);
 
         double max_g() const;
+
+        void min_step();
     };
 
     class IDPPPotential {
@@ -67,7 +105,7 @@ namespace autode
     };
 
     class NEB {
-        /* A NEB calculation for interpolation, holding images and potential */
+        /* A NEB calculation for interpolation, holding images */
 
     public:
         int n_images;  // total number of images

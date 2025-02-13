@@ -29,8 +29,43 @@ namespace {
 
 namespace autode {
 
+    void FIREMinimiser::take_step(arrx::array1d* coords,
+                                  const arrx::array1d& grad) {
+        /* Take a single step in the FIRE minimisation algorithm */
+        if (iter == 0) {
+            vels.resize(coords->size());
+            vels.fill(0.0);
+        }
+        ensure(coords->size() == grad.size() && coords->size() == vels.size(),
+            "Coordinates, gradient and velocities must have same length");
+        auto power = -arrx::dot(grad, vels);
+        if (power > 0) {
+            N_plus++;
+            N_minus = 0;
+            if (N_plus > n_delay) {
+                dt = std::min(dt * f_inc, dt_max);
+                alpha *= f_alpha;
+            }
+        } else {
+            N_plus = 0;
+            N_minus++;
+            if (iter >= n_delay) {
+                dt = std::max(dt * f_dec, dt_min);
+                alpha = alpha_start;
+            }
+            *coords = *coords - (0.5 * dt) * vels;  // noalias
+            vels.fill(0.0);
+        }
+
+        vels = vels - (dt / atom_mass) * grad; // noalias
+        vels = (1.0 - alpha) * vels - (
+            alpha * arrx::norm_l2(vels) / arrx::norm_l2(grad) * grad
+        ); // noalias
+        *coords = *coords + dt * vels; // noalias
+    }
+
     Image::Image(int num_atoms, double k)
-     : n_atoms(num_atoms), k_spr(k) {
+     : n_atoms{num_atoms}, k_m1{k}, k_p1{k} {
         /* Create an image with empty coordinates and gradients
          * for a given number of atoms
          *
@@ -46,7 +81,7 @@ namespace autode {
         this->grad = arrx::zeros(n_atoms * 3);
     }
 
-    double Image::get_tau_k_fac(arrx::array1d& tau,
+    double Image::get_tau_k_fac(arrx::array1d* tau,
                                 const Image& img_m1,
                                 const Image& img_p1,
                                 const bool force_lc) const {
@@ -91,28 +126,28 @@ namespace autode {
         bool use_lc = force_lc;
         if (force_lc) {
         } else if (img_m1.en < en && en < img_p1.en) {
-            tau = tau_p;
+            *tau = tau_p;
         } else if (img_p1.en < en && en < img_m1.en) {
-            tau = tau_m;
+            *tau = tau_m;
         } else {
             use_lc = true;
         }
 
         if (use_lc) {
             if (img_m1.en < img_p1.en) {
-                tau = tau_p * dv_max + tau_m * dv_min;
+                *tau = tau_p * dv_max + tau_m * dv_min;
             } else if (img_p1.en < img_m1.en) {
-                tau = tau_m * dv_max + tau_p * dv_min;
+                *tau = tau_m * dv_max + tau_p * dv_min;
             } else {  // equal energies
-                tau = tau_p + tau_m;
+                *tau = tau_p + tau_m;
             }
-            double tau_norm = arrx::norm_l2(tau);
+            double tau_norm = arrx::norm_l2(*tau);
             if (tau_norm < 1e-10) {  // sometimes dv_max, dv_min are small
-                tau = tau_p + tau_m;
+                *tau = tau_p + tau_m;
             }
-            tau /= tau_norm;
+            *tau /= tau_norm;
         }
-        return tau_p_norm * img_p1.k_spr - tau_m_norm * img_m1.k_spr;
+        return tau_p_norm * k_p1 - tau_m_norm * k_m1;
     }
 
     void Image::update_neb_grad(const Image& img_m1,
@@ -130,7 +165,7 @@ namespace autode {
          *  force_lc: Force using the linear combination tangent
          */
         arrx::array1d tau_hat;
-        auto k_fac = this->get_tau_k_fac(tau_hat, img_m1, img_p1, force_lc);
+        auto k_fac = this->get_tau_k_fac(&tau_hat, img_m1, img_p1, force_lc);
 
         auto f_par = tau_hat * k_fac;
         auto g_perp = grad - arrx::dot(grad, tau_hat) * tau_hat;
@@ -141,6 +176,11 @@ namespace autode {
     double Image::max_g() const {
         /* Obtain the max. abs. gradient of this image */
         return arrx::abs_max(grad);
+    }
+
+    void Image::min_step() {
+        /* Take a single minimisation step on this image */
+        opt.take_step(&coords, grad);
     }
 
 
