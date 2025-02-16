@@ -248,6 +248,7 @@ def test_sp_hmethod():
     Config.hmethod_sp_conformers = False
 
 
+@testutils.requires_working_xtb_install
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "sp_conformers.zip"))
 def test_sp_hmethod_ranking():
     Config.hmethod_sp_conformers = True
