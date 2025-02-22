@@ -206,17 +206,16 @@ class Hessian(ValueArray):
         for t_i in (t1, t2, t3, t4, t5, t6):
             t_i *= m_half
 
-        # Generate a transform matrix D with the first columns as translation/
-        # rotation vectors with the remainder as random orthogonal columns
-        M = np.eye(3 * len(self.atoms))
+        tr_bas = np.array([t1, t2, t3, t4, t5, t6]).transpose()
+        U_s, s_v, _ = np.linalg.svd(tr_bas, full_matrices=True)
 
-        i = 0
-        for t_i in (t1, t2, t3, t4, t5, t6):
-            if not np.isclose(np.linalg.norm(t_i), 0):
-                M[:, i] = t_i
-                i += 1
+        if self.atoms.are_linear() and s_v[5] / s_v[0] > 1.0e-4:
+            logger.warning(
+                "Molecule detected as linear, but lowest singular "
+                "value from trans. rot. basis is {s_v[5]:.4e}"
+            )
 
-        return np.linalg.qr(M)[0]
+        return U_s
 
     @cached_property
     def _mass_weighted(self) -> np.ndarray:
