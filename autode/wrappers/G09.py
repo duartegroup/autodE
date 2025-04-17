@@ -679,13 +679,10 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
             )
 
         """
-        NOTE: The best atoms to use for the hessian are those
-        from the start of the calculation as Guassian can rotate
-        to a 'standard orientation', which will break the hessian
-        projection
+        NOTE: Can't use 'standard orientation' coordinates as they
+        break the hessian projection
         """
         atoms = calc.molecule.atoms.copy()
-        print(self._coordinates_from(calc, allow_standard_orientation=False))
         atoms.coordinates = self._coordinates_from(
             calc, allow_standard_orientation=False
         )
