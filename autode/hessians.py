@@ -38,8 +38,6 @@ if TYPE_CHECKING:
     from autode.wrappers.keywords import GradientKeywords, Keywords
     from autode.values import Distance, Gradient
 
-THRESHOLD_ROTATION_FREQ = Frequency(50, "cm-1")
-
 
 class Hessian(ValueArray):
     implemented_units = [
@@ -153,9 +151,19 @@ class Hessian(ValueArray):
         """
         n_atoms = len(self.atoms)
 
-        e_x = np.array([1.0, 0.0, 0.0])
-        e_y = np.array([0.0, 1.0, 0.0])
-        e_z = np.array([0.0, 0.0, 1.0])
+        if n_atoms > 2:
+            # Get an orthonormal basis shifted from the principal rotation axis
+            _rot_M = np.array(
+                [
+                    [1.00000000000000, 0.000000000000000, 0.000000000000000],
+                    [0.00000000000000, 0.099833416646828, -0.995004165278026],
+                    [0.00000000000000, 0.995004165278026, 0.099833416646828],
+                ]
+            )
+            _, (e_x, e_y, e_z) = np.linalg.eigh(_rot_M.dot(self.atoms.moi))
+        else:
+            # Get a random orthonormal basis in 3D
+            (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
 
         t1 = np.tile(e_x, reps=n_atoms)
         t2 = np.tile(e_y, reps=n_atoms)
@@ -169,6 +177,11 @@ class Hessian(ValueArray):
             t4 += np.cross(e_x, r).tolist()
             t5 += np.cross(e_y, r).tolist()
             t6 += np.cross(e_z, r).tolist()
+
+        if any(np.isclose(np.linalg.norm(t_i), 0.0) for t_i in (t4, t5, t6)):
+            # Found linear dependency in rotation vectors, attempt to remove
+            # by initialising different random orthogonal vectors
+            return self._tr_vecs()
 
         return t1, t2, t3, np.array(t4), np.array(t5), np.array(t6)
 
@@ -206,16 +219,10 @@ class Hessian(ValueArray):
         for t_i in (t1, t2, t3, t4, t5, t6):
             t_i *= m_half
 
-        tr_bas = np.array([t1, t2, t3, t4, t5, t6]).transpose()
-        U_s, s_v, _ = np.linalg.svd(tr_bas, full_matrices=True)
+        M = np.eye(3 * len(self.atoms))
+        M[:, :6] = np.column_stack((t1, t2, t3, t4, t5, t6))
 
-        if self.atoms.are_linear() and s_v[5] / s_v[0] > 1.0e-4:
-            logger.warning(
-                "Molecule detected as linear, but lowest singular "
-                "value from trans. rot. basis is {s_v[5]:.4e}"
-            )
-
-        return U_s
+        return np.linalg.qr(M)[0]
 
     @cached_property
     def _mass_weighted(self) -> np.ndarray:
@@ -401,29 +408,14 @@ class Hessian(ValueArray):
                 n_zeroed_modes += 1
 
         if n_zeroed_modes != n_tr:
-            logger.warn(
+            logger.warning(
                 f"Number of well zeroed eigenvectors of the hessian "
                 f"was [{n_zeroed_modes}] should be [{n_tr}]"
             )
 
-        lambdas = np.linalg.eigvalsh(H[n_zeroed_modes:, n_zeroed_modes:])
-        trans_rot_freqs = [Frequency(0.0) for _ in range(n_zeroed_modes)]
+        lambdas = np.linalg.eigvalsh(H[n_tr:, n_tr:])
+        trans_rot_freqs = [Frequency(0.0) for _ in range(n_tr)]
         vib_freqs = self._eigenvalues_to_freqs(lambdas)
-
-        n_rotational_modes_in_vib_freqs = n_tr - n_zeroed_modes
-        for i in np.argsort(np.abs(np.array(vib_freqs))):
-            freq = vib_freqs[i]
-            if (
-                n_rotational_modes_in_vib_freqs > 0
-                and freq.real < THRESHOLD_ROTATION_FREQ
-            ):
-                logger.warning(
-                    "Found a vibrational mode that should be a rotation with "
-                    f"frequency [{freq}] cm-1. Forcing to zero"
-                )
-                vib_freqs[i] = Frequency(0.0)
-                n_rotational_modes_in_vib_freqs -= 1
-
         return trans_rot_freqs + vib_freqs
 
     def copy(self, *args, **kwargs) -> "Hessian":
