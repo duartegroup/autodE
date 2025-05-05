@@ -177,14 +177,16 @@ class Molecule(Species):
         if self.smiles is not None and self.rdkit_conf_gen_is_fine:
             logger.info(f"Using RDKit to gen conformers. {n_confs} requested")
 
-            m_string = "ETKDGv3" if hasattr(AllChem, "ETKDGv3") else "ETKDGv2"
+            m_string = _rdkit_conformer_method_string()
             logger.info(f"Using the {m_string} method")
-
             method_class = getattr(AllChem, m_string)
             method = method_class()
             method.pruneRmsThresh = Config.rmsd_threshold
             method.numThreads = Config.n_cores
-            method.useSmallRingTorsion = True
+            try:
+                method.useSmallRingTorsion = True
+            except AttributeError:
+                logger.warning("Failed to turn on RDKit small ring torsions")
 
             logger.info(
                 "Running conformation generation with RDKit... running"
@@ -269,6 +271,16 @@ class Reactant(Molecule):
 
 class Product(Molecule):
     """Product molecule"""
+
+
+def _rdkit_conformer_method_string() -> str:
+    """Get the method for RDKit, depending on the version"""
+    if hasattr(AllChem, "srETKDGv3"):
+        return "srETKDGv3"
+    elif hasattr(AllChem, "ETKDGv3"):
+        return "ETKDGv3"
+    else:
+        return "ETKDGv2"
 
 
 def _is_xyz_filename(value: str) -> bool:
