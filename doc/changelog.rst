@@ -14,6 +14,7 @@ Bug Fixes
 *********
 - Fixes coordinate extraction in some G16 output files
 - Fixes loading old mlptrain .npz files
+- Fixes compatability with RDKit 2025.03.2
 
 Usability improvements/Changes
 ******************************
