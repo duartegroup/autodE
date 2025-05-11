@@ -7,5 +7,6 @@ if [[ "$OSTYPE" == "msys" ]]; then
   export XTBPATH=./xtb-6.5.1/share/xtb
   export PATH="./xtb-6.5.1/bin:$PATH"
 else
-  conda install xtb
+  # Pin libgfortran due to https://github.com/grimme-lab/xtb/issues/1277
+  conda install xtb libgfortran=14.*
 fi
