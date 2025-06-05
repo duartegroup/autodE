@@ -10,7 +10,7 @@ from autode.mol_graphs import make_graph, is_isomorphic
 from autode.geom import calc_heavy_atom_rmsd
 from autode.log import logger
 from autode.utils import ProcessPool
-from autode.exceptions import NoConformers
+from autode.exceptions import NoConformers, CouldNotGetProperty
 
 
 if TYPE_CHECKING:
@@ -22,9 +22,14 @@ if TYPE_CHECKING:
 
 def _calc_conformer(conformer, calc_type, method, keywords, n_cores=1):
     """Top-level hashable function to call in parallel"""
-    getattr(conformer, calc_type)(
-        method=method, keywords=keywords, n_cores=n_cores
-    )
+    func = getattr(conformer, calc_type)
+    try:
+        func(method=method, keywords=keywords, n_cores=n_cores)
+    except CouldNotGetProperty as e:
+        logger.warning(
+            f"Failed to run calculation on conformer {conformer.name} due to {e}"
+        )
+
     return conformer
 
 

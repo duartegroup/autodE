@@ -19,6 +19,7 @@ Bug Fixes
 Usability improvements/Changes
 ******************************
 - Drops Python 3.8 support
+- Catches conformer calculation exceptions
 
 1.4.4
 ------
