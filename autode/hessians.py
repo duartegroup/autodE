@@ -151,20 +151,9 @@ class Hessian(ValueArray):
         """
         n_atoms = len(self.atoms)
 
-        if n_atoms > 2:
-            # Get an orthonormal basis shifted from the principal rotation axis
-            _rot_M = np.array(
-                [
-                    [1.0, 0.0, 0.0],
-                    [0.0, 0.09983341664682815, -0.9950041652780258],
-                    [0.0, 0.9950041652780258, 0.09983341664682815],
-                ]
-            )
-
-            _, (e_x, e_y, e_z) = np.linalg.eigh(_rot_M.dot(self.atoms.moi))
-        else:
-            # Get a random orthonormal basis in 3D
-            (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
+        e_x = np.array([1.0, 0.0, 0.0])
+        e_y = np.array([0.0, 1.0, 0.0])
+        e_z = np.array([0.0, 0.0, 1.0])
 
         t1 = np.tile(e_x, reps=n_atoms)
         t2 = np.tile(e_y, reps=n_atoms)
@@ -174,14 +163,10 @@ class Hessian(ValueArray):
         t4, t5, t6 = [], [], []
 
         for atom in self.atoms:
-            t4 += np.cross(e_x, atom.coord - com).tolist()
-            t5 += np.cross(e_y, atom.coord - com).tolist()
-            t6 += np.cross(e_z, atom.coord - com).tolist()
-
-        if any(np.isclose(np.linalg.norm(t_i), 0.0) for t_i in (t4, t5, t6)):
-            # Found linear dependency in rotation vectors, attempt to remove
-            # by initialising different random orthogonal vectors
-            return self._tr_vecs()
+            r = atom.coord - com
+            t4 += np.cross(e_x, r).tolist()
+            t5 += np.cross(e_y, r).tolist()
+            t6 += np.cross(e_z, r).tolist()
 
         return t1, t2, t3, np.array(t4), np.array(t5), np.array(t6)
 
@@ -213,21 +198,22 @@ class Hessian(ValueArray):
 
         # Construct M^1/2, which as it's diagonal, is just the roots of the
         # diagonal elements
-        masses = np.repeat(
-            [atom.mass for atom in self.atoms], repeats=3, axis=np.newaxis
-        )
-        m_half = np.diag(np.sqrt(masses))
+        masses = np.repeat([atom.mass for atom in self.atoms], repeats=3)
+        m_half = np.sqrt(masses)
 
         for t_i in (t1, t2, t3, t4, t5, t6):
-            t_i[:] = np.dot(m_half, np.array(t_i))
-            t_i /= np.linalg.norm(t_i)
+            t_i *= m_half
 
-        # Generate a transform matrix D with the first columns as translation/
-        # rotation vectors with the remainder as random orthogonal columns
-        M = np.random.rand(3 * len(self.atoms), 3 * len(self.atoms)) - 0.5
-        M[:, :6] = np.column_stack((t1, t2, t3, t4, t5, t6))
+        tr_bas = np.array([t1, t2, t3, t4, t5, t6]).transpose()
+        U_s, s_v, _ = np.linalg.svd(tr_bas)
 
-        return np.linalg.qr(M)[0]
+        if self.atoms.are_linear() and s_v[5] / s_v[0] > 1e-4:
+            logger.warning(
+                "Molecule detected as linear, but lowest singular"
+                f" value from rotation vectors is {s_v[5]:.2e}"
+            )
+
+        return U_s
 
     @cached_property
     def _mass_weighted(self) -> np.ndarray:
@@ -400,13 +386,27 @@ class Hessian(ValueArray):
                 "Could not calculate projected frequencies, must "
                 "have atoms set"
             )
-
         n_tr = self.n_tr  # Number of translational+rotational modes
-        lambdas = np.linalg.eigvalsh(self._proj_mass_weighted[n_tr:, n_tr:])
 
+        H = self._proj_mass_weighted
+        norms = np.linalg.norm(H, axis=0)
+        max_norm = np.max(norms)
+        n_zeroed_modes = 0  # Number of modes that have been well projected out of the hessian
+        for norm in norms:
+            if norm / max_norm > 0.1 or n_zeroed_modes == n_tr:
+                break
+            else:
+                n_zeroed_modes += 1
+
+        if n_zeroed_modes != n_tr:
+            logger.warning(
+                f"Number of well zeroed eigenvectors of the hessian "
+                f"was [{n_zeroed_modes}] should be [{n_tr}]"
+            )
+
+        lambdas = np.linalg.eigvalsh(H[n_tr:, n_tr:])
         trans_rot_freqs = [Frequency(0.0) for _ in range(n_tr)]
         vib_freqs = self._eigenvalues_to_freqs(lambdas)
-
         return trans_rot_freqs + vib_freqs
 
     def copy(self, *args, **kwargs) -> "Hessian":
@@ -591,7 +591,7 @@ class NumericalHessianCalculator:
         return species.gradient.flatten()
 
     @property
-    def _init_gradient(self) -> "Gradient":
+    def _init_gradient(self) -> "np.ndarray":
         """Gradient at the initial geometry of the species"""
         return np.array(self._species.gradient).flatten()
 
