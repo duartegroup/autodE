@@ -959,3 +959,31 @@ def test_hessian_proj_freqs_acetylene():
         len([v for v in freqs if np.isclose(v.to("cm-1"), 694.4, atol=1)]) == 2
     )
     assert len([v for v in freqs if 10 < v.to("cm-1") < 600]) == 0
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
+def test_g09_hessian_no_input_orientation():
+    c2h6 = ade.Molecule(
+        atoms=[
+            Atom("C", 0.75249, -0.06314, 0.08226),
+            Atom("C", -0.75224, 0.06326, -0.0821),
+            Atom("H", 1.25058, -0.25289, -0.88138),
+            Atom("H", 1.19248, 0.85458, 0.50287),
+            Atom("H", 1.01813, -0.89237, 0.75653),
+            Atom("H", -1.01825, 0.89231, -0.75642),
+            Atom("H", -1.2509, 0.25255, 0.88138),
+            Atom("H", -1.19219, -0.85439, -0.50304),
+        ]
+    )
+
+    calc = Calculation(
+        name="tmp",
+        molecule=c2h6,
+        method=ade.methods.G09(),
+        keywords=ade.HessianKeywords(),
+    )
+    calc.set_output_filename("C2H6_hess_g09_no_input_orientation.log")
+
+    assert np.isclose(
+        c2h6.hessian.frequencies[-1], Frequency(3156.1252), atol=1.0
+    )
