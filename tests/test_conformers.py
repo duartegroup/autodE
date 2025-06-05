@@ -301,7 +301,12 @@ def test_calc_conformer():
         name="h2_conf",
         charge=0,
         mult=1,
-        atoms=[Atom("H", 0.0, 0.0, 0.0), Atom("H", 0.0, 0.0, 0.7)],
+        atoms=Atoms(
+            [
+                Atom("H", 0.0, 0.0, 0.0),
+                Atom("H", 0.0, 0.0, 0.7),
+            ]
+        ),
     )
 
     _xtb = XTB()
@@ -317,6 +322,30 @@ def test_calc_conformer():
     )
 
     assert h2_conf.energy is not None
+
+
+@testutils.requires_working_xtb_install
+@work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
+def test_calc_conformer_that_fails_doesnt_raise():
+    h2_conf = Conformer(
+        name="h_atom",
+        atoms=Atoms(
+            [
+                Atom("H", 0.0, 0.0, 0.0),
+                Atom("H", 0.0, 0.0, 0.0),
+            ]
+        ),
+    )
+
+    _xtb = XTB()
+    h2_conf = _calc_conformer(
+        conformer=h2_conf,
+        calc_type="single_point",
+        method=_xtb,
+        keywords=_xtb.keywords.sp,
+        n_cores=1,
+    )
+    assert h2_conf.energy is None
 
 
 def test_conformers_inherit_atom_classes():
