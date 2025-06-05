@@ -151,19 +151,9 @@ class Hessian(ValueArray):
         """
         n_atoms = len(self.atoms)
 
-        if n_atoms > 2:
-            # Get an orthonormal basis shifted from the principal rotation axis
-            _rot_M = np.array(
-                [
-                    [1.00000000000000, 0.000000000000000, 0.000000000000000],
-                    [0.00000000000000, 0.099833416646828, -0.995004165278026],
-                    [0.00000000000000, 0.995004165278026, 0.099833416646828],
-                ]
-            )
-            _, (e_x, e_y, e_z) = np.linalg.eigh(_rot_M.dot(self.atoms.moi))
-        else:
-            # Get a random orthonormal basis in 3D
-            (e_x, e_y, e_z), _ = np.linalg.qr(np.random.rand(3, 3))
+        e_x = np.array([1.0, 0.0, 0.0])
+        e_y = np.array([0.0, 1.0, 0.0])
+        e_z = np.array([0.0, 0.0, 1.0])
 
         t1 = np.tile(e_x, reps=n_atoms)
         t2 = np.tile(e_y, reps=n_atoms)
@@ -177,11 +167,6 @@ class Hessian(ValueArray):
             t4 += np.cross(e_x, r).tolist()
             t5 += np.cross(e_y, r).tolist()
             t6 += np.cross(e_z, r).tolist()
-
-        if any(np.isclose(np.linalg.norm(t_i), 0.0) for t_i in (t4, t5, t6)):
-            # Found linear dependency in rotation vectors, attempt to remove
-            # by initialising different random orthogonal vectors
-            return self._tr_vecs()
 
         return t1, t2, t3, np.array(t4), np.array(t5), np.array(t6)
 
@@ -219,10 +204,16 @@ class Hessian(ValueArray):
         for t_i in (t1, t2, t3, t4, t5, t6):
             t_i *= m_half
 
-        M = np.eye(3 * len(self.atoms))
-        M[:, :6] = np.column_stack((t1, t2, t3, t4, t5, t6))
+        tr_bas = np.array([t1, t2, t3, t4, t5, t6]).transpose()
+        U_s, s_v, _ = np.linalg.svd(tr_bas)
 
-        return np.linalg.qr(M)[0]
+        if self.atoms.are_linear() and s_v[5] / s_v[0] > 1e-4:
+            logger.warning(
+                "Molecule detected as linear, but lowest singular"
+                f" value from rotation vectors is {s_v[5]:.2e}"
+            )
+
+        return U_s
 
     @cached_property
     def _mass_weighted(self) -> np.ndarray:

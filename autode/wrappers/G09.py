@@ -543,18 +543,14 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
     def coordinates_from(self, calc: "CalculationExecutor") -> Coordinates:
         """Get the final set of coordinates from a G09 output"""
-        return self._coordinates_from(calc, allow_standard_orientation=True)
+        return self._coordinates_from(calc)
 
     @staticmethod
-    def _coordinates_from(
-        calc: "CalculationExecutor", allow_standard_orientation: bool = True
-    ) -> Coordinates:
+    def _coordinates_from(calc: "CalculationExecutor") -> Coordinates:
         coords: List[List[float]] = []
 
         for i, line in enumerate(calc.output.file_lines):
-            if "Input orientation" in line or (
-                allow_standard_orientation and "Standard orientation" in line
-            ):
+            if "Input orientation" in line:
                 coords.clear()
                 xyz_lines = calc.output.file_lines[
                     i + 5 : i + 5 + calc.molecule.n_atoms
@@ -563,6 +559,9 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
                 for xyz_line in xyz_lines:
                     _, _, _, x, y, z = xyz_line.split()
                     coords.append([float(x), float(y), float(z)])
+
+        if len(coords) == 0:
+            raise CouldNotGetProperty(name="coordinates")
 
         return Coordinates(coords, units="Å")
 
@@ -675,17 +674,19 @@ class G09(autode.wrappers.methods.ExternalMethodOEGH):
 
         if len(hess_values) != n * (n + 1) // 2:
             raise CouldNotGetProperty(
-                "Not enough elements of the Hessian " "matrix found"
+                "Not enough elements of the Hessian matrix found"
             )
 
         """
-        NOTE: Can't use 'standard orientation' coordinates as they
-        break the hessian projection
+        NOTE: Output file for Hessian may contain only Standard orientation
+        coordinates, which break Hessian projection - so in those cases use
+        the original set of coordinates.
         """
-        atoms = calc.molecule.atoms.copy()
-        atoms.coordinates = self._coordinates_from(
-            calc, allow_standard_orientation=False
-        )
+        try:
+            atoms = self.atoms_from(calc)
+        except CouldNotGetProperty:
+            atoms = calc.molecule.atoms.copy()
+
         return Hessian(
             symm_matrix_from_ltril(hess_values),
             atoms=atoms,
