@@ -1,6 +1,26 @@
 Changelog
 =========
 
+1.4.5
+------
+-------
+
+Functionality improvements
+**************************
+- Adds a boolean option for calculating single points refinements
+
+
+Bug Fixes
+*********
+- Fixes coordinate extraction in some G16 output files
+- Fixes loading old mlptrain .npz files
+- Fixes compatability with RDKit 2025.03.2
+
+Usability improvements/Changes
+******************************
+- Drops Python 3.8 support
+- Catches conformer calculation exceptions
+
 1.4.4
 ------
 -------

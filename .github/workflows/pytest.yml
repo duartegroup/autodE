@@ -22,14 +22,14 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.8", "3.12"]
+        python-version: ["3.9", "3.13"]  # Lowest and highest supported versions
 
     defaults:
       run:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - uses: conda-incubator/setup-miniconda@v3
       with:

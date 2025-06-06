@@ -119,6 +119,7 @@ class Reaction:
     def calculate_reaction_profile(
         self,
         units: Union["Unit", str] = "kcal mol-1",
+        single_point_refinement: bool = True,
         with_complexes: bool = False,
         free_energy: bool = False,
         enthalpy: bool = False,
@@ -131,6 +132,9 @@ class Reaction:
         -----------------------------------------------------------------------
         Keyword Arguments:
             units (autode.units.Unit | str):
+
+            single_point_refinement (bool): Calculate single point at a
+                                            higher level of theory
 
             with_complexes (bool): Calculate the lowest energy conformers
                                    of the reactant and product complexes
@@ -161,7 +165,8 @@ class Reaction:
                 reaction.calculate_complexes()
             if free_energy or enthalpy:
                 reaction.calculate_thermochemical_cont()
-            reaction.calculate_single_points()
+            if single_point_refinement:
+                reaction.calculate_single_points()
             reaction.print_output()
             return None
 

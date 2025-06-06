@@ -664,8 +664,15 @@ class ValueArray(ABC, np.ndarray):
         )
 
     def __setstate__(self, state, *args, **kwargs):
-        self.__dict__.update(state[-1])
-        super().__setstate__(state[:-1], *args, **kwargs)
+        """Extend default pickling protocol to include extra attributes from ValueArray"""
+
+        try:
+            self.__dict__.update(state[-1])
+            super().__setstate__(state[:-1], *args, **kwargs)
+        except TypeError:
+            # This is a fallback so we can load old .npz files in mlptrain, see:
+            # https://github.com/duartegroup/autodE/issues/372
+            super().__setstate__(state, *args, **kwargs)
 
     def to(self, units) -> Any:
         """

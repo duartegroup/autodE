@@ -23,7 +23,7 @@ from autode.wrappers.keywords.keywords import (
 )
 from autode.exceptions import CalculationException
 from autode.point_charges import PointCharge
-from autode.atoms import Atom
+from autode.atoms import Atom, Atoms
 from .. import testutils
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -180,6 +180,15 @@ def test_gauss_opt_calc():
 @testutils.work_in_zipped_dir(g09_zip_path)
 def test_gauss_optts_calc():
     test_mol = Molecule(name="methane", smiles="C")
+    test_mol.atoms = Atoms(
+        [
+            Atom("C", -0.022100, 0.003200, 0.016500),
+            Atom("H", -0.669000, 0.889400, -0.100900),
+            Atom("H", -0.377800, -0.857800, -0.588300),
+            Atom("H", 0.096400, -0.315100, 1.0638000),
+            Atom("H", 0.972500, 0.280300, -0.3911000),
+        ]
+    )
     test_mol.graph.add_active_edge(0, 1)
 
     calc = Calculation(
@@ -204,9 +213,10 @@ def test_gauss_optts_calc():
     assert bond_added
 
     test_mol.calc_thermo(calc=calc, ss="1atm", lfm_method="igm")
-
     assert calc.terminated_normally
     assert calc.optimiser.converged
+    assert test_mol.imaginary_frequencies is not None
+
     assert len(test_mol.imaginary_frequencies) == 1
 
     assert -40.324 < test_mol.free_energy < -40.322

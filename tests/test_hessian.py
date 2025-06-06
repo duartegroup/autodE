@@ -3,6 +3,7 @@ import pytest
 import pickle
 import numpy as np
 import autode as ade
+from scipy.stats import special_ortho_group
 from autode.utils import work_in_tmp_dir, ProcessPool
 from . import testutils
 import multiprocessing as mp
@@ -526,6 +527,14 @@ def test_gaussian_hessian_extract_h2():
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
 def test_gaussian_hessian_extract_co2():
     co2 = Molecule("CO2_opt.xyz")
+    # Set to match the input orientation of the opt/hessian calculation below
+    co2.atoms = Atoms(
+        [
+            Atom("O", 0.000000, 0.000000, 1.159304),
+            Atom("C", 0.000000, 0.000000, -0.000003),
+            Atom("O", 0.000000, 0.000000, -1.159301),
+        ]
+    )
 
     calc = Calculation(
         name="tmp",
@@ -588,15 +597,13 @@ def test_nwchem_hessian_co2():
         keywords=ade.HessianKeywords(),
     )
     calc.set_output_filename("CO2_hess_nwchem.out")
-    print(co2.hessian)
-    print(co2.hessian._mass_weighted)
     assert_correct_co2_frequencies(
         hessian=co2.hessian, expected=(659.76, 1406.83, 2495.73)
     )
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
-def test_imag_mode():
+def test_sn2_imag_mode():
     """
     Ensure the imaginary mode for an SN2 reaction is close to that obtained
     from ORCA by checking forwards (f) and backwards (b) displaced geometries
@@ -917,3 +924,66 @@ def test_hessian_pickle_and_unpickle():
 
     assert reloaded_hessian.shape == (3 * mol.n_atoms, 3 * mol.n_atoms)
     assert reloaded_hessian.atoms == mol.atoms
+
+
+def test_hessian_proj_freqs_acetylene():
+    # fmt: off
+    raw_hessian = np.array([
+      [ 1.9130e-01, 0, 0, -1.1500e-01, 0, 0, -9.3200e-02,  0, -0,  1.7000e-02,-0,  0],
+      [ 0,  1.9130e-01, -0, -0, -1.1500e-01, 0,  0, -9.3200e-02, -0,  0, 1.7000e-02,  0],
+      [ 0, -0,  5.5863e+00, -0,  0, -4.1050e+00, -0, -0, -1.5068e+00,  0,  0,  2.5400e-02],
+      [-1.1500e-01,  0, -0,  1.9200e-01, -0, -0,  1.7100e-02, -0,  0, -9.4000e-02, 0,  0],
+      [ 0, -1.1500e-01, -0, -0,  1.9200e-01, -0,  0,  1.7100e-02,  0, -0, -9.4000e-02,  0],
+      [ 0,  0, -4.1050e+00, -0, -0, 5.5804e+00,  0,  0,  2.5400e-02,  0, -0, -1.5010e+00],
+      [-9.3300e-02,  0, -0,  1.7100e-02,  0, 0,  5.7900e-02, -0,  0,  1.8200e-02, 0,  0],
+      [ 0, -9.3300e-02, -0, -0,  1.7100e-02, 0, -0,  5.7900e-02, -0, -0, 1.8200e-02,  0],
+      [-0, -0, -1.5068e+00,  0,  0, 2.5400e-02,  0, -0,  1.4819e+00, -0, -0, -3.0000e-04],
+      [ 1.7000e-02,  0,  0, -9.4000e-02, -0, 0,  1.8200e-02, -0, -0,  5.8600e-02, -0, -0],
+      [-0,  1.7000e-02,  0,  0, -9.4000e-02, -0,  0,  1.8200e-02, -0, -0, 5.8600e-02, -0],
+      [ 0,  0,  2.5400e-02,  0,  0, -1.5010e+00,  0,  0, -3.0000e-04, -0, 0,  1.4761e+00]
+    ])
+    # fmt: on
+    atoms = Atoms(
+        [
+            Atom("C", 0.0000, 0.0000, -0.6043),
+            Atom("C", 0.0000, 0.0000, 0.6042),
+            Atom("H", 0.0000, 0.0000, -1.6791),
+            Atom("H", 0.0000, 0.0000, 1.6797),
+        ]
+    )
+
+    h = Hessian(atoms=atoms, input_array=raw_hessian)
+    freqs = h.frequencies_proj
+    assert len([v for v in freqs if abs(v.to("cm-1")) < 10.0]) == 5
+    assert (
+        len([v for v in freqs if np.isclose(v.to("cm-1"), 694.4, atol=1)]) == 2
+    )
+    assert len([v for v in freqs if 10 < v.to("cm-1") < 600]) == 0
+
+
+@testutils.work_in_zipped_dir(os.path.join(here, "data", "hessians.zip"))
+def test_g09_hessian_no_input_orientation():
+    c2h6 = ade.Molecule(
+        atoms=[
+            Atom("C", 0.75249, -0.06314, 0.08226),
+            Atom("C", -0.75224, 0.06326, -0.0821),
+            Atom("H", 1.25058, -0.25289, -0.88138),
+            Atom("H", 1.19248, 0.85458, 0.50287),
+            Atom("H", 1.01813, -0.89237, 0.75653),
+            Atom("H", -1.01825, 0.89231, -0.75642),
+            Atom("H", -1.2509, 0.25255, 0.88138),
+            Atom("H", -1.19219, -0.85439, -0.50304),
+        ]
+    )
+
+    calc = Calculation(
+        name="tmp",
+        molecule=c2h6,
+        method=ade.methods.G09(),
+        keywords=ade.HessianKeywords(),
+    )
+    calc.set_output_filename("C2H6_hess_g09_no_input_orientation.log")
+
+    assert np.isclose(
+        c2h6.hessian.frequencies[-1], Frequency(3156.1252), atol=1.0
+    )
