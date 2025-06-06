@@ -28,8 +28,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -455,7 +455,7 @@ $ conda activate autode_env
 <h2>MethodUnavailable<a class="headerlink" href="#methodunavailable" title="Link to this heading">#</a></h2>
 <p>If high and/or low level electronic structure methods cannot be found in your <em>PATH</em>
 environment variable it is possible to set the paths manually in <code class="code docutils literal notranslate"><span class="pre">ade.Config</span></code> for e.g. XTB:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">methods</span><span class="p">,</span> <span class="n">Config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="kn">import</span> <span class="n">methods</span><span class="p">,</span> <span class="n">Config</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">methods</span><span class="o">.</span><span class="n">get_lmethod</span><span class="p">()</span>
 <span class="go">autode.exceptions.MethodUnavailable</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Config</span><span class="o">.</span><span class="n">XTB</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;/path/to/xtb/bin/xtb&#39;</span>
@@ -481,7 +481,7 @@ and proceed depending on whether a peak is or is not present.</p>
 <p>Oh no! without an initial peak a TS won’t be able to be found. Perhaps the reaction is electronically
 barrierless at this level of theory. If there are anions consider adding diffuse functions, if they are not
 already present e.g.:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">set_opt_basis_set</span><span class="p">(</span><span class="s1">&#39;ma-def2-SVP&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -490,7 +490,7 @@ already present e.g.:</p>
 <h3>With a path peak<a class="headerlink" href="#with-a-path-peak" title="Link to this heading">#</a></h3>
 <p>If there is a peak then either (1) the TS guess geometry is not close enough to the TS for successful
 optimisation. To reduce the step size:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode</span> <span class="kn">import</span> <span class="n">Config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Config</span><span class="o">.</span><span class="n">min_step_size</span> <span class="o">=</span> <span class="mf">0.02</span>
 </pre></div>
 </div>

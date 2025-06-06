@@ -28,8 +28,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -439,7 +439,7 @@ much like their <a class="reference internal" href="../reference/species/species
 multiplicity defaults (0, 1 respectively) and can be built from
 <a class="reference external" href="https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system/">SMILES</a>
 strings</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">molecule</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;molecule&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">molecule</span><span class="o">.</span><span class="n">charge</span>
 <span class="go">0</span>
@@ -505,7 +505,7 @@ water molecule so the oxygen atom is centred at the origin</p>
 </pre></div>
 </div>
 <p>then rotate around the x axis</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">theta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="o">.</span><span class="n">coordinates</span>
 <span class="go">Coordinates([[ 0.    ,  0.   ,  0.    ],</span>
@@ -593,7 +593,7 @@ value.</p>
 <p>Calculations can also be performed using electronic structure packages with
 implemented wrappers. For example, to calculate a single point energy for a
 hydrogen atom with all the currently implemented methods</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.methods</span> <span class="kn">import</span> <span class="n">MOPAC</span><span class="p">,</span> <span class="n">XTB</span><span class="p">,</span> <span class="n">QChem</span><span class="p">,</span> <span class="n">NWChem</span><span class="p">,</span> <span class="n">G09</span><span class="p">,</span> <span class="n">G16</span><span class="p">,</span> <span class="n">ORCA</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">autode.methods</span><span class="w"> </span><span class="kn">import</span> <span class="n">MOPAC</span><span class="p">,</span> <span class="n">XTB</span><span class="p">,</span> <span class="n">QChem</span><span class="p">,</span> <span class="n">NWChem</span><span class="p">,</span> <span class="n">G09</span><span class="p">,</span> <span class="n">G16</span><span class="p">,</span> <span class="n">ORCA</span>
 <span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt;</span>

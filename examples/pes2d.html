@@ -28,8 +28,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -426,7 +426,7 @@ document.write(`
 over the available number of cores. For example, to calculate and plot the 2D
 relaxed surface over the forming C-C distances in a Diels-Alder reaction between
 ethene and butadiene:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
 
 <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Distribute over 10 cores</span>
 
@@ -446,7 +446,7 @@ ethene and butadiene:</p>
 <p>Surfaces can also be interpolated using a
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.RectBivariateSpline.html">spline</a>.
 To reload the PES and plot using a 4-fold interpolation (i.e. 10 -&gt; 40 points in each dimension):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
 
 <span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">RelaxedPESnD</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;DA_surface.npz&quot;</span><span class="p">)</span>
 <span class="n">pes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;DA_surface_interpolated.png&quot;</span><span class="p">,</span> <span class="n">interp_factor</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>

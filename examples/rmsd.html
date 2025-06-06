@@ -28,8 +28,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -427,17 +427,17 @@ example, a script that compares .xyz files in the current directory and
 copies them to a folder (<em>unique_conformers</em>) if they are unique based on an
 RMSD threshold</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
-<span class="kn">from</span> <span class="nn">autode.species</span> <span class="kn">import</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">autode.geom</span> <span class="kn">import</span> <span class="n">calc_rmsd</span>
-<span class="kn">from</span> <span class="nn">autode.input_output</span> <span class="kn">import</span> <span class="n">xyz_file_to_atoms</span>
-<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copyfile</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autode.species</span><span class="w"> </span><span class="kn">import</span> <span class="n">Species</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autode.geom</span><span class="w"> </span><span class="kn">import</span> <span class="n">calc_rmsd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autode.input_output</span><span class="w"> </span><span class="kn">import</span> <span class="n">xyz_file_to_atoms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">copyfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 
 <span class="n">folder_name</span> <span class="o">=</span> <span class="s2">&quot;unique_conformers&quot;</span>
 
 
-<span class="k">def</span> <span class="nf">get_args</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_args</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">&quot;filenames&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;.xyz files to compare&quot;</span>
@@ -461,7 +461,7 @@ RMSD threshold</p>
     <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">get_molecules_no_hydrogens</span><span class="p">(</span><span class="n">molecules</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_molecules_no_hydrogens</span><span class="p">(</span><span class="n">molecules</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove all hydrogen atoms from  a list of molecules&quot;&quot;&quot;</span>
 
     <span class="n">no_h_molecules</span> <span class="o">=</span> <span class="p">[]</span>
@@ -474,7 +474,7 @@ RMSD threshold</p>
     <span class="k">return</span> <span class="n">no_h_molecules</span>
 
 
-<span class="k">def</span> <span class="nf">get_and_copy_unique_confs</span><span class="p">(</span><span class="n">xyz_filenames</span><span class="p">,</span> <span class="n">only_heavy_atoms</span><span class="p">,</span> <span class="n">threshold_rmsd</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_and_copy_unique_confs</span><span class="p">(</span><span class="n">xyz_filenames</span><span class="p">,</span> <span class="n">only_heavy_atoms</span><span class="p">,</span> <span class="n">threshold_rmsd</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;For each xyz file generate a species and copy it to a folder if it is</span>
 <span class="sd">    unique based on an RMSD threshold&quot;&quot;&quot;</span>
 

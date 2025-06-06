@@ -28,8 +28,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -441,7 +441,7 @@ document.write(`
 <p>To generate conformers of butane initialised from a SMILES string defaults to
 using ETKDGv2. The molecule’s conformers are a list of
 <a class="reference internal" href="../reference/conformers/conformer.html#conformer"><span class="std std-ref">Conformer</span></a> objects, a subclass of <a class="reference internal" href="../reference/species/species.html#species"><span class="std std-ref">Species</span></a>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">butane</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;butane&#39;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;CCCC&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">butane</span><span class="o">.</span><span class="n">populate_conformers</span><span class="p">(</span><span class="n">n_confs</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">butane</span><span class="o">.</span><span class="n">conformers</span><span class="p">)</span>
@@ -480,8 +480,8 @@ symmetry (e.g. methyl rotation)</p>
 example, to generate conformers of
 <a class="reference external" href="https://en.wikipedia.org/wiki/Vaska%27s_complex">Vaska’s complex</a>
 while retaining the square planar geometry</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
-<span class="kn">from</span> <span class="nn">autode.conformers</span> <span class="kn">import</span> <span class="n">conf_gen</span><span class="p">,</span> <span class="n">Conformer</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autode.conformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">conf_gen</span><span class="p">,</span> <span class="n">Conformer</span>
 
 <span class="c1"># Initialise the complex from a .xyz file containing a square planar structure</span>
 <span class="n">vaskas</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="s2">&quot;vaskas.xyz&quot;</span><span class="p">)</span>

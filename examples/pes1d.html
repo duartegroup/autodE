@@ -28,8 +28,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -439,8 +439,8 @@ optimise (relaxed).</p>
 <section id="unrelaxed">
 <h2>Unrelaxed<a class="headerlink" href="#unrelaxed" title="Link to this heading">#</a></h2>
 <p>For the O-H dissociation curve in H<sub>2</sub>O at the XTB level:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;O&quot;</span><span class="p">)</span>
 <span class="c1"># water.atoms = [[O, x, y, z], [H, x&#39;, y&#39;, z&#39;], [H, x&#39;&#39;, y&#39;&#39;, z&#39;&#39;]]</span>
@@ -464,8 +464,8 @@ optimise (relaxed).</p>
 <a class="reference internal image-reference" href="../_images/OH_PES_unrelaxed.png"><img alt="../_images/OH_PES_unrelaxed.png" class="align-center" src="../_images/OH_PES_unrelaxed.png" style="width: 550px;" />
 </a>
 <p>For the same O-H 1D PES scan using a selection of different DFT methods:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="c1"># Initialise the PES over the O-H bond 0.65 -&gt; 2.0 Å</span>
 <span class="n">pes</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">pes</span><span class="o">.</span><span class="n">UnRelaxedPES1D</span><span class="p">(</span>
@@ -499,7 +499,7 @@ optimise (relaxed).</p>
 <h2>Relaxed<a class="headerlink" href="#relaxed" title="Link to this heading">#</a></h2>
 <p>A relaxed 1D PES can be generated and plotted using the default <code class="code docutils literal notranslate"><span class="pre">plot</span></code>
 method for the same O-H stretch using:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
 
 <span class="n">water</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">smiles</span><span class="o">=</span><span class="s2">&quot;O&quot;</span><span class="p">)</span>
 

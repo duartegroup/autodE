@@ -28,8 +28,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=a3416100" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
@@ -443,13 +443,13 @@ functionality when combined with <a class="reference external" href="https://git
 <p>From a molecular graph representation of a molecule its fragmentation is
 relatively straightforward. For example, to fragment methane to CH<sub>3</sub>• +
 H•</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">autode</span> <span class="k">as</span> <span class="nn">ade</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">methane</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">atomic_symbol</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">methane</span><span class="o">.</span><span class="n">atoms</span><span class="p">]</span>
 <span class="go">[&#39;C&#39;, &#39;H&#39;, &#39;H&#39;, &#39;H&#39;, &#39;H&#39;]</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">autode.mol_graphs</span> <span class="kn">import</span> <span class="n">split_mol_across_bond</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">autode.mol_graphs</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_mol_across_bond</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ch3_nodes</span><span class="p">,</span> <span class="n">h_nodes</span> <span class="o">=</span> <span class="n">split_mol_across_bond</span><span class="p">(</span><span class="n">methane</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">bond</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ch3</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;CH3&#39;</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">methane</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ch3_nodes</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ch3</span><span class="o">.</span><span class="n">atoms</span>
@@ -490,7 +490,7 @@ molecule is a transition state (TS) or a particular conformation of interest.</p
 with: <code class="code docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">molfunc</span></code>. <strong>molfunc</strong> requires a xyz file to
 initialise a molecule and indexes atoms from 1 so that atom 2 is the first
 hydrogen atom in methane</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">molfunc</span> <span class="kn">import</span> <span class="n">CoreMolecule</span><span class="p">,</span> <span class="n">CombinedMolecule</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">molfunc</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreMolecule</span><span class="p">,</span> <span class="n">CombinedMolecule</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">methane</span><span class="o">.</span><span class="n">print_xyz_file</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">methane_core</span> <span class="o">=</span> <span class="n">CoreMolecule</span><span class="p">(</span><span class="n">xyz_filename</span><span class="o">=</span><span class="s1">&#39;CH4.xyz&#39;</span><span class="p">,</span> <span class="n">atoms_to_del</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ethane</span> <span class="o">=</span> <span class="n">CombinedMolecule</span><span class="p">(</span><span class="n">methane_core</span><span class="p">,</span> <span class="n">frag_smiles</span><span class="o">=</span><span class="s1">&#39;C[*]&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;C2H6&#39;</span><span class="p">)</span>
@@ -500,7 +500,7 @@ hydrogen atom in methane</p>
 </div>
 <p>A set of fragments can be iterated through using <strong>molfunc</strong> to generate a
 library rapidly e.g.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">molfunc</span> <span class="kn">import</span> <span class="n">CoreMolecule</span><span class="p">,</span> <span class="n">CombinedMolecule</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">molfunc</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreMolecule</span><span class="p">,</span> <span class="n">CombinedMolecule</span>
 
 <span class="n">fragments</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;NMe2&quot;</span><span class="p">:</span> <span class="s2">&quot;CN([Fr])C&quot;</span><span class="p">,</span>
