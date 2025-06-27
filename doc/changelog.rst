@@ -21,6 +21,7 @@ Usability improvements/Changes
 - Drops Python 3.8 support
 - Catches conformer calculation exceptions
 - Improves interfacing with solvent usage for ORCA 6.0
+- Updates Molfunc example to work with the most current version
 
 1.4.4
 ------
