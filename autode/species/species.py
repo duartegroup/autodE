@@ -1199,6 +1199,7 @@ class Species(AtomCollection):
         Arguments:
             filename (str): Name of the file to print
         """
+        # TODO: To be removed after debugging
         assert filename.endswith(".mol")
         assert self.graph is not None
         with open(filename, "w") as mol_file:

@@ -216,11 +216,13 @@ def make_graph(
             ):
                 graph.add_edge(i, j, pi=False, active=False)
 
-    _set_graph_attributes(graph)
+    _set_graph_attributes(graph)  # TODO for metals use bond lengths
     species.graph = graph
 
     if not allow_invalid_valancies:
         remove_bonds_invalid_valancies(species)
+
+    # TODO sanitise for metal haptic bonds
 
     return None
 
@@ -228,7 +230,8 @@ def make_graph(
 def remove_bonds_invalid_valancies(species):
     """
     Remove invalid valencies for atoms that exceed their maximum valencies e.g.
-    H should have no more than 1 'bond'
+    H should have no more than 1 'bond'. Does *NOT* consider coordinate bonds to
+    metals.
 
     ---------------------------------------------------------------------------
     Arguments:
@@ -236,21 +239,29 @@ def remove_bonds_invalid_valancies(species):
     """
 
     for i in species.graph.nodes:
-        max_valance = species.atoms[i].maximal_valance
-        neighbours = list(species.graph.neighbors(i))
+        if species.atoms[i].is_metal:
+            continue
 
-        if len(neighbours) <= max_valance:
+        max_valance = species.atoms[i].maximal_valance
+        all_neighbours = list(species.graph.neighbors(i))
+        non_m_neighbours = [
+            j for j in all_neighbours if not species.atoms[j].is_metal
+        ]
+
+        if len(non_m_neighbours) <= max_valance:
             continue  # All is well
 
-        logger.warning(f"Atom {i} exceeds its maximal valence removing edges")
+        logger.debug(f"Atom {i} exceeds its maximal valence removing edges")
 
-        # Get the atom indexes sorted by the closest to atom i
-        closest_atoms = sorted(
-            neighbours, key=lambda k: species.distance(i, k)
+        # Get the atom indexes sorted by the weakest bond to atom i
+        weakest_bonded_neighbours = sorted(
+            non_m_neighbours,
+            key=lambda k: species.distance(i, k)
+            / species.eqm_bond_distance(i, k),
         )
 
         # Delete all the bonds to atom(s) j that are above the maximal valance
-        for j in closest_atoms[max_valance:]:
+        for j in weakest_bonded_neighbours[max_valance:]:
             species.graph.remove_edge(i, j)
 
     return None
