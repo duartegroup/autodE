@@ -20,6 +20,7 @@ Usability improvements/Changes
 ******************************
 - Drops Python 3.8 support
 - Catches conformer calculation exceptions
+- Improves interfacing with solvent usage for ORCA 6.0
 
 1.4.4
 ------
