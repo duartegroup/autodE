@@ -1,6 +1,14 @@
 Changelog
 =========
 
+1.4.6
+------
+-------
+
+Bug Fixes
+*********
+- Fixes Molfunc example to run with current version
+
 1.4.5
 ------
 -------
