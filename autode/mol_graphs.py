@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from autode.values import Distance
     from autode.species.species import Species
 
+_METAL_HAPTIC_THRESH = 1.10  # 10%
+
 
 class MolecularGraph(nx.Graph):
     def __repr__(self):
@@ -102,7 +104,7 @@ class MolecularGraph(nx.Graph):
         else:
             self.add_edge(u, v, pi=False, active=True)
 
-        _set_graph_attributes(self)
+        _set_pi_bonds_stereocentres(self)
         return None
 
     @property
@@ -216,13 +218,61 @@ def make_graph(
             ):
                 graph.add_edge(i, j, pi=False, active=False)
 
-    _set_graph_attributes(graph)  # TODO for metals use bond lengths
+    _set_pi_bonds_stereocentres(graph)  # TODO for metals use bond lengths
     species.graph = graph
 
     if not allow_invalid_valancies:
         remove_bonds_invalid_valancies(species)
 
-    # TODO sanitise for metal haptic bonds
+    _sanitise_metal_bonds(species)
+    return None
+
+
+def _sanitise_metal_bonds(species):
+    """
+    Sometimes, covalent radii based bond detection adds extra bonds to
+    metals in a haptic-type pattern (adjacent atoms to coordinating atoms
+    are also bonded). These are removed by an approximate distance
+    based criteria (NOT always perfect).
+
+    Args:
+        species: The species object
+    """
+
+    for i in species.graph.nodes:
+        if not species.atoms[i].is_metal:
+            continue
+
+        to_remove = set()
+        neighbours = list(species.graph.neighbors(i))
+        haptic_groups: List[set] = []
+
+        # Obtain sets of "haptic" atoms which are bonded to i and each other
+        subset_graph = species.graph.subgraph(neighbours)
+        haptic_groups = list(subset_graph.connected_components())
+
+        for group in haptic_groups:
+            if len(group) == 1:
+                continue
+            idxs_list = np.array(list(group))
+            # bond length to metal scaled by sum of covalent radii
+            r_i_x_scaled = [
+                species.distance(i, x) / species.eqm_bond_distance(i, x)
+                for x in idxs_list
+            ]
+            # any bond more than 10% weaker than the shortest is removed
+            relative_ratios = np.array(r_i_x_scaled) / min(r_i_x_scaled)
+            remove_idxs = idxs_list[
+                np.where(relative_ratios >= _METAL_HAPTIC_THRESH)[0]
+            ]
+            to_remove.update(list(remove_idxs))
+
+        if len(to_remove) != 0:
+            logger.debug(
+                f"Removing long 'haptic' bond(s) to metal {i}: {to_remove}"
+            )
+        for j in to_remove:
+            species.graph.remove_edge(i, j)
 
     return None
 
@@ -267,7 +317,7 @@ def remove_bonds_invalid_valancies(species):
     return None
 
 
-def _set_graph_attributes(graph):
+def _set_pi_bonds_stereocentres(graph):
     """
     For a molecular species set the π bonds and stereocentres in the molecular
     graph.
