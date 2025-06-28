@@ -766,6 +766,15 @@ class BondRearrangement:
     def __str__(self):
         return "_".join(f"{bond[0]}-{bond[1]}" for bond in self.all)
 
+    def __repr__(self):
+        br_str = "Form(" + ",".join(
+            f"{bond[0]}-{bond[1]}" for bond in self.fbonds
+        )
+        br_str += ")    Break(" + ",".join(
+            f"{bond[0]}-{bond[1]}" for bond in self.bbonds
+        )
+        return br_str + ")"
+
     def get_active_atom_neighbour_lists(self, species, depth):
         """
         Get neighbour lists of all the active atoms in the molecule
