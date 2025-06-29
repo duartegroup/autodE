@@ -25,6 +25,7 @@ class BondRearrGenerator:
         reactant,
         bbond_types,
         fbond_types,
+        all_bond_types_list,
         delta_n_bonds,
         n_extra_moves=0,
     ):
@@ -40,6 +41,7 @@ class BondRearrGenerator:
         """
         self._bbond_types = bbond_types
         self._fbond_types = fbond_types
+        self._all_bond_types = all_bond_types_list
         # forming and breaking bonds must not have the same type
         assert (
             len(
@@ -69,6 +71,7 @@ class BondRearrGenerator:
 
     def _graph_move(self, remaining_moves: deque, fbonds, bbonds):
         """Recursive function !!!"""
+        n_atoms = self._reactant.n_atoms
         if len(remaining_moves) == 0:
             yield BondRearrangement(fbonds, bbonds)
         this_move = remaining_moves.popleft()
@@ -77,46 +80,54 @@ class BondRearrGenerator:
             for i, j in self._reactant.graph.edges:
                 # do not revert any previous moves
                 idxs = tuple(sorted((i, j)))
-                if idxs in fbonds or idxs in bbonds:
-                    continue
-                key1 = (
-                    self._reactant.atoms[i].label
-                    + self._reactant.atoms[j].label
-                )
-                key2 = (
-                    self._reactant.atoms[j].label
-                    + self._reactant.atoms[i].label
-                )
-                if key1 == this_move[1] or key2 == this_move[1]:
+                sym1 = self._reactant.atoms[i].label
+                sym2 = self._reactant.atoms[j].label
+                if this_move[1] in [sym1 + sym2, sym2 + sym1]:
                     bbonds.append(idxs)
                     yield from self._graph_move(
                         remaining_moves, fbonds, bbonds
                     )
         # Form a new bond of known type (e.g. C-N)
         elif this_move[0] == GraphMove.k_FORM:
-            for i, j in itertools.combinations(
-                range(self._reactant.n_atoms), 2
-            ):
+            for i, j in itertools.combinations(n_atoms, 2):
                 idxs = tuple(sorted((i, j)))
-                if idxs in fbonds or idxs in bbonds:
-                    continue  # TODO: is this check really needed??
+                # if idxs in fbonds or idxs in bbonds:
+                #    continue  # TODO: is this check really needed??
                 if self._reactant.graph.has_edge(i, j):
                     continue
-                key1 = (
-                    self._reactant.atoms[i].label
-                    + self._reactant.atoms[j].label
-                )
-                key2 = (
-                    self._reactant.atoms[j].label
-                    + self._reactant.atoms[i].label
-                )
-                if key1 == this_move[1] or key2 == this_move[1]:
+                sym1 = self._reactant.atoms[i].label
+                sym2 = self._reactant.atoms[j].label
+                if this_move[1] in [sym1 + sym2, sym2 + sym1]:
                     fbonds.append(idxs)
                     yield from self._graph_move(
                         remaining_moves, fbonds, bbonds
                     )
         # Break and form bond of a fixed type (e.g. C-C)
         elif this_move[0] == GraphMove.BREAK_FORM:
+            for bond_type in self._all_bond_types:
+                # break one of this type
+                for i, j in self._reactant.graph.edges:
+                    idxs = tuple(sorted((i, j)))
+                    if idxs in fbonds or idxs in bbonds:
+                        continue
+                    sym1 = self._reactant.atoms[i].label
+                    sym2 = self._reactant.atoms[j].label
+                    if bond_type in [sym1 + sym2, sym2 + sym1]:
+                        bbonds.append(idxs)
+                    # form another bond of this type
+                    for k, l in itertools.combinations(n_atoms, 2):
+                        if self._reactant.graph.has_edge(k, l):
+                            continue
+                        idxs = tuple(sorted((i, j)))
+                        if idxs in fbonds or idxs in bbonds:
+                            continue
+                        sym1 = self._reactant.atoms[i].label
+                        sym2 = self._reactant.atoms[j].label
+                        if bond_type in [sym1 + sym2, sym2 + sym1]:
+                            fbonds.append(idxs)
+                        yield from self._graph_move(
+                            remaining_moves, fbonds, bbonds
+                        )
             pass
 
 
