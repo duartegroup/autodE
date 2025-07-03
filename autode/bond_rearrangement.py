@@ -1,6 +1,6 @@
 import itertools
+from typing import Optional, List, Tuple
 import os
-from collections import deque
 from enum import Enum
 from autode.geom import get_neighbour_list
 from autode.log import logger
@@ -27,7 +27,7 @@ class BondRearrGenerator:
         fbond_types,
         all_bond_types_list,
         delta_n_bonds,
-        n_extra_moves=0,
+        extra_move_pairs=0,
     ):
         """
         Create a class that obtains all possible bond rearrangements
@@ -35,100 +35,120 @@ class BondRearrGenerator:
 
         Args:
             reactant:
-            bbond_types: Dictionary of bond types and numbers {"CH": 1,...}
-            fbond_types:
+            bbond_types: Dictionary of bond types which are known to be breaking
+                         and the numbers of such breaking bonds {"CH": 1,...}
+            fbond_types: Dictionary of bond types which are known to be forming
             delta_n_bonds: Total number of bonds changing from reactant to product
+            extra_move_pairs: Number of pairs of extra graph moves that maybe made
+                              in addition to the known types
         """
+        assert isinstance(bbond_types, dict) and isinstance(fbond_types, dict)
         self._bbond_types = bbond_types
         self._fbond_types = fbond_types
         self._all_bond_types = all_bond_types_list
-        # forming and breaking bonds must not have the same type
+        # known forming and breaking bond types cannot be the same
         assert (
-            len(
-                set(self._bbond_types.keys()).intersection(
-                    self._fbond_types.keys()
-                )
-            )
-            == 0
+            len(set(bbond_types.keys()).intersection(fbond_types.keys())) == 0
         )
         self._reactant = reactant
         self._delta_n_bonds = delta_n_bonds
         min_delta = sum(fbond_types.values()) - sum(bbond_types.values())
         assert min_delta == delta_n_bonds
         # number of extra moves must be even (form + break)
-        self._n_extra = n_extra_moves
-        assert n_extra_moves % 2 == 0
+        assert isinstance(extra_move_pairs, int) and extra_move_pairs >= 0
+        self._n_extra_pair = extra_move_pairs
         self._moveset = []
+        self._create_moveset()
 
-    def creat_moveset(self):
+    def _create_moveset(self):
         """Create the series of moves that must be made"""
+        # NOTE: Must handle the known bond types first
         for bbond_type, n_moves in self._bbond_types.items():
-            self._moveset.append((GraphMove.K_BREAK, bbond_type))
+            for _ in range(n_moves):
+                self._moveset.append((GraphMove.K_BREAK, bbond_type))
         for fbond_type, n_moves in self._fbond_types.items():
-            self._moveset.append((GraphMove.k_FORM, fbond_type))
-        for _ in range(self._n_extra // 2):
+            for _ in range(n_moves):
+                self._moveset.append((GraphMove.k_FORM, fbond_type))
+        for _ in range(self._n_extra_pair):
             self._moveset.append((GraphMove.BREAK_FORM, None))
 
-    def _graph_move(self, remaining_moves: deque, fbonds, bbonds):
-        """Recursive function !!!"""
+    def _graph_moves(
+        self,
+        fbonds: Optional[tuple] = None,
+        bbonds: Optional[tuple] = None,
+    ):
+        """
+        Generator function - recursively yields all possible bond rearrangements
+        based on the graph moves defined
+
+        Args:
+            fbonds: Tuple of bonds that are already formed, used for
+                    recursive function calls, should not be specified by user
+            bbonds: Tuple of bonds that are already broken, should not be
+                    specified by user
+
+        Yields:
+            (BondRearrangement): A bond rearrangement
+        """
+        fbonds = fbonds if fbonds is not None else tuple()
+        bbonds = bbonds if bbonds is not None else tuple()
         n_atoms = self._reactant.n_atoms
-        if len(remaining_moves) == 0:
-            yield BondRearrangement(fbonds, bbonds)
-        this_move = remaining_moves.popleft()
+        n_remaining = len(self._moveset) - len(fbonds) - len(bbonds)
+        if n_remaining == 0:
+            yield BondRearrangement(list(fbonds), list(bbonds))
+            return
+        this_move = self._moveset[-n_remaining]
+
         # Break a bond of known type (e.g. C-H)
         if this_move[0] == GraphMove.K_BREAK:
             for i, j in self._reactant.graph.edges:
-                # do not revert any previous moves
                 idxs = tuple(sorted((i, j)))
-                sym1 = self._reactant.atoms[i].label
-                sym2 = self._reactant.atoms[j].label
-                if this_move[1] in [sym1 + sym2, sym2 + sym1]:
-                    bbonds.append(idxs)
-                    yield from self._graph_move(
-                        remaining_moves, fbonds, bbonds
-                    )
-        # Form a new bond of known type (e.g. C-N)
-        elif this_move[0] == GraphMove.k_FORM:
-            for i, j in itertools.combinations(n_atoms, 2):
-                idxs = tuple(sorted((i, j)))
-                # if idxs in fbonds or idxs in bbonds:
-                #    continue  # TODO: is this check really needed??
-                if self._reactant.graph.has_edge(i, j):
+                if idxs in bbonds:
                     continue
                 sym1 = self._reactant.atoms[i].label
                 sym2 = self._reactant.atoms[j].label
                 if this_move[1] in [sym1 + sym2, sym2 + sym1]:
-                    fbonds.append(idxs)
-                    yield from self._graph_move(
-                        remaining_moves, fbonds, bbonds
-                    )
-        # Break and form bond of a fixed type (e.g. C-C)
+                    yield from self._graph_moves(fbonds, bbonds + (idxs,))
+        # Form a new bond of known type (e.g. C-N)
+        elif this_move[0] == GraphMove.k_FORM:
+            for i, j in itertools.combinations(range(n_atoms), 2):
+                idxs = tuple(sorted((i, j)))
+                if self._reactant.graph.has_edge(i, j):
+                    continue
+                if idxs in fbonds:
+                    continue
+                sym1 = self._reactant.atoms[i].label
+                sym2 = self._reactant.atoms[j].label
+                if this_move[1] in [sym1 + sym2, sym2 + sym1]:
+                    yield from self._graph_moves(fbonds + (idxs,), bbonds)
+        # Break and form a bond of the same type
         elif this_move[0] == GraphMove.BREAK_FORM:
             for bond_type in self._all_bond_types:
                 # break one of this type
                 for i, j in self._reactant.graph.edges:
-                    idxs = tuple(sorted((i, j)))
-                    if idxs in fbonds or idxs in bbonds:
+                    idxs_b = tuple(sorted((i, j)))
+                    if idxs_b in fbonds or idxs_b in bbonds:
                         continue
                     sym1 = self._reactant.atoms[i].label
                     sym2 = self._reactant.atoms[j].label
-                    if bond_type in [sym1 + sym2, sym2 + sym1]:
-                        bbonds.append(idxs)
+                    if bond_type not in [sym1 + sym2, sym2 + sym1]:
+                        continue
                     # form another bond of this type
-                    for k, l in itertools.combinations(n_atoms, 2):
+                    for k, l in itertools.combinations(range(n_atoms), 2):
                         if self._reactant.graph.has_edge(k, l):
                             continue
-                        idxs = tuple(sorted((i, j)))
-                        if idxs in fbonds or idxs in bbonds:
+                        idxs_f = tuple(sorted((i, j)))
+                        if idxs_f == idxs_b:
+                            continue
+                        if idxs_f in fbonds or idxs_f in bbonds:
                             continue
                         sym1 = self._reactant.atoms[i].label
                         sym2 = self._reactant.atoms[j].label
-                        if bond_type in [sym1 + sym2, sym2 + sym1]:
-                            fbonds.append(idxs)
-                        yield from self._graph_move(
-                            remaining_moves, fbonds, bbonds
+                        if bond_type not in [sym1 + sym2, sym2 + sym1]:
+                            continue
+                        yield from self._graph_moves(
+                            fbonds + (idxs_f,), bbonds + (idxs_b,)
                         )
-            pass
 
 
 def get_bond_rearrangs(reactant, product, name, save=True):
@@ -986,7 +1006,11 @@ class BondRearrangement:
     def n_bbonds(self):
         return len(self.bbonds)
 
-    def __init__(self, forming_bonds=None, breaking_bonds=None):
+    def __init__(
+        self,
+        forming_bonds: Optional[List[tuple]] = None,
+        breaking_bonds: Optional[List[tuple]] = None,
+    ):
         """
         Bond rearrangement
 
