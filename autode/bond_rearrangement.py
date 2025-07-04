@@ -1,5 +1,5 @@
 import itertools
-from typing import Optional, List, Tuple
+from typing import Optional, Iterator, TYPE_CHECKING
 import os
 from enum import Enum
 from autode.geom import get_neighbour_list
@@ -12,6 +12,9 @@ from autode.mol_graphs import (
     find_cycles,
 )
 
+if TYPE_CHECKING:
+    from autode.species.species import Species
+
 
 class GraphMove(Enum):
     K_BREAK = 0  # break bond of known type
@@ -22,19 +25,22 @@ class GraphMove(Enum):
 class BondRearrGenerator:
     def __init__(
         self,
-        reactant,
-        bbond_types,
-        fbond_types,
-        all_bond_types_list,
-        delta_n_bonds,
-        extra_move_pairs=0,
+        reactant: "Species",
+        product: "Species",
+        bbond_types: dict[str, int],
+        fbond_types: dict[str, int],
+        all_bond_types_list: list[str],
+        delta_n_bonds: int,
+        extra_move_pairs: int = 0,
     ):
         """
-        Create a class that obtains all possible bond rearrangements
-        based on the types of bonds that must be broken and formed
+        Create a class that obtains all possible bond rearrangements that
+        will transform the reactant into the product based on the types of
+        bonds that must be broken and formed
 
         Args:
             reactant:
+            product:
             bbond_types: Dictionary of bond types which are known to be breaking
                          and the numbers of such breaking bonds {"CH": 1,...}
             fbond_types: Dictionary of bond types which are known to be forming
@@ -51,13 +57,14 @@ class BondRearrGenerator:
             len(set(bbond_types.keys()).intersection(fbond_types.keys())) == 0
         )
         self._reactant = reactant
-        self._delta_n_bonds = delta_n_bonds
+        self._product = product
+        self._delta_n_bonds = int(delta_n_bonds)
         min_delta = sum(fbond_types.values()) - sum(bbond_types.values())
         assert min_delta == delta_n_bonds
-        # number of extra moves must be even (form + break)
-        assert isinstance(extra_move_pairs, int) and extra_move_pairs >= 0
-        self._n_extra_pair = extra_move_pairs
-        self._moveset = []
+        # number of extra moves must be even i.e. in pairs (form + break)
+        assert extra_move_pairs >= 0
+        self._n_extra_pair = int(extra_move_pairs)
+        self._moveset: list = []
         self._create_moveset()
 
     def _create_moveset(self):
@@ -71,12 +78,13 @@ class BondRearrGenerator:
                 self._moveset.append((GraphMove.k_FORM, fbond_type))
         for _ in range(self._n_extra_pair):
             self._moveset.append((GraphMove.BREAK_FORM, None))
+        return None
 
     def _graph_moves(
         self,
         fbonds: Optional[tuple] = None,
         bbonds: Optional[tuple] = None,
-    ):
+    ) -> Iterator["BondRearrangement"]:
         """
         Generator function - recursively yields all possible bond rearrangements
         based on the graph moves defined
@@ -90,6 +98,7 @@ class BondRearrGenerator:
         Yields:
             (BondRearrangement): A bond rearrangement
         """
+        assert self._reactant.graph is not None
         fbonds = fbonds if fbonds is not None else tuple()
         bbonds = bbonds if bbonds is not None else tuple()
         n_atoms = self._reactant.n_atoms
@@ -149,6 +158,26 @@ class BondRearrGenerator:
                         yield from self._graph_moves(
                             fbonds + (idxs_f,), bbonds + (idxs_b,)
                         )
+
+    def get_valid_bond_rearrs(self) -> list["BondRearrangement"]:
+        """
+        Get all bond rearrangements that are actually valid, i.e. transforms
+        the reactant to product based on graph isomorphism
+
+        Returns:
+            (list(BondRearrangement)):
+        """
+        valid_bond_rearrs: list["BondRearrangement"] = []
+        # TODO: edit the function to use BondRearrangement class
+        for bond_rearr in self._graph_moves():
+            add_bond_rearrangment(
+                valid_bond_rearrs,
+                self._reactant,
+                self._product,
+                bond_rearr.fbonds,
+                bond_rearr.bbonds,
+            )
+        return valid_bond_rearrs
 
 
 def get_bond_rearrangs(reactant, product, name, save=True):
@@ -370,9 +399,9 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
         bond_rearrangs (list(autode.bond_rearrangements.BondRearrangement)):
                         list of working bond rearrangements
 
-        reactant (autode.species.Complex): Reactant complex
+        reactant (Species): Reactant complex
 
-        product (autode.species.Complex): Product complex
+        product (Species): Product complex
 
         fbonds (list(tuple)): list of bonds to be made
 
@@ -1008,8 +1037,8 @@ class BondRearrangement:
 
     def __init__(
         self,
-        forming_bonds: Optional[List[tuple]] = None,
-        breaking_bonds: Optional[List[tuple]] = None,
+        forming_bonds: Optional[list[tuple]] = None,
+        breaking_bonds: Optional[list[tuple]] = None,
     ):
         """
         Bond rearrangement
