@@ -148,16 +148,22 @@ class BondRearrGenerator:
                     possible_fbonds = get_fbonds(
                         self._reactant.graph, bond_type
                     )
-                    for bbond_t, fbond_t in product(
+                    for bbond_a, fbond_a in product(
                         possible_bbonds, possible_fbonds
                     ):
-                        if bbond_t in bbonds or (bbond_t[::-1] in bbonds):
+                        if (
+                            bbond_a in bbonds + fbonds
+                            or bbond_a[::-1] in bbonds + fbonds
+                        ):
                             continue
-                        if fbond_t in fbonds or (fbond_t[::-1] in fbonds):
+                        if (
+                            fbond_a in fbonds + bbonds
+                            or fbond_a[::-1] in fbonds + bbonds
+                        ):
                             continue
                         yield from self._graph_edits(
-                            fbonds=fbonds + (fbond_t,),
-                            bbonds=bbonds + (bbond_t,),
+                            fbonds=fbonds + (fbond_a,),
+                            bbonds=bbonds + (bbond_a,),
                         )
 
 
