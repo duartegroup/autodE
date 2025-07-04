@@ -1,7 +1,11 @@
 import itertools
+from itertools import combinations, combinations_with_replacement, product
 from typing import Optional, Iterator, TYPE_CHECKING
 import os
 from enum import Enum
+
+import numpy as np
+
 from autode.geom import get_neighbour_list
 from autode.log import logger
 from autode.config import Config
@@ -27,9 +31,8 @@ class BondRearrGenerator:
         self,
         reactant: "Species",
         product: "Species",
-        bbond_types: dict[str, int],
-        fbond_types: dict[str, int],
-        all_bond_types_list: list[str],
+        reac_bond_dict: dict[str, list],
+        prod_bond_dict: dict[str, list],
         delta_n_bonds: int,
         extra_move_pairs: int = 0,
     ):
@@ -41,34 +44,126 @@ class BondRearrGenerator:
         Args:
             reactant:
             product:
-            bbond_types: Dictionary of bond types which are known to be breaking
-                         and the numbers of such breaking bonds {"CH": 1,...}
-            fbond_types: Dictionary of bond types which are known to be forming
+            reac_bond_dict: Dictionary of reactant bond types and number of bonds
+            prod_bond_dict: Dictionary of product bond types and number of bonds
             delta_n_bonds: Total number of bonds changing from reactant to product
             extra_move_pairs: Number of pairs of extra graph moves that maybe made
                               in addition to the known types
         """
-        assert isinstance(bbond_types, dict) and isinstance(fbond_types, dict)
-        self._bbond_types = bbond_types
-        self._fbond_types = fbond_types
-        self._all_bond_types = all_bond_types_list
+        assert isinstance(reac_bond_dict, dict)
+        assert isinstance(prod_bond_dict, dict)
+        self._rct_bond_dict = reac_bond_dict
+        self._prd_bond_dict = prod_bond_dict
+        self._fbond_types: list[tuple] = []
+        self._bbond_types: list[tuple] = []
+
         # known forming and breaking bond types cannot be the same
-        assert (
-            len(set(bbond_types.keys()).intersection(fbond_types.keys())) == 0
-        )
+        # assert (
+        #     len(set(bbond_types.keys()).intersection(fbond_types.keys())) == 0
+        # )
         self._reactant = reactant
         self._product = product
         self._delta_n_bonds = int(delta_n_bonds)
-        min_delta = sum(fbond_types.values()) - sum(bbond_types.values())
-        assert min_delta == delta_n_bonds
+        # min_delta = sum(fbond_types.values()) - sum(bbond_types.values())
+        # assert min_delta == delta_n_bonds
+
         # number of extra moves must be even i.e. in pairs (form + break)
         assert extra_move_pairs >= 0
         self._n_extra_pair = int(extra_move_pairs)
         self._moveset: list = []
-        self._create_moveset()
+        self._generate_bond_types()
 
+    def _generate_bond_types(self):
+        """Generate the types and numbers of bonds that must be broken and formed"""
+        total_delta = 0
+        for reac_key, reac_bonds in self._rct_bond_dict.items():
+            prod_bonds = self._prd_bond_dict[reac_key]
+            delta_bonds = len(prod_bonds) - len(reac_bonds)
+            total_delta += delta_bonds
+            if delta_bonds > 0:
+                self._fbond_types.append((reac_key, delta_bonds))
+            elif delta_bonds < 0:
+                self._bbond_types.append((reac_key, -delta_bonds))
+
+        assert total_delta == self._delta_n_bonds, "Bond types do not match!"
+
+    def _graph_edits(
+        self, fbonds: Optional[tuple] = None, bbonds: Optional[tuple] = None
+    ):
+        assert self._reactant.graph is not None
+        fbonds = fbonds if fbonds is not None else tuple()
+        bbonds = bbonds if bbonds is not None else tuple()
+        n_broken, n_formed = len(bbonds), len(fbonds)
+        accum_n_breaks = np.cumsum([dat[1] for dat in self._bbond_types])
+        accum_n_forms = np.cumsum([dat[1] for dat in self._fbond_types])
+        # check if all graph edits have been made
+        total_b = accum_n_breaks[-1] + self._n_extra_pair
+        total_f = accum_n_forms[-1] + self._n_extra_pair
+        if n_broken == total_b and n_formed == total_f:
+            yield [fbonds, bbonds]
+            return
+
+        # First, break bonds of known types
+        if n_broken < accum_n_breaks[-1]:
+            if n_broken == 0:
+                to_break_idx = 0
+            else:
+                to_break_idx = np.where(accum_n_breaks == n_broken)[0][0] + 1
+            bbond_type = self._bbond_types[to_break_idx][0]
+            bbond_n = self._bbond_types[to_break_idx][1]
+            possible_bbonds = self._rct_bond_dict[bbond_type]
+            for comb in combinations(possible_bbonds, bbond_n):
+                yield from self._graph_edits(
+                    fbonds=fbonds, bbonds=bbonds + tuple(comb)
+                )
+
+        # Next, form bonds of known types
+        elif n_formed < accum_n_forms[-1]:
+            if n_formed == 0:
+                to_form_idx = 0
+            else:
+                to_form_idx = np.where(accum_n_forms == n_formed)[0][0] + 1
+            fbond_type = self._fbond_types[to_form_idx][0]
+            fbond_n = self._fbond_types[to_form_idx][1]
+            possible_fbonds = get_fbonds(self._reactant.graph, fbond_type)
+            for comb in combinations(possible_fbonds, fbond_n):
+                yield from self._graph_edits(
+                    fbonds=fbonds + tuple(comb), bbonds=bbonds
+                )
+
+        # Finally, form and break extra pairs of bonds. This can only happen
+        # with types of bonds that exist in both reactant and product. Additionally
+        # it must break and form bonds of the same type to keep the balance
+        else:
+            common_types = list(
+                set(self._rct_bond_dict.keys()).intersection(
+                    self._prd_bond_dict.keys()
+                )
+            )
+            for type_comb in combinations_with_replacement(
+                common_types, self._n_extra_pair
+            ):
+                for bond_type in type_comb:
+                    possible_bbonds = self._rct_bond_dict[bond_type]
+                    possible_fbonds = get_fbonds(
+                        self._reactant.graph, bond_type
+                    )
+                    for bbond_t, fbond_t in product(
+                        possible_bbonds, possible_fbonds
+                    ):
+                        if bbond_t in bbonds or (bbond_t[::-1] in bbonds):
+                            continue
+                        if fbond_t in fbonds or (fbond_t[::-1] in fbonds):
+                            continue
+                        yield from self._graph_edits(
+                            fbonds=fbonds + (fbond_t,),
+                            bbonds=bbonds + (bbond_t,),
+                        )
+
+
+"""
     def _create_moveset(self):
-        """Create the series of moves that must be made"""
+        "Create the series of moves that must be made"
         # NOTE: Must handle the known bond types first
         for bbond_type, n_moves in self._bbond_types.items():
             for _ in range(n_moves):
@@ -85,7 +180,7 @@ class BondRearrGenerator:
         fbonds: Optional[tuple] = None,
         bbonds: Optional[tuple] = None,
     ) -> Iterator["BondRearrangement"]:
-        """
+        "
         Generator function - recursively yields all possible bond rearrangements
         based on the graph moves defined
 
@@ -97,7 +192,7 @@ class BondRearrGenerator:
 
         Yields:
             (BondRearrangement): A bond rearrangement
-        """
+        "
         assert self._reactant.graph is not None
         fbonds = fbonds if fbonds is not None else tuple()
         bbonds = bbonds if bbonds is not None else tuple()
@@ -160,13 +255,13 @@ class BondRearrGenerator:
                         )
 
     def get_valid_bond_rearrs(self) -> list["BondRearrangement"]:
-        """
+        "
         Get all bond rearrangements that are actually valid, i.e. transforms
         the reactant to product based on graph isomorphism
 
         Returns:
             (list(BondRearrangement)):
-        """
+        "
         valid_bond_rearrs: list["BondRearrangement"] = []
         # TODO: edit the function to use BondRearrangement class
         for bond_rearr in self._graph_moves():
@@ -178,6 +273,7 @@ class BondRearrGenerator:
                 bond_rearr.bbonds,
             )
         return valid_bond_rearrs
+"""
 
 
 def get_bond_rearrangs(reactant, product, name, save=True):
