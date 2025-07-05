@@ -1,10 +1,8 @@
 import itertools
-from itertools import combinations, combinations_with_replacement, product
+from itertools import combinations, combinations_with_replacement
 from typing import Optional, Iterator, TYPE_CHECKING
 import os
 from enum import Enum
-
-import numpy as np
 
 from autode.geom import get_neighbour_list
 from autode.log import logger
@@ -31,9 +29,7 @@ class BondRearrGenerator:
         self,
         reactant: "Species",
         product: "Species",
-        reac_bond_dict: dict[str, list],
-        prod_bond_dict: dict[str, list],
-        delta_n_bonds: int,
+        delta_bond_tot: int,
         extra_move_pairs: int = 0,
     ):
         """
@@ -44,127 +40,104 @@ class BondRearrGenerator:
         Args:
             reactant:
             product:
-            reac_bond_dict: Dictionary of reactant bond types and number of bonds
-            prod_bond_dict: Dictionary of product bond types and number of bonds
-            delta_n_bonds: Total number of bonds changing from reactant to product
+            delta_bond_tot: Total number of bonds changing from reactant to product
             extra_move_pairs: Number of pairs of extra graph moves that maybe made
                               in addition to the known types
         """
-        assert isinstance(reac_bond_dict, dict)
-        assert isinstance(prod_bond_dict, dict)
-        self._rct_bond_dict = reac_bond_dict
-        self._prd_bond_dict = prod_bond_dict
-        self._fbond_types: list[tuple] = []
-        self._bbond_types: list[tuple] = []
+        self._rct_bond_dict: Optional[dict[str, list]] = None
 
-        # known forming and breaking bond types cannot be the same
-        # assert (
-        #     len(set(bbond_types.keys()).intersection(fbond_types.keys())) == 0
-        # )
         self._reactant = reactant
         self._product = product
-        self._delta_n_bonds = int(delta_n_bonds)
-        # min_delta = sum(fbond_types.values()) - sum(bbond_types.values())
-        # assert min_delta == delta_n_bonds
+        assert isinstance(delta_bond_tot, int)
 
         # number of extra moves must be even i.e. in pairs (form + break)
         assert extra_move_pairs >= 0
         self._n_extra_pair = int(extra_move_pairs)
-        self._moveset: list = []
-        self._generate_bond_types()
 
-    def _generate_bond_types(self):
+        # every moveset is a list of two dictionaries, first is all breaking bonds
+        # second is all forming bonds
+        self._movesets: list[list[dict]] = []
+        self._generate_bond_types(delta_bond_tot)
+
+    def _generate_bond_types(self, delta_bond_tot: int):
         """Generate the types and numbers of bonds that must be broken and formed"""
+        self._rct_bond_dict = get_bond_type_list(self._reactant.graph)
+        assert self._rct_bond_dict is not None
+        prod_bond_dict = get_bond_type_list(self._product.graph)
+
         total_delta = 0
+        known_bbond_types = {}
+        known_fbond_types = {}
+        # First handle bonds of known types that must form/break
         for reac_key, reac_bonds in self._rct_bond_dict.items():
-            prod_bonds = self._prd_bond_dict[reac_key]
+            prod_bonds = prod_bond_dict[reac_key]
             delta_bonds = len(prod_bonds) - len(reac_bonds)
             total_delta += delta_bonds
             if delta_bonds > 0:
-                self._fbond_types.append((reac_key, delta_bonds))
+                known_fbond_types[reac_key] = delta_bonds
             elif delta_bonds < 0:
-                self._bbond_types.append((reac_key, -delta_bonds))
+                known_bbond_types[reac_key] = -delta_bonds
+        assert total_delta == delta_bond_tot, "Bond types do not match!"
 
-        assert total_delta == self._delta_n_bonds, "Bond types do not match!"
+        # Extra pairs of bonds to break and form must be from bonds of type
+        # which are present in both reactant and product
+        common_types = list(
+            set(self._rct_bond_dict.keys()).intersection(prod_bond_dict.keys())
+        )
+        if self._n_extra_pair == 0:
+            self._movesets.append([known_bbond_types, known_fbond_types])
+            return None
+
+        type_combs = list(
+            combinations_with_replacement(common_types, self._n_extra_pair)
+        )
+
+        for comb in type_combs:
+            this_bbond_types = known_bbond_types.copy()
+            this_fbond_types = known_fbond_types.copy()
+            for key in comb:
+                this_bbond_types[key] = this_bbond_types.get(key, 0) + 1
+                this_fbond_types[key] = this_fbond_types.get(key, 0) + 1
+            self._movesets.append([this_bbond_types, this_fbond_types])
+
+        return None
 
     def _graph_edits(
-        self, fbonds: Optional[tuple] = None, bbonds: Optional[tuple] = None
-    ):
+        self,
+        moveset: list[dict[str, int]],
+        bbonds: Optional[tuple] = None,
+        fbonds: Optional[tuple] = None,
+    ) -> Iterator[list[tuple]]:
         assert self._reactant.graph is not None
-        fbonds = fbonds if fbonds is not None else tuple()
+        assert self._rct_bond_dict is not None
         bbonds = bbonds if bbonds is not None else tuple()
+        fbonds = fbonds if fbonds is not None else tuple()
+
+        # check if all graph edits have been made already
         n_broken, n_formed = len(bbonds), len(fbonds)
-        accum_n_breaks = np.cumsum([dat[1] for dat in self._bbond_types])
-        accum_n_forms = np.cumsum([dat[1] for dat in self._fbond_types])
-        # check if all graph edits have been made
-        total_b = accum_n_breaks[-1] + self._n_extra_pair
-        total_f = accum_n_forms[-1] + self._n_extra_pair
+        total_b = sum(moveset[0].values())
+        total_f = sum(moveset[1].values())
         if n_broken == total_b and n_formed == total_f:
             yield [fbonds, bbonds]
             return
 
-        # First, break bonds of known types
-        if n_broken < accum_n_breaks[-1]:
-            if n_broken == 0:
-                to_break_idx = 0
-            else:
-                to_break_idx = np.where(accum_n_breaks == n_broken)[0][0] + 1
-            bbond_type = self._bbond_types[to_break_idx][0]
-            bbond_n = self._bbond_types[to_break_idx][1]
-            possible_bbonds = self._rct_bond_dict[bbond_type]
-            for comb in combinations(possible_bbonds, bbond_n):
-                yield from self._graph_edits(
-                    fbonds=fbonds, bbonds=bbonds + tuple(comb)
-                )
-
-        # Next, form bonds of known types
-        elif n_formed < accum_n_forms[-1]:
-            if n_formed == 0:
-                to_form_idx = 0
-            else:
-                to_form_idx = np.where(accum_n_forms == n_formed)[0][0] + 1
-            fbond_type = self._fbond_types[to_form_idx][0]
-            fbond_n = self._fbond_types[to_form_idx][1]
-            possible_fbonds = get_fbonds(self._reactant.graph, fbond_type)
-            for comb in combinations(possible_fbonds, fbond_n):
-                yield from self._graph_edits(
-                    fbonds=fbonds + tuple(comb), bbonds=bbonds
-                )
-
-        # Finally, form and break extra pairs of bonds. This can only happen
-        # with types of bonds that exist in both reactant and product. Additionally
-        # it must break and form bonds of the same type to keep the balance
-        else:
-            common_types = list(
-                set(self._rct_bond_dict.keys()).intersection(
-                    self._prd_bond_dict.keys()
-                )
-            )
-            for type_comb in combinations_with_replacement(
-                common_types, self._n_extra_pair
-            ):
-                for bond_type in type_comb:
-                    possible_bbonds = self._rct_bond_dict[bond_type]
-                    possible_fbonds = get_fbonds(
-                        self._reactant.graph, bond_type
+        # First, break bonds
+        if n_broken < total_b:
+            for bbond_type, num in moveset[0].items():
+                possible_bbonds = self._rct_bond_dict[bbond_type]
+                for comb in combinations(possible_bbonds, num):
+                    yield from self._graph_edits(
+                        moveset, bbonds + tuple(comb), fbonds
                     )
-                    for bbond_a, fbond_a in product(
-                        possible_bbonds, possible_fbonds
-                    ):
-                        if (
-                            bbond_a in bbonds + fbonds
-                            or bbond_a[::-1] in bbonds + fbonds
-                        ):
-                            continue
-                        if (
-                            fbond_a in fbonds + bbonds
-                            or fbond_a[::-1] in fbonds + bbonds
-                        ):
-                            continue
-                        yield from self._graph_edits(
-                            fbonds=fbonds + (fbond_a,),
-                            bbonds=bbonds + (bbond_a,),
-                        )
+
+        # Next, form bonds
+        elif n_formed < total_f:
+            for fbond_type, num in moveset[1].items():
+                possible_fbonds = get_fbonds(self._reactant.graph, fbond_type)
+                for comb in combinations(possible_fbonds, num):
+                    yield from self._graph_edits(
+                        moveset, bbonds, fbonds + tuple(comb)
+                    )
 
 
 """
