@@ -62,7 +62,6 @@ class BondRearrGenerator:
     def _generate_bond_types(self, delta_bond_tot: int):
         """Generate the types and numbers of bonds that must be broken and formed"""
         self._rct_bond_dict = get_bond_type_list(self._reactant.graph)
-        assert self._rct_bond_dict is not None
         prod_bond_dict = get_bond_type_list(self._product.graph)
 
         total_delta = 0

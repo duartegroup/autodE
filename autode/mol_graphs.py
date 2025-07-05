@@ -721,7 +721,7 @@ def split_mol_across_bond(graph, bond):
     return [list(graph.nodes) for graph in split_subgraphs]
 
 
-def get_bond_type_list(graph):
+def get_bond_type_list(graph) -> dict[str, list]:
     """
     Finds the types (i.e CH) of all the bonds in a molecular graph
 
@@ -733,7 +733,7 @@ def get_bond_type_list(graph):
         bond_list_dict (dict): key = bond type, value = list of bonds of this
                                type
     """
-    bond_list_dict = {}
+    bond_list_dict: dict[str, list] = {}
     atom_types = set()
 
     for _, atom_label in graph.nodes.data("atom_label"):
