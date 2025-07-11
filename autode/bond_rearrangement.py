@@ -241,7 +241,7 @@ def get_bond_rearrangs(reactant, product, name, save=True):
 
     max_extra_pairs = (_MAX_BOND_REARR - abs_delta) // 2
 
-    for extra_pairs in range(max_extra_pairs):
+    for extra_pairs in range(max_extra_pairs + 1):
         bond_gen = BondRearrGenerator(
             reactant, product, delta_n_bonds, extra_pairs
         )

@@ -232,16 +232,6 @@ def test_get_bond_rearrangs():
     assert rearr == BondRearrangement(breaking_bonds=[(1, 0)])
     os.remove("test_bond_rearrangs.txt")
 
-    assert (
-        br.get_bond_rearrangs(
-            ReactantComplex(prod),
-            ProductComplex(reac),
-            name="test2",
-            save=False,
-        )
-        is None
-    )
-
     # If reactants and products are identical then the rearrangement is
     # undetermined
     assert (
@@ -343,16 +333,13 @@ def test_3b():
         ]
     )
 
-    # Reactants to products must break three bonds but this is not yet supported in any form
-    assert (
-        br.get_bond_rearrangs(
-            ReactantComplex(reac),
-            ProductComplex(prod),
-            name="3b_test",
-            save=False,
-        )
-        is None
-    )
+    # Reactants to products must break three bonds
+    assert br.get_bond_rearrangs(
+        ReactantComplex(reac),
+        ProductComplex(prod),
+        name="3b_test",
+        save=False,
+    ) == [BondRearrangement(breaking_bonds=[(0, 1), (1, 2), (2, 3)])]
 
 
 def test_1b1f():
