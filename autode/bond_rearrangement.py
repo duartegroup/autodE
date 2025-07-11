@@ -142,7 +142,6 @@ class BondRearrGenerator:
 
         # check if all graph edits have been made already
         if counter == (len(moveset[0]) + len(moveset[1])):
-            assert bbonds is not None and fbonds is not None
             yield [bbonds, fbonds]
             return
 
