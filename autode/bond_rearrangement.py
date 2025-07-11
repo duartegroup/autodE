@@ -2,7 +2,6 @@ import itertools
 from itertools import combinations, combinations_with_replacement
 from typing import Optional, Iterator, TYPE_CHECKING
 import os
-from enum import Enum
 
 from autode.geom import get_neighbour_list
 from autode.log import logger
@@ -19,28 +18,6 @@ if TYPE_CHECKING:
 
 
 _MAX_BOND_REARR = 4  # maximum allowed bond rearrangment
-
-
-class GraphMove(Enum):
-    K_BREAK = 0  # break bond of known type
-    k_FORM = 1  # form bond of known type
-    BREAK_FORM = 2  # break and form bond of any type
-
-
-def convert_bond_type_dict_to_moveset(bbond_types, fbond_types):
-    """
-    Convert a dictionary with types of bond and numbers supplied
-    as dictionary {'CH': 2, 'OH': 1, ...} to a list of moves
-
-
-    Args:
-        bbond_types:
-        fbond_types:
-
-    Returns:
-
-    """
-    pass
 
 
 class BondRearrGenerator:
@@ -73,9 +50,9 @@ class BondRearrGenerator:
         assert extra_move_pairs >= 0
         self._n_extra_pair = int(extra_move_pairs)
 
-        # every moveset is a list of two dictionaries, first is all breaking bonds
+        # every moveset is a tuple of two lists, first is all breaking bonds
         # second is all forming bonds
-        self._movesets = []
+        self._movesets: list[tuple[list, list]] = []
         self._generate_bond_types(delta_bond_tot)
 
     def _generate_bond_types(self, delta_bond_tot: int):
@@ -104,8 +81,10 @@ class BondRearrGenerator:
         )
         if self._n_extra_pair == 0:
             self._movesets.append(
-                (list(known_bbond_types.items()),
-                 list(known_fbond_types.items()))
+                (
+                    list(known_bbond_types.items()),
+                    list(known_fbond_types.items()),
+                )
             )
             return None
 
@@ -120,27 +99,50 @@ class BondRearrGenerator:
                 this_bbond_types[key] = this_bbond_types.get(key, 0) + 1
                 this_fbond_types[key] = this_fbond_types.get(key, 0) + 1
             self._movesets.append(
-                (list(this_bbond_types.items()),
-                 list(this_fbond_types.items()))
+                (
+                    list(this_bbond_types.items()),
+                    list(this_fbond_types.items()),
+                )
             )
         return None
 
     def _graph_edits(
         self,
-        moveset: list[tuple[tuple, ...]],
+        moveset: tuple[list[tuple], list[tuple]],
         bbonds: Optional[tuple] = None,
         fbonds: Optional[tuple] = None,
         counter: int = 0,
     ) -> Iterator[list[tuple]]:
+        """
+        Generator that yields all possible forming and breaking bonds
+        based on the allowed graph moves defined in moveset. Only the
+        moveset should be supplied, other arguments are used to keep
+        track of the internal state of the generator.
+
+        Args:
+            moveset: A tuple of two lists, each of the type [("CH", 2), ...],
+                     first being the types and numbers of bonds to be broken
+                     and the second being those to be formed
+            bbonds: (State variable) tuple of bonds broken so far
+            fbonds: (State variable) tuple of bonds formed so far
+            counter: (State variable) number of bond types operated
+
+        Yields:
+            (list[tuple]): A list with two items, the first being
+                        the bonds being broken, and the second being
+                        the bonds being formed
+        """
         assert self._reactant.graph is not None
         assert self._rct_bond_dict is not None
-        assert counter == 0 or bbonds is not None
-        assert counter == 0 or fbonds is not None
+
         if counter == 0:
             bbonds, fbonds = tuple(), tuple()
+        else:
+            assert bbonds is not None and fbonds is not None
 
         # check if all graph edits have been made already
         if counter == (len(moveset[0]) + len(moveset[1])):
+            assert bbonds is not None and fbonds is not None
             yield [bbonds, fbonds]
             return
 
@@ -247,9 +249,7 @@ def get_bond_rearrangs(reactant, product, name, save=True):
         possible_brs = bond_gen.get_valid_bond_rearrs()
 
         if len(possible_brs) > 0:
-            logger.debug(
-                f"Found molecular graph rearrangement(s) to products"
-            )
+            logger.debug(f"Found molecular graph rearrangement(s) to products")
 
             # This function will return with the first bond rearrangement
             # that leads to products

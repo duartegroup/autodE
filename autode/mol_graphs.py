@@ -218,7 +218,7 @@ def make_graph(
             ):
                 graph.add_edge(i, j, pi=False, active=False)
 
-    _set_pi_bonds_stereocentres(graph)  # TODO for metals use bond lengths
+    _set_pi_bonds_stereocentres(graph)
     species.graph = graph
 
     if not allow_invalid_valancies:
@@ -594,8 +594,7 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
 
 
 def w_l_hash_could_be_isomorphic(
-    graph1: MolecularGraph,
-    graph2: MolecularGraph
+    graph1: MolecularGraph, graph2: MolecularGraph
 ):
     """
     A fast check for whether two molecular graphs could be
