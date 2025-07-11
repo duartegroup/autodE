@@ -900,7 +900,7 @@ class BondRearrangement:
         br_str = "Form(" + ",".join(
             f"{bond[0]}-{bond[1]}" for bond in self.fbonds
         )
-        br_str += ")    Break(" + ",".join(
+        br_str += ")+Break(" + ",".join(
             f"{bond[0]}-{bond[1]}" for bond in self.bbonds
         )
         return br_str + ")"

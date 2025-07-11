@@ -593,14 +593,14 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     return g1, g2
 
 
-def isospectral_could_be_isomorphic(
+def w_l_hash_could_be_isomorphic(
     graph1: MolecularGraph,
     graph2: MolecularGraph
 ):
     """
     A fast check for whether two molecular graphs could be
-    isomorphic based on comparison of the eigenvalue spectra
-    of the adjacency or Laplacian matrix
+    isomorphic based on comparison of their Weisfeiler-Lehman
+    graph hashes
 
     Args:
         graph1:
@@ -609,32 +609,12 @@ def isospectral_could_be_isomorphic(
     Returns:
         (bool): If the graphs could be isomorphic
     """
-    # first check the adjacency matrix ignoring elements
-    evs1 = nx.linalg.adjacency_spectrum(graph1)
-    evs2 = nx.linalg.adjacency_spectrum(graph2)
-
-    if not np.allclose(evs1, evs2):
+    hash1 = nx.weisfeiler_lehman_graph_hash(graph1, node_attr="atom_label")
+    hash2 = nx.weisfeiler_lehman_graph_hash(graph2, node_attr="atom_label")
+    if hash1 != hash2:
         return False
-
-    # Laplace matrix weighed by atomic number products
-    atom_numbers_1 = []
-    atom_numbers_2 = []
-    for i in range(graph1.number_of_nodes()):
-        num1 = Atom(graph1.nodes[i]["atom_label"]).atomic_number
-        atom_numbers_1.append(num1)
-        num2 = Atom(graph2.nodes[i]["atom_label"]).atomic_number
-        atom_numbers_2.append(num2)
-
-    wt_matrix_1 = np.outer(atom_numbers_1, atom_numbers_1)
-    wt_laplace_1 = nx.linalg.laplacian_matrix(graph1) / wt_matrix_1
-    wt_matrix_2 = np.outer(atom_numbers_2, atom_numbers_2)
-    wt_laplace_2 = nx.linalg.laplacian_matrix(graph2) / wt_matrix_2
-    evs1 = np.linalg.eigvalsh(wt_laplace_1)
-    evs2 = np.linalg.eigvalsh(wt_laplace_2)
-    if not np.allclose(evs1, evs2):
-        return False
-
-    return True
+    else:
+        return True
 
 
 @timeout(seconds=5, return_value=False)
@@ -664,7 +644,7 @@ def is_isomorphic(
     if not isomorphism.faster_could_be_isomorphic(graph1, graph2):
         return False
 
-    if not isospectral_could_be_isomorphic(graph1, graph2):
+    if not w_l_hash_could_be_isomorphic(graph1, graph2):
         return False
 
     # Always match on atom types
