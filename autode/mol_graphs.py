@@ -303,15 +303,13 @@ def remove_bonds_invalid_valancies(species):
 
         logger.debug(f"Atom {i} exceeds its maximal valence removing edges")
 
-        # Get the atom indexes sorted by the weakest bond to atom i
-        weakest_bonded_neighbours = sorted(
-            non_m_neighbours,
-            key=lambda k: species.distance(i, k)
-            / species.eqm_bond_distance(i, k),
+        # Get the atom indexes sorted by the closest to atom i
+        closest_atoms = sorted(
+            non_m_neighbours, key=lambda k: species.distance(i, k)
         )
 
         # Delete all the bonds to atom(s) j that are above the maximal valance
-        for j in weakest_bonded_neighbours[max_valance:]:
+        for j in closest_atoms[max_valance:]:
             species.graph.remove_edge(i, j)
 
     return None
@@ -593,13 +591,13 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     return g1, g2
 
 
-def w_l_hash_could_be_isomorphic(
+def spectral_could_be_isomorphic(
     graph1: MolecularGraph, graph2: MolecularGraph
 ):
     """
     A fast check for whether two molecular graphs could be
-    isomorphic based on comparison of their Weisfeiler-Lehman
-    graph hashes
+    isomorphic based on comparison of the spectra of the
+    weighted Laplacian matrices
 
     Args:
         graph1:
@@ -608,9 +606,31 @@ def w_l_hash_could_be_isomorphic(
     Returns:
         (bool): If the graphs could be isomorphic
     """
-    hash1 = nx.weisfeiler_lehman_graph_hash(graph1, node_attr="atom_label")
-    hash2 = nx.weisfeiler_lehman_graph_hash(graph2, node_attr="atom_label")
-    if hash1 != hash2:
+    # if there are no bonds, then this check cannot be used
+    if graph1.number_of_edges() < 1:
+        return True
+
+    # Laplacian matrix weighted by atomic number products
+    # If atomic label is missing, assign 0.5 atomic number
+    atom_numbers_1, atom_numbers_2 = [], []
+    for _, label in graph1.nodes(data="atom_label", default=None):
+        atom_numbers_1.append(
+            Atom(label).atomic_number if label is not None else 0.5
+        )
+    for _, label in graph2.nodes(data="atom_label", default=None):
+        atom_numbers_2.append(
+            Atom(label).atomic_number if label is not None else 0.5
+        )
+    wt_laplace_1 = nx.linalg.laplacian_matrix(graph1).toarray() / np.outer(
+        atom_numbers_1, atom_numbers_1
+    )
+    wt_laplace_2 = nx.linalg.laplacian_matrix(graph2).toarray() / np.outer(
+        atom_numbers_2, atom_numbers_2
+    )
+    evs1 = np.linalg.eigvalsh(wt_laplace_1)
+    evs2 = np.linalg.eigvalsh(wt_laplace_2)
+
+    if not np.allclose(evs1, evs2):
         return False
     else:
         return True
@@ -643,7 +663,7 @@ def is_isomorphic(
     if not isomorphism.faster_could_be_isomorphic(graph1, graph2):
         return False
 
-    if not w_l_hash_could_be_isomorphic(graph1, graph2):
+    if not spectral_could_be_isomorphic(graph1, graph2):
         return False
 
     # Always match on atom types
