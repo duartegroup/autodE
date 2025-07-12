@@ -422,9 +422,8 @@ def test_2b2f():
         ]
     )
 
-    assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [[(0, 1)], [(2, 3)]], [[(0, 2)], [(1, 3)]], [], [], []
-    ) == [
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 2), (1, 3)], breaking_bonds=[(0, 1), (2, 3)]
         )
@@ -449,9 +448,8 @@ def test_2b2f():
         ]
     )
 
-    assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [[(0, 1)], [(2, 3)]], [[(0, 4), (2, 4)]], [], [], []
-    ) == [
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 4), (2, 4)], breaking_bonds=[(0, 1), (2, 3)]
         )
@@ -473,16 +471,8 @@ def test_2b2f():
             Atom("O", 10.6, 0, 0),
         ]
     )
-    assert br.get_fbonds_bbonds_2b2f(
-        reac,
-        prod,
-        [],
-        [[(0, 1), (1, 2)]],
-        [[(0, 3), (2, 3)], [(1, 3)]],
-        [],
-        [],
-        [],
-    ) == [
+    rearrs = br.BondRearrGenerator(reac, prod, 0).get_valid_bond_rearrs()
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (1, 3)], breaking_bonds=[(0, 1), (1, 2)]
         ),
@@ -507,9 +497,9 @@ def test_2b2f():
             Atom("O", 0.6, 0, 0),
         ]
     )
-    assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 3), (2, 3)]], [], [], []
-    ) == [
+
+    rearr = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearr == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)]
         )
@@ -531,16 +521,8 @@ def test_2b2f():
             Atom("C", 0.6, 0, 0),
         ]
     )
-    assert br.get_fbonds_bbonds_2b2f(
-        reac,
-        prod,
-        [],
-        [],
-        [],
-        [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]],
-        [],
-        [],
-    ) == [
+    rearrs = br.BondRearrGenerator(reac, prod, 0, 2).get_valid_bond_rearrs()
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)]
         )
