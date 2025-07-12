@@ -309,21 +309,14 @@ def test_2b():
     )
 
     # Reactants to products must break two bonds
-    assert (
-        len(
-            br.get_bond_rearrangs(
-                ReactantComplex(reac),
-                ProductComplex(prod),
-                name="2b_test",
-                save=False,
-            )
-        )
-        == 1
+    rearrs = br.get_bond_rearrangs(
+        ReactantComplex(reac),
+        ProductComplex(prod),
+        name="2b_test",
+        save=False,
     )
-
-    assert br.get_fbonds_bbonds_2b(
-        reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []
-    ) == [br.BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
+    assert len(rearrs) == 1
+    assert rearrs == [br.BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
 
 
 def test_3b():
@@ -361,9 +354,9 @@ def test_1b1f():
     prod = Molecule(
         atoms=[Atom("C", 0, 0, 0), Atom("H", 10, 0, 0), Atom("H", 10.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_1b1f(
-        reac, prod, [], [[(0, 1)]], [[(1, 2)]], [], [], []
-    ) == [
+
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])
     ]
 
@@ -373,9 +366,9 @@ def test_1b1f():
     prod = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("H", 10, 0, 0), Atom("H", 10.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_1b1f(
-        reac, prod, [], [], [], [[[(0, 1)], [(1, 2)]]], [], []
-    ) == [
+
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])
     ]
 

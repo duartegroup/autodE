@@ -80,12 +80,13 @@ class BondRearrGenerator:
             set(self._rct_bond_dict.keys()).intersection(prod_bond_dict.keys())
         )
         if self._n_extra_pair == 0:
-            self._movesets.append(
-                (
-                    list(known_bbond_types.items()),
-                    list(known_fbond_types.items()),
+            if len(known_bbond_types) + len(known_fbond_types) != 0:
+                self._movesets.append(
+                    (
+                        list(known_bbond_types.items()),
+                        list(known_fbond_types.items()),
+                    )
                 )
-            )
             return None
 
         type_combs = list(
@@ -134,6 +135,7 @@ class BondRearrGenerator:
         """
         assert self._reactant.graph is not None
         assert self._rct_bond_dict is not None
+        assert len(moveset[0]) + len(moveset[1]) != 0
 
         if counter == 0:
             bbonds, fbonds = tuple(), tuple()
@@ -437,60 +439,6 @@ def generate_rearranged_graph(graph, fbonds, bbonds):
         rearranged_graph.remove_edge(*bbond)
 
     return rearranged_graph
-
-
-def get_fbonds_bbonds_1b(
-    reac,
-    prod,
-    possible_brs,
-    all_possible_bbonds,
-    all_possible_fbonds,
-    possible_bbond_and_fbonds,
-    bbond_atom_type_fbonds,
-    fbond_atom_type_bbonds,
-):
-    logger.info("Getting possible 1 breaking bond rearrangements")
-
-    for bbond in all_possible_bbonds[0]:
-        # Break one bond
-        possible_brs = add_bond_rearrangment(
-            possible_brs, reac, prod, fbonds=[], bbonds=[bbond]
-        )
-
-    return possible_brs
-
-
-def get_fbonds_bbonds_2b(
-    reac,
-    prod,
-    possible_brs,
-    all_possible_bbonds,
-    all_possible_fbonds,
-    possible_bbond_and_fbonds,
-    bbond_atom_type_fbonds,
-    fbond_atom_type_bbonds,
-):
-    logger.info("Getting possible 2 breaking bond rearrangements")
-
-    if len(all_possible_bbonds) == 1:
-        # Break two bonds of the same type
-        for bbond1, bbond2 in itertools.combinations(
-            all_possible_bbonds[0], 2
-        ):
-            possible_brs = add_bond_rearrangment(
-                possible_brs, reac, prod, fbonds=[], bbonds=[bbond1, bbond2]
-            )
-
-    elif len(all_possible_bbonds) == 2:
-        # Break two bonds of different types
-        for bbond1, bbond2 in itertools.product(
-            all_possible_bbonds[0], all_possible_bbonds[1]
-        ):
-            possible_brs = add_bond_rearrangment(
-                possible_brs, reac, prod, fbonds=[], bbonds=[bbond1, bbond2]
-            )
-
-    return possible_brs
 
 
 def get_fbonds_bbonds_1b1f(
