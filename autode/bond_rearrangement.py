@@ -220,8 +220,8 @@ def get_bond_rearrangs(reactant, product, name, save=True):
         )
         return None
 
-    # The change in the number of bonds is > 0 as in the reaction
-    # initialisation reacs/prods are swapped if this is < 0
+    # The change in the number of bonds should be < 0 as in the reaction
+    # initialisation reacs/prods are swapped otherwise
     delta_n_bonds = (
         product.graph.number_of_edges() - reactant.graph.number_of_edges()
     )

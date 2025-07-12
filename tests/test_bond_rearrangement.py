@@ -200,7 +200,7 @@ def test_bondrearr_class():
         _ = rearrang.get_active_atom_neighbour_lists(mol_c, depth=1)
 
 
-def test_get_bond_rearrangs():
+def test_get_bond_rearrangs(caplog):
     # ethane --> Ch3 + Ch3
     reac = Molecule(smiles="CC")
     prod = Molecule(
@@ -231,6 +231,18 @@ def test_get_bond_rearrangs():
     )[0]
     assert rearr == BondRearrangement(breaking_bonds=[(1, 0)])
     os.remove("test_bond_rearrangs.txt")
+
+    # If we try to get the bond rearrangement from the other way
+    # it should print a warning
+    with caplog.at_level("INFO"):
+        assert br.get_bond_rearrangs(
+            ReactantComplex(prod),
+            ProductComplex(reac),
+            name="test2",
+            save=False,
+        ) == [br.BondRearrangement(forming_bonds=[(0, 1)])]
+    assert "More bonds in product than in reactant" in caplog.text
+    assert "suggest swapping them" in caplog.text
 
     # If reactants and products are identical then the rearrangement is
     # undetermined
