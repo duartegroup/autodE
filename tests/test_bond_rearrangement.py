@@ -375,15 +375,15 @@ def test_1b1f():
 
 def test_2b1f():
     reac = Molecule(
-        atoms=[Atom("H", 0, 0, 0), Atom("C", 0.6, 0, 0), Atom("O", 1.2, 0, 0)]
+        atoms=[Atom("H", 0, 0, 0), Atom("C", 0.6, 0, 0), Atom("O", 1.4, 0, 0)]
     )
     make_graph(reac, allow_invalid_valancies=True)
     prod = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("C", 10, 0, 0), Atom("O", 0.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_2b1f(
-        reac, prod, [], [[(0, 1)], [(1, 2)]], [[(0, 2)]], [], [], []
-    ) == [
+
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
         )
@@ -396,24 +396,8 @@ def test_2b1f():
     prod = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("C", 10, 0, 0), Atom("H", 0.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_2b1f(
-        reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 2)]], [], [], []
-    ) == [
-        br.BondRearrangement(
-            forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
-        )
-    ]
-
-    reac = Molecule(
-        atoms=[Atom("H", 0, 0, 0), Atom("H", 0.6, 0, 0), Atom("H", 1.2, 0, 0)]
-    )
-    make_graph(reac, allow_invalid_valancies=True)
-    prod = Molecule(
-        atoms=[Atom("H", 0, 0, 0), Atom("H", 0.6, 0, 0), Atom("H", 10, 0, 0)]
-    )
-    assert br.get_fbonds_bbonds_2b1f(
-        reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []
-    ) == [
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
         )
