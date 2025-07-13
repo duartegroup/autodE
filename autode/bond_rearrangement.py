@@ -110,6 +110,30 @@ class BondRearrGenerator:
                     list(this_fbond_types.items()),
                 )
             )
+
+        self._sanitise_movesets()
+        return None
+
+    def _sanitise_movesets(self):
+        """
+        Check that all the movesets are actually appropriate and
+        are not forming/breaking more bonds than is actually possible
+        """
+        new_movesets = []
+        for moveset in self._movesets:
+            is_valid = True
+            for bbond_type, num in moveset[0]:
+                if len(self._rct_bond_dict[bbond_type]) < num:
+                    is_valid = False
+                    break
+            for fbond_type, num in moveset[1]:
+                if len(get_fbonds(self._reactant.graph, fbond_type)) < num:
+                    is_valid = False
+                    break
+            if is_valid:
+                new_movesets.append(moveset)
+
+        self._movesets = new_movesets
         return None
 
     def _graph_edits(
