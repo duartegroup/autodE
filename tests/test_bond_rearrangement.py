@@ -369,7 +369,7 @@ def test_1b1f():
 
     rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
     assert rearrs == [
-        br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])
+        br.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1)])
     ]
 
 

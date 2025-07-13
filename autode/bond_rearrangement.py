@@ -76,9 +76,14 @@ class BondRearrGenerator:
 
         # Extra pairs of bonds to break and form must be from bonds of type
         # which are present in both reactant and product
-        common_types = list(
-            set(self._rct_bond_dict.keys()).intersection(prod_bond_dict.keys())
-        )
+        common_types = []
+        for b_key in self._rct_bond_dict.keys():
+            if (
+                len(self._rct_bond_dict[b_key]) > 0
+                and len(prod_bond_dict[b_key]) > 0
+            ):
+                common_types.append(b_key)
+
         if self._n_extra_pair == 0:
             if len(known_bbond_types) + len(known_fbond_types) != 0:
                 self._movesets.append(
@@ -372,20 +377,6 @@ def add_bond_rearrangment(bond_rearrangs, reactant, product, fbonds, bbonds):
     Returns:
         (list(autode.bond_rearrangements.BondRearrangement)):
     """
-
-    # Check that the bond rearrangement doesn't exceed standard atom valances
-    bbond_atoms = [atom for bbond in bbonds for atom in bbond]
-    for fbond in fbonds:
-        for idx in fbond:
-            if (
-                reactant.graph.degree(idx)
-                == reactant.atoms[idx].maximal_valance
-                and idx not in bbond_atoms
-            ):
-                # If we are here then there is at least one atom that will
-                # exceed it's maximal valance, therefore
-                # we don't need to run isomorphism
-                return bond_rearrangs
 
     rearranged_graph = generate_rearranged_graph(
         reactant.graph, fbonds=fbonds, bbonds=bbonds
