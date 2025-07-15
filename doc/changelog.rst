@@ -16,7 +16,8 @@ Bug Fixes
 Functionality improvements
 **************************
 - Adds a boolean option for calculating single points refinements
-
+- AutodE can now handly any number of bond rearrangements
+- Graph isomorphism check is faster, due to additional screening with isospectral method
 
 Bug Fixes
 *********
@@ -28,6 +29,7 @@ Usability improvements/Changes
 ******************************
 - Drops Python 3.8 support
 - Catches conformer calculation exceptions
+- Added :code:`Species.print_mol_file()` function that can print mol-files with connectivity from graph
 
 1.4.4
 ------
