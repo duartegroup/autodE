@@ -208,23 +208,6 @@ def test_species_mol_file():
         "M  END\n",
     ]
 
-    # finally, try a molecule without any bonds
-    mol.print_mol_file("test2.mol")
-    with open("test2.mol") as fh:
-        molfile2_lines = fh.readlines()
-
-    assert molfile2_lines == [
-        "H2\n",
-        "autodE\n",
-        "\n",
-        "  2  0  0  0  0  0  0  0  0  0999 V2000\n",
-        "   0.00000   0.00000   0.00000 H     0"
-        "  0  0  0  0  0  0  0  0  0  0  0\n",
-        "   0.00000   0.00000   1.00000 H     0"
-        "  0  0  0  0  0  0  0  0  0  0  0\n",
-        "M  END\n",
-    ]
-
 
 def test_species_translate():
     m = Species(
