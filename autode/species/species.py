@@ -1190,18 +1190,21 @@ class Species(AtomCollection):
         )
         return None
 
-    def print_mol_file(self, filename: str) -> None:
+    @requires_atoms
+    def print_mol_file(self, filename: Optional[str] = None) -> None:
         """
         Print a mol file for this molecule, with the connectivity defined in
-        the graph
+        the graph. All bonds are defined as single bonds in molfile.
 
         -----------------------------------------------------------------------
         Arguments:
             filename (str): Name of the file to print
         """
-        # TODO: To be removed after debugging
-        assert filename.endswith(".mol")
+        if filename is None:
+            filename = f"{self.name}.mol"
+        assert filename.endswith(".mol"), "Must end with *.mol"
         assert self.graph is not None
+
         with open(filename, "w") as mol_file:
             print(f"{self.name}", file=mol_file)
             print("autodE", file=mol_file)

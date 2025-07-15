@@ -649,3 +649,8 @@ def test_metal_bond_rearr():
     assert rearrs == [
         BondRearrangement(forming_bonds=[(0, 4), (1, 5), (2, 5), (3, 5)])
     ]
+
+
+def test_bond_rearr_repr():
+    bond_rearr = BondRearrangement([(0, 1), (2, 3)], [(1, 2)])
+    assert repr(bond_rearr) == "Form(0-1,2-3)+Break(1-2)"
