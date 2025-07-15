@@ -610,17 +610,23 @@ def spectral_could_be_isomorphic(
     if graph1.number_of_edges() < 1:
         return True
 
+    # First check element agnostic Laplacian matrix (faster)
+    if not np.allclose(
+        nx.laplacian_spectrum(graph1), nx.laplacian_spectrum(graph2)
+    ):
+        return False
+
     # Laplacian matrix weighted by atomic number products
-    # If atomic label is missing, assign 0.5 atomic number
+    # If atomic label is missing, simply return
     atom_numbers_1, atom_numbers_2 = [], []
     for _, label in graph1.nodes(data="atom_label", default=None):
-        atom_numbers_1.append(
-            Atom(label).atomic_number if label is not None else 0.5
-        )
+        if label is None:
+            return True
+        atom_numbers_1.append(Atom(label).atomic_number)
     for _, label in graph2.nodes(data="atom_label", default=None):
-        atom_numbers_2.append(
-            Atom(label).atomic_number if label is not None else 0.5
-        )
+        if label is None:
+            return True
+        atom_numbers_2.append(Atom(label).atomic_number)
     wt_laplace_1 = nx.linalg.laplacian_matrix(graph1).toarray() / np.outer(
         atom_numbers_1, atom_numbers_1
     )
