@@ -828,7 +828,7 @@ def get_fbonds(graph, key):
     bonds = list(graph.edges)
     for i in graph.nodes:
         for j in graph.nodes:
-            if i > j:
+            if i >= j:
                 continue
 
             if not (i, j) in bonds and not (j, i) in bonds:

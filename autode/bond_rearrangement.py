@@ -15,6 +15,7 @@ from autode.mol_graphs import (
 
 if TYPE_CHECKING:
     from autode.species.species import Species
+    import networkx as nx
 
 
 _MAX_BOND_REARR = 4  # maximum allowed bond rearrangment
@@ -439,12 +440,12 @@ def generate_rearranged_graph(graph, fbonds, bbonds):
     Arguments:
         graph (nx.Graph): reactant graph
 
-        fbonds (list(tuple)): list of bonds to be made
+        fbonds (list[tuple]): list of bonds to be made
 
-        bbonds (list(tuple)): list of bonds to be broken
+        bbonds (list[tuple]): list of bonds to be broken
 
     Returns:
-        nx.Graph: rearranged graph
+        (nx.Graph): rearranged graph
     """
 
     rearranged_graph = graph.copy()
