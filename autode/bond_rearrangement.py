@@ -1,4 +1,3 @@
-import itertools
 from itertools import combinations, combinations_with_replacement
 from typing import Optional, Iterator, TYPE_CHECKING
 import os
@@ -42,7 +41,7 @@ class BondRearrGenerator:
             extra_move_pairs: Number of pairs of extra graph moves that can
                             be made in addition to the known types
         """
-        self._rct_bond_dict: Optional[dict[str, list]] = None
+        self._reactant_bond_dict: Optional[dict[str, list]] = None
 
         self._reactant = reactant
         self._product = product
@@ -66,15 +65,15 @@ class BondRearrGenerator:
             delta_bond_tot: Total number of bonds changing from reactant
                             to product
         """
-        self._rct_bond_dict = get_bond_type_list(self._reactant.graph)
-        prod_bond_dict = get_bond_type_list(self._product.graph)
+        self._reactant_bond_dict = get_bond_type_list(self._reactant.graph)
+        product_bond_dict = get_bond_type_list(self._product.graph)
 
         total_delta = 0
         known_bbond_types = {}
         known_fbond_types = {}
         # First handle bonds of known types that must form/break
-        for reac_key, reac_bonds in self._rct_bond_dict.items():
-            prod_bonds = prod_bond_dict[reac_key]
+        for reac_key, reac_bonds in self._reactant_bond_dict.items():
+            prod_bonds = product_bond_dict[reac_key]
             delta_bonds = len(prod_bonds) - len(reac_bonds)
             total_delta += delta_bonds
             if delta_bonds > 0:
@@ -86,10 +85,10 @@ class BondRearrGenerator:
         # Extra pairs of bonds to break and form must be from bonds of type
         # which are present in both reactant and product
         common_types = []
-        for b_key in self._rct_bond_dict.keys():
+        for b_key in self._reactant_bond_dict.keys():
             if (
-                len(self._rct_bond_dict[b_key]) > 0
-                and len(prod_bond_dict[b_key]) > 0
+                len(self._reactant_bond_dict[b_key]) > 0
+                and len(product_bond_dict[b_key]) > 0
             ):
                 common_types.append(b_key)
 
@@ -128,12 +127,12 @@ class BondRearrGenerator:
         Check that all the movesets are actually appropriate and
         are not forming/breaking more bonds than is actually possible
         """
-        assert self._rct_bond_dict is not None
+        assert self._reactant_bond_dict is not None
         new_movesets = []
         for moveset in self._movesets:
             is_valid = True
             for bbond_type, num in moveset[0]:
-                if len(self._rct_bond_dict[bbond_type]) < num:
+                if len(self._reactant_bond_dict[bbond_type]) < num:
                     is_valid = False
                     break
             for fbond_type, num in moveset[1]:
@@ -173,7 +172,7 @@ class BondRearrGenerator:
                         the bonds being formed
         """
         assert self._reactant.graph is not None
-        assert self._rct_bond_dict is not None
+        assert self._reactant_bond_dict is not None
         assert len(moveset[0]) + len(moveset[1]) != 0
 
         if counter == 0:
@@ -189,7 +188,7 @@ class BondRearrGenerator:
         # First, break bonds
         if counter < len(moveset[0]):
             bbond_type, num = moveset[0][counter]
-            possible_bbonds = self._rct_bond_dict[bbond_type]
+            possible_bbonds = self._reactant_bond_dict[bbond_type]
             counter += 1
             for comb in combinations(possible_bbonds, num):
                 yield from self._graph_edits(
