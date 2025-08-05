@@ -37,9 +37,10 @@ class BondRearrGenerator:
         Args:
             reactant:
             product:
-            delta_bond_tot: Total number of bonds changing from reactant to product
-            extra_move_pairs: Number of pairs of extra graph moves that maybe made
-                              in addition to the known types
+            delta_bond_tot: Total number of bonds changing from reactant
+                            to product
+            extra_move_pairs: Number of pairs of extra graph moves that can
+                            be made in addition to the known types
         """
         self._rct_bond_dict: Optional[dict[str, list]] = None
 
@@ -47,17 +48,24 @@ class BondRearrGenerator:
         self._product = product
         assert isinstance(delta_bond_tot, int)
 
-        # number of extra moves must be even i.e. in pairs (form + break)
+        # number of extra *pairs* of bond moves (form + break)
         assert extra_move_pairs >= 0
         self._n_extra_pair = int(extra_move_pairs)
 
         # every moveset is a tuple of two lists, first is all breaking bonds
         # second is all forming bonds
         self._movesets: list[tuple[list, list]] = []
-        self._generate_bond_types(delta_bond_tot)
+        self._determine_bond_types(delta_bond_tot)
 
-    def _generate_bond_types(self, delta_bond_tot: int):
-        """Generate the types and numbers of bonds that must be broken and formed"""
+    def _determine_bond_types(self, delta_bond_tot: int) -> None:
+        """
+        Determine the types and numbers of bonds that must be broken and
+        formed based on the reactant and product
+
+        Args:
+            delta_bond_tot: Total number of bonds changing from reactant
+                            to product
+        """
         self._rct_bond_dict = get_bond_type_list(self._reactant.graph)
         prod_bond_dict = get_bond_type_list(self._product.graph)
 
@@ -115,11 +123,12 @@ class BondRearrGenerator:
         self._sanitise_movesets()
         return None
 
-    def _sanitise_movesets(self):
+    def _sanitise_movesets(self) -> None:
         """
         Check that all the movesets are actually appropriate and
         are not forming/breaking more bonds than is actually possible
         """
+        assert self._rct_bond_dict is not None
         new_movesets = []
         for moveset in self._movesets:
             is_valid = True
