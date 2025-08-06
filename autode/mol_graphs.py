@@ -104,7 +104,7 @@ class MolecularGraph(nx.Graph):
         else:
             self.add_edge(u, v, pi=False, active=True)
 
-        _set_pi_bonds_stereocentres(self)
+        _set_graph_attributes(self)
         return None
 
     @property
@@ -218,7 +218,7 @@ def make_graph(
             ):
                 graph.add_edge(i, j, pi=False, active=False)
 
-    _set_pi_bonds_stereocentres(graph)
+    _set_graph_attributes(graph)
     species.graph = graph
 
     if not allow_invalid_valancies:
@@ -315,7 +315,7 @@ def remove_bonds_invalid_valancies(species):
     return None
 
 
-def _set_pi_bonds_stereocentres(graph):
+def _set_graph_attributes(graph):
     """
     For a molecular species set the π bonds and stereocentres in the molecular
     graph.
