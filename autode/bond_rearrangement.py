@@ -20,6 +20,38 @@ if TYPE_CHECKING:
 _MAX_BOND_REARR = 4  # maximum allowed bond rearrangment
 
 
+class MoveSet:
+    """A set of moves with bond types, breaking and forming"""
+
+    def __init__(
+        self,
+        fbond_types: list[tuple[str, int]],
+        bbond_types: list[tuple[str, int]],
+    ):
+        """
+
+        Args:
+            fbond_types (list[tuple]): A list of bond types forming
+                    with numbers of each e.g. [('CH', 2), ('OH', 4)]
+            bbond_types (list[tuple]): A list of bond types breaking
+                    with numbers of each
+        """
+        assert all(
+            isinstance(fb_type, tuple)
+            and isinstance(fb_type[0], str)
+            and isinstance(fb_type[1], int)
+            for fb_type in fbond_types
+        )
+        assert all(
+            isinstance(bb_type, tuple)
+            and isinstance(bb_type[0], str)
+            and isinstance(bb_type[1], int)
+            for bb_type in bbond_types
+        )
+        self.fbonds = fbond_types
+        self.bbonds = bbond_types
+
+
 class BondRearrGenerator:
     def __init__(
         self,
@@ -51,9 +83,9 @@ class BondRearrGenerator:
         assert extra_move_pairs >= 0
         self._n_extra_pair = int(extra_move_pairs)
 
-        # every moveset is a tuple of two lists, first is all breaking bonds
-        # second is all forming bonds
-        self._movesets: list[tuple[list, list]] = []
+        # every moveset contains types and numbers of breaking bonds
+        # as well as forming bonds
+        self._movesets: list[MoveSet] = []
         self._determine_bond_types(delta_bond_tot)
 
     def _determine_bond_types(self, delta_bond_tot: int) -> None:
@@ -82,6 +114,16 @@ class BondRearrGenerator:
                 known_bbond_types[reac_key] = -delta_bonds
         assert total_delta == delta_bond_tot, "Bond types do not match!"
 
+        if self._n_extra_pair == 0:
+            if len(known_bbond_types) + len(known_fbond_types) != 0:
+                self._movesets.append(
+                    MoveSet(
+                        fbond_types=list(known_fbond_types.items()),
+                        bbond_types=list(known_bbond_types.items()),
+                    )
+                )
+            return None
+
         # Extra pairs of bonds to break and form must be from bonds of type
         # which are present in both reactant and product
         common_types = []
@@ -91,16 +133,6 @@ class BondRearrGenerator:
                 and len(product_bond_dict[b_key]) > 0
             ):
                 common_types.append(b_key)
-
-        if self._n_extra_pair == 0:
-            if len(known_bbond_types) + len(known_fbond_types) != 0:
-                self._movesets.append(
-                    (
-                        list(known_bbond_types.items()),
-                        list(known_fbond_types.items()),
-                    )
-                )
-            return None
 
         type_combs = list(
             combinations_with_replacement(common_types, self._n_extra_pair)
@@ -113,9 +145,9 @@ class BondRearrGenerator:
                 this_bbond_types[key] = this_bbond_types.get(key, 0) + 1
                 this_fbond_types[key] = this_fbond_types.get(key, 0) + 1
             self._movesets.append(
-                (
-                    list(this_bbond_types.items()),
-                    list(this_fbond_types.items()),
+                MoveSet(
+                    fbond_types=list(this_fbond_types.items()),
+                    bbond_types=list(this_bbond_types.items()),
                 )
             )
 
@@ -131,11 +163,11 @@ class BondRearrGenerator:
         new_movesets = []
         for moveset in self._movesets:
             is_valid = True
-            for bbond_type, num in moveset[0]:
+            for bbond_type, num in moveset.bbonds:
                 if len(self._reactant_bond_dict[bbond_type]) < num:
                     is_valid = False
                     break
-            for fbond_type, num in moveset[1]:
+            for fbond_type, num in moveset.fbonds:
                 if len(get_fbonds(self._reactant.graph, fbond_type)) < num:
                     is_valid = False
                     break
@@ -147,7 +179,7 @@ class BondRearrGenerator:
 
     def _graph_edits(
         self,
-        moveset: tuple[list[tuple], list[tuple]],
+        moveset: MoveSet,
         bbonds: Optional[tuple] = None,
         fbonds: Optional[tuple] = None,
         counter: int = 0,
@@ -173,7 +205,7 @@ class BondRearrGenerator:
         """
         assert self._reactant.graph is not None
         assert self._reactant_bond_dict is not None
-        assert len(moveset[0]) + len(moveset[1]) != 0
+        assert len(moveset.bbonds) + len(moveset.fbonds) != 0
 
         if counter == 0:
             bbonds, fbonds = tuple(), tuple()
@@ -181,13 +213,13 @@ class BondRearrGenerator:
             assert bbonds is not None and fbonds is not None
 
         # check if all graph edits have been made already
-        if counter == (len(moveset[0]) + len(moveset[1])):
+        if counter == (len(moveset.fbonds) + len(moveset.bbonds)):
             yield [bbonds, fbonds]
             return
 
         # First, break bonds
-        if counter < len(moveset[0]):
-            bbond_type, num = moveset[0][counter]
+        if counter < len(moveset.bbonds):
+            bbond_type, num = moveset.bbonds[counter]
             possible_bbonds = self._reactant_bond_dict[bbond_type]
             counter += 1
             for comb in combinations(possible_bbonds, num):
@@ -197,8 +229,8 @@ class BondRearrGenerator:
 
         # Next, form bonds
         else:
-            counter_f = counter - len(moveset[0])
-            fbond_type, num = moveset[1][counter_f]
+            counter_f = counter - len(moveset.bbonds)
+            fbond_type, num = moveset.fbonds[counter_f]
             possible_fbonds = get_fbonds(self._reactant.graph, fbond_type)
             counter += 1
             for comb in combinations(possible_fbonds, num):
