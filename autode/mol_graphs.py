@@ -611,8 +611,10 @@ def spectral_could_be_isomorphic(
         return True
 
     # First check element agnostic Laplacian matrix (faster)
+    laplace_1 = nx.laplacian_spectrum(graph1).toarray()
+    laplace_2 = nx.laplacian_spectrum(graph2).toarray()
     if not np.allclose(
-        nx.laplacian_spectrum(graph1), nx.laplacian_spectrum(graph2)
+        np.linalg.eigvalsh(laplace_1), np.linalg.eigvalsh(laplace_2)
     ):
         return False
 
@@ -627,16 +629,12 @@ def spectral_could_be_isomorphic(
         if label is None:
             return True
         atom_numbers_2.append(Atom(label).atomic_number)
-    wt_laplace_1 = nx.linalg.laplacian_matrix(graph1).toarray() / np.outer(
-        atom_numbers_1, atom_numbers_1
-    )
-    wt_laplace_2 = nx.linalg.laplacian_matrix(graph2).toarray() / np.outer(
-        atom_numbers_2, atom_numbers_2
-    )
-    evs1 = np.linalg.eigvalsh(wt_laplace_1)
-    evs2 = np.linalg.eigvalsh(wt_laplace_2)
+    laplace_1 /= np.outer(atom_numbers_1, atom_numbers_1)
+    laplace_2 /= np.outer(atom_numbers_2, atom_numbers_2)
 
-    if not np.allclose(evs1, evs2):
+    if not np.allclose(
+        np.linalg.eigvalsh(laplace_1), np.linalg.eigvalsh(laplace_2)
+    ):
         return False
     else:
         return True
