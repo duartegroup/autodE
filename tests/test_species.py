@@ -208,6 +208,9 @@ def test_species_mol_file():
         "M  END\n",
     ]
 
+    h2_mol.print_mol_file()
+    assert os.path.isfile(f"{h2_mol.name}.mol")
+
 
 def test_species_translate():
     m = Species(
