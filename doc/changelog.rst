@@ -16,7 +16,7 @@ Bug Fixes
 Functionality improvements
 **************************
 - Adds a boolean option for calculating single points refinements
-- AutodE can now handly any number of bond rearrangements
+- AutodE can now handle any number of bond rearrangements
 - Graph isomorphism check is faster, due to additional screening with isospectral method
 
 Bug Fixes
