@@ -7,8 +7,8 @@ from autode.atoms import Atom, AtomCollection
 from autode.mol_graphs import MolecularGraph
 from autode.smiles.base import SMILESAtom, SMILESBond, SMILESStereoChem
 from autode.smiles.angles import SDihedral, SDihedrals, SAngle, SAngles
-from ade_dihedrals import rotate, closed_ring_coords
-from ade_rb_opt import opt_rb_coords
+from autode.ext.ade_dihedrals import rotate, closed_ring_coords
+from autode.ext.ade_rb_opt import opt_rb_coords
 from autode.exceptions import (
     SMILESBuildFailed,
     FailedToSetRotationIdxs,
