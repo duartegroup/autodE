@@ -11,6 +11,7 @@ cdef IdppParams handle_kwargs(kwargs) except *:
     """
     Obtain an IdppParams object from keyword arguments. Allowed keys in
     the kwargs dictionary are
+
         sequential (bool): Whether to use the sequential IDPP
         k_spr (float): The spring constant value
         rms_gtol (float): The RMS gradient tolerance for the path

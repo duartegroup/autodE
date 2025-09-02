@@ -672,7 +672,7 @@ class NEB:
 
         return image.new_species()
 
-    def idpp_relax(self, sidpp: bool = True) -> None:
+    def idpp_relax(self) -> None:
         """
         Relax the NEB using the image dependent pair potential
 
@@ -686,7 +686,7 @@ class NEB:
         logger.info(f"Minimising NEB with IDPP potential")
 
         coords_list = [image.coordinates for image in self.images]
-        idpp = IDPP(n_images=len(self.images), sequential=sidpp)
+        idpp = IDPP(n_images=len(self.images))
 
         coords_list = idpp.relax_path(coords_list)
         self.images.set_coords(np.array(coords_list).ravel())
