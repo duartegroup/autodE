@@ -192,7 +192,7 @@ def test_energy_gradient_type():
     image = Image(species=Molecule(atoms=[Atom("H")], mult=2), name="tmp", k=k)
 
     # Energy and gradient must have a method (EST or IDPP)
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         _ = energy_gradient(image=image, method=None, n_cores=1)
 
 
