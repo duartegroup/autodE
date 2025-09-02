@@ -30,6 +30,14 @@ extensions = [
         extra_compile_args=cpp_compile_args,
         extra_link_args=cpp_link_args,
     ),
+    Extension(
+        "autode.ext.ade_idpp",
+        sources=["autode/ext/ade_idpp.pyx"],
+        include_dirs=["autode/ext/include"],
+        language="c++",
+        extra_compile_args=cpp_compile_args,
+        extra_link_args=cpp_link_args,
+    ),
 ]
 
 setup(
