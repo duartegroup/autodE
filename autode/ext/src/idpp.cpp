@@ -245,12 +245,17 @@ namespace autode {
                 );
                 arrx::noalias(dist_vec) = coord_i - coord_j;
                 double dist = arrx::norm_l2(dist_vec);
-                img.en += 1.0 / std::pow(dist, 4)
-                                * std::pow(*target_d_ptr - dist, 2);
+                double dist_pow_2 = dist * dist;
+                double dist_pow_4 = dist_pow_2 * dist_pow_2;
+                double dist_pow_5 = dist_pow_4 * dist;
+                double dist_pow_6 = dist_pow_5 * dist;
 
-                auto grad_prefac = -2.0 * 1.0 / std::pow(dist, 4)
-                        + 6.0 * (*target_d_ptr) / std::pow(dist, 5)
-                        - 4.0 * std::pow(*target_d_ptr, 2) / std::pow(dist, 6);
+                // energy terms
+                img.en += 1.0 / dist_pow_4 * std::pow(*target_d_ptr - dist, 2);
+
+                auto grad_prefac = -2.0 * 1.0 / dist_pow_4
+                        + 6.0 * (*target_d_ptr) / dist_pow_5
+                        - 4.0 * std::pow(*target_d_ptr, 2) / dist_pow_6;
                 // gradient terms
                 dist_vec *= grad_prefac;
                 arrx::slice(img.grad, atom_i * 3, atom_i * 3 + 3) += dist_vec;
@@ -679,7 +684,7 @@ namespace autode {
         }
     }
 
-    void BBMinimiser::minimise_neb(NEB& neb, const IDPPPotential& pot) {
+    void BBMinimiser::min_path(NEB& neb, const IDPPPotential& pot) {
         /* Minimise a series of NEB images using the IDPP potential
          *
          * Arguments:
@@ -776,7 +781,7 @@ namespace autode {
 
         // relax the path
         auto opt = BBMinimiser(params.maxiter, params.rmsgtol);
-        opt.minimise_neb(neb, pot);
+        opt.min_path(neb, pot);
         return neb;
     }
 

@@ -152,7 +152,7 @@ namespace autode
                          const NEB::frontier_pair idxs,
                          const IDPPPotential& pot);
 
-        void minimise_neb(NEB& neb, const IDPPPotential& pot);
+        void min_path(NEB& neb, const IDPPPotential& pot);
     };
 
     NEB calculate_neb(arrx::array1d init_coords,
