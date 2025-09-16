@@ -42,8 +42,8 @@ namespace autode {
          */
         ensure(num_atoms > 0, "Number of atoms must be > 0");
         ensure(k > 0, "Spring constant must be positive");
-        this->coords = arrx::zeros(n_atoms * 3);
-        this->grad = arrx::zeros(n_atoms * 3);
+        coords = arrx::zeros(n_atoms * 3);
+        grad = arrx::zeros(n_atoms * 3);
     }
 
     double Image::get_tau_k_fac(arrx::array1d& tau,
@@ -64,8 +64,6 @@ namespace autode {
          *   force_lc: Whether to force using linear combination tangent
          *             even if image is not extrema in energy
          */
-        ensure(img_m1.n_atoms == n_atoms && img_p1.n_atoms == n_atoms,
-                "Incompatible number of atoms");
 
         auto dv_max = std::max(
             std::abs(img_p1.en - en),
@@ -133,7 +131,7 @@ namespace autode {
          *  force_lc: Force using the linear combination tangent
          */
         arrx::array1d tau_hat;
-        auto k_fac = this->get_tau_k_fac(tau_hat, img_m1, img_p1, force_lc);
+        auto k_fac = get_tau_k_fac(tau_hat, img_m1, img_p1, force_lc);
 
         auto f_par = tau_hat * k_fac;
         auto g_perp = grad - arrx::dot(grad, tau_hat) * tau_hat;
@@ -147,7 +145,7 @@ namespace autode {
     }
 
 
-    IDPPPotential::IDPPPotential(const arrx::array1d& init_coords,
+    IDPPotential::IDPPotential(const arrx::array1d& init_coords,
                                  const arrx::array1d& final_coords,
                                  const int num_images)
      : n_images(num_images) {
@@ -166,12 +164,12 @@ namespace autode {
         ensure(init_coords.size() > 0 && init_coords.size() % 3 == 0,
                 "Wrong size of coordinates!");
         ensure(num_images > 2, "Must have more than 2 images");
-        this->n_atoms = static_cast<int>(init_coords.size()) / 3;
+        n_atoms = static_cast<int>(init_coords.size()) / 3;
 
         // calculate pairwise distances
-        const int n_bonds = (n_atoms * (n_atoms - 1)) / 2;  // nC2 = [n(n-1)]/2
-        arrx::array1d init_ds = arrx::zeros(n_bonds);
-        arrx::array1d final_ds = arrx::zeros(n_bonds);
+        const int n_dists = (n_atoms * (n_atoms - 1)) / 2;  // nC2 = [n(n-1)]/2
+        arrx::array1d init_ds = arrx::zeros(n_dists);
+        arrx::array1d final_ds = arrx::zeros(n_dists);
 
         size_t counter = 0;
         for (int atom_i = 0; atom_i < n_atoms; atom_i++) {
@@ -200,17 +198,17 @@ namespace autode {
         }
 
         // interpolate internal coordinates (distances)
-        this->all_target_ds.clear();
+        all_target_ds.clear();
         for (int k = 0; k < num_images; k++) {
             // S_k = S_init + (S_fin - S_init) * k / (n-1)
             double factor = static_cast<double>(k)
                             / static_cast<double>(num_images - 1);
             arrx::array1d target_ds = init_ds + (final_ds - init_ds) * factor;
-            this->all_target_ds.push_back(target_ds);
+            all_target_ds.push_back(target_ds);
         }
     }
 
-    void IDPPPotential::calc_idpp_engrad(const int idx, Image& img) const {
+    void IDPPotential::calc_idpp_engrad(const int idx, Image& img) const {
         /* Calculate the IDPP energy/gradient for the
          * supplied image
          *
@@ -220,12 +218,8 @@ namespace autode {
          *   img: The image for which to calculate the energy/grad.
          *        The image object is modified in-place
          */
-        ensure(idx >= 0 && idx < n_images, "Index out of bounds");
-        ensure(img.coords.size() == n_atoms * 3
-               && img.grad.size() == img.coords.size(),
-            "Provided image does not have correct number of atoms");
 
-        if (idx == 0 || idx == n_images - 1) return;
+        if (idx <= 0 || idx >= n_images - 1) return;
 
         img.en = 0.0;
         img.grad.fill(0.0);
@@ -286,8 +280,8 @@ namespace autode {
                 "Initial and final coordinates have different sizes!");
         ensure(init_coords.size() > 0 && init_coords.size() % 3 == 0,
             "Coordinate size must be > 0 and a multiple of 3");
-        this->n_atoms = static_cast<int>(init_coords.size()) / 3;
-        this->images.resize(n_images, Image(n_atoms, k_spr));
+        n_atoms = static_cast<int>(init_coords.size()) / 3;
+        images.resize(n_images, Image(n_atoms, k_spr));
 
         // Check if the end points are too close
         if (arrx::norm_l2(init_coords - final_coords) < 0.1) {
@@ -296,14 +290,12 @@ namespace autode {
             );
         }
         // Create the end point images
-        this->images.at(0).coords = std::move(init_coords);
-        this->images.at(n_images - 1).coords = std::move(final_coords);
+        images.at(0).coords = std::move(init_coords);
+        images.at(n_images - 1).coords = std::move(final_coords);
     }
 
     void NEB::fill_linear_interp() {
         /* Fill the NEB images with a linear interpolation */
-        ensure(images.size() == n_images,
-            "Image vector must be initialised with correct size!");
         const auto& coords_0 = images.at(0).coords;
         const auto& coords_fin = images.at(n_images - 1).coords;
         for (int k = 1; k < n_images - 1; k++) {
@@ -312,25 +304,25 @@ namespace autode {
             auto new_coords = coords_0 + (coords_fin - coords_0) * fac;
             images.at(k).coords = new_coords;
         }
-        this->reset_k_spr();
+        reset_k_spr();
         images_prepared = true;
     }
 
-    void NEB::fill_sequentially(const IDPPPotential& pot,
+    void NEB::fill_sequentially(const IDPPotential& pot,
                                 const int add_maxiter,
                                 const double add_maxgtol) {
         /* Fill the NEB path sequentially */
-        this->add_first_two_images();
+        add_first_two_images();
         int n_added = 4;
 
         while (n_added <= n_images) {
             auto opt = BBMinimiser(add_maxiter, add_maxgtol);
             auto conv_idx = opt.min_frontier(*this, frontier, pot);
             if (n_added == n_images) break;
-            this->add_image_next_to(conv_idx);
+            add_image_next_to(conv_idx);
             n_added++;
         }
-        this->reset_k_spr();
+        reset_k_spr();
         images_prepared = true;
     }
 
@@ -355,12 +347,12 @@ namespace autode {
         double d_mid = arrx::norm_l2(
             images[frontier.left].coords - images[frontier.right].coords
         );
-        return k_spr * this->get_d_id() / d_mid;
+        return k_spr * get_d_id() / d_mid;
     }
 
     void NEB::reset_k_spr() {
         /* Reset the spring constant to base value for all images */
-        for (int k = 0; k < n_images; k++) images[k].k_spr = this->k_spr;
+        for (int k = 0; k < n_images; k++) images[k].k_spr = k_spr;
     }
 
     void NEB::get_engrad(double& en, arrx::array1d& grad) const {
@@ -442,8 +434,6 @@ namespace autode {
          * Arguments:
          *   coords: Array of coordinates (must have correct size)
          */
-        ensure(coords.size() == (n_images - 2) * n_atoms * 3,
-                "Incorrect array size");
         size_t loc = 0;
         for (int k = 1; k < n_images - 1; k++) {
             arrx::noalias(images[k].coords) =
@@ -458,7 +448,6 @@ namespace autode {
          * Arguments:
          *   coords: Array of coordinates (must have correct size)
          */
-        ensure(coords.size() == n_atoms * 3 * 2, "Incorrect array size");
         arrx::noalias(images.at(frontier.left).coords)
                                         = arrx::slice(coords, 0, n_atoms * 3);
         arrx::noalias(images.at(frontier.right).coords)
@@ -467,8 +456,6 @@ namespace autode {
 
     void NEB::add_first_two_images() {
         /* Add the first two images next to both end points for S-IDPP */
-        ensure(images.size() == n_images,
-            "Image vector must be initialised with correct size!");
         if (debug_pr) std::cout << "Adding images at "
                                     << 1 << " and " << n_images - 2 << "\n";
         const auto& coords_0 = images.at(0).coords;
@@ -483,7 +470,7 @@ namespace autode {
         frontier.left = 1;
         frontier.right = n_images - 2;
         // set force constants
-        auto k_mid = this->get_k_mid();
+        auto k_mid = get_k_mid();
         for (int k = 0; k < n_images; k++) {
             images[k].k_spr
                   = (k == frontier.left || k == frontier.right) ? k_mid : k_spr;
@@ -500,7 +487,7 @@ namespace autode {
         ensure(idx == frontier.left || idx == frontier.right,
                                                         "Wrong index supplied");
 
-        double d_id = this->get_d_id();
+        double d_id = get_d_id();
         if (idx == frontier.left) {
             if (debug_pr) std::cout  << "+++ Placing new image at "
                                                               << idx+1 << "\n";
@@ -523,7 +510,7 @@ namespace autode {
             frontier.right--;
         }
         // set force constants
-        auto k_mid = this->get_k_mid();
+        auto k_mid = get_k_mid();
         for (int k = 0; k < n_images; k++) {
             images[k].k_spr
                   = (k == frontier.left || k == frontier.right) ? k_mid : k_spr;
@@ -588,7 +575,7 @@ namespace autode {
     void BBMinimiser::take_step() {
         /* Take a single optimiser step */
 
-        this->update_trust_radius();
+        update_trust_radius();
 
         if (iter == 0) {
             step = -grad;
@@ -628,7 +615,7 @@ namespace autode {
 
     int BBMinimiser::min_frontier(NEB& neb,
                                   const NEB::frontier_pair idxs,
-                                  const IDPPPotential& pot) {
+                                  const IDPPotential& pot) {
         /* Minimise the frontier images of a NEB using the Barzilai-Borwein
          * method
          *
@@ -667,7 +654,7 @@ namespace autode {
             {
                 break;
             }
-            this->take_step();
+            take_step();
             iter++;
             neb.set_frontier_coords(coords);
         }
@@ -684,7 +671,7 @@ namespace autode {
         }
     }
 
-    void BBMinimiser::min_path(NEB& neb, const IDPPPotential& pot) {
+    void BBMinimiser::min_path(NEB& neb, const IDPPotential& pot) {
         /* Minimise a series of NEB images using the IDPP potential
          *
          * Arguments:
@@ -711,7 +698,7 @@ namespace autode {
             if (curr_rms_g < gtol) {
                 break;
             }
-            this->take_step();
+            take_step();
             iter++;
             neb.set_coords(coords);
         }
@@ -757,7 +744,7 @@ namespace autode {
 
         debug_pr = params.debug;
 
-        auto pot = IDPPPotential(init_coords, final_coords, num_images);
+        auto pot = IDPPotential(init_coords, final_coords, num_images);
 
         auto neb = NEB(
             std::move(init_coords), std::move(final_coords),

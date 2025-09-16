@@ -48,7 +48,7 @@ namespace autode
         double max_g() const;
     };
 
-    class IDPPPotential {
+    class IDPPotential {
         /* The IDPP potential, using weighted interatomic distances */
 
     private:
@@ -57,9 +57,9 @@ namespace autode
         std::vector<arrx::array1d> all_target_ds; // interpolated bond distances
 
     public:
-        IDPPPotential() = default;
+        IDPPotential() = default;
 
-        explicit IDPPPotential(const arrx::array1d& init_coords,
+        explicit IDPPotential(const arrx::array1d& init_coords,
                                const arrx::array1d& final_coords,
                                const int num_images);
 
@@ -88,7 +88,7 @@ namespace autode
 
         void fill_linear_interp();
 
-        void fill_sequentially(const IDPPPotential& pot,
+        void fill_sequentially(const IDPPotential& pot,
                                const int add_maxiter,
                                const double add_maxgtol);
 
@@ -150,9 +150,9 @@ namespace autode
 
         int min_frontier(NEB& neb,
                          const NEB::frontier_pair idxs,
-                         const IDPPPotential& pot);
+                         const IDPPotential& pot);
 
-        void min_path(NEB& neb, const IDPPPotential& pot);
+        void min_path(NEB& neb, const IDPPotential& pot);
     };
 
     NEB calculate_neb(arrx::array1d init_coords,
