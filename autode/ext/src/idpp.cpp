@@ -312,6 +312,7 @@ namespace autode {
                                 const int add_maxiter,
                                 const double add_maxgtol) {
         /* Fill the NEB path sequentially */
+        ensure(n_images > 3, "Number of images must be > 3");
         add_first_two_images();
         int n_added = 4;
 
@@ -403,7 +404,7 @@ namespace autode {
          *                (will be resized to the correct size)
          */
         size_t dim = (n_images - 2) * n_atoms * 3;  // required dimension
-        if (flat_coords.size() != dim) flat_coords.resize(dim);
+        ensure(flat_coords.size() == dim, "Array is the wrong size");
 
         size_t loc = 0;
         for (int k = 1; k < n_images - 1; k++) {
@@ -420,7 +421,7 @@ namespace autode {
          *                (will be resized to the correct size)
          */
         size_t img_dim = n_atoms * 3;
-        if (coords.size() != img_dim * 2) coords.resize(img_dim * 2);
+        ensure(coords.size() == img_dim * 2, "Array is the wrong size");
 
         arrx::slice(coords, 0, img_dim) = images.at(frontier.left).coords;
         arrx::slice(coords, img_dim, img_dim * 2)
@@ -633,6 +634,10 @@ namespace autode {
                && idxs.left < idxs.right, "Frontier indices are wrong");
         if (debug_pr) std::cout << "=== Minimising frontier images: "
                                 << idxs.left << ", " << idxs.right << " ===\n";
+
+        size_t dim = 2 * neb.n_atoms * 3;
+        coords.resize(dim);
+        grad.resize(dim);
 
         while (iter < maxiter) {
             pot.calc_idpp_engrad(idxs.left, neb.images[idxs.left]);

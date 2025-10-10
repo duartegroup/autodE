@@ -71,7 +71,7 @@ namespace autode
 
     public:
         int n_images;  // total number of images
-        int n_atoms;  // total number of atoms
+        int n_atoms;  // total number of atoms in an image
 
         struct frontier_pair {
             int left, right;
