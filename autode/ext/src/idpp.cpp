@@ -387,7 +387,7 @@ namespace autode {
          *   grad: (out) Array where the gradient will be
          *          stored. Must be of shape 2 * n_atoms * 3
          */
-        //size_t img_dim = n_atoms * 3; // dimension for one image
+        size_t img_dim = n_atoms * 3; // dimension for one image
         //ensure(grad.size() == img_dim * 2, "Array is the wrong size");
 
         en = (images[frontier.left].en + images[frontier.right].en) / 2.0;
@@ -420,7 +420,7 @@ namespace autode {
          *   coords: (out) Array where the coordinates will be stored
          *                Must be of shape 2 * n_atoms * 3
          */
-        //size_t img_dim = n_atoms * 3;
+        size_t img_dim = n_atoms * 3;
         //ensure(coords.size() == img_dim * 2, "Array is the wrong size");
 
         arrx::slice(coords, 0, img_dim) = images.at(frontier.left).coords;
