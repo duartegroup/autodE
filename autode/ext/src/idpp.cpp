@@ -363,10 +363,10 @@ namespace autode {
          * Arguments:
          *   en: (out) Average energy of the NEB
          *   grad: (out) Array where the NEB gradient will be stored.
-         *          Will be resized if required.
+         *          Must be of shape (n_images - 2) * n_atoms * 3.
          */
-        size_t dim = (n_images - 2) * n_atoms * 3;  // required dimension
-        if (grad.size() != dim) grad.resize(dim);
+        //size_t dim = (n_images - 2) * n_atoms * 3;  // required dimension
+        //ensure(grad.size() == dim, "Array is the wrong size");
 
         double total_en = 0.0;
         size_t loc = 0;
@@ -385,10 +385,10 @@ namespace autode {
          * Arguments:
          *   en: (out) Average energy of image
          *   grad: (out) Array where the gradient will be
-         *          stored. Will be resized if required.
+         *          stored. Must be of shape 2 * n_atoms * 3
          */
-        size_t img_dim = n_atoms * 3; // dimension for one image
-        if (grad.size() != img_dim * 2) grad.resize(img_dim * 2);
+        //size_t img_dim = n_atoms * 3; // dimension for one image
+        //ensure(grad.size() == img_dim * 2, "Array is the wrong size");
 
         en = (images[frontier.left].en + images[frontier.right].en) / 2.0;
         arrx::slice(grad, 0, img_dim) = images[frontier.left].grad;
@@ -401,10 +401,10 @@ namespace autode {
          *
          * Arguments:
          *   flat_coords: Array where the coordinates will be stored
-         *                (will be resized to the correct size)
+         *                Must be of shape (n_images - 2) * n_atoms * 3
          */
-        size_t dim = (n_images - 2) * n_atoms * 3;  // required dimension
-        ensure(flat_coords.size() == dim, "Array is the wrong size");
+        //size_t dim = (n_images - 2) * n_atoms * 3;  // required dimension
+        //ensure(flat_coords.size() == dim, "Array is the wrong size");
 
         size_t loc = 0;
         for (int k = 1; k < n_images - 1; k++) {
@@ -418,10 +418,10 @@ namespace autode {
          *
          * Arguments:
          *   coords: (out) Array where the coordinates will be stored
-         *                (will be resized to the correct size)
+         *                Must be of shape 2 * n_atoms * 3
          */
-        size_t img_dim = n_atoms * 3;
-        ensure(coords.size() == img_dim * 2, "Array is the wrong size");
+        //size_t img_dim = n_atoms * 3;
+        //ensure(coords.size() == img_dim * 2, "Array is the wrong size");
 
         arrx::slice(coords, 0, img_dim) = images.at(frontier.left).coords;
         arrx::slice(coords, img_dim, img_dim * 2)
@@ -686,6 +686,10 @@ namespace autode {
         if (debug_pr)
             std::cout << "=== Minimising NEB path ===\n";
 
+        size_t dim = (neb.n_images - 2) * neb.n_atoms * 3;
+        coords.resize(dim);
+        grad.resize(dim);
+
         while (iter < maxiter) {
             for (int k = 1; k < neb.n_images - 1; k++) {
                 pot.calc_idpp_engrad(k, neb.images[k]);
@@ -819,6 +823,7 @@ namespace autode {
 
         // copy the final coordinates to the output array
         arrx::array1d all_coords;
+        all_coords.resize((n_images - 2) * coords_len);
         neb.get_coords(all_coords);
         auto req_dim = (n_images - 2) * coords_len;
         for (int i = 0; i < req_dim; i++) {
