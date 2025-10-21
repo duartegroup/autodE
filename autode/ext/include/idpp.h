@@ -42,8 +42,7 @@ namespace autode
                              const bool force_lc) const;
 
         void update_neb_grad(const Image& img_m1,
-                             const Image& img_p1,
-                             bool force_lc);
+                             const Image& img_p1);
 
         double max_g() const;
     };

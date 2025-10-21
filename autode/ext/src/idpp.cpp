@@ -117,8 +117,7 @@ namespace autode {
     }
 
     void Image::update_neb_grad(const Image& img_m1,
-                                const Image& img_p1,
-                                bool force_lc) {
+                                const Image& img_p1) {
         /* Update the NEB force, using the previous image and the next
          * image
          *
@@ -127,11 +126,9 @@ namespace autode {
          *  img_m1: the previous image
          *
          *  img_p1: the next image
-         *
-         *  force_lc: Force using the linear combination tangent
          */
         arrx::array1d tau_hat;
-        auto k_fac = get_tau_k_fac(tau_hat, img_m1, img_p1, force_lc);
+        auto k_fac = get_tau_k_fac(tau_hat, img_m1, img_p1, false);
 
         auto f_par = tau_hat * k_fac;
         auto g_perp = grad - arrx::dot(grad, tau_hat) * tau_hat;
@@ -643,10 +640,10 @@ namespace autode {
             pot.calc_idpp_engrad(idxs.left, neb.images[idxs.left]);
             pot.calc_idpp_engrad(idxs.right, neb.images[idxs.right]);
             neb.images[idxs.left].update_neb_grad(
-                neb.images[idxs.left - 1], neb.images[idxs.right], false
+                neb.images[idxs.left - 1], neb.images[idxs.right]
             );
             neb.images[idxs.right].update_neb_grad(
-                neb.images[idxs.left], neb.images[idxs.right + 1], false
+                neb.images[idxs.left], neb.images[idxs.right + 1]
             );
             neb.get_frontier_coords(coords);
             neb.get_frontier_engrad(en, grad);
@@ -696,7 +693,7 @@ namespace autode {
             }
             for (int k = 1; k < neb.n_images - 1; k++) {
                 neb.images[k].update_neb_grad(
-                    neb.images[k-1], neb.images[k+1], false
+                    neb.images[k-1], neb.images[k+1]
                 );
             }
             neb.get_coords(coords);
