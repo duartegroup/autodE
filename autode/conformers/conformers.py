@@ -201,6 +201,10 @@ class Conformers(list):
 
         if all(en is not None for en in conf_energies):
             idxs_series = np.argsort(conf_energies)
+            logger.info(
+                "All conformers have energies, will remove"
+                " higher energy conformer in RMSD pruning"
+            )
         else:
             idxs_series = np.array(range(len(self)))
 
@@ -212,6 +216,10 @@ class Conformers(list):
                 < rmsd_tol
                 for o_idx in kept_conf_idxs
             ):
+                logger.debug(
+                    f"Conformer {idx} was close in geometry to at least"
+                    f" one other - removing"
+                )
                 continue
             else:
                 kept_conf_idxs.append(idx)
