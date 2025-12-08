@@ -196,7 +196,7 @@ class Conformers(list):
             f"to any other (heavy atoms only, with no symmetry)"
         )
 
-        # Use energy based pruning if there are energy
+        # Use energy based pruning if all energies are available
         conf_energies = [conf.energy for conf in self]
 
         if all(en is not None for en in conf_energies):
