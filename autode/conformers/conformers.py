@@ -209,7 +209,7 @@ class Conformers(list):
         for idx in idxs_series[1:]:
             for o_idx in kept_conf_idxs:
                 if (
-                    calc_heavy_atom_rmsd(self[idx].atoms, self[o_idx])
+                    calc_heavy_atom_rmsd(self[idx].atoms, self[o_idx].atoms)
                     > rmsd_tol
                 ):
                     kept_conf_idxs.append(idx)
