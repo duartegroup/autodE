@@ -207,12 +207,14 @@ class Conformers(list):
         # Keep the lower energy conformer always
         kept_conf_idxs = [idxs_series[0]]
         for idx in idxs_series[1:]:
-            for o_idx in kept_conf_idxs:
-                if (
-                    calc_heavy_atom_rmsd(self[idx].atoms, self[o_idx].atoms)
-                    > rmsd_tol
-                ):
-                    kept_conf_idxs.append(idx)
+            if any(
+                calc_heavy_atom_rmsd(self[idx].atoms, self[o_idx].atoms)
+                < rmsd_tol
+                for o_idx in kept_conf_idxs
+            ):
+                continue
+            else:
+                kept_conf_idxs.append(idx)
 
         # Remove in reverse order to maintain the index
         idxs_to_remove = set(idxs_series).difference(kept_conf_idxs)
