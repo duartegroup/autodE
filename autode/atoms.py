@@ -595,11 +595,14 @@ class Atoms(list):
         if other is None:
             return self
 
-        return super().__add__(other)
+        return list(self) + other
 
     def __radd__(self, other):
         """Add another set of Atoms to this one. Can add None"""
-        return self.__add__(other)
+        if other is None:
+            return self
+
+        return other + list(self)
 
     def copy(self) -> "Atoms":
         """
