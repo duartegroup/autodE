@@ -89,6 +89,8 @@ class Species(AtomCollection):
         self._grad: Optional[val.Gradient] = None
         self._hess: Optional[Hessian] = None
 
+        self._dipole: Optional[float] = None
+
         self._conformers = Conformers()
 
         self.constraints = Constraints()
@@ -187,6 +189,16 @@ class Species(AtomCollection):
             )
 
         self._mult = int(value)
+
+    @property
+    def dipole(self) -> float:
+        """Total charge on this species"""
+        return self._dipole
+
+    @dipole.setter
+    def dipole(self, value: Any) -> None:
+        self._dipole = float(value)
+
 
     @property
     def solvent(self) -> Optional["Solvent"]:

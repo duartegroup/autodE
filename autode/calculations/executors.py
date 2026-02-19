@@ -171,8 +171,9 @@ class CalculationExecutor:
             self.molecule.partial_charges = self.method.partial_charges_from(
                 self
             )
+            self.molecule.dipole = self.method.dipole_from(self)
         except (ValueError, IndexError, ex.AutodeException):
-            logger.warning("Failed to set partial charges")
+            logger.warning("Failed to set partial charges or dipoles")
 
         return None
 
