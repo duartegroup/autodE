@@ -169,7 +169,8 @@ class Conformers(list):
     ) -> None:
         """
         Given a list of conformers add those that are unique based on an RMSD
-        tolerance. If rmsd=None then use autode.Config.rmsd_threshold
+        tolerance. If rmsd=None then use autode.Config.rmsd_threshold. Removes
+        the conformer which has higher energy if within RMSD threshold.
 
         -----------------------------------------------------------------------
         Arguments:
@@ -195,22 +196,38 @@ class Conformers(list):
             f"to any other (heavy atoms only, with no symmetry)"
         )
 
-        # Only enumerate up to but not including the final index, as at
-        # least one of the conformers must be unique in geometry
-        for idx in reversed(range(len(self) - 1)):
-            conf = self[idx]
+        # Use energy based pruning if all energies are available
+        conf_energies = [conf.energy for conf in self]
 
+        if all(en is not None for en in conf_energies):
+            idxs_series = np.argsort(conf_energies)
+            logger.info(
+                "All conformers have energies, will remove"
+                " higher energy conformer in RMSD pruning"
+            )
+        else:
+            idxs_series = np.array(range(len(self)))
+
+        # Keep the lower energy conformer always
+        kept_conf_idxs = [idxs_series[0]]
+        for idx in idxs_series[1:]:
             if any(
-                calc_heavy_atom_rmsd(conf.atoms, other.atoms) < rmsd_tol
-                for o_idx, other in enumerate(self)
-                if o_idx != idx
+                calc_heavy_atom_rmsd(self[idx].atoms, self[o_idx].atoms)
+                < rmsd_tol
+                for o_idx in kept_conf_idxs
             ):
-                logger.info(
-                    f"Conformer {idx} was close in geometry to at "
-                    f"least one other - removing"
+                logger.debug(
+                    f"Conformer {idx} was close in geometry to at least"
+                    f" one other - removing"
                 )
+                continue
+            else:
+                kept_conf_idxs.append(idx)
 
-                del self[idx]
+        # Remove in reverse order to maintain the index
+        idxs_to_remove = set(idxs_series).difference(kept_conf_idxs)
+        for idx in sorted(list(idxs_to_remove), reverse=True):
+            del self[idx]
 
         logger.info(f"Pruned to {len(self)} unique conformer(s) on RMSD")
         return None
