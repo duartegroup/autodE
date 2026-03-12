@@ -220,6 +220,49 @@ def test_complex_init():
     assert -1e-4 < np.linalg.norm(h2o.atoms[0].coord) < 1e-4
 
 
+def test_multicomplex():
+    h2o = Molecule(
+        name="water", atoms=[Atom("O"), Atom("H", x=-1), Atom("H", x=1)]
+    )
+    hf = Molecule(name="HF", atoms=[Atom("H", x=3.0), Atom("F", x=4.0)])
+    nclbrf = Molecule(
+        name="NClBrF",
+        atoms=[
+            Atom("N", y=-2.0),
+            Atom("Cl", x=0.5, y=-2.5),
+            Atom("Br", x=0.5, y=-2.5, z=0.5),
+            Atom("F", x=-0.5, y=-2.5),
+        ],
+    )
+    total_mol = Complex(h2o, hf, nclbrf)
+    assert total_mol.n_atoms == 9
+    assert total_mol.n_molecules == 3
+    assert [at.label for at in total_mol.atoms] == [
+        "O",
+        "H",
+        "H",
+        "H",
+        "F",
+        "N",
+        "Cl",
+        "Br",
+        "F",
+    ]
+    # Check coordinates are maintained properly
+    assert np.allclose(total_mol.atoms[1].coord, [-1, 0, 0])
+    assert np.allclose(total_mol.atoms[7].coord, [0.5, -2.5, 0.5])
+    assert np.allclose(total_mol.coordinates[1], [-1, 0, 0])
+    assert np.allclose(total_mol.coordinates[7], [0.5, -2.5, 0.5])
+
+    # Translating and rotating one molecule should not affect others
+    total_mol.translate_mol([0.1, 0.2, -0.5], mol_index=1)
+    total_mol.rotate_mol(
+        [0.2, -0.9, 0.5], origin=[0.1, 0.2, -0.3], theta=1.6, mol_index=1
+    )
+    assert np.allclose(total_mol.coordinates[:3], h2o.coordinates)
+    assert np.allclose(total_mol.coordinates[5:], nclbrf.coordinates)
+
+
 def test_complex_atom_reorder():
     hf_dimer = Complex(
         Molecule(name="HF", atoms=[Atom("H"), Atom("F", x=1.0)]),

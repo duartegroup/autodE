@@ -33,34 +33,6 @@ H•
   >>> h.atoms
   Atoms(n_atoms=1, [Atom(H, -0.6577, -0.8481, -0.3214)])
 
-
-Functionalisation
------------------
-
-.. image:: ../common/functionalisation.png
-
-Swapping fragments on a structure (e.g. H → Me) can be achieved using SMILES
-concatenation. For example to stitch two methyl fragments to generate an
-ethane molecule
-
-.. code-block:: python
-
-  >>> ethane = ade.Molecule(name='C2H6', smiles='C%99.C%99')
-  >>> ethane.n_atoms
-  8
-
-Multiple fragments can be added to the same core by specifying multiple sites
-on a single atom
-
-.. code-block:: python
-
-  >>> propane = ade.Molecule(name='C3H8', smiles='C%99%98.C%99.C%98')
-  >>> propane.n_atoms
-  11
-
-This method regenerates the whole structure which may not be desirable if the
-molecule is a transition state (TS) or a particular conformation of interest.
-
 molfunc
 _______
 
@@ -72,12 +44,44 @@ hydrogen atom in methane
 
 .. code-block:: python
 
-  >>> from molfunc import CoreMolecule, CombinedMolecule
-  >>> methane.print_xyz_file()
-  >>> methane_core = CoreMolecule(xyz_filename='CH4.xyz', atoms_to_del=[2])
-  >>> ethane = CombinedMolecule(methane_core, frag_smiles='C[*]', name='C2H6')
+  >>> from molfunc import print_combined_molecule
+  >>> print_combined_molecule(core_xyz_filename='CH4.xyz',
+  >>>   	atoms_to_del=[2],
+  >>>   	frag_names=['Me'],
+  >>>   	name='C2H6'
+  >>> )
+  >>> ethane = ade.Molecule('C2H6.xyz')
   >>> ethane.n_atoms
   8
+
+Another way of computing multiple changes on any molecule would be
+
+.. code-block:: python
+
+  >>> from molfunc import print_combined_molecule
+  >>>
+  >>> fragments = {
+  >>>     "NMe2": "CN([*])C",
+  >>>     "NH2":  "N[*]",
+  >>>     "OH":   "O[*]",
+  >>>     "Me":   "C[*]",
+  >>>     "F":    "F[*]",
+  >>> }
+  >>>
+  >>> core_xyz = "CH4.xyz"   # methane
+  >>>
+  >>> for name, smiles in fragments.items():
+  >>>
+  >>>     out_name = f"CH3_{name}"
+  >>>     print(f"Building {out_name}.xyz")
+  >>>
+  >>>     print_combined_molecule(
+  >>>       core_xyz_filename=core_xyz,
+  >>>       atoms_to_del=[2],          #  fresh list EVERY time
+  >>>       frag_smiles=[smiles],      #  only SMILES, no frag_names
+  >>>       name=out_name
+  >>>     )
+
 
 A set of fragments can be iterated through using **molfunc** to generate a
 library rapidly e.g.

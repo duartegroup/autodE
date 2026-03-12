@@ -15,6 +15,8 @@ if TYPE_CHECKING:
     from autode.values import Distance
     from autode.species.species import Species
 
+_METAL_HAPTIC_THRESH = 1.10  # 10%
+
 
 class MolecularGraph(nx.Graph):
     def __repr__(self):
@@ -222,13 +224,64 @@ def make_graph(
     if not allow_invalid_valancies:
         remove_bonds_invalid_valancies(species)
 
+    _sanitise_metal_bonds(species)
+    return None
+
+
+def _sanitise_metal_bonds(species):
+    """
+    Sometimes, covalent radii based bond detection adds extra bonds to
+    metals in a haptic-type pattern (adjacent atoms to coordinating atoms
+    are also bonded). These are removed by an approximate distance
+    based criteria (NOT always perfect).
+
+    Args:
+        species: The species object
+    """
+
+    for i in species.graph.nodes:
+        if not species.atoms[i].is_metal:
+            continue
+
+        to_remove = set()
+        neighbours = list(species.graph.neighbors(i))
+        haptic_groups: List[set] = []
+
+        # Obtain sets of "haptic" atoms which are bonded to i and each other
+        subset_graph = species.graph.subgraph(neighbours)
+        haptic_groups = list(subset_graph.connected_components())
+
+        for group in haptic_groups:
+            if len(group) == 1:
+                continue
+            idxs_list = np.array(list(group))
+            # bond length to metal scaled by sum of covalent radii
+            r_i_x_scaled = [
+                species.distance(i, x) / species.eqm_bond_distance(i, x)
+                for x in idxs_list
+            ]
+            # any bond more than 10% weaker than the shortest is removed
+            relative_ratios = np.array(r_i_x_scaled) / min(r_i_x_scaled)
+            remove_idxs = idxs_list[
+                np.where(relative_ratios >= _METAL_HAPTIC_THRESH)[0]
+            ]
+            to_remove.update(list(remove_idxs))
+
+        if len(to_remove) != 0:
+            logger.debug(
+                f"Removing long 'haptic' bond(s) to metal {i}: {to_remove}"
+            )
+        for j in to_remove:
+            species.graph.remove_edge(i, j)
+
     return None
 
 
 def remove_bonds_invalid_valancies(species):
     """
     Remove invalid valencies for atoms that exceed their maximum valencies e.g.
-    H should have no more than 1 'bond'
+    H should have no more than 1 'bond'. Does *NOT* consider coordinate bonds to
+    metals.
 
     ---------------------------------------------------------------------------
     Arguments:
@@ -236,17 +289,23 @@ def remove_bonds_invalid_valancies(species):
     """
 
     for i in species.graph.nodes:
-        max_valance = species.atoms[i].maximal_valance
-        neighbours = list(species.graph.neighbors(i))
+        if species.atoms[i].is_metal:
+            continue
 
-        if len(neighbours) <= max_valance:
+        max_valance = species.atoms[i].maximal_valance
+        all_neighbours = list(species.graph.neighbors(i))
+        non_m_neighbours = [
+            j for j in all_neighbours if not species.atoms[j].is_metal
+        ]
+
+        if len(non_m_neighbours) <= max_valance:
             continue  # All is well
 
-        logger.warning(f"Atom {i} exceeds its maximal valence removing edges")
+        logger.debug(f"Atom {i} exceeds its maximal valence removing edges")
 
         # Get the atom indexes sorted by the closest to atom i
         closest_atoms = sorted(
-            neighbours, key=lambda k: species.distance(i, k)
+            non_m_neighbours, key=lambda k: species.distance(i, k)
         )
 
         # Delete all the bonds to atom(s) j that are above the maximal valance
@@ -532,6 +591,57 @@ def get_graphs_ignoring_active_edges(graph1, graph2):
     return g1, g2
 
 
+def spectral_could_be_isomorphic(
+    graph1: MolecularGraph, graph2: MolecularGraph
+):
+    """
+    A fast check for whether two molecular graphs could be
+    isomorphic based on comparison of the spectra of the
+    weighted Laplacian matrices
+
+    Args:
+        graph1:
+        graph2:
+
+    Returns:
+        (bool): If the graphs could be isomorphic
+    """
+    # if there are no bonds, then this check cannot be used
+    if graph1.number_of_edges() < 1:
+        return True
+
+    # First check element agnostic Laplacian matrix (faster)
+    if not np.allclose(
+        nx.laplacian_spectrum(graph1), nx.laplacian_spectrum(graph2)
+    ):
+        return False
+
+    # Laplacian matrix weighted by atomic number products
+    # If atomic label is missing, simply return
+    atom_numbers_1, atom_numbers_2 = [], []
+    for _, label in graph1.nodes(data="atom_label", default=None):
+        if label is None:
+            return True
+        atom_numbers_1.append(Atom(label).atomic_number)
+    for _, label in graph2.nodes(data="atom_label", default=None):
+        if label is None:
+            return True
+        atom_numbers_2.append(Atom(label).atomic_number)
+    wt_laplace_1 = nx.linalg.laplacian_matrix(graph1).toarray() / np.outer(
+        atom_numbers_1, atom_numbers_1
+    )
+    wt_laplace_2 = nx.linalg.laplacian_matrix(graph2).toarray() / np.outer(
+        atom_numbers_2, atom_numbers_2
+    )
+    evs1 = np.linalg.eigvalsh(wt_laplace_1)
+    evs2 = np.linalg.eigvalsh(wt_laplace_2)
+
+    if not np.allclose(evs1, evs2):
+        return False
+    else:
+        return True
+
+
 @timeout(seconds=5, return_value=False)
 def is_isomorphic(
     graph1: MolecularGraph,
@@ -557,6 +667,9 @@ def is_isomorphic(
         graph1, graph2 = get_graphs_ignoring_active_edges(graph1, graph2)
 
     if not isomorphism.faster_could_be_isomorphic(graph1, graph2):
+        return False
+
+    if not spectral_could_be_isomorphic(graph1, graph2):
         return False
 
     # Always match on atom types
@@ -660,7 +773,7 @@ def split_mol_across_bond(graph, bond):
     return [list(graph.nodes) for graph in split_subgraphs]
 
 
-def get_bond_type_list(graph):
+def get_bond_type_list(graph) -> dict[str, list]:
     """
     Finds the types (i.e CH) of all the bonds in a molecular graph
 
@@ -672,7 +785,7 @@ def get_bond_type_list(graph):
         bond_list_dict (dict): key = bond type, value = list of bonds of this
                                type
     """
-    bond_list_dict = {}
+    bond_list_dict: dict[str, list] = {}
     atom_types = set()
 
     for _, atom_label in graph.nodes.data("atom_label"):
@@ -715,7 +828,7 @@ def get_fbonds(graph, key):
     bonds = list(graph.edges)
     for i in graph.nodes:
         for j in graph.nodes:
-            if i > j:
+            if i >= j:
                 continue
 
             if not (i, j) in bonds and not (j, i) in bonds:

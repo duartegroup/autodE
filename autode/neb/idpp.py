@@ -1,12 +1,11 @@
 import numpy as np
 
-from scipy.spatial import distance_matrix
-from typing import TYPE_CHECKING
-
-from autode.values import PotentialEnergy
-
-if TYPE_CHECKING:
-    from autode.neb.original import Image, Images
+from typing import List
+from autode.ext.ade_idpp import (
+    get_interpolated_path,
+    get_interp_path_length,
+    get_relaxed_path,
+)
 
 
 class IDPP:
@@ -21,152 +20,122 @@ class IDPP:
     where :math:`r_{ij}` is the distance between atoms i and j and
     :math:`r_{ij}^{(k)} = r_{ij}^{(1)} + k(r_{ij}^{(N)} - r_{ij}^{(1)})/N` for
     :math:`N` images. The weight function is :math:`w(r_{ij}) = r_{ij}^{-4}`,
-    as suggested in the paper.
+    as suggested in the paper. Computation is done in C++ extension
     """
 
-    def __init__(self, images: "Images"):
-        """Initialise a IDPP potential from a set of NEB images"""
-
-        if len(images) < 2:
-            raise ValueError("Must have at least 2 images for IDPP")
-
-        # Distance matrices containing all r_{ij}^k
-        self._dists = {image_k.name: None for image_k in images}
-        self._diagonal_distance_matrix_idxs = None
-
-        self._set_distance_matrices(images)
-
-    def __call__(self, image: "Image") -> PotentialEnergy:
-        r"""
-        Value of the IDPP objective function for a single image defined by,
-
-        .. math::
-
-            S_k = 0.5 Σ_i  Σ_{j \ne i} w(r_{ij}) (r_{ij}^{(k)} - r_{ij})^2
-
-        where :math:`i` and :math:`j` enumerate over atoms for an image indexed
-        by :math:`k`.
-
-        -----------------------------------------------------------------------
-        Arguments:
-            image: NEB image (k)
-
-        Returns:
-            (float): :math:`S_k`
+    def __init__(
+        self,
+        n_images: int,
+        k_spr: float = 1.0,
+        sequential: bool = True,
+        rms_gtol: float = 1e-3,
+        maxiter: int = 1000,
+        add_img_maxgtol: float = 2e-3,
+        add_img_maxiter: int = 200,
+    ):
         """
-        r_k, r = self._req_distance_matrix(image), self._distance_matrix(image)
-        w = self._weight_matrix(image)
+        Initialise an IDPP calculation
 
-        return PotentialEnergy(0.5 * np.sum(w * (r_k - r) ** 2))
-
-    def grad(self, image: "Image") -> np.ndarray:
-        r"""
-        Gradient of the potential with respect to displacement of
-        the Cartesian components: :math:`\nabla S = (dS/dx_0, dS/dy_0, dS/dz_0,
-        dS/dx_1, ...)` where the numbers denote different atoms. For example,
-
-        .. math::
-
-            \frac{dS}{dx_0} = -2 \sum_{i \ne j}
-                               \left[2(c-r_{ij})r_{ij}^{-6}
-                                     + w(r_{ij})r_{ij}^{-1})
-                               \right](c - r_{ij})(x_0 - x_j)
-
-        where :math:`c = r_{ij}^{(k)}`.
-
-        -----------------------------------------------------------------------
-        Arguments:
-            image: NEB image (k)
-
-        Returns:
-            (np.ndarray): :math:`\nabla S`
+        Args:
+            n_images: Number of images requested
+            k_spr: The spring constant
+            sequential: Whether to use sequential IDPP
+            rms_gtol: RMS gradient tolerance for path
+            maxiter: Maximum number of iterations for path
+            add_img_maxgtol: Maximum gradient tolerance for adding images
+            add_img_maxiter: Maximum number of iterations for adding image
         """
+        self._n_images = int(n_images)
+        assert self._n_images > 2
+        self._k_spr = float(k_spr)
+        self._sequential = bool(sequential)
+        self._rms_gtol = float(rms_gtol)
+        self._maxiter = int(maxiter)
+        self._add_img_maxgtol = float(add_img_maxgtol)
+        self._add_img_maxiter = int(add_img_maxiter)
 
-        x = np.array(image.coordinates).flatten()
-        grad = np.zeros_like(x)
-
-        r = self._distance_matrix(image, unity_diagonal=True)
-        w = self._weight_matrix(image)
-        r_k = self._req_distance_matrix(image)
-
-        a = -2 * (2 * (r_k - r) ** 2 * r ** (-6) + w * (r_k - r) * r ** (-1))
-
-        """
-        The following numpy operations are the same as:
-        -----------------------------------------------------------------------
-        x = x.reshape((-1, 3))
-        grad = np.zeros_like(x)
-
-        for i in range(n_atoms):
-            for j in range(n_atoms):
-
-                if i != j:
-                    grad[i, :] += a[i, j] * (x[i, :] - x[j, :])
-        -----------------------------------------------------------------------
-        """
-
-        a[self._diagonal_distance_matrix_idxs] = 0.0
-        delta = np.subtract.outer(x, x)
-
-        grad[0::3] = np.sum(a * delta[0::3, 0::3], axis=1)  # x
-        grad[1::3] = np.sum(a * delta[1::3, 1::3], axis=1)  # y
-        grad[2::3] = np.sum(a * delta[2::3, 2::3], axis=1)  # z
-
-        return grad.reshape((-1, 3))
-
-    def _set_distance_matrices(self, images: "Images") -> None:
-        """
-        For each image determine the optimum distance matrix using
-
-        .. math::
-
-            r_{ij}^{(k)} = r_{ij}^{(1)} + k (r_{ij}^{(N)} - r_{ij}^{(1)}) / N
-
-        and set the the diagonal indices of each distance matrix.
-        """
-
-        dist_mat_1 = self._distance_matrix(image=images[0])
-        dist_mat_n = self._distance_matrix(image=images[-1])
-
-        delta = dist_mat_n - dist_mat_1
-        n = len(images)
-
-        for k, image in enumerate(images):
-            self._dists[image.name] = dist_mat_1 + k * delta / n
-
-        self._diagonal_distance_matrix_idxs = np.diag_indices_from(delta)
-        return None
-
-    def _req_distance_matrix(self, image: "Image"):
-        """Required distance matrix for an image, with elements r_{ij}^k"""
-        return self._dists[image.name]
-
-    def _distance_matrix(
-        self, image: "Image", unity_diagonal: bool = False
+    def get_path(
+        self, init_coords: np.ndarray, final_coords: np.ndarray
     ) -> np.ndarray:
-        """Distance matrix for an image"""
-
-        x = image.coordinates
-        r = distance_matrix(x, x)
-
-        if unity_diagonal:
-            r[self._diagonal_distance_matrix_idxs] = 1.0
-
-        return r
-
-    def _weight_matrix(self, image: "Image") -> np.ndarray:
-        r"""
-        Weight matrix with elements
-
-        .. math::
-
-            w_{ij} = 1/r_{ij}^4
-
-
-        for :math:`i \ne j` otherwise :math:`w_{ii} = 0`
         """
-        r = self._distance_matrix(image, unity_diagonal=True)
-        w = r ** (-4.0)
-        w[self._diagonal_distance_matrix_idxs] = 0.0  # Zero w_ii elements
+        Get the IDPP path between the intial and final coordinates
 
-        return w
+        Args:
+            init_coords: Numpy array of initial coordinates
+            final_coords: Numpy array of final coordinates
+
+        Returns:
+            (np.ndarray): Numpy array of coordinates of the
+                        intermediate images in the path
+        """
+        if init_coords.shape != final_coords.shape:
+            raise ValueError(
+                "Initial and final coordinates must have the same shape"
+            )
+
+        return get_interpolated_path(
+            init_coords,
+            final_coords,
+            self._n_images,
+            sequential=self._sequential,
+            k_spr=self._k_spr,
+            rms_gtol=self._rms_gtol,
+            maxiter=self._maxiter,
+            add_img_maxgtol=self._add_img_maxgtol,
+            add_img_maxiter=self._add_img_maxiter,
+        )
+
+    def get_path_length(
+        self, init_coords: np.ndarray, final_coords: np.ndarray
+    ) -> float:
+        """
+        Get the length of the IDPP path between the intial and final coordinates
+
+        Args:
+            init_coords: Numpy array of initial coordinates
+            final_coords: Numpy array of final coordinates
+
+        Returns:
+            (float): Length of the IDPP path
+        """
+        return get_interp_path_length(
+            init_coords,
+            final_coords,
+            self._n_images,
+            sequential=self._sequential,
+            k_spr=self._k_spr,
+            rms_gtol=self._rms_gtol,
+            maxiter=self._maxiter,
+            add_img_maxgtol=self._add_img_maxgtol,
+            add_img_maxiter=self._add_img_maxiter,
+        )
+
+    def relax_path(self, coords_list: List[np.ndarray]) -> List[np.ndarray]:
+        """
+        Relax the set of coordinates using the IDPP method
+
+        Args:
+            coords_list: List of coordinates (numpy arrays)
+
+        Returns:
+            (List[np.ndarray]): List of relaxed coordinates
+        """
+        n_images = len(coords_list)
+        assert all(isinstance(c, np.ndarray) for c in coords_list)
+        coords_len = len(coords_list[0].ravel())
+        assert all(len(c.ravel()) == coords_len for c in coords_list)
+
+        all_coords = np.array(coords_list).ravel()
+        all_coords = get_relaxed_path(
+            all_coords,
+            n_images,
+            sequential=self._sequential,
+            k_spr=self._k_spr,
+            rms_gtol=self._rms_gtol,
+            maxiter=self._maxiter,
+            add_img_maxgtol=self._add_img_maxgtol,
+            add_img_maxiter=self._add_img_maxiter,
+        )
+        for i in range(n_images):
+            coords_list[i] = all_coords[i * coords_len : (i + 1) * coords_len]
+        return coords_list

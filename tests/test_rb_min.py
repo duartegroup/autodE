@@ -1,7 +1,7 @@
 import numpy as np
 from autode import Molecule
 from autode.atoms import Atom
-from ade_rb_opt import opt_rb_coords
+from autode.ext.ade_rb_opt import opt_rb_coords
 from autode.geom import are_coords_reasonable
 
 

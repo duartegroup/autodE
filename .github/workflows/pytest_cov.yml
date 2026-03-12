@@ -54,7 +54,7 @@ jobs:
 
     - name: Test
       run: |
-        pytest --cov=./ --cov-report=xml
+        pytest --cov=./ --cov-report=xml --import-mode=append
 
     - uses: codecov/codecov-action@v4
       with:

@@ -52,4 +52,4 @@ jobs:
 
     - name: Test
       run: |
-        py.test tests/
+        py.test --import-mode=append tests/

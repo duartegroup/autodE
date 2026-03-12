@@ -198,6 +198,10 @@ use :code:`ade.Config` e.g.
     Structure optimisation resets the positions of the atoms to their optimised
     value.
 
+For a different functional the keywords have to be written as
+
+>>> ade.Config.ORCA.keywords.sp = ['WB97X-D3', 'ma-def2-TZVP']
+
 Calculations can also be performed using electronic structure packages with
 implemented wrappers. For example, to calculate a single point energy for a
 hydrogen atom with all the currently implemented methods
