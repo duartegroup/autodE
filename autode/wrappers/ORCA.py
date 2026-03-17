@@ -602,12 +602,18 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
     @property
     def is_v5_or_later(self):
         """Is this ORCA version at least 5.0.0?"""
-        return int(self._get_version_no_output()[0]) >= 5
+        try:
+            return int(self._get_version_no_output()[0]) >= 5
+        except:
+            return False
 
     @property
     def is_v6_or_later(self):
         """Is this ORCA version at least v6.0.0?"""
-        return int(self._get_version_no_output()[0]) >= 6
+        try:            
+            return int(self._get_version_no_output()[0]) >= 6
+        except:
+            return False
 
 
 class ORCAOptimiser(ExternalOptimiser):
