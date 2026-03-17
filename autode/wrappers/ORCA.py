@@ -610,7 +610,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
     @property
     def is_v6_or_later(self):
         """Is this ORCA version at least v6.0.0?"""
-        try:            
+        try:
             return int(self._get_version_no_output()[0]) >= 6
         except:
             return False
