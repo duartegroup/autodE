@@ -553,7 +553,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
         if self.implicit_solvation_type.lower() not in ["smd", "cpcm"]:
             raise UnsupportedCalculationInput(
-                "Implicit solvent type must be " "either SMD or CPCM"
+                "Implicit solvent type must be either SMD or CPCM"
             )
 
         if (
@@ -604,7 +604,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         """Is this ORCA version at least 5.0.0?"""
         try:
             return int(self._get_version_no_output()[0]) >= 5
-        except:
+        except ValueError:
             return False
 
     @property
@@ -612,7 +612,7 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         """Is this ORCA version at least v6.0.0?"""
         try:
             return int(self._get_version_no_output()[0]) >= 6
-        except:
+        except ValueError:
             return False
 
 
