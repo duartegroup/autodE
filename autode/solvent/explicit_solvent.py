@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Optional, TYPE_CHECKING, Any, List
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 
 from autode.geom import get_points_on_sphere, get_rot_mat_euler
 from autode.log import logger

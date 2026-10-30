@@ -4,7 +4,7 @@ from itertools import product as iterprod
 from typing import Optional, Union, List, Sequence, TYPE_CHECKING
 
 from autode.atoms import Atom, Atoms
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from autode.log import logger
 from autode.geom import get_points_on_sphere
 from autode.solvent.solvents import get_solvent

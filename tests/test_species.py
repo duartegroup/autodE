@@ -12,7 +12,7 @@ from autode.values import Gradient, EnthalpyCont, PotentialEnergy
 from autode.units import ha_per_ang
 from autode.exceptions import NoAtomsInMolecule, CalculationException
 from autode.utils import work_in_tmp_dir
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from copy import deepcopy
 from . import testutils
 import numpy as np
