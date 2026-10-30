@@ -453,3 +453,14 @@ def test_atom_equality():
 )
 def test_atomic_numbers(element: str, atomic_number: int):
     assert Atom(element).atomic_number == atomic_number
+
+
+def test_moi_is_translation_invariant():
+    atoms_at_origin = Atoms(
+        [Atom("H", x=-1.0), Atom("O"), Atom("H", x=1.0, y=-1)]
+    )
+    atoms_shifted = Atoms(
+        [Atom("H", x=-1.0, z=2), Atom("O", z=2), Atom("H", x=1.0, y=-1, z=2)]
+    )
+
+    assert np.allclose(atoms_at_origin.moi, atoms_shifted.moi)

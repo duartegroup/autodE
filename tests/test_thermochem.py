@@ -134,9 +134,18 @@ def test_linear_non_linear_rot():
     assert h2_lin.is_linear()
 
     # Non linear molecules have slightly more entropy than linear ones
-    assert _s_rot_rr(h2_tri, temp=298, sigma_r=1) > _s_rot_rr(
-        h2_lin, temp=298, sigma_r=1
-    )
+    h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
+    assert h2_tri_rr_s_rot > _s_rot_rr(h2_lin, temp=298, sigma_r=1)
+
+    h2_tri.rotate(axis=(1, 2, 3), theta=3)  # random rotation
+    rotated_h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
+    print(rotated_h2_tri_rr_s_rot, h2_tri_rr_s_rot)
+    assert np.isclose(rotated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-24)
+
+    h2_tri.translate(vec=(2, 3, 4))  # random translation
+    translated_h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
+    print(translated_h2_tri_rr_s_rot, h2_tri_rr_s_rot)
+    assert np.isclose(translated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-24)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
