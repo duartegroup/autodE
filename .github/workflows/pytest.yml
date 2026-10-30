@@ -22,7 +22,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.11", "3.15"] # Lowest and highest supported versions
+        python-version: ["3.11", "3.14"] # Lowest and highest supported versions
 
     defaults:
       run:
