@@ -1,7 +1,7 @@
 import pytest
 import os
 import numpy as np
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from autode.solvent import ExplicitSolvent
 from autode.species.molecule import Molecule
 from autode.atoms import Atom

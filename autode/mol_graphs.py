@@ -7,7 +7,7 @@ from networkx.algorithms import isomorphism
 from typing import Optional, List, Tuple, TYPE_CHECKING
 from autode.utils import timeout
 import autode.exceptions as ex
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from autode.atoms import Atom, metals
 from autode.log import logger
 
