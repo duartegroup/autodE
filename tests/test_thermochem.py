@@ -139,12 +139,10 @@ def test_linear_non_linear_rot():
 
     h2_tri.rotate(axis=(1, 2, 3), theta=3)  # random rotation
     rotated_h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
-    print(rotated_h2_tri_rr_s_rot, h2_tri_rr_s_rot)
     assert np.isclose(rotated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-24)
 
     h2_tri.translate(vec=(2, 3, 4))  # random translation
     translated_h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
-    print(translated_h2_tri_rr_s_rot, h2_tri_rr_s_rot)
     assert np.isclose(translated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-24)
 
 
