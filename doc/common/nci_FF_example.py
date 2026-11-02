@@ -2,7 +2,7 @@ import autode as ade
 import numpy as np
 
 from scipy.optimize import minimize
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 
 ade.Config.max_num_complex_conformers = 10
 
