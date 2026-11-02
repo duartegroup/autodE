@@ -121,6 +121,20 @@ def test_reset_tmp_dir_on_error():
     assert here == os.getcwd()
 
 
+def test_tmp_dir_cleanup_error_does_not_mask_function_error(monkeypatch):
+    @utils.work_in_tmp_dir()
+    def raise_error():
+        raise RuntimeError("expected")
+
+    def raise_permission_error(*args, **kwargs):
+        raise PermissionError
+
+    monkeypatch.setattr(utils.shutil, "rmtree", raise_permission_error)
+
+    with pytest.raises(RuntimeError, match="expected"):
+        raise_error()
+
+
 @work_in_tmp_dir(filenames_to_copy=[], kept_file_exts=[])
 def test_calc_output():
     calc = Calculation(

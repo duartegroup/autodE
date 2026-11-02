@@ -6,7 +6,7 @@ import copy
 import signal
 import warnings
 import contextlib
-from time import time
+from time import sleep, time
 from typing import Any, Optional, Sequence, List, Callable, TYPE_CHECKING
 from functools import wraps
 from subprocess import Popen, PIPE, STDOUT
@@ -319,7 +319,17 @@ def work_in_tmp_dir(
 
                 logger.info("Removing temporary directory")
                 cleanup_after_timeout()
-                shutil.rmtree(tmpdir_path)
+
+                for _ in range(10):
+                    try:
+                        shutil.rmtree(tmpdir_path)
+                        break
+                    except PermissionError:
+                        sleep(0.1)
+                else:
+                    logger.warning(
+                        f"Failed to remove temporary directory: {tmpdir_path}"
+                    )
 
             return result
 
