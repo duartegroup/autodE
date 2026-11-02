@@ -2,7 +2,7 @@ import numpy as np
 import os
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, final
 
 from autode.utils import run_external
 from autode.hessians import Hessian
@@ -473,10 +473,11 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
                 output_filename="tmp",
                 stderr_to_log=False,
             )
-            line = next(l for l in open("tmp", "r") if "Program Version" in l)
+            with open("tmp", "r") as fh:
+                line = next(l for l in fh if "Program Version" in l)
             return line.split()[2]
 
-        except (OSError, IOError, StopIteration):
+        except (OSError, IOError, TypeError, StopIteration):
             return "???"
 
     def get_keywords(self, calc_input, molecule):
