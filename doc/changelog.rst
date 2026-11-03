@@ -9,6 +9,10 @@ Bug Fixes
 *********
 - Fixes Molfunc example to run with current version
 
+Usability improvements/Changes
+******************************
+- Adds ORCA v6 support
+
 1.4.5
 ------
 -------
