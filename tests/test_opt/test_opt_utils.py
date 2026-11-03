@@ -31,6 +31,7 @@ def test_truncated_taylor_surface():
         fun=surface.value,
         x0=np.array(coords),
         jac=surface.gradient,
+        tol=1e-10,
     )
 
     assert res.success

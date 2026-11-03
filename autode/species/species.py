@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import date
 from typing import Optional, Union, List, Sequence, Any, TypeVar, TYPE_CHECKING
 
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from autode.log import logger
 from autode import methods
 from autode.atoms import Atom, Atoms, AtomCollection

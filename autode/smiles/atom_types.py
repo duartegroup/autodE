@@ -1,6 +1,6 @@
 import numpy as np
 from autode.log import logger
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from autode.geom import get_rot_mat_kabsch, get_rot_mat_euler_from_terms
 
 
