@@ -110,7 +110,7 @@ explicit unit conversion is supported
 .. code-block:: python
 
   >>> water.angle(1, 0, 2).to('deg')
-  Angle(113.17085 °)
+  Angle(113.17063 °)
 
 
 
@@ -142,7 +142,7 @@ simple as
 .. code-block:: python
 
   >>> water.energy.to('kcal')
-  Energy(-47927.6682 kcal mol-1)
+  Energy(-47927.7053 kcal mol-1)
 
 :code:`water.energy` returns the most recently evaluated energy at this geometry,
 but the XTB energy is still saved in :code:`water.energies`. Printing the energies
