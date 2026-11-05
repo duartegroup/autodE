@@ -34,7 +34,7 @@ def test_truncated_taylor_surface():
     )
 
     assert res.success
-    assert np.allclose(res.x, minim, rtol=1e-4)
+    assert np.allclose(res.x, minim, atol=1e-4)
 
 
 @requires_working_xtb_install
