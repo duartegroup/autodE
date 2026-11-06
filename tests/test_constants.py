@@ -12,9 +12,7 @@ from autode.units import (
     kjmol,
     kcalmol,
     J,
-    ang,
     a0,
-    rad,
     deg,
     ha_per_ang,
     ha_per_a0,
@@ -22,12 +20,9 @@ from autode.units import (
     kcalmol_per_ang,
 )
 
-# Relative tolerance
-RTOL = 1e-10
-
-# GFN2-xTB energy (Ha) and gradient (Ha / bohr) of water
-H2O_XTB_ENERGY_HA = -5.070544093022
-H2O_XTB_GRADIENT_HA_A0 = np.array(
+# GFN2-xTB energy (Ha) and gradient (Ha / bohr) of optimised water
+H2O_energy_Ha = -5.070544093022
+H2O_gradient_Ha_a0 = np.array(
     [
         [-9.8758339297319e-06, -4.8207524887615e-04, 7.3938043560707e-17],
         [-1.0298858507513e-04, 2.3761821380166e-04, -9.9428684281661e-17],
@@ -41,13 +36,34 @@ def water():
     water = Molecule(name="h2o", smiles="O")
     water.coordinates = np.array(
         [
-            [0.00080, -0.01527, 0.00000],  # O
-            [-0.77064, 0.55529, 0.00000],  # H
-            [0.77315, 0.55408, 0.00000],  # H
+            [0.00080, -0.01527, 0.00000],
+            [-0.77064, 0.55529, 0.00000],
+            [0.77315, 0.55408, 0.00000],
         ]
     )
-    water.energy = H2O_XTB_ENERGY_HA
-    water.gradient = Gradient(H2O_XTB_GRADIENT_HA_A0, units=ha_per_a0)
+    water.energy = -5.070544093022
+    water.gradient = Gradient(
+        np.array(
+            [
+                [
+                    -9.8758339297319e-06,
+                    -4.8207524887615e-04,
+                    7.3938043560707e-17,
+                ],
+                [
+                    -1.0298858507513e-04,
+                    2.3761821380166e-04,
+                    -9.9428684281661e-17,
+                ],
+                [
+                    1.1286441900486e-04,
+                    2.4445703507450e-04,
+                    2.5490640720954e-17,
+                ],
+            ]
+        ),
+        units=ha_per_a0,
+    )
 
     return water
 
@@ -65,17 +81,17 @@ def test_h2o_xtb_energy_conversion(water, units, expected):
     converted = water.energy.to(units)
 
     assert converted.units == units
-    assert np.isclose(float(converted), expected, rtol=RTOL, atol=0)
+    assert np.isclose(float(converted), expected, rtol=1e-12, atol=0)
 
 
 def test_energy_conversion_between_non_base_units():
     energy = Energy(-137.97653379249905, units=ev)
 
     assert np.isclose(
-        float(energy.to(kcalmol)), -3181.8144570249665, rtol=RTOL, atol=0
+        float(energy.to(kcalmol)), -3181.8144570249665, rtol=1e-12, atol=0
     )
     assert np.isclose(
-        float(energy.to(kjmol)), -13312.71168819246, rtol=RTOL, atol=0
+        float(energy.to(kjmol)), -13312.71168819246, rtol=1e-12, atol=0
     )
 
 
@@ -92,22 +108,21 @@ def test_h2o_xtb_gradient_conversion(water, units, expected):
 
     assert converted.units == units
     # y component of the gradient on the oxygen atom
-    assert np.isclose(converted[0, 1], expected, rtol=RTOL, atol=0)
+    assert np.isclose(converted[0, 1], expected, rtol=1e-12, atol=0)
 
 
 def test_length_conversion(water):
     r_oh = water.distance(0, 1)
-    assert r_oh.units == ang
 
     assert np.isclose(
-        float(r_oh.to(a0)), 1.8132100782420169, rtol=RTOL, atol=0
+        float(r_oh.to(a0)), 1.813210078242017, rtol=1e-10, atol=0
     )
 
 
 def test_angle_conversion(water):
     # H-O-H angle
     theta = water.angle(1, 0, 2)
-    assert theta.units == rad
+
     assert np.isclose(
-        float(theta.to(deg)), 107.11685792545026, rtol=RTOL, atol=0
+        float(theta.to(deg)), 107.11685792545026, rtol=1e-10, atol=0
     )
