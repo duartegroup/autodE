@@ -20,16 +20,6 @@ from autode.units import (
     kcalmol_per_ang,
 )
 
-# GFN2-xTB energy (Ha) and gradient (Ha / bohr) of optimised water
-H2O_energy_Ha = -5.070544093022
-H2O_gradient_Ha_a0 = np.array(
-    [
-        [-9.8758339297319e-06, -4.8207524887615e-04, 7.3938043560707e-17],
-        [-1.0298858507513e-04, 2.3761821380166e-04, -9.9428684281661e-17],
-        [1.1286441900486e-04, 2.4445703507450e-04, 2.5490640720954e-17],
-    ]
-)
-
 
 @pytest.fixture
 def water():
