@@ -9,6 +9,7 @@ from autode.input_output import xyz_file_to_atoms
 from autode.values import Energy
 from autode.species import Species
 from autode.methods import ORCA, G09
+from autode.constants import Constants
 from . import testutils
 from autode.thermochemistry.igm import _q_rot_igm, _s_rot_rr, _zpe
 
@@ -133,17 +134,20 @@ def test_linear_non_linear_rot():
 
     assert h2_lin.is_linear()
 
+    def s_rot_j_k_mol(m):
+        return _s_rot_rr(m, temp=298, sigma_r=1) * Constants.n_a
+
     # Non linear molecules have slightly more entropy than linear ones
-    h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
-    assert h2_tri_rr_s_rot > _s_rot_rr(h2_lin, temp=298, sigma_r=1)
+    h2_tri_rr_s_rot = s_rot_j_k_mol(h2_tri)
+    assert h2_tri_rr_s_rot > s_rot_j_k_mol(h2_lin)
 
     h2_tri.rotate(axis=(1, 2, 3), theta=3)  # random rotation
-    rotated_h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
-    assert np.isclose(rotated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-24)
+    rotated_h2_tri_rr_s_rot = s_rot_j_k_mol(h2_tri)
+    assert np.isclose(rotated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-14)
 
     h2_tri.translate(vec=(2, 3, 4))  # random translation
-    translated_h2_tri_rr_s_rot = _s_rot_rr(h2_tri, temp=298, sigma_r=1)
-    assert np.isclose(translated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-24)
+    translated_h2_tri_rr_s_rot = s_rot_j_k_mol(h2_tri)
+    assert np.isclose(translated_h2_tri_rr_s_rot, h2_tri_rr_s_rot, atol=1e-14)
 
 
 @testutils.work_in_zipped_dir(os.path.join(here, "data", "thermochem.zip"))
