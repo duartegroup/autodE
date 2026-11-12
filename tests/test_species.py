@@ -12,7 +12,7 @@ from autode.values import Gradient, EnthalpyCont, PotentialEnergy
 from autode.units import ha_per_ang
 from autode.exceptions import NoAtomsInMolecule, CalculationException
 from autode.utils import work_in_tmp_dir
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from copy import deepcopy
 from . import testutils
 import numpy as np
@@ -170,6 +170,46 @@ def test_species_xyz_file():
 
     with pytest.raises(NoAtomsInMolecule):
         mol_copy.print_xyz_file()
+
+
+@work_in_tmp_dir()
+def test_species_mol_file():
+    h2_mol = Molecule(
+        atoms=[
+            Atom("H", -1.6030, 0.6090, 0.0),
+            Atom("H", -0.8950, 0.6182, 0.0),
+        ]
+    )
+    with pytest.raises(AssertionError):
+        h2_mol.print_mol_file("H2.xyz")
+
+    h2_mol.print_mol_file("H2.mol")
+    assert os.path.isfile("H2.mol")
+
+    with open("H2.mol") as fh:
+        molfile_lines = fh.readlines()
+
+    # first line is the name of molecule
+    assert molfile_lines[0].strip() == "H2"
+    # second line the software that was used to print
+    assert molfile_lines[1].strip() == "autodE"
+    # third line is empty
+    assert molfile_lines[2].strip() == ""
+
+    # third line has number of atoms, number of bonds, preset fields
+    assert molfile_lines[3] == "  2  1  0  0  0  0  0  0  0  0999 V2000\n"
+    # output tested with Avogadro
+    assert molfile_lines[4:] == [
+        "  -1.60300   0.60900   0.00000 H     0  0"
+        "  0  0  0  0  0  0  0  0  0  0\n",
+        "  -0.89500   0.61820   0.00000 H     0  0"
+        "  0  0  0  0  0  0  0  0  0  0\n",
+        "  1  2  1  0  0  0  0\n",
+        "M  END\n",
+    ]
+
+    h2_mol.print_mol_file()
+    assert os.path.isfile(f"{h2_mol.name}.mol")
 
 
 def test_species_translate():

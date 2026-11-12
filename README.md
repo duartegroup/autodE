@@ -98,3 +98,4 @@ If **autodE** is used in a publication please consider citing the [paper](https:
 - Nils Heunemann ([@nilsheunemann](https://github.com/NilsHeunemann))
 - Sijie Fu ([@sijiefu](https://github.com/SijieFu))
 - Javier Alfonso ([@javialra97](https://github.com/javialra97))
+- James Somper ([@JDSomper](https://github.com/JDSomper))

@@ -373,9 +373,12 @@ class TransitionState(TSbase):
             truncated_graph.edges[bond]["distance"] = self.distance(*bond)
 
         ts_template = TStemplate(truncated_graph, species=self)
-        ts_template.save(folder_path=folder_path)
+        try:
+            ts_template.save(folder_path=folder_path)
+            logger.info("Saved TS template")
+        except (PermissionError, OSError):
+            logger.warning("Failed to write TS template, skipping...")
 
-        logger.info("Saved TS template")
         return None
 
     @classmethod

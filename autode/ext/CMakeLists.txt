@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 project(ade_ext)
 
 set(CMAKE_CXX_STANDARD 11)
+if (WIN32)
+    add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-permissive->")
+endif (WIN32)
+
 include_directories(include/)
 
 add_library(autode STATIC

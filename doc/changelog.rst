@@ -1,6 +1,21 @@
 Changelog
 =========
 
+1.4.6
+------
+-------
+
+Bug Fixes
+*********
+- Fixes Molfunc example to run with current version
+- Fixes moment of inertia matrix calculation for molecules shifted from the COM
+
+Usability improvements/Changes
+******************************
+- Updates constants in constants.py to agree with CODATA 2022 standard
+- Adds ORCA v6 support
+- Saving TS template is skipped instead of throwing exception, if file system permissions do not allow writing
+
 1.4.5
 ------
 -------
@@ -8,7 +23,8 @@ Changelog
 Functionality improvements
 **************************
 - Adds a boolean option for calculating single points refinements
-
+- AutodE can now handle any number of bond rearrangements
+- Graph isomorphism check is faster, due to additional screening with isospectral method
 
 Bug Fixes
 *********
@@ -20,6 +36,7 @@ Usability improvements/Changes
 ******************************
 - Drops Python 3.8 support
 - Catches conformer calculation exceptions
+- Added :code:`Species.print_mol_file()` function that can print mol-files with connectivity from graph
 
 1.4.4
 ------

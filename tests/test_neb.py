@@ -12,12 +12,12 @@ from autode.species.molecule import Reactant
 from autode.neb.neb import get_ts_guess_neb
 from autode.neb.original import energy_gradient
 from autode.atoms import Atom
-from autode.geom import are_coords_reasonable
+from autode.geom import are_coords_reasonable, calc_rmsd
 from autode.input_output import xyz_file_to_atoms
-from autode.utils import work_in_tmp_dir
+from autode.utils import work_in_tmp_dir, work_in
 from autode.methods import XTB, ORCA
 from . import testutils
-
+from .testutils import work_in_zipped_dir
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -192,68 +192,91 @@ def test_energy_gradient_type():
     image = Image(species=Molecule(atoms=[Atom("H")], mult=2), name="tmp", k=k)
 
     # Energy and gradient must have a method (EST or IDPP)
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         _ = energy_gradient(image=image, method=None, n_cores=1)
 
 
 def test_iddp_init():
-    """IDPP requires at least 2 images"""
+    """IDPP requires at least 3 images"""
+    with pytest.raises(AssertionError):
+        _ = IDPP(n_images=2)
 
-    k = ForceConstant(0.1)
+    images = _simple_h2_images(num=2, shift=0.5, increment=0.1)
+    coords1 = images[0].coordinates
+    coords2 = images[1].coordinates
 
-    with pytest.raises(ValueError):
-        _ = IDPP(Images(init_k=k))
+    # k_spr has to be positive
+    idpp = IDPP(n_images=4, k_spr=-1.0)
+    with pytest.raises(RuntimeError):
+        idpp.get_path(coords1, coords2)
 
-    with pytest.raises(ValueError):
-        _ = IDPP(Images(init_k=k))
+    # rms gtol has to be positive
+    idpp = IDPP(n_images=4, rms_gtol=-1.0)
+    with pytest.raises(RuntimeError):
+        idpp.get_path(coords1, coords2)
 
-
-def test_iddp_energy():
-    images = _simple_h2_images(num=3, shift=0.5, increment=0.1)
-    idpp = IDPP(images)
-
-    # Should be callable to evaluate the objective function
-    value = idpp(images[1])
-
-    assert value is not None
-    assert np.isclose(
-        value,
-        # w           r_k             r
-        0.6 ** (-4) * ((0.5 + 2 * 0.2 / 3) - 0.6) ** 2,
-        atol=1e-5,
-    )
+    # masxiter has to be negative
+    idpp = IDPP(n_images=4, maxiter=-10)
+    with pytest.raises(RuntimeError):
+        idpp.get_path(coords1, coords2)
 
 
-def test_iddp_gradient():
-    images = _simple_h2_images(num=3, shift=0.5, increment=0.1)
-    image = images[1]
-    idpp = IDPP(images)
+@work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
+def test_sequential_idpp():
+    rct = Molecule("ag-cycl-rct.xyz")
+    prod = Molecule("ag-cycl-prod.xyz")
+    neb1 = NEB.from_end_points(rct, prod, num=10, sidpp=True)
+    neb2 = NEB.from_end_points(rct, prod, num=10, sidpp=False)
+    # should be essentially the same geometry in both cases
+    for i in range(len(neb1.images)):
+        assert (
+            calc_rmsd(neb1.images[i].coordinates, neb2.images[i].coordinates)
+            < 0.1
+        )
 
-    value = idpp(image)
 
-    # and the gradient calculable
-    grad = idpp.grad(image).flatten()
-    assert grad is not None
+@work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
+def test_idpp_relaxing_a_path():
+    # relax a path manually
+    rct = Molecule("ag-cycl-rct.xyz")
+    prod = Molecule("ag-cycl-prod.xyz")
+    interp_species = []
+    for i in range(1, 11):
+        tmp_spc = rct.new_species(name=f"interp_{i}")
+        tmp_spc.coordinates = rct.coordinates + (i / 11) * (
+            prod.coordinates - rct.coordinates
+        )
+        interp_species.append(tmp_spc)
 
-    # And the gradient be close to the numerical analogue
-    def num_grad(n, h=1e-8):
-        i, k = n // 3, n % 3
+    neb1 = NEB.from_list([rct, *interp_species, prod])
+    neb1.idpp_relax()
 
-        shift_vec = np.zeros(3)
-        shift_vec[k] = h
+    neb2 = NEB.from_end_points(rct, prod, num=12, sidpp=False)
+    assert len(neb1.images) == len(neb2.images)
 
-        image.atoms[i].translate(shift_vec)
-        new_value = idpp(image)
-        image.atoms[i].translate(-shift_vec)
+    for i in range(len(neb1.images)):
+        assert (
+            calc_rmsd(neb1.images[i].coordinates, neb2.images[i].coordinates)
+            < 0.1
+        )
 
-        return (new_value - value) / h
 
-    # Numerical gradient should be finite
-    assert not np.isclose(num_grad(0), 0.0, atol=1e-10)
+@work_in_zipped_dir(os.path.join(here, "data", "neb.zip"))
+def test_idpp_path_length():
+    rct = Molecule("ag-cycl-rct.xyz")
+    prod = Molecule("ag-cycl-prod.xyz")
+    neb = NEB.from_end_points(rct, prod, num=10, sidpp=True)
+    assert len(neb.images) == 10
 
-    # Check all the elements in the gradient vector
-    for i, analytic_value in enumerate(grad):
-        assert np.isclose(analytic_value, num_grad(i), atol=1e-5)
+    path_l = 0.0
+    for i in range(1, len(neb.images)):
+        path_l += np.linalg.norm(
+            neb.images[i - 1].coordinates - neb.images[i].coordinates
+        )
+    assert path_l > 0.0
+    idpp = IDPP(n_images=10, sequential=True)
+    path_cpp = idpp.get_path_length(rct.coordinates, prod.coordinates)
+    assert np.isclose(path_l, path_cpp)
 
 
 @work_in_tmp_dir()
@@ -406,6 +429,11 @@ def test_constructing_neb_from_endpoints_with_different_atoms_raises():
 
 
 def test_neb_from_endpoints_requires_at_least_2_images():
+    # with 2 images we should be able to construct
+    _ = NEB.from_end_points(
+        Molecule(smiles=r"C\C=C\C"), Molecule(smiles=r"C\C=C\C"), num=2
+    )
+
     with pytest.raises(Exception):
         _ = NEB.from_end_points(
             Molecule(smiles=r"C\C=C\C"), Molecule(smiles=r"C\C=C/C"), num=1

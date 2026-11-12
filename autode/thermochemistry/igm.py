@@ -254,7 +254,7 @@ def _q_rot_igm(species: "Species", temp: float, sigma_r: int) -> float:
     # otherwise a polyatomic..
     i_mat = species.moi.to("kg m^2")
     omega_diag = SIConstants.h**2 / (
-        8.0 * np.pi**2 * SIConstants.k_b * np.diagonal(i_mat)
+        8.0 * np.pi**2 * SIConstants.k_b * np.linalg.eigvalsh(i_mat)
     )
 
     return temp**1.5 / sigma_r * np.sqrt(np.pi / np.prod(omega_diag))

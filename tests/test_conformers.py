@@ -9,7 +9,7 @@ from autode.config import Config
 from autode.values import Energy
 from autode.utils import work_in_tmp_dir
 from autode.wrappers.keywords import SinglePointKeywords
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from autode.conformers.conformers import atoms_from_rdkit_mol

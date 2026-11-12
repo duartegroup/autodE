@@ -595,11 +595,14 @@ class Atoms(list):
         if other is None:
             return self
 
-        return super().__add__(other)
+        return list(self) + other
 
     def __radd__(self, other):
         """Add another set of Atoms to this one. Can add None"""
-        return self.__add__(other)
+        if other is None:
+            return self
+
+        return other + list(self)
 
     def copy(self) -> "Atoms":
         """
@@ -688,9 +691,11 @@ class Atoms(list):
             (autode.values.MomentOfInertia):
         """
         moi = MomentOfInertia(np.zeros(shape=(3, 3)), units="amu Å^2")
+        com = self.com
 
         for atom in self:
-            mass, (x, y, z) = atom.mass, atom.coord
+            (x, y, z) = np.array(atom.coord - com)
+            mass = atom.mass
 
             moi[0, 0] += mass * (y**2 + z**2)
             moi[0, 1] -= mass * (x * y)
