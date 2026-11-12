@@ -8,6 +8,7 @@ Changelog
 Bug Fixes
 *********
 - Fixes Molfunc example to run with current version
+- Fixes moment of inertia matrix calculation for molecules shifted from the COM
 
 Usability improvements/Changes
 ******************************
