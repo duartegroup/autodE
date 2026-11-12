@@ -62,9 +62,10 @@ To rotate this atom 180° (π radians) in the z-axis at the origin
 
 .. code-block:: python
 
-  >>> atom1.rotate(theta=3.14159, axis=[0.0, 0.0, 1.0])
+  >>> import numpy as np
+  >>> atom1.rotate(theta=np.pi, axis=[0.0, 0.0, 1.0])
   >>> atom1.coord
-  Coordinate([-1.  0.  0.] Å)
+  Coordinate([-1.0000000e+00  1.2246468e-16  0.0000000e+00] Å)
 
 .. note::
    Rotations are performed anticlockwise
@@ -112,8 +113,10 @@ Bond angles can be calculated between three atoms. For example, in a water molec
   ...                   atoms=[ade.Atom('H', x=-1.0),
   ...                          ade.Atom('O'),
   ...                          ade.Atom('H', x=0.25, y=0.97)])
+  >>> h2o.angle(0, 1, 2)
+  Angle(1.82304 rad)
   >>> h2o.angle(0, 1, 2).to('degrees')
-  Angle(104.45247 °)
+  Angle(104.45243 °)
 
 
 Similarly, dihedral angles are available using :code:`Species.dihedral`.

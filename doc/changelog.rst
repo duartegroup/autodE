@@ -9,6 +9,10 @@ Bug Fixes
 *********
 - Fixes Molfunc example to run with current version
 
+Usability improvements/Changes
+******************************
+- Updates constants in constants.py to agree with CODATA 2022 standards
+
 1.4.5
 ------
 -------
