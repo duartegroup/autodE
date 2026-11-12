@@ -14,6 +14,7 @@ Usability improvements/Changes
 ******************************
 - Updates constants in constants.py to agree with CODATA 2022 standard
 - Adds ORCA v6 support
+- Saving TS template is skipped instead of throwing exception if file system permissions do not allow writing
 
 1.4.5
 ------
