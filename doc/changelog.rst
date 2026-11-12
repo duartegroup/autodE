@@ -11,6 +11,7 @@ Bug Fixes
 
 Usability improvements/Changes
 ******************************
+- Updates constants in constants.py to agree with CODATA 2022 standard
 - Adds ORCA v6 support
 
 1.4.5
