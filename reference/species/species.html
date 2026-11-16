@@ -16,65 +16,65 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=4418a689" />
   
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
     <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/species/species';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Nudged elastic band" href="../neb/index.html" />
     <link rel="prev" title="Molecule" href="molecule.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.4.6" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../search.html"
       method="get">
@@ -82,7 +82,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -90,15 +89,59 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
     </header>
   
 
@@ -107,7 +150,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -137,15 +181,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -278,9 +318,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -363,7 +408,7 @@
 
 
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
   title="Fullscreen mode"
   data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
@@ -377,25 +422,24 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
-`);
-</script>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
 </div></div>
@@ -417,7 +461,7 @@ document.write(`
                 <h2> Contents </h2>
             </div>
             <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species"><code class="docutils literal notranslate"><span class="pre">Species</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.__init__"><code class="docutils literal notranslate"><span class="pre">Species.__init__()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.atomic_masses"><code class="docutils literal notranslate"><span class="pre">Species.atomic_masses</span></code></a></li>
@@ -462,6 +506,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.optimise"><code class="docutils literal notranslate"><span class="pre">Species.optimise()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.partial_charges"><code class="docutils literal notranslate"><span class="pre">Species.partial_charges</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.populate_conformers"><code class="docutils literal notranslate"><span class="pre">Species.populate_conformers()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.print_mol_file"><code class="docutils literal notranslate"><span class="pre">Species.print_mol_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.print_xyz_file"><code class="docutils literal notranslate"><span class="pre">Species.print_xyz_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.radius"><code class="docutils literal notranslate"><span class="pre">Species.radius</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.reorder_atoms"><code class="docutils literal notranslate"><span class="pre">Species.reorder_atoms()</span></code></a></li>
@@ -493,7 +538,7 @@ document.write(`
 <span id="id1"></span><h1>Species<a class="headerlink" href="#species" title="Link to this heading">#</a></h1>
 <dl class="py class" id="module-autode.species.species">
 <dt class="sig sig-object py" id="autode.species.species.Species">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.species.species.</span></span><span class="sig-name descname"><span class="pre">Species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><span class="pre">Atom</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">Atoms</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.species.Species" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">autode.species.species.</span></span><span class="sig-name descname"><span class="pre">Species</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><span class="pre">Atom</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">Atoms</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.species.Species" title="Link to this definition">#</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="autode.species.species.Species.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../atoms.html#autode.atoms.Atom" title="autode.atoms.Atom"><span class="pre">Atom</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">Atoms</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solvent_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.species.Species.__init__" title="Link to this definition">#</a></dt>
@@ -518,25 +563,25 @@ species  in the gas phase</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.atomic_masses">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">atomic_masses</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.species.species.Species.atomic_masses" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">atomic_masses</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#autode.species.species.Species.atomic_masses" title="Link to this definition">#</a></dt>
 <dd><p>Atom masses of all the atoms in this species</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.atomic_symbols">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">atomic_symbols</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.species.species.Species.atomic_symbols" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">atomic_symbols</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#autode.species.species.Species.atomic_symbols" title="Link to this definition">#</a></dt>
 <dd><p>Atomic symbols of all atoms in this species</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.atoms">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">atoms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">Atoms</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.atoms" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">atoms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../atoms.html#autode.atoms.Atoms" title="autode.atoms.Atoms"><span class="pre">Atoms</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.atoms" title="Link to this definition">#</a></dt>
 <dd><p>Constituent atoms of this collection</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.bond_matrix">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">bond_matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#autode.species.species.Species.bond_matrix" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">bond_matrix</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#autode.species.species.Species.bond_matrix" title="Link to this definition">#</a></dt>
 <dd><p>Numpy boolean array containing which atoms are bonded, also known as
 an adjacency matrix.</p>
 </dd></dl>
@@ -557,7 +602,7 @@ Species.calc_thermo()</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.species.species.Species.calc_hessian">
-<span class="sig-name descname"><span class="pre">calc_hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords:</span> <span class="pre">Keywords</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_central_differences:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_shift:</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">~autode.values.Distance</span> <span class="pre">=</span> <span class="pre">Distance(0.002</span> <span class="pre">Å)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.species.species.Species.calc_hessian" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">calc_hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../wrappers/keywords.html#autode.wrappers.keywords.Keywords" title="autode.wrappers.keywords.Keywords"><span class="pre">Keywords</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numerical</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_central_differences</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_shift</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><span class="pre">Distance</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Distance(0.002</span> <span class="pre">Å)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.species.species.Species.calc_hessian" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the Hessian</p>
 <blockquote>
 <div><p>numerical = True</p>
@@ -587,7 +632,7 @@ then default to Config.n_cores</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.species.species.Species.calc_thermo">
-<span class="sig-name descname"><span class="pre">calc_thermo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">Method</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc:</span> <span class="pre">~autode.calculations.calculation.Calculation</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp:</span> <span class="pre">~autode.values.Temperature</span> <span class="pre">|</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">Temperature(298.15</span> <span class="pre">kelvin)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords:</span> <span class="pre">~typing.Sequence[str]</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.species.species.Species.calc_thermo" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">calc_thermo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Method</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Calculation</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../values.html#autode.values.Temperature" title="autode.values.Temperature"><span class="pre">Temperature</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Temperature(298.15</span> <span class="pre">kelvin)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.species.species.Species.calc_thermo" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the free energy and enthalpy contributions using the
 ideal gas approximation</p>
 <dl class="field-list simple">
@@ -625,19 +670,19 @@ additional kwargs</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.charge">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">charge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.species.species.Species.charge" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">charge</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#autode.species.species.Species.charge" title="Link to this definition">#</a></dt>
 <dd><p>Total charge on this species</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.conformers">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">conformers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../conformers/conformers.html#autode.conformers.conformers.Conformers" title="autode.conformers.conformers.Conformers"><span class="pre">Conformers</span></a></em><a class="headerlink" href="#autode.species.species.Species.conformers" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">conformers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../conformers/conformers.html#autode.conformers.conformers.Conformers" title="autode.conformers.conformers.Conformers"><span class="pre">Conformers</span></a></span><a class="headerlink" href="#autode.species.species.Species.conformers" title="Link to this definition">#</a></dt>
 <dd><p>Conformers of this species</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.coordinates">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coordinates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Coordinates" title="autode.values.Coordinates"><span class="pre">Coordinates</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.coordinates" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">coordinates</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Coordinates" title="autode.values.Coordinates"><span class="pre">Coordinates</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.coordinates" title="Link to this definition">#</a></dt>
 <dd><p>Numpy array of coordinates</p>
 </dd></dl>
 
@@ -655,11 +700,11 @@ additional kwargs</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.energy">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">energy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">PotentialEnergy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.energy" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">energy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.PotentialEnergy" title="autode.values.PotentialEnergy"><span class="pre">PotentialEnergy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.energy" title="Link to this definition">#</a></dt>
 <dd><p>Last computed potential energy. Setting with a float assumes electornic
 Hartree units. Example:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">species</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">species</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'H'</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">'H'</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">species</span><span class="o">.</span><span class="n">energy</span> <span class="ow">is</span> <span class="kc">None</span>
 <span class="kc">True</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">species</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span>
@@ -672,9 +717,9 @@ Hartree units. Example:</p>
 </div>
 <p>Energies are instances of autode.values.Energy so can be converted
 to different units simply:</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">species</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;kcal mol-1&#39;</span><span class="p">)</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">species</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">'kcal mol-1'</span><span class="p">)</span>
 <span class="n">Energy</span><span class="p">(</span><span class="o">-</span><span class="mf">314.40567</span> <span class="n">kcal</span> <span class="n">mol</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">species</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;eV&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">species</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">'eV'</span><span class="p">)</span>
 <span class="n">Energy</span><span class="p">(</span><span class="o">-</span><span class="mf">13.63394</span> <span class="n">eV</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -688,11 +733,11 @@ energies attribute:</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.enthalpy">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enthalpy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Enthalpy" title="autode.values.Enthalpy"><span class="pre">Enthalpy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.enthalpy" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">enthalpy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Enthalpy" title="autode.values.Enthalpy"><span class="pre">Enthalpy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.enthalpy" title="Link to this definition">#</a></dt>
 <dd><p>Enthalpy (H) of this species, calculated using the last energy and
 enthalpy contribution. Example:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">h2</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;[H][H]&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">h2</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">'[H][H]'</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">orca</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">ORCA</span><span class="p">()</span>
 <span class="o">&gt;&gt;&gt;</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">h2</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">orca</span><span class="p">)</span>
@@ -750,48 +795,48 @@ conformer it is useful to allow</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.formula">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">formula</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#autode.species.species.Species.formula" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">formula</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#autode.species.species.Species.formula" title="Link to this definition">#</a></dt>
 <dd><p>Molecular formula of this species. Example:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">blank_mol</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">()</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">blank_mol</span><span class="o">.</span><span class="n">formula</span>
-<span class="s1">&#39;&#39;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">h2</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;[H][H]&#39;</span><span class="p">)</span>
+<span class="s1">''</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">h2</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">'[H][H]'</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">h2</span><span class="o">.</span><span class="n">formula</span>
-<span class="s1">&#39;H2&#39;</span>
+<span class="s1">'H2'</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.free_energy">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">free_energy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.FreeEnergy" title="autode.values.FreeEnergy"><span class="pre">FreeEnergy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.free_energy" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">free_energy</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.FreeEnergy" title="autode.values.FreeEnergy"><span class="pre">FreeEnergy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.free_energy" title="Link to this definition">#</a></dt>
 <dd><p>Free energy (G or A) of this species, calculated using the last energy
 and free energy contribution</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.frequencies">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">frequencies</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><span class="pre">Frequency</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.frequencies" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">frequencies</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><span class="pre">Frequency</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.frequencies" title="Link to this definition">#</a></dt>
 <dd><p>Frequencies from Hessian diagonalisation, in cm-1 by default and
 are projected from rotation and translation</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.g_cont">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">g_cont</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.FreeEnergyCont" title="autode.values.FreeEnergyCont"><span class="pre">FreeEnergyCont</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.g_cont" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">g_cont</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.FreeEnergyCont" title="autode.values.FreeEnergyCont"><span class="pre">FreeEnergyCont</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.g_cont" title="Link to this definition">#</a></dt>
 <dd><p>Return the Gibbs (free) contribution to the energy</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.gradient">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gradient</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Gradient" title="autode.values.Gradient"><span class="pre">Gradient</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.gradient" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">gradient</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Gradient" title="autode.values.Gradient"><span class="pre">Gradient</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.gradient" title="Link to this definition">#</a></dt>
 <dd><p>Gradient (dE/dx) at this geometry.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.graph">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">graph</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../mol_graphs.html#autode.mol_graphs.MolecularGraph" title="autode.mol_graphs.MolecularGraph"><span class="pre">MolecularGraph</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.graph" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">graph</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../mol_graphs.html#autode.mol_graphs.MolecularGraph" title="autode.mol_graphs.MolecularGraph"><span class="pre">MolecularGraph</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.graph" title="Link to this definition">#</a></dt>
 <dd><p>Molecular graph with atoms(V) and bonds(E)</p>
 <p>Note: Graphs are lazily evaluated, i.e. if one has not been generated
 for this species before and it does have atoms then a graph will be
@@ -801,7 +846,7 @@ internal/private self._graph attribute</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.h_cont">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">h_cont</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.EnthalpyCont" title="autode.values.EnthalpyCont"><span class="pre">EnthalpyCont</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.h_cont" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">h_cont</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.EnthalpyCont" title="autode.values.EnthalpyCont"><span class="pre">EnthalpyCont</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.h_cont" title="Link to this definition">#</a></dt>
 <dd><p>Return the enthalpic contribution to the energy</p>
 </dd></dl>
 
@@ -813,7 +858,7 @@ internal/private self._graph attribute</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.has_reasonable_coordinates">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_reasonable_coordinates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.species.species.Species.has_reasonable_coordinates" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">has_reasonable_coordinates</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#autode.species.species.Species.has_reasonable_coordinates" title="Link to this definition">#</a></dt>
 <dd><p>Does this species have a ‘reasonable’ set of coordinates? I.e. No
 atom-atom distances that are particularly short or long. Also checks
 that all the atoms don’t lie in a single plane, which is possible for
@@ -836,14 +881,14 @@ a failed 3D embedding of a structure.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.has_valid_spin_state">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_valid_spin_state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.species.species.Species.has_valid_spin_state" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">has_valid_spin_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#autode.species.species.Species.has_valid_spin_state" title="Link to this definition">#</a></dt>
 <dd><p>Does this species have a valid spin state given the atomic composition and
 charge state?</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">h</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">h</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">'H'</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">h</span><span class="o">.</span><span class="n">has_valid_spin_state</span>
 <span class="kc">False</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">hydride</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">hydride</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">'H'</span><span class="p">)],</span> <span class="n">charge</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">hydride</span><span class="o">.</span><span class="n">has_valid_spin_state</span>
 <span class="kc">True</span>
 </pre></div>
@@ -852,14 +897,14 @@ charge state?</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.hessian">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hessian</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../hessians.html#autode.hessians.Hessian" title="autode.hessians.Hessian"><span class="pre">Hessian</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.hessian" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">hessian</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../hessians.html#autode.hessians.Hessian" title="autode.hessians.Hessian"><span class="pre">Hessian</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.hessian" title="Link to this definition">#</a></dt>
 <dd><p>Hessian (d^2E/dx^2) at this geometry (autode.values.Hessian | None)
 shape = (3*n_atoms, 3*n_atoms)</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.imaginary_frequencies">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">imaginary_frequencies</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><span class="pre">Frequency</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.imaginary_frequencies" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">imaginary_frequencies</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><span class="pre">Frequency</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.imaginary_frequencies" title="Link to this definition">#</a></dt>
 <dd><p>Imaginary frequencies of a molecule</p>
 <blockquote>
 <div><dl class="simple">
@@ -876,17 +921,17 @@ shape = (3*n_atoms, 3*n_atoms)</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.is_explicitly_solvated">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_explicitly_solvated</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.species.species.Species.is_explicitly_solvated" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_explicitly_solvated</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#autode.species.species.Species.is_explicitly_solvated" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.is_implicitly_solvated">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_implicitly_solvated</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#autode.species.species.Species.is_implicitly_solvated" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_implicitly_solvated</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#autode.species.species.Species.is_implicitly_solvated" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.species.species.Species.is_linear">
-<span class="sig-name descname"><span class="pre">is_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol:</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_tol:</span> <span class="pre">~autode.values.Angle</span> <span class="pre">=</span> <span class="pre">Angle(1.0</span> <span class="pre">°)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.species.species.Species.is_linear" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">is_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../values.html#autode.values.Angle" title="autode.values.Angle"><span class="pre">Angle</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Angle(1.0</span> <span class="pre">°)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.species.species.Species.is_linear" title="Link to this definition">#</a></dt>
 <dd><p>Determine if a species is linear i.e all atoms are colinear</p>
 <blockquote>
 <div><p>0 to n (n &gt; 1). Present for compatibility and
@@ -902,7 +947,7 @@ to be linear</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.species.species.Species.is_planar">
-<span class="sig-name descname"><span class="pre">is_planar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol:</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">~autode.values.Distance</span> <span class="pre">=</span> <span class="pre">Distance(0.0001</span> <span class="pre">Å)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.species.species.Species.is_planar" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">is_planar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><span class="pre">Distance</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Distance(0.0001</span> <span class="pre">Å)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#autode.species.species.Species.is_planar" title="Link to this definition">#</a></dt>
 <dd><p>Determine if a species is planar i.e all atoms are coplanar</p>
 <dl class="field-list simple">
 </dl>
@@ -910,13 +955,13 @@ to be linear</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.mult">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mult</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.species.species.Species.mult" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">mult</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#autode.species.species.Species.mult" title="Link to this definition">#</a></dt>
 <dd><p>Total spin multiplicity on this species (2S + 1)</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.n_conformers">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_conformers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.species.species.Species.n_conformers" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_conformers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#autode.species.species.Species.n_conformers" title="Link to this definition">#</a></dt>
 <dd><p>Number of conformers of this species</p>
 </dd></dl>
 
@@ -975,7 +1020,7 @@ autode.Config.n_cores</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.partial_charges">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">partial_charges</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.species.species.Species.partial_charges" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">partial_charges</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#autode.species.species.Species.partial_charges" title="Link to this definition">#</a></dt>
 <dd><p>Partial charges on all the atoms present in this species</p>
 </dd></dl>
 
@@ -983,6 +1028,13 @@ autode.Config.n_cores</p></li>
 <dt class="sig sig-object py" id="autode.species.species.Species.populate_conformers">
 <span class="sig-name descname"><span class="pre">populate_conformers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.species.species.Species.populate_conformers" title="Link to this definition">#</a></dt>
 <dd><p>Populate self.conformers</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.species.species.Species.print_mol_file">
+<span class="sig-name descname"><span class="pre">print_mol_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#autode.species.species.Species.print_mol_file" title="Link to this definition">#</a></dt>
+<dd><p>Print a mol file for this molecule, with the connectivity defined in
+the graph. All bonds are defined as single bonds in molfile.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1006,7 +1058,7 @@ atoms in the .xyz file</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.radius">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">radius</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><span class="pre">Distance</span></a></em><a class="headerlink" href="#autode.species.species.Species.radius" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">radius</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Distance" title="autode.values.Distance"><span class="pre">Distance</span></a></span><a class="headerlink" href="#autode.species.species.Species.radius" title="Link to this definition">#</a></dt>
 <dd><p>Calculate an approximate radius of this species. Does not consider any
 VdW radii of the outer most atoms i.e. purely determined on nuclear
 positions</p>
@@ -1018,8 +1070,8 @@ positions</p>
 <dd><p>Reorder the atoms in this species (in place) using a mapping. For
 example, to reorder the atoms in a HF molecule:</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">hf</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;HF&#39;</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-<span class="o">...</span>                   <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">),</span> <span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">)])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">hf</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'HF'</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="o">...</span>                   <span class="n">atoms</span><span class="o">=</span><span class="p">[</span><span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">'H'</span><span class="p">),</span> <span class="n">ade</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="s1">'F'</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">)])</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">hf</span><span class="o">.</span><span class="n">atoms</span>
 <span class="n">Atoms</span><span class="p">([</span><span class="n">Atom</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Atom</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)])</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">hf</span><span class="o">.</span><span class="n">reorder_atoms</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
@@ -1074,7 +1126,7 @@ if None then use autode.Config.n_cores</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.sn">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sn</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.species.species.Species.sn" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sn</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#autode.species.species.Species.sn" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the symmetry number (σ_R) of the atoms. Only implemented for
 ‘small’ molecules &lt;50 atoms</p>
 <p>References:
@@ -1084,7 +1136,7 @@ if None then use autode.Config.n_cores</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.solvent">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">solvent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../solvent/solvents.html#autode.solvent.solvents.Solvent" title="autode.solvent.solvents.Solvent"><span class="pre">Solvent</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.solvent" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">solvent</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../solvent/solvents.html#autode.solvent.solvents.Solvent" title="autode.solvent.solvents.Solvent"><span class="pre">Solvent</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.solvent" title="Link to this definition">#</a></dt>
 <dd><p>Solvent which this species is immersed in</p>
 <blockquote>
 <div><dl class="simple">
@@ -1101,7 +1153,7 @@ if None then use autode.Config.n_cores</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.solvent_name">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">solvent_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.solvent_name" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">solvent_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.solvent_name" title="Link to this definition">#</a></dt>
 <dd><p>Name of the solvent or None</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -1112,13 +1164,13 @@ if None then use autode.Config.n_cores</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.sorted_atomic_symbols">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sorted_atomic_symbols</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#autode.species.species.Species.sorted_atomic_symbols" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sorted_atomic_symbols</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#autode.species.species.Species.sorted_atomic_symbols" title="Link to this definition">#</a></dt>
 <dd><p>Atomic symbols of all atoms sorted alphabetically</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.symmetry_number">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">symmetry_number</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#autode.species.species.Species.symmetry_number" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">symmetry_number</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#autode.species.species.Species.symmetry_number" title="Link to this definition">#</a></dt>
 <dd><p>Calculate the symmetry number (σ_R) of the atoms. Only implemented for
 ‘small’ molecules &lt;50 atoms</p>
 <p>References:
@@ -1134,14 +1186,14 @@ if None then use autode.Config.n_cores</p></li>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.vib_frequencies">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vib_frequencies</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><span class="pre">Frequency</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.vib_frequencies" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">vib_frequencies</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../values.html#autode.values.Frequency" title="autode.values.Frequency"><span class="pre">Frequency</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.vib_frequencies" title="Link to this definition">#</a></dt>
 <dd><p>Vibrational frequencies, which are all but the lowest 6 for a
 non-linear molecule and all but the lowest 5 for a linear one</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.species.species.Species.zpe">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">zpe</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Energy" title="autode.values.Energy"><span class="pre">Energy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#autode.species.species.Species.zpe" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">zpe</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../values.html#autode.values.Energy" title="autode.values.Energy"><span class="pre">Energy</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#autode.species.species.Species.zpe" title="Link to this definition">#</a></dt>
 <dd><p>Zero point vibrational energy of this species. Any imaginary
 vibrational frequencies present are converted to their real analogues.</p>
 </dd></dl>
@@ -1186,15 +1238,17 @@ vibrational frequencies present are converted to their real analogues.</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> Contents
   </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species"><code class="docutils literal notranslate"><span class="pre">Species</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.__init__"><code class="docutils literal notranslate"><span class="pre">Species.__init__()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.atomic_masses"><code class="docutils literal notranslate"><span class="pre">Species.atomic_masses</span></code></a></li>
@@ -1239,6 +1293,7 @@ vibrational frequencies present are converted to their real analogues.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.optimise"><code class="docutils literal notranslate"><span class="pre">Species.optimise()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.partial_charges"><code class="docutils literal notranslate"><span class="pre">Species.partial_charges</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.populate_conformers"><code class="docutils literal notranslate"><span class="pre">Species.populate_conformers()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.print_mol_file"><code class="docutils literal notranslate"><span class="pre">Species.print_mol_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.print_xyz_file"><code class="docutils literal notranslate"><span class="pre">Species.print_xyz_file()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.radius"><code class="docutils literal notranslate"><span class="pre">Species.radius</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.species.species.Species.reorder_atoms"><code class="docutils literal notranslate"><span class="pre">Species.reorder_atoms()</span></code></a></li>
@@ -1303,8 +1358,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
   </footer>

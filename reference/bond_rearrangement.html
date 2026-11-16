@@ -16,65 +16,65 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=4418a689" />
   
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
     <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference/bond_rearrangement';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Configuration" href="config.html" />
     <link rel="prev" title="Optimisers" href="opt/optimisers.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.4.6" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../search.html"
       method="get">
@@ -82,7 +82,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -90,15 +89,59 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
     </header>
   
 
@@ -107,7 +150,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -137,15 +181,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -278,9 +318,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -363,7 +408,7 @@
 
 
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
   title="Fullscreen mode"
   data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
@@ -377,25 +422,24 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
-`);
-</script>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
 </div></div>
@@ -417,7 +461,12 @@ document.write(`
                 <h2> Contents </h2>
             </div>
             <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrGenerator"><code class="docutils literal notranslate"><span class="pre">BondRearrGenerator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrGenerator.__init__"><code class="docutils literal notranslate"><span class="pre">BondRearrGenerator.__init__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrGenerator.get_valid_bond_rearrs"><code class="docutils literal notranslate"><span class="pre">BondRearrGenerator.get_valid_bond_rearrs()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement"><code class="docutils literal notranslate"><span class="pre">BondRearrangement</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement.__eq__"><code class="docutils literal notranslate"><span class="pre">BondRearrangement.__eq__()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement.__init__"><code class="docutils literal notranslate"><span class="pre">BondRearrangement.__init__()</span></code></a></li>
@@ -431,15 +480,14 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement.n_membered_rings"><code class="docutils literal notranslate"><span class="pre">BondRearrangement.n_membered_rings()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.MoveSet"><code class="docutils literal notranslate"><span class="pre">MoveSet</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.MoveSet.__init__"><code class="docutils literal notranslate"><span class="pre">MoveSet.__init__()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.add_bond_rearrangment"><code class="docutils literal notranslate"><span class="pre">add_bond_rearrangment()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.generate_rearranged_graph"><code class="docutils literal notranslate"><span class="pre">generate_rearranged_graph()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_bond_rearrangs"><code class="docutils literal notranslate"><span class="pre">get_bond_rearrangs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_bond_rearrangs_from_file"><code class="docutils literal notranslate"><span class="pre">get_bond_rearrangs_from_file()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_1b()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b1f"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_1b1f()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_2b()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b1f"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_2b1f()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b2f"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_2b2f()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.prune_small_ring_rearrs"><code class="docutils literal notranslate"><span class="pre">prune_small_ring_rearrs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.save_bond_rearrangs_to_file"><code class="docutils literal notranslate"><span class="pre">save_bond_rearrangs_to_file()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.strip_equiv_bond_rearrs"><code class="docutils literal notranslate"><span class="pre">strip_equiv_bond_rearrs()</span></code></a></li>
@@ -457,8 +505,45 @@ document.write(`
   <section id="module-autode.bond_rearrangement">
 <span id="bond-rearrangement"></span><h1>Bond Rearrangement<a class="headerlink" href="#module-autode.bond_rearrangement" title="Link to this heading">#</a></h1>
 <dl class="py class">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrGenerator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">BondRearrGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_bond_tot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_move_pairs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrGenerator" title="Link to this definition">#</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrGenerator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><span class="pre">Species</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_bond_tot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_move_pairs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrGenerator.__init__" title="Link to this definition">#</a></dt>
+<dd><p>Create a class that obtains all possible bond rearrangements that
+will transform the reactant into the product based on the types of
+bonds that must be broken and formed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reactant</strong></p></li>
+<li><p><strong>product</strong></p></li>
+<li><p><strong>delta_bond_tot</strong> – Total number of bonds changing from reactant
+to product</p></li>
+<li><p><strong>extra_move_pairs</strong> – Number of pairs of extra graph moves that can
+be made in addition to the known types</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrGenerator.get_valid_bond_rearrs">
+<span class="sig-name descname"><span class="pre">get_valid_bond_rearrs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement"><span class="pre">BondRearrangement</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrGenerator.get_valid_bond_rearrs" title="Link to this definition">#</a></dt>
+<dd><p>Get all bond rearrangements that are actually valid, i.e. transforms
+the reactant to product based on graph isomorphism</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(list(<a class="reference internal" href="#autode.bond_rearrangement.BondRearrangement" title="autode.bond_rearrangement.BondRearrangement">BondRearrangement</a>))</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">BondRearrangement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forming_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaking_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">BondRearrangement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forming_bonds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaking_bonds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement" title="Link to this definition">#</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.__eq__">
 <span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__eq__" title="Link to this definition">#</a></dt>
@@ -467,7 +552,7 @@ document.write(`
 
 <dl class="py method">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forming_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaking_bonds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forming_bonds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaking_bonds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.__init__" title="Link to this definition">#</a></dt>
 <dd><p>Bond rearrangement</p>
 <dl class="field-list simple">
 <dt class="field-odd">Keyword Arguments<span class="colon">:</span></dt>
@@ -485,19 +570,19 @@ breaking in the reaction</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.active_atoms">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">active_atoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.active_atoms" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">active_atoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.active_atoms" title="Link to this definition">#</a></dt>
 <dd><p>Unique atom indexes in forming or breaking bonds</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.batoms">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">batoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.batoms" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">batoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.batoms" title="Link to this definition">#</a></dt>
 <dd><p>Unique atoms indexes involved in breaking bonds</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.fatoms">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fatoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.fatoms" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fatoms</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.fatoms" title="Link to this definition">#</a></dt>
 <dd><p>Unique atoms indexes involved in forming bonds</p>
 </dd></dl>
 
@@ -518,12 +603,12 @@ breaking in the reaction</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.n_bbonds">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_bbonds</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_bbonds" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_bbonds</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_bbonds" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.BondRearrangement.n_fbonds">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_fbonds</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_fbonds" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_fbonds</span></span><a class="headerlink" href="#autode.bond_rearrangement.BondRearrangement.n_fbonds" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -540,6 +625,27 @@ will add the forming bonds to the graph to determine</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.MoveSet">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">MoveSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fbond_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.MoveSet" title="Link to this definition">#</a></dt>
+<dd><p>A set of moves with bond types, breaking and forming</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="autode.bond_rearrangement.MoveSet.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fbond_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.MoveSet.__init__" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fbond_types</strong> (<em>list</em><em>[</em><em>tuple</em><em>]</em>) – A list of bond types forming
+with numbers of each e.g. [(‘CH’, 2), (‘OH’, 4)]</p></li>
+<li><p><strong>bbond_types</strong> (<em>list</em><em>[</em><em>tuple</em><em>]</em>) – A list of bond types breaking
+with numbers of each</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.add_bond_rearrangment">
 <span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">add_bond_rearrangment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bond_rearrangs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reactant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.add_bond_rearrangment" title="Link to this definition">#</a></dt>
@@ -548,8 +654,8 @@ adds it to the bond rearrang list if it does</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>reactant</strong> (<em>autode.species.Complex</em>) – Reactant complex</p></li>
-<li><p><strong>product</strong> (<em>autode.species.Complex</em>) – Product complex</p></li>
+<li><p><strong>reactant</strong> (<a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><em>Species</em></a>) – Reactant complex</p></li>
+<li><p><strong>product</strong> (<a class="reference internal" href="species/species.html#autode.species.species.Species" title="autode.species.species.Species"><em>Species</em></a>) – Product complex</p></li>
 <li><p><strong>fbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be made</p></li>
 <li><p><strong>bbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be broken</p></li>
 </ul>
@@ -568,15 +674,15 @@ adds it to the bond rearrang list if it does</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be made</p></li>
-<li><p><strong>bbonds</strong> (<em>list</em><em>(</em><em>tuple</em><em>)</em>) – list of bonds to be broken</p></li>
+<li><p><strong>fbonds</strong> (<em>list</em><em>[</em><em>tuple</em><em>]</em>) – list of bonds to be made</p></li>
+<li><p><strong>bbonds</strong> (<em>list</em><em>[</em><em>tuple</em><em>]</em>) – list of bonds to be broken</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>rearranged graph</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>nx.Graph</p>
+<dd class="field-odd"><p>(nx.Graph)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -614,31 +720,6 @@ then only considering rearrangements involving those bonds.</p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_1b">
-<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_1b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_1b1f">
-<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_1b1f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b1f" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_2b">
-<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_2b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_2b1f">
-<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_2b1f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b1f" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="autode.bond_rearrangement.get_fbonds_bbonds_2b2f">
-<span class="sig-prename descclassname"><span class="pre">autode.bond_rearrangement.</span></span><span class="sig-name descname"><span class="pre">get_fbonds_bbonds_2b2f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_brs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_bbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_possible_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_bbond_and_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbond_atom_type_fbonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fbond_atom_type_bbonds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b2f" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="autode.bond_rearrangement.prune_small_ring_rearrs">
@@ -723,15 +804,22 @@ of atoms to be considered equivalent (default: {6})</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> Contents
   </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrGenerator"><code class="docutils literal notranslate"><span class="pre">BondRearrGenerator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrGenerator.__init__"><code class="docutils literal notranslate"><span class="pre">BondRearrGenerator.__init__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrGenerator.get_valid_bond_rearrs"><code class="docutils literal notranslate"><span class="pre">BondRearrGenerator.get_valid_bond_rearrs()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement"><code class="docutils literal notranslate"><span class="pre">BondRearrangement</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement.__eq__"><code class="docutils literal notranslate"><span class="pre">BondRearrangement.__eq__()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement.__init__"><code class="docutils literal notranslate"><span class="pre">BondRearrangement.__init__()</span></code></a></li>
@@ -745,15 +833,14 @@ of atoms to be considered equivalent (default: {6})</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.BondRearrangement.n_membered_rings"><code class="docutils literal notranslate"><span class="pre">BondRearrangement.n_membered_rings()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.MoveSet"><code class="docutils literal notranslate"><span class="pre">MoveSet</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.MoveSet.__init__"><code class="docutils literal notranslate"><span class="pre">MoveSet.__init__()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.add_bond_rearrangment"><code class="docutils literal notranslate"><span class="pre">add_bond_rearrangment()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.generate_rearranged_graph"><code class="docutils literal notranslate"><span class="pre">generate_rearranged_graph()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_bond_rearrangs"><code class="docutils literal notranslate"><span class="pre">get_bond_rearrangs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_bond_rearrangs_from_file"><code class="docutils literal notranslate"><span class="pre">get_bond_rearrangs_from_file()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_1b()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_1b1f"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_1b1f()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_2b()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b1f"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_2b1f()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.get_fbonds_bbonds_2b2f"><code class="docutils literal notranslate"><span class="pre">get_fbonds_bbonds_2b2f()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.prune_small_ring_rearrs"><code class="docutils literal notranslate"><span class="pre">prune_small_ring_rearrs()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.save_bond_rearrangs_to_file"><code class="docutils literal notranslate"><span class="pre">save_bond_rearrangs_to_file()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#autode.bond_rearrangement.strip_equiv_bond_rearrs"><code class="docutils literal notranslate"><span class="pre">strip_equiv_bond_rearrs()</span></code></a></li>
@@ -805,8 +892,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
   </footer>

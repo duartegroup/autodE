@@ -15,63 +15,63 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=4418a689" />
   
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.4.6" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -79,7 +79,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -87,15 +86,55 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
     </header>
   
 
@@ -106,7 +145,8 @@
       
         
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -136,15 +176,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="nav bd-sidenav">
@@ -277,9 +313,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -314,7 +355,7 @@
 
 
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
   title="Fullscreen mode"
   data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
@@ -328,24 +369,23 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
-`);
-</script>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 
 </div></div>
       
@@ -406,8 +446,6 @@ document.write(`
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP.__call__">__call__() (autode.neb.idpp.IDPP method)</a>
-</li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement.__eq__">__eq__() (autode.bond_rearrangement.BondRearrangement method)</a>
 
       <ul>
@@ -424,6 +462,10 @@ document.write(`
         <li><a href="reference/atoms.html#autode.atoms.DummyAtom.__init__">(autode.atoms.DummyAtom method)</a>
 </li>
         <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement.__init__">(autode.bond_rearrangement.BondRearrangement method)</a>
+</li>
+        <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrGenerator.__init__">(autode.bond_rearrangement.BondRearrGenerator method)</a>
+</li>
+        <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.MoveSet.__init__">(autode.bond_rearrangement.MoveSet method)</a>
 </li>
         <li><a href="reference/bonds.html#autode.bonds.BreakingBond.__init__">(autode.bonds.BreakingBond method)</a>
 </li>
@@ -636,8 +678,6 @@ document.write(`
         <li><a href="reference/solvent/solvents.html#autode.solvent.solvents.Solvent.__str__">(autode.solvent.solvents.Solvent method)</a>
 </li>
       </ul></li>
-      <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP._set_distance_matrices">_set_distance_matrices() (autode.neb.idpp.IDPP method)</a>
-</li>
       <li><a href="reference/pes/pes.html#autode.pes.reactive.ReactivePESnD._set_gradients">_set_gradients() (autode.pes.reactive.ReactivePESnD method)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.Optimiser._step">_step() (autode.opt.optimisers.base.Optimiser method)</a>
@@ -690,8 +730,12 @@ document.write(`
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/units.html#autode.units.a0">a0 (in module autode.units)</a>
+      <li><a href="reference/constants.html#autode.constants.Constants.a0">a0 (autode.constants.Constants attribute)</a>
+
+      <ul>
+        <li><a href="reference/units.html#autode.units.a0">(in module autode.units)</a>
 </li>
+      </ul></li>
       <li><a href="reference/constants.html#autode.constants.Constants.a02ang">a02ang (autode.constants.Constants attribute)</a>
 </li>
       <li><a href="reference/constants.html#autode.constants.Constants.a0_to_ang">a0_to_ang (autode.constants.Constants attribute)</a>
@@ -1364,15 +1408,17 @@ document.write(`
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSSR1Update">BFGSSR1Update (class in autode.opt.optimisers.hessian_update)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BFGSUpdate">BFGSUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.BofillUpdate">BofillUpdate (class in autode.opt.optimisers.hessian_update)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.bond_matrix">bond_matrix (autode.species.species.Species property)</a>
 </li>
       <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrangement">BondRearrangement (class in autode.bond_rearrangement)</a>
+</li>
+      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrGenerator">BondRearrGenerator (class in autode.bond_rearrangement)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.BondsInSMILESAndGraphDontMatch">BondsInSMILESAndGraphDontMatch</a>
 </li>
@@ -1394,8 +1440,12 @@ document.write(`
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="reference/thermochemistry/igm.html#autode.thermochemistry.igm.SIConstants.c">c (autode.thermochemistry.igm.SIConstants attribute)</a>
+      <li><a href="reference/constants.html#autode.constants.Constants.c">c (autode.constants.Constants attribute)</a>
+
+      <ul>
+        <li><a href="reference/thermochemistry/igm.html#autode.thermochemistry.igm.SIConstants.c">(autode.thermochemistry.igm.SIConstants attribute)</a>
 </li>
+      </ul></li>
       <li><a href="reference/constants.html#autode.constants.Constants.c_in_cm">c_in_cm (autode.constants.Constants attribute)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.calc_g_cont">calc_g_cont() (autode.species.species.Species method)</a>
@@ -2002,16 +2052,6 @@ document.write(`
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_fbonds">get_fbonds() (in module autode.mol_graphs)</a>
 </li>
-      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_fbonds_bbonds_1b">get_fbonds_bbonds_1b() (in module autode.bond_rearrangement)</a>
-</li>
-      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_fbonds_bbonds_1b1f">get_fbonds_bbonds_1b1f() (in module autode.bond_rearrangement)</a>
-</li>
-      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_fbonds_bbonds_2b">get_fbonds_bbonds_2b() (in module autode.bond_rearrangement)</a>
-</li>
-      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_fbonds_bbonds_2b1f">get_fbonds_bbonds_2b1f() (in module autode.bond_rearrangement)</a>
-</li>
-      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.get_fbonds_bbonds_2b2f">get_fbonds_bbonds_2b2f() (in module autode.bond_rearrangement)</a>
-</li>
       <li><a href="reference/methods.html#autode.methods.get_first_available_method">get_first_available_method() (in module autode.methods)</a>
 </li>
       <li><a href="reference/neb/ci.html#autode.neb.ci.CImage.get_force">get_force() (autode.neb.ci.CImage method)</a>
@@ -2040,12 +2080,16 @@ document.write(`
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.get_mapping_ts_template">get_mapping_ts_template() (in module autode.mol_graphs)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/geom.html#autode.geom.get_neighbour_list">get_neighbour_list() (in module autode.geom)</a>
 </li>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.OptimiserHistory.get_opt_params">get_opt_params() (autode.opt.optimisers.base.OptimiserHistory method)</a>
 </li>
+      <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP.get_path">get_path() (autode.neb.idpp.IDPP method)</a>
+</li>
+      <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP.get_path_length">get_path_length() (autode.neb.idpp.IDPP method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/geom.html#autode.geom.get_points_on_sphere">get_points_on_sphere() (in module autode.geom)</a>
 </li>
       <li><a href="reference/thermochemistry/symmetry.html#autode.thermochemistry.symmetry.get_possible_axes">get_possible_axes() (in module autode.thermochemistry.symmetry)</a>
@@ -2088,6 +2132,8 @@ document.write(`
 </li>
       <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.get_ts_templates">get_ts_templates() (in module autode.transition_states.templates)</a>
 </li>
+      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.BondRearrGenerator.get_valid_bond_rearrs">get_valid_bond_rearrs() (autode.bond_rearrangement.BondRearrGenerator method)</a>
+</li>
       <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.get_value_from_file">get_value_from_file() (in module autode.transition_states.templates)</a>
 </li>
       <li><a href="reference/transition_states/templates.html#autode.transition_states.templates.get_values_dict_from_file">get_values_dict_from_file() (in module autode.transition_states.templates)</a>
@@ -2095,8 +2141,6 @@ document.write(`
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.gm_is_isomorphic">gm_is_isomorphic() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.KeywordsSet.grad">grad (autode.wrappers.keywords.KeywordsSet property)</a>
-</li>
-      <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP.grad">grad() (autode.neb.idpp.IDPP method)</a>
 </li>
       <li><a href="reference/neb/original.html#autode.neb.original.Image.gradient">gradient (autode.neb.original.Image property)</a>
 
@@ -2330,14 +2374,14 @@ document.write(`
         <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.dic.DICWithConstraints.inactive_indexes">(autode.opt.coordinates.dic.DICWithConstraints property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/neb/ci.html#autode.neb.ci.CImages.increment">increment() (autode.neb.ci.CImages method)</a>
 
       <ul>
         <li><a href="reference/neb/original.html#autode.neb.original.Images.increment">(autode.neb.original.Images method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.indexes">indexes (autode.opt.coordinates.base.OptCoordinates property)</a>
 </li>
       <li><a href="reference/neb/original.html#autode.neb.original.NEB.init_k">init_k (autode.neb.original.NEB property)</a>
@@ -2424,7 +2468,9 @@ document.write(`
 </li>
       <li><a href="reference/transition_states/transition_state.html#autode.transition_states.transition_state.TransitionState.is_true_ts">is_true_ts (autode.transition_states.transition_state.TransitionState property)</a>
 </li>
-      <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.is_v5">is_v5 (autode.wrappers.ORCA.ORCA property)</a>
+      <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.is_v5_or_later">is_v5_or_later (autode.wrappers.ORCA.ORCA property)</a>
+</li>
+      <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.is_v6_or_later">is_v6_or_later (autode.wrappers.ORCA.ORCA property)</a>
 </li>
       <li><a href="reference/transition_states/truncation.html#autode.transition_states.truncation.is_worth_truncating">is_worth_truncating() (in module autode.transition_states.truncation)</a>
 </li>
@@ -2556,8 +2602,12 @@ document.write(`
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/units.html#autode.units.m">m (in module autode.units)</a>
 </li>
-      <li><a href="reference/units.html#autode.units.m_e">m_e (in module autode.units)</a>
+      <li><a href="reference/constants.html#autode.constants.Constants.m_e">m_e (autode.constants.Constants attribute)</a>
+
+      <ul>
+        <li><a href="reference/units.html#autode.units.m_e">(in module autode.units)</a>
 </li>
+      </ul></li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.make_graph">make_graph() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.make_hessian_positive_definite">make_hessian_positive_definite() (autode.opt.coordinates.base.OptCoordinates method)</a>
@@ -2767,6 +2817,8 @@ document.write(`
 </li>
       <li><a href="reference/wrappers/mopac.html#autode.wrappers.MOPAC.MOPACOptimiser">MOPACOptimiser (class in autode.wrappers.MOPAC)</a>
 </li>
+      <li><a href="reference/bond_rearrangement.html#autode.bond_rearrangement.MoveSet">MoveSet (class in autode.bond_rearrangement)</a>
+</li>
       <li><a href="reference/smiles/parser.html#autode.smiles.parser.Parser.mult">mult (autode.smiles.parser.Parser property)</a>
 
       <ul>
@@ -2839,6 +2891,8 @@ document.write(`
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.need_vdw_gaussian_kwd">need_vdw_gaussian_kwd() (autode.wrappers.ORCA.ORCA method)</a>
+</li>
       <li><a href="reference/smiles/angles.html#autode.smiles.angles.SDihedral.needs_forcing">needs_forcing() (autode.smiles.angles.SDihedral method)</a>
 </li>
       <li><a href="reference/species/species.html#autode.species.species.Species.new_species">new_species() (autode.species.species.Species method)</a>
@@ -3059,10 +3113,10 @@ document.write(`
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.pred_quad_delta_e">pred_quad_delta_e() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.prfo.PRFOptimiser">PRFOptimiser (class in autode.opt.optimisers.prfo)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.Primitive">Primitive (class in autode.opt.coordinates.primitives)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.primitives.PrimitiveBondAngle">PrimitiveBondAngle (class in autode.opt.coordinates.primitives)</a>
@@ -3108,6 +3162,8 @@ document.write(`
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.base.print_geometries_from">print_geometries_from() (in module autode.opt.optimisers.base)</a>
 </li>
       <li><a href="reference/transition_states/transition_state.html#autode.transition_states.transition_state.TransitionState.print_imag_vector">print_imag_vector() (autode.transition_states.transition_state.TransitionState method)</a>
+</li>
+      <li><a href="reference/species/species.html#autode.species.species.Species.print_mol_file">print_mol_file() (autode.species.species.Species method)</a>
 </li>
       <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.print_num_optimisation_steps">print_num_optimisation_steps() (in module autode.wrappers.ORCA)</a>
 </li>
@@ -3190,6 +3246,8 @@ document.write(`
       <li><a href="reference/values.html#autode.values.Frequency.real">real (autode.values.Frequency property)</a>
 </li>
       <li><a href="reference/pes/pes.html#autode.pes.pes_nd.PESnD.relative_energies">relative_energies (autode.pes.pes_nd.PESnD property)</a>
+</li>
+      <li><a href="reference/neb/idpp.html#autode.neb.idpp.IDPP.relax_path">relax_path() (autode.neb.idpp.IDPP method)</a>
 </li>
       <li><a href="reference/pes/pes.html#autode.pes.relaxed.RelaxedPESnD">RelaxedPESnD (class in autode.pes.relaxed)</a>
 </li>
@@ -3381,6 +3439,8 @@ document.write(`
 </li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.species_are_isomorphic">species_are_isomorphic() (in module autode.mol_graphs)</a>
 </li>
+      <li><a href="reference/mol_graphs.html#autode.mol_graphs.spectral_could_be_isomorphic">spectral_could_be_isomorphic() (in module autode.mol_graphs)</a>
+</li>
       <li><a href="reference/mol_graphs.html#autode.mol_graphs.split_mol_across_bond">split_mol_across_bond() (in module autode.mol_graphs)</a>
 </li>
       <li><a href="reference/smiles/atom_types.html#autode.smiles.atom_types.SquareAntiprismAtom">SquareAntiprismAtom (class in autode.smiles.atom_types)</a>
@@ -3541,14 +3601,16 @@ document.write(`
 </li>
       <li><a href="reference/units.html#autode.units.Unit">Unit (class in autode.units)</a>
 </li>
+      <li><a href="reference/values.html#autode.values.Value.units">units (autode.values.Value attribute)</a>
+</li>
       <li><a href="reference/pes/pes.html#autode.pes.unrelaxed.UnRelaxedPES1D">UnRelaxedPES1D (class in autode.pes.unrelaxed)</a>
 </li>
       <li><a href="reference/exceptions.html#autode.exceptions.UnsupportedCalculationInput">UnsupportedCalculationInput</a>
 </li>
-      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g">update_g_from_cart_g() (autode.opt.coordinates.base.OptCoordinates method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_g_from_cart_g">update_g_from_cart_g() (autode.opt.coordinates.base.OptCoordinates method)</a>
+</li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_h_from_cart_h">update_h_from_cart_h() (autode.opt.coordinates.base.OptCoordinates method)</a>
 </li>
       <li><a href="reference/opt/coordinates.html#autode.opt.coordinates.base.OptCoordinates.update_h_from_old_h">update_h_from_old_h() (autode.opt.coordinates.base.OptCoordinates method)</a>
@@ -3560,8 +3622,6 @@ document.write(`
       <li><a href="reference/opt/optimisers.html#autode.opt.optimisers.hessian_update.HessianUpdater.updated_h_inv">updated_h_inv (autode.opt.optimisers.hessian_update.HessianUpdater property)</a>
 </li>
       <li><a href="reference/wrappers/keywords.html#autode.wrappers.keywords.Keyword.upper">upper() (autode.wrappers.keywords.Keyword method)</a>
-</li>
-      <li><a href="reference/wrappers/orca.html#autode.wrappers.ORCA.ORCA.use_vdw_gaussian_solvent">use_vdw_gaussian_solvent() (autode.wrappers.ORCA.ORCA method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -3754,8 +3814,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
   </footer>

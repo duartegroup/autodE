@@ -16,65 +16,65 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=4418a689" />
   
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
     <script src="_static/documentation_options.js?v=9eb32ce0"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'config';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Reference" href="reference/index.html" />
     <link rel="prev" title="Quick Start" href="quickstart.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.4.6" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   </head>
-  
-  
-  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
-
+  <body data-default-mode="">
   
   
   <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
   
   <div id="pst-scroll-pixel-helper"></div>
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="search.html"
       method="get">
@@ -82,7 +82,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search..."
          aria-label="Search..."
          autocomplete="off"
@@ -90,15 +89,59 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
 
   
-    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
     </header>
   
 
@@ -107,7 +150,8 @@
       
       
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -137,15 +181,11 @@
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         <ul class="current nav bd-sidenav">
@@ -278,9 +318,14 @@
   
   
   <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
   </div>
-  
-  <div id="rtd-footer-container"></div>
 
 
       </div>
@@ -363,7 +408,7 @@
 
 
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm btn-fullscreen-button"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
   title="Fullscreen mode"
   data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
@@ -377,25 +422,24 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
   </button>
-`);
-</script>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
-<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <span class="fa-solid fa-list"></span>
 </button>
 </div></div>
@@ -417,7 +461,7 @@ document.write(`
                 <h2> Contents </h2>
             </div>
             <nav aria-label="Page">
-                <ul class="visible nav section-nav flex-column">
+                <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calculations">Calculations</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general">General</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#keywords">Keywords</a></li>
@@ -451,11 +495,11 @@ performed at PBE0-D3BJ/def2-SVP and single points at PBE0-D3BJ/def2-TZVP.</p>
 from {ORCA, Gaussian09, Gaussian16, NWChem, QChem} and the low-level from
 {XTB, MOPAC}. To select Gaussian09 as the high-level method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">autode</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ade</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">hcode</span> <span class="o">=</span> <span class="s1">&#39;g09&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">hcode</span> <span class="o">=</span> <span class="s1">'g09'</span>
 </pre></div>
 </div>
 <p>Similarly, with the low-level:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">lcode</span> <span class="o">=</span> <span class="s1">&#39;MOPAC&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">lcode</span> <span class="o">=</span> <span class="s1">'MOPAC'</span>
 </pre></div>
 </div>
 <p>To set the number of cores available and the memory per core (in MB), to use a maximum
@@ -476,16 +520,16 @@ easy setting of e.g. a DFT functional.</p>
 </pre></div>
 </div>
 <p>To modify the functional for single point energies, in ORCA:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="s1">&#39;B3LYP&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="s1">'B3LYP'</span>
 </pre></div>
 </div>
 <p>Alternatively, reassign to a whole new set of keywords:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">,</span> <span class="s1">&#39;B3LYP&#39;</span><span class="p">,</span> <span class="s1">&#39;def2-TZVP&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'SP'</span><span class="p">,</span> <span class="s1">'B3LYP'</span><span class="p">,</span> <span class="s1">'def2-TZVP'</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>To add diffuse functions with the <em>ma</em> scheme to the def2-SVP default
 basis set for optimisations:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">set_opt_basis_set</span><span class="p">(</span><span class="s1">&#39;ma-def2-SVP&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">set_opt_basis_set</span><span class="p">(</span><span class="s1">'ma-def2-SVP'</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -502,10 +546,10 @@ manager:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">functional</span>
 <span class="go">Functional(pbe0)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mol</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">&#39;CCO&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mol</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Molecule</span><span class="p">(</span><span class="n">smiles</span><span class="o">=</span><span class="s1">'CCO'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">ade</span><span class="o">.</span><span class="n">temporary_config</span><span class="p">():</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">n_cores</span> <span class="o">=</span> <span class="mi">9</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">funcitonal</span> <span class="o">=</span> <span class="s1">&#39;B3LYP&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">funcitonal</span> <span class="o">=</span> <span class="s1">'B3LYP'</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># this calculation will run with 9 cores and B3LYP functional</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">mol</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">methods</span><span class="o">.</span><span class="n">ORCA</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># when context manager returns previous state of Config is restored</span>
@@ -527,7 +571,7 @@ below for details.</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span>  <span class="c1"># kwds refers to an object inside Config.ORCA</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">temporary_config</span><span class="p">():</span>
-<span class="gp">... </span>    <span class="n">kwds</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="s1">&#39;B3LYP&#39;</span>
+<span class="gp">... </span>    <span class="n">kwds</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">functional</span> <span class="o">=</span> <span class="s1">'B3LYP'</span>
 <span class="gp">... </span>    <span class="n">mol</span><span class="o">.</span><span class="n">optimise</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">ade</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">ORCA</span><span class="p">())</span>
 <span class="gp">... </span>    <span class="c1"># this works successfully</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># when context manager exits, all variables in Config are restored, including Config.ORCA</span>
@@ -548,30 +592,30 @@ best to always modify <code class="code docutils literal notranslate"><span clas
 <p>To use XTB as the <em>hmethod</em> for minima and TS optimisations within Gaussian use the <a class="reference external" href="https://github.com/aspuru-guzik-group/xtb-gaussian">xtb-gaussian</a> wrapper
 and some default options. Note that the string to call <cite>xtb-gaussian</cite> will need to be modified with the appropriate keywords for spin and solvent, e.g., “xtb-gaussian –alpb water”.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">G16</span><span class="o">.</span><span class="n">keywords</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;External=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;IOp(3/5=30)&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">low_opt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;External=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;Opt(Loose, NoMicro)&quot;</span><span class="p">,</span> <span class="s2">&quot;IOp(3/5=30)&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;External=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;Opt(NoMicro)&quot;</span><span class="p">,</span> <span class="s2">&quot;IOp(3/5=30)&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt_ts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;External=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, NoMicro)&quot;</span><span class="p">,</span> <span class="s2">&quot;IOp(3/5=30)&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">hess</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;External=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;Freq&quot;</span><span class="p">,</span> <span class="s2">&quot;Geom(Redundant)&quot;</span><span class="p">,</span> <span class="s2">&quot;IOp(3/5=30)&quot;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;External=&#39;xtb-gaussian&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;Force(NoStep)&#39;</span><span class="p">,</span> <span class="s2">&quot;IOp(3/5=30)&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"External='xtb-gaussian'"</span><span class="p">,</span> <span class="s2">"IOp(3/5=30)"</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">low_opt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"External='xtb-gaussian'"</span><span class="p">,</span> <span class="s2">"Opt(Loose, NoMicro)"</span><span class="p">,</span> <span class="s2">"IOp(3/5=30)"</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"External='xtb-gaussian'"</span><span class="p">,</span> <span class="s2">"Opt(NoMicro)"</span><span class="p">,</span> <span class="s2">"IOp(3/5=30)"</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt_ts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"External='xtb-gaussian'"</span><span class="p">,</span> <span class="s2">"Opt(TS, CalcFC, NoEigenTest, MaxCycles=100, MaxStep=10, NoTrustUpdate, NoMicro)"</span><span class="p">,</span> <span class="s2">"IOp(3/5=30)"</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">hess</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"External='xtb-gaussian'"</span><span class="p">,</span> <span class="s2">"Freq"</span><span class="p">,</span> <span class="s2">"Geom(Redundant)"</span><span class="p">,</span> <span class="s2">"IOp(3/5=30)"</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"External='xtb-gaussian'"</span><span class="p">,</span> <span class="s1">'Force(NoStep)'</span><span class="p">,</span> <span class="s2">"IOp(3/5=30)"</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>To use XTB within ORCA copy the <code class="code docutils literal notranslate"><span class="pre">xtb</span></code> binary to the folder where the <code class="code docutils literal notranslate"><span class="pre">orca</span></code> binary is located and rename it <code class="code docutils literal notranslate"><span class="pre">otool_xtb</span></code>, then
 set the keywords to use. For example</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span> <span class="o">=</span> <span class="n">ade</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">ORCA</span><span class="o">.</span><span class="n">keywords</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SP&#39;</span><span class="p">,</span> <span class="s1">&#39;PBE0&#39;</span><span class="p">,</span> <span class="s1">&#39;def2-SVP&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Opt&#39;</span><span class="p">,</span> <span class="s1">&#39;XTB2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">low_opt</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Opt&#39;</span><span class="p">,</span> <span class="s1">&#39;XTB2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">hess</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NumFreq&#39;</span><span class="p">,</span> <span class="s1">&#39;XTB2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;EnGrad&#39;</span><span class="p">,</span> <span class="s1">&#39;XTB2&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt_ts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;OptTS&#39;</span><span class="p">,</span> <span class="s1">&#39;NumFreq&#39;</span><span class="p">,</span> <span class="s1">&#39;XTB2</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
-<span class="go">  &#39;%geom\n&#39;</span>
-<span class="go">  &#39;NumHess true\n&#39;</span>
-<span class="go">  &#39;Calc_Hess true\n&#39;</span>
-<span class="go">  &#39;Recalc_Hess 30\n&#39;</span>
-<span class="go">  &#39;Trust -0.1\n&#39;</span>
-<span class="go">  &#39;MaxIter 150\n&#39;</span>
-<span class="go">  &#39;end&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'SP'</span><span class="p">,</span> <span class="s1">'PBE0'</span><span class="p">,</span> <span class="s1">'def2-SVP'</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Opt'</span><span class="p">,</span> <span class="s1">'XTB2'</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">low_opt</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Opt'</span><span class="p">,</span> <span class="s1">'XTB2'</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">hess</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'NumFreq'</span><span class="p">,</span> <span class="s1">'XTB2'</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">grad</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'EnGrad'</span><span class="p">,</span> <span class="s1">'XTB2'</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwds</span><span class="o">.</span><span class="n">opt_ts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'OptTS'</span><span class="p">,</span> <span class="s1">'NumFreq'</span><span class="p">,</span> <span class="s1">'XTB2</span><span class="se">\n</span><span class="s1">'</span><span class="p">,</span>
+<span class="go">  '%geom\n'</span>
+<span class="go">  'NumHess true\n'</span>
+<span class="go">  'Calc_Hess true\n'</span>
+<span class="go">  'Recalc_Hess 30\n'</span>
+<span class="go">  'Trust -0.1\n'</span>
+<span class="go">  'MaxIter 150\n'</span>
+<span class="go">  'end']</span>
 </pre></div>
 </div>
 </section>
@@ -611,7 +655,7 @@ variables:</p>
 </pre></div>
 </div>
 <p>For powershell, use <code class="code docutils literal notranslate"><span class="pre">$env</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; $env:AUTODE_LOG_FILE = &#39;INFO&#39;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt; $env:AUTODE_LOG_FILE = 'INFO'
 </pre></div>
 </div>
 </section>
@@ -653,15 +697,17 @@ variables:</p>
             
             
               
-                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
-  <div class="sidebar-secondary-item">
-  <div class="page-toc tocsection onthispage">
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
     <i class="fa-solid fa-list"></i> Contents
   </div>
-  <nav class="bd-toc-nav page-toc">
-    <ul class="visible nav section-nav flex-column">
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calculations">Calculations</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general">General</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#keywords">Keywords</a></li>
@@ -719,8 +765,8 @@ By Tom Young, Joseph Silcock
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
 
   <footer class="bd-footer">
   </footer>
