@@ -6,8 +6,8 @@ on:
       - master
   pull_request:
     paths-ignore:
-      - 'doc/**'
-      - 'examples/**'
+      - "doc/**"
+      - "examples/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,34 +22,34 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.9", "3.13"]  # Lowest and highest supported versions
+        python-version: ["3.11", "3.14"] # Lowest and highest supported versions
 
     defaults:
       run:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-        activate-environment: test
-        channels: conda-forge
+      - uses: conda-incubator/setup-miniconda@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: test
+          channels: conda-forge
 
-    - name: Install mamba solver
-      run: |
-        conda install -n base conda-libmamba-solver
+      - name: Install mamba solver
+        run: |
+          conda install -n base conda-libmamba-solver
 
-    - name: Install
-      run: |
-        conda install \
-          --file requirements.txt \
-          --file tests/requirements.txt \
-          --channel conda-forge \
-          --solver=libmamba
-        python -m pip install . --no-deps
+      - name: Install
+        run: |
+          conda install \
+            --file requirements.txt \
+            --file tests/requirements.txt \
+            --channel conda-forge \
+            --solver=libmamba
+          python -m pip install . --no-deps
 
-    - name: Test
-      run: |
-        py.test tests/
+      - name: Test
+        run: |
+          py.test --import-mode=append tests/

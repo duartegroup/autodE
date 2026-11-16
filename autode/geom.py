@@ -2,7 +2,7 @@ import numpy as np
 
 from typing import Sequence, Union, TYPE_CHECKING, List
 from scipy.spatial.distance import cdist
-from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist as distance_matrix
 from autode.log import logger
 
 if TYPE_CHECKING:

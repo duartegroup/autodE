@@ -2,7 +2,7 @@ import numpy as np
 import os
 import autode.wrappers.keywords as kws
 import autode.wrappers.methods
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, final
 
 from autode.utils import run_external
 from autode.hessians import Hessian
@@ -473,10 +473,11 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
                 output_filename="tmp",
                 stderr_to_log=False,
             )
-            line = next(l for l in open("tmp", "r") if "Program Version" in l)
+            with open("tmp", "r") as fh:
+                line = next(l for l in fh if "Program Version" in l)
             return line.split()[2]
 
-        except (OSError, IOError, StopIteration):
+        except (OSError, IOError, TypeError, StopIteration):
             return "???"
 
     def get_keywords(self, calc_input, molecule):
@@ -519,10 +520,11 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
             sorted(new_keywords, key=lambda kw: 1 if "\n" in kw else 0)
         )
 
-    def use_vdw_gaussian_solvent(self, keywords) -> bool:
+    def need_vdw_gaussian_kwd(self, keywords) -> bool:
         """
-        Determine if the calculation should use the gaussian charge scheme which
-        generally affords better convergence for optimiations in implicit solvent
+        Determine if the calculation should add keywords for the gaussian charge
+        scheme which generally affords better convergence for optimiations in
+        implicit solvent (only for ORCA < v5.0)
 
         Arguments:
             keywords (autode.wrappers.keywords.Keywords):
@@ -535,7 +537,10 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
         if self.implicit_solvation_type.lower() != "cpcm":
             return False
 
-        if keywords.contain_any_of("freq", "optts") and not self.is_v5:
+        if self.is_v5_or_later:
+            return False
+
+        if keywords.contain_any_of("freq", "optts"):
             logger.warning(
                 "Cannot do analytical frequencies with gaussian "
                 "charge scheme - switching off"
@@ -549,11 +554,11 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
         if self.implicit_solvation_type.lower() not in ["smd", "cpcm"]:
             raise UnsupportedCalculationInput(
-                "Implicit solvent type must be " "either SMD or CPCM"
+                "Implicit solvent type must be either SMD or CPCM"
             )
 
         if (
-            self.use_vdw_gaussian_solvent(keywords)
+            self.need_vdw_gaussian_kwd(keywords)
             and molecule.solvent.orca not in vdw_gaussian_solvent_dict
         ):
             err = (
@@ -564,8 +569,16 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
             raise UnsupportedCalculationInput(message=err)
 
-        solv_name = vdw_gaussian_solvent_dict[molecule.solvent.orca]
-        keywords.append(f"CPCM({solv_name})")
+        if self.implicit_solvation_type.lower() == "smd":
+            return
+
+        # Above ORCA 6.0.0 SMD solvent names can be directly used with CPCM
+        if self.is_v6_or_later:
+            keywords.append(f"CPCM({molecule.solvent.orca})")
+        else:
+            solv_name = vdw_gaussian_solvent_dict[molecule.solvent.orca]
+            keywords.append(f"CPCM({solv_name})")
+
         return
 
     def print_solvent(self, inp_file, molecule, keywords):
@@ -583,14 +596,25 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
                 file=inp_file,
             )
 
-        if self.use_vdw_gaussian_solvent(keywords):
+        if self.need_vdw_gaussian_kwd(keywords):
             print("%cpcm\n" "surfacetype vdw_gaussian\n" "end", file=inp_file)
         return
 
     @property
-    def is_v5(self):
+    def is_v5_or_later(self):
         """Is this ORCA version at least 5.0.0?"""
-        return self._get_version_no_output()[0] == "5"
+        try:
+            return int(self._get_version_no_output()[0]) >= 5
+        except ValueError:
+            return False
+
+    @property
+    def is_v6_or_later(self):
+        """Is this ORCA version at least v6.0.0?"""
+        try:
+            return int(self._get_version_no_output()[0]) >= 6
+        except ValueError:
+            return False
 
 
 class ORCAOptimiser(ExternalOptimiser):

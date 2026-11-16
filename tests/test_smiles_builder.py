@@ -181,7 +181,7 @@ def test_dihedrals():
 def test_cdihedral_rotation():
     try:
         # from ade_dihedrals import rotate
-        from ade_dihedrals import rotate
+        from autode.ext.ade_dihedrals import rotate
 
     except ModuleNotFoundError:
         return

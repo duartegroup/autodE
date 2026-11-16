@@ -71,8 +71,8 @@ def _get_coords_energy(
         (np.ndarray): Optimised coordinates, shape = (n_atoms, 3)
     """
     # TODO divide and conquer?
-    from cconf_gen import v
-    from cconf_gen import dvdr
+    from autode.conformers.cconf_gen import v
+    from autode.conformers.cconf_gen import dvdr
 
     n_atoms = len(coords)
     os.environ["OMP_NUM_THREADS"] = str(1)
@@ -114,7 +114,7 @@ def _get_v(coords, bonds, k, c, d0, fixed_bonds, exponent=8):
     Returns:
         (float): Energy
     """
-    from cconf_gen import v
+    from autode.conformers.cconf_gen import v
 
     n_atoms = len(coords)
     os.environ["OMP_NUM_THREADS"] = str(1)

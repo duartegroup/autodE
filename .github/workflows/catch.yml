@@ -6,8 +6,8 @@ on:
       - master
   pull_request:
     paths-ignore:
-      - 'doc/**'
-      - 'examples/**'
+      - "doc/**"
+      - "examples/**"
 
 jobs:
   test:
@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Create Build Environment
         run: mkdir autode/ext/build

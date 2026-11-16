@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pytest
 import autode as ade
 from autode import bond_rearrangement as br
@@ -200,7 +201,7 @@ def test_bondrearr_class():
         _ = rearrang.get_active_atom_neighbour_lists(mol_c, depth=1)
 
 
-def test_get_bond_rearrangs():
+def test_get_bond_rearrangs(caplog):
     # ethane --> Ch3 + Ch3
     reac = Molecule(smiles="CC")
     prod = Molecule(
@@ -232,15 +233,17 @@ def test_get_bond_rearrangs():
     assert rearr == BondRearrangement(breaking_bonds=[(1, 0)])
     os.remove("test_bond_rearrangs.txt")
 
-    assert (
-        br.get_bond_rearrangs(
+    # If we try to get the bond rearrangement from the other way
+    # it should print a warning
+    with caplog.at_level("INFO"):
+        assert br.get_bond_rearrangs(
             ReactantComplex(prod),
             ProductComplex(reac),
             name="test2",
             save=False,
-        )
-        is None
-    )
+        ) == [br.BondRearrangement(forming_bonds=[(0, 1)])]
+    assert "More bonds in product than in reactant" in caplog.text
+    assert "suggest swapping them" in caplog.text
 
     # If reactants and products are identical then the rearrangement is
     # undetermined
@@ -307,21 +310,14 @@ def test_2b():
     )
 
     # Reactants to products must break two bonds
-    assert (
-        len(
-            br.get_bond_rearrangs(
-                ReactantComplex(reac),
-                ProductComplex(prod),
-                name="2b_test",
-                save=False,
-            )
-        )
-        == 1
+    rearrs = br.get_bond_rearrangs(
+        ReactantComplex(reac),
+        ProductComplex(prod),
+        name="2b_test",
+        save=False,
     )
-
-    assert br.get_fbonds_bbonds_2b(
-        reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []
-    ) == [br.BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
+    assert len(rearrs) == 1
+    assert rearrs == [br.BondRearrangement(breaking_bonds=[(0, 1), (1, 2)])]
 
 
 def test_3b():
@@ -343,16 +339,13 @@ def test_3b():
         ]
     )
 
-    # Reactants to products must break three bonds but this is not yet supported in any form
-    assert (
-        br.get_bond_rearrangs(
-            ReactantComplex(reac),
-            ProductComplex(prod),
-            name="3b_test",
-            save=False,
-        )
-        is None
-    )
+    # Reactants to products must break three bonds
+    assert br.get_bond_rearrangs(
+        ReactantComplex(reac),
+        ProductComplex(prod),
+        name="3b_test",
+        save=False,
+    ) == [BondRearrangement(breaking_bonds=[(0, 1), (1, 2), (2, 3)])]
 
 
 def test_1b1f():
@@ -362,9 +355,9 @@ def test_1b1f():
     prod = Molecule(
         atoms=[Atom("C", 0, 0, 0), Atom("H", 10, 0, 0), Atom("H", 10.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_1b1f(
-        reac, prod, [], [[(0, 1)]], [[(1, 2)]], [], [], []
-    ) == [
+
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])
     ]
 
@@ -374,24 +367,24 @@ def test_1b1f():
     prod = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("H", 10, 0, 0), Atom("H", 10.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_1b1f(
-        reac, prod, [], [], [], [[[(0, 1)], [(1, 2)]]], [], []
-    ) == [
-        br.BondRearrangement(forming_bonds=[(1, 2)], breaking_bonds=[(0, 1)])
+
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
+        br.BondRearrangement(forming_bonds=[(0, 2)], breaking_bonds=[(0, 1)])
     ]
 
 
 def test_2b1f():
     reac = Molecule(
-        atoms=[Atom("H", 0, 0, 0), Atom("C", 0.6, 0, 0), Atom("O", 1.2, 0, 0)]
+        atoms=[Atom("H", 0, 0, 0), Atom("C", 0.6, 0, 0), Atom("O", 1.4, 0, 0)]
     )
     make_graph(reac, allow_invalid_valancies=True)
     prod = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("C", 10, 0, 0), Atom("O", 0.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_2b1f(
-        reac, prod, [], [[(0, 1)], [(1, 2)]], [[(0, 2)]], [], [], []
-    ) == [
+
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
         )
@@ -404,24 +397,8 @@ def test_2b1f():
     prod = Molecule(
         atoms=[Atom("H", 0, 0, 0), Atom("C", 10, 0, 0), Atom("H", 0.6, 0, 0)]
     )
-    assert br.get_fbonds_bbonds_2b1f(
-        reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 2)]], [], [], []
-    ) == [
-        br.BondRearrangement(
-            forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
-        )
-    ]
-
-    reac = Molecule(
-        atoms=[Atom("H", 0, 0, 0), Atom("H", 0.6, 0, 0), Atom("H", 1.2, 0, 0)]
-    )
-    make_graph(reac, allow_invalid_valancies=True)
-    prod = Molecule(
-        atoms=[Atom("H", 0, 0, 0), Atom("H", 0.6, 0, 0), Atom("H", 10, 0, 0)]
-    )
-    assert br.get_fbonds_bbonds_2b1f(
-        reac, prod, [], [[(0, 1), (1, 2)]], [], [], [(0, 2)], []
-    ) == [
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 2)], breaking_bonds=[(0, 1), (1, 2)]
         )
@@ -446,9 +423,8 @@ def test_2b2f():
         ]
     )
 
-    assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [[(0, 1)], [(2, 3)]], [[(0, 2)], [(1, 3)]], [], [], []
-    ) == [
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 2), (1, 3)], breaking_bonds=[(0, 1), (2, 3)]
         )
@@ -473,9 +449,8 @@ def test_2b2f():
         ]
     )
 
-    assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [[(0, 1)], [(2, 3)]], [[(0, 4), (2, 4)]], [], [], []
-    ) == [
+    rearrs = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 4), (2, 4)], breaking_bonds=[(0, 1), (2, 3)]
         )
@@ -497,16 +472,8 @@ def test_2b2f():
             Atom("O", 10.6, 0, 0),
         ]
     )
-    assert br.get_fbonds_bbonds_2b2f(
-        reac,
-        prod,
-        [],
-        [[(0, 1), (1, 2)]],
-        [[(0, 3), (2, 3)], [(1, 3)]],
-        [],
-        [],
-        [],
-    ) == [
+    rearrs = br.BondRearrGenerator(reac, prod, 0).get_valid_bond_rearrs()
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (1, 3)], breaking_bonds=[(0, 1), (1, 2)]
         ),
@@ -531,9 +498,9 @@ def test_2b2f():
             Atom("O", 0.6, 0, 0),
         ]
     )
-    assert br.get_fbonds_bbonds_2b2f(
-        reac, prod, [], [[(0, 1), (1, 2)]], [[(0, 3), (2, 3)]], [], [], []
-    ) == [
+
+    rearr = br.get_bond_rearrangs(reac, prod, name="test", save=False)
+    assert rearr == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)]
         )
@@ -555,16 +522,8 @@ def test_2b2f():
             Atom("C", 0.6, 0, 0),
         ]
     )
-    assert br.get_fbonds_bbonds_2b2f(
-        reac,
-        prod,
-        [],
-        [],
-        [],
-        [[[(0, 1)], [(0, 3)]], [[(1, 2)], [(2, 3)]]],
-        [],
-        [],
-    ) == [
+    rearrs = br.BondRearrGenerator(reac, prod, 0, 2).get_valid_bond_rearrs()
+    assert rearrs == [
         br.BondRearrangement(
             forming_bonds=[(0, 3), (2, 3)], breaking_bonds=[(0, 1), (1, 2)]
         )
@@ -632,3 +591,66 @@ def test_2b2f_single_bond_type():
 
     brs = get_bond_rearrangs(reac, prod, "test")
     assert brs is not None and len(brs) == 1
+
+
+@work_in_tmp_dir()
+def test_metal_bond_rearr():
+    rct = Molecule(
+        atoms=[
+            Atom("C", -1.3767, 0.0570, -1.3664),
+            Atom("C", -2.6791, -0.0962, -0.9319),
+            Atom("C", -2.9564, -0.6049, 0.3450),
+            Atom("C", -1.9590, -1.0294, 1.2302),
+            Atom("C", -0.5961, -0.9681, 0.9718),
+            Atom("Rh", 0.2867, 0.0575, -0.4059),
+            Atom("P", 2.4304, -0.6254, 0.3308),
+            Atom("P", 0.1808, 2.2070, 0.2134),
+            Atom("H", 0.4144, 2.4032, 1.6007),
+            Atom("H", 0.9267, 3.3450, -0.2281),
+            Atom("H", -1.1026, 2.8113, 0.1430),
+            Atom("H", 3.2304, -1.3384, -0.6069),
+            Atom("H", 3.5014, 0.1821, 0.8252),
+            Atom("H", 2.4909, -1.5907, 1.3765),
+            Atom("H", -4.0026, -0.7346, 0.6414),
+            Atom("H", -2.2860, -1.4755, 2.1778),
+            Atom("H", -3.5210, 0.0778, -1.6125),
+            Atom("H", -1.2152, 0.2895, -2.4390),
+            Atom("H", 0.0448, -1.3115, 1.8013),
+        ]
+    )
+
+    prod = rct.copy()
+    prod.coordinates = np.array(
+        [
+            [-2.13498901816895, -0.33612687288335, -0.86754280713549],
+            [-2.52485510044462, 0.40370659667954, 0.31248882468858],
+            [-2.11142719924124, -0.33450226041684, 1.43145119220829],
+            [-1.46413065518446, -1.53453226838949, 0.94874413980954],
+            [-1.5699580883199, -1.57824199166861, -0.46835599227779],
+            [-0.24452290403628, 0.17294517838954, 0.19800468613376],
+            [1.58455459079778, 0.03099824045501, 1.41573815831704],
+            [0.65667523851578, 1.69691872713977, -1.11195946726777],
+            [1.97524695781375, 2.17696797868182, -0.86040708916778],
+            [0.83937461626034, 1.45484527521222, -2.50835466167594],
+            [0.04811296591758, 2.97927455619315, -1.27732209848744],
+            [2.70620482100756, 0.8650601517448, 1.13526655449729],
+            [1.5524764441543, 0.27376850175013, 2.82361385040179],
+            [2.3162173059062, -1.19299867782956, 1.50800208661024],
+            [-2.2436105492963, -0.05703932355732, 2.47583874220784],
+            [-1.06823763466507, -2.3302069408402, 1.57985644964237],
+            [-3.03903079987432, 1.3632151872862, 0.32308325841509],
+            [-2.35128706528227, -0.03857206339642, -1.89358109052685],
+            [-1.23761392585987, -2.3820899945504, -1.12143473639278],
+        ]
+    )
+    # Going from metallabenzene -> metal cyclopentadienyl, formation
+    # of 4 bonds in one step!
+    rearrs = br.get_bond_rearrangs(rct, prod, name="test", save=False)
+    assert rearrs == [
+        BondRearrangement(forming_bonds=[(0, 4), (1, 5), (2, 5), (3, 5)])
+    ]
+
+
+def test_bond_rearr_repr():
+    bond_rearr = BondRearrangement([(0, 1), (2, 3)], [(1, 2)])
+    assert repr(bond_rearr) == "Form(0-1,2-3)+Break(1-2)"

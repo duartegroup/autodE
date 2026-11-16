@@ -1,11 +1,11 @@
 from molfunc import CoreMolecule, CombinedMolecule
 
 fragments = {
-    "NMe2": "CN([Fr])C",
-    "NH2": "N[Fr]",
-    "OH": "O[Fr]",
-    "Me": "C[Fr]",
-    "F": "F[Fr]",
+    "NMe2": "CN([*])C",
+    "NH2": "N[*]",
+    "OH": "O[*]",
+    "Me": "C[*]",
+    "F": "F[*]",
 }
 
 methane = CoreMolecule(xyz_filename="CH4.xyz", atoms_to_del=[2])

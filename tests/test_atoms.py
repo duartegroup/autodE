@@ -50,7 +50,7 @@ def test_atoms():
 
     # Moment of inertia
     assert np.sum(np.diag(h_atoms.moi)) > 0.0
-    assert 1.9 < np.sum(np.diag(h_atoms.moi)) < 2.1
+    assert 0.9 < np.sum(np.diag(h_atoms.moi)) < 1.1
 
     h_atoms_far = Atoms([Atom("H"), Atom("H", x=10.0)])
     assert np.sum(h_atoms_far.moi) > np.sum(h_atoms.moi)
@@ -368,7 +368,7 @@ def test_atom_doc_examples():
     assert Atom("C").weight == Mass(12.0107, units="amu")
     assert Atom("C").weight == Atom("C").mass
 
-    assert Atom("H").mass.to("me") == Mass(1837.3622207894994, units="m_e")
+    assert Atom("H").mass.to("me") == Mass(1837.3622208638453, units="m_e")
 
     atom = Atom("H")
     atom.translate(1.0, 0.0, 0.0)

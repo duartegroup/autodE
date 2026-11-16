@@ -110,7 +110,7 @@ explicit unit conversion is supported
 .. code-block:: python
 
   >>> water.angle(1, 0, 2).to('deg')
-  Angle(113.17085 °)
+  Angle(113.17063 °)
 
 
 
@@ -142,7 +142,7 @@ simple as
 .. code-block:: python
 
   >>> water.energy.to('kcal')
-  Energy(-47927.6682 kcal mol-1)
+  Energy(-47927.7053 kcal mol-1)
 
 :code:`water.energy` returns the most recently evaluated energy at this geometry,
 but the XTB energy is still saved in :code:`water.energies`. Printing the energies
@@ -197,6 +197,10 @@ use :code:`ade.Config` e.g.
 
     Structure optimisation resets the positions of the atoms to their optimised
     value.
+
+For a different functional the keywords have to be written as
+
+>>> ade.Config.ORCA.keywords.sp = ['WB97X-D3', 'ma-def2-TZVP']
 
 Calculations can also be performed using electronic structure packages with
 implemented wrappers. For example, to calculate a single point energy for a
