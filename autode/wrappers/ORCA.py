@@ -341,6 +341,16 @@ class ORCA(autode.wrappers.methods.ExternalMethodOEGH):
 
         return charges
 
+    def dipole_from(self, calc: "CalculationExecutor") -> float:
+
+        for i, line in enumerate(calc.output.file_lines):
+            if "DIPOLE MOMENT" in line:
+                dipole_line = calc.output.file_lines[i+9]
+                dipole = dipole_line.split()[-1]
+                return dipole
+
+        return None
+
     def gradient_from(self, calc: "CalculationExecutor") -> Gradient:
         """
         e.g.
