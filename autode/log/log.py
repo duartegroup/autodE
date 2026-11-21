@@ -77,7 +77,7 @@ else:
         level=get_log_level(),
         format="%(name)-12s: %(levelname)-8s %(message)s",
     )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("autode")
 
 # Try and use colourful logs...
 try:
